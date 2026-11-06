@@ -93,3 +93,53 @@ test('rubriekplekken: een voorkeur met een minimumgewicht (3b · 4)', async () =
     }
   }
 })
+
+// Ronde 2 · 2 (keuring 6 november): een stuk of verhaal van één uitgever alleen als er geen vers verhaal van minstens
+// SPREAD_MIN uitgevers meer over is; een stuk zonder titel nooit; een review, uitverkoop of productblad is geen nieuwsplek.
+test('eenbronsstukken: pas als er geen verhaal van minstens drie uitgevers meer over is (3b · ronde 2)', async () => {
+  const { SPREAD_MIN, titled } = await import('../netlify/lib/stories.mjs')
+  assert.equal(SPREAD_MIN, 3)
+  const T = Date.parse('2026-11-06T05:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, o = {}) => ({ id: `e${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(1), topics: [], ...o })
+  const own = new Set(['nos', 'nrc', 'volkskrant', 'ad', 'nu'])
+  const prof = profileOf({ followed: own, sources: SOURCES })
+  // Vier buitenlandse verhalen van vier uitgevers (voor een leeg profiel een reden) en twee losse Nederlandse stukken.
+  const subjects = ['French premier resigns after losing confidence vote in Paris', 'German coalition collapses over budget in Berlin', 'Spanish court blocks amnesty law in Madrid', 'Polish president vetoes judicial reform in Warsaw']
+  const stories = []
+  const pool = []
+  subjects.forEach((title, k) => {
+    const its = ['bbc', 'nyt', 'guardian', 'lemonde'].map((s) => art(s, title, { topics: ['europa'] }))
+    pool.push(...its)
+    stories.push({ id: `s${k}`, itemIds: its.map((i) => i.id), sourceCount: 4, publisherCount: 4, latestAt: its[0].publishedAt, desk: 'buitenland' })
+  })
+  const singles = [art('ad', 'Griezelen in het pretpark tijdens de herfstnachten', { topics: ['nederland'] }), art('nu', 'Gemeente opent nieuwe bibliotheek in Zwolle', { topics: ['nederland'] })]
+  const untitled = art('nrc', '', { publishedAt: at(0.1), topics: ['nederland'] })
+  delete untitled.title
+  pool.push(...singles, untitled)
+  const run = (size, general) => selectForReader(stories, pool, { mainIds: own, now: T, size, prof, general }).map((e) => e.id)
+  // Zonder de regel neemt de Nederlandse plek van de voorpagina een los stuk, ook al zijn er sterke verhalen over.
+  assert.ok(run(4, false).some((id) => id.startsWith('e')), run(4, false).join())
+  // Met de regel eerst de verhalen van vier uitgevers; een los stuk pas als er geen sterk verhaal meer over is.
+  assert.deepEqual(run(4, true).sort(), ['s0', 's1', 's2', 's3'])
+  const all = run(10, true)
+  for (const k of [0, 1, 2, 3]) assert.ok(all.includes(`s${k}`), all.join())
+  assert.ok(all.some((id) => id.startsWith('e')), 'als het sterke nieuws op is, mag een los stuk')
+  // Nooit een stuk zonder titel, ook niet in de persoonlijke Editie.
+  assert.ok(!titled(untitled) && titled(singles[0]))
+  assert.ok(!all.includes(untitled.id) && !run(10, false).includes(untitled.id))
+})
+
+test('service is geen nieuwsplek: review, uitverkoop en productblad herkend aan URL-slug en kopvorm (3b · ronde 2)', async () => {
+  const { lightKind } = await import('../shared/edition-policy.mjs')
+  const k = (title, url) => lightKind({ title, url, source: 'theverge' })
+  assert.equal(k('Sony’s retro headphones brought me back to my childhood', 'https://www.theverge.com/tech/1026958/sony-mdr-3r-headphones-review'), 'consument')
+  assert.equal(k('Google’s latest Nest Learning Thermostat is $60 off just in time', 'https://www.theverge.com/gadgets/1022819/google-nest-learning-thermostat-4th-gen-watch-deal-sale'), 'consument')
+  assert.equal(k('Motorola Signature 27: Specs, Price, Features, Release Date', 'https://www.wired.com/story/motorola-wants-to-sell-you-a-phone/'), 'consument')
+  assert.equal(k('Motorola is going ultra premium with its Signature phone', 'https://www.theverge.com/gadgets/1026643/motorola-signature-27-price-specs-availability'), 'consument')
+  // Een overname of akkoord is nieuws, ook met "deal" of "sale" in de slug; een rechtszaak over een review ook.
+  assert.equal(k('Nvidia closes chip deal with Saudi Arabia', 'https://www.theverge.com/news/1/nvidia-deal-saudi-arabia'), null)
+  assert.equal(k('Paramount completes sale of studio to rival', 'https://www.theverge.com/news/2/paramount-sale-studio'), null)
+  assert.equal(k('Court fines Amazon over fake review scheme', 'https://www.theverge.com/news/3/amazon-fake-review-fine'), null)
+})

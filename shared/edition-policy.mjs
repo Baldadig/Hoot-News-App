@@ -146,8 +146,13 @@ const LIGHT_PATH_GAMES = /\/(games?|gaming|gameblog)\//i
 const LIGHT_PATH = /\/(entertainment|showbizz|show|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i
 const LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i
 const CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i
-// Geen 'deal': dat is vaker een overname of een akkoord (Nvidia-deal met Saudi-Arabië) dan een aanbieding.
-const CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i
+// Ook de slug van het stuk (ronde 2, 6 november: "sony-mdr-3r-headphones-review", "…-watch-deal-sale",
+// "…-price-specs-availability"): een review, een uitverkoop of een productblad is service, geen nieuwsplek.
+const CONSUMER_SLUG = /(?:^|-)(review|hands-on|deal-sale|price-specs\w*|specs-price\w*|release-date-price\w*|kortingscode\w*|aanbieding\w*)(?:-|$)/i
+const slugOf = (url) => (url.replace(/\/+$/, '').split('/').pop() || '').replace(/\.\w+$/, '').replace(/~.*$/, '')
+// Geen 'deal': dat is vaker een overname of een akkoord (Nvidia-deal met Saudi-Arabië) dan een aanbieding. Wel een prijs
+// met "off" ("$60 off", "30% off") en het productblad ("Specs, Price, Features, Release Date").
+const CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b|[$€£]\s?\d[\d,.]*\s+off\b|\b\d+% off\b|\bspecs,? (?:and )?price\b|\bprice,? (?:and )?specs\b/i
 // Een harde nieuwsreden in de kop, of een onderwerp van politiek of wereld: dan is het geen licht stuk.
 const HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|protest\w*|betoging\w*|demonstr\w*|overname\w*|takeover|fusie\w*|merger|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i
 const HARD_FAMILIES = new Set(['politiek', 'wereld'])
@@ -164,7 +169,7 @@ export function lightKind(item, catOf = null) {
   if (LIGHT_CAT[cat]) return LIGHT_CAT[cat]
   if (LIGHT_PATH_GAMES.test(url) || byTopic === 'games') return 'games'
   if (byTopic || LIGHT_PATH.test(url) || LIGHT_HEAD.test(title)) return 'cultuur'
-  if (CONSUMER_PATH.test(url) || CONSUMER_HEAD.test(title)) return 'consument'
+  if (CONSUMER_PATH.test(url) || CONSUMER_SLUG.test(slugOf(url)) || CONSUMER_HEAD.test(title)) return 'consument'
   return null
 }
 // Een verhaal is licht als een echte meerderheid van zijn uitgevers het als licht stuk brengt (zoals sportStory):

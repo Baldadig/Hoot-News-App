@@ -1574,7 +1574,9 @@ var HootCore = (() => {
   var LIGHT_PATH = /\/(entertainment|showbizz|show|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i;
   var LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i;
   var CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i;
-  var CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i;
+  var CONSUMER_SLUG = /(?:^|-)(review|hands-on|deal-sale|price-specs\w*|specs-price\w*|release-date-price\w*|kortingscode\w*|aanbieding\w*)(?:-|$)/i;
+  var slugOf = (url) => (url.replace(/\/+$/, "").split("/").pop() || "").replace(/\.\w+$/, "").replace(/~.*$/, "");
+  var CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b|[$€£]\s?\d[\d,.]*\s+off\b|\b\d+% off\b|\bspecs,? (?:and )?price\b|\bprice,? (?:and )?specs\b/i;
   var HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|protest\w*|betoging\w*|demonstr\w*|overname\w*|takeover|fusie\w*|merger|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i;
   var HARD_FAMILIES = /* @__PURE__ */ new Set(["politiek", "wereld"]);
   var hardNews = (item) => HARD_HEAD.test(item?.title || "") || (item?.topics || []).some((t) => HARD_FAMILIES.has(FAMILY_OF[t]));
@@ -1588,7 +1590,7 @@ var HootCore = (() => {
     if (LIGHT_CAT[cat]) return LIGHT_CAT[cat];
     if (LIGHT_PATH_GAMES.test(url) || byTopic === "games") return "games";
     if (byTopic || LIGHT_PATH.test(url) || LIGHT_HEAD.test(title)) return "cultuur";
-    if (CONSUMER_PATH.test(url) || CONSUMER_HEAD.test(title)) return "consument";
+    if (CONSUMER_PATH.test(url) || CONSUMER_SLUG.test(slugOf(url)) || CONSUMER_HEAD.test(title)) return "consument";
     return null;
   }
   var CAT_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.cat]));
@@ -2583,7 +2585,9 @@ var HootCore = (() => {
   }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   var DESK_MIN_PUBS = 3;
-  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false } = {}) {
+  var SPREAD_MIN = 3;
+  var titled = (i) => !!String(i?.title ?? "").trim();
+  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false, general = false } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
     const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
     const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }));
@@ -2601,6 +2605,7 @@ var HootCore = (() => {
       for (const id of ids) if (sig.has(id)) placed.push(sig.get(id));
     };
     const pickLead = (items, total = items.length) => {
+      if (items.some(titled)) items = items.filter(titled);
       const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? "front" : "neutral" });
       const cands2 = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all;
       const from = leadPool(cands2, items, now, (i) => mainIds.has(i.source), total);
@@ -2622,6 +2627,10 @@ var HootCore = (() => {
       const items = raw.filter((i) => !lightVideoFiller(i, prof));
       if (!items.length) {
         reject("story", st.id, st.itemIds, raw.length ? "licht-videorondje-buiten-interesse" : "geen-bekend-artikel");
+        continue;
+      }
+      if (!items.some(titled)) {
+        reject("story", st.id, st.itemIds, "zonder-titel");
         continue;
       }
       let dev = null;
@@ -2652,6 +2661,10 @@ var HootCore = (() => {
         reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
         continue;
       }
+      if (!titled(it)) {
+        reject("item", it.id, [it.id], "zonder-titel");
+        continue;
+      }
       if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) {
         reject("item", it.id, [it.id], "te-oud-of-geen-intro-en-beeld");
         continue;
@@ -2680,12 +2693,23 @@ var HootCore = (() => {
     const placedC = [];
     const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
     const cappedWorld = (c) => cappedInternational(prof, c.whole || c.items, c.desk, c.st);
+    const admissible = (c) => !used.has(c) && !clashes(c) && familyRoom(c, placedC) && allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }) && !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
+      const x = cands.find((c2) => c2.id === e.id);
+      return x && cappedWorld(x);
+    }).length >= INT_MAX);
+    const spread = (c) => c.kind === "item" ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount;
+    let strongAt = -1;
+    let strong = false;
+    const strongLeft = () => {
+      if (strongAt !== entries.length) {
+        strongAt = entries.length;
+        strong = cands.some((x) => x.kind === "story" && !x.parts.seen && spread(x) >= SPREAD_MIN && !capped(x) && admissible(x));
+      }
+      return strong;
+    };
     const take = (c, desk, extra = {}) => {
-      if (used.has(c) || clashes(c) || !familyRoom(c, placedC) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false;
-      if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
-        const x = cands.find((c2) => c2.id === e.id);
-        return x && cappedWorld(x);
-      }).length >= INT_MAX) return false;
+      if (!admissible(c)) return false;
+      if (general && spread(c) <= 1 && strongLeft()) return false;
       used.add(c);
       placedC.push(c);
       place(c.ids);

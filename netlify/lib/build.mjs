@@ -579,7 +579,7 @@ const compact = (o) => {
 // `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
 export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null } = {}) {
   const prof = profileOf({ followed: mainIds, sources })
-  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof })
+  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true })
   const byId = new Map(newsPool.map((i) => [i.id, i]))
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
   const entries = sel.map((e) => (e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }))

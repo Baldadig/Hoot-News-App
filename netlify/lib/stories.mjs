@@ -1572,7 +1572,14 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 // `keys` van het verhaal (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
 const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 export const DESK_MIN_PUBS = 3
-export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false } = {}) {
+// Eenbronsstukken in de algemene Editie (Redacteur 3b · ronde 2, keuring 6 november: zeven van de tien plekken met één
+// uitgever, onder meer "Griezelen in Walibi", "NRC: Oproep" en een kortingsactie): met `general` krijgt een stuk of verhaal
+// van één uitgever alleen een plek als er geen vers verhaal van minstens SPREAD_MIN uitgevers meer over is dat een plek mag.
+// De persoonlijke Editie houdt haar eigen bronnen: daar is één eigen stuk juist een keuze.
+export const SPREAD_MIN = 3
+// Een stuk zonder titel krijgt nooit een plek, en is nooit de kop van een verhaal (31 oktober: "NRC: undefined").
+export const titled = (i) => !!String(i?.title ?? '').trim()
+export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false, general = false } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
   // een kenmerk met de woordenschat van de pool van nu.
@@ -1594,6 +1601,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items, total = items.length) => {
+    if (items.some(titled)) items = items.filter(titled)
     const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? 'front' : 'neutral' })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     // Eigen bronnen eerst; daarbinnen een samenvattende kop, geen vraag, de verste stukken, in het
@@ -1615,6 +1623,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const raw = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     const items = raw.filter(i=>!lightVideoFiller(i,prof))
     if (!items.length) { reject('story', st.id, st.itemIds, raw.length ? 'licht-videorondje-buiten-interesse' : 'geen-bekend-artikel'); continue }
+    if (!items.some(titled)) { reject('story', st.id, st.itemIds, 'zonder-titel'); continue }
     // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
     // telt hier alleen voor de volgorde, niet voor de plek).
     let dev = null
@@ -1644,6 +1653,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
+    if (!titled(it)) { reject('item', it.id, [it.id], 'zonder-titel'); continue }
     if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
     if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) { reject('item', it.id, [it.id], 'eerder-getoond-of-gelezen'); continue } // stond er al, of je las het al
     // Hoort het bij een verhaal waarvan je al een stuk las (ook zonder storyId op het bericht), dan
@@ -1668,9 +1678,22 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const placedC = []
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
   const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
+  const admissible = (c) => !used.has(c) && !clashes(c) && familyRoom(c, placedC) && allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }) && !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX)
+  // De spreiding van een kandidaat: het aantal onafhankelijke uitgevers van het hele verhaal (een los stuk: één).
+  const spread = (c) => (c.kind === 'item' ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount)
+  // Is er nog een vers verhaal van minstens SPREAD_MIN uitgevers dat een plek mag? Eén keer per stand van de Editie.
+  let strongAt = -1
+  let strong = false
+  const strongLeft = () => {
+    if (strongAt !== entries.length) {
+      strongAt = entries.length
+      strong = cands.some((x) => x.kind === 'story' && !x.parts.seen && spread(x) >= SPREAD_MIN && !capped(x) && admissible(x))
+    }
+    return strong
+  }
   const take = (c, desk, extra = {}) => {
-    if (used.has(c) || clashes(c) || !familyRoom(c, placedC) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false
-    if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX) return false
+    if (!admissible(c)) return false
+    if (general && spread(c) <= 1 && strongLeft()) return false
     used.add(c)
     placedC.push(c)
     place(c.ids)
