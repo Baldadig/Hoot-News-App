@@ -1613,9 +1613,11 @@ export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, 
     const core = new Set(centralItems(items))
     const inCore = fit.filter((i) => core.has(i))
     if (!inCore.length) continue
+    // De kenmerken pas als er een kandidaat is, de uitgebreide alleen als sameSubject niets vindt (rekentijd).
     const sig = signatures(items)
-    const sigX = signatures(items, [], { extended: true })
-    const linked = (i) => items.some((j) => j !== i && sig.has(i.id) && sig.has(j.id) && (sameSubject(sig.get(i.id), sig.get(j.id)) || sameEvent(sigX.get(i.id), sigX.get(j.id), true)))
+    let sigX = null
+    const ext = () => (sigX ||= signatures(items, [], { extended: true }))
+    const linked = (i) => sig.has(i.id) && (items.some((j) => j !== i && sig.has(j.id) && sameSubject(sig.get(i.id), sig.get(j.id))) || items.some((j) => j !== i && sig.has(j.id) && sameEvent(ext().get(i.id), ext().get(j.id), true)))
     const near = inCore.filter(linked)
     if (!near.length) continue
     const others = new Set(entries.slice(0, top).filter((x) => x !== e).map((x) => itemsOf(x).find((i) => i?.id === (x.leadId || x.id))?.source).filter(Boolean))
