@@ -736,7 +736,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
   // 4. (H6 ii, uitgebreide stand) Een los stuk dat de kern van een groot verhaal noemt, hoort erbij.
   if (extended) attachLoose(groups, list, sig)
   // 5. (H7, uitgebreide stand) De deeluitslagen van één stembusgang horen bij de uitslag.
-  if (extended) mergeVoteResults(groups)
+  if (extended) mergeVoteResults(groups, sig)
 
   const stories = []
   const used = new Set()
@@ -917,31 +917,45 @@ export function voteResultOf(items = []) {
 // Een stembusgroep: een echte meerderheid van de stukken noemt de stembus ("US strikes Iranian island ahead
 // of midterm elections" naast een Guardian-stuk over dezelfde aanval is geen stembusverhaal).
 const voteGroup = (items) => items.filter((i) => voteKind(i) >= 1).length * 2 > items.length
-// De deeluitslagen bij de uitslag: van elke stembusgroep (ook een los stuk) met dezelfde plaats gaan de
-// stembusstukken van ná het uitslagmoment (tot EVENT_WINDOW na het laatste stuk) naar de grootste uitslag.
-// Wat ouder is (de essays van twee dagen eerder) of niet over de stembus gaat, blijft waar het was. Twee
-// uitslagen met dezelfde plaats (de Nederlandse en de Engelse) gaan samen in de grootste. Totale volgorde:
-// uitgevers, dan id.
-function mergeVoteResults(groups) {
+// De uitslag zelf (Redacteur 3b, megabundels stoppen): een uitslagstuk (voteKind 2) met een uitslagwoord in de
+// kop en zonder eigen hoofdpersoon in de kop ("Democraten heroveren Senaat en Huis", "Democrats Take Congress in a
+// Landslide"). Een race met een naam ("El-Sayed wint in Michigan"), een reactie, een analyse, een beurs- of
+// mediastuk dat de verkiezing noemt, is een eigen verhaal: dat hoort in de familie (families), niet in de bundel.
+// Zonder `sig` (de kenmerken) telt elk uitslagstuk met een uitslagwoord in de kop.
+// Een partij is geen hoofdpersoon ("Een Democratische tsunami", "Republikeinse nederlaag").
+const ownName = (k) => !/^(democrat|republi|gop)/.test(k)
+const resultPiece = (i, sig) => voteKind(i) === 2 && RESULT_RE.test(norm(i.title || '')) && !(sig?.get(i.id)?.titleRuns || []).flat().some(ownName)
+// De uitslag bij een stembusgang: van elke stembusgroep (ook een los stuk) met dezelfde plaats gaan de stukken
+// die de uitslag zelf melden (resultPiece) en van ná het uitslagmoment zijn (tot EVENT_WINDOW na het laatste
+// stuk) naar de uitslag. Wat ouder is, of iets anders meldt, blijft waar het was. Keuring 6 november 2026: met
+// elk stembusstuk erbij werd de uitslagbundel 49 tot 89 stukken (beurs, Hegseth, een mediarecensie, tankers in
+// Hormuz), met een verkeerde kop. Twee uitslagen met dezelfde plaats (de Nederlandse en de Engelse) gaan samen
+// in de grootste; de uitslag is de groep met de meeste stukken over de uitslag zelf, dan uitgevers, dan id.
+function mergeVoteResults(groups, sig = null) {
   const anchors = []
   for (const [gid, items] of groups) {
     const r = voteResultOf(items)
-    if (r) anchors.push({ gid, r, pubs: coverageOf(items).publisherCount })
+    if (r) anchors.push({ gid, r, pubs: coverageOf(items).publisherCount, own: coverageOf(items.filter((i) => resultPiece(i, sig))).publisherCount })
   }
   if (!anchors.length) return
-  anchors.sort((a, b) => b.pubs - a.pubs || textOrder(a.gid, b.gid))
+  anchors.sort((a, b) => b.own - a.own || b.pubs - a.pubs || textOrder(a.gid, b.gid))
   const absorbed = new Set()
   for (const a of anchors) {
     if (absorbed.has(a.gid) || !groups.has(a.gid)) continue
     const target = groups.get(a.gid)
     for (const [gid, items] of [...groups]) {
       if (gid === a.gid || !voteGroup(items) || placeOfGroup(items) !== a.r.place) continue
-      const move = items.filter((i) => voteKind(i) >= 1 && timeOf(i) >= a.r.from && timeOf(i) <= a.r.to + EVENT_WINDOW && !target.some((x) => conflictingEvents(eventScope(x), eventScope(i))))
-      if (!move.length) continue
+      const vote = items.filter((i) => voteKind(i) >= 1 && timeOf(i) >= a.r.from && timeOf(i) <= a.r.to + EVENT_WINDOW && !target.some((x) => conflictingEvents(eventScope(x), eventScope(i))))
+      const move = vote.filter((i) => resultPiece(i, sig))
+      // De overige stembusstukken van een gemengde groep (reacties op de uitslag naast de Israël-steun) worden
+      // samen een eigen verhaal, in de familie: zo houdt het andere nieuws zijn eigen bundel.
+      const apart = items.some((i) => voteKind(i) === 0) ? vote.filter((i) => !move.includes(i)) : []
+      if (!move.length && !apart.length) continue
       target.push(...move)
-      const rest = items.filter((i) => !move.includes(i))
+      const rest = items.filter((i) => !move.includes(i) && !apart.includes(i))
       if (rest.length) groups.set(gid, rest)
       else groups.delete(gid)
+      if (apart.length) groups.set(`${gid}|stembus`, apart.sort(byRecency))
       absorbed.add(gid)
     }
     target.sort(byRecency)
@@ -1246,7 +1260,10 @@ export function freshest(items) {
 // familie, als dat groot nieuws is (FRONT_BIG); de rest houdt zijn eigen gewicht.
 // Plafond: van een stembusfamilie hooguit FAMILY_MAX plekken; na de eerste geen tweede uitslagverhaal (een
 // losse race) en geen voorbeschouwing van vóór het uitslagmoment.
-export const FAMILY_MAX = 2
+// Redacteur 3b: één plek. Sinds de uitslagbundel alleen de uitslag zelf neemt (mergeVoteResults), staan de races,
+// reacties en analyses als eigen verhalen in de familie; zij tellen mee in het gewicht van het hoofd, maar een
+// tweede plek over dezelfde stembus is een dubbele plek (één gebeurtenis, één plek).
+export const FAMILY_MAX = 1
 // Verwant is alleen een stembusverhaal met dezelfde plaats, op een dag mét uitslag (c.vote, zie families).
 // Niet via een gedeelde naam (sameSubject): toets 4 november 2026, op 30 oktober opende "Paus Leo brengt als
 // eerste paus zijn stem uit" (7 uitgevers) de Editie, omdat alles met Trump of de verkiezingen bij hem optelde
@@ -1289,6 +1306,24 @@ function families(cands) {
   }
   for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null
   return extra
+}
+// De stembusfamilie per verhaal, voor wie de plekken niet zelf kiest (composePersonal: brede verhalen en
+// aanvulling): verhaal-id → stembusplaats, alleen voor een plaats met een uitslag. `byId`: de bekende stukken.
+export function voteFamilyOf(stories = [], byId = new Map()) {
+  const itemsOf = (st) => (st.itemIds || []).map((id) => byId.get(id)).filter(Boolean)
+  const places = new Set()
+  for (const st of stories) {
+    const r = voteResultOf(itemsOf(st).sort(byRecency))
+    if (r) places.add(r.place)
+  }
+  const out = new Map()
+  if (!places.size) return out
+  for (const st of stories) {
+    const items = itemsOf(st)
+    const place = items.length && voteGroup(items) ? placeOfGroup(items) : null
+    if (place && places.has(place)) out.set(st.id, place)
+  }
+  return out
 }
 // Mag deze kandidaat nog bij de plekken van zijn familie? `placedC`: de kandidaten die al een plek hebben.
 function familyRoom(c, placedC) {

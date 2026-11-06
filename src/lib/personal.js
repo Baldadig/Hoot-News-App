@@ -14,7 +14,7 @@ import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool } from '../../netlify/lib/stories.mjs'
+import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, voteFamilyOf, FAMILY_MAX } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
@@ -388,15 +388,23 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // interesses (games, cultuur, lifestyle, consumententech) de laatste plekken vullen, en alleen dat: sport,
   // het internationale plafond en de rest van de normen wijken nooit.
   let floorLight = false
+  // Eén stembus, één plek (FAMILY_MAX, Redacteur 3b): ook een breed verhaal of een aanvulling is geen tweede
+  // plek over dezelfde stembus op een dag met een uitslag.
+  const famOf = voteFamilyOf(stories, itemAny)
+  const famTaken = new Map()
+  const famKey = (e) => famOf.get(e.kind === 'story' ? e.id : serverStory(e)) || famOf.get(storyOfItem.get(e.leadId || e.id)) || null
   const accept = e => {
     if (accepted.length >= capacity) return
     const id = e.leadId || e.id
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
     if (ids.some(x => finalTaken.has(x)) || (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x))))) return
+    const fam = famKey(e)
+    if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return
     const allowed = p.allowed || (floorLight && p.reason === 'licht-buiten-interesse')
     if (!allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
     if (p.capped) internationalCount++
+    if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1)
     ids.forEach(x => finalTaken.add(x))
     finalLeads.push(id)
     accepted.push(e)

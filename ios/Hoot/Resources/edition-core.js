@@ -2463,7 +2463,7 @@ var HootCore = (() => {
     const out = items.filter((i) => newest - timeOf(i) <= BACKGROUND_GAP);
     return out.length ? out : items;
   }
-  var FAMILY_MAX = 2;
+  var FAMILY_MAX = 1;
   var familyRelated = (a, b) => !!a.vote && a.vote === b.vote;
   function families(cands) {
     const stories = cands.filter((c) => c.kind === "story");
@@ -2497,6 +2497,22 @@ var HootCore = (() => {
     }
     for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null;
     return extra;
+  }
+  function voteFamilyOf(stories = [], byId2 = /* @__PURE__ */ new Map()) {
+    const itemsOf = (st) => (st.itemIds || []).map((id) => byId2.get(id)).filter(Boolean);
+    const places = /* @__PURE__ */ new Set();
+    for (const st of stories) {
+      const r = voteResultOf(itemsOf(st).sort(byRecency));
+      if (r) places.add(r.place);
+    }
+    const out = /* @__PURE__ */ new Map();
+    if (!places.size) return out;
+    for (const st of stories) {
+      const items = itemsOf(st);
+      const place = items.length && voteGroup(items) ? placeOfGroup(items) : null;
+      if (place && places.has(place)) out.set(st.id, place);
+    }
+    return out;
   }
   function familyRoom(c, placedC) {
     if (c.kind !== "story" || !c.vote) return true;
@@ -2970,15 +2986,21 @@ var HootCore = (() => {
     const accepted = [];
     let capacity = EDITION_SIZE;
     let floorLight = false;
+    const famOf = voteFamilyOf(stories, itemAny);
+    const famTaken = /* @__PURE__ */ new Map();
+    const famKey = (e) => famOf.get(e.kind === "story" ? e.id : serverStory(e)) || famOf.get(storyOfItem.get(e.leadId || e.id)) || null;
     const accept = (e) => {
       if (accepted.length >= capacity) return;
       const id = e.leadId || e.id;
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
       if (ids.some((x) => finalTaken.has(x)) || sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
+      const fam = famKey(e);
+      if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return;
       const allowed = p.allowed || floorLight && p.reason === "licht-buiten-interesse";
       if (!allowed || capAbroad && p.capped && internationalCount >= INT_MAX) return;
       if (p.capped) internationalCount++;
+      if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1);
       ids.forEach((x) => finalTaken.add(x));
       finalLeads.push(id);
       accepted.push(e);

@@ -100,7 +100,9 @@ test('toets 3: een ander hoofdonderwerp is een ander verhaal (de Israël-steun n
   // Het verhaal is groot genoeg om een eigen gebeurtenis te zijn, en geen van zijn koppen noemt de stembus.
   const st = MIDTERMS.stories.find((s) => s.itemIds.some((id) => ISRAEL.test(MIDTERMS.title(id))))
   assert.ok(st.publisherCount >= OWN_STORY)
-  assert.ok(st.itemIds.every((id) => voteKind({ title: MIDTERMS.title(id), source: MIDTERMS.all.get(id).source }) === 0))
+  // Redacteur 3b: de uitslagbundel neemt alleen de uitslag zelf; een stuk dat terloops de stembus noemt, blijft bij de
+  // Israël-steun. Een stembusverhaal is het niet: de meerderheid van zijn koppen noemt de stembus niet.
+  assert.ok(st.itemIds.filter((id) => voteKind({ title: MIDTERMS.title(id), source: MIDTERMS.all.get(id).source }) > 0).length * 2 < st.itemIds.length)
   for (const e of ['server', 're']) {
     const ed = MIDTERMS.editions[e]
     const k = at(MIDTERMS, e, ISRAEL)

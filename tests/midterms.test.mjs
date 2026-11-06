@@ -34,14 +34,18 @@ const stembus = (e) => {
   return its.filter((i) => voteKind(i) >= 1 && votePlace(i) === 'us').length * 2 > its.length
 }
 
-test('verkiezingsnacht: de uitslag is één bundel, Nederlands en Engels samen, met de deeluitslagen', () => {
+test('verkiezingsnacht: de uitslag is één bundel, Nederlands en Engels samen, zonder de races met een naam (3b)', () => {
   assert.ok(uitslag, 'uitslagbundel')
-  assert.ok(uitslag.publisherCount >= 20, `${uitslag.publisherCount} uitgevers`)
+  assert.ok(uitslag.publisherCount >= 12, `${uitslag.publisherCount} uitgevers`)
   const langs = new Set(uitslag.itemIds.map((id) => LANG.get(all.get(id).source)))
   assert.ok(langs.has('nl') && langs.has('en'))
   const has = (re) => uitslag.itemIds.some((id) => re.test(titleOf(id)))
-  // De Engelse uitslag, de losse Nederlandse duiding en de deeluitslagen (Senaatsraces, gouverneurs).
-  for (const re of [/^Democrats clinch majority in Senate/, /^Een ‘blauwe golf’\?/, /^Democraten grijpen de macht/, /flips Iowa Senate seat/, /^Jon Ossoff wins Georgia Senate race/, /Keisha Lance Bottoms/, /^Kansas elects first Democratic senator/]) assert.ok(has(re), String(re))
+  // De uitslag zelf: de Engelse uitslag, de losse Nederlandse duiding en de Nederlandse uitslag.
+  for (const re of [/^Democrats clinch majority in Senate/, /^Een ‘blauwe golf’\?/, /^Democraten grijpen de macht/]) assert.ok(has(re), String(re))
+  // Redacteur 3b (keuring 6 november, megabundels stoppen): een race met een eigen naam is een eigen verhaal in
+  // de familie, geen deel van de uitslagbundel; de bundel blijft onder de megabundel (meer dan 25 stukken).
+  for (const re of [/flips Iowa Senate seat/, /^Jon Ossoff wins Georgia Senate race/, /^Keisha Lance Bottoms/]) assert.ok(!has(re), String(re))
+  assert.ok(uitslag.itemIds.length <= 25, `${uitslag.itemIds.length} stukken`)
   // Geen andere uitslagbundel ernaast.
   assert.equal(stories.filter((s) => voteResultOf(s.itemIds.map((id) => byId.get(id)))).length, 1)
   // Wat vóór het uitslagmoment verscheen, en wat niet over de stembus gaat, hoort er niet bij.
