@@ -111,6 +111,45 @@ import SwiftUI
         XCTAssertNil(TafelEditie.gemarkeerd(open: stroom, rij: rij))
     }
 
+    // MARK: Duo 1.2: de koppen passen
+
+    /// Echte koppen van normale lengte (70–85 tekens), uit Editie en etalage.
+    static let koppen = [
+        "Bommeldingen over vluchten in Europa, pand Ierse omroep ontruimd om dreiging",
+        "Vader Meghan Markle opgepakt door FBI vanwege bezit van beelden van kindermisbruik",
+        "ME ingezet bij ontruiming bezet bouwterrein datacenter Microsoft in Amsterdam",
+        "Hogere straf voor Roosendaler die vrouwen en kinderen doodreed in Oud-Gastel",
+        "Keniaanse sekteleider krijgt 200 jaar cel voor uithongeren 190 kinderen",
+        "Duizend meter onder Polen ligt het metaal waar de wereldeconomie op draait",
+        "Makkelijk te missen, maar toch gevonden: fossiel van 66 miljoen jaar oud",
+        "Uitgever en eigenaar van Bruna-winkels in financiële problemen",
+    ]
+
+    private func regels(_ kop: String, stijl: Font.TextStyle, breedte: CGFloat, typeSize: DynamicTypeSize = .large) -> Int {
+        let font = KopZet.font(stijl, typeSize: typeSize)
+        let h = (kop as NSString).boundingRect(with: CGSize(width: breedte, height: .greatestFiniteMagnitude),
+                                               options: [.usesLineFragmentOrigin], attributes: [.font: font], context: nil).height
+        return Int((h / font.lineHeight).rounded())
+    }
+
+    func testKoppenVanNormaleLengteBrekenNietAf() {
+        // Punt 2: op 208 breed braken deze koppen af met "…" (4 regels in 3). Nu passen ze in drie regels (264).
+        for kop in Self.koppen {
+            XCTAssertLessThanOrEqual(regels(kop, stijl: .subheadline, breedte: 264), TafelEditie.kopRegels, "gewoon: \(kop)")
+        }
+        XCTAssertGreaterThan(Self.koppen.map { regels($0, stijl: .subheadline, breedte: 208) }.max() ?? 0, 3, "de oude cel was te smal")
+    }
+
+    func testElkeKopHeeftDezelfdeHoogte() throws {
+        // Gelijke ritmiek: een korte kop houdt drie regels ruimte (lineLimit met reservesSpace).
+        let store = HootStore()
+        func h(_ titel: String) -> CGFloat {
+            let r = EditionRowModel(id: "k", item: Item(id: "k", source: "nos", title: titel, url: "https://nos.nl/k"), story: nil, label: nil, desk: nil).numbered(1)
+            return UIHostingController(rootView: TafelCel(row: r, gekozen: false) {}.environment(store)).sizeThatFits(in: CGSize(width: 1000, height: 1000)).height
+        }
+        XCTAssertEqual(h("Kort"), h(Self.koppen[1]), accuracy: 0.5)
+    }
+
     // MARK: Tekenen
 
     func testDeOnderdelenTekenenZonderKrant() {

@@ -26,6 +26,9 @@ enum TafelEditie {
         open ?? rij.first?.item
     }
 
+    /// Een kop in de rij heeft altijd drie regels ruimte (dezelfde hoogte in elke cel: gelijke ritmiek).
+    static let kopRegels = 3
+
     /// De cel in de rij die gemarkeerd is: het verhaal boven, als het in de Editie staat (een stuk uit de Stroom niet).
     static func gemarkeerd(open: Item?, rij: [EditionRowModel]) -> EditionRowModel.ID? {
         guard let item = gekozen(open: open, rij: rij) else { return nil }
@@ -139,7 +142,7 @@ struct TafelOnder: View {
 /// Een plek in de rij: nummer, korte kop, klein beeld. Het verhaal boven heeft een rode lijn: waar je bent.
 struct TafelCel: View {
     @Environment(HootStore.self) private var store
-    @ScaledMetric(relativeTo: .subheadline) private var breedte: CGFloat = 208
+    @ScaledMetric(relativeTo: .subheadline) private var breedte: CGFloat = 264 // 208 brak koppen van normale lengte af met "…"
     let row: EditionRowModel
     let gekozen: Bool
     let kies: () -> Void
@@ -164,7 +167,7 @@ struct TafelCel: View {
                 Text(typeset(row.item.title, lang: store.source(row.item.source)?.lang))
                     .font(.kop(.subheadline))
                     .foregroundStyle(Theme.ink)
-                    .lineLimit(3)
+                    .lineLimit(TafelEditie.kopRegels, reservesSpace: true)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
