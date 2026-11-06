@@ -1974,6 +1974,7 @@ var HootCore = (() => {
   var CHAMBER = { senaat: "senate", senaats: "senate", congres: "congress" };
   var ALIAS_EXT = { ...ALIAS2, ...EU, ...PARTY, ...CHAMBER };
   var translit = (k) => k.replace(/sj/g, "sh");
+  var NL_LANG = new Set(SOURCES.filter((x) => x.lang === "nl").map((x) => x.id));
   var WEAK = new Set(
     "us russia ukraine germany france uk china israel iran nederland europe nato un putin zelensky trump biden harris vance netanyahu musk xi macron starmer merz erdogan modi meloni orban schoof pentagon congress senate senaat congres kremlin whitehouse ice fbi cia nasa who gaza taiwan india japan canada mexico brazil turkije turkey syria syrie venezuela korea northkorea southkorea texas california florida georgia carolina virginia ohio michigan arizona nevada pennsylvania wisconsin washington brussel brussels londen london parijs paris moskou moscow kyiv kiev berlijn berlin seoul busan pyongyang tokio tokyo peking beijing jeruzalem jerusalem teheran tehran amsterdam rotterdam".split(
       " "
@@ -2098,10 +2099,16 @@ var HootCore = (() => {
     const parties = /* @__PURE__ */ new Set();
     const aliasOf = (k) => ext ? translit(alias[k] || k) : alias[k] || k;
     const acronyms = /* @__PURE__ */ new Set();
+    const dutchPiece = ext && NL_LANG.has(article.source);
+    const nameOf = (w) => {
+      const k = norm(w);
+      if (vocab.has(k)) return k;
+      return dutchPiece && isCap(w) && k.length >= 6 && k.endsWith("s") && vocab.has(k.slice(0, -1)) && !alias[k] && !alias[k.slice(0, -1)] ? k.slice(0, -1) : null;
+    };
     const strongKey = (w) => {
       let key = null;
       if (acr(w)) key = norm(w);
-      else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w);
+      else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w);
       if (!key) return null;
       key = aliasOf(key);
       if (NOT_A_NAME.has(key) || weakSet.has(key) || key.length < 3) return null;
@@ -2116,7 +2123,7 @@ var HootCore = (() => {
       }
       let key = null;
       if (acr(w)) key = norm(w);
-      else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w);
+      else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w);
       if (!key) continue;
       key = aliasOf(key);
       if (NOT_A_NAME.has(key)) continue;
@@ -2150,6 +2157,7 @@ var HootCore = (() => {
       };
       out.runs = runsOf(raw);
       out.titleRuns = runsOf(article.title);
+      out.actions = actionsOf(article.title);
       const alone = new Set(out.runs.filter((run) => run.length === 1).map(([k]) => k));
       const firstName = (k) => out.runs.some((run) => run.some((x, j) => x === k && j < run.length - 1 && !acronyms.has(run[j + 1])));
       for (const k of [...strong]) if (k.length === 3 && !acronyms.has(k) && !alone.has(k) && firstName(k)) strong.delete(k);
@@ -2184,6 +2192,17 @@ var HootCore = (() => {
     const own = (x, y) => [...x.weak].some((k) => !y.weak.has(k));
     return own(a, b) && own(b, a) ? n - inst : n;
   }
+  var ACTIONS = [
+    ["vonnis", /\b(vonnis\w*|veroordeeld|veroordeling|celstraf\w*|cel|tbs|schuldig|vrijgesproken|vrijspraak|sentenced|sentence|convicted|guilty|acquitted|jailed|prison term)\b/],
+    ["sluiting", /\b(stopt|stoppen|sluit|gesloten|opgeheven|bezwijkt|closes|closed|closure|to close|shuts down|shut down)\b/],
+    ["opstappen", /\b(stapt op|stappen op|treedt af|opgestapt|resigns|resigned|resignation|steps down|quits)\b/],
+    ["arrestatie", /\b(gearresteerd|aangehouden|opgepakt|arrestatie|arrested|detained)\b/],
+    ["overlijden", /\b(overleden|overlijdt|sterft|dies|died)\b/]
+  ];
+  var actionsOf = (title) => {
+    const t = norm(title || "");
+    return new Set(ACTIONS.filter(([, re]) => re.test(t)).map(([id]) => id));
+  };
   var WORD_WINDOW = 48 * 60 * 60 * 1e3;
   var EVENT_WINDOW = 36 * 60 * 60 * 1e3;
   var NAMES_WINDOW = 12 * 60 * 60 * 1e3;
@@ -2202,6 +2221,7 @@ var HootCore = (() => {
     const rare = sharedCount(a.rareIds, b.rareIds);
     if (strong >= 2 && strong + weak + concepts >= 3) return true;
     if (ext && strong >= 2 && dt <= NAMES_WINDOW && sharedEntities(a, b, true) >= 2) return true;
+    if (ext && strong >= 1 && dt <= NAMES_WINDOW && a.actions?.size === 1 && b.actions?.size === 1 && [...a.actions][0] === [...b.actions][0] && sharedEntities(a, b, true) >= 1) return true;
     if (strong >= 1 && concepts >= 1 && weak + concepts >= 2) return true;
     if (rare >= 2 && concepts >= 3 && weak + strong >= 1) return true;
     if (sharedCount(a.words, b.words) >= 3 && strong + weak >= 1) return true;

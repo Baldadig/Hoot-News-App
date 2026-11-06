@@ -125,6 +125,7 @@ const ALIAS_EXT = { ...ALIAS, ...EU, ...PARTY, ...CHAMBER }
 // systematisch in "sj" tegenover "sh" ("Olesjky"/"Oleshky", "Poesjkin"/"Pushkin"). Eén spelling voor
 // de sleutel; na de alias, zodat "Tsjechië" eerst gewoon Tsjechië wordt.
 const translit = (k) => k.replace(/sj/g, 'sh')
+const NL_LANG = new Set(SOURCES.filter((x) => x.lang === 'nl').map((x) => x.id))
 // Te algemeen om op zichzelf een gebeurtenis aan te wijzen: landen, steden, regeringsleiders,
 // diensten. Twee verhalen die alleen zo'n naam delen gaan niet samen (zie sameEvent).
 const WEAK = new Set(
@@ -296,11 +297,20 @@ function signature(article, vocab, ext = false) {
   const aliasOf = (k) => (ext ? translit(alias[k] || k) : alias[k] || k)
   // De sterke sleutel van een woord, of null.
   const acronyms = new Set() // sleutels die uit een afkorting komen (XIV, PSG)
+  // Ronde 2 (uitgebreide stand): in een Nederlands stuk is een naam met een bijvoeglijke of bezits-s dezelfde naam
+  // ("Woudenbergs stel" naast "ouders Woudenberg"), als de naam zonder -s in de woordenschat staat en de vorm mét -s
+  // niet. Niet in het Engels: daar is de -s een meervoud ("Democrats", "Elections").
+  const dutchPiece = ext && NL_LANG.has(article.source)
+  const nameOf = (w) => {
+    const k = norm(w)
+    if (vocab.has(k)) return k
+    return dutchPiece && isCap(w) && k.length >= 6 && k.endsWith('s') && vocab.has(k.slice(0, -1)) && !alias[k] && !alias[k.slice(0, -1)] ? k.slice(0, -1) : null
+  }
   const strongKey = (w) => {
     let key = null
     if (acr(w)) key = norm(w)
     // Alleen woorden mét hoofdletter die ook elders midden in een zin als naam voorkomen.
-    else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w)
+    else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w)
     if (!key) return null
     key = aliasOf(key)
     if (NOT_A_NAME.has(key) || weakSet.has(key) || key.length < 3) return null
@@ -315,7 +325,7 @@ function signature(article, vocab, ext = false) {
     }
     let key = null
     if (acr(w)) key = norm(w)
-    else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w)
+    else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w)
     if (!key) continue
     key = aliasOf(key)
     if (NOT_A_NAME.has(key)) continue
@@ -351,6 +361,7 @@ function signature(article, vocab, ext = false) {
     }
     out.runs = runsOf(raw)
     out.titleRuns = runsOf(article.title)
+    out.actions = actionsOf(article.title)
     // Een naam van drie letters die alleen vóór een andere naam staat is een voornaam ("Kim Jong",
     // "Max Verstappen"): die telt niet apart, net als "Donald" (ALIAS). "Hof", "Fab 28" en "Leo XIV"
     // (een afkorting erachter is geen achternaam) blijven staan.
@@ -398,6 +409,21 @@ function sharedStrong(a, b, ext = false) {
   return own(a, b) && own(b, a) ? n - inst : n
 }
 
+// Ronde 2 · 5, de taalsplitsing in zeer duidelijke gevallen: dezelfde handeling in de kop, in het Nederlands of het
+// Engels. Alleen handelingen die één feit aanwijzen (een vonnis, een sluiting, een opstappen, een arrestatie, een
+// overlijden); samen met dezelfde eigen naam in beide koppen is dat dezelfde gebeurtenis (sameEvent regel E).
+const ACTIONS = [
+  ['vonnis', /\b(vonnis\w*|veroordeeld|veroordeling|celstraf\w*|cel|tbs|schuldig|vrijgesproken|vrijspraak|sentenced|sentence|convicted|guilty|acquitted|jailed|prison term)\b/],
+  ['sluiting', /\b(stopt|stoppen|sluit|gesloten|opgeheven|bezwijkt|closes|closed|closure|to close|shuts down|shut down)\b/],
+  ['opstappen', /\b(stapt op|stappen op|treedt af|opgestapt|resigns|resigned|resignation|steps down|quits)\b/],
+  ['arrestatie', /\b(gearresteerd|aangehouden|opgepakt|arrestatie|arrested|detained)\b/],
+  ['overlijden', /\b(overleden|overlijdt|sterft|dies|died)\b/],
+]
+const actionsOf = (title) => {
+  const t = norm(title || '')
+  return new Set(ACTIONS.filter(([, re]) => re.test(t)).map(([id]) => id))
+}
+
 const WORD_WINDOW = 48 * 60 * 60 * 1000
 const EVENT_WINDOW = 36 * 60 * 60 * 1000
 const NAMES_WINDOW = 12 * 60 * 60 * 1000 // H6 (i): twee namen gemeen is alleen vlak na elkaar genoeg
@@ -430,6 +456,10 @@ export function sameEvent(a, b, ext = false) {
   if (strong >= 2 && strong + weak + concepts >= 3) return true
   // H6 (i). Twee verschillende namen in beide koppen, vlak na elkaar: zie boven.
   if (ext && strong >= 2 && dt <= NAMES_WINDOW && sharedEntities(a, b, true) >= 2) return true
+  // E (ronde 2). Dezelfde eigen naam in beide koppen en dezelfde handeling in beide koppen, vlak na elkaar, ook over de
+  // taalgrens: "Novaja Gazeta stopt" en "Novaya Gazeta announces closure", "Woudenbergs stel krijgt 20 jaar cel" en
+  // "Celstraffen voor ouders Woudenberg". Precies één soort handeling per kop, zodat een overzichtskop niet alles bindt.
+  if (ext && strong >= 1 && dt <= NAMES_WINDOW && a.actions?.size === 1 && b.actions?.size === 1 && [...a.actions][0] === [...b.actions][0] && sharedEntities(a, b, true) >= 1) return true
   // B. Eén naam, hetzelfde soort gebeurtenis, en nog een aanknopingspunt.
   if (strong >= 1 && concepts >= 1 && weak + concepts >= 2) return true
   // C. Geen naam gemeen, maar een zeldzame combinatie van gebeurtenis-woorden.
