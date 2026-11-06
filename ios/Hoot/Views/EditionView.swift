@@ -206,6 +206,8 @@ struct EditionView: View {
     @State private var screen: CGSize = .zero // het scherm: staand of liggend
     @ScaledMetric(relativeTo: .body) private var pairMin = EditionPairs.pairMin // A vanaf deze kolombreedte; meer bij grotere tekst
     @Environment(\.verticalSizeClass) private var verticalClass
+    @ScaledMetric(relativeTo: .callout) private var hangNumber: CGFloat = Layout.hang - Space.s3 // gelijk aan HangRow
+    private var hang: CGFloat { hangNumber + Space.s3 } // B: de kantlijn met het nummer; 36 bij standaardtekst
     private var phone: Bool { verticalClass == .compact } // een iPhone liggend; een iPad is altijd verticaal regulier
     @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
     @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
@@ -439,7 +441,7 @@ struct EditionView: View {
                                     slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
                                 }
                             }
-                            .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers
+                            .padding(.leading, grid == .kolom ? hang : 0) // op de lijn van de tekst, niet van de nummers
                             .frame(maxWidth: grid == .paren ? pairColumn : nil, alignment: .leading) // A: op de kolommaat van de paren (rust.css §3)
                             .tienBlock(tien, 8)
                         }
@@ -479,7 +481,7 @@ struct EditionView: View {
                         .padding(.vertical, Space.s7)
                         .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable) // op de leesbreedte, niet over de hele iPad (E9); A: de kolommaat van de paren, links
-                        .padding(.leading, grid == .kolom ? Layout.hang : 0)
+                        .padding(.leading, grid == .kolom ? hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         .tienBlock(tien, 8)
@@ -488,7 +490,7 @@ struct EditionView: View {
                         if alertAsk || alertYes {
                             AlertOffer(done: alertYes, slot: $alertSlot, yes: askAlerts, no: { answerAlerts(false) })
                                 .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable)
-                                .padding(.leading, grid == .kolom ? Layout.hang : 0)
+                                .padding(.leading, grid == .kolom ? hang : 0)
                                 .padding(.bottom, Space.s6)
                                 .transition(.opacity)
                         }
@@ -501,7 +503,7 @@ struct EditionView: View {
                 .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
-                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
+                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + hang : Layout.readable)
                 .offset(y: rising ? 8 : 0)
                 .environment(\.placeholderPlan, placeholderPlan)
             }

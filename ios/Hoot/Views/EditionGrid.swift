@@ -50,11 +50,13 @@ enum EditionPairs {
 struct HangRow<Content: View>: View {
     let number: Int?
     var read = false
+    // De kantlijn groeit mee met de tekst: bij XXXL brak "01" anders in twee regels ("0" boven "1").
+    @ScaledMetric(relativeTo: .callout) private var numberWidth: CGFloat = Layout.hang - Space.s3
     @ViewBuilder var content: () -> Content
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
             EditionNumber(number: number, read: read)
-                .frame(width: Layout.hang - Space.s3, alignment: .leading)
+                .frame(width: numberWidth, alignment: .leading)
                 .accessibilityHidden(true) // het nummer staat ook in het label van het verhaal
             content()
         }
