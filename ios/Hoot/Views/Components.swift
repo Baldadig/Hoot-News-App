@@ -808,6 +808,8 @@ struct LeadCard: View {
     @Environment(HootStore.self) private var store
     @Environment(\.isWide) private var wide
     @Environment(\.isSpacious) private var spacious
+    @Environment(\.vouw) private var vouw // boven de vouw (Vouw.swift): alleen in de Editie op de iPhone
+    @Environment(\.dynamicTypeSize) private var typeSize
     let item: Item
     var number: Int? = nil
     var label: String?
@@ -878,7 +880,66 @@ struct LeadCard: View {
         }
     }
 
+    // Boven de vouw (Vouw.swift): de varianten van variant e, van ruim naar krap. ViewThatFits kiest de eerste die
+    // past als het beeld 2:1 is; het beeld krijgt daarna de rest, tot 3:2.
+    private func vouwTekst(kop: CGFloat, intro: String?, regels: Int) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: Space.s2) {
+                if number != nil || label != nil || why != nil {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Kicker(text: label, number: number, read: store.isRead(item), lead: true)
+                        WhyLine(text: why, compact: true)
+                    }
+                }
+                Kop(item.title, .title, size: kop)
+                    .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .loadLinesHead(item.title, style: EditionDisplay.headlineStyle(item.title))
+                if let intro, !intro.isEmpty {
+                    IntroText(text: intro, style: .body, lines: regels, suffix: item.introWithSource, size: 20, line: 30)
+                }
+            }
+            .padding(.top, Space.s4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            SourceLine(item: item, story: story, outside: outside, kaart: true).padding(.top, Space.s3)
+        }
+    }
+
+    private func vouwKaart(_ ruimte: VouwRuimte) -> some View {
+        let intro = item.summary.map { wholeSentences($0, max: 240 - item.viaLength) } ?? ""
+        let kandidaten = intro.isEmpty ? [] : IntroText.candidates(intro)
+        let regels = Vouw.introRegels(ruimte.profiel)
+        return VStack(alignment: .leading, spacing: 0) {
+            VouwStapel(ruimte: ruimte.hoogte, metBeeld: store.showsImage(lead: true)) {
+                Group {
+                    if hasImage { FocusBeeld(item: item, onFail: mislukt) }
+                    else { GeometryReader { g in BeeldloosView(item: item, kind: .lead, height: g.size.height, flat: true) } }
+                }
+                .contentShape(Rectangle())
+                .opensArticle(item)
+                ViewThatFits(in: .vertical) {
+                    KopRegelPoort(title: item.title, max: Vouw.kop26Vanaf(ruimte.profiel), typeSize: typeSize) {
+                        vouwTekst(kop: Vouw.kopGroot, intro: intro, regels: regels)
+                    }
+                    ForEach(Array(kandidaten.enumerated()), id: \.offset) { _, kandidaat in
+                        vouwTekst(kop: Vouw.kopKlein, intro: kandidaat, regels: regels)
+                    }
+                    vouwTekst(kop: Vouw.kopKlein, intro: nil, regels: regels) // past ook dit niet: het loopt door
+                }
+            }
+            StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4 + Space.s1)
+        }
+    }
+
     private var kaartLead: some View {
+        Group {
+            if let vouw, !wide, typeSize <= .large { vouwKaart(vouw) } else { kaartLeadGewoon }
+        }
+    }
+
+    private var kaartLeadGewoon: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
                 Group {
