@@ -417,6 +417,17 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   .held .scene{margin-top:var(--s5)}
 }
 
+/* iPhone en iPad (klasse .ios uit het inline script, Alex 6-11): de App Store is de hoofdknop, het web een regel eronder */
+html.ios .held .wacht{order:-2;min-height:52px;padding:var(--s2) var(--s5) var(--s2) var(--s4);border:0;border-radius:999px;background:var(--op-rood);color:var(--rood);gap:var(--s3)}
+html.ios .held .wacht-i{display:block;fill:var(--rood);--wm-dot:var(--rood)}
+html.ios .held .wacht-i path{fill:var(--rood)}
+html.ios .held .wacht span{display:grid;line-height:1.1}
+html.ios .held .wacht small,html.ios .held .wacht b{display:block}
+html.ios .held .wacht-gratis{display:none}
+html.ios .held:has(.wacht-gratis) .gratis{display:block}
+html.ios .held .knop{order:0;min-height:0;padding:0;border-radius:0;background:none;color:inherit;font:600 1rem/1.45 var(--tekst);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px;box-shadow:none;transform:none}
+html.ios .held .knop svg{width:16px;height:16px}
+
 
 
 /* Vier voordelen onder de held: vergelijken, en de drie delen gelijkwaardig (Editie, Stroom, Selectie). Twee bij twee vanaf 720. */
