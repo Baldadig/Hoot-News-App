@@ -254,6 +254,17 @@ var HootCore = (() => {
     if (a.countries.length && b.countries.length && !a.countries.some((c) => b.countries.includes(c))) return true;
     return a.cities.length > 0 && b.cities.length > 0 && !a.cities.some((c) => b.cities.includes(c));
   }
+  var OPINION_PATH = /\/(opinie|opinies|opinion|opinions|columns?[a-z-]*|columnisten|commentaar|commentisfree|opinion-and-essays|news-analysis)\//i;
+  var OPINION_LABEL = /^(opinie|opinion|column|columns|columnisten|commentaar|commentary|ingezonden)$/i;
+  var OPINION_TITLE = /^\W*(opinie|opinion|column|commentaar|ingezonden)\s*[:|]/i;
+  function isOpinion(item = {}) {
+    if (!item) return false;
+    if (item.type === "opinie") return true;
+    const url = String(item.url || "");
+    if (OPINION_PATH.test(url) || /theatlantic\.com\/ideas\//i.test(url)) return true;
+    return OPINION_LABEL.test(String(item.section || "").trim()) || OPINION_TITLE.test(item.title || "");
+  }
+  var verdictTitle = (item = {}) => /[.!?]\s+["“‘]?\p{Lu}[^.!?]*[.!]["”’]?$/u.test(String(item?.title || "").trim());
 
   // netlify/lib/topics.mjs
   var KW = [
@@ -1766,6 +1777,17 @@ var HootCore = (() => {
     korean: "korea",
     koreans: "korea",
     // Voornamen van wereldleiders tellen als die leider (anders is "Donald" een sterke naam).
+    // De twee Amerikaanse partijen in beide talen als één naam (keuring 6 november 2026). Geen eigen naam (NOT_A_NAME):
+    // ze tellen alleen in sameSubject (`parties` in het kenmerk), en als brede naam (BROAD) nooit alleen.
+    republikein: "republicans",
+    republikeinen: "republicans",
+    republikeinse: "republicans",
+    republikeins: "republicans",
+    republican: "republicans",
+    gop: "republicans",
+    democraat: "democrats",
+    democraten: "democrats",
+    democrat: "democrats",
     donald: "trump",
     benjamin: "netanyahu",
     vladimir: "putin",
@@ -1948,6 +1970,7 @@ var HootCore = (() => {
       " "
     )
   );
+  var PARTIES = /* @__PURE__ */ new Set(["republicans", "democrats"]);
   var WEAK_EXT = /* @__PURE__ */ new Set([...WEAK, ...Object.values(EU), "wallstreet", "hongkong"]);
   var COMMON_3 = new Set(
     "man men dag dit dat hoe wat wie kan wil dan ter wet zee weg bal kop oog nog ook nee wel zet mol pan dam vol tel zak kom hij zij wij ons mij jou hof cup one can are you our all get got off see she his yet way key isn big day war own bad hat fat few buy pay eat web hub led doe fee pat old new now how why who its has had was not but and the for too two ten six red top end run set put say ask let may yes far low out via per pro mid pre non ago sea bay oil".split(
@@ -1984,7 +2007,9 @@ var HootCore = (() => {
     ["arrest", /\b(arrest\w*|gearresteerd|opgepakt|aangehouden|detained)\b/, false],
     ["court", /\b(rechter|rechtbank|rechtszaak|vonnis|veroordeeld|hooggerechtshof|court|judge|trial|convicted|sentenced|verdict)\b/, false],
     ["charged", /\b(aangeklaagd|aanklacht|indicted|charged|indictment)\b/, false],
-    ["election", /(\w*verkiezing\w*|\belection\w*|\bmidterm\w*|\bstembus|\bstemlokal\w*|\bhead to the polls)\b/, false],
+    // Ook de nederlaag of zege van een Amerikaanse partij (keuring 6 november 2026: "Het grote vingerwijzen naar de
+    // schuldigen van de Republikeinse nederlaag" noemde de verkiezing niet).
+    ["election", /(\w*verkiezing\w*|\belection\w*|\bmidterm\w*|\bstembus|\bstemlokal\w*|\bhead to the polls|\b(republikein\w*|republican|democratische|democratic) (nederlaag|zege|overwinning|defeat|loss|losses|victory|sweep))\b/, false],
     ["resign", /\b(aftreden|treedt af|stapt op|opgestapt|ontslagen|resign\w*|steps down|fired)\b/, false],
     ["fire", /\b(brand|branden|bosbrand\w*|wildfire\w*|blaze)\b/, false],
     ["protest", /\b(protest\w*|betoging\w*|demonstratie\w*|demonstrat\w*)\b/, false],
@@ -2061,6 +2086,7 @@ var HootCore = (() => {
     const strong = /* @__PURE__ */ new Set();
     const weak = /* @__PURE__ */ new Set();
     const known = /* @__PURE__ */ new Set();
+    const parties = /* @__PURE__ */ new Set();
     const aliasOf = (k) => ext ? translit(alias[k] || k) : alias[k] || k;
     const acronyms = /* @__PURE__ */ new Set();
     const strongKey = (w) => {
@@ -2077,6 +2103,7 @@ var HootCore = (() => {
       if (isCap(w) || acr(w)) {
         const k = aliasOf(norm(w));
         if (weakSet.has(k)) known.add(k);
+        if (PARTIES.has(k)) parties.add(k);
       }
       let key = null;
       if (acr(w)) key = norm(w);
@@ -2096,7 +2123,7 @@ var HootCore = (() => {
         if (isRare) rare++;
       }
     }
-    const out = { eventScope: eventScope(article), words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw };
+    const out = { eventScope: eventScope(article), words: sigWords(article.title), strong, weak, known, parties, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw };
     if (ext) {
       if (strong.has("constitutionalcourt") || strong.has("supremecourt")) concepts.add("court");
       const runsOf = (text2) => {
@@ -2171,7 +2198,7 @@ var HootCore = (() => {
     if (sharedCount(a.words, b.words) >= 3 && strong + weak >= 1) return true;
     return false;
   }
-  var BROAD = /* @__PURE__ */ new Set(["us", "europe", "un", "nato", "uk", "trump", "whitehouse", "congress", "nederland"]);
+  var BROAD = /* @__PURE__ */ new Set(["us", "europe", "un", "nato", "uk", "trump", "whitehouse", "congress", "nederland", "republicans", "democrats"]);
   var SUBJECT_WINDOW = 12 * 60 * 60 * 1e3;
   var textCache = /* @__PURE__ */ new WeakMap();
   var subjectText = (s) => {
@@ -2194,6 +2221,7 @@ var HootCore = (() => {
       }
     }
     const shared = [...a.known].filter((k) => b.known.has(k));
+    for (const k of a.parties || []) if (b.parties?.has(k)) shared.push(k);
     const concepts = sharedCount(a.concepts, b.concepts);
     if (!concepts) return false;
     if (shared.length >= 2 || shared.length >= 1 && sharedCount(a.strong, b.strong) >= 1) return true;
@@ -2490,6 +2518,23 @@ var HootCore = (() => {
     xs = prefer(xs, (i) => core.has(i));
     xs = prefer(xs, (i) => !/\?/.test(i.title || ""));
     return dutchFirst(freshest(xs));
+  }
+  function openWithNews(entries, { itemsOf, pick }) {
+    const news = (e2) => itemsOf(e2).some((i) => i && !isOpinion(i));
+    const k = entries.findIndex(news);
+    if (k < 0) return entries;
+    if (k > 0) entries.unshift(...entries.splice(k, 1));
+    const e = entries[0];
+    if (e.kind !== "story") return entries;
+    const items = itemsOf(e).filter(Boolean);
+    const lead = items.find((i) => i.id === e.leadId);
+    if (!lead || !isOpinion(lead) && !verdictTitle(lead)) return entries;
+    const fresh = items.filter((i) => !isOpinion(i));
+    const plain = fresh.filter((i) => !verdictTitle(i));
+    if (!isOpinion(lead) && !plain.length) return entries;
+    const next = pick(plain.length ? plain : fresh, items);
+    if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} };
+    return entries;
   }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false } = {}) {
@@ -2955,13 +3000,16 @@ var HootCore = (() => {
       accept(bubbleEntry);
     }
     entries = accepted;
+    const knownOf = (e) => [...membersOf(e)].map((id) => itemAny.get(id)).filter(Boolean);
+    const hasNews = (e) => knownOf(e).some((i) => !isOpinion(i));
     if (prof.interests.has("binnenland")) {
       const first = entries.findIndex((e) => {
         const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
-        return e.desk !== "bubbel" && !p.abroad && ["binnenland", "regio"].includes(p.desk);
+        return e.desk !== "bubbel" && !p.abroad && ["binnenland", "regio"].includes(p.desk) && hasNews(e);
       });
       if (first > 0) entries.unshift(...entries.splice(first, 1));
     }
+    openWithNews(entries, { itemsOf: knownOf, pick: (xs, all) => leadPool(leadCandidates(xs, followed, preferred, now, { role: "front" }), all, now, (i) => followed.has(i.source))[0] });
     const poolById = new Map(pool.map((i) => [i.id, i]));
     const wideById = new Map([...(global.wide || []).map((w) => w?.item).filter(Boolean), ...wide ? [wide.item] : [], ...nearItem ? [nearItem] : []].map((i) => [i.id, i]));
     const itemOf = (id) => poolById.get(id) || wideById.get(id) || globalItems.get(id) || itemAny.get(id);

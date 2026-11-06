@@ -62,3 +62,22 @@ export function conflictingEvents(a, b) {
   if (a.countries.length && b.countries.length && !a.countries.some(c => b.countries.includes(c))) return true
   return a.cities.length > 0 && b.cities.length > 0 && !a.cities.some(c => b.cities.includes(c))
 }
+
+// Opinie: een column, commentaar of opiniestuk (keuring 6 november 2026: "Opinie is nooit een hoofdartikel").
+// Alleen de signalen die de feed al geeft: het soort uit de rss (`type`, zie netlify/lib/rss.mjs), het pad van
+// de link (/opinie/, /opinion/, /columns-…/, /commentaar/, /commentisfree/, de Ideas-rubriek van The Atlantic,
+// de nieuwsanalyse van Al Jazeera), de rubriek (`section`) en een label voor in de kop ("Opinie:", "Column |").
+const OPINION_PATH = /\/(opinie|opinies|opinion|opinions|columns?[a-z-]*|columnisten|commentaar|commentisfree|opinion-and-essays|news-analysis)\//i
+const OPINION_LABEL = /^(opinie|opinion|column|columns|columnisten|commentaar|commentary|ingezonden)$/i
+const OPINION_TITLE = /^\W*(opinie|opinion|column|commentaar|ingezonden)\s*[:|]/i
+export function isOpinion(item = {}) {
+  if (!item) return false
+  if (item.type === 'opinie') return true
+  const url = String(item.url || '')
+  if (OPINION_PATH.test(url) || /theatlantic\.com\/ideas\//i.test(url)) return true
+  return OPINION_LABEL.test(String(item.section || '').trim()) || OPINION_TITLE.test(item.title || '')
+}
+// Een beschouwende kop: twee zinnen met een oordeel of wending als slot ("Trump Tried to Undermine the Nation's
+// Elections. It Didn't Work."). Geen opinie, wel een analyse die als mening leest; alleen een voorkeur voor de kop
+// van plek 01 (zie openWithNews in netlify/lib/stories.mjs).
+export const verdictTitle = (item = {}) => /[.!?]\s+["“‘]?\p{Lu}[^.!?]*[.!]["”’]?$/u.test(String(item?.title || '').trim())

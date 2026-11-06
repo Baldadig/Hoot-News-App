@@ -1,6 +1,6 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
 import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf } from '../../shared/edition-policy.mjs'
-import { eventScope, conflictingEvents, countriesIn, usPoliticsIn } from '../../shared/article-signals.mjs'
+import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, verdictTitle } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
@@ -73,6 +73,10 @@ const ALIAS = {
   witte: 'whitehouse', white: 'whitehouse',
   koreaanse: 'korea', koreaans: 'korea', noordkoreaanse: 'northkorea', zuidkoreaanse: 'southkorea', koreanen: 'korea', korean: 'korea', koreans: 'korea',
   // Voornamen van wereldleiders tellen als die leider (anders is "Donald" een sterke naam).
+  // De twee Amerikaanse partijen in beide talen als één naam (keuring 6 november 2026). Geen eigen naam (NOT_A_NAME):
+  // ze tellen alleen in sameSubject (`parties` in het kenmerk), en als brede naam (BROAD) nooit alleen.
+  republikein: 'republicans', republikeinen: 'republicans', republikeinse: 'republicans', republikeins: 'republicans', republican: 'republicans', gop: 'republicans',
+  democraat: 'democrats', democraten: 'democrats', democrat: 'democrats',
   donald: 'trump', benjamin: 'netanyahu', vladimir: 'putin', volodymyr: 'zelensky', emmanuel: 'macron', keir: 'starmer', friedrich: 'merz', recep: 'erdogan', narendra: 'modi', giorgia: 'meloni', viktor: 'orban', kamala: 'harris', joe: 'biden', elon: 'musk', jinping: 'xi',
 }
 // H6 (iii), alleen in de uitgebreide stand (`extended`, zie buildStories): landen en adjectieven van
@@ -128,6 +132,7 @@ const WEAK = new Set(
     ' '
   )
 )
+const PARTIES = new Set(['republicans', 'democrats'])
 // Uitgebreide stand: de EU-sleutels (en Wall Street en Hongkong, plaatsen) zijn ook zwak.
 const WEAK_EXT = new Set([...WEAK, ...Object.values(EU), 'wallstreet', 'hongkong'])
 // H6 (iv), uitgebreide stand: een hoofdletterwoord van drie letters uit de woordenschat telt ook als
@@ -177,7 +182,9 @@ const CONCEPTS = [
   ['arrest', /\b(arrest\w*|gearresteerd|opgepakt|aangehouden|detained)\b/, false],
   ['court', /\b(rechter|rechtbank|rechtszaak|vonnis|veroordeeld|hooggerechtshof|court|judge|trial|convicted|sentenced|verdict)\b/, false],
   ['charged', /\b(aangeklaagd|aanklacht|indicted|charged|indictment)\b/, false],
-  ['election', /(\w*verkiezing\w*|\belection\w*|\bmidterm\w*|\bstembus|\bstemlokal\w*|\bhead to the polls)\b/, false],
+  // Ook de nederlaag of zege van een Amerikaanse partij (keuring 6 november 2026: "Het grote vingerwijzen naar de
+  // schuldigen van de Republikeinse nederlaag" noemde de verkiezing niet).
+  ['election', /(\w*verkiezing\w*|\belection\w*|\bmidterm\w*|\bstembus|\bstemlokal\w*|\bhead to the polls|\b(republikein\w*|republican|democratische|democratic) (nederlaag|zege|overwinning|defeat|loss|losses|victory|sweep))\b/, false],
   ['resign', /\b(aftreden|treedt af|stapt op|opgestapt|ontslagen|resign\w*|steps down|fired)\b/, false],
   ['fire', /\b(brand|branden|bosbrand\w*|wildfire\w*|blaze)\b/, false],
   ['protest', /\b(protest\w*|betoging\w*|demonstratie\w*|demonstrat\w*)\b/, false],
@@ -284,6 +291,7 @@ function signature(article, vocab, ext = false) {
   const strong = new Set()
   const weak = new Set()
   const known = new Set() // bekende algemene namen, ook uit koppen in Titelkast (alleen voor sameSubject)
+  const parties = new Set() // de Amerikaanse partijen (alleen voor sameSubject, niet voor de kop: centralItems)
   // De sleutel van een naam: de alias, in de uitgebreide stand ook in één spelling (translit).
   const aliasOf = (k) => (ext ? translit(alias[k] || k) : alias[k] || k)
   // De sterke sleutel van een woord, of null.
@@ -303,6 +311,7 @@ function signature(article, vocab, ext = false) {
     if (isCap(w) || acr(w)) {
       const k = aliasOf(norm(w))
       if (weakSet.has(k)) known.add(k)
+      if (PARTIES.has(k)) parties.add(k)
     }
     let key = null
     if (acr(w)) key = norm(w)
@@ -323,7 +332,7 @@ function signature(article, vocab, ext = false) {
     }
   }
   // `raw`: kop en tekst, alleen voor sameSubject regel E (subjectText, pas uitgerekend als het nodig is).
-  const out = { eventScope: eventScope(article), words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw }
+  const out = { eventScope: eventScope(article), words: sigWords(article.title), strong, weak, known, parties, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw }
   if (ext) {
     // Een samengesteld instituut is ook een rechtbank-begrip (het losse woord "court" is weg).
     if (strong.has('constitutionalcourt') || strong.has('supremecourt')) concepts.add('court')
@@ -435,7 +444,7 @@ export function sameEvent(a, b, ext = false) {
 // Strenger dan sameEvent: twee algemene namen ("Israël", "Netanyahu") plus hetzelfde soort
 // gebeurtenis ("verkiezingen") is genoeg om maar één plek te krijgen. Zo staan er geen drie stukken
 // over één verkiezingsdag in tien verhalen.
-const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland'])
+const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland', 'republicans', 'democrats'])
 const SUBJECT_WINDOW = 12 * 60 * 60 * 1000
 // De kernwoorden en getallen van kop en tekst samen, één keer per kenmerk.
 const textCache = new WeakMap()
@@ -464,6 +473,7 @@ export function sameSubject(a, b) {
     }
   }
   const shared = [...a.known].filter((k) => b.known.has(k))
+  for (const k of a.parties || []) if (b.parties?.has(k)) shared.push(k)
   const concepts = sharedCount(a.concepts, b.concepts)
   if (!concepts) return false
   // Twee gedeelde namen, of één met ook een gedeelde eigen naam: hetzelfde onderwerp.
@@ -1308,6 +1318,31 @@ export function leadPool(cands, items, now, own = null, total = items.length) {
   return dutchFirst(freshest(xs))
 }
 
+// Plek 01 opent met nieuws (keuring 6 november 2026: "Opinie is nooit een hoofdartikel"; de NYT-beschouwing "Trump
+// Tried to Undermine the Nation's Elections. It Didn't Work." was de kop van het hoofdverhaal). Na de volgorde:
+// - heeft de eerste plek alleen opinie (isOpinion), dan schuift de eerste plek met nieuws naar voren;
+// - is de kop van de eerste plek opinie of een beschouwende kop (verdictTitle), dan kiest `pick` een nieuwe kop uit
+//   de nieuwsstukken van het verhaal, liefst zonder beschouwende kop. Een opiniestuk blijft gewoon lid.
+// `itemsOf(e)`: de bekende stukken van een plek. `pick(kandidaten, alle stukken)`: de kop. Wijzigt `entries` (de plek
+// met een nieuwe kop is een kopie).
+export function openWithNews(entries, { itemsOf, pick }) {
+  const news = (e) => itemsOf(e).some((i) => i && !isOpinion(i))
+  const k = entries.findIndex(news)
+  if (k < 0) return entries
+  if (k > 0) entries.unshift(...entries.splice(k, 1))
+  const e = entries[0]
+  if (e.kind !== 'story') return entries
+  const items = itemsOf(e).filter(Boolean)
+  const lead = items.find((i) => i.id === e.leadId)
+  if (!lead || (!isOpinion(lead) && !verdictTitle(lead))) return entries
+  const fresh = items.filter((i) => !isOpinion(i))
+  const plain = fresh.filter((i) => !verdictTitle(i))
+  if (!isOpinion(lead) && !plain.length) return entries
+  const next = pick(plain.length ? plain : fresh, items)
+  if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
+  return entries
+}
+
 // Een verhaal of bericht uit een voorkeursbron weegt zwaarder (zo'n twee bronnen dekking).
 export const FAVORITE_BONUS = 8
 export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false, previous = null, preferred = null } = {}) {
@@ -1334,6 +1369,13 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     const ownOnly = recent.filter((i) => mainIds.has(i.source))
     const from = ownOnly.length ? ownOnly : recent
     return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
+  }
+  // De kop van plek 01 uit `xs` (een deel van de stukken van het verhaal), met de regels van pickLead voor de voorpagina.
+  const frontLead = (xs, items) => {
+    const all = leadCandidates(xs, mainIds, preferred, now, { role: 'front' })
+    const recent = leadPool(all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all, items, now)
+    const own = recent.filter((i) => mainIds.has(i.source))
+    return (own.length ? own : recent)[0]
   }
 
   // Kandidaten: verhalen (meerdere publicaties) en losse berichten uit je eigen bronnen.
@@ -1378,8 +1420,10 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
       prevLead = lead.source
       entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, desk, w: c.w })
     } else entries.push({ kind: 'item', id: c.it.id, desk, w: c.w })
+    candOf.set(entries[entries.length - 1], c)
     return true
   }
+  const candOf = new Map()
   // 1. Per rubriek het belangrijkste verhaal.
   //    Eerst wat er vooral over gaat; alleen als dat er niet is, iets wat het ook raakt.
   for (const desk of DESKS) {
@@ -1394,6 +1438,8 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   }
   // Volgorde: belangrijkste eerst (het hoofdverhaal is het zwaarste nieuws van het moment).
   entries.sort((a, b) => b.w - a.w)
+  // Plek 01 opent met nieuws, met een nieuwskop (openWithNews).
+  openWithNews(entries, { itemsOf: (e) => candOf.get(e)?.items || [], pick: (xs, items) => frontLead(xs, items) })
   return entries.map(({ w, ...e }) => e)
 }
 
