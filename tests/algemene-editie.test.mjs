@@ -369,3 +369,63 @@ test('één verdwaald stuk drukt geen groot verhaal weg (3b · ronde 4 · 1)', a
   const small = run(strayCase(['lemonde'], ['nyt', 'bbc', 'ft']))
   assert.ok(small.includes('mayor') && !small.includes('crash'), small.join())
 })
+
+// Ronde 4 · 2 (keuring ronde 3): dutchPlace kijkt naar alle stukken van het verhaal, ook die buiten de nieuwspool (zoals de
+// meetlat), en een buitenlandse plaats of een buitenlands land als onderwerp in de kop maakt een plek niet-Nederlands.
+test('een buitenlandse plaats in de kop is geen Nederlandse plek, tenzij de kop ook een Nederlands anker heeft (3b · ronde 4 · 2)', async () => {
+  const { foreignHead } = await import('../netlify/lib/desks.mjs')
+  const { dutchPlace } = await import('../netlify/lib/build.mjs')
+  assert.ok(foreignHead('Uruguayaanse president stapt op na protesten om bankblokkade'))
+  assert.ok(foreignHead('Regering van Bolivia valt na massaal protest'))
+  assert.ok(foreignHead('Thaise premier ontslagen door grondwettelijk hof'))
+  assert.ok(!foreignHead('Nederlandse militairen naar Litouwen'), 'Nederlands anker')
+  assert.ok(!foreignHead('KLM schrapt vluchten naar Bolivia'), 'Nederlands bedrijf')
+  assert.ok(!foreignHead('Kabinet presenteert stikstofwet'))
+  assert.ok(!foreignHead('Inval bij datacenter in Middenmeer'))
+  const t = '2026-11-06T04:00:00Z'
+  const items = new Map()
+  const place = (id, sources, title, desk = null) => {
+    const its = sources.map((s, k) => ({ id: `${id}${k}`, source: s, kind: 'article', title, summary: 'De protesten duurden weken.', publishedAt: t }))
+    for (const i of its) items.set(i.id, i)
+    return { kind: 'story', id, leadId: its[0].id, desk, members: its }
+  }
+  const is = (e) => dutchPlace(e, { itemsOf: (x) => x.members, byId: items })
+  assert.ok(!is(place('u', ['nos', 'nrc', 'volkskrant'], 'Uruguayaanse president stapt op na protesten om bankblokkade', 'economie')))
+  assert.ok(is(place('k', ['nos', 'nrc', 'volkskrant'], 'KLM schrapt vluchten naar Bolivia na protesten', 'economie')))
+})
+test('de Nederlandse ondergrens telt met alle stukken van het verhaal, niet alleen de nieuwspool (3b · ronde 4 · 2)', async () => {
+  const { dutchPlace } = await import('../netlify/lib/build.mjs')
+  const T = Date.parse('2026-11-06T05:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, h = 1, topics = []) => ({ id: `q${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(h), topics })
+  const stories = []
+  const pool = []
+  const newsPool = []
+  const story = (id, news, rest, desk, h = 1) => {
+    newsPool.push(...news)
+    pool.push(...news, ...rest)
+    const its = [...news, ...rest]
+    const pubs = new Set(its.map((i) => i.source)).size
+    stories.push({ id, itemIds: its.map((i) => i.id), sourceCount: pubs, publisherCount: pubs, latestAt: at(h), desk })
+  }
+  // Een verhaal waarvan alleen de Nederlandse stukken in de nieuwspool vallen; de rest zegt duidelijk: buitenland.
+  story('x', ['nos', 'nrc', 'volkskrant'].map((s) => art(s, 'Minister stapt op na protesten om bankblokkade', 1, ['economie'])), ['bbc', 'guardian', 'nyt', 'aljazeera', 'lemonde'].map((s) => art(s, 'Colombia minister resigns over bank blockade protests', 1, ['wereld'])), 'economie')
+  // Zware buitenlandse verhalen en twee kleine Nederlandse verhalen.
+  ;['Lima', 'Quito', 'Bogota', 'Caracas', 'Santiago', 'Havana', 'Managua', 'Panama', 'La Paz', 'Asuncion'].forEach((p, k) => {
+    const its = ['bbc', 'nyt', 'guardian', 'lemonde', 'aljazeera', 'dw'].map((s) => art(s, `Government in ${p} falls after mass protest`, 1 + k / 10, ['wereld']))
+    story(`w${k}`, its, [], 'buitenland', 1 + k / 10)
+  })
+  story('n0', ['nos', 'volkskrant'].map((s) => art(s, 'Kabinet presenteert stikstofwet in Den Haag', 2, ['nederland'])), [], 'binnenland', 2)
+  story('n1', ['nu', 'trouw'].map((s) => art(s, 'Gemeente Zwolle sluit zwembad na lekkage', 3, ['nederland'])), [], 'binnenland', 3)
+  const newsIds = new Set(newsPool.map((i) => i.id))
+  const newsStories = stories.filter((s) => s.itemIds.some((id) => newsIds.has(id)))
+  const ed = generalEdition({ stories, newsStories, pool, newsPool, now: T })
+  const allById = new Map(pool.map((i) => [i.id, i]))
+  const sById = new Map(stories.map((s) => [s.id, s]))
+  const itemsOf = (e) => (e.kind === 'story' ? sById.get(e.id).itemIds : [e.id]).map((id) => allById.get(id))
+  const dutch = (e) => dutchPlace(e, { itemsOf, byId: allById, storyOf: (e) => sById.get(e.id) })
+  const x = ed.find((e) => e.id === 'x')
+  assert.ok(x && !dutch(x), 'met alle stukken is het verhaal buitenland')
+  assert.ok(ed.slice(0, 5).filter(dutch).length >= 2, ed.map((e) => e.id).join())
+})

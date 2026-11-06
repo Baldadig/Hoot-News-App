@@ -4,7 +4,7 @@ import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, ve
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
-import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight, VL_HOME } from './desks.mjs'
+import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight, VL_HOME, foreignHead } from './desks.mjs'
 import { detectLang } from '../../shared/lang.mjs'
 
 import { hash } from '../../shared/util.mjs'
@@ -1735,7 +1735,11 @@ export const titled = (i) => !!String(i?.title ?? '').trim()
 //    internationalNews(stukken van de plek, rubriek van de plek, verhaal) uit shared/edition-policy.mjs. Een buitenlandse
 //    rubriek (buitenland, vs, middenoosten, oekraine) is altijd buitenlands; anders beslissen de plaatsen in de stukken.
 // Het aandeel Nederlandstalige uitgevers telt niet: NRC over een Russische krant is geen Nederlandse plek, ook als vooral
-// Nederlandse kranten het brachten. `itemsOf(e)`: de stukken van de plek; `storyOf(e)`: het verhaal (of null).
+// Nederlandse kranten het brachten.
+// Ronde 4 · 2: `itemsOf(e)` geeft álle stukken van het verhaal, ook die buiten de nieuwspool (zoals de meetlat telt; de
+// bouw doet dat in generalEdition en selectForReader met `ctx.storyItems`). En een buitenlandse plaats of een buitenlands
+// land als onderwerp in de kop zelf, zonder Nederlands anker in die kop (foreignHead in netlify/lib/desks.mjs), maakt de
+// plek niet-Nederlands, wat de andere stukken ook zeggen. `storyOf(e)`: het verhaal (of null).
 // De ondergrens: minstens NL_TOP5_MIN Nederlandse plekken in de top 5 van de algemene Editie (dutchFloor in build.mjs).
 export const NL_TOP5_MIN = 2
 const SOURCE_BY_ID = new Map(SOURCES.map((x) => [x.id, x]))
@@ -1744,7 +1748,8 @@ export function dutchSource(id, sources = SOURCES) {
   return !!s && ['nl', 'regio'].includes(s.cat) && s.lang === 'nl' && !VL_HOME.has(s.id)
 }
 export function dutchPlace(e, { itemsOf, byId, storyOf = () => null, sources = SOURCES }) {
-  return dutchSource(byId.get(e.leadId || e.id)?.source, sources) && !internationalNews(itemsOf(e), e.desk ?? null, storyOf(e) || null)
+  const lead = byId.get(e.leadId || e.id)
+  return dutchSource(lead?.source, sources) && !foreignHead(lead.title) && !internationalNews(itemsOf(e), e.desk ?? null, storyOf(e) || null)
 }
 export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false, general = false } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
@@ -1913,17 +1918,19 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // Nederlandse plekken (dutchPlace) in de algemene Editie: is `c` met rubriek `desk` er een, en is het echt nieuws (zoals
   // dutchFloor het telt: een verhaal van minstens twee uitgevers, niet licht, de kop geen opinie)?
   let nlHave = 0
+  // Alle stukken van het verhaal (ctx.storyItems: ook buiten de nieuwspool, ronde 4 · 2), anders wat de selectie kent.
+  const allOf = (c) => (c.kind === 'story' && ctx.storyItems?.get(c.st.id)) || c.whole || c.items
   const dutchC = (c, desk) => {
     const lead = c.kind === 'story' ? leadOf(c) : c.it
-    if (!lead || !dutchSource(lead.source)) return false
+    if (!lead || !dutchSource(lead.source) || foreignHead(lead.title)) return false
     const memo = (c.nlMemo ||= new Map())
-    if (!memo.has(desk ?? null)) memo.set(desk ?? null, !internationalNews(c.whole || c.items, desk ?? null, c.st || null))
+    if (!memo.has(desk ?? null)) memo.set(desk ?? null, !internationalNews(allOf(c), desk ?? null, c.st || null))
     return memo.get(desk ?? null)
   }
   const nlNews = (c) => c.kind === 'story' && spread(c) >= 2 && !lightNews(c.st, c.items) && !isOpinion(leadOf(c))
   // Kan `c` zo'n plek worden? Een snelle schatting zonder de kop te kiezen (een Nederlandse bron met een nieuwskop onder de
   // stukken), één keer per kandidaat; take beslist daarna met de echte kop.
-  const nlLike = (c) => (c.nlLike ??= c.kind === 'story' && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i)) && !lightNews(c.st, c.items) && !internationalNews(c.whole || c.items, (plan ? c.home : null) ?? null, c.st))
+  const nlLike = (c) => (c.nlLike ??= c.kind === 'story' && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i) && !foreignHead(i.title)) && !lightNews(c.st, c.items) && !internationalNews(allOf(c), (plan ? c.home : null) ?? null, c.st))
   // Hoeveel plekken blijven vrij voor de Nederlandse ondergrens? Eén keer per stand van de Editie. `nlOff`: de laatste
   // ronde, als er toch plekken leeg bleven.
   let nlAt = -1

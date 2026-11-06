@@ -579,7 +579,12 @@ const compact = (o) => {
 // `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
 export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null } = {}) {
   const prof = profileOf({ followed: mainIds, sources })
-  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true })
+  // Voor de Nederlandse plekken (dutchPlace) tellen alle stukken van een verhaal, ook die buiten de nieuwspool (ronde 4 · 2).
+  const allById = new Map(pool.map((i) => [i.id, i]))
+  const fullStory = new Map(stories.map((st) => [st.id, st]))
+  const allOf = (id) => (fullStory.get(id)?.itemIds || []).map((x) => allById.get(x)).filter(Boolean)
+  const storyItems = new Map(newsStories.map((st) => [st.id, allOf(st.id)]))
+  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems } })
   const byId = new Map(newsPool.map((i) => [i.id, i]))
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
   const entries = sel.map((e) => (e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }))
@@ -587,7 +592,8 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   // Curiosa nooit in de top 3 (3b · 5), dan plek 01 met nieuws, dan de Nederlandse ondergrens (3b · 3).
   curiosaDown(entries, { itemsOf, storyOf: (e) => storyById.get(e.id) })
   openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(xs, mainIds, null, now, { role: 'front' }), all, now)[0] })
-  dutchFloor(entries, { itemsOf, byId, storyOf: (e) => storyById.get(e.id), sources })
+  const allItemsOf = (e) => (e.kind === 'story' ? storyItems.get(e.id) || itemsOf(e) : itemsOf(e))
+  dutchFloor(entries, { itemsOf: allItemsOf, byId, storyOf: (e) => storyById.get(e.id), sources })
   return entries
 }
 
