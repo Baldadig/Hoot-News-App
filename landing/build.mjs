@@ -37,7 +37,7 @@ const dOf = f => fs.readFileSync(APP + '/public/brand/' + f, 'utf8').match(/<pat
 const WM_D = dOf('hoot-logo-ink.svg'), MARK_D = dOf('hoot-mark-ink.svg');
 
 // App Store: op true zodra https://apps.apple.com/nl/app/id6828037269 bereikbaar is (na Apples akkoord op de handelaarsstatus).
-const APP_STORE = false;
+const APP_STORE = true;
 const { appStore } = await import('./appstore.mjs');
 const AS = appStore(APP_STORE);
 

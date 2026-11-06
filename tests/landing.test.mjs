@@ -79,8 +79,8 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie me
 })
 
 test('landing: de App Store staat klaar achter één regel in build.mjs', () => {
-  // Nu uit: de App Store-pagina geeft nog 404.
-  assert.match(BUILD, /^const APP_STORE = false;$/m)
+  // Aan sinds de vrijgave van 1.1.0: de App Store-pagina is bereikbaar.
+  assert.match(BUILD, /^const APP_STORE = true;$/m)
   for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_LEAD', 'APPSTORE_EINDE', 'APPSTORE_VRAAG']) assert.ok(SRC.includes(`{{${k}}}`), k)
   const uit = vul(false), aan = vul(true)
   assert.doesNotMatch(uit, /apps\.apple\.com|apple-itunes-app/)
