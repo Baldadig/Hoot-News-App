@@ -1697,7 +1697,15 @@ var HootCore = (() => {
   var timeOf = (a) => Date.parse(a.publishedAt) || 0;
   var byRecency = (a, b) => timeOf(b) - timeOf(a);
   var deaccent = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "");
-  var norm = (s) => deaccent(String(s || "")).toLowerCase();
+  var wordMemo = null;
+  var norm = (s) => {
+    if (wordMemo && typeof s === "string" && s.length <= 40) {
+      let v = wordMemo.get(s);
+      if (v === void 0) wordMemo.set(s, v = deaccent(s).toLowerCase());
+      return v;
+    }
+    return deaccent(String(s || "")).toLowerCase();
+  };
   var STOP = new Set(
     "de het een en van op in te dat die voor met als om aan bij uit ook naar maar nog wordt worden heeft hebben zijn was werd niet wel meer jaar tegen door over deze onze the and for with that this from have will your about into over after their than what when which were been they them these those where while would could should more most some such also only just like said says year week time news live video update kills killed dead dies death attack attacks near least people police officials official after says report reports doden dood mensen zeker politie volgens aanval nieuwe eerste first three nobel prize prijs nobelprijs wins wint winner winnaar".split(
       " "
@@ -2064,13 +2072,20 @@ var HootCore = (() => {
     const words2 = tokenize(title).filter((w) => w.length >= 4);
     return words2.length >= 3 && words2.filter(isCap).length / words2.length >= 0.6;
   };
+  var partTokens = (part) => {
+    if (!wordMemo || part.length > 40) return tokenize(part);
+    const key = `\0${part}`;
+    let v = wordMemo.get(key);
+    if (v === void 0) wordMemo.set(key, v = tokenize(part));
+    return v;
+  };
   function nameVocabulary(articles, ext = false) {
     const vocab = /* @__PURE__ */ new Set();
     const scan = (text) => {
       let sentenceStart = true;
       for (const part of (ext ? joinCompounds(text, true) : String(text || "")).split(/(\s+)/)) {
         if (!part.trim()) continue;
-        const words2 = tokenize(part);
+        const words2 = partTokens(part);
         for (const w of words2) {
           if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm(w));
           sentenceStart = false;
@@ -2105,10 +2120,15 @@ var HootCore = (() => {
       if (vocab.has(k)) return k;
       return dutchPiece && isCap(w) && k.length >= 6 && k.endsWith("s") && vocab.has(k.slice(0, -1)) && !alias[k] && !alias[k.slice(0, -1)] ? k.slice(0, -1) : null;
     };
+    const capName = (w) => {
+      if (w.length < minLen || !isCap(w)) return null;
+      const k = nameOf(w);
+      return k && !(w.length === 3 && COMMON_3.has(norm(w))) ? k : null;
+    };
     const strongKey = (w) => {
       let key = null;
       if (acr(w)) key = norm(w);
-      else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w);
+      else key = capName(w);
       if (!key) return null;
       key = aliasOf(key);
       if (NOT_A_NAME.has(key) || weakSet.has(key) || key.length < 3) return null;
@@ -2123,7 +2143,7 @@ var HootCore = (() => {
       }
       let key = null;
       if (acr(w)) key = norm(w);
-      else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w);
+      else key = capName(w);
       if (!key) continue;
       key = aliasOf(key);
       if (NOT_A_NAME.has(key)) continue;
@@ -2270,10 +2290,16 @@ var HootCore = (() => {
     return words2 >= 2;
   }
   function signatures(articles, extra = [], { extended = false } = {}) {
-    const vocab = nameVocabulary(articles, extended);
-    const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]));
-    sigVocab.set(out, { vocab, extended, heads: /* @__PURE__ */ new Map() });
-    return out;
+    const outer = wordMemo;
+    wordMemo ||= /* @__PURE__ */ new Map();
+    try {
+      const vocab = nameVocabulary(articles, extended);
+      const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]));
+      sigVocab.set(out, { vocab, extended, heads: /* @__PURE__ */ new Map() });
+      return out;
+    } finally {
+      wordMemo = outer;
+    }
   }
   function previousHeads(sig, previous, now) {
     const v = sigVocab.get(sig);
@@ -2672,13 +2698,14 @@ var HootCore = (() => {
         placedBy.push(owner);
       }
     };
-    const pickLead = (items, total = items.length) => {
+    const leadFrom = (items, total, role) => {
       if (items.some(titled)) items = items.filter(titled);
-      const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? "front" : "neutral" });
+      const all = leadCandidates(items, mainIds, preferred, now, { role });
       const cands2 = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all;
-      const from = leadPool(cands2, items, now, (i) => mainIds.has(i.source), total);
-      return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0];
+      return leadPool(cands2, items, now, (i) => mainIds.has(i.source), total);
     };
+    const chooseLead = (from) => from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0];
+    const pickLead = (items, total = items.length) => chooseLead(leadFrom(items, total, entries.length < 3 ? "front" : "neutral"));
     const storyDesk = (st, primary) => ctx.storyDesk?.has(st.id) ? ctx.storyDesk.get(st.id) : st.desk !== void 0 ? st.desk : primary;
     let storyMap = null;
     const storyOfItem = () => storyMap ||= new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st])));
@@ -2760,14 +2787,26 @@ var HootCore = (() => {
     const used = /* @__PURE__ */ new Set();
     placedC = [];
     const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
-    const cappedWorld = (c) => cappedInternational(prof, c.whole || c.items, c.desk, c.st);
+    const cappedWorld = (c) => c.cw ??= cappedInternational(prof, c.whole || c.items, c.desk, c.st);
+    let candById = null;
+    let worldAt = -1;
+    let worldN = 0;
+    const worldPlaced = () => {
+      if (worldAt !== entries.length) {
+        worldAt = entries.length;
+        candById ||= new Map(cands.map((x) => [x.id, x]));
+        worldN = entries.filter((e) => {
+          const x = candById.get(e.id);
+          return x && cappedWorld(x);
+        }).length;
+      }
+      return worldN;
+    };
     const leadOf = (c) => {
       if (c.kind !== "story") return null;
-      if (c.leadAt !== entries.length) {
-        c.leadAt = entries.length;
-        c.lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length);
-      }
-      return c.lead;
+      const role = entries.length < 3 ? "front" : "neutral";
+      const memo2 = c.leadFrom ||= {};
+      return chooseLead(memo2[role] ||= leadFrom(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length, role));
     };
     const headTaken = (c) => {
       if (!general || c.kind !== "story" || !entries.length || wideSecond(c, placedC, now)) return false;
@@ -2776,13 +2815,10 @@ var HootCore = (() => {
       return !!head && entries.some((e) => sameHeadEvent(head, headSignature(sig, byId2.get(e.leadId || e.id))));
     };
     const newsOk = (c, open) => {
-      const r = newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight });
+      const r = c.nr !== void 0 ? c.nr : c.nr = newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight });
       return r === null || open && r === "internationaal-niet-groot-genoeg";
     };
-    const admissible = (c, open = false) => !used.has(c) && !clashes(c) && familyRoom(c, placedC, general, now) && newsOk(c, open) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
-      const x = cands.find((c2) => c2.id === e.id);
-      return x && cappedWorld(x);
-    }).length >= INT_MAX)) && !headTaken(c);
+    const admissible = (c, open = false) => !used.has(c) && newsOk(c, open) && !clashes(c) && familyRoom(c, placedC, general, now) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && worldPlaced() >= INT_MAX)) && !headTaken(c);
     const spread = (c) => c.kind === "item" ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount;
     let strongAt = -1;
     let strong = false;
@@ -2796,7 +2832,10 @@ var HootCore = (() => {
     let nlHave = 0;
     const dutchC = (c, desk) => {
       const lead = c.kind === "story" ? leadOf(c) : c.it;
-      return !!lead && dutchSource(lead.source) && !internationalNews(c.whole || c.items, desk ?? null, c.st || null);
+      if (!lead || !dutchSource(lead.source)) return false;
+      const memo2 = c.nlMemo ||= /* @__PURE__ */ new Map();
+      if (!memo2.has(desk ?? null)) memo2.set(desk ?? null, !internationalNews(c.whole || c.items, desk ?? null, c.st || null));
+      return memo2.get(desk ?? null);
     };
     const nlNews = (c) => c.kind === "story" && spread(c) >= 2 && !lightNews(c.st, c.items) && !isOpinion(leadOf(c));
     const nlLike = (c) => c.nlLike ??= c.kind === "story" && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i)) && !lightNews(c.st, c.items) && !internationalNews(c.whole || c.items, (plan ? c.home : null) ?? null, c.st);

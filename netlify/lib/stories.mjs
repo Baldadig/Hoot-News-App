@@ -22,7 +22,18 @@ export const byRecency = (a, b) => timeOf(b) - timeOf(a)
 export const NL_SOURCES = new Set(['nrc', 'nos', 'volkskrant', 'tweakers'])
 
 const deaccent = (s) => s.normalize('NFKD').replace(/[̀-ͯ]/g, '')
-const norm = (s) => deaccent(String(s || '')).toLowerCase()
+// Rekentijd (Redacteur 3b · ronde 3 · 3): binnen één aanroep van signatures komen dezelfde woorden duizenden keren langs;
+// `wordMemo` onthoudt dan de genormaliseerde vorm van korte woorden. Alleen tijdens die aanroep (daarna weer leeg), zodat
+// er niets tussen twee Edities blijft hangen.
+let wordMemo = null
+const norm = (s) => {
+  if (wordMemo && typeof s === 'string' && s.length <= 40) {
+    let v = wordMemo.get(s)
+    if (v === undefined) wordMemo.set(s, (v = deaccent(s).toLowerCase()))
+    return v
+  }
+  return deaccent(String(s || '')).toLowerCase()
+}
 
 // ---------- 1. Woordoverlap in koppen (zelfde taal) ----------
 const STOP = new Set(
@@ -248,6 +259,15 @@ const isTitleCase = (title) => {
   return words.length >= 3 && words.filter(isCap).length / words.length >= 0.6
 }
 
+// De woorden van één deel van een zin (zie scan), binnen één aanroep van signatures onthouden (wordMemo, ronde 3 · 3):
+// dezelfde delen komen in de hele pool steeds terug. De lijst wordt alleen gelezen.
+const partTokens = (part) => {
+  if (!wordMemo || part.length > 40) return tokenize(part)
+  const key = `\u0000${part}`
+  let v = wordMemo.get(key)
+  if (v === undefined) wordMemo.set(key, (v = tokenize(part)))
+  return v
+}
 // Woordenschat van namen: woorden die midden in een gewone zin met een hoofdletter staan.
 function nameVocabulary(articles, ext = false) {
   const vocab = new Set()
@@ -256,7 +276,7 @@ function nameVocabulary(articles, ext = false) {
     // Samengestelde namen eerst samenvoegen: ze lopen over een spatie ("Grondwettelijk Hof").
     for (const part of (ext ? joinCompounds(text, true) : String(text || '')).split(/(\s+)/)) {
       if (!part.trim()) continue
-      const words = tokenize(part)
+      const words = partTokens(part)
       for (const w of words) {
         if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm(w))
         sentenceStart = false
@@ -301,16 +321,22 @@ function signature(article, vocab, ext = false) {
   // ("Woudenbergs stel" naast "ouders Woudenberg"), als de naam zonder -s in de woordenschat staat en de vorm mét -s
   // niet. Niet in het Engels: daar is de -s een meervoud ("Democrats", "Elections").
   const dutchPiece = ext && NL_LANG.has(article.source)
+  // Rekentijd (ronde 3 · 3): norm één keer per woord.
   const nameOf = (w) => {
     const k = norm(w)
     if (vocab.has(k)) return k
     return dutchPiece && isCap(w) && k.length >= 6 && k.endsWith('s') && vocab.has(k.slice(0, -1)) && !alias[k] && !alias[k.slice(0, -1)] ? k.slice(0, -1) : null
   }
+  // Alleen woorden mét hoofdletter die ook elders midden in een zin als naam voorkomen.
+  const capName = (w) => {
+    if (w.length < minLen || !isCap(w)) return null
+    const k = nameOf(w)
+    return k && !(w.length === 3 && COMMON_3.has(norm(w))) ? k : null
+  }
   const strongKey = (w) => {
     let key = null
     if (acr(w)) key = norm(w)
-    // Alleen woorden mét hoofdletter die ook elders midden in een zin als naam voorkomen.
-    else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w)
+    else key = capName(w)
     if (!key) return null
     key = aliasOf(key)
     if (NOT_A_NAME.has(key) || weakSet.has(key) || key.length < 3) return null
@@ -325,7 +351,7 @@ function signature(article, vocab, ext = false) {
     }
     let key = null
     if (acr(w)) key = norm(w)
-    else if (w.length >= minLen && isCap(w) && nameOf(w) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = nameOf(w)
+    else key = capName(w)
     if (!key) continue
     key = aliasOf(key)
     if (NOT_A_NAME.has(key)) continue
@@ -544,10 +570,16 @@ export function sameHeadEvent(a, b) {
 // `extended`: de uitgebreide stand van H6 (zie buildStories); standaard uit, dan is het kenmerk gelijk
 // aan vroeger.
 export function signatures(articles, extra = [], { extended = false } = {}) {
-  const vocab = nameVocabulary(articles, extended)
-  const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
-  sigVocab.set(out, { vocab, extended, heads: new Map() })
-  return out
+  const outer = wordMemo
+  wordMemo ||= new Map()
+  try {
+    const vocab = nameVocabulary(articles, extended)
+    const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
+    sigVocab.set(out, { vocab, extended, heads: new Map() })
+    return out
+  } finally {
+    wordMemo = outer
+  }
 }
 // De kenmerken van de getoonde koppen van de vorige Editie, met de woordenschat van `sig` (zoals selectForReader
 // ze rekent): voor wie na de selectie nog plekken kiest (composePersonal, het brede verhaal).
@@ -1713,15 +1745,18 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const place = (ids, owner = null) => {
     for (const id of ids) if (sig.has(id)) { placed.push(sig.get(id)); placedBy.push(owner) }
   }
-  const pickLead = (items, total = items.length) => {
+  // De kandidaten voor de kop, in volgorde; hangt alleen af van de stukken en de rol (de eerste drie plekken: voorpagina).
+  const leadFrom = (items, total, role) => {
     if (items.some(titled)) items = items.filter(titled)
-    const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? 'front' : 'neutral' })
+    const all = leadCandidates(items, mainIds, preferred, now, { role })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     // Eigen bronnen eerst; daarbinnen een samenvattende kop, geen vraag, de verste stukken, in het
     // Nederlands als het kan (H7: leadPool).
-    const from = leadPool(cands, items, now, (i) => mainIds.has(i.source), total)
-    return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
+    return leadPool(cands, items, now, (i) => mainIds.has(i.source), total)
   }
+  // Dan de kop: niet dezelfde bron als de vorige kop, en hooguit MAX_LEADS_PER_SOURCE koppen per bron.
+  const chooseLead = (from) => from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
+  const pickLead = (items, total = items.length) => chooseLead(leadFrom(items, total, entries.length < 3 ? 'front' : 'neutral'))
   // De rubriek van een verhaal is voor iedereen gelijk: st.desk uit buildStories (of `ctx.storyDesk`),
   // ook als die leeg is. Alleen een verhaal van een oudere server zonder rubriek krijgt de
   // hoofdrubriek uit wat deze lezer ervan heeft.
@@ -1790,15 +1825,26 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const used = new Set()
   placedC = []
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
-  const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
-  // De kop van een verhaal bij deze stand van de Editie (pickLead hangt alleen af van wat er al staat), één keer gekozen.
+  const cappedWorld = c => (c.cw ??= cappedInternational(prof,c.whole || c.items,c.desk,c.st))
+  // Hoeveel plekken buitenland zonder reden er al staan (voor INT_MAX in admissible), één keer per stand van de Editie.
+  let candById = null
+  let worldAt = -1
+  let worldN = 0
+  const worldPlaced = () => {
+    if (worldAt !== entries.length) {
+      worldAt = entries.length
+      candById ||= new Map(cands.map((x) => [x.id, x]))
+      worldN = entries.filter((e) => { const x = candById.get(e.id); return x && cappedWorld(x) }).length
+    }
+    return worldN
+  }
+  // De kop van een verhaal bij deze stand van de Editie (zoals pickLead). De volgorde van de kandidaten (leadFrom, het dure
+  // deel) wordt per verhaal en rol één keer berekend; alleen de laatste keuze hangt af van de koppen die er al staan.
   const leadOf = (c) => {
     if (c.kind !== 'story') return null
-    if (c.leadAt !== entries.length) {
-      c.leadAt = entries.length
-      c.lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length)
-    }
-    return c.lead
+    const role = entries.length < 3 ? 'front' : 'neutral'
+    const memo = (c.leadFrom ||= {})
+    return chooseLead((memo[role] ||= leadFrom(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length, role)))
   }
   // De algemene Editie kijkt ook naar wat de lezer ziet: de kop van een plek mag niet dezelfde gebeurtenis melden als de
   // kop van een andere plek (sameHeadEvent: dezelfde partij, dezelfde handeling of hetzelfde feit, kort na elkaar; ronde
@@ -1811,11 +1857,12 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     return !!head && entries.some((e) => sameHeadEvent(head, headSignature(sig, byId.get(e.leadId || e.id))))
   }
   // `open` (alleen de algemene Editie, ronde 3 · 2): het plafond voor buitenland telt niet, de andere toelating wel.
+  // De toelating hangt alleen af van de kandidaat en het profiel: één keer per kandidaat (rekentijd, ronde 3 · 3).
   const newsOk = (c, open) => {
-    const r = newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })
+    const r = c.nr !== undefined ? c.nr : (c.nr = newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }))
     return r === null || (open && r === 'internationaal-niet-groot-genoeg')
   }
-  const admissible = (c, open = false) => !used.has(c) && !clashes(c) && familyRoom(c, placedC, general, now) && newsOk(c, open) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX)) && !headTaken(c)
+  const admissible = (c, open = false) => !used.has(c) && newsOk(c, open) && !clashes(c) && familyRoom(c, placedC, general, now) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && worldPlaced() >= INT_MAX)) && !headTaken(c)
   // De spreiding van een kandidaat: het aantal onafhankelijke uitgevers van het hele verhaal (een los stuk: één).
   const spread = (c) => (c.kind === 'item' ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount)
   // Is er nog een vers verhaal van minstens SPREAD_MIN uitgevers dat een plek mag? Eén keer per stand van de Editie.
@@ -1836,7 +1883,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   let nlHave = 0
   const dutchC = (c, desk) => {
     const lead = c.kind === 'story' ? leadOf(c) : c.it
-    return !!lead && dutchSource(lead.source) && !internationalNews(c.whole || c.items, desk ?? null, c.st || null)
+    if (!lead || !dutchSource(lead.source)) return false
+    const memo = (c.nlMemo ||= new Map())
+    if (!memo.has(desk ?? null)) memo.set(desk ?? null, !internationalNews(c.whole || c.items, desk ?? null, c.st || null))
+    return memo.get(desk ?? null)
   }
   const nlNews = (c) => c.kind === 'story' && spread(c) >= 2 && !lightNews(c.st, c.items) && !isOpinion(leadOf(c))
   // Kan `c` zo'n plek worden? Een snelle schatting zonder de kop te kiezen (een Nederlandse bron met een nieuwskop onder de
