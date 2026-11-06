@@ -147,8 +147,8 @@ const WORLD = W([
 const NL_ANCHOR = W(['nederland\\p{L}*', 'dutch', 'holland\\p{L}*'])
 export function foreignHead(title = '') {
   const t = String(title || '')
-  if (!t || NL_ANCHOR.test(t) || placeSignals({ title: t }).nl) return false
-  return countriesIn(t).some((c) => c !== 'nl') || WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t)
+  if (!t || !(WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || countriesIn(t).some((c) => c !== 'nl'))) return false
+  return !NL_ANCHOR.test(t) && !placeSignals({ title: t }).nl
 }
 
 // Nederlands bezit, ZWAK: woorden die in een Nederlandse krant meestal over Nederland gaan (de

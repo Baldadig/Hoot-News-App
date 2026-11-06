@@ -1002,8 +1002,8 @@ var HootCore = (() => {
   var NL_ANCHOR = W(["nederland\\p{L}*", "dutch", "holland\\p{L}*"]);
   function foreignHead(title = "") {
     const t = String(title || "");
-    if (!t || NL_ANCHOR.test(t) || placeSignals({ title: t }).nl) return false;
-    return countriesIn(t).some((c) => c !== "nl") || WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t);
+    if (!t || !(WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || countriesIn(t).some((c) => c !== "nl"))) return false;
+    return !NL_ANCHOR.test(t) && !placeSignals({ title: t }).nl;
   }
   var NL_WEAK = W([
     "nederlands\\p{L}*",
@@ -3066,13 +3066,18 @@ var HootCore = (() => {
     const allOf = (c) => c.kind === "story" && ctx.storyItems?.get(c.st.id) || c.whole || c.items;
     const dutchC = (c, desk) => {
       const lead = c.kind === "story" ? leadOf(c) : c.it;
-      if (!lead || !dutchSource(lead.source) || foreignHead(lead.title)) return false;
+      if (!lead || !dutchSource(lead.source)) return false;
       const memo2 = c.nlMemo ||= /* @__PURE__ */ new Map();
       if (!memo2.has(desk ?? null)) memo2.set(desk ?? null, !internationalNews(allOf(c), desk ?? null, c.st || null));
-      return memo2.get(desk ?? null);
+      if (!memo2.get(desk ?? null)) return false;
+      if (c.fhId !== lead.id) {
+        c.fhId = lead.id;
+        c.fh = foreignHead(lead.title);
+      }
+      return !c.fh;
     };
     const nlNews = (c) => c.kind === "story" && spread(c) >= 2 && !lightNews(c.st, c.items) && !isOpinion(leadOf(c));
-    const nlLike = (c) => c.nlLike ??= c.kind === "story" && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i) && !foreignHead(i.title)) && !lightNews(c.st, c.items) && !internationalNews(allOf(c), (plan ? c.home : null) ?? null, c.st);
+    const nlLike = (c) => c.nlLike ??= c.kind === "story" && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i)) && !lightNews(c.st, c.items) && !internationalNews(allOf(c), (plan ? c.home : null) ?? null, c.st) && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i) && !foreignHead(i.title));
     let nlAt = -1;
     let nlNeed = 0;
     let nlOff = false;

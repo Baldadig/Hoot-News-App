@@ -1928,15 +1928,17 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const allOf = (c) => (c.kind === 'story' && ctx.storyItems?.get(c.st.id)) || c.whole || c.items
   const dutchC = (c, desk) => {
     const lead = c.kind === 'story' ? leadOf(c) : c.it
-    if (!lead || !dutchSource(lead.source) || foreignHead(lead.title)) return false
+    if (!lead || !dutchSource(lead.source)) return false
     const memo = (c.nlMemo ||= new Map())
     if (!memo.has(desk ?? null)) memo.set(desk ?? null, !internationalNews(allOf(c), desk ?? null, c.st || null))
-    return memo.get(desk ?? null)
+    if (!memo.get(desk ?? null)) return false
+    if (c.fhId !== lead.id) { c.fhId = lead.id; c.fh = foreignHead(lead.title) }
+    return !c.fh
   }
   const nlNews = (c) => c.kind === 'story' && spread(c) >= 2 && !lightNews(c.st, c.items) && !isOpinion(leadOf(c))
   // Kan `c` zo'n plek worden? Een snelle schatting zonder de kop te kiezen (een Nederlandse bron met een nieuwskop onder de
   // stukken), één keer per kandidaat; take beslist daarna met de echte kop.
-  const nlLike = (c) => (c.nlLike ??= c.kind === 'story' && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i) && !foreignHead(i.title)) && !lightNews(c.st, c.items) && !internationalNews(allOf(c), (plan ? c.home : null) ?? null, c.st))
+  const nlLike = (c) => (c.nlLike ??= c.kind === 'story' && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i)) && !lightNews(c.st, c.items) && !internationalNews(allOf(c), (plan ? c.home : null) ?? null, c.st) && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i) && !foreignHead(i.title)))
   // Hoeveel plekken blijven vrij voor de Nederlandse ondergrens? Eén keer per stand van de Editie. `nlOff`: de laatste
   // ronde, als er toch plekken leeg bleven.
   let nlAt = -1
