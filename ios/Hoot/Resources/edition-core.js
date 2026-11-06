@@ -2263,12 +2263,13 @@ var HootCore = (() => {
     if (m.hit || m.n >= placed.length) return m.hit;
     const fresh = placed.slice(m.n);
     m.n = placed.length;
-    const hit = (x) => !!x && fresh.some((s) => sameSubject(x, s));
+    return m.hit = subjectIn(sig, c, fresh, items);
+  }
+  function subjectIn(sig, c, list, items) {
+    const hit = (x) => !!x && list.some((s) => sameSubject(x, s));
     const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0;
-    if (c.kind === "story" && pubs >= OWN_STORY && items?.length) {
-      return m.hit = items.some((i) => hit(headSignature(sig, i)));
-    }
-    return m.hit = c.ids.some((id) => sig.has(id) && hit(sig.get(id)));
+    if (c.kind === "story" && pubs >= OWN_STORY && items?.length) return items.some((i) => hit(headSignature(sig, i)));
+    return c.ids.some((id) => sig.has(id) && hit(sig.get(id)));
   }
   var STALE_AFTER = 24 * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
@@ -2479,6 +2480,10 @@ var HootCore = (() => {
     return out.length ? out : items;
   }
   var FAMILY_MAX = 1;
+  var FAMILY_WIDE_MAX = 2;
+  var FAMILY_WIDE_PUBS = 15;
+  var FAMILY_SECOND_PUBS = 4;
+  var SECOND_FRESH_H = 6;
   var familyRelated = (a, b) => !!a.vote && a.vote === b.vote;
   function families(cands) {
     const stories = cands.filter((c) => c.kind === "story");
@@ -2529,11 +2534,19 @@ var HootCore = (() => {
     }
     return out;
   }
-  function familyRoom(c, placedC) {
+  var secondFact = (c, now) => !!now && now - timeOf({ publishedAt: c.st.latestAt }) <= SECOND_FRESH_H * 36e5 && !c.voteResult && (c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount) >= FAMILY_SECOND_PUBS && !curioStory(c.st, c.items) && c.items.filter((i) => !isOpinion(i)).length * 2 > c.items.length;
+  function wideSecond(c, placedC, now) {
+    if (c.kind !== "story" || !c.vote) return false;
+    const mates = placedC.filter((x) => x.kind === "story" && x.vote === c.vote);
+    const pubs = (x) => x.st.publisherCount ?? coverageOf(x.whole || x.items).publisherCount;
+    return mates.length >= FAMILY_MAX && mates.length < FAMILY_WIDE_MAX && mates.some((x) => pubs(x) >= FAMILY_WIDE_PUBS) && secondFact(c, now);
+  }
+  function familyRoom(c, placedC, wide = false, now = null) {
     if (c.kind !== "story" || !c.vote) return true;
     const mates = placedC.filter((x) => x.kind === "story" && x.vote === c.vote);
     if (!mates.length) return true;
-    if (mates.length >= FAMILY_MAX) return false;
+    if (mates.length >= (wide ? FAMILY_WIDE_MAX : FAMILY_MAX)) return false;
+    if (mates.length >= FAMILY_MAX && !(wide && wideSecond(c, placedC, now))) return false;
     if (c.voteResult && mates.some((x) => x.voteResult)) return false;
     return !(c.voteFrom && timeOf({ publishedAt: c.st.latestAt }) < c.voteFrom);
   }
@@ -2608,9 +2621,17 @@ var HootCore = (() => {
     const leadCount = {};
     let prevLead = null;
     const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)));
-    const clashes = (c) => subjectTaken(sig, c, placed, c.items) || !c.vervolg && same(c.ids, vorige);
-    const place = (ids) => {
-      for (const id of ids) if (sig.has(id)) placed.push(sig.get(id));
+    const placedBy = [];
+    let placedC = [];
+    const clashes = (c) => {
+      if (general && wideSecond(c, placedC, now)) return subjectIn(sig, c, placed.filter((_, k) => placedBy[k]?.vote !== c.vote), c.items) || !c.vervolg && same(c.ids, vorige);
+      return subjectTaken(sig, c, placed, c.items) || !c.vervolg && same(c.ids, vorige);
+    };
+    const place = (ids, owner = null) => {
+      for (const id of ids) if (sig.has(id)) {
+        placed.push(sig.get(id));
+        placedBy.push(owner);
+      }
     };
     const pickLead = (items, total = items.length) => {
       if (items.some(titled)) items = items.filter(titled);
@@ -2698,10 +2719,10 @@ var HootCore = (() => {
     }
     cands.sort(heaviest);
     const used = /* @__PURE__ */ new Set();
-    const placedC = [];
+    placedC = [];
     const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
     const cappedWorld = (c) => cappedInternational(prof, c.whole || c.items, c.desk, c.st);
-    const admissible = (c) => !used.has(c) && !clashes(c) && familyRoom(c, placedC) && allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }) && !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
+    const admissible = (c) => !used.has(c) && !clashes(c) && familyRoom(c, placedC, general, now) && allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }) && !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
       const x = cands.find((c2) => c2.id === e.id);
       return x && cappedWorld(x);
     }).length >= INT_MAX);
@@ -2715,12 +2736,24 @@ var HootCore = (() => {
       }
       return strong;
     };
+    const relead = (c) => {
+      const mate = placedC.find((x) => x.kind === "story" && x.vote === c.vote);
+      const e = mate && entries.find((x) => x.kind === "story" && x.id === mate.st.id);
+      if (!e) return;
+      const theirs = c.ids.map((id) => sig.get(id)).filter(Boolean);
+      const own = mate.items.filter((i) => titled(i) && !(sig.has(i.id) && theirs.some((t) => sameSubject(sig.get(i.id), t))));
+      const pool2 = own.some((i) => voteKind(i) === 2) ? own.filter((i) => voteKind(i) === 2) : own;
+      if (!pool2.length || pool2.some((i) => i.id === e.leadId)) return;
+      const lead = leadPool(leadCandidates(pool2, mainIds, preferred, now, { role: "front" }), mate.items, now)[0];
+      if (lead) Object.assign(e, { leadId: lead.id, title: lead.title || null });
+    };
     const take = (c, desk, extra = {}) => {
       if (!admissible(c)) return false;
       if (general && spread(c) <= 1 && strongLeft()) return false;
+      if (general && wideSecond(c, placedC, now)) relead(c);
       used.add(c);
       placedC.push(c);
-      place(c.ids);
+      place(c.ids, c);
       const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || { sourceCount: 1 }, c.items), ...c.vervolg ? { vervolg: c.vervolg } : {}, ...extra };
       if (c.kind === "story") {
         const lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length);

@@ -528,12 +528,13 @@ function subjectTaken(sig, c, placed, items) {
   if (m.hit || m.n >= placed.length) return m.hit
   const fresh = placed.slice(m.n)
   m.n = placed.length
-  const hit = (x) => !!x && fresh.some((s) => sameSubject(x, s))
+  return (m.hit = subjectIn(sig, c, fresh, items))
+}
+function subjectIn(sig, c, list, items) {
+  const hit = (x) => !!x && list.some((s) => sameSubject(x, s))
   const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0
-  if (c.kind === 'story' && pubs >= OWN_STORY && items?.length) {
-    return (m.hit = items.some((i) => hit(headSignature(sig, i))))
-  }
-  return (m.hit = c.ids.some((id) => sig.has(id) && hit(sig.get(id))))
+  if (c.kind === 'story' && pubs >= OWN_STORY && items?.length) return items.some((i) => hit(headSignature(sig, i)))
+  return c.ids.some((id) => sig.has(id) && hit(sig.get(id)))
 }
 
 // Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
@@ -1311,6 +1312,16 @@ export function freshest(items) {
 // reacties en analyses als eigen verhalen in de familie; zij tellen mee in het gewicht van het hoofd, maar een
 // tweede plek over dezelfde stembus is een dubbele plek (één gebeurtenis, één plek).
 export const FAMILY_MAX = 1
+// Ronde 2 (besluit van Alex, 4 november: "Trump accepteert de nederlaag" als aparte plek 2): twee plekken voor één
+// gebeurtenis alleen op een uitzonderlijke nieuwsdag, en alleen in de algemene Editie (`general`): het verhaal dat al een
+// plek heeft, is zelf door minstens FAMILY_WIDE_PUBS uitgevers gebracht (niet opgeteld over de familie), en het tweede verhaal is een echte tweede ontwikkeling: een ander feit, niet
+// dezelfde uitslag (geen uitslagverhaal, geen voorbeschouwing, geen curiosum, geen opinie als kop), zelf gebracht door
+// minstens FAMILY_SECOND_PUBS uitgevers, en vers: het nieuwste stuk is van het laatste dagdeel (SECOND_FRESH_H uur).
+// Zo'n tweede plek mag over dezelfde namen gaan als de eerste (sameSubject telt alleen tegenover de rest). Anders één plek.
+export const FAMILY_WIDE_MAX = 2
+export const FAMILY_WIDE_PUBS = 15
+export const FAMILY_SECOND_PUBS = 4
+export const SECOND_FRESH_H = 6
 // Verwant is alleen een stembusverhaal met dezelfde plaats, op een dag mét uitslag (c.vote, zie families).
 // Niet via een gedeelde naam (sameSubject): toets 4 november 2026, op 30 oktober opende "Paus Leo brengt als
 // eerste paus zijn stem uit" (7 uitgevers) de Editie, omdat alles met Trump of de verkiezingen bij hem optelde
@@ -1373,11 +1384,21 @@ export function voteFamilyOf(stories = [], byId = new Map()) {
   return out
 }
 // Mag deze kandidaat nog bij de plekken van zijn familie? `placedC`: de kandidaten die al een plek hebben.
-function familyRoom(c, placedC) {
+// `wide`: de algemene Editie mag op een uitzonderlijke nieuwsdag een tweede plek geven (FAMILY_WIDE_MAX).
+const secondFact = (c, now) => !!now && now - timeOf({ publishedAt: c.st.latestAt }) <= SECOND_FRESH_H * 36e5 && !c.voteResult && (c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount) >= FAMILY_SECOND_PUBS && !curioStory(c.st, c.items) && c.items.filter((i) => !isOpinion(i)).length * 2 > c.items.length
+// Is `c` op deze dag een tweede plek voor een familie die er al één heeft (alleen met `wide`)?
+function wideSecond(c, placedC, now) {
+  if (c.kind !== 'story' || !c.vote) return false
+  const mates = placedC.filter((x) => x.kind === 'story' && x.vote === c.vote)
+  const pubs = (x) => x.st.publisherCount ?? coverageOf(x.whole || x.items).publisherCount
+  return mates.length >= FAMILY_MAX && mates.length < FAMILY_WIDE_MAX && mates.some((x) => pubs(x) >= FAMILY_WIDE_PUBS) && secondFact(c, now)
+}
+function familyRoom(c, placedC, wide = false, now = null) {
   if (c.kind !== 'story' || !c.vote) return true
   const mates = placedC.filter((x) => x.kind === 'story' && x.vote === c.vote)
   if (!mates.length) return true
-  if (mates.length >= FAMILY_MAX) return false
+  if (mates.length >= (wide ? FAMILY_WIDE_MAX : FAMILY_MAX)) return false
+  if (mates.length >= FAMILY_MAX && !(wide && wideSecond(c, placedC, now))) return false
   if (c.voteResult && mates.some((x) => x.voteResult)) return false // geen losse race naast de uitslag
   return !(c.voteFrom && timeOf({ publishedAt: c.st.latestAt }) < c.voteFrom) // geen voorbeschouwing na de uitslag
 }
@@ -1609,9 +1630,15 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)))
   // Eén plek per onderwerp, ook tegenover de koppen van de vorige Editie; een ontwikkeld verhaal
   // gaat vanzelf over zijn eigen vorige kop en wordt daar niet op afgewezen.
-  const clashes = (c) => subjectTaken(sig, c, placed, c.items) || (!c.vervolg && same(c.ids, vorige))
-  const place = (ids) => {
-    for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
+  const placedBy = [] // per kenmerk in `placed`: de kandidaat die de plek kreeg
+  let placedC = []
+  const clashes = (c) => {
+    // Een tweede plek voor één gebeurtenis (alleen algemeen, wideSecond) mag over dezelfde namen gaan als zijn familie.
+    if (general && wideSecond(c, placedC, now)) return subjectIn(sig, c, placed.filter((_, k) => placedBy[k]?.vote !== c.vote), c.items) || (!c.vervolg && same(c.ids, vorige))
+    return subjectTaken(sig, c, placed, c.items) || (!c.vervolg && same(c.ids, vorige))
+  }
+  const place = (ids, owner = null) => {
+    for (const id of ids) if (sig.has(id)) { placed.push(sig.get(id)); placedBy.push(owner) }
   }
   const pickLead = (items, total = items.length) => {
     if (items.some(titled)) items = items.filter(titled)
@@ -1688,10 +1715,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   cands.sort(heaviest)
 
   const used = new Set()
-  const placedC = []
+  placedC = []
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
   const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
-  const admissible = (c) => !used.has(c) && !clashes(c) && familyRoom(c, placedC) && allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }) && !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX)
+  const admissible = (c) => !used.has(c) && !clashes(c) && familyRoom(c, placedC, general, now) && allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }) && !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX)
   // De spreiding van een kandidaat: het aantal onafhankelijke uitgevers van het hele verhaal (een los stuk: één).
   const spread = (c) => (c.kind === 'item' ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount)
   // Is er nog een vers verhaal van minstens SPREAD_MIN uitgevers dat een plek mag? Eén keer per stand van de Editie.
@@ -1704,12 +1731,26 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     }
     return strong
   }
+  const relead = (c) => {
+    const mate = placedC.find((x) => x.kind === 'story' && x.vote === c.vote)
+    const e = mate && entries.find((x) => x.kind === 'story' && x.id === mate.st.id)
+    if (!e) return
+    const theirs = c.ids.map((id) => sig.get(id)).filter(Boolean)
+    const own = mate.items.filter((i) => titled(i) && !(sig.has(i.id) && theirs.some((t) => sameSubject(sig.get(i.id), t))))
+    const pool = own.some((i) => voteKind(i) === 2) ? own.filter((i) => voteKind(i) === 2) : own
+    if (!pool.length || pool.some((i) => i.id === e.leadId)) return
+    const lead = leadPool(leadCandidates(pool, mainIds, preferred, now, { role: 'front' }), mate.items, now)[0]
+    if (lead) Object.assign(e, { leadId: lead.id, title: lead.title || null })
+  }
   const take = (c, desk, extra = {}) => {
     if (!admissible(c)) return false
     if (general && spread(c) <= 1 && strongLeft()) return false
+    // Een tweede plek voor één gebeurtenis: de eerste plek houdt dan een kop over de uitslag zelf, niet over het
+    // tweede feit (anders staat hetzelfde feit twee keer bovenaan).
+    if (general && wideSecond(c, placedC, now)) relead(c)
     used.add(c)
     placedC.push(c)
-    place(c.ids)
+    place(c.ids, c)
     const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
     if (c.kind === 'story') {
       // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron.

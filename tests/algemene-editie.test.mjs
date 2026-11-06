@@ -28,7 +28,7 @@ test('algemene Editie: de plekken van een leeg profiel, in de vorm van de vastge
     if (e.kind === 'story') assert.ok(storyById.get(e.id)?.itemIds.includes(e.leadId), e.id)
     assert.deepEqual(Object.keys(e).filter((k) => !['kind', 'id', 'leadId', 'desk'].includes(k)), [], 'geen waarom, geen gewicht')
   }
-  const sel = selectForReader(stories, pool, { mainIds: MAIN_IDS, now, prof: profileOf({ followed: MAIN_IDS, sources: SOURCES }) })
+  const sel = selectForReader(stories, pool, { mainIds: MAIN_IDS, now, prof: profileOf({ followed: MAIN_IDS, sources: SOURCES }), general: true })
   assert.deepEqual(new Set(ed.map((e) => e.id)), new Set(sel.map((e) => e.id)))
 })
 
@@ -142,4 +142,37 @@ test('service is geen nieuwsplek: review, uitverkoop en productblad herkend aan 
   assert.equal(k('Nvidia closes chip deal with Saudi Arabia', 'https://www.theverge.com/news/1/nvidia-deal-saudi-arabia'), null)
   assert.equal(k('Paramount completes sale of studio to rival', 'https://www.theverge.com/news/2/paramount-sale-studio'), null)
   assert.equal(k('Court fines Amazon over fake review scheme', 'https://www.theverge.com/news/3/amazon-fake-review-fine'), null)
+})
+
+// Ronde 2 · 4 (besluit van Alex, 4 november middag: "Trump accepteert" als eigen plek naast de uitslag): twee plekken voor
+// één gebeurtenis alleen in de algemene Editie, alleen als het verhaal dat al een plek heeft zelf FAMILY_WIDE_PUBS
+// uitgevers heeft, en alleen voor een echte, verse tweede ontwikkeling (geen tweede uitslag).
+test('één gebeurtenis, twee plekken alleen op een uitzonderlijke nieuwsdag (3b · ronde 2)', async () => {
+  const { FAMILY_WIDE_PUBS, FAMILY_SECOND_PUBS } = await import('../netlify/lib/stories.mjs')
+  assert.equal(FAMILY_WIDE_PUBS, 15)
+  assert.equal(FAMILY_SECOND_PUBS, 4)
+  const T = Date.parse('2026-11-04T11:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, h = 2) => ({ id: `v${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(h), topics: ['vs-politiek'] })
+  const pubs = ['nos', 'nu', 'nrc', 'volkskrant', 'trouw', 'parool', 'ad', 'telegraaf', 'rtl', 'nd', 'nyt', 'guardian', 'bbc', 'aljazeera', 'npr', 'dw', 'lemonde', 'scmp', 'independent', 'politico']
+  const build = (headPubs, secondH = 2) => {
+    const head = pubs.slice(0, headPubs).map((s) => art(s, 'Democrats win majority in Senate and House in midterm elections', 6))
+    const second = ['nyt', 'bbc', 'guardian', 'nos', 'npr'].map((s) => art(s, 'Trump says he will accept the midterm outcome and blames turnout', secondH))
+    const race = ['nyt', 'politico', 'npr', 'guardian'].map((s) => art(s, 'Democrat Talarico flips Texas Senate seat in midterm upset', 3))
+    const other = [['nos', 'nrc', 'volkskrant'], ['ad', 'nu', 'rtl'], ['trouw', 'parool', 'nd']].map((ss, k) => ss.map((s) => ({ ...art(s, ['Kabinet presenteert stikstofwet', 'Inflatie stijgt naar 3,7 procent', 'Ombudsman: overheid onbetrouwbaar voor boeren'][k], 1), topics: ['nederland'] })))
+    const groups = [['sHead', head, 'vs'], ['sTrump', second, 'vs'], ['sRace', race, 'vs'], ...other.map((its, k) => [`sNl${k}`, its, 'binnenland'])]
+    const stories = groups.map(([id, its, desk]) => ({ id, itemIds: its.map((i) => i.id), sourceCount: new Set(its.map((i) => i.source)).size, publisherCount: new Set(its.map((i) => i.source)).size, latestAt: its.map((i) => i.publishedAt).sort().at(-1), desk }))
+    return { stories, pool: groups.flatMap((g) => g[1]) }
+  }
+  const prof = profileOf({ followed: MAIN_IDS, sources: SOURCES })
+  const ids = (w, general) => selectForReader(w.stories, w.pool, { mainIds: MAIN_IDS, now: T, prof, general }).map((e) => e.id)
+  // Uitzonderlijk (twintig uitgevers op de uitslag): de uitslag en Trumps reactie, niet ook nog een losse race.
+  const big = ids(build(20), true)
+  assert.ok(big.includes('sHead') && big.includes('sTrump'), big.join())
+  assert.ok(!big.includes('sRace'), big.join())
+  // De persoonlijke Editie houdt één plek; een gewone uitslag (twaalf uitgevers) ook; een tweede feit van gisteren ook.
+  assert.equal(ids(build(20), false).filter((id) => ['sHead', 'sTrump', 'sRace'].includes(id)).length, 1)
+  assert.equal(ids(build(12), true).filter((id) => ['sHead', 'sTrump', 'sRace'].includes(id)).length, 1)
+  assert.equal(ids(build(20, 9), true).filter((id) => ['sHead', 'sTrump', 'sRace'].includes(id)).length, 1)
 })
