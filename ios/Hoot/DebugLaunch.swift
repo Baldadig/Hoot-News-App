@@ -25,6 +25,8 @@ import SwiftUI
 //                     vastgelegde staat op het toestel of in je account; niets gaat naar je account)
 //   -HootGrid paren|kolom   (de brede Editie in dat raster, los van staand of liggend: opnamen van A op een
 //                           staande simulator)
+//   -HootVenster <breedte>   (iPad: het venster zo smal als een deelvenster in Split View, links, met een
+//                            compacte breedteklasse; de rest van het scherm blijft leeg)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
     #if DEBUG
@@ -32,6 +34,7 @@ enum DebugLaunch {
     static var screen: String? { defaults.string(forKey: "HootScreen") }
     static var engine: Bool { defaults.bool(forKey: "HootEngine") }
     static var grid: String? { defaults.string(forKey: "HootGrid") }
+    static var venster: CGFloat? { defaults.object(forKey: "HootVenster") != nil ? CGFloat(defaults.double(forKey: "HootVenster")) : nil }
     static var refreshDelay: Double { max(0, min(30, defaults.double(forKey: "HootRefreshDelay"))) }
     static var loadDelay: Double { max(0, min(60, defaults.double(forKey: "HootLoadDelay"))) }
     static var tien: Bool { defaults.bool(forKey: "HootTien") }
@@ -65,6 +68,7 @@ enum DebugLaunch {
     static let screen: String? = nil
     static let engine = false
     static let grid: String? = nil
+    static let venster: CGFloat? = nil
     static let refreshDelay = 0.0
     static let loadDelay = 0.0
     static let tien = false
@@ -109,6 +113,21 @@ extension View {
             }
         } else {
             self
+        }
+    }
+
+    // iPad-opnamen: een smal venster zoals Split View (alleen Debug). Draaien kan de app op de iPad niet zelf
+    // (de venstermodus staat dat niet toe); dat doet een UI-test met XCUIDevice.
+    func debugWindow() -> some View {
+        task {
+            #if DEBUG
+            guard let w = DebugLaunch.venster else { return }
+            try? await Task.sleep(for: .milliseconds(300))
+            guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
+                  let window = scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first else { return }
+            window.traitOverrides.horizontalSizeClass = w < 700 ? .compact : .regular
+            window.frame = CGRect(x: 0, y: 0, width: w, height: scene.coordinateSpace.bounds.height)
+            #endif
         }
     }
 

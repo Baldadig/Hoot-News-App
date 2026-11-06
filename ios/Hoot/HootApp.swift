@@ -64,6 +64,7 @@ struct HootApp: App {
                 if splash { SplashView(handoff: handoff) }
             }
             .task { await endSplash() }
+            .debugWindow()
             .task { await store.load() } // ook al tijdens het welkom: de Editie staat klaar als je begint
             .task { await account.start(store) }
             // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
