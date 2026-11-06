@@ -111,7 +111,18 @@ import SwiftUI
         XCTAssertNil(TafelEditie.gemarkeerd(open: stroom, rij: rij))
     }
 
-    // MARK: Duo 1.2: de koppen passen
+    // MARK: Duo 1.2: de rij vult de ruimte, de koppen passen
+
+    func testDeRuimeRijAlleenAlsLaptop() {
+        // Vlak liggend is de onderste helft `tafelOnder` hoog (min de veilige zone): de gewone rij.
+        XCTAssertFalse(TafelEditie.ruim(hoogte: KrantIndeling.tafelOnder, tafelOnder: KrantIndeling.tafelOnder))
+        XCTAssertFalse(TafelEditie.ruim(hoogte: KrantIndeling.tafelOnder - 20, tafelOnder: KrantIndeling.tafelOnder))
+        // Als laptop: de helft onder de vouw (951 − 497,5 = 453,5), min de tabbalk (± 83). Dan de ruime rij.
+        guard case let .tafel(_, onder) = KrantIndeling.kies(size: Self.staand, horizontal: .regular, rug: T.tafel, krant: true, tafel: true) else { return XCTFail("verwacht tafel") }
+        XCTAssertTrue(TafelEditie.ruim(hoogte: onder.height - 83, tafelOnder: KrantIndeling.tafelOnder))
+        // Grotere tekst: de grens schuift mee (geschaalde tafelOnder), dan liever de gewone rij dan een gedrongen ruime.
+        XCTAssertFalse(TafelEditie.ruim(hoogte: 330, tafelOnder: 300))
+    }
 
     /// Echte koppen van normale lengte (70–85 tekens), uit Editie en etalage.
     static let koppen = [
@@ -133,21 +144,26 @@ import SwiftUI
     }
 
     func testKoppenVanNormaleLengteBrekenNietAf() {
-        // Punt 2: op 208 breed braken deze koppen af met "…" (4 regels in 3). Nu passen ze in drie regels (264).
+        // Punt 2: op 208 breed braken deze koppen af met "…" (4 regels in 3). Nu passen ze in drie regels, in de
+        // gewone rij (264, .subheadline) en in de ruime rij (312, .headline).
         for kop in Self.koppen {
             XCTAssertLessThanOrEqual(regels(kop, stijl: .subheadline, breedte: 264), TafelEditie.kopRegels, "gewoon: \(kop)")
+            XCTAssertLessThanOrEqual(regels(kop, stijl: .headline, breedte: 312), TafelEditie.kopRegels, "ruim: \(kop)")
         }
         XCTAssertGreaterThan(Self.koppen.map { regels($0, stijl: .subheadline, breedte: 208) }.max() ?? 0, 3, "de oude cel was te smal")
     }
 
     func testElkeKopHeeftDezelfdeHoogte() throws {
         // Gelijke ritmiek: een korte kop houdt drie regels ruimte (lineLimit met reservesSpace).
+        let bron = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/Views/Tafel.swift"), encoding: .utf8)
+        XCTAssertTrue(bron.contains(".lineLimit(TafelEditie.kopRegels, reservesSpace: true)"))
         let store = HootStore()
-        func h(_ titel: String) -> CGFloat {
+        func h(_ titel: String, ruim: CGFloat?) -> CGFloat {
             let r = EditionRowModel(id: "k", item: Item(id: "k", source: "nos", title: titel, url: "https://nos.nl/k"), story: nil, label: nil, desk: nil).numbered(1)
-            return UIHostingController(rootView: TafelCel(row: r, gekozen: false) {}.environment(store)).sizeThatFits(in: CGSize(width: 1000, height: 1000)).height
+            return UIHostingController(rootView: TafelCel(row: r, gekozen: false, hoogte: ruim) {}.environment(store)).sizeThatFits(in: CGSize(width: 1000, height: 1000)).height
         }
-        XCTAssertEqual(h("Kort"), h(Self.koppen[1]), accuracy: 0.5)
+        XCTAssertEqual(h("Kort", ruim: nil), h(Self.koppen[1], ruim: nil), accuracy: 0.5)
+        XCTAssertEqual(h("Kort", ruim: 280), 280 - Space.s3 + Space.s3, accuracy: 0.5, "de ruime cel is zo hoog als de rij")
     }
 
     // MARK: Tekenen
@@ -157,10 +173,13 @@ import SwiftUI
         let store = HootStore()
         for size: DynamicTypeSize in [.large, .xLarge] {
             for scheme: ColorScheme in [.light, .dark] {
-                let cel = TafelCel(row: row("r1").numbered(1), gekozen: true) {}
+                let cel = VStack {
+                    TafelCel(row: row("r1").numbered(1), gekozen: true) {}
+                    TafelCel(row: row("r2").numbered(2), gekozen: false, hoogte: 280) {}
+                }
                 let einde = TafelEinde(regel: "Je bent bij.", aantal: 10)
                 let bediening = TafelBediening(item: row("r1").item)
-                for view in [AnyView(cel), AnyView(einde), AnyView(bediening), AnyView(TafelOnder().frame(width: 951, height: 272))] {
+                for view in [AnyView(cel), AnyView(einde), AnyView(bediening), AnyView(TafelOnder().frame(width: 951, height: 272)), AnyView(TafelOnder().frame(width: 669, height: 400))] {
                     let renderer = ImageRenderer(content: view.environment(store).environment(\.dynamicTypeSize, size).environment(\.colorScheme, scheme))
                     renderer.proposedSize = ProposedViewSize(width: 951, height: nil)
                     XCTAssertNotNil(renderer.uiImage, "\(size) \(scheme)")

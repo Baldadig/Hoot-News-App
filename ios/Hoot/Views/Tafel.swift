@@ -26,6 +26,12 @@ enum TafelEditie {
         open ?? rij.first?.item
     }
 
+    /// Duo 1.2, punt 1: de inhoudsopgave groeit mee met de ruimte onder. Vlak liggend is die `tafelOnder` hoog: de
+    /// gewone rij. Als laptop is de onderste helft veel hoger: dan de ruime rij (groter beeld, kop en intro), zodat
+    /// die helft niet leeg blijft. De grens groeit mee met de tekstgrootte (`tafelOnder` is geschaald).
+    static func ruim(hoogte: CGFloat, tafelOnder: CGFloat) -> Bool { hoogte >= tafelOnder + ruimMarge }
+    static let ruimMarge: CGFloat = 64
+
     /// Een kop in de rij heeft altijd drie regels ruimte (dezelfde hoogte in elke cel: gelijke ritmiek).
     static let kopRegels = 3
 
@@ -79,6 +85,11 @@ struct TafelOnder: View {
     @Environment(Reader.self) private var reader: Reader?
     @Environment(KrantStaat.self) private var staat: KrantStaat?
     @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .body) private var tafelOnder = KrantIndeling.tafelOnder
+    @State private var hoogte: CGFloat = 0 // de hoogte van de onderste helft (binnen de veilige zone)
+    @State private var rijHoogte: CGFloat = 0 // de ruime rij: zo hoog is elke cel
+
+    private var ruim: Bool { TafelEditie.ruim(hoogte: hoogte, tafelOnder: tafelOnder) }
 
     private var titel: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     private var datum: String {
@@ -103,7 +114,7 @@ struct TafelOnder: View {
                 ScrollView(.horizontal) {
                     HStack(alignment: .top, spacing: Space.s5) {
                         ForEach(rij) { row in
-                            TafelCel(row: row, gekozen: row.id == gemarkeerd) { kies(row.item) }
+                            TafelCel(row: row, gekozen: row.id == gemarkeerd, hoogte: ruim ? rijHoogte : nil) { kies(row.item) }
                                 .id(row.id)
                         }
                         TafelEinde(regel: EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), aantal: rij.count)
@@ -114,6 +125,9 @@ struct TafelOnder: View {
                     .scrollTargetLayout()
                 }
                 .scrollIndicators(.hidden)
+                // De ruime rij vult de onderste helft: de cellen zijn zo hoog als de ruimte tussen de kop en de bediening.
+                .frame(maxHeight: ruim ? .infinity : nil, alignment: .top)
+                .onGeometryChange(for: CGFloat.self) { max(0, $0.size.height - 2 * Space.s3) } action: { rijHoogte = $0 }
                 .scrollTargetBehavior(.viewAligned)
                 // Je plek in de rij: het verhaal boven staat in beeld, ook na draaien of vouwen.
                 .onAppear { if let gemarkeerd { proxy.scrollTo(gemarkeerd, anchor: .center) } }
@@ -122,10 +136,11 @@ struct TafelOnder: View {
                     withAnimation(.snappy) { proxy.scrollTo(nieuw, anchor: .center) }
                 }
             }
-            Spacer(minLength: 0)
+            if !ruim { Spacer(minLength: 0) }
             if let boven { TafelBediening(item: boven).padding(.horizontal).padding(.bottom, Space.s2) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { hoogte = $0 }
         .background(Theme.paper)
     }
 
@@ -139,40 +154,34 @@ struct TafelOnder: View {
     }
 }
 
-/// Een plek in de rij: nummer, korte kop, klein beeld. Het verhaal boven heeft een rode lijn: waar je bent.
+/// Een plek in de rij: nummer, kop, beeld. Het verhaal boven heeft een rode lijn: waar je bent.
+/// - Gewoon (vlak liggend): nummer en klein beeld, de kop in drie regels.
+/// - Ruim (`hoogte`, als laptop): het beeld vult de cel, daaronder nummer, kop (drie regels) en de intro in hele zinnen.
+/// De kop heeft in elke cel drie regels ruimte, ook als hij korter is: zo staan nummers en koppen op één lijn.
 struct TafelCel: View {
     @Environment(HootStore.self) private var store
-    @ScaledMetric(relativeTo: .subheadline) private var breedte: CGFloat = 264 // 208 brak koppen van normale lengte af met "…"
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .subheadline) private var breedte: CGFloat = 264
+    @ScaledMetric(relativeTo: .subheadline) private var breedteRuim: CGFloat = 312
     let row: EditionRowModel
     let gekozen: Bool
+    var hoogte: CGFloat? = nil
     let kies: () -> Void
+    @State private var mislukt = false
+
+    static let introRegels = 3
 
     private var beeld: URL? {
         guard store.showsImage(lead: false) else { return nil }
-        return row.item.pictureURL(.thumb) ?? row.item.videoPosterURL
+        return row.item.pictureURL(hoogte == nil ? .thumb : .large) ?? row.item.videoPosterURL
     }
 
     var body: some View {
         Button(action: kies) {
-            VStack(alignment: .leading, spacing: Space.s2) {
-                HStack(alignment: .top, spacing: Space.s2) {
-                    EditionNumber(number: row.number, read: store.isRead(row.item) && !gekozen)
-                    Spacer(minLength: Space.s2)
-                    if let beeld {
-                        RemoteImage(url: beeld, measure: row.item.measure)
-                            .frame(width: Layout.thumbDicht, height: Layout.thumbDicht * 2 / 3)
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
-                    }
-                }
-                Text(typeset(row.item.title, lang: store.source(row.item.source)?.lang))
-                    .font(.kop(.subheadline))
-                    .foregroundStyle(Theme.ink)
-                    .lineLimit(TafelEditie.kopRegels, reservesSpace: true)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
+            Group {
+                if let hoogte { ruim(hoogte) } else { gewoon }
             }
             .padding(.top, Space.s3)
-            .frame(width: breedte, alignment: .topLeading)
             .overlay(alignment: .top) {
                 // De lijn boven elke plek; boven het gekozen verhaal rood en dikker (zoals de streep in de kantlijn).
                 Rectangle().fill(gekozen ? Theme.accent : Theme.rule).frame(height: gekozen ? 3 : 1)
@@ -184,6 +193,89 @@ struct TafelCel: View {
         .accessibilityLabel(Text("\(row.number.map { "\($0). " } ?? "")\(row.item.title)"))
         .accessibilityHint(gekozen ? Text("Staat boven") : Text("Zet het boven"))
         .accessibilityAddTraits(gekozen ? [.isButton, .isSelected] : .isButton)
+    }
+
+    private var gewoon: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            HStack(alignment: .top, spacing: Space.s2) {
+                EditionNumber(number: row.number, read: store.isRead(row.item) && !gekozen)
+                Spacer(minLength: Space.s2)
+                if let beeld {
+                    RemoteImage(url: beeld, measure: row.item.measure)
+                        .frame(width: Layout.thumbDicht, height: Layout.thumbDicht * 2 / 3)
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+                }
+            }
+            kop(.subheadline)
+        }
+        .frame(width: breedte, alignment: .topLeading)
+    }
+
+    private func ruim(_ hoogte: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            if store.showsImage(lead: false) {
+                // Het beeld vult wat er boven de tekst overblijft (de tekst heeft een vaste hoogte, dus nummers en
+                // koppen staan in elke cel op één lijn). Geen of een mislukt beeld: het beeldloze vak, zoals overal.
+                GeometryReader { g in
+                    if let beeld, !mislukt {
+                        RemoteImage(url: beeld, measure: row.item.measure) { mislukt = true }
+                            .frame(width: g.size.width, height: g.size.height)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                    } else {
+                        BeeldloosView(item: row.item, kind: .lead, height: g.size.height)
+                    }
+                }
+                .frame(minHeight: 0, maxHeight: .infinity)
+                .padding(.top, Space.s1)
+            }
+            // Nummer en rubriek, en het waarom, zoals in de dichte rij.
+            VStack(alignment: .leading, spacing: 0) {
+                Kicker(text: row.label, number: row.number, read: store.isRead(row.item) && !gekozen).lineLimit(1)
+                WhyLine(text: row.why, compact: true).lineLimit(1)
+            }
+            kop(.headline)
+            Group {
+                if let intro = row.item.summary.map({ wholeSentences($0, max: 400) }), !intro.isEmpty {
+                    IntroText(text: intro, style: .footnote, lines: introRegels(hoogte))
+                }
+            }
+            .frame(height: IntroText.limit(lines: introRegels(hoogte), style: .footnote, typeSize: typeSize), alignment: .top)
+            if !store.showsImage(lead: false) { Spacer(minLength: 0) } // zonder beelden: de tekst bovenaan
+            bronregel
+        }
+        .frame(width: breedteRuim, height: max(0, hoogte - Space.s3), alignment: .topLeading)
+    }
+
+    /// Bron, tijd en het aantal bronnen, stil onderaan de ruime cel ("NOS · 3 uur geleden · 4 bronnen").
+    private var bronregel: some View {
+        let bron = row.item.sourceName ?? store.source(row.item.source)?.name ?? row.item.source
+        let delen = [bron, row.item.date.map { HootDate.ago($0) }, row.story?.sourceCount.flatMap { $0 > 1 ? "\($0) bronnen" : nil }]
+        return Text(delen.compactMap { $0 }.joined(separator: " · "))
+            .font(.ui(.footnote))
+            .foregroundStyle(Theme.ink3)
+            .lineLimit(1)
+    }
+
+    /// Met beelden drie regels intro onder het beeld. Zonder beelden (instelling: geen of alleen het hoofdverhaal)
+    /// vult de intro de cel: zoveel hele regels als er onder de kop passen.
+    private func introRegels(_ hoogte: CGFloat) -> Int {
+        guard !store.showsImage(lead: false) else { return Self.introRegels }
+        let kop = KopZet.font(.headline, typeSize: typeSize).lineHeight * CGFloat(TafelEditie.kopRegels)
+        let nummer = KopZet.pointSize(.subheadline, typeSize: typeSize) * 1.5
+        let regel = KopZet.pointSize(.footnote, typeSize: typeSize) * 1.4 // het waarom en de bronregel
+        let rest = hoogte - Space.s3 - kop - nummer - 2 * regel - 4 * Space.s2
+        var n = Self.introRegels
+        while n < 12, IntroText.limit(lines: n + 1, style: .footnote, typeSize: typeSize) <= rest { n += 1 }
+        return n
+    }
+
+    private func kop(_ stijl: Font.TextStyle) -> some View {
+        Text(typeset(row.item.title, lang: store.source(row.item.source)?.lang))
+            .font(.kop(stijl))
+            .foregroundStyle(Theme.ink)
+            .lineLimit(TafelEditie.kopRegels, reservesSpace: true)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
