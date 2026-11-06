@@ -104,7 +104,7 @@ struct PostRow: View {
         Self.withoutBareLinks(item.summary ?? "", domain: item.linkTitle != nil ? item.link?.host() : nil)
     }
 
-    // Op het raster van het artikel (Stroom-kaart B, keuze 1.1.0): de tekst zelf in leestekst, dan het
+    // Op het raster van het artikel (Stroom-kaart B, keuze 1.1.0): de tekst zelf schreefloos, dan het
     // beeld of de linkkaart over de hele kolom, en de bron onderaan op dezelfde plek als bij een
     // artikel (logo 24, naam, en de @-naam waar bij een artikel de tijd staat), bewaren rechts. Geen
     // hangende inspringing onder een grote avatar meer. 12 tussen tekst, beeld en bron.
@@ -112,7 +112,8 @@ struct PostRow: View {
         VStack(alignment: .leading, spacing: Space.s3) {
             VStack(alignment: .leading, spacing: Space.s3) {
                 if !text.isEmpty {
-                    Text(text).leestekst(.body).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                    // Schreefloos (Alex, 6 november 2026): een post is een korte zin, geen artikeltekst.
+                    Text(text).zin().foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
                 }
                 if item.videoURL != nil {
                     // de video staat hieronder, buiten de tik naar de post

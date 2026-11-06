@@ -480,11 +480,16 @@ p {
 
 /* Lopende tekst: Newsreader op tekstmaat (--lees). Alles wat je leest en niet bedient: de intro van
    een verhaal (hoofdverhaal, lijst, voorpagina, Selectie, vergelijkpaneel), de tekst van een post en
-   De Editie in één minuut. Uitleg en hulp (--uitleg) is schreefloos, zie hieronder. De maat blijft bij de klasse zelf; een intro is 17/24 (1,42). */
-:is(.lead__sum, .compact__sum, .fitem__sum, .srcitem__sum, .dcard__sum, .social__text, .reader__p) {
+   De Editie in één minuut (een post niet meer: die is schreefloos). Uitleg en hulp (--uitleg) is schreefloos, zie hieronder. De maat blijft bij de klasse zelf; een intro is 17/24 (1,42). */
+:is(.lead__sum, .compact__sum, .fitem__sum, .srcitem__sum, .dcard__sum, .reader__p) {
   font-family: var(--lees);
   font-weight: var(--lees-wght);
   font-variation-settings: var(--lees-vs);
+}
+/* De tekst van een post (Bluesky) is een korte, gesproken zin, geen artikeltekst: schreefloos, zoals
+   de bediening, op dezelfde maat (Alex, 6 november 2026). */
+.social__text {
+  font-family: var(--sans);
 }
 /* Uitlegzinnen: de zin onder een kop in het welkom, de tekst van een lege bladzijde, de Selectie en de
    pagina's Over en Privacy. Schreefloos (--uitleg), op de maat van een intro: 17/24. */
