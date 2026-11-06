@@ -687,3 +687,57 @@ test('nieuwsbelang boven een misdaadzaak: een rechtszaak opent niet naast even g
   members.set('strike', members.get('strike').slice(0, 3))
   assert.deepEqual(order([crime, small, strike]), ['crime', 'small', 'strike'])
 })
+
+// Ronde 7 · 3 (besluit van Alex, 6 november): elke Editie vertelt wat er sinds de vorige Editie gebeurde.
+test('actualiteit: koppen van na de vorige Editie, terug alleen met een ontwikkeling, een groot verhaal één keer langer (3b · ronde 7 · 3)', async () => {
+  const { previousOf, heldDown, HOLD_PUBS } = await import('../netlify/lib/stories.mjs')
+  const T = Date.parse('2026-11-12T16:00:00Z')
+  const PREV = T - 5 * 36e5
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, h) => ({ id: `a${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(h), topics: [], url: `https://example.com/nieuws/${n}` })
+  const prof = profileOf({ followed: MAIN_IDS, sources: SOURCES })
+  const stories = []
+  const pool = []
+  const story = (id, its, desk = 'buitenland') => {
+    pool.push(...its)
+    const pubs = new Set(its.map((i) => i.source)).size
+    stories.push({ id, itemIds: its.map((i) => i.id), sourceCount: pubs, publisherCount: pubs, latestAt: its.map((i) => i.publishedAt).sort().at(-1), desk })
+    return its
+  }
+  // Groot (HOLD_PUBS uitgevers), stond in de vorige Editie; sindsdien één nieuw stuk, geen ontwikkeling.
+  const bigPubs = ['nyt', 'bbc', 'guardian', 'ft', 'fd', 'volkskrant', 'nrc', 'ad', 'telegraaf', 'lemonde', 'dw']
+  const big = story('big', [...bigPubs.map((s) => art(s, 'Nvidia and Nasdaq slide as Wall Street sells off chip stocks', 8)), art('nos', 'Nvidia en Nasdaq verder onderuit op Wall Street', 1)])
+  // Klein, stond in de vorige Editie, niets nieuws.
+  const small = story('small', ['nos', 'nrc', 'volkskrant'].map((s) => art(s, 'Kabinet presenteert stikstofwet in Den Haag', 8)), 'binnenland')
+  // Nieuw voor de lezer, maar alle stukken van vóór de vorige Editie.
+  story('old', ['bbc', 'guardian', 'dw', 'npr'].map((s) => art(s, 'Chilean parliament rejects pension reform in Santiago', 7)))
+  // Nieuw sinds de vorige Editie, met één ouder stuk van een eigen bron.
+  story('fresh', [art('nyt', 'Earthquake of 6.8 strikes Peru coast near Lima', 7), art('bbc', 'Strong earthquake hits Peru coast near Lima', 2), art('guardian', 'Peru earthquake near Lima kills dozens', 2), art('dw', 'Peru: earthquake near Lima leaves dozens dead', 1)])
+  for (let k = 0; k < 8; k++) story(`f${k}`, ['nos', 'nrc', 'ad'].map((s) => art(s, `Gemeente Zwolle${k} opent nieuwe brug over de IJssel${k}`, 2)), 'binnenland')
+  assert.ok(bigPubs.length >= HOLD_PUBS)
+  const byId = new Map(pool.map((i) => [i.id, i]))
+  const edition = (held) => ({ id: 'vorige', builtAt: new Date(PREV).toISOString(), entries: [{ kind: 'story', id: 'big', leadId: big[0].id, itemIds: big.slice(0, -1).map((i) => i.id), ...(held ? { held: true } : {}) }, { kind: 'story', id: 'small', leadId: small[0].id, itemIds: small.map((i) => i.id) }], items: [big[0], small[0]], stories: [] })
+  const run = (previous) => {
+    const audit = []
+    const sel = selectForReader(stories, pool, { mainIds: MAIN_IDS, now: T, prof, general: true, previous, audit })
+    return { sel, why: (id) => audit.find((x) => x.id === id)?.reason }
+  }
+  const { sel, why } = run(previousOf(edition(false)))
+  const ids = sel.map((e) => e.id)
+  const e = (id) => sel.find((x) => x.id === id)
+  assert.ok(ids.includes('big') && e('big').held, 'groot verhaal blijft één Editie langer')
+  assert.equal(byId.get(e('big').leadId).source, 'nos', 'met het nieuwe stuk als kop')
+  assert.ok(!ids.includes('small') && why('small') === 'eerder-getoond-zonder-ontwikkeling')
+  assert.ok(!ids.includes('old') && why('old') === 'geen-nieuw-stuk-sinds-vorige-Editie', 'geen oudere kop als nieuws')
+  assert.ok(ids.includes('fresh') && Date.parse(byId.get(e('fresh').leadId).publishedAt) > PREV, 'de kop is van na de vorige Editie')
+  for (const x of sel) assert.ok(Date.parse(byId.get(x.leadId || x.id).publishedAt) > PREV, x.id)
+  // Bleef het al een keer zo, dan maakt het plaats.
+  const again = run(previousOf(edition(true)))
+  assert.ok(!again.sel.some((x) => x.id === 'big') && again.why('big') === 'eerder-getoond-zonder-ontwikkeling')
+  // Zonder vorige Editie verandert er niets: 'old' doet gewoon mee.
+  assert.ok(run(null).sel.some((x) => x.id === 'old'))
+  // Wat blijft, zakt onder de top 5.
+  const order = heldDown(['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => ({ id, held: id === 'a' }))).map((x) => x.id)
+  assert.deepEqual(order, ['b', 'c', 'd', 'e', 'f', 'a', 'g'])
+})

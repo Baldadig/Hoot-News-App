@@ -4,7 +4,7 @@ import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mj
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, newsBeforePeople, dutchHeads, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
@@ -587,20 +587,25 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems } })
   const byId = new Map(newsPool.map((i) => [i.id, i]))
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
-  const entries = sel.map((e) => (e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }))
+  const entries = sel.map((e) => ({ ...(e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }), ...(e.held ? { held: true } : {}) }))
   const itemsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [e.id]).map((id) => byId.get(id)).filter(Boolean)
   // Curiosa nooit in de top 3 (3b · 5), nieuwsbelang boven sensatie (ronde 6 · 2), dan plek 01 met nieuws, dan de
   // Nederlandse ondergrens (3b · 3) en bovenaan Nederlandse koppen (ronde 6 · 1).
+  // Wat zonder nieuwe ontwikkeling één Editie langer blijft, zakt onder de top 5 (ronde 7 · 3c).
+  heldDown(entries)
   curiosaDown(entries, { itemsOf, storyOf: (e) => storyById.get(e.id) })
   const allItemsOf = (e) => (e.kind === 'story' ? storyItems.get(e.id) || itemsOf(e) : itemsOf(e))
   // Nieuwsbelang boven sensatie (ronde 6 · 2): een verhaal over een bekend persoon opent niet als er bovenaan een even
   // groot verhaal over economie, politiek of grote gevolgen staat; een misdaad- of rechtszaak ook niet (ronde 7 · 2).
   newsBeforePeople(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources })
-  openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(xs, mainIds, null, now, { role: 'front' }), all, now)[0] })
+  // Actualiteit (ronde 7 · 3): met een vorige Editie komt elke kop uit de stukken van daarna.
+  const since = previous?.at || 0
+  const after = (xs) => xs.filter((i) => !(Date.parse(i.publishedAt) <= since))
+  openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(after(xs), mainIds, null, now, { role: 'front' }), all, now)[0] })
   dutchFloor(entries, { itemsOf: allItemsOf, byId, storyOf: (e) => storyById.get(e.id), sources })
   // Bovenaan een Nederlandse kop als het verhaal er een heeft (ronde 6 · 1). Na de ondergrens: die telt de plekken met de
   // kop die de selectie koos, zodat een buitenlands verhaal met een Nederlandse kop geen Nederlandse plek verdringt.
-  dutchHeads(entries, { itemsOf, mainIds, now })
+  dutchHeads(entries, { itemsOf, mainIds, now, since })
   return entries
 }
 

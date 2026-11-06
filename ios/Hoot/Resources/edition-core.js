@@ -2730,7 +2730,8 @@ var HootCore = (() => {
         leadStoryId: typeof x.leadStoryId === "string" ? x.leadStoryId : null,
         at: Date.parse(x.builtAt) || Number(x.at) || 0,
         titles: new Set(Array.isArray(x.titles) ? x.titles : []),
-        shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === "string") : []
+        shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === "string") : [],
+        heldIds: new Set(Array.isArray(x.heldIds) ? x.heldIds : [])
       };
     }
     const edition = x;
@@ -2750,7 +2751,9 @@ var HootCore = (() => {
       leadStoryId: lead.kind === "story" ? lead.id : null,
       at: Date.parse(edition.builtAt) || 0,
       titles: new Set(edition.entries.map((e) => e.title || byId2.get(e.leadId || e.id)?.title).filter(Boolean)),
-      shown: shown2.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt }))
+      shown: shown2.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt })),
+      // Verhalen die zonder nieuwe ontwikkeling één Editie langer bleven (ronde 7 · 3, `held`): niet nog een keer.
+      heldIds: new Set(stories.filter((e) => e.held).map((e) => e.id))
     };
   }
   function previousOf(editions) {
@@ -2775,7 +2778,8 @@ var HootCore = (() => {
       at: last.at,
       atOf,
       titles: u("titles"),
-      shown: ps.flatMap((p) => p.shown)
+      shown: ps.flatMap((p) => p.shown),
+      heldIds: u("heldIds")
     };
   }
   var HISTORY_MAX = 3;
@@ -2793,6 +2797,7 @@ var HootCore = (() => {
       leadStoryId: p.leadStoryId,
       titles: [...p.titles],
       shown: p.shown,
+      ...p.heldIds.size ? { heldIds: [...p.heldIds] } : {},
       keys: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]]))
     };
   }
@@ -2814,6 +2819,21 @@ var HootCore = (() => {
     if (previous.storyIds?.has(st.id) || (st.formerIds || []).some((id) => previous.storyIds?.has(id))) return true;
     return items.some((i) => previous.itemIds?.has(i.id));
   }
+  var HOLD_PUBS = 10;
+  function holdable(st, items, previous) {
+    if ((st.publisherCount ?? coverageOf(items).publisherCount) < HOLD_PUBS) return false;
+    return ![st.id, ...st.formerIds || []].some((id) => previous?.heldIds?.has(id));
+  }
+  function linkedItems(items, cands, sig = signatures(items)) {
+    const near = (s, i) => items.some((j) => j !== i && s.has(i.id) && s.has(j.id) && sameSubject(s.get(i.id), s.get(j.id)));
+    const out = cands.filter((i) => near(sig, i));
+    if (out.length === cands.length) return out;
+    let ext = null;
+    const far = (i) => items.some((j) => j !== i && sameEvent((ext ||= signatures(items, [], { extended: true })).get(i.id), ext.get(j.id), true));
+    return cands.filter((i) => out.includes(i) || far(i));
+  }
+  var OTHER_LANG = /\b(las|los|del|para|una|segun|antes de|sus|les|une|pour|avec|dans|und|fur|nicht|uma|nao|della|degli)\b/;
+  var otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ""));
   var DEVELOPED_FRESH = 2;
   var DEVELOPED_SIG = 2;
   function developedSince(st, items, previous, sig, { mainIds = /* @__PURE__ */ new Set(), preferred = null, now = null, known = null } = {}) {
@@ -3015,12 +3035,19 @@ var HootCore = (() => {
     const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)));
     const placedBy = [];
     let placedC = [];
+    const again = (c) => {
+      if (c.vervolg || c.held) return false;
+      if (since === null || c.kind !== "story") return same(c.ids, vorige);
+      const lead = leadOf(c);
+      const head = lead && headSignature(sig, lead);
+      return !!head && prevArts.some((a) => sameHeadEvent(head, headSignature(sig, a)));
+    };
     const clashes = (c) => {
       if (general && wideSecond(c, placedC, now)) {
         const keep = placed.map((_, k) => placedBy[k]?.owner?.vote !== c.vote);
-        return subjectIn(sig, c, placed.filter((_, k) => keep[k]), c.items, placedBy.filter((_, k) => keep[k])) || !c.vervolg && same(c.ids, vorige);
+        return subjectIn(sig, c, placed.filter((_, k) => keep[k]), c.items, placedBy.filter((_, k) => keep[k])) || again(c);
       }
-      return subjectTaken(sig, c, placed, c.items, placedBy) || !c.vervolg && same(c.ids, vorige);
+      return subjectTaken(sig, c, placed, c.items, placedBy) || again(c);
     };
     const place = (ids, owner = null, lead = null) => {
       const pubs = owner ? owner.kind === "item" ? 1 : coverageOf(owner.items).publisherCount : 0;
@@ -3043,6 +3070,12 @@ var HootCore = (() => {
     const reject = (kind, id, ids, reason) => {
       if (audit) audit.push({ kind, id, itemIds: ids, reason });
     };
+    const since = general && previous ? previous.at || 0 : null;
+    const sinceLast = (st, items) => {
+      const fresh2 = items.filter((i) => titled(i) && timeOf(i) > since && !otherLangTitle(i));
+      if (!fresh2.length || fresh2.length === items.length || items.length < 3) return fresh2;
+      return linkedItems(items, fresh2, sig);
+    };
     const cands = [];
     for (const st of stories) {
       if (!fresh(st.latestAt, 24)) {
@@ -3061,14 +3094,21 @@ var HootCore = (() => {
       }
       let dev = null;
       let straf = 0;
+      let held = false;
+      const recent = since !== null ? sinceLast(st, items) : null;
       if (seenBefore(st, items, previous)) {
         dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known });
-        if (!dev) {
-          reject("story", st.id, st.itemIds, "eerder-getoond-zonder-ontwikkeling");
-          continue;
-        }
         const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id));
-        straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0);
+        if (!dev) {
+          if (!(recent?.length && holdable(st, items, previous))) {
+            reject("story", st.id, st.itemIds, "eerder-getoond-zonder-ontwikkeling");
+            continue;
+          }
+          held = true;
+        } else straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0);
+      } else if (recent && !recent.length) {
+        reject("story", st.id, st.itemIds, "geen-nieuw-stuk-sinds-vorige-Editie");
+        continue;
       }
       const primary = deskOfStory(items);
       const desk = storyDesk(st, primary);
@@ -3081,7 +3121,7 @@ var HootCore = (() => {
       const intl = internationalNews(whole, desk, st);
       const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl });
       const tie = general && curioStory(st, items) ? weight({ sourceCount: 0, ownCount: 0, latestAt: st.latestAt }, now) + CURIO_TIE : 0;
-      cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
+      cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads: dev ? dev.fresh : recent, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
     }
     for (const it of pool) {
       if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
@@ -3098,6 +3138,10 @@ var HootCore = (() => {
       }
       if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) {
         reject("item", it.id, [it.id], "eerder-getoond-of-gelezen");
+        continue;
+      }
+      if (since !== null && !(timeOf(it) > since)) {
+        reject("item", it.id, [it.id], "geen-nieuw-stuk-sinds-vorige-Editie");
         continue;
       }
       const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null;
@@ -3138,7 +3182,7 @@ var HootCore = (() => {
       if (c.kind !== "story") return null;
       const role = entries.length < 3 ? "front" : "neutral";
       const memo2 = c.leadFrom ||= {};
-      return chooseLead(memo2[role] ||= leadFrom(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length, role));
+      return chooseLead(memo2[role] ||= leadFrom(c.heads?.length ? c.heads : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length, role));
     };
     const headTaken = (c) => {
       if (!general || c.kind !== "story" || !entries.length || wideSecond(c, placedC, now)) return false;
@@ -3213,7 +3257,7 @@ var HootCore = (() => {
       used.add(c);
       placedC.push(c);
       place(c.ids, c, c.kind === "story" ? lead?.id : c.it.id);
-      const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || { sourceCount: 1 }, c.items), ...c.vervolg ? { vervolg: c.vervolg } : {}, ...extra };
+      const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || { sourceCount: 1 }, c.items), ...c.vervolg ? { vervolg: c.vervolg } : {}, ...c.held ? { held: true } : {}, ...extra };
       if (c.kind === "story") {
         leadCount[lead.source] = (leadCount[lead.source] || 0) + 1;
         prevLead = lead.source;

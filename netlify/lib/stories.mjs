@@ -1203,6 +1203,7 @@ function previousOfOne(x) {
       at: Date.parse(x.builtAt) || Number(x.at) || 0,
       titles: new Set(Array.isArray(x.titles) ? x.titles : []),
       shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === 'string') : [],
+      heldIds: new Set(Array.isArray(x.heldIds) ? x.heldIds : []),
     }
   }
   const edition = x
@@ -1223,6 +1224,8 @@ function previousOfOne(x) {
     at: Date.parse(edition.builtAt) || 0,
     titles: new Set(edition.entries.map((e) => e.title || byId.get(e.leadId || e.id)?.title).filter(Boolean)),
     shown: shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || '', publishedAt: i.publishedAt || edition.builtAt })),
+    // Verhalen die zonder nieuwe ontwikkeling één Editie langer bleven (ronde 7 · 3, `held`): niet nog een keer.
+    heldIds: new Set(stories.filter((e) => e.held).map((e) => e.id)),
   }
 }
 
@@ -1256,6 +1259,7 @@ export function previousOf(editions) {
     atOf,
     titles: u('titles'),
     shown: ps.flatMap((p) => p.shown),
+    heldIds: u('heldIds'),
   }
 }
 
@@ -1277,6 +1281,7 @@ export function historyOf(edition) {
     leadStoryId: p.leadStoryId,
     titles: [...p.titles],
     shown: p.shown,
+    ...(p.heldIds.size ? { heldIds: [...p.heldIds] } : {}),
     keys: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]])),
   }
 }
@@ -1358,6 +1363,29 @@ export function seenBefore(st, items, previous) {
 // meerdere nieuwe stukken, een eigenaardigheid van één stuk niet. `sig`: signatures over alle
 // bekende berichten. Uitvoer: { fresh, lead, newSig } of null. `previous.at` mag per verhaal
 // verschillen (`atOf`, als previous meer Edities omvat).
+// Ronde 7 · 3c (besluit van Alex 6 november): een groot verhaal mag zonder nieuwe ontwikkeling één Editie langer blijven,
+// maar zakt (heldDown: onder de top 5). Groot: minstens HOLD_PUBS onafhankelijke uitgevers, en er is sinds de vorige Editie
+// minstens één nieuw stuk dat de kop wordt. Eén keer: wat in de vorige Editie al zo bleef (`previous.heldIds`), maakt
+// plaats. Een strafgewicht zoals bij een vervolg werkt hier niet: dan valt het verhaal helemaal weg.
+export const HOLD_PUBS = 10
+export function holdable(st, items, previous) {
+  if ((st.publisherCount ?? coverageOf(items).publisherCount) < HOLD_PUBS) return false
+  return ![st.id, ...(st.formerIds || [])].some((id) => previous?.heldIds?.has(id))
+}
+// De stukken uit `cands` die met minstens één ander stuk van `items` verbonden zijn (sameSubject met de kenmerken `sig`,
+// anders sameEvent in de uitgebreide stand over het verhaal zelf): een verdwaald stuk in een bundel wordt nooit de kop.
+export function linkedItems(items, cands, sig = signatures(items)) {
+  const near = (s, i) => items.some((j) => j !== i && s.has(i.id) && s.has(j.id) && sameSubject(s.get(i.id), s.get(j.id)))
+  const out = cands.filter((i) => near(sig, i))
+  if (out.length === cands.length) return out
+  let ext = null
+  const far = (i) => items.some((j) => j !== i && sameEvent((ext ||= signatures(items, [], { extended: true })).get(i.id), ext.get(j.id), true))
+  return cands.filter((i) => out.includes(i) || far(i))
+}
+// Een kop in een andere taal dan Nederlands of Engels (een Spaanstalig stuk van een Engelstalige bron): herkend aan
+// lidwoorden en voegwoorden die in het Nederlands en Engels niet voorkomen. detectLang kent alleen nl en en.
+const OTHER_LANG = /\b(las|los|del|para|una|segun|antes de|sus|les|une|pour|avec|dans|und|fur|nicht|uma|nao|della|degli)\b/
+export const otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ''))
 export const DEVELOPED_FRESH = 2
 export const DEVELOPED_SIG = 2
 export function developedSince(st, items, previous, sig, { mainIds = new Set(), preferred = null, now = null, known = null } = {}) {
@@ -1629,11 +1657,7 @@ export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, 
     const inCore = fit.filter((i) => core.has(i))
     if (!inCore.length) continue
     // De kenmerken pas als er een kandidaat is, de uitgebreide alleen als sameSubject niets vindt (rekentijd).
-    const sig = signatures(items)
-    let sigX = null
-    const ext = () => (sigX ||= signatures(items, [], { extended: true }))
-    const linked = (i) => sig.has(i.id) && (items.some((j) => j !== i && sig.has(j.id) && sameSubject(sig.get(i.id), sig.get(j.id))) || items.some((j) => j !== i && sig.has(j.id) && sameEvent(ext().get(i.id), ext().get(j.id), true)))
-    const near = inCore.filter(linked)
+    const near = linkedItems(items, inCore)
     if (!near.length) continue
     const others = new Set(entries.slice(0, top).filter((x) => x !== e).map((x) => itemsOf(x).find((i) => i?.id === (x.leadId || x.id))?.source).filter(Boolean))
     const order = leadCandidates(freshest(near), mainIds, null, now, { role: k < 3 ? 'front' : 'neutral' })
@@ -1677,6 +1701,17 @@ export function curiosaDown(entries, { itemsOf, storyOf = () => ({}), top = 3, t
     out.unshift(...entries.splice(k, 1))
   }
   if (out.length) entries.splice(Math.min(to - out.length + 1, entries.length), 0, ...out)
+  return entries
+}
+
+// Een verhaal dat zonder nieuwe ontwikkeling één Editie langer blijft (`held`, ronde 7 · 3c), zakt: uit de top `top` naar
+// direct daaronder, in zijn eigen volgorde. Wijzigt `entries`.
+export function heldDown(entries, { top = 5 } = {}) {
+  const down = entries.slice(0, top).filter((e) => e.held)
+  if (!down.length) return entries
+  const rest = entries.filter((e) => !down.includes(e))
+  rest.splice(Math.min(top, rest.length), 0, ...down)
+  entries.splice(0, entries.length, ...rest)
   return entries
 }
 
@@ -1910,13 +1945,24 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // gaat vanzelf over zijn eigen vorige kop en wordt daar niet op afgewezen.
   const placedBy = [] // per kenmerk in `placed`: de plek ({ owner: de kandidaat, lead, pubs, item }; ronde 4 · 1)
   let placedC = []
+  // Tegenover de vorige Editie. In de algemene Editie met een vorige Editie (ronde 7 · 3) is een ander verhaal waarvan de kop
+  // van ná de vorige Editie is, nieuws van sindsdien: het wijkt alleen als die kop dezelfde gebeurtenis meldt als een kop
+  // van toen (sameHeadEvent), niet al bij een gedeeld onderwerp (4 november ochtend: de uitslag van de midterms viel weg
+  // naast "aanval op Iran aan de vooravond van de verkiezingen").
+  const again = (c) => {
+    if (c.vervolg || c.held) return false
+    if (since === null || c.kind !== 'story') return same(c.ids, vorige)
+    const lead = leadOf(c)
+    const head = lead && headSignature(sig, lead)
+    return !!head && prevArts.some((a) => sameHeadEvent(head, headSignature(sig, a)))
+  }
   const clashes = (c) => {
     // Een tweede plek voor één gebeurtenis (alleen algemeen, wideSecond) mag over dezelfde namen gaan als zijn familie.
     if (general && wideSecond(c, placedC, now)) {
       const keep = placed.map((_, k) => placedBy[k]?.owner?.vote !== c.vote)
-      return subjectIn(sig, c, placed.filter((_, k) => keep[k]), c.items, placedBy.filter((_, k) => keep[k])) || (!c.vervolg && same(c.ids, vorige))
+      return subjectIn(sig, c, placed.filter((_, k) => keep[k]), c.items, placedBy.filter((_, k) => keep[k])) || again(c)
     }
-    return subjectTaken(sig, c, placed, c.items, placedBy) || (!c.vervolg && same(c.ids, vorige))
+    return subjectTaken(sig, c, placed, c.items, placedBy) || again(c)
   }
   const place = (ids, owner = null, lead = null) => {
     const pubs = owner ? (owner.kind === 'item' ? 1 : coverageOf(owner.items).publisherCount) : 0
@@ -1942,6 +1988,16 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const storyOfItem = () => (storyMap ||= new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st]))))
 
   const reject = (kind, id, ids, reason) => { if (audit) audit.push({kind, id, itemIds: ids, reason}) }
+  // Actualiteit (ronde 7 · 3, besluit van Alex 6 november; alleen de algemene Editie met een vorige Editie): elke Editie
+  // vertelt wat er sinds de vorige gebeurde. `since`: het moment van de vorige Editie. De kop van een plek komt uit de stukken
+  // van daarna die bij het verhaal horen (sinceLast); een verhaal zonder zo'n stuk krijgt geen plek.
+  // Alleen een kop die de lezer kan lezen (geen Spaanse kop van een Engelstalige bron, otherLangTitle).
+  const since = general && previous ? previous.at || 0 : null
+  const sinceLast = (st, items) => {
+    const fresh = items.filter((i) => titled(i) && timeOf(i) > since && !otherLangTitle(i))
+    if (!fresh.length || fresh.length === items.length || items.length < 3) return fresh
+    return linkedItems(items, fresh, sig)
+  }
   const cands = []
   for (const st of stories) {
     if (!fresh(st.latestAt, 24)) { reject('story', st.id, st.itemIds, 'ouder-dan-verhaalvenster'); continue }
@@ -1953,12 +2009,17 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // telt hier alleen voor de volgorde, niet voor de plek).
     let dev = null
     let straf = 0
+    let held = false
+    const recent = since !== null ? sinceLast(st, items) : null
     if (seenBefore(st, items, previous)) {
       dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known })
-      if (!dev) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
       const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id))
-      straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
-    }
+      if (!dev) {
+        // Ronde 7 · 3c: een groot verhaal (HOLD_PUBS uitgevers) met een nieuw stuk mag één Editie langer blijven, maar zakt.
+        if (!(recent?.length && holdable(st, items, previous))) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
+        held = true
+      } else straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+    } else if (recent && !recent.length) { reject('story', st.id, st.itemIds, 'geen-nieuw-stuk-sinds-vorige-Editie'); continue }
     const primary = deskOfStory(items)
     const desk = storyDesk(st, primary)
     const mine = coverageOf(items).publisherCount // onafhankelijke gekozen uitgevers, niet hun sectiefeeds
@@ -1978,13 +2039,14 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // Zo'n verhaal krijgt geen versheidsbonus en weegt een halve uitgever minder (CURIO_TIE): even groot nieuws gaat altijd
     // voor, een luchtig verhaal met meer uitgevers kan nog steeds een plek krijgen.
     const tie = general && curioStory(st, items) ? weight({ sourceCount: 0, ownCount: 0, latestAt: st.latestAt }, now) + CURIO_TIE : 0
-    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
+    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads: dev ? dev.fresh : recent, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
     if (!titled(it)) { reject('item', it.id, [it.id], 'zonder-titel'); continue }
     if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
     if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) { reject('item', it.id, [it.id], 'eerder-getoond-of-gelezen'); continue } // stond er al, of je las het al
+    if (since !== null && !(timeOf(it) > since)) { reject('item', it.id, [it.id], 'geen-nieuw-stuk-sinds-vorige-Editie'); continue }
     // Hoort het bij een verhaal waarvan je al een stuk las (ook zonder storyId op het bericht), dan
     // telt dat ook: zonder nieuws doet het niet meer mee.
     const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null
@@ -2025,7 +2087,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     if (c.kind !== 'story') return null
     const role = entries.length < 3 ? 'front' : 'neutral'
     const memo = (c.leadFrom ||= {})
-    return chooseLead((memo[role] ||= leadFrom(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length, role)))
+    return chooseLead((memo[role] ||= leadFrom(c.heads?.length ? c.heads : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length, role)))
   }
   // De algemene Editie kijkt ook naar wat de lezer ziet: de kop van een plek mag niet dezelfde gebeurtenis melden als de
   // kop van een andere plek (sameHeadEvent: dezelfde partij, dezelfde handeling of hetzelfde feit, kort na elkaar; ronde
@@ -2119,7 +2181,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     used.add(c)
     placedC.push(c)
     place(c.ids, c, c.kind === 'story' ? lead?.id : c.it.id)
-    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
+    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...(c.held ? { held: true } : {}), ...extra }
     if (c.kind === 'story') {
       // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron (zie boven).
       leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
