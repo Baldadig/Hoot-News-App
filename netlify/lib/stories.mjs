@@ -806,6 +806,8 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
 // Bij meer kandidaten wint het verhaal met de meeste gedeelde namen, dan de meeste bronnen, dan de
 // laagste id (totale volgorde).
 const CORE_SHARED = 2
+const US_MARKET = new Set(['wallstreet', 'nasdaq', 'us'])
+const marketKey = (k) => (US_MARKET.has(k) ? 'us' : k)
 function attachLoose(groups, list, sig) {
   const inGroup = new Set()
   for (const items of groups.values()) if (new Set(items.map((i) => i.source)).size >= 2) for (const i of items) inGroup.add(i.id)
@@ -832,7 +834,38 @@ function attachLoose(groups, list, sig) {
     const ts = items.map((i) => timeOf(i)).filter(Boolean)
     big.push({ gid, items, core, weak, concepts, dead: dead * 3 >= items.length, from: Math.min(...ts), to: Math.max(...ts), sources: new Set(items.map((i) => i.source)).size })
   }
+  // Beursverhaal (ronde 3a, keuring 6 november 2026): een groot verhaal waarvan minstens de helft van de stukken een
+  // beursbegrip heeft (`market`, uitgebreide stand), ook zonder twee eigen namen in de kern. De beurscrash van 5
+  // november stond in een verhaal van acht uitgevers, een van twee (ND, AD) en zes losse stukken (de Volkskrant, FT,
+  // SCMP): een koersval heeft geen eigen naam, alleen een markt ("Wall Street", "Nasdaq", "Amerikaanse beurs").
+  for (const [gid, items] of groups) {
+    if (new Set(items.map((i) => i.source)).size < CORE_FROM) continue
+    if (items.filter((i) => sig.get(i.id)?.concepts.has('market')).length * 2 < items.length) continue
+    let b = big.find((x) => x.gid === gid)
+    if (!b) {
+      const ts = items.map((i) => timeOf(i)).filter(Boolean)
+      big.push((b = { gid, items, core: new Set(), weak: new Set(), concepts: new Set(), from: Math.min(...ts), to: Math.max(...ts), sources: new Set(items.map((i) => i.source)).size }))
+    }
+    b.market = new Set(items.flatMap((i) => [...(sig.get(i.id)?.strong || []), ...(sig.get(i.id)?.weak || [])].map(marketKey)))
+  }
   if (!big.length) return
+  // Een beursstuk past bij een beursverhaal: zelf een beursbegrip, binnen NAMES_WINDOW, en dezelfde markt genoemd
+  // (Wall Street, Nasdaq en de VS als één markt, zie marketKey). Niet bij een tegenstrijdige gebeurtenis.
+  const marketFit = (sa, b) => !!b.market && sa.concepts.has('market') && sa.t >= b.from - NAMES_WINDOW && sa.t <= b.to + NAMES_WINDOW && [...sa.strong, ...sa.weak].some((k) => b.market.has(marketKey(k))) && !b.items.some((i) => conflictingEvents(sa.eventScope, sig.get(i.id)?.eventScope))
+  const marketOf = (sas) => big.filter((b) => sas.filter((sa) => sa && marketFit(sa, b)).length * 2 > sas.length).sort((x, y) => y.sources - x.sources || (x.gid < y.gid ? -1 : x.gid > y.gid ? 1 : 0))[0]
+  const join = (b, items) => {
+    b.items.push(...items)
+    b.items.sort(byRecency)
+  }
+  // Een kleine groep (twee tot CORE_FROM bronnen) waarvan de meeste stukken bij één beursverhaal passen, gaat erin op.
+  for (const [gid, items] of [...groups]) {
+    const n = new Set(items.map((i) => i.source)).size
+    if (n < 2 || n >= CORE_FROM) continue
+    const b = marketOf(items.map((i) => sig.get(i.id)))
+    if (!b || b.gid === gid) continue
+    join(b, items)
+    groups.delete(gid)
+  }
   // De kern als kenmerk: sterke en zwakke namen van minstens de helft van de stukken, met de reeksen
   // van alle stukken (voor sharedEntities). Een instituut in de kern telt, net als in sameEvent, alleen
   // met een gedeeld land (sharedStrong).
@@ -840,7 +873,13 @@ function attachLoose(groups, list, sig) {
   for (const a of list) {
     if (inGroup.has(a.id) || a.type === 'opinie') continue
     const sa = sig.get(a.id)
-    if (!sa || sa.strong.size < CORE_SHARED || !sa.t) continue
+    if (!sa || !sa.t) continue
+    if (sa.strong.size < CORE_SHARED) {
+      // Een los beursstuk zonder twee eigen namen: bij het beursverhaal waar het past.
+      const b = marketOf([sa])
+      if (b) (join(b, [a]), inGroup.add(a.id))
+      continue
+    }
     let best = null
     for (const b of big) {
       if (b.items.some(i => conflictingEvents(sa.eventScope, sig.get(i.id)?.eventScope))) continue
