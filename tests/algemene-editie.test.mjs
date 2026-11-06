@@ -131,6 +131,45 @@ test('eenbronsstukken: pas als er geen verhaal van minstens drie uitgevers meer 
   assert.ok(!all.includes(untitled.id) && !run(10, false).includes(untitled.id))
 })
 
+// Ronde 3 · 2 (keuring ronde 2): het plafond voor buitenland en de eenbronsregel werken samen. Een buitenlands verhaal
+// van drie uitgevers valt bij een leeg profiel onder het plafond (minder dan OPEN_WORLD_MIN), maar telt wel als sterk
+// nieuws: de staart gaat eerst naar zulke verhalen, en pas daarna naar een eenbronsstuk.
+test('de staart eerst met verhalen van drie uitgevers, ook buitenland, dan pas een eenbronsstuk (3b · ronde 3 · 2)', async () => {
+  const { OPEN_WORLD_MIN } = await import('../shared/edition-policy.mjs')
+  assert.ok(OPEN_WORLD_MIN > 3)
+  const T = Date.parse('2026-11-06T05:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, o = {}) => ({ id: `t${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(1), topics: [], ...o })
+  const own = new Set(['nos', 'nrc', 'volkskrant', 'ad', 'nu'])
+  const prof = profileOf({ followed: own, sources: SOURCES })
+  const stories = []
+  const pool = []
+  const story = (id, sources, title, desk, topics) => {
+    const its = sources.map((s) => art(s, title, { topics }))
+    pool.push(...its)
+    stories.push({ id, itemIds: its.map((i) => i.id), sourceCount: its.length, publisherCount: its.length, latestAt: its[0].publishedAt, desk })
+  }
+  // Twee Nederlandse verhalen, twee kleine buitenlandse verhalen (drie uitgevers, onder het plafond) en twee losse stukken.
+  story('n0', ['nos', 'nrc', 'volkskrant'], 'Kabinet presenteert stikstofwet in Den Haag', 'binnenland', ['nederland'])
+  story('n1', ['ad', 'nu', 'rtl'], 'Inflatie in Nederland stijgt naar 3,7 procent', 'binnenland', ['nederland'])
+  story('w0', ['bbc', 'nyt', 'guardian'], 'Chilean parliament rejects pension reform in Santiago', 'buitenland', ['wereld'])
+  story('w1', ['bbc', 'lemonde', 'dw'], 'Kenyan court halts tax law after protests in Nairobi', 'buitenland', ['wereld'])
+  story('w2', ['nyt', 'guardian', 'aljazeera'], 'Mongolian prime minister survives no-confidence vote in Ulaanbaatar', 'buitenland', ['wereld'])
+  const singles = [art('ad', 'Griezelen in het pretpark tijdens de herfstnachten', { topics: ['nederland'] }), art('nu', 'Gemeente opent nieuwe bibliotheek in Zwolle', { topics: ['nederland'] })]
+  pool.push(...singles)
+  const ids = (size) => selectForReader(stories, pool, { mainIds: own, now: T, size, prof, general: true }).map((e) => e.id)
+  // Met vijf plekken: alle verhalen van drie uitgevers, ook het derde buitenlandse boven INT_MAX, geen los stuk.
+  assert.ok(INT_MAX < 3)
+  assert.deepEqual(ids(5).sort(), ['n0', 'n1', 'w0', 'w1', 'w2'])
+  // Met meer plekken dan sterk nieuws mogen de losse stukken daarna.
+  const all = ids(10)
+  assert.ok(singles.every((i) => all.includes(i.id)), all.join())
+  // De persoonlijke Editie (niet `general`) houdt het plafond zoals het was.
+  const personal = selectForReader(stories, pool, { mainIds: own, now: T, size: 5, prof }).map((e) => e.id)
+  assert.ok(['w0', 'w1', 'w2'].filter((id) => personal.includes(id)).length <= INT_MAX, personal.join())
+})
+
 test('service is geen nieuwsplek: review, uitverkoop en productblad herkend aan URL-slug en kopvorm (3b · ronde 2)', async () => {
   const { lightKind } = await import('../shared/edition-policy.mjs')
   const k = (title, url) => lightKind({ title, url, source: 'theverge' })
@@ -218,6 +257,12 @@ test('kop met kop: één breed onderwerp is geen dubbel, dezelfde gebeurtenis we
   // Maar niet dezelfde gebeurtenis.
   assert.ok(!sameHeadEvent(headOf(groups.kerk), headOf(groups.inmenging)))
   assert.ok(!sameHeadEvent(headOf(groups.beurs), headOf(groups.stad)))
+  // Een land en een voorzetsel in twee koppen is geen gedeeld feit ("Rusland" is een naam, ook in een andere spelling).
+  const extra = signatures(pool, [
+    { id: 'kop:x', kind: 'article', source: 'volkskrant', title: 'Wandelaar steekt de bevroren zeestraat tussen Alaska en Rusland over', publishedAt: pool[0].publishedAt },
+    { id: 'kop:y', kind: 'article', source: 'nrc', title: 'Gesprekken tussen VS, Oekraïne en Rusland volgende week in Genève', publishedAt: pool[0].publishedAt },
+  ])
+  assert.ok(!sameHeadEvent(extra.get('kop:x'), extra.get('kop:y')))
   // Wel dezelfde gebeurtenis: dezelfde partij, dezelfde handeling, kort na elkaar.
   assert.ok(sameHeadEvent(headOf(groups.ontslag), headOf(groups.ontslag2)))
 })

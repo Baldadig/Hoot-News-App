@@ -524,6 +524,7 @@ export function sameSubject(a, b) {
 // - Tijd: hooguit SUBJECT_WINDOW uit elkaar.
 // Zo zijn twee koppen uit één breed onderwerp (een verkiezing, een land) met verschillende partijen geen dubbel: de paus
 // die stemt naast een stuk over verkiezingsinmenging, of een beurscrash naast een burgemeestersverkiezing.
+const HEAD_STOP = new Set('tussen between onder under tijdens during zonder without terwijl while sinds since amid ahead waarom wanneer'.split(' '))
 export function sameHeadEvent(a, b) {
   if (!a || !b || conflictingEvents(a.eventScope, b.eventScope)) return false
   if (Math.abs(a.t - b.t) > SUBJECT_WINDOW) return false
@@ -531,7 +532,9 @@ export function sameHeadEvent(a, b) {
   for (const k of a.known) if (b.known.has(k)) names.add(k)
   for (const k of a.parties || []) if (b.parties?.has(k)) names.add(k)
   if (!names.size) return false
-  const words = [...a.words].filter((w) => b.words.has(w) && !names.has(w) && !a.strong.has(w) && !b.strong.has(w) && !a.known.has(w) && !b.known.has(w)).length
+  // Kernwoorden naast de namen: geen naam in een andere spelling ("Rusland" naast de sleutel russia) en geen voorzetsel.
+  const isName = (w) => [w, ALIAS_EXT[w]].some((k) => k && (WEAK.has(k) || a.strong.has(k) || b.strong.has(k) || a.known.has(k) || b.known.has(k)))
+  const words = [...a.words].filter((w) => b.words.has(w) && !HEAD_STOP.has(w) && !isName(w)).length
   if ([...a.strong].some((k) => b.strong.has(k) && !BROAD.has(k))) return words >= 1 || sharedCount(a.concepts, b.concepts) >= 1
   return words >= 2
 }
@@ -1770,16 +1773,43 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   placedC = []
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
   const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
-  const admissible = (c) => !used.has(c) && !clashes(c) && familyRoom(c, placedC, general, now) && allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }) && !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX)
+  // De kop van een verhaal bij deze stand van de Editie (pickLead hangt alleen af van wat er al staat), één keer gekozen.
+  const leadOf = (c) => {
+    if (c.kind !== 'story') return null
+    if (c.leadAt !== entries.length) {
+      c.leadAt = entries.length
+      c.lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length)
+    }
+    return c.lead
+  }
+  // De algemene Editie kijkt ook naar wat de lezer ziet: de kop van een plek mag niet dezelfde gebeurtenis melden als de
+  // kop van een andere plek (sameHeadEvent: dezelfde partij, dezelfde handeling of hetzelfde feit, kort na elkaar; ronde
+  // 3 · 1). Een gedeeld onderwerp of een gedeelde landenrubriek is niet genoeg. Een tweede plek voor één gebeurtenis
+  // (wideSecond) is uitgezonderd.
+  const headTaken = (c) => {
+    if (!general || c.kind !== 'story' || !entries.length || wideSecond(c, placedC, now)) return false
+    const lead = leadOf(c)
+    const head = lead && headSignature(sig, lead)
+    return !!head && entries.some((e) => sameHeadEvent(head, headSignature(sig, byId.get(e.leadId || e.id))))
+  }
+  // `open` (alleen de algemene Editie, ronde 3 · 2): het plafond voor buitenland telt niet, de andere toelating wel.
+  const newsOk = (c, open) => {
+    const r = newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })
+    return r === null || (open && r === 'internationaal-niet-groot-genoeg')
+  }
+  const admissible = (c, open = false) => !used.has(c) && !clashes(c) && familyRoom(c, placedC, general, now) && newsOk(c, open) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX)) && !headTaken(c)
   // De spreiding van een kandidaat: het aantal onafhankelijke uitgevers van het hele verhaal (een los stuk: één).
   const spread = (c) => (c.kind === 'item' ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount)
   // Is er nog een vers verhaal van minstens SPREAD_MIN uitgevers dat een plek mag? Eén keer per stand van de Editie.
+  // Ook een buitenlands verhaal dat alleen door het plafond voor buitenland buiten de Editie blijft, telt (ronde 3 · 2,
+  // keuring ronde 2: Israël en Olesjky met drie uitgevers bleven liggen, vier eenbronsstukken vulden de staart): zo'n
+  // verhaal krijgt dan in stap 3 een plek vóór een eenbronsstuk.
   let strongAt = -1
   let strong = false
   const strongLeft = () => {
     if (strongAt !== entries.length) {
       strongAt = entries.length
-      strong = cands.some((x) => x.kind === 'story' && !x.parts.seen && spread(x) >= SPREAD_MIN && !capped(x) && admissible(x))
+      strong = cands.some((x) => x.kind === 'story' && !x.parts.seen && spread(x) >= SPREAD_MIN && admissible(x, true))
     }
     return strong
   }
@@ -1794,21 +1824,13 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const lead = leadPool(leadCandidates(pool, mainIds, preferred, now, { role: 'front' }), mate.items, now)[0]
     if (lead) Object.assign(e, { leadId: lead.id, title: lead.title || null })
   }
-  const take = (c, desk, extra = {}) => {
-    if (!admissible(c)) return false
+  const take = (c, desk, extra = {}, open = false) => {
+    if (!admissible(c, open)) return false
     if (general && spread(c) <= 1 && strongLeft()) return false
     // Een tweede plek voor één gebeurtenis: de eerste plek houdt dan een kop over de uitslag zelf, niet over het
     // tweede feit (anders staat hetzelfde feit twee keer bovenaan).
     const second = general && wideSecond(c, placedC, now)
-    // De kop van een verhaal, één keer gekozen (pickLead hangt alleen af van de stand vóór deze plek).
-    const lead = c.kind === 'story' ? pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length) : null
-    // De algemene Editie kijkt ook naar wat de lezer ziet: de kop van deze plek mag niet dezelfde gebeurtenis melden als
-    // de kop van een andere plek (sameHeadEvent: dezelfde partij, dezelfde handeling of hetzelfde feit, kort na elkaar;
-    // ronde 3 · 1). Een gedeeld onderwerp of een gedeelde landenrubriek is niet genoeg.
-    if (general && !second && lead) {
-      const head = headSignature(sig, lead)
-      if (head && entries.some((e) => sameHeadEvent(head, headSignature(sig, byId.get(e.leadId || e.id))))) return false
-    }
+    const lead = leadOf(c)
     if (second) relead(c)
     used.add(c)
     placedC.push(c)
@@ -1892,6 +1914,12 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   for (const c of cands) {
     if (entries.length >= size) break
     if (!c.parts.seen) takeCapped(c, plan ? c.home : null)
+  }
+  // De algemene Editie (ronde 3 · 2): wat er dan nog vrij is, gaat eerst naar verhalen van minstens SPREAD_MIN uitgevers,
+  // ook buitenland boven het plafond; pas daarna mag een eenbronsstuk (take, strongLeft).
+  if (general) for (const c of cands) {
+    if (entries.length >= size) break
+    if (c.kind === 'story' && !c.parts.seen && spread(c) >= SPREAD_MIN && take(c, plan ? c.home : null, {}, true) && cappedWorld(c)) counted.add(c.id)
   }
   for (const c of cands) {
     if (entries.length >= size) break
