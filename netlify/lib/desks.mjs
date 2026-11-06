@@ -130,19 +130,47 @@ export function placeSignals({ title = '', summary = '', text = '' }) {
   }
 }
 
-// Redacteur 3b · ronde 4 · 2: een buitenlandse plaats of een buitenlands land als onderwerp in de kop. Alle landen (met
-// bijvoeglijke vormen en enkele hoofdsteden) bovenop countriesIn; geen instellingen als de EU of de NAVO, want die gaan
-// Nederland ook aan. Zonder Nederlands anker in dezelfde kop (Nederland, Nederlands, Dutch, of een Nederlandse plaats,
-// instelling, persoon of bedrijf: placeSignals) is de kop buitenlands: "Paraguayaanse president treedt af" wel,
-// "Nederlandse militairen naar Litouwen" niet.
+// Redacteur 3b · ronde 4 · 2 (lijst verbreed in ronde 5 · 2): een buitenlands land als onderwerp in de kop. Alle landen
+// van de wereld per werelddeel, op alfabet, met Nederlandse en Engelse namen en bijvoeglijke vormen, bovenop countriesIn
+// (shared/article-signals.mjs) en de rubrieken Oekraïne en Midden-Oosten. Niet in de lijst: instellingen als de EU of de
+// NAVO (die gaan Nederland ook aan), namen die ook een gewoon woord of een voornaam zijn (Chad, Jordan), de landen van het
+// Koninkrijk (Aruba, Curaçao, Sint Maarten), en hoofdsteden en andere steden: een stad staat in een Nederlandse kop vaak
+// als bestemming of vertrekplaats ("vlucht uit Boekarest vertrok niet") en maakt het onderwerp niet buitenlands. Zonder
+// Nederlands anker in dezelfde kop (Nederland, Nederlands, Dutch, of een Nederlandse plaats, instelling, persoon of bedrijf:
+// placeSignals) is de kop buitenlands: "Zuid-Amerikaanse president treedt af" wel, "Nederlandse militairen naar Litouwen"
+// niet.
+const L = '\\p{L}*'
 const WORLD = W([
-  'paraguay\\p{L}*', 'uruguay\\p{L}*', 'bolivia\\p{L}*', 'ecuador\\p{L}*', 'argentin\\p{L}*', 'chili', 'chileen\\p{L}*', 'chile', 'chilean\\p{L}*', 'peru\\p{L}*', 'colombia\\p{L}*', 'venezuela\\p{L}*', 'guyana', 'suriname\\p{L}*',
-  'mexic\\p{L}*', 'guatemala\\p{L}*', 'honduras', 'hondura\\p{L}*', 'nicaragua\\p{L}*', 'el salvador', 'salvadoraan\\p{L}*', 'costa rica\\p{L}*', 'panama\\p{L}*', 'cuba\\p{L}*', 'haïti\\p{L}*', 'haiti\\p{L}*', 'dominicaanse republiek', 'dominican republic', 'jamaica\\p{L}*', 'puerto rico',
-  'marokk\\p{L}*', 'morocc\\p{L}*', 'algerij\\p{L}*', 'algeri\\p{L}*', 'tunesi\\p{L}*', 'tunisi\\p{L}*', 'libi[eë]', 'libya\\p{L}*', 'libisch\\p{L}*', 'egypt\\p{L}*', 'soedan\\p{L}*', 'sudan\\p{L}*', 'ethiopi\\p{L}*', 'eritre\\p{L}*', 'somali\\p{L}*', 'keni\\p{L}*', 'kenya\\p{L}*', 'oeganda\\p{L}*', 'uganda\\p{L}*', 'tanzania\\p{L}*', 'rwanda\\p{L}*', 'burundi', 'congo\\p{L}*', 'nigeria\\p{L}*', 'ghana\\p{L}*', 'mali', 'malinees\\p{L}*', 'niger', 'tsjaad', 'chad', 'kameroen', 'cameroon', 'senegal\\p{L}*', 'ivoorkust', 'angola\\p{L}*', 'mozambique', 'zimbabw\\p{L}*', 'zambia\\p{L}*', 'namibi\\p{L}*', 'botswana', 'madagaskar', 'madagascar', 'zuid-afrika\\p{L}*', 'south africa\\p{L}*',
-  'irak\\p{L}*', 'iraq\\p{L}*', 'syri\\p{L}*', 'jordani\\p{L}*', 'jemen\\p{L}*', 'yemen\\p{L}*', 'oman', 'qatar\\p{L}*', 'koeweit', 'kuwait\\p{L}*', 'bahrein', 'bahrain', 'emiraten', 'emirates', 'saoedi\\p{L}*', 'saudi\\p{L}*', 'afghanistan', 'afghaan\\p{L}*', 'afghan\\p{L}*', 'pakistan\\p{L}*',
-  'kazachstan', 'kazakhstan', 'oezbekistan', 'uzbekistan', 'kirgizi\\p{L}*', 'kyrgyz\\p{L}*', 'tadzjikistan', 'tajikistan', 'turkmenistan', 'mongoli\\p{L}*', 'bangladesh\\p{L}*', 'sri lanka\\p{L}*', 'nepal\\p{L}*', 'myanmar', 'thailand', 'thai', 'thaise?', 'cambodja\\p{L}*', 'cambodia\\p{L}*', 'laos', 'vietnam\\p{L}*', 'maleisi\\p{L}*', 'malaysia\\p{L}*', 'singapore', 'indonesi\\p{L}*', 'filipijn\\p{L}*', 'philippine\\p{L}*', 'taiwan\\p{L}*', 'korea\\p{L}*', 'noord-korea\\p{L}*', 'zuid-korea\\p{L}*',
-  'ierland', 'ireland', 'iers\\p{L}*', 'irish', 'schotland', 'scotland', 'schots\\p{L}*', 'scottish', 'wales', 'portug\\p{L}*', 'zwitser\\p{L}*', 'switzerland', 'swiss', 'oostenrijk\\p{L}*', 'austria\\p{L}*', 'tsjechi\\p{L}*', 'czech\\p{L}*', 'slowakij\\p{L}*', 'slovak\\p{L}*', 'sloveni\\p{L}*', 'kroati\\p{L}*', 'croatia\\p{L}*', 'bosni\\p{L}*', 'servi\\p{L}*', 'serbia\\p{L}*', 'montenegr\\p{L}*', 'kosov\\p{L}*', 'albani\\p{L}*', 'macedoni\\p{L}*', 'griek\\p{L}*', 'greece', 'greek', 'bulgari\\p{L}*', 'roemeni\\p{L}*', 'romania\\p{L}*', 'hongarij\\p{L}*', 'hongaar\\p{L}*', 'hungar\\p{L}*', 'moldavi\\p{L}*', 'moldova\\p{L}*', 'wit-rusland', 'belarus\\p{L}*', 'litouw\\p{L}*', 'lithuania\\p{L}*', 'letland', 'lets\\p{L}*', 'latvia\\p{L}*', 'finland', 'fins\\p{L}*', 'finnish', 'zweed\\p{L}*', 'zweden', 'sweden', 'swedish', 'noorweg\\p{L}*', 'noors\\p{L}*', 'norw\\p{L}*', 'denemarken', 'deens\\p{L}*', 'denmark', 'danish', 'ijsland\\p{L}*', 'iceland\\p{L}*', 'luxemburg\\p{L}*', 'luxembourg', 'malta', 'cyprus', 'georgi[eë]', 'armeni\\p{L}*', 'azerbeidzjan\\p{L}*', 'azerbaijan\\p{L}*',
-  'nieuw-zeeland', 'new zealand', 'australi\\p{L}*', 'canad\\p{L}*', 'groenland\\p{L}*', 'greenland',
+  // Europa
+  `albani${L}`, 'andorra', `armeni${L}`, `azerbeidzjan${L}`, `azerbaijan${L}`, 'wit-rusland', `belarus${L}`, `bosni${L}`, `bulgar${L}`, `bulgaria${L}`,
+  'cyprus', `cyprio${L}`, 'denemarken', `deens${L}`, 'denmark', 'danish', 'finland', 'fins', 'finse', 'finnish', `georgi[eë]`, `griek${L}`, 'greece', 'greek',
+  `hongarij${L}`, `hongaar${L}`, `hungar${L}`, 'ierland', 'ireland', 'iers', 'ierse', 'irish', `ijsland${L}`, `iceland${L}`, `kosov${L}`, `kroati${L}`, `croatia${L}`,
+  'letland', 'letse', 'latvia', `latvian${L}`, 'liechtenstein', `litouw${L}`, `lithuania${L}`, `luxemburg${L}`, 'luxembourg', `macedoni${L}`, 'malta', 'maltees', 'maltese',
+  `moldavi${L}`, `moldova${L}`, 'monaco', `montenegr${L}`, `noorweg${L}`, 'noors', 'noorse', `norw${L}`, `oostenrijk${L}`, `austria${L}`, `portug${L}`,
+  `roemeni${L}`, `romania${L}`, 'san marino', `servi${L}`, `serbia${L}`, `sloveni${L}`, `slowakij${L}`, `slowaak${L}`, `slovak${L}`,
+  `tsjechi${L}`, 'tsjech', 'tsjechen', `czech${L}`, 'vaticaan', 'vatican', 'schotland', 'scotland', 'schots', 'schotse', 'scottish', 'wales', 'welsh', 'noord-ierland', 'northern ireland',
+  'zweden', `zweed${L}`, 'sweden', 'swedish', `zwitser${L}`, 'switzerland', 'swiss',
+  // Afrika
+  `algerij${L}`, `algeri${L}`, `angola${L}`, `benin${L}`, 'botswana', 'burkina faso', 'burundi', `centraal-afrikaans${L}`, 'central african republic', 'comoren', 'comoros', `congo${L}`, 'djibouti',
+  `egypt${L}`, `egypte${L}`, 'equatoriaal-guinee', 'equatorial guinea', `eritre${L}`, 'eswatini', `ethiopi${L}`, 'gabon', 'gambia', `ghana${L}`, `guinee${L}`, `guinea${L}`, 'ivoorkust', 'ivory coast',
+  'kaapverdi[eë]', 'cape verde', `kameroen${L}`, 'cameroon', `keni${L}`, `kenya${L}`, 'lesotho', `liberia${L}`, `libi[eë]`, `libisch${L}`, `libya${L}`, 'madagaskar', 'madagascar', 'malawi', 'mali', 'malinees', 'malinese',
+  `marokk${L}`, `morocc${L}`, `mauritani${L}`, 'mauritius', 'mozambique', `namibi${L}`, 'niger', `nigeria${L}`, 'oeganda', `oegandees${L}`, `uganda${L}`, `rwanda${L}`,
+  `senegal${L}`, 'seychellen', 'seychelles', 'sierra leone', `somali${L}`, `soedan${L}`, `sudan${L}`, `tanzania${L}`, 'tsjaad', 'togo', `tunesi${L}`, `tunisi${L}`, `zambia${L}`,
+  `zimbabw${L}`, `zuid-afrika${L}`, `south africa${L}`,
+  // Azië
+  'afghanistan', `afghaan${L}`, `afghan${L}`, 'bahrein', 'bahrain', `bangladesh${L}`, 'bhutan', 'brunei', 'cambodja', `cambodjaan${L}`, `cambodia${L}`, `filipijn${L}`, `philippine${L}`,
+  'hongkong', 'hong kong', `indonesi${L}`, 'irak', `irakees${L}`, 'iraq', `iraqi${L}`, `jemen${L}`, `yemen${L}`, `jordani${L}`, 'kazachstan', 'kazakhstan',
+  `kirgizi${L}`, `kyrgyz${L}`, 'koeweit', `kuwait${L}`, 'laos', `maleisi${L}`, `malaysia${L}`, 'maldiven', 'maldives', `mongoli${L}`, 'myanmar', 'birma', 'burma', `nepal${L}`,
+  `korea${L}`, `noord-korea${L}`, `zuid-korea${L}`, 'oezbekistan', 'uzbekistan', 'oman', 'oost-timor', 'east timor', `pakistan${L}`,
+  `qatar${L}`, 'singapore', `sri lanka${L}`, `syri${L}`, 'tadzjikistan', 'tajikistan', `taiwan${L}`, 'thailand', 'thai', 'thaise?', 'turkmenistan', 'emiraten', 'emirates',
+  `vietnam${L}`,
+  // Amerika
+  `argentin${L}`, "bahama's", 'bahamas', 'barbados', 'belize', `bolivia${L}`, `boliviaan${L}`, 'chili', `chileen${L}`, 'chile', `chilean${L}`, `colombia${L}`, 'costa rica', `costa ricaan${L}`, `costa rican${L}`,
+  'cuba', `cubaan${L}`, `cuban${L}`, 'dominicaanse republiek', 'dominican republic', `ecuador${L}`, 'el salvador', `salvadoraan${L}`, `salvadoran${L}`, `guatemala${L}`, 'guyana', 'haïti', 'haiti', `haïtiaan${L}`, `haitian${L}`,
+  'honduras', `hondura${L}`, `jamaica${L}`, `mexic${L}`, `nicaragua${L}`, `panama${L}`, `paraguay${L}`, `peru${L}`, 'puerto rico', `suriname${L}`, 'trinidad', `uruguay${L}`,
+  `venezuela${L}`, `groenland${L}`, 'greenland',
+  // Oceanië
+  'fiji', 'nieuw-zeeland', 'new zealand', `papoea${L}`, `papua${L}`, 'samoa', 'tonga',
 ])
 const NL_ANCHOR = W(['nederland\\p{L}*', 'dutch', 'holland\\p{L}*'])
 export function foreignHead(title = '') {

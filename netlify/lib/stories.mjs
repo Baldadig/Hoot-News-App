@@ -629,15 +629,38 @@ function subjectIn(sig, c, list, items, meta = null) {
   const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0
   const own = c.kind === 'story' && pubs >= OWN_STORY && items?.length ? items.map((i) => headSignature(sig, i)).filter(Boolean) : c.ids.map((id) => sig.get(id)).filter(Boolean)
   if (!meta || c.kind !== 'story' || pubs < STRAY_MIN) return own.some((x) => list.some((s) => sameSubject(x, s)))
-  const hits = new Map() // plek → de stukken van die plek die botsen
+  // Ronde 5 · 1: wat telt, is of de botsende stukken over dezelfde gebeurtenis gaan als de kandidaat, met de maatstaf van
+  // de kop-met-kopregel (sameHeadEvent op de koppen van beide stukken: dezelfde partij, dezelfde handeling of hetzelfde
+  // feit, kort na elkaar). Zo'n botsing telt als de botsende stukken de kern van de plek zijn (strayCore). Delen ze
+  // alleen het thema (een verkiezing, een land), dan telt de botsing pas als de plek het onderwerp al minstens zo breed
+  // brengt als de kandidaat zelf: botsende stukken van minstens evenveel uitgevers als de kandidaat heeft. Een losse
+  // analysebundel met twee stukken over hetzelfde thema drukt zo geen verhaal van vier uitgevers over iets anders weg;
+  // een uitslagbundel waarvan zes uitgevers over hetzelfde schrijven als een nabeschouwing van vier, wel.
+  const heads = new Map() // kenmerk van de kandidaat → kenmerk van alleen de kop van dat stuk
+  const itemOf = new Map() // kenmerk van de kandidaat (heel of alleen de kop) → het stuk
+  if (items?.length) for (const i of items) if (sig.has(i.id)) {
+    const h = headSignature(sig, i)
+    heads.set(sig.get(i.id), h)
+    itemOf.set(sig.get(i.id), i).set(h, i)
+  }
+  const headOf = (x) => (heads.has(x) ? heads.get(x) : x)
+  // Twee uitslagstukken (voteKind 2) melden dezelfde gebeurtenis: de uitslag van de verkiezing, ook met een andere kop.
+  const result = (x, it) => voteKind(it) === 2 && voteKind(itemOf.get(x)) === 2
+  const hits = new Map() // plek → { event: stukken over dezelfde gebeurtenis, all: alle botsende stukken }
   for (let k = 0; k < list.length; k++) {
-    if (!own.some((x) => sameSubject(x, list[k]))) continue
+    const mates = own.filter((x) => sameSubject(x, list[k]))
+    if (!mates.length) continue
     const p = meta[k]
     if (!p?.owner) return true
-    const got = hits.get(p.owner) || []
-    got.push(p.item)
-    if (strayCore(p, got)) return true
+    const got = hits.get(p.owner) || { event: [], all: [] }
     hits.set(p.owner, got)
+    got.all.push(p.item)
+    const theirs = headSignature(sig, p.item) || list[k]
+    if (mates.some((x) => sameHeadEvent(headOf(x), theirs) || result(x, p.item))) {
+      got.event.push(p.item)
+      if (strayCore(p, got.event)) return true
+    }
+    if (coverageOf(got.all.filter(Boolean)).publisherCount >= pubs) return true
   }
   return false
 }

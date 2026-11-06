@@ -370,6 +370,55 @@ test('één verdwaald stuk drukt geen groot verhaal weg (3b · ronde 4 · 1)', a
   assert.ok(small.includes('mayor') && !small.includes('crash'), small.join())
 })
 
+// Ronde 5 · 1 (keuring ronde 4): een botsing per stuk telt alleen als de botsende stukken over dezelfde gebeurtenis gaan als
+// de kandidaat (sameHeadEvent op de koppen, of twee uitslagstukken), of als de plek het onderwerp al minstens zo breed
+// brengt als de kandidaat. Een losse analysebundel over een verkiezing drukt zo geen nieuwsverhaal van vier uitgevers
+// over iets anders weg, ook niet als twee van haar stukken (met haar kop) hetzelfde thema hebben.
+const themeCase = (clash = ['atlantic', 'wired']) => {
+  const T = Date.parse('2026-10-30T17:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, summary, h = 2, topics = []) => ({ id: `t${++n}`, kind: 'article', source, title, summary, publishedAt: at(h), topics })
+  const where = (s) => (clash.includes(s) ? ' in Michigan and Pennsylvania' : '')
+  const analysis = [
+    ['atlantic', 'The Real Threat of Election Interference in America', (w) => `Foreign meddling and voter intimidation${w} could shape the election, experts warn.`],
+    ['wired', 'Election Integrity Group Linked to Billionaire Targets US Voters', (w) => `A group tied to a tech billionaire is recruiting poll watchers${w} ahead of the election.`],
+    ['nyt', 'The Justice Department’s Unusual Election-Year Activity', (w) => `Prosecutors${w} have taken steps close to the election that break with tradition.`],
+    ['npr', 'Here are the Senate races to watch ahead of Election Day', (w) => `Control of the Senate hinges on a handful of races${w}.`],
+    ['dw', 'US election: voters fear interference at the polls', (w) => `Voters${w} worry about meddling in the election.`],
+  ].map(([s, t, sum]) => art(s, t, sum(where(s)), 3, ['vs-politiek']))
+  const news = ['bbc', 'independent', 'lemonde', 'scmp'].map((s) => art(s, 'Astronaut casts ballot from orbit for first time in US election', 'A NASA astronaut from Michigan aboard the space station voted in the election, with a ballot sent to Pennsylvania, the agency said.', 1))
+  const nl = [['nos', 'nrc', 'volkskrant'], ['ad', 'nu', 'rtl']].map((ss, k) => ss.map((s) => art(s, ['Kabinet presenteert stikstofwet', 'Inflatie stijgt naar 3,7 procent'][k], 'Het kabinet besloot.', 1, ['nederland'])))
+  const all = [['analyse', analysis, 'vs'], ['astronaut', news, null], ['n0', nl[0], 'binnenland'], ['n1', nl[1], 'binnenland']]
+  const pubsOf = (its) => new Set(its.map((i) => i.source)).size
+  // De analysebundel weegt zwaarder (meer uitgevers) en staat er dus eerst.
+  const stories = all.map(([id, its, desk]) => ({ id, itemIds: its.map((i) => i.id), sourceCount: pubsOf(its), publisherCount: pubsOf(its) + (id === 'analyse' ? 6 : 0), latestAt: its.map((i) => i.publishedAt).sort().at(-1), desk }))
+  return { stories, pool: all.flatMap((g) => g[1]), T }
+}
+test('een analysebundel over hetzelfde thema drukt geen verhaal over een andere gebeurtenis weg (3b · ronde 5 · 1)', async () => {
+  const { signatures, sameSubject, sameHeadEvent } = await import('../netlify/lib/stories.mjs')
+  const prof = profileOf({ followed: MAIN_IDS, sources: SOURCES })
+  const run = (w, general = true) => selectForReader(w.stories, w.pool, { mainIds: MAIN_IDS, now: w.T, prof, general }).map((e) => e.id)
+  const one = themeCase()
+  // De oude botsing: twee stukken van de bundel (met haar kop) gaan volgens sameSubject over hetzelfde onderwerp, maar
+  // de koppen melden geen gemeenschappelijke gebeurtenis.
+  const sig = signatures(one.pool)
+  const heads = signatures(one.pool, one.pool.map((i) => ({ ...i, id: `kop:${i.id}`, text: '', summary: '' })))
+  const astro = one.pool.find((i) => /orbit/.test(i.title))
+  const hit = one.pool.filter((i) => i.source === 'atlantic' || i.source === 'wired')
+  for (const i of hit) {
+    assert.ok(sameSubject(sig.get(astro.id), sig.get(i.id)), i.source)
+    assert.ok(!sameHeadEvent(heads.get(`kop:${astro.id}`), heads.get(`kop:${i.id}`)), i.source)
+  }
+  for (const general of [true, false]) {
+    const ids = run(one, general)
+    assert.ok(ids.includes('analyse') && ids.includes('astronaut'), ids.join())
+  }
+  // Brengt de plek het onderwerp even breed als de kandidaat (vier uitgevers), dan blijft het één plek.
+  const wide = run(themeCase(['atlantic', 'wired', 'nyt', 'npr']))
+  assert.ok(wide.includes('analyse') && !wide.includes('astronaut'), wide.join())
+})
+
 // Ronde 4 · 2 (keuring ronde 3): dutchPlace kijkt naar alle stukken van het verhaal, ook die buiten de nieuwspool (zoals de
 // meetlat), en een buitenlandse plaats of een buitenlands land als onderwerp in de kop maakt een plek niet-Nederlands.
 test('een buitenlandse plaats in de kop is geen Nederlandse plek, tenzij de kop ook een Nederlands anker heeft (3b · ronde 4 · 2)', async () => {
