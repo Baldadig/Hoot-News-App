@@ -96,7 +96,9 @@ test('landing: de App Store staat klaar achter één regel in build.mjs', () => 
   assert.match(aan, /<p class="wacht-gratis|<em class="wacht-gratis">/)
   assert.equal(APP_URL, 'https://apps.apple.com/nl/app/id6828037269')
   assert.match(aan, /<meta name="apple-itunes-app" content="app-id=6828037269">/)
-  assert.match(aan, new RegExp(`<a class="wacht" href="${APP_URL}">`))
+  assert.match(aan, new RegExp(`<a class="wacht" href="${APP_URL}" aria-label="Download Hoot in de App Store"><svg class="as-badge"`))
+  // De officiële witte badge van Apple, ongewijzigd (alleen de titel eruit en een klasse erbij).
+  assert.match(aan, /<svg class="as-badge" aria-hidden="true" focusable="false"[^>]*viewBox="0 0 119.66407 40"/)
   assert.match(aan, new RegExp(`Ook in de <a href="${APP_URL}">App Store</a>\\.`))
   assert.doesNotMatch(aan, /Binnenkort/)
   // De hover-ring alleen op de link, niet op de pil die (nog) tekst is.
