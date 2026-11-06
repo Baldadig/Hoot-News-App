@@ -2770,7 +2770,12 @@ var HootCore = (() => {
     const take = (c, desk, extra = {}) => {
       if (!admissible(c)) return false;
       if (general && spread(c) <= 1 && strongLeft()) return false;
-      if (general && wideSecond(c, placedC, now)) relead(c);
+      const second = general && wideSecond(c, placedC, now);
+      if (general && !second && c.kind === "story") {
+        const lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length);
+        if (lead && sig.has(lead.id) && entries.some((e) => sig.has(e.leadId || e.id) && sameSubject(sig.get(lead.id), sig.get(e.leadId || e.id)))) return false;
+      }
+      if (second) relead(c);
       used.add(c);
       placedC.push(c);
       place(c.ids, c);

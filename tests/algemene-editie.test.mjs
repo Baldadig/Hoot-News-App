@@ -176,3 +176,24 @@ test('één gebeurtenis, twee plekken alleen op een uitzonderlijke nieuwsdag (3b
   assert.equal(ids(build(12), true).filter((id) => ['sHead', 'sTrump', 'sRace'].includes(id)).length, 1)
   assert.equal(ids(build(20, 9), true).filter((id) => ['sHead', 'sTrump', 'sRace'].includes(id)).length, 1)
 })
+
+// Ronde 2, aanvulling op punt 1 (5 november): meer buitenland betekent ook meer kans op twee koppen over hetzelfde
+// onderwerp. De algemene Editie vergelijkt daarom ook kop met kop (sameSubject), zoals de lezer ze ziet.
+test('algemene Editie: geen twee koppen over hetzelfde onderwerp (3b · ronde 2)', async () => {
+  const { signatures, sameSubject } = await import('../netlify/lib/stories.mjs')
+  const T = Date.parse('2026-11-05T04:30:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, summary, h = 2) => ({ id: `m${++n}`, kind: 'article', source, title, summary, publishedAt: at(h), topics: ['vs-politiek'] })
+  const a = ['nyt', 'bbc', 'guardian', 'npr', 'aljazeera'].map((s, k) => art(s, k ? `Shares of Trump Media slide ${k}` : 'Trump Media’s Shares Fall to Record Low After Midterms', 'Trump Media & Technology Group’s stock plunged 24 percent a day after Democrats made huge gains in the midterm elections.'))
+  const b = ['nyt', 'bbc', 'guardian', 'npr', 'dw'].map((s, k) => art(s, k ? `A historic night for first-time candidates ${k}` : 'What Makes These Election Results So Historic', 'Democrats celebrated a seismic triumph in the midterm elections, winning control of the Senate and the House from President Trump’s party.'))
+  const nl = [['nos', 'nrc', 'volkskrant'], ['ad', 'nu', 'rtl']].map((ss, k) => ss.map((s) => ({ ...art(s, ['Kabinet presenteert stikstofwet', 'Inflatie stijgt naar 3,7 procent'][k], 'Het kabinet besloot.', 1), topics: ['nederland'] })))
+  const groups = [['sA', a, 'vs'], ['sB', b, 'vs'], ['sN0', nl[0], 'binnenland'], ['sN1', nl[1], 'binnenland']]
+  const stories = groups.map(([id, its, desk]) => ({ id, itemIds: its.map((i) => i.id), sourceCount: its.length, publisherCount: its.length, latestAt: its[0].publishedAt, desk }))
+  const pool = groups.flatMap((g) => g[1])
+  const sig = signatures(pool)
+  assert.ok(sameSubject(sig.get(a[0].id), sig.get(b[0].id)), 'de koppen gaan over hetzelfde onderwerp')
+  const ed = generalEdition({ stories, pool, now: T })
+  const leads = ed.map((e) => e.leadId || e.id)
+  for (let i = 0; i < leads.length; i++) for (let j = i + 1; j < leads.length; j++) assert.ok(!sameSubject(sig.get(leads[i]), sig.get(leads[j])), `${leads[i]} ${leads[j]}`)
+})

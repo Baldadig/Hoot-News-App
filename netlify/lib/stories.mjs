@@ -1777,7 +1777,15 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     if (general && spread(c) <= 1 && strongLeft()) return false
     // Een tweede plek voor één gebeurtenis: de eerste plek houdt dan een kop over de uitslag zelf, niet over het
     // tweede feit (anders staat hetzelfde feit twee keer bovenaan).
-    if (general && wideSecond(c, placedC, now)) relead(c)
+    const second = general && wideSecond(c, placedC, now)
+    // De algemene Editie kijkt ook naar wat de lezer ziet: de kop van deze plek mag niet over hetzelfde onderwerp gaan
+    // als de kop van een andere plek (5 november: "Trump Media's Shares Fall … After Midterms" en "What Makes These
+    // Election Results So Historic", twee verhalen waarvan de stukken elkaar net niet raakten).
+    if (general && !second && c.kind === 'story') {
+      const lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length)
+      if (lead && sig.has(lead.id) && entries.some((e) => sig.has(e.leadId || e.id) && sameSubject(sig.get(lead.id), sig.get(e.leadId || e.id)))) return false
+    }
+    if (second) relead(c)
     used.add(c)
     placedC.push(c)
     place(c.ids, c)
