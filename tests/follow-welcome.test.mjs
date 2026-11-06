@@ -47,7 +47,7 @@ test('de Basis: het gratis begin, dan de kranten als losse rijen in vaste volgor
   assert.deepEqual(basis.map((s) => s.id), ['nos', 'nu', 'rtl', 'volkskrant', 'nrc', 'trouw', 'parool', 'ad', 'telegraaf'])
   assert.deepEqual(basis.slice(0, 3).map((s) => s.id), FREE_START)
   assert.ok(basis.every((s) => s.cat === 'nl'))
-  // Het gratis begin is gratis; de kranten staan er los onder (betaald, dus geen onderdeel van "Volg alle drie").
+  // Het gratis begin is gratis; de kranten staan er los onder (betaald, dus geen onderdeel van "Volg alles").
   assert.ok(basis.slice(0, 3).every((s) => !s.paid))
   assert.ok(basis.slice(3).every((s) => s.paid))
   assert.equal(new Set(basis.map((s) => s.id)).size, basis.length, 'elke bron één keer')
@@ -172,7 +172,7 @@ test('opslaan gebruikt bestaande voorkeuren; een geannuleerd concept wijzigt ze 
 test('web en app: hetzelfde gratis begin en dezelfde schermen', () => {
   const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
   const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
-  for (const text of ['Zo werkt Hoot', 'Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alle drie', 'Meer bronnen', 'Gratis aanrader', 'Voor jou', 'Liever meteen lezen', 'Kies je interesses', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
+  for (const text of ['Zo werkt Hoot', 'Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alles', 'Meer bronnen', 'Gratis aanrader', 'Voor jou', 'Liever meteen lezen', 'Kies je interesses', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
     assert.ok(web.includes(text), `web: ${text}`)
     assert.ok(swift.includes(text), `app: ${text}`)
   }

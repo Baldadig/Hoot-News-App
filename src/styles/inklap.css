@@ -44,7 +44,7 @@
 .ob__gtoggle:hover .ob__gcaret {
   color: var(--ink);
 }
-/* Naast "Volg alle drie" (de Basis) wat lucht tussen de pijl en de actie. */
+/* Naast "Volg alles" (de Basis) wat lucht tussen de pijl en de actie. */
 .ob__ghead > .ob__gtitle + .ob__all {
   margin-inline-start: var(--s3);
 }

@@ -396,7 +396,7 @@ function Bronnen({ head, sources, items, mine, interests, plan = null, preset = 
           <Fold id="basis" label={plan ? 'Voor jou' : 'Basis'} list={basis} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, startIds)} count={false} note={alvast}>
             {start.length > 1 ? (
               <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
-                {startOn ? `Alle ${allWord(start.length)} gevolgd` : `Volg alle ${allWord(start.length)}`}
+                {startOn ? 'Alles gevolgd' : 'Volg alles'}
               </button>
             ) : null}
           </Fold>
@@ -452,7 +452,7 @@ function Bronnen({ head, sources, items, mine, interests, plan = null, preset = 
 }
 
 // Eén categorie van de bronnenstap, inklapbaar. De kop is een knop (naam, aantal gekozen bronnen, pijl);
-// ingeklapt staat alleen die kop. `children`: een actie naast de kop (Volg alle drie in de Basis).
+// ingeklapt staat alleen die kop. `children`: een actie naast de kop (Volg alles in de Basis).
 // `note`: één stille regel direct onder de kop, boven de lijst (Alvast gevolgd).
 function Fold({ id, label, list, mine, fold, onToggle, row, count = true, children = null, note = null }) {
   const chosen = chosenIn(list, mine)
@@ -480,11 +480,9 @@ function Fold({ id, label, list, mine, fold, onToggle, row, count = true, childr
 
 // Eén bron: logo, naam, omschrijving, gratis (of de gratis aanrader van zijn blok) of abonnement, en
 // Volg / Volgend. Alles in inkt: het enige accent op dit scherm is de punt van het woordmerk.
-// "Volg alle drie" tot "Volg alle vijf": het voorstel is drie tot vijf bronnen.
 // Alvast gevolgd (gelijk aan de app): staat er ook een betaalde bron in Voor jou, dan zegt de regel dat
 // alleen de gratis bronnen aan staan.
 const alvastLine = (withPaid) => (withPaid ? 'De gratis bronnen volg je alvast. Uitzetten kan met één tik.' : 'Alvast gevolgd. Uitzetten kan met één tik.')
-const allWord = (n) => ['twee', 'drie', 'vier', 'vijf'][n - 2] || String(n)
 
 // `why`: de reden in het voorstel ("Past bij Tech"), vóór gratis of abonnement.
 function SourceRow({ s, on, pick = false, why = null, onPick }) {

@@ -559,7 +559,7 @@ struct WelcomeView: View {
             if !basis.isEmpty {
                 foldGroup(id: "basis", title: voorstel == nil ? "Basis" : "Voor jou", list: basis, picks: Set(start.map(\.id)), count: false, note: note) {
                     if start.count > 1 {
-                        Button(startOn ? "Alle \(FollowList.allWord(start.count)) gevolgd" : "Volg alle \(FollowList.allWord(start.count))") {
+                        Button(startOn ? "Alles gevolgd" : "Volg alles") {
                             let ids = start.map(\.id)
                             sourcesEdited = true
                             chosen = startOn ? mine.filter { !ids.contains($0) } : mine + ids.filter { !mine.contains($0) }
@@ -606,7 +606,7 @@ struct WelcomeView: View {
 
     // Een inklapbare categorie (1.1.1, gelijk aan Fold in src/views/Welcome.jsx): de kop is een knop met de
     // naam, het aantal gekozen bronnen en een pijl (dicht naar rechts, open omlaag); ingeklapt alleen de kop.
-    // `action`: een knop naast de kop (Volg alle drie in de Basis). `note`: één stille regel direct onder de kop.
+    // `action`: een knop naast de kop (Volg alles in de Basis). `note`: één stille regel direct onder de kop.
     @ViewBuilder private func foldGroup<Action: View>(id: String, title: String, list: [Source], picks: Set<String> = [], count: Bool = true, note: String? = nil, @ViewBuilder action: () -> Action) -> some View {
         let open = isOpen(id, list, in: mine)
         VStack(spacing: 0) {
@@ -636,7 +636,7 @@ struct WelcomeView: View {
                 .accessibilityHint(open ? "Klapt \(title) in" : "Toont de bronnen van \(title)")
                 action()
             }
-            .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de kop en "Volg alle drie" breken niet af
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de kop en "Volg alles" breken niet af
             Rectangle().fill(Theme.ink).frame(height: 2)
         }
         .padding(.top, Space.s5)
@@ -662,7 +662,7 @@ struct WelcomeView: View {
                 trailing()
             }
             .frame(minHeight: Space.tap)
-            .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de kop en "Volg alle drie" breken niet af
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de kop en "Volg alles" breken niet af
             Rectangle().fill(Theme.ink).frame(height: 2)
         }
         .padding(.top, Space.s5)
@@ -1011,7 +1011,7 @@ enum FollowList {
         let kranten = basis(all).filter { !ids.contains($0.id) }
         return Groups(start: start, basis: start, kranten: kranten, blocks: blocks(all, interests, exclude: ids), more: more(all, interests, exclude: ids + kranten.map(\.id)))
     }
-    // "Volg alle drie" tot "Volg alle vijf".
+    // Telwoord voor drie tot vijf bronnen (de knop zelf zegt sinds 6 november "Volg alles").
     // Wat er de eerste keer alvast aan staat: alleen de gratis bronnen van Voor jou (keuze r5-voorstel-betaald).
     static func alvast(_ voorstel: [EditionEngine.VoorstelBron]?) -> [String] { (voorstel ?? []).filter(\.on).map(\.id) }
     // De regel onder de kop van Voor jou (gelijk aan alvastLine in src/views/Welcome.jsx).
