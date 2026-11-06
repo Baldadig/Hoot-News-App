@@ -1726,6 +1726,8 @@ export const DESK_MIN_PUBS = 3
 // van één uitgever alleen een plek als er geen vers verhaal van minstens SPREAD_MIN uitgevers meer over is dat een plek mag.
 // De persoonlijke Editie houdt haar eigen bronnen: daar is één eigen stuk juist een keuze.
 export const SPREAD_MIN = 3
+// Een halve uitgever (weight telt vier punten per uitgever): wat een luchtig verhaal in de algemene Editie minder weegt.
+export const CURIO_TIE = 2
 // Een stuk zonder titel krijgt nooit een plek, en is nooit de kop van een verhaal (31 oktober: "NRC: undefined").
 export const titled = (i) => !!String(i?.title ?? '').trim()
 // Een Nederlandse plek (Redacteur 3b · ronde 3 · 4; één definitie voor bouw en meetlat, ook in VERSLAG-BOUW.md):
@@ -1834,7 +1836,11 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : items
     const intl = internationalNews(whole, desk, st)
     const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl })
-    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
+    // Ronde 4 · 3: in de algemene Editie gaat nieuws bij gelijke grootte voor een luchtig verhaal of curiosum (curioStory).
+    // Zo'n verhaal krijgt geen versheidsbonus en weegt een halve uitgever minder (CURIO_TIE): even groot nieuws gaat altijd
+    // voor, een luchtig verhaal met meer uitgevers kan nog steeds een plek krijgen.
+    const tie = general && curioStory(st, items) ? weight({ sourceCount: 0, ownCount: 0, latestAt: st.latestAt }, now) + CURIO_TIE : 0
+    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }

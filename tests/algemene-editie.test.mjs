@@ -429,3 +429,39 @@ test('de Nederlandse ondergrens telt met alle stukken van het verhaal, niet alle
   assert.ok(x && !dutch(x), 'met alle stukken is het verhaal buitenland')
   assert.ok(ed.slice(0, 5).filter(dutch).length >= 2, ed.map((e) => e.id).join())
 })
+
+// Ronde 4 · 3 (keuring ronde 3): bij gelijke grootte gaat een nieuwsverhaal in de algemene Editie voor een luchtig verhaal
+// of curiosum, ook als dat verser is. Een luchtig verhaal met duidelijk meer uitgevers kan nog steeds een plek krijgen.
+test('bij gelijke grootte gaat nieuws voor een luchtig verhaal (3b · ronde 4 · 3)', async () => {
+  const { curioStory, CURIO_TIE } = await import('../netlify/lib/stories.mjs')
+  assert.ok(CURIO_TIE > 0 && CURIO_TIE < 4, 'minder dan één uitgever')
+  const T = Date.parse('2026-11-06T05:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, h, url = '') => ({ id: `l${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(h), topics: [], url: url && `https://example.com${url}/${n}` })
+  const prof = profileOf({ followed: MAIN_IDS, sources: SOURCES })
+  const build = (lightPubs) => {
+    const stories = []
+    const pool = []
+    const story = (id, its, desk) => {
+      pool.push(...its)
+      const pubs = new Set(its.map((i) => i.source)).size
+      stories.push({ id, itemIds: its.map((i) => i.id), sourceCount: pubs, publisherCount: pubs, latestAt: its.map((i) => i.publishedAt).sort().at(-1), desk })
+    }
+    // Het nieuws is ouder (13 uur), het luchtige verhaal vers (1 uur); verder even groot.
+    story('nieuws', ['bbc', 'guardian', 'nyt', 'lemonde'].map((s) => art(s, 'Chilean parliament rejects pension reform in Santiago', 13)), 'buitenland')
+    story('luchtig', lightPubs.map((s) => art(s, 'Governor declares gold-covered ballroom a national monument', 1)), 'buitenland')
+    story('n0', ['nos', 'nrc', 'volkskrant'].map((s) => art(s, 'Kabinet presenteert stikstofwet in Den Haag', 1)), 'binnenland')
+    story('n1', ['ad', 'nu', 'rtl'].map((s) => art(s, 'Inflatie in Nederland stijgt naar 3,7 procent', 1)), 'binnenland')
+    return { stories, pool }
+  }
+  const run = (w, size) => selectForReader(w.stories, w.pool, { mainIds: MAIN_IDS, now: T, size, prof, general: true }).map((e) => e.id)
+  const even = build(['bbc', 'guardian', 'nyt', 'lemonde'])
+  assert.ok(curioStory(even.stories[1], even.pool.filter((i) => even.stories[1].itemIds.includes(i.id))))
+  const three = run(even, 3)
+  assert.ok(three.includes('nieuws') && !three.includes('luchtig'), three.join())
+  // Met meer plekken komt het luchtige verhaal er gewoon bij; met duidelijk meer uitgevers gaat het voor.
+  assert.ok(run(even, 10).includes('luchtig'))
+  const big = run(build(['bbc', 'guardian', 'nyt', 'lemonde', 'npr', 'dw']), 3)
+  assert.ok(big.includes('luchtig'), big.join())
+})
