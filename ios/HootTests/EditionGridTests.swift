@@ -35,4 +35,16 @@ final class EditionGridTests: XCTestCase {
         XCTAssertTrue(EditionPairs.paired(CGSize(width: 1376, height: 1032)))
         XCTAssertEqual(Layout.hang, 36)
     }
+
+    // iPad mini (744 × 1133): staand B; liggend zonder zijbalk (968 binnen de marges) A; liggend mét zijbalk
+    // (± 806) en een liggend venster in Stage Manager van 800 B, want dan worden zijkolom en paren te krap.
+    func testIPadMiniPairsOnlyWithRoom() {
+        let liggend = CGSize(width: 1133, height: 744)
+        XCTAssertFalse(EditionPairs.paired(CGSize(width: 744, height: 1133), room: 712))
+        XCTAssertTrue(EditionPairs.paired(liggend, room: 968))
+        XCTAssertFalse(EditionPairs.paired(CGSize(width: 838, height: 744), room: 806))
+        XCTAssertFalse(EditionPairs.paired(CGSize(width: 800, height: 600), room: 768))
+        // Grotere tekst: de grens groeit mee (XXXL ± 1,35 ×), dan blijft ook een brede kolom B.
+        XCTAssertFalse(EditionPairs.paired(liggend, room: 968, minimum: EditionPairs.pairMin * 1.35))
+    }
 }

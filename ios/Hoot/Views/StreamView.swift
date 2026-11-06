@@ -420,6 +420,7 @@ struct SavedView: View {
                         }
                     }
                     .scrollContentBackground(.hidden)
+                    .readableList()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -500,6 +501,7 @@ struct SearchView: View {
             }
             .task(id: scope) { extra = scope == .alle ? await store.searchPoolAll() : [] }
             .scrollContentBackground(.hidden)
+            .readableList()
             .background(Theme.paper)
             .overlay {
                 if q.isEmpty {

@@ -45,6 +45,29 @@ extension View {
     }
 }
 
+// Een lijst (Zoeken, Bewaard) op leesbreedte: op een iPad staat de lijst in de leeskolom, gecentreerd, met
+// de titel en de rijen op de lijn van de Stroom (kolomrand + s4); anders liepen kop en intro over de hele
+// breedte (± 90 tekens per regel op een staande iPad mini). Een kader om de lijst en niet contentMargins:
+// liggend schuift de zijbalk over de lijst, en dan telden die marges niet mee. Alleen als het venster ook
+// hoog is (verticaal regulier): een iPhone, ook liggend, blijft zoals hij is.
+struct ReadableList: ViewModifier {
+    @Environment(\.verticalSizeClass) private var verticalClass
+    @State private var width: CGFloat = 0
+    func body(content: Content) -> some View {
+        Group {
+            if verticalClass == .regular && width > Layout.readable {
+                content.contentMargins(.horizontal, Space.s4, for: .scrollContent).column()
+            } else {
+                content
+            }
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+    }
+}
+extension View {
+    func readableList() -> some View { modifier(ReadableList()) }
+}
+
 // Breed genoeg voor twee kolommen? (Opengevouwen Duo, iPad, iPhone Pro Max in landschap.)
 struct IsWide: EnvironmentKey { static let defaultValue = false }
 extension EnvironmentValues {
