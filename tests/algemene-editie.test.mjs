@@ -44,3 +44,32 @@ test('algemene Editie: dezelfde vangrails als een lezer zonder interesses', () =
   // De uitslag opent.
   assert.match(byId.get(ed[0].leadId).title, /Democrat|Democraten|Senaat|Congres/)
 })
+
+test('Nederlandse ondergrens: minstens twee Nederlandse plekken voor echt nieuws in de top 5 (3b · 3)', async () => {
+  const { dutchFloor, NL_TOP5_MIN } = await import('../netlify/lib/build.mjs')
+  const t = '2026-11-06T04:00:00Z'
+  const it = (id, source, title = 'Kabinet neemt besluit over belastingplan') => ({ id, source, kind: 'article', title, publishedAt: t })
+  const items = new Map()
+  const story = (id, sources, title) => {
+    const its = sources.map((s, k) => it(`${id}${k}`, s, title))
+    for (const i of its) items.set(i.id, i)
+    return { kind: 'story', id, leadId: its[0].id, members: its }
+  }
+  // Zes buitenlandse verhalen, dan twee Nederlandse, dan een Vlaams verhaal en een los Nederlands stuk.
+  const entries = [
+    ...['a', 'b', 'c', 'd', 'e', 'f'].map((x) => story(x, ['nyt', 'bbc'], 'Senate votes on budget')),
+    story('nl1', ['nos', 'volkskrant'], 'Kabinet valt over belastingplan'),
+    story('nl2', ['nrc', 'nos'], 'Tweede Kamer stemt over stikstofwet'),
+  ]
+  const itemsOf = (e) => e.members
+  const out = dutchFloor([...entries], { itemsOf, byId: items })
+  assert.equal(NL_TOP5_MIN, 2)
+  assert.deepEqual(out.map((e) => e.id), ['a', 'b', 'c', 'nl1', 'nl2', 'd', 'e', 'f'])
+  // Plek 01 blijft staan; staan er al twee, dan verandert er niets.
+  assert.deepEqual(dutchFloor([...out], { itemsOf, byId: items }).map((e) => e.id), out.map((e) => e.id))
+  // Een licht of los stuk telt niet als echt nieuws en schuift niet op.
+  const loose = { kind: 'item', id: 'nl3', members: [it('nl3x', 'nos')] }
+  items.set('nl3', loose.members[0])
+  const base = [...entries.slice(0, 6), loose]
+  assert.deepEqual(dutchFloor([...base], { itemsOf, byId: items }).map((e) => e.id), base.map((e) => e.id))
+})

@@ -6,6 +6,9 @@ import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mj
 import Anthropic from '@anthropic-ai/sdk'
 import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
+import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
+import { isOpinion } from '../../shared/article-signals.mjs'
+import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
@@ -580,6 +583,43 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   const entries = sel.map((e) => (e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }))
   const itemsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [e.id]).map((id) => byId.get(id)).filter(Boolean)
   openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(xs, mainIds, null, now, { role: 'front' }), all, now)[0] })
+  dutchFloor(entries, { itemsOf, byId, sources })
+  return entries
+}
+
+// De Nederlandse ondergrens (Redacteur 3b · 3, besluit van Alex): in de top 5 van de algemene Editie staan
+// minstens NL_TOP5_MIN Nederlandse plekken voor echt nieuws. Nederlands: de kop komt uit een Nederlandse bron
+// (rubriek nl of regio, niet Vlaams) en minstens de helft van de uitgevers is Nederlandstalig. Echt nieuws: een
+// verhaal van minstens twee uitgevers, niet licht, en de kop is geen opinie. Staan er te weinig, dan schuiven de
+// hoogste Nederlandse plekken van verder in de Editie op naar het eind van de top 5, en zakken de laagste
+// niet-Nederlandse plekken daar direct onder; plek 01 blijft staan. Nog geen normalisatie per taalgebied.
+export const NL_TOP5_MIN = 2
+export function dutchFloor(entries, { itemsOf, byId, sources = SOURCES, top = 5, min = NL_TOP5_MIN }) {
+  const src = new Map(sources.map((x) => [x.id, x]))
+  const nlSource = (id) => ['nl', 'regio'].includes(src.get(id)?.cat) && src.get(id)?.lang === 'nl' && !VL_HOME.has(id)
+  const dutch = (e) => {
+    const items = itemsOf(e)
+    const lead = byId.get(e.leadId || e.id)
+    if (!lead || !nlSource(lead.source)) return false
+    const pubs = [...new Set(items.map((i) => publisherOf(i.source)).filter(Boolean))]
+    const nlPubs = pubs.filter((p) => items.some((i) => publisherOf(i.source) === p && src.get(i.source)?.lang === 'nl'))
+    return nlPubs.length * 2 >= pubs.length
+  }
+  const news = (e) => {
+    const items = itemsOf(e)
+    const lead = byId.get(e.leadId || e.id)
+    return e.kind === 'story' && coverageOf(items).publisherCount >= 2 && !lightNews({}, items) && !!lead && !isOpinion(lead)
+  }
+  const head = entries.slice(0, top)
+  const need = min - head.filter(dutch).length
+  if (need <= 0) return entries
+  const up = entries.slice(top).filter((e) => dutch(e) && news(e)).slice(0, need)
+  const down = head.slice(1).filter((e) => !dutch(e)).slice(-up.length)
+  if (!up.length || down.length < up.length) return entries
+  // De top 5 zonder de laagste niet-Nederlandse plekken, dan de Nederlandse in hun eigen volgorde; wat zakt,
+  // staat direct daarna, dan de rest zoals het was.
+  const next = [...head.filter((e) => !down.includes(e)), ...up, ...down, ...entries.slice(top).filter((e) => !up.includes(e))]
+  entries.splice(0, entries.length, ...next)
   return entries
 }
 
