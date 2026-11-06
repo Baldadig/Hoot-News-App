@@ -594,7 +594,7 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   curiosaDown(entries, { itemsOf, storyOf: (e) => storyById.get(e.id) })
   const allItemsOf = (e) => (e.kind === 'story' ? storyItems.get(e.id) || itemsOf(e) : itemsOf(e))
   // Nieuwsbelang boven sensatie (ronde 6 · 2): een verhaal over een bekend persoon opent niet als er bovenaan een even
-  // groot verhaal over economie, politiek of grote gevolgen staat.
+  // groot verhaal over economie, politiek of grote gevolgen staat; een misdaad- of rechtszaak ook niet (ronde 7 · 2).
   newsBeforePeople(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources })
   openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(xs, mainIds, null, now, { role: 'front' }), all, now)[0] })
   dutchFloor(entries, { itemsOf: allItemsOf, byId, storyOf: (e) => storyById.get(e.id), sources })

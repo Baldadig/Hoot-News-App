@@ -1706,11 +1706,32 @@ export function weightyStory(story = {}, items = [], sources = SOURCES) {
   const heavy = items.filter((i) => i && keywordTopics(`${i.title || ''} ${i.summary || ''}`).some((t) => WEIGHTY.has(t)))
   return heavy.length * WEIGHTY_SHARE >= items.length
 }
+// Ronde 7 · 2 (keuring ronde 6, 3 november vroege avond: een binnenlandse misdaadzaak van 4 uitgevers opende vóór een
+// Amerikaanse aanval op een Iraans eiland en het einde van de militaire steun aan Israël): ook een misdaad- of rechtszaak
+// (crimeStory) opent niet vóór een verhaal over politiek, economie, geopolitiek of grote maatschappelijke gevolgen
+// (weightyStory) van gelijke of grotere omvang in de top 5. Een misdaad- of rechtszaak: minstens de helft van de stukken
+// gaat naar kop en intro over misdaad (keywordTopics), en het verhaal is zelf geen weightyStory (een politiek proces, een
+// aanslag op een politicus met politieke gevolgen blijft gewoon nieuws). Ook politiek buiten Nederland, de EU en de VS
+// (POLITICAL: een president, premier, regering, parlement of grondwettelijk hof in minstens een derde van de koppen) is geen
+// misdaadzaak: de schorsing van de hoogste rechter in Polen gaat over rechters en oproerpolitie, maar is een politieke
+// crisis. Voor een bekend persoon blijft drie kwart genoeg.
+export const CRIME_SHARE = 2 // de helft
+const POLITICAL = /\b(president\w*|premier\w*|prime minister|minister\w*|regering\w*|government\w*|kabinet\w*|parlement\w*|parliament\w*|congres\w*|congress\w*|senaat|senate|grondwet\w*|constitution\w*|rechtsstaat|rule of law|coalitie\w*|coalition|oppositie\w*|opposition|partij\w*|party|parties|verkiezing\w*|election\w*|staatsgreep|coup)\b/
+export function crimeStory(story = {}, items = [], sources = SOURCES) {
+  if (!items.length || weightyStory(story, items, sources)) return false
+  if (items.filter((i) => i && POLITICAL.test(norm(i.title || ''))).length * WEIGHTY_SHARE >= items.length) return false
+  const crime = items.filter((i) => i && keywordTopics(`${i.title || ''} ${i.summary || ''}`).includes('misdaad'))
+  return crime.length * CRIME_SHARE >= items.length
+}
 export function newsBeforePeople(entries, { itemsOf, storyOf = () => ({}), allItemsOf = itemsOf, top = 5, sources = SOURCES }) {
   const first = entries[0]
-  if (!first || first.kind !== 'story' || first.desk === 'bubbel' || !peopleStory(allItemsOf(first).filter(Boolean), sources)) return entries
+  if (!first || first.kind !== 'story' || first.desk === 'bubbel') return entries
+  const own = allItemsOf(first).filter(Boolean)
+  // Een bekend persoon wijkt al voor drie kwart van zijn omvang, een misdaadzaak voor gelijke of grotere omvang.
+  const ratio = peopleStory(own, sources) ? 3 / 4 : crimeStory(storyOf(first) || {}, own, sources) ? 1 : 0
+  if (!ratio) return entries
   const pubs = (e) => (e.kind === 'story' ? storyOf(e)?.publisherCount ?? coverageOf(allItemsOf(e).filter(Boolean)).publisherCount : 1)
-  const k = entries.slice(1, top).findIndex((e) => e.kind === 'story' && e.desk !== 'bubbel' && pubs(e) * 4 >= pubs(first) * 3 && itemsOf(e).some((i) => i && !isOpinion(i)) && weightyStory(storyOf(e) || {}, allItemsOf(e).filter(Boolean), sources))
+  const k = entries.slice(1, top).findIndex((e) => e.kind === 'story' && e.desk !== 'bubbel' && pubs(e) >= pubs(first) * ratio && itemsOf(e).some((i) => i && !isOpinion(i)) && weightyStory(storyOf(e) || {}, allItemsOf(e).filter(Boolean), sources))
   if (k >= 0) entries.unshift(...entries.splice(k + 1, 1))
   return entries
 }

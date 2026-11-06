@@ -642,3 +642,48 @@ test('nieuwsbelang boven sensatie: een verhaal over een bekend persoon opent nie
   assert.deepEqual(order([people, small, markets]), ['people', 'small', 'markets'])
   assert.deepEqual(order([small, people, markets]), ['small', 'people', 'markets'])
 })
+
+test('nieuwsbelang boven een misdaadzaak: een rechtszaak opent niet naast even groot geopolitiek nieuws (3b · ronde 7 · 2)', async () => {
+  const { newsBeforePeople, crimeStory, weightyStory } = await import('../netlify/lib/stories.mjs')
+  const T = Date.parse('2026-11-12T17:00:00Z')
+  let n = 0
+  const art = (source, title) => ({ id: `c${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: new Date(T - 36e5).toISOString(), url: `https://example.com/nieuws/${n}` })
+  const members = new Map()
+  const story = (id, its) => {
+    members.set(id, its)
+    return { kind: 'story', id, leadId: its[0].id, desk: 'buitenland' }
+  }
+  // Een binnenlandse strafzaak, vier uitgevers.
+  const crime = story('crime', [
+    art('nos', 'Echtpaar uit Dalfsen krijgt 14 jaar cel voor mishandeling pleegkinderen'),
+    art('nrc', 'Rechtbank veroordeelt pleegouders Dalfsen tot jaren cel'),
+    art('ad', 'Pleegouders Dalfsen veroordeeld voor mishandeling'),
+    art('nu', 'Celstraf voor pleegouders uit Dalfsen na jarenlange mishandeling'),
+  ])
+  // Geopolitiek van dezelfde omvang.
+  const strike = story('strike', [
+    art('nos', 'Rusland voert raketaanval uit op Moldavische grensstad'),
+    art('bbc', 'Russia strikes Moldovan border town in missile attack'),
+    art('guardian', 'Russian missiles hit Moldova as Kremlin escalates'),
+    art('volkskrant', 'Russische raketaanval op Moldavië, NAVO roept beraad bijeen'),
+  ])
+  const small = story('small', [art('rtl', 'Gemeente Zwolle opent nieuwe fietsenstalling'), art('nu', 'Zwolle heeft grootste fietsenstalling van Overijssel')])
+  // Een politieke crisis met rechters en oproerpolitie is geen misdaadzaak.
+  const crisis = story('crisis', [
+    art('bbc', 'Riot police deployed to Velor’s constitutional court after judge suspended'),
+    art('guardian', 'Velor president joins protest amid constitutional crisis at top court'),
+    art('nos', 'Politie bij hof in Velor na schorsing hoogste rechter, president keert terug'),
+    art('dw', 'Velor: protesters clash with police over sacked court chief'),
+  ])
+  const itemsOf = (e) => members.get(e.id)
+  const storyOf = (e) => ({ publisherCount: new Set(members.get(e.id).map((i) => i.source)).size })
+  assert.ok(crimeStory({}, itemsOf(crime)) && !weightyStory({}, itemsOf(crime)), 'een strafzaak')
+  assert.ok(weightyStory({}, itemsOf(strike)))
+  assert.ok(!crimeStory({}, itemsOf(crisis)), 'een politieke crisis is geen misdaadzaak')
+  const order = (es) => newsBeforePeople(es.map((e) => ({ ...e })), { itemsOf, storyOf }).map((e) => e.id)
+  assert.deepEqual(order([crime, small, strike]), ['strike', 'crime', 'small'])
+  assert.deepEqual(order([crisis, small, strike]), ['crisis', 'small', 'strike'])
+  // Is het nieuws kleiner dan de strafzaak, dan blijft de volgorde staan.
+  members.set('strike', members.get('strike').slice(0, 3))
+  assert.deepEqual(order([crime, small, strike]), ['crime', 'small', 'strike'])
+})
