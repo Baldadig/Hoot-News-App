@@ -1386,6 +1386,30 @@ export function openWithNews(entries, { itemsOf, pick }) {
   return entries
 }
 
+// Curiosa nooit in de top 3 (Redacteur 3b · 5, besluit van Alex; keuring 6 november: "veel uitgevers bij een
+// kuriositeit (Oval Office) mag geen top 3 opleveren", liefst plek 6–10). Een curiosum: een licht verhaal (lightNews:
+// cultuur, games, lifestyle, consumententech, ook als algemene uitgevers het groot vinden), of een verhaal waarvan
+// minstens een derde van de koppen een kuriositeit noemt: goud en verguldsel, een monument, de inrichting van een
+// paleis of werkkamer, een beroemdheid of komiek. Niet de goudprijs: alleen het losse woord telt.
+const CURIO_HEAD = /\b(oval office|goud|gouden|gold(?! (?:price|prices|reserves?|futures|standard|mines?|bars?|rally))|golden|gilded|vergulde?|monument|monumenten|monuments|balzaal|ballroom|beroemdhe\w*|celebrit\w*|komiek|comedian|showbizz)\b/
+export function curioStory(story = {}, items = []) {
+  if (!items.length) return false
+  if (lightNews(story, items)) return true
+  return items.filter((i) => CURIO_HEAD.test(norm(i?.title || ''))).length * 3 >= items.length
+}
+// Schuift een curiosum uit de top 3 naar plek 6 (of het eind, als de Editie korter is). `itemsOf(e)`: de stukken van
+// een plek, `storyOf(e)`: het verhaal (of {}). De bubbel doet niet mee. Wijzigt `entries`.
+export function curiosaDown(entries, { itemsOf, storyOf = () => ({}), top = 3, to = 5 }) {
+  const out = []
+  for (let k = Math.min(top, entries.length) - 1; k >= 0; k--) {
+    const e = entries[k]
+    if (e.desk === 'bubbel' || !curioStory(storyOf(e) || {}, itemsOf(e).filter(Boolean))) continue
+    out.unshift(...entries.splice(k, 1))
+  }
+  if (out.length) entries.splice(Math.min(to - out.length + 1, entries.length), 0, ...out)
+  return entries
+}
+
 // Een verhaal of bericht uit een voorkeursbron weegt zwaarder (zo'n twee bronnen dekking).
 export const FAVORITE_BONUS = 8
 export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false, previous = null, preferred = null } = {}) {

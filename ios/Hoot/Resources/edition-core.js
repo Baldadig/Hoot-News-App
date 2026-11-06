@@ -2558,6 +2558,22 @@ var HootCore = (() => {
     if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} };
     return entries;
   }
+  var CURIO_HEAD = /\b(oval office|goud|gouden|gold(?! (?:price|prices|reserves?|futures|standard|mines?|bars?|rally))|golden|gilded|vergulde?|monument|monumenten|monuments|balzaal|ballroom|beroemdhe\w*|celebrit\w*|komiek|comedian|showbizz)\b/;
+  function curioStory(story = {}, items = []) {
+    if (!items.length) return false;
+    if (lightNews(story, items)) return true;
+    return items.filter((i) => CURIO_HEAD.test(norm(i?.title || ""))).length * 3 >= items.length;
+  }
+  function curiosaDown(entries, { itemsOf, storyOf = () => ({}), top = 3, to = 5 }) {
+    const out = [];
+    for (let k = Math.min(top, entries.length) - 1; k >= 0; k--) {
+      const e = entries[k];
+      if (e.desk === "bubbel" || !curioStory(storyOf(e) || {}, itemsOf(e).filter(Boolean))) continue;
+      out.unshift(...entries.splice(k, 1));
+    }
+    if (out.length) entries.splice(Math.min(to - out.length + 1, entries.length), 0, ...out);
+    return entries;
+  }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   var DESK_MIN_PUBS = 3;
   function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false } = {}) {
@@ -3042,6 +3058,7 @@ var HootCore = (() => {
       });
       if (first > 0) entries.unshift(...entries.splice(first, 1));
     }
+    curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => e.kind === "story" ? storyById.get(e.id) : null });
     openWithNews(entries, { itemsOf: knownOf, pick: (xs, all) => leadPool(leadCandidates(xs, followed, preferred, now, { role: "front" }), all, now, (i) => followed.has(i.source))[0] });
     const poolById = new Map(pool.map((i) => [i.id, i]));
     const wideById = new Map([...(global.wide || []).map((w) => w?.item).filter(Boolean), ...wide ? [wide.item] : [], ...nearItem ? [nearItem] : []].map((i) => [i.id, i]));

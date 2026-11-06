@@ -4,7 +4,7 @@ import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mj
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
@@ -582,6 +582,8 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
   const entries = sel.map((e) => (e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }))
   const itemsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [e.id]).map((id) => byId.get(id)).filter(Boolean)
+  // Curiosa nooit in de top 3 (3b · 5), dan plek 01 met nieuws, dan de Nederlandse ondergrens (3b · 3).
+  curiosaDown(entries, { itemsOf, storyOf: (e) => storyById.get(e.id) })
   openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(xs, mainIds, null, now, { role: 'front' }), all, now)[0] })
   dutchFloor(entries, { itemsOf, byId, sources })
   return entries
