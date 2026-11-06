@@ -250,7 +250,7 @@ struct TafelCel: View {
     private var bronregel: some View {
         let bron = row.item.sourceName ?? store.source(row.item.source)?.name ?? row.item.source
         let delen = [bron, row.item.date.map { HootDate.ago($0) }, row.story?.sourceCount.flatMap { $0 > 1 ? "\($0) bronnen" : nil }]
-        return Text(delen.compactMap { $0 }.joined(separator: " · "))
+        return Text(delen.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")) // geen tijd: geen losse punt
             .font(.ui(.footnote))
             .foregroundStyle(Theme.ink3)
             .lineLimit(1)
