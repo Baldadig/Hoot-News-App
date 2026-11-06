@@ -111,7 +111,19 @@ export function specialistMatch(prof, items = [], desk = null) {
   memo.values.set(desk,match)
   return match
 }
-export const cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items,desk,story) && !specialistMatch(prof,items,desk)
+// Een lezer zonder voorkeuren (Redacteur 3b · ronde 2, keuring 6 november): wie nog niets koos, heeft ook niet gekozen
+// om buitenland weg te laten. Voor hem (en voor de algemene Editie, die een leeg profiel is) is groot buitenlands nieuws
+// een reden: een verhaal van minstens OPEN_WORLD_MIN onafhankelijke uitgevers valt niet onder het plafond voor
+// buitenland (INT_MAX) en is toegelaten. Kleiner buitenlands nieuws blijft begrensd. Geleerd lezen of een keuze maakt het
+// profiel niet meer leeg.
+export const OPEN_WORLD_MIN = 4
+export const emptyProfile = (prof) => !prof?.interests?.size && !Object.keys(prof?.family || {}).length
+export function publishersOf(story = {}, items = []) {
+  const observedSources = new Set(items.map(i => i?.source).filter(Boolean)).size
+  return story?.publisherCount ?? (observedSources >= (story?.sourceCount || Infinity) ? coverageOf(items).publisherCount : story?.sourceCount) ?? coverageOf(items).publisherCount
+}
+export const openWorld = (prof, items = [], story = null) => emptyProfile(prof) && !onlyGalleries(items) && publishersOf(story || {}, items) >= OPEN_WORLD_MIN
+export const cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items,desk,story) && !specialistMatch(prof,items,desk) && !openWorld(prof,items,story)
 // Lichte, samengestelde videolijstjes zijn Film, geen Tech doordat de uitgever Tech heet.
 // Een nieuwsreportage met videobewijs valt niet onder deze vormregel.
 export function lightVideoFiller(item, prof = null) {

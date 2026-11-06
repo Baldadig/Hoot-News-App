@@ -572,7 +572,9 @@ const compact = (o) => {
 // ---------- 7. Editie ----------
 // De algemene Editie (Redacteur 3b, besluit van Alex 6 november): de persoonlijke Editie met een leeg profiel
 // (de basisbronnen, geen interesses), met dezelfde vangrails: de voorpagina met een Nederlandse plek, hooguit
-// INT_MAX buitenland zonder reden, de kernrubrieken en de toelating (selectForReader). Daarna opent plek 01 met
+// INT_MAX buitenland zonder reden, de kernrubrieken en de toelating (selectForReader). Wie niets koos, koos ook niet
+// tegen buitenland: groot buitenlands nieuws (OPEN_WORLD_MIN uitgevers) is voor een leeg profiel een reden en valt
+// buiten INT_MAX (ronde 2, shared/edition-policy.mjs: openWorld). Daarna opent plek 01 met
 // nieuws (openWithNews). Geen waarom, geen trends: alleen de plekken, in de vorm van de vastgelegde Editie.
 // `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
 export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null } = {}) {

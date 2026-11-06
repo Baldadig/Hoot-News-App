@@ -1,5 +1,5 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf } from '../../shared/edition-policy.mjs'
+import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf, openWorld } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, verdictTitle } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -1689,7 +1689,8 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // naar het hele verhaal (`c.intl`), zoals composePersonal het telt: een Halloween-stuk van Heidi Klum met
   // NU, RTL en Telegraaf naast BBC en Variety is geen Nederlandse voorpagina.
   const homeNews = c => !!c && !foreign(c) && [c.desk,c.primary,c.home].some(d => d === 'binnenland' || d === 'regio')
-  const unchosen = foreign
+  // Buitenland zonder reden; groot buitenlands nieuws is voor een leeg profiel wel een reden (openWorld).
+  const unchosen = c => foreign(c) && !openWorld(prof, c.whole || c.items, c.st)
   const strictInt = !worldChosen(prof)
   const counted = new Set()
   const capped = c => strictInt && cappedWorld(c) && counted.size >= INT_MAX

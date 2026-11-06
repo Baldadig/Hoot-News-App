@@ -1553,7 +1553,14 @@ var HootCore = (() => {
     memo2.values.set(desk, match);
     return match;
   }
-  var cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items, desk, story) && !specialistMatch(prof, items, desk);
+  var OPEN_WORLD_MIN = 4;
+  var emptyProfile = (prof) => !prof?.interests?.size && !Object.keys(prof?.family || {}).length;
+  function publishersOf(story = {}, items = []) {
+    const observedSources = new Set(items.map((i) => i?.source).filter(Boolean)).size;
+    return story?.publisherCount ?? (observedSources >= (story?.sourceCount || Infinity) ? coverageOf(items).publisherCount : story?.sourceCount) ?? coverageOf(items).publisherCount;
+  }
+  var openWorld = (prof, items = [], story = null) => emptyProfile(prof) && !onlyGalleries(items) && publishersOf(story || {}, items) >= OPEN_WORLD_MIN;
+  var cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items, desk, story) && !specialistMatch(prof, items, desk) && !openWorld(prof, items, story);
   function lightVideoFiller(item, prof = null) {
     const title = item?.title || "";
     if (/\b(evidence of|video evidence|videobewijs|bewijs van|investigation into|onderzoek naar|war crimes|oorlogsmisdrijven)\b/i.test(title)) return false;
@@ -2692,7 +2699,7 @@ var HootCore = (() => {
       return true;
     };
     const homeNews = (c) => !!c && !foreign(c) && [c.desk, c.primary, c.home].some((d) => d === "binnenland" || d === "regio");
-    const unchosen = foreign;
+    const unchosen = (c) => foreign(c) && !openWorld(prof, c.whole || c.items, c.st);
     const strictInt = !worldChosen(prof);
     const counted = /* @__PURE__ */ new Set();
     const capped = (c) => strictInt && cappedWorld(c) && counted.size >= INT_MAX;
