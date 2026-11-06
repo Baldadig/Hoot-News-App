@@ -2567,11 +2567,19 @@ var HootCore = (() => {
     if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} };
     return entries;
   }
-  var CURIO_HEAD = /\b(oval office|goud|gouden|gold(?! (?:price|prices|reserves?|futures|standard|mines?|bars?|rally))|golden|gilded|vergulde?|monument|monumenten|monuments|balzaal|ballroom|beroemdhe\w*|celebrit\w*|komiek|comedian|showbizz)\b/;
+  var CURIO_HEAD = /\b(goud|gouden|gold(?! (?:price|prices|reserves?|futures|standard|mines?|bars?|rally))|golden|gilded|gold-covered|vergulde?|monument|monumenten|monuments|balzaal|ballroom|beroemdhe\w*|celebrit\w*|showbizz)\b/;
+  var CURIO_PATH = /\/(opmerkelijk|bizar|curiosa|weird\w*|offbeat|oddities|odd-news|strange|showbizz|celebrity|celebrities|entertainment|lifestyle)\//;
+  var CURIO_FORM = /^\W*(opmerkelijk|bizar|curieus|kijk|quiz)\b|\bquiz\b/;
+  var SERIOUS = /\b(rechtszaak|rechtbank|rechter|proces|jury|veroordeel\w*|schuldig\w*|celstraf\w*|gevangenis\w*|verkracht\w*|aanranding|misbruik\w*|moord\w*|doodgeschoten|doodgestoken|gedood|doden|dode|dood|omgekomen|dodelijk\w*|geweld\w*|aanslag\w*|schietpartij\w*|steekpartij\w*|mishandel\w*|trial|court|convicted|guilty|sentenced|prison|rape|raped|sexual assault|murder\w*|killed|killing|shooting|stabbing|violence|violent)\b/;
+  var curioPiece = (i) => {
+    const title = norm(i?.title || "");
+    return CURIO_HEAD.test(title) || CURIO_FORM.test(title) || CURIO_PATH.test(String(i?.url || "").split("?")[0].toLowerCase());
+  };
   function curioStory(story = {}, items = []) {
     if (!items.length) return false;
+    if (items.filter((i) => SERIOUS.test(norm(`${i?.title || ""}`))).length * 2 >= items.length) return false;
     if (lightNews(story, items)) return true;
-    return items.filter((i) => CURIO_HEAD.test(norm(i?.title || ""))).length * 3 >= items.length;
+    return items.filter(curioPiece).length * 3 >= items.length;
   }
   function curiosaDown(entries, { itemsOf, storyOf = () => ({}), top = 3, to = 5 }) {
     const out = [];
