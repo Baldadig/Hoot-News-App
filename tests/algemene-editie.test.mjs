@@ -556,3 +556,43 @@ test('bovenaan de kop van een Nederlandse bron als het verhaal die heeft, ook bi
   assert.equal(items.get(entries[1].leadId).source, 'bbc', 'geen opinie als kop')
   assert.equal(items.get(entries[3].leadId).source, 'dw', 'alleen de top')
 })
+
+test('nieuwsbelang boven sensatie: een verhaal over een bekend persoon opent niet naast even groot economisch nieuws (3b · ronde 6 · 2)', async () => {
+  const { newsBeforePeople, peopleStory, weightyStory, curioStory } = await import('../netlify/lib/stories.mjs')
+  const T = Date.parse('2026-11-06T17:00:00Z')
+  let n = 0
+  const art = (source, title, path = 'nieuws') => ({ id: `p${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: new Date(T - 36e5).toISOString(), url: `https://example.com/${path}/${n}` })
+  const members = new Map()
+  const story = (id, its, desk = 'buitenland') => {
+    members.set(id, its)
+    return { kind: 'story', id, leadId: its[0].id, desk }
+  }
+  // De broer van een bekende zangeres opgepakt in een strafzaak: ernstig (geen curiosum), maar sensatie.
+  const people = story('people', [
+    art('nos', 'Broer van zangeres Lina Vos opgepakt op verdenking van fraude'),
+    art('nu', 'Broer Lina Vos aangehouden door politie', 'koningshuis'),
+    art('rtl', 'Broer van Lina Vos opgepakt: verdenking van fraude', 'boulevard'),
+    art('telegraaf', 'Broer zangeres Lina Vos aangehouden', 'entertainment/sterren'),
+    art('bbc', 'Singer Lina Vos’s brother arrested on fraud charges'),
+    art('guardian', 'Brother of singer Lina Vos arrested in fraud case'),
+  ])
+  // Even groot: de beurzen gaan hard onderuit.
+  const markets = story('markets', [
+    art('nyt', 'Global Stocks Tumble as Bond Yields Surge'),
+    art('ft', 'Stocks slide worldwide as bond yields jump'),
+    art('volkskrant', 'Beurzen wereldwijd onderuit door oplopende rente'),
+    art('fd', 'Aandelen zakken hard weg na rentestijging'),
+    art('guardian', 'Global stock markets fall sharply'),
+  ])
+  const small = story('small', [art('bbc', 'Parliament debates pension law in Chile'), art('npr', 'Chile lawmakers debate pensions')])
+  const itemsOf = (e) => members.get(e.id)
+  const storyOf = (e) => ({ publisherCount: new Set(members.get(e.id).map((i) => i.source)).size })
+  assert.ok(peopleStory(itemsOf(people)) && !curioStory({}, itemsOf(people)), 'een bekend persoon, ernstig: geen curiosum')
+  assert.ok(weightyStory({}, itemsOf(markets)) && !peopleStory(itemsOf(markets)))
+  const order = (es) => newsBeforePeople(es.map((e) => ({ ...e })), { itemsOf, storyOf }).map((e) => e.id)
+  assert.deepEqual(order([people, small, markets]), ['markets', 'people', 'small'])
+  // Is het nieuws duidelijk kleiner, dan blijft de volgorde staan; een gewoon verhaal op 01 ook.
+  members.set('markets', members.get('markets').slice(0, 3))
+  assert.deepEqual(order([people, small, markets]), ['people', 'small', 'markets'])
+  assert.deepEqual(order([small, people, markets]), ['small', 'people', 'markets'])
+})

@@ -6,6 +6,7 @@ import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, ve
 
 import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight, VL_HOME, foreignHead } from './desks.mjs'
 import { detectLang } from '../../shared/lang.mjs'
+import { keywordTopics } from './topics.mjs'
 
 import { hash } from '../../shared/util.mjs'
 import { SOURCES } from './sources.mjs'
@@ -1659,6 +1660,41 @@ export function curiosaDown(entries, { itemsOf, storyOf = () => ({}), top = 3, t
     out.unshift(...entries.splice(k, 1))
   }
   if (out.length) entries.splice(Math.min(to - out.length + 1, entries.length), 0, ...out)
+  return entries
+}
+
+// Nieuwsbelang boven sensatie op plek 01 (Redacteur 3b · ronde 6 · 2, blinde keuze van Alex op 6 november vroege avond:
+// "Musk is belangrijker nieuws" dan de arrestatie van de vader van een bekende vrouw). Een verhaal over een bekend persoon
+// (peopleStory) opent niet als er bovenaan een verhaal van vergelijkbare omvang staat over economie, politiek of grote
+// maatschappelijke gevolgen (weightyStory). Geen namen: herkend aan de rubriek.
+// - Een bekend persoon: minstens een kwart van de stukken staat in een rubriek voor bekende personen (koningshuis,
+//   boulevard, showbizz, sterren, royalty, entertainment, celebrity, people) of komt van een cultuurtitel (rubriek cultuur
+//   van de bron). Zo'n verhaal is vaak ernstig (een strafzaak) en daarom geen curiosum (curioStory), maar wel sensatie.
+// - Nieuwsbelang: minstens een derde van de stukken gaat naar kop en intro over economie of geld, politiek of verkiezingen,
+//   geopolitiek of oorlog, klimaat, energie of migratie (keywordTopics), en het verhaal is zelf geen peopleStory, geen
+//   curiosum en geen sport.
+// - Vergelijkbare omvang: minstens drie kwart van de uitgevers van het verhaal op 01.
+// Dan schuift het eerste zo'n verhaal uit de top `top` naar plek 01; de rest schuift één plek op. Wijzigt `entries`.
+const PEOPLE_PATH = /\/(koningshuis|royalty|royals?|royal-family|boulevard|showbi\w*|sterren|celebrit\w*|entertainment|people|vips?)\//
+const WEIGHTY = new Set(['economie', 'bedrijven', 'werk', 'geld', 'energie', 'nederland', 'europa', 'verkiezingen', 'vs-politiek', 'geopolitiek', 'oekraine', 'middenoosten', 'klimaat', 'migratie'])
+export const PEOPLE_SHARE = 4 // een kwart
+export const WEIGHTY_SHARE = 3 // een derde
+export function peopleStory(items = [], sources = SOURCES) {
+  const cat = (id) => (sources === SOURCES ? SOURCE_BY_ID.get(id) : sources.find((x) => x.id === id))?.cat
+  const people = items.filter((i) => i && (PEOPLE_PATH.test(String(i.url || '').split('?')[0].toLowerCase()) || cat(i.source) === 'cultuur'))
+  return items.length > 0 && people.length * PEOPLE_SHARE >= items.length
+}
+export function weightyStory(story = {}, items = [], sources = SOURCES) {
+  if (!items.length || peopleStory(items, sources) || curioStory(story, items) || sportStory(story, items)) return false
+  const heavy = items.filter((i) => i && keywordTopics(`${i.title || ''} ${i.summary || ''}`).some((t) => WEIGHTY.has(t)))
+  return heavy.length * WEIGHTY_SHARE >= items.length
+}
+export function newsBeforePeople(entries, { itemsOf, storyOf = () => ({}), allItemsOf = itemsOf, top = 5, sources = SOURCES }) {
+  const first = entries[0]
+  if (!first || first.kind !== 'story' || first.desk === 'bubbel' || !peopleStory(allItemsOf(first).filter(Boolean), sources)) return entries
+  const pubs = (e) => (e.kind === 'story' ? storyOf(e)?.publisherCount ?? coverageOf(allItemsOf(e).filter(Boolean)).publisherCount : 1)
+  const k = entries.slice(1, top).findIndex((e) => e.kind === 'story' && e.desk !== 'bubbel' && pubs(e) * 4 >= pubs(first) * 3 && itemsOf(e).some((i) => i && !isOpinion(i)) && weightyStory(storyOf(e) || {}, allItemsOf(e).filter(Boolean), sources))
+  if (k >= 0) entries.unshift(...entries.splice(k + 1, 1))
   return entries
 }
 
