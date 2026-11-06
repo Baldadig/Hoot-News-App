@@ -63,7 +63,8 @@ test('breed raster: B (één leeskolom, nummers in de kantlijn) tot 48rem, A (pa
   assert.match(ed, /Verder in deze Editie/)
   // iOS: staand B, liggend A, nooit een lineLimit op een kop.
   const view = read('ios/Hoot/Views/EditionView.swift')
-  assert.match(view, /EditionPairs\.paired\(screen\) \? \.paren : \.kolom/)
+  // iPad (ipad-mini): A alleen met ruimte; een telefoon liggend (verticaal compact) houdt de oude regel (minimum 0).
+  assert.match(view, /EditionPairs\.paired\(screen, room: [^\n]*minimum: phone \? 0 : pairMin\) \? \.paren : \.kolom/)
   assert.match(view, /HangRow\(number:/)
   assert.match(view, /EditionPairsGrid\(rows:/)
 })
