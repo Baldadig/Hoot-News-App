@@ -2641,6 +2641,12 @@ var HootCore = (() => {
   var DESK_MIN_PUBS = 3;
   var SPREAD_MIN = 3;
   var titled = (i) => !!String(i?.title ?? "").trim();
+  var NL_TOP5_MIN = 2;
+  var SOURCE_BY_ID = new Map(SOURCES.map((x) => [x.id, x]));
+  function dutchSource(id, sources = SOURCES) {
+    const s = sources === SOURCES ? SOURCE_BY_ID.get(id) : sources.find((x) => x.id === id);
+    return !!s && ["nl", "regio"].includes(s.cat) && s.lang === "nl" && !VL_HOME.has(s.id);
+  }
   function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false, general = false } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
     const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
@@ -2787,6 +2793,28 @@ var HootCore = (() => {
       }
       return strong;
     };
+    let nlHave = 0;
+    const dutchC = (c, desk) => {
+      const lead = c.kind === "story" ? leadOf(c) : c.it;
+      return !!lead && dutchSource(lead.source) && !internationalNews(c.whole || c.items, desk ?? null, c.st || null);
+    };
+    const nlNews = (c) => c.kind === "story" && spread(c) >= 2 && !lightNews(c.st, c.items) && !isOpinion(leadOf(c));
+    const nlLike = (c) => c.nlLike ??= c.kind === "story" && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i)) && !lightNews(c.st, c.items) && !internationalNews(c.whole || c.items, (plan ? c.home : null) ?? null, c.st);
+    let nlAt = -1;
+    let nlNeed = 0;
+    let nlOff = false;
+    const nlReserve = () => {
+      if (nlOff) return 0;
+      if (nlAt !== entries.length) {
+        nlAt = entries.length;
+        nlNeed = 0;
+        for (const x of cands) {
+          if (nlNeed >= NL_TOP5_MIN - nlHave) break;
+          if (!x.parts.seen && !used.has(x) && nlLike(x) && admissible(x)) nlNeed++;
+        }
+      }
+      return nlNeed;
+    };
     const relead = (c) => {
       const mate = placedC.find((x) => x.kind === "story" && x.vote === c.vote);
       const e = mate && entries.find((x) => x.kind === "story" && x.id === mate.st.id);
@@ -2801,6 +2829,7 @@ var HootCore = (() => {
     const take = (c, desk, extra = {}, open = false) => {
       if (!admissible(c, open)) return false;
       if (general && spread(c) <= 1 && strongLeft()) return false;
+      if (general && plan && entries.length >= size - nlReserve() && !(nlNews(c) && dutchC(c, desk))) return false;
       const second = general && wideSecond(c, placedC, now);
       const lead = leadOf(c);
       if (second) relead(c);
@@ -2813,6 +2842,7 @@ var HootCore = (() => {
         prevLead = lead.source;
         entries.push({ kind: "story", id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...c.st.keys ? { keys: c.st.keys } : {}, ...base });
       } else entries.push({ kind: "item", id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base });
+      if (general && dutchC(c, desk) && (extra.front || nlNews(c))) nlHave++;
       return true;
     };
     const homeNews = (c) => !!c && !foreign(c) && [c.desk, c.primary, c.home].some((d) => d === "binnenland" || d === "regio");
@@ -2868,9 +2898,20 @@ var HootCore = (() => {
       if (entries.length >= size) break;
       if (c.kind === "story" && !c.parts.seen && spread(c) >= SPREAD_MIN && take(c, plan ? c.home : null, {}, true) && cappedWorld(c)) counted.add(c.id);
     }
-    for (const c of cands) {
-      if (entries.length >= size) break;
-      if (!c.parts.seen) takeCapped(c, plan ? c.home : null, {}, true);
+    const fill = () => {
+      for (const c of cands) {
+        if (entries.length >= size) break;
+        if (!c.parts.seen) takeCapped(c, plan ? c.home : null, {}, true);
+      }
+    };
+    fill();
+    if (general && entries.length < size) {
+      nlOff = true;
+      for (const c of cands) {
+        if (entries.length >= size) break;
+        if (c.kind === "story" && !c.parts.seen && spread(c) >= SPREAD_MIN && take(c, plan ? c.home : null, {}, true) && cappedWorld(c)) counted.add(c.id);
+      }
+      fill();
     }
     entries.sort((a, b) => b.w - a.w || textOrder(a.id, b.id));
     if (strictInt || prof.family.binnenland > 0) {

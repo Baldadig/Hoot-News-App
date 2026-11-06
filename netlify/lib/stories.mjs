@@ -1668,6 +1668,24 @@ export const DESK_MIN_PUBS = 3
 export const SPREAD_MIN = 3
 // Een stuk zonder titel krijgt nooit een plek, en is nooit de kop van een verhaal (31 oktober: "NRC: undefined").
 export const titled = (i) => !!String(i?.title ?? '').trim()
+// Een Nederlandse plek (Redacteur 3b · ronde 3 · 4; één definitie voor bouw en meetlat, ook in VERSLAG-BOUW.md):
+// 1. de kop (leadId, of het losse stuk zelf) komt uit een Nederlandse bron: rubriek nl of regio, taal nl, niet Vlaams
+//    (dutchSource);
+// 2. én het onderwerp is Nederlands of Nederlands-relevant: de plek is geen buitenlands nieuws volgens
+//    internationalNews(stukken van de plek, rubriek van de plek, verhaal) uit shared/edition-policy.mjs. Een buitenlandse
+//    rubriek (buitenland, vs, middenoosten, oekraine) is altijd buitenlands; anders beslissen de plaatsen in de stukken.
+// Het aandeel Nederlandstalige uitgevers telt niet: NRC over een Russische krant is geen Nederlandse plek, ook als vooral
+// Nederlandse kranten het brachten. `itemsOf(e)`: de stukken van de plek; `storyOf(e)`: het verhaal (of null).
+// De ondergrens: minstens NL_TOP5_MIN Nederlandse plekken in de top 5 van de algemene Editie (dutchFloor in build.mjs).
+export const NL_TOP5_MIN = 2
+const SOURCE_BY_ID = new Map(SOURCES.map((x) => [x.id, x]))
+export function dutchSource(id, sources = SOURCES) {
+  const s = sources === SOURCES ? SOURCE_BY_ID.get(id) : sources.find((x) => x.id === id)
+  return !!s && ['nl', 'regio'].includes(s.cat) && s.lang === 'nl' && !VL_HOME.has(s.id)
+}
+export function dutchPlace(e, { itemsOf, byId, storyOf = () => null, sources = SOURCES }) {
+  return dutchSource(byId.get(e.leadId || e.id)?.source, sources) && !internationalNews(itemsOf(e), e.desk ?? null, storyOf(e) || null)
+}
 export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false, general = false } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
@@ -1813,6 +1831,34 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     }
     return strong
   }
+  // Nederlandse plekken (dutchPlace) in de algemene Editie: is `c` met rubriek `desk` er een, en is het echt nieuws (zoals
+  // dutchFloor het telt: een verhaal van minstens twee uitgevers, niet licht, de kop geen opinie)?
+  let nlHave = 0
+  const dutchC = (c, desk) => {
+    const lead = c.kind === 'story' ? leadOf(c) : c.it
+    return !!lead && dutchSource(lead.source) && !internationalNews(c.whole || c.items, desk ?? null, c.st || null)
+  }
+  const nlNews = (c) => c.kind === 'story' && spread(c) >= 2 && !lightNews(c.st, c.items) && !isOpinion(leadOf(c))
+  // Kan `c` zo'n plek worden? Een snelle schatting zonder de kop te kiezen (een Nederlandse bron met een nieuwskop onder de
+  // stukken), één keer per kandidaat; take beslist daarna met de echte kop.
+  const nlLike = (c) => (c.nlLike ??= c.kind === 'story' && spread(c) >= 2 && c.items.some((i) => dutchSource(i.source) && titled(i) && !isOpinion(i)) && !lightNews(c.st, c.items) && !internationalNews(c.whole || c.items, (plan ? c.home : null) ?? null, c.st))
+  // Hoeveel plekken blijven vrij voor de Nederlandse ondergrens? Eén keer per stand van de Editie. `nlOff`: de laatste
+  // ronde, als er toch plekken leeg bleven.
+  let nlAt = -1
+  let nlNeed = 0
+  let nlOff = false
+  const nlReserve = () => {
+    if (nlOff) return 0
+    if (nlAt !== entries.length) {
+      nlAt = entries.length
+      nlNeed = 0
+      for (const x of cands) {
+        if (nlNeed >= NL_TOP5_MIN - nlHave) break
+        if (!x.parts.seen && !used.has(x) && nlLike(x) && admissible(x)) nlNeed++
+      }
+    }
+    return nlNeed
+  }
   const relead = (c) => {
     const mate = placedC.find((x) => x.kind === 'story' && x.vote === c.vote)
     const e = mate && entries.find((x) => x.kind === 'story' && x.id === mate.st.id)
@@ -1827,6 +1873,9 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const take = (c, desk, extra = {}, open = false) => {
     if (!admissible(c, open)) return false
     if (general && spread(c) <= 1 && strongLeft()) return false
+    // De Nederlandse ondergrens (ronde 3 · 4): zolang de Editie minder dan NL_TOP5_MIN Nederlandse plekken heeft en er nog
+    // Nederlands nieuws over is, blijven de laatste plekken daarvoor vrij (dutchFloor zet ze daarna in de top 5).
+    if (general && plan && entries.length >= size - nlReserve() && !(nlNews(c) && dutchC(c, desk))) return false
     // Een tweede plek voor één gebeurtenis: de eerste plek houdt dan een kop over de uitslag zelf, niet over het
     // tweede feit (anders staat hetzelfde feit twee keer bovenaan).
     const second = general && wideSecond(c, placedC, now)
@@ -1842,6 +1891,8 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
       prevLead = lead.source
       entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...(c.st.keys ? { keys: c.st.keys } : {}), ...base })
     } else entries.push({ kind: 'item', id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base })
+    // Telt mee: een Nederlandse plek die dutchFloor in de top 5 kan zetten (echt nieuws), of die al op de voorpagina staat.
+    if (general && dutchC(c, desk) && (extra.front || nlNews(c))) nlHave++
     return true
   }
   // Alle buitenlandse plekken tellen, ook een gekozen thema, voorpagina en breed nieuws.
@@ -1921,9 +1972,22 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     if (entries.length >= size) break
     if (c.kind === 'story' && !c.parts.seen && spread(c) >= SPREAD_MIN && take(c, plan ? c.home : null, {}, true) && cappedWorld(c)) counted.add(c.id)
   }
-  for (const c of cands) {
-    if (entries.length >= size) break
-    if (!c.parts.seen) takeCapped(c, plan ? c.home : null, {}, true)
+  const fill = () => {
+    for (const c of cands) {
+      if (entries.length >= size) break
+      if (!c.parts.seen) takeCapped(c, plan ? c.home : null, {}, true)
+    }
+  }
+  fill()
+  // Bleven er plekken leeg die voor de Nederlandse ondergrens vrij werden gehouden (de schatting nlLike gaf een kandidaat
+  // die met zijn echte kop toch niet Nederlands is), dan gewoon aanvullen.
+  if (general && entries.length < size) {
+    nlOff = true
+    for (const c of cands) {
+      if (entries.length >= size) break
+      if (c.kind === 'story' && !c.parts.seen && spread(c) >= SPREAD_MIN && take(c, plan ? c.home : null, {}, true) && cappedWorld(c)) counted.add(c.id)
+    }
+    fill()
   }
   entries.sort((a, b) => b.w - a.w || textOrder(a.id, b.id))
   // Zonder Wereld komt buitenland zonder reden buiten de voorpagina achteraan, en wie Binnenland koos,

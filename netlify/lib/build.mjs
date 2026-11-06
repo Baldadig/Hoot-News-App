@@ -4,7 +4,7 @@ import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mj
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
@@ -587,28 +587,19 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   // Curiosa nooit in de top 3 (3b · 5), dan plek 01 met nieuws, dan de Nederlandse ondergrens (3b · 3).
   curiosaDown(entries, { itemsOf, storyOf: (e) => storyById.get(e.id) })
   openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(xs, mainIds, null, now, { role: 'front' }), all, now)[0] })
-  dutchFloor(entries, { itemsOf, byId, sources })
+  dutchFloor(entries, { itemsOf, byId, storyOf: (e) => storyById.get(e.id), sources })
   return entries
 }
 
 // De Nederlandse ondergrens (Redacteur 3b · 3, besluit van Alex): in de top 5 van de algemene Editie staan
-// minstens NL_TOP5_MIN Nederlandse plekken voor echt nieuws. Nederlands: de kop komt uit een Nederlandse bron
-// (rubriek nl of regio, niet Vlaams) en minstens de helft van de uitgevers is Nederlandstalig. Echt nieuws: een
-// verhaal van minstens twee uitgevers, niet licht, en de kop is geen opinie. Staan er te weinig, dan schuiven de
-// hoogste Nederlandse plekken van verder in de Editie op naar het eind van de top 5, en zakken de laagste
-// niet-Nederlandse plekken daar direct onder; plek 01 blijft staan. Nog geen normalisatie per taalgebied.
-export const NL_TOP5_MIN = 2
-export function dutchFloor(entries, { itemsOf, byId, sources = SOURCES, top = 5, min = NL_TOP5_MIN }) {
-  const src = new Map(sources.map((x) => [x.id, x]))
-  const nlSource = (id) => ['nl', 'regio'].includes(src.get(id)?.cat) && src.get(id)?.lang === 'nl' && !VL_HOME.has(id)
-  const dutch = (e) => {
-    const items = itemsOf(e)
-    const lead = byId.get(e.leadId || e.id)
-    if (!lead || !nlSource(lead.source)) return false
-    const pubs = [...new Set(items.map((i) => publisherOf(i.source)).filter(Boolean))]
-    const nlPubs = pubs.filter((p) => items.some((i) => publisherOf(i.source) === p && src.get(i.source)?.lang === 'nl'))
-    return nlPubs.length * 2 >= pubs.length
-  }
+// minstens NL_TOP5_MIN Nederlandse plekken voor echt nieuws (dutchPlace). Echt nieuws: een verhaal van minstens twee
+// uitgevers, niet licht, en de kop is geen opinie. Staan er te weinig, dan schuiven de hoogste Nederlandse plekken van
+// verder in de Editie op naar het eind van de top 5, en zakken de laagste niet-Nederlandse plekken daar direct onder;
+// plek 01 blijft staan. Nog geen normalisatie per taalgebied.
+// Wat een Nederlandse plek is, staat bij dutchPlace (netlify/lib/stories.mjs): één definitie voor bouw en meetlat.
+export { NL_TOP5_MIN, dutchPlace }
+export function dutchFloor(entries, { itemsOf, byId, storyOf = () => null, sources = SOURCES, top = 5, min = NL_TOP5_MIN }) {
+  const dutch = (e) => dutchPlace(e, { itemsOf, byId, storyOf, sources })
   const news = (e) => {
     const items = itemsOf(e)
     const lead = byId.get(e.leadId || e.id)

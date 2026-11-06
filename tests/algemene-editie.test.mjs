@@ -74,6 +74,56 @@ test('Nederlandse ondergrens: minstens twee Nederlandse plekken voor echt nieuws
   assert.deepEqual(dutchFloor([...base], { itemsOf, byId: items }).map((e) => e.id), base.map((e) => e.id))
 })
 
+// Ronde 3 · 4: één definitie van een Nederlandse plek voor bouw en meetlat (dutchPlace): een Nederlandse bron als kop
+// én een Nederlands of Nederlands-relevant onderwerp (geen buitenlands nieuws volgens internationalNews).
+test('een Nederlandse plek: Nederlandse bron én Nederlands onderwerp (3b · ronde 3 · 4)', async () => {
+  const { dutchPlace } = await import('../netlify/lib/build.mjs')
+  const t = '2026-11-06T04:00:00Z'
+  const items = new Map()
+  const place = (id, sources, title, desk = null) => {
+    const its = sources.map((s, k) => ({ id: `${id}${k}`, source: s, kind: 'article', title, summary: `${title}.`, publishedAt: t }))
+    for (const i of its) items.set(i.id, i)
+    return { kind: 'story', id, leadId: its[0].id, desk, members: its }
+  }
+  const is = (e) => dutchPlace(e, { itemsOf: (x) => x.members, byId: items })
+  assert.ok(is(place('a', ['nos', 'nrc'], 'Tweede Kamer stemt over stikstofwet in Den Haag', 'binnenland')))
+  assert.ok(is(place('b', ['volkskrant', 'trouw'], 'Kabinet en provincies eens over woningbouw')), 'zonder rubriek: de plaatsen beslissen')
+  // Een Nederlandse bron over buitenland is geen Nederlandse plek, ook als vooral Nederlandse kranten het brachten.
+  assert.ok(!is(place('c', ['nrc', 'volkskrant', 'nos'], 'Russische krant in Moskou stopt onder druk van het Kremlin', 'buitenland')))
+  assert.ok(!is(place('d', ['nos', 'nrc'], 'Raketten voor Kyiv goedgekeurd door Washington', 'oekraine')))
+  // Een Nederlands onderwerp met een buitenlandse of Vlaamse kop is ook geen Nederlandse plek.
+  assert.ok(!is(place('e', ['bbc', 'nos'], 'Dutch parliament votes on nitrogen law in The Hague', 'binnenland')))
+  assert.ok(!is(place('f', ['vrt', 'nos'], 'Tweede Kamer stemt over stikstofwet in Den Haag', 'binnenland')))
+})
+
+test('de Nederlandse ondergrens houdt plek vrij voor Nederlands nieuws als de Editie anders vol buitenland staat (3b · ronde 3 · 4)', async () => {
+  const { dutchPlace, NL_TOP5_MIN } = await import('../netlify/lib/build.mjs')
+  const T = Date.parse('2026-11-06T05:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, h = 1, topics = []) => ({ id: `u${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(h), topics })
+  const stories = []
+  const pool = []
+  const story = (id, sources, title, desk, topics, h = 1) => {
+    const its = sources.map((s) => art(s, title, h, topics))
+    pool.push(...its)
+    stories.push({ id, itemIds: its.map((i) => i.id), sourceCount: its.length, publisherCount: its.length, latestAt: its[0].publishedAt, desk })
+  }
+  // Twaalf zware buitenlandse verhalen (ook met Nederlandse koppen), één groot Nederlands verhaal en één klein.
+  const places = ['Lima', 'Quito', 'Bogota', 'Caracas', 'Santiago', 'Montevideo', 'Asuncion', 'La Paz', 'Brasilia', 'Havana', 'Managua', 'Panama']
+  places.forEach((p, k) => story(`w${k}`, ['nos', 'nrc', 'bbc', 'nyt', 'guardian', 'lemonde'], `Regering in ${p} valt na massaal protest`, 'buitenland', ['wereld'], 1 + k / 10))
+  story('n0', ['nos', 'volkskrant', 'ad'], 'Kabinet presenteert stikstofwet in Den Haag', 'binnenland', ['nederland'])
+  story('n1', ['nu', 'trouw'], 'Gemeente Zwolle sluit zwembad na lekkage', 'binnenland', ['nederland'], 3)
+  const ed = generalEdition({ stories, pool, now: T })
+  const byId = new Map(pool.map((i) => [i.id, i]))
+  const sById = new Map(stories.map((s) => [s.id, s]))
+  const itemsOf = (e) => (e.kind === 'story' ? sById.get(e.id).itemIds : [e.id]).map((id) => byId.get(id))
+  const top5 = ed.slice(0, 5).filter((e) => dutchPlace(e, { itemsOf, byId, storyOf: (e) => sById.get(e.id) }))
+  assert.equal(top5.length, NL_TOP5_MIN, ed.map((e) => e.id).join())
+  assert.ok(ed.some((e) => e.id === 'n1'), 'het kleine Nederlandse verhaal krijgt een plek boven een buitenlands verhaal')
+  assert.equal(ed.length, 10)
+})
+
 test('rubriekplekken: een voorkeur met een minimumgewicht (3b · 4)', async () => {
   const { DESK_MIN_PUBS } = await import('../netlify/lib/stories.mjs')
   const { KERN, KERN_MIN } = await import('../shared/editor.mjs')
