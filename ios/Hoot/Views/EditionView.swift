@@ -207,6 +207,21 @@ struct EditionView: View {
     @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
     @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
     @State private var leadHeight: CGFloat = 0
+    // Boven de vouw (Vouw.swift): de bovenkant van 01 in de inhoud en de maat van het zichtbare deel.
+    @State private var leadTop: CGFloat = 0
+    @State private var vouwMaat = VouwMaat()
+    private static let inhoud = "editie-inhoud"
+    struct VouwMaat: Equatable { var hoogte: CGFloat = 0; var boven: CGFloat = 0; var onder: CGFloat = 0; var venster: CGFloat = 0 }
+    private var vouwRuimte: VouwRuimte? {
+        guard !wide, vouwMaat.hoogte > 0, leadTop > 0, let profiel = Vouw.profiel(vensterHoogte: vouwMaat.venster, typeSize: typeSize) else { return nil }
+        // De maat van de ScrollView ligt al binnen de veilige zone (statusbalk boven, tabbalk onder): de inhoud
+        // begint op 0 en de vouw ligt op zijn hoogte (gemeten op Hoot Pro Max: 956 = 62 + 811 + 83).
+        let ruimte = vouwMaat.hoogte - leadTop
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["HOOT_VOUW_LOG"] != nil { print("vouw", vouwMaat, "leadTop", leadTop, "ruimte", ruimte, profiel) }
+        #endif
+        return ruimte > 200 ? VouwRuimte(profiel: profiel, hoogte: ruimte) : nil
+    }
     @State private var sideHeight: CGFloat = 0
 
     // A: de breedte van één kolom van de paren. Buiten je bubbel en het einde staan daarop, links, zodat
@@ -413,6 +428,8 @@ struct EditionView: View {
                             }
                         case .lijst:
                             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                                .environment(\.vouw, vouwRuimte) // 01 boven de vouw (Vouw.swift)
+                                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).minY } action: { leadTop = $0 }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
@@ -492,6 +509,7 @@ struct EditionView: View {
                 }
                 .loadLines(lines, loading: loaderShown && !tien.active, ok: !store.editionRows.isEmpty, landing: true)
                 .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
+                .coordinateSpace(.named(Self.inhoud)) // de inhoud zelf: schuift niet mee met scrollen
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
                 .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
@@ -500,6 +518,8 @@ struct EditionView: View {
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
             .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }
+            // De vouw: wat er zonder scrollen te zien is, tussen de kopregel en de tabbalk (Vouw.swift).
+            .onGeometryChange(for: VouwMaat.self) { VouwMaat(hoogte: $0.size.height, boven: $0.safeAreaInsets.top, onder: $0.safeAreaInsets.bottom, venster: $0.frame(in: .global).maxY + $0.safeAreaInsets.bottom) } action: { vouwMaat = $0 }
             // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
             .onScrollGeometryChange(for: Bool.self) { g in
                 let room = g.contentSize.height - g.containerSize.height
