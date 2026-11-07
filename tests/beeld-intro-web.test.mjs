@@ -35,7 +35,7 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
   assert.match(css, /\.fitem__sum \{\n  --lines: 3;/)
   assert.match(css, /\.srcitem__sum \{\n  --lines: 3;/)
   // Geleende intro's dragen hun bron, ook in de Editie (cardIntro geeft de bron mee: eigen geleende of reserve).
-  assert.match(src('src/views/Edition.jsx'), /const \{ text: summary, via \} = cardIntro\(item, fit\)/)
+  assert.match(src('src/views/Edition.jsx'), /const gewoon = cardIntro\(item, maat\)/)
   assert.match(src('src/views/Edition.jsx'), /— via \{via\}/)
   // Ook in het vergelijkpaneel en de Selectie-kaart, met de maat-aftrek; en in de app (DigestView).
   for (const f of ['src/views/Story.jsx', 'src/views/Vak.jsx']) {
