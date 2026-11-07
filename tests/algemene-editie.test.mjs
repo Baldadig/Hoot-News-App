@@ -745,3 +745,19 @@ test('actualiteit: koppen van na de vorige Editie, terug alleen met een ontwikke
   const order = heldDown(['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => ({ id, held: id === 'a' }))).map((x) => x.id)
   assert.deepEqual(order, ['b', 'c', 'd', 'e', 'f', 'a', 'g'])
 })
+
+test('rekentijd: met een leeg profiel (de algemene Editie) leest personalParts kop en intro niet voor onderwerpen (3b · ronde 8 · 2)', async () => {
+  const { personalParts } = await import('../shared/editor.mjs')
+  let reads = 0
+  // Een vers stuk per aanroep (shownTopics onthoudt per stuk); `reads` telt hoe vaak de intro gelezen wordt.
+  const item = () => ({ id: 'e1', kind: 'article', source: 'nos', title: 'Gasprijs stijgt fors, energierekening omhoog', topics: ['energie'], publishedAt: '2026-11-12T06:00:00Z', url: 'https://example.com/e1', get summary() { reads++; return 'Huishoudens betalen volgend jaar meer voor gas.' } })
+  const empty = personalParts([item()], profileOf({ followed: MAIN_IDS, sources: SOURCES }))
+  const emptyReads = reads
+  reads = 0
+  // Met een gekozen interesse leest hij ze wel, en dan is de uitkomst zoals altijd: het onderwerp staat in kop en intro.
+  const econ = personalParts([item()], profileOf({ interests: ['economie'], followed: MAIN_IDS, sources: SOURCES }))
+  assert.equal(empty.interest, undefined)
+  assert.equal(econ.interest?.t, 'energie')
+  assert.notEqual(econ.interest?.shown, false)
+  assert.ok(emptyReads < reads, `leeg profiel ${emptyReads} keer, met interesse ${reads} keer`)
+})

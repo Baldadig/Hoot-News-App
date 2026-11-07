@@ -1355,11 +1355,12 @@ var HootCore = (() => {
     const abroad = geo === "int" && !VL_HOME.has(item.source);
     const world = (prof.family.wereld || 0) >= OUTSIDE_FAMILY;
     const notChosenPol = (t) => !world && FAMILY_OF[t] === "politiek" && prof.topicP[t] > 0 && prof.origin?.[t] === "geërfd" && (US_TOPICS.has(t) || abroad && (t !== "europa" || isNonEuropean(item)));
-    const headTopics = politics ? keywordTopics(item.title || "") : [];
-    const politicsWhy = (t) => FAMILY_OF[t] === "politiek" || FAMILY_OF[t] === "wereld" || FAMILY_OF[t] === "economie" && (FAMILY_OF_CAT[prof.catOf?.get(item.source)] === "economie" || headTopics.includes(t));
+    let headTopics = null;
+    const politicsWhy = (t) => FAMILY_OF[t] === "politiek" || FAMILY_OF[t] === "wereld" || FAMILY_OF[t] === "economie" && (FAMILY_OF_CAT[prof.catOf?.get(item.source)] === "economie" || (headTopics ??= politics ? keywordTopics(item.title || "") : []).includes(t));
     const notUs = ts.includes("vs-politiek") && !desksOf(item).has("vs");
-    const vis = shownTopics(item);
-    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === "desk" || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) && !(politics && !world && !politicsWhy(t)) }));
+    let vis;
+    const shown2 = (t) => (vis === void 0 ? vis = shownTopics(item) : vis) === null || vis.includes(t);
+    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: shown2(t) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === "desk" || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) && !(politics && !world && !politicsWhy(t)) }));
     if (area && !politics && prof.family[area] > 0 && !out.some((h) => h.f === area && h.v > 0)) out.push({ t: `gebied:${area}`, f: area, v: Math.min(prof.family[area], W_INHERITED), s: item.source, seen: true });
     const fb = prof.family.binnenland || 0;
     if (fb > 0 && geo === "nl" && !sport) out.push({ t: GEO_NL, f: "binnenland", v: Math.min(fb, W_INHERITED), s: item.source, seen: true });
