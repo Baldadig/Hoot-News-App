@@ -47,7 +47,8 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
 
 test('iOS: een intro wordt gemeten en nooit afgekapt (geen lineLimit op een intro, IntroText overal)', () => {
   const components = src('ios/Hoot/Views/Components.swift')
-  assert.equal((components.match(/IntroText\(text: intro,/g) || []).length, 5) // LeadCard en ItemRow, elk met de gewone en de kaart-A+-vorm, plus 01 boven de vouw (vouwTekst)
+  assert.equal((components.match(/IntroText\(text: intro,/g) || []).length, 3) // LeadCard in de gewone en de kaart-A+-vorm, plus 01 boven de vouw (vouwTekst)
+  assert.equal((components.match(/IntroText\(text: intro\.text,/g) || []).length, 2) // ItemRow, gewone en kaart-A+-vorm: met de reserve-intro (Item.cardIntro)
   assert.doesNotMatch(components, /introWithSource\(intro\)\)\.font/)
   assert.doesNotMatch(src('ios/Hoot/Views/DigestView.swift'), /introWithSource\(intro\)\)\.font/)
   assert.match(src('ios/Hoot/Views/IntroText.swift'), /ViewThatFits\(in: \.vertical\)/)
