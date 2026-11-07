@@ -4,6 +4,15 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Elke plek in de Editie verzorgd** (web en app):
+  - **Zijkolom:** elke plek heeft een beeld.
+  - **Geen beeld:** een plek zonder eigen beeld krijgt het beeld van een andere bron over hetzelfde artikel, en anders een eigen placeholderbeeld.
+  - **The Atlantic en The Verge:** hun korte samenvatting wordt de intro.
+  - **Reclame en blogteksten:** zinnen als "Welkom in het blog" en "Volg alle ontwikkelingen in onze liveblog" gelden niet als intro.
+  - **Intro lenen:** een intro van een andere bron staat er alleen als hele zin en alleen als hij over hetzelfde feit gaat als de kop.
+  - **Geen gaten:** een kaart zonder intro laat geen gat meer.
+  - **Het nieuws:** de keuze en volgorde van de plekken veranderen niet.
+
 - **Editie op brede schermen** (web en iPad liggend):
   - **Buiten je bubbel:** staat als eigen katern naast de laatste plek, met een eigen lijn, kop en ondertitel. Staat de laatste rij al vol, dan krijgt het katern een eigen rij.
   - **De Editie in één minuut en het slotblok:** lopen over de volle breedte.
