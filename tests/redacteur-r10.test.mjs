@@ -138,3 +138,47 @@ test('B: geen Nederlandse kop als er alleen een verdwaald stuk of een kop van v�
   dutchHeads(entries, { itemsOf, mainIds: MAIN_IDS, now: T, since: T - 6.5 * 36e5 })
   assert.equal(itemsOf(entries[6]).find((i) => i.id === entries[6].leadId).source, 'aljazeera', 'het verdwaalde stuk en de NOS/ND-koppen van vóór de vorige Editie niet')
 })
+
+// B · 10b (keuring ronde 10: onder de top werd een kop over de politieke uitdaging van de paus een Nederlandse kop over een
+// peiling of over een herinnering aan een tulpenfestival, en een kop over een ruzie tussen twee coureurs een
+// seizoensvooruitblik). Onder de voorpagina moet de Nederlandse kop over hetzelfde feit gaan als de huidige kop zelf; een
+// zijverhaal uit dezelfde bundel niet. Verzonnen namen, zodat geen echte gebeurtenis meetelt.
+function patriarch({ sameFact = false } = {}) {
+  const its = [
+    art('atlantic', 'The Patriarch Confronts One of His Toughest Political Challenges', 1),
+    art('nyt', 'Patriarch Osric Vael Treads Carefully on Tour of Marnesse Amid Unrest', 6),
+    art('guardian', 'Patriarch Osric Vael urges calm in Marnesse as protests grow', 7),
+    art('bbc', 'Osric Vael arrives in Marnesse on politically charged visit', 9),
+    art('dw', 'Patriarch Osric Vael meets Marnesse opposition leaders', 8),
+    // Zijverhalen in het Nederlands: een peiling en een herinnering. Hetzelfde onderwerp (de patriarch), een ander feit.
+    art('telegraaf', 'Patriarch Osric Vael onder gelovigen in Velor veel populairder dan president Kreisler', 2),
+    art('nd', 'Patriarch Osric Vael over zijn wortels: bloemencorso was onderdeel van mijn leven', 3),
+  ]
+  its[0].summary = 'Osric Vael’s tour of Marnesse forces him to choose between the government and the protesters.'
+  if (sameFact) its.push(art('trouw', 'Patriarch Osric Vael roept in Marnesse op tot kalmte na protesten', 0.5))
+  return its
+}
+function patriarchEdition(members, leadSource = 'atlantic') {
+  const filler = (k) => ({ id: `p${k}`, its: [art('nos', `Gemeente opent fietsbrug ${k} over de Vecht`, 1), art('nu', `Nieuwe fietsbrug ${k} over de Vecht geopend`, 1)] })
+  const stories = [...[0, 1, 2, 3, 4, 5].map(filler), { id: 'vael', its: members }]
+  const byStory = new Map(stories.map((s) => [s.id, s.its]))
+  const entries = stories.map((s) => ({ kind: 'story', id: s.id, leadId: (s.id === 'vael' ? s.its.find((i) => i.source === leadSource) : s.its[0]).id, desk: s.id === 'vael' ? 'buitenland' : 'binnenland' }))
+  return { entries, itemsOf: (e) => byStory.get(e.id) }
+}
+
+test('B · 10b: onder de top geen Nederlandse kop over een ander feit uit dezelfde bundel (een peiling, een herinnering)', () => {
+  // De beschouwende kop zonder naam (zoals bij de paus) en een kop met naam en plaats: allebei blijven ze staan.
+  for (const leadSource of ['atlantic', 'guardian']) for (const since of [0, T - 6.5 * 36e5]) {
+    const { entries, itemsOf } = patriarchEdition(patriarch(), leadSource)
+    dutchHeads(entries, { itemsOf, mainIds: MAIN_IDS, now: T, since })
+    const lead = itemsOf(entries[6]).find((i) => i.id === entries[6].leadId)
+    assert.equal(lead.source, leadSource, `de Engelse kop blijft staan, niet ${lead.source}: ${lead.title}`)
+  }
+})
+
+test('B · 10b: onder de top wel de Nederlandse kop over hetzelfde feit als de huidige kop, ook naast zijverhalen', () => {
+  const { entries, itemsOf } = patriarchEdition(patriarch({ sameFact: true }), 'guardian')
+  dutchHeads(entries, { itemsOf, mainIds: MAIN_IDS, now: T, since: 0 })
+  const lead = itemsOf(entries[6]).find((i) => i.id === entries[6].leadId)
+  assert.equal(lead.source, 'trouw', `hetzelfde feit in het Nederlands, niet ${lead.source}: ${lead.title}`)
+})

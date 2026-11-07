@@ -543,11 +543,11 @@ test('bovenaan de kop van een Nederlandse bron als het verhaal die heeft, ook bi
     art('guardian', 'Chileans vote on pension reform', 2),
     art('nrc', 'Opinie: Chili kiest voor zijn ouderen', 1, { type: 'opinie' }),
   ], 'bbc')
-  // Plek 4 hoort niet bij de voorpagina, maar sinds ronde 10 · B krijgt ook die de Nederlandse kop over hetzelfde feit.
+  // Plek 4 hoort niet bij de voorpagina, maar sinds ronde 10 · B krijgt ook die de Nederlandse kop over hetzelfde feit als de
+  // huidige kop (ronde 10b: dezelfde naam en hetzelfde getal in beide koppen, ook met maar twee stukken).
   const quake = story('quake', [
     art('dw', 'Earthquake of 6.8 strikes off coast of Peru', 1),
     art('nos', 'Aardbeving van 6,8 voor de kust van Peru', 2),
-    art('nu', 'Zware aardbeving van 6,8 voor de kust van Peru', 3),
   ], 'dw')
   const filler = story('filler', [art('bbc', 'Senate passes budget bill', 1), art('npr', 'Senate passes budget', 1)], 'bbc')
   const entries = [hack, vote, filler, quake].map(({ members, ...e }) => e)
@@ -555,7 +555,7 @@ test('bovenaan de kop van een Nederlandse bron als het verhaal die heeft, ook bi
   dutchHeads(entries, { itemsOf, mainIds: MAIN_IDS, now: T })
   assert.equal(items.get(entries[0].leadId).source, 'tweakers', 'de Nederlandse kop over de gebeurtenis, niet de vraag of het verdwaalde stuk')
   assert.equal(items.get(entries[1].leadId).source, 'bbc', 'geen opinie als kop')
-  assert.ok(['nos', 'nu'].includes(items.get(entries[3].leadId).source), 'ook onder de top (ronde 10 · B)')
+  assert.equal(items.get(entries[3].leadId).source, 'nos', 'ook onder de top, over hetzelfde feit (ronde 10 · B, 10b)')
 })
 
 test('de Nederlandse kop geeft dezelfde actuele stand: geen ingehaalde vooruitblik, wel hetzelfde feit van een nacht ervoor (3b · ronde 7 · 1, ronde 8 · 1)', async () => {

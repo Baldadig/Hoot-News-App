@@ -1644,8 +1644,73 @@ export function openWithNews(entries, { itemsOf, pick }) {
 // held- en vervolgplekken onder de top, met dezelfde voorwaarden. DUTCH_HEAD_TOP is nu alleen de voorpagina: daar geen
 // beschouwende kop op 01 (zie boven), de rol 'front' in leadCandidates, en een bron die al een kop in de voorpagina heeft
 // doet daar liever niet nog een keer mee. Daaronder telt elke andere kop in de Editie.
+// Ronde 10b (keuring ronde 10: onder de top koos de regel soms een Nederlands stuk uit dezelfde bundel over een ander feit,
+// zoals een peiling of een zijverhaal over de paus onder een kop over zijn politieke uitdaging, of een seizoensvooruitblik
+// onder een ruzie tussen twee coureurs; principe van Alex: liever de Engelse kop laten staan dan een kop over iets anders):
+// onder de voorpagina moet de Nederlandse kop over hetzelfde feit gaan als de huidige kop zelf (sameFactHead), niet alleen
+// verbonden zijn met de bundel. Op de voorpagina blijft de regel van ronde 8 (de kern van de bundel).
 // Wijzigt `entries` (de plek met een nieuwe kop is een kopie). `itemsOf(e)`: de stukken van een plek.
 export const DUTCH_HEAD_TOP = 3
+// Hetzelfde feit als de huidige kop, over de taalgrens (ronde 10b). Koppen in twee talen delen weinig woorden, dus kijken we
+// naar wat niet vertaald wordt: namen, begrippen en getallen.
+// - Eerst de koppen zelf: ze noemen minstens één zelfde naam of gebeurtenisbegrip (zoals centralItems ze uit alleen de kop
+//   haalt). Een rijke intro noemt de hele bundel (een stuk over een andere bewindspersoon noemt ook de nieuwe stafchef), de
+//   kop zegt waar het stuk over gaat.
+// - Dan hetzelfde feit (factLink), direct of via één ander stuk van het verhaal dat met allebei hetzelfde feit deelt.
+// Niet sameSubject of sameEvent: die tellen een voor- en achternaam als twee namen, en dan is "de patriarch roept op tot
+// kalmte" hetzelfde als "de patriarch is populairder dan de president" (dezelfde persoon, een ander feit: de peiling onder
+// de paus-kop van 7 november). Hier telt één persoon als één naam (sharedEntities met de reeksen van de uitgebreide stand),
+// en is er naast een gedeelde naam nog iets gedeeld nodig.
+// `kit`: de kenmerken van het hele verhaal (uitgebreid, met die van alleen de koppen), per plek één keer en pas uitgerekend
+// als het nodig is.
+const headKeys = (x) => (x ? new Set([...x.strong, ...x.weak, ...x.known, ...x.concepts]) : new Set())
+// Hoeveel verschillende eigen namen delen twee kenmerken, met een persoon als één naam? Alleen namen die in minstens één
+// van de twee koppen staan (een intro noemt ook "Formule 1" of de ploeg). Per kant samengevoegd met de eigen reeksen, en
+// dan het grootste aantal: "Velor’s Hanno Kreisler" is in één kop één reeks (het land en de persoon), in de andere twee
+// namen.
+function factNames(a, b) {
+  const inTitle = new Set([...(a.titleRuns || []).flat(), ...(b.titleRuns || []).flat()])
+  const shared = [...a.strong].filter((k) => b.strong.has(k) && (!a.titleRuns || inTitle.has(k)))
+  if (shared.length < 2 || !a.runs || !b.runs) return shared.length
+  const groups = (runs) => {
+    const parent = new Map(shared.map((k) => [k, k]))
+    const find = (k) => (parent.get(k) === k ? k : find(parent.get(k)))
+    for (const run of runs) {
+      const ks = run.filter((k) => parent.has(k))
+      for (let i = 1; i < ks.length; i++) parent.set(find(ks[i]), find(ks[0]))
+    }
+    return new Set(shared.map(find)).size
+  }
+  return Math.max(groups(a.runs), groups(b.runs))
+}
+// Hetzelfde feit in twee stukken (kenmerken in de uitgebreide stand, kop en intro), kort na elkaar. Eén van:
+// - zelfde taal: een gedeelde eigen naam en minstens twee gedeelde kernwoorden in de kop die geen naam zijn, of drie
+//   zulke woorden en 40% van de kortste kop (dezelfde naam in twee koppen is nog geen zelfde feit);
+// - twee verschillende eigen namen (een persoon met voor- en achternaam is één naam);
+// - één eigen naam en een gedeeld gebeurtenisbegrip (een naam en een land alleen zijn nog geen feit: de Straat van Hormuz en
+//   Iran staan in een stuk over een plan om de straat te openen en in een stuk over luchtaanvallen op een eiland erin);
+// - een gedeelde algemene naam die niet heel breed is (geen VS, Trump of Europa: BROAD) en twee gebeurtenisbegrippen (een
+//   Russische aanval met raketten op een stad);
+// - één eigen naam en hetzelfde getal in beide koppen (twee cijfers of meer, geen jaartal: "6,8" en "6.8").
+export function factLink(a, b, ta = '', tb = '') {
+  if (!a || !b || conflictingEvents(a.eventScope, b.eventScope) || Math.abs(a.t - b.t) > EVENT_WINDOW) return false
+  const names = factNames(a, b)
+  const isName = (w) => a.strong.has(w) || b.strong.has(w) || a.weak.has(w) || b.weak.has(w) || a.known.has(w) || b.known.has(w)
+  const words = [...a.words].filter((w) => b.words.has(w) && !isName(w)).length
+  if ((names >= 1 && words >= 2) || (words >= 3 && words / Math.min(a.words.size, b.words.size) >= 0.4)) return true
+  const general = [...a.weak].filter((k) => b.weak.has(k) && !BROAD.has(k)).length
+  const concepts = sharedCount(a.concepts, b.concepts)
+  if (names >= 2 || (names >= 1 && concepts >= 1) || (general >= 1 && concepts >= 2)) return true
+  return names >= 1 && sharedCount(numbersOf(ta), numbersOf(tb)) >= 1
+}
+export function sameFactHead(lead, i, items, kit) {
+  const ext = (kit.ext ||= signatures(items, items.map((x) => ({ id: `kop:${x.id}`, title: x.title, publishedAt: x.publishedAt })), { extended: true }))
+  if (!sharedCount(headKeys(ext.get(`kop:${lead.id}`)), headKeys(ext.get(`kop:${i.id}`)))) return false
+  const ea = ext.get(lead.id)
+  const eb = ext.get(i.id)
+  if (factLink(ea, eb, lead.title, i.title)) return true
+  return items.some((j) => j !== lead && j !== i && factLink(ea, ext.get(j.id), lead.title, j.title) && factLink(ext.get(j.id), eb, j.title, i.title))
+}
 // Een vooruitblik of aankondiging naar de kop: wat er gaat gebeuren, niet wat er gebeurde. Alleen vaste uitdrukkingen, geen
 // losse hulpwerkwoorden ("zal", "will": "Trump Says He Will Accept Election Results" meldt juist een uitkomst).
 const OUTLOOK = /\b(naar de stembus|naar de stembussen|gaat stemmen|gaan stemmen|stemt vandaag|stemmen vandaag|kiezers trekken|in (?:de )?aanloop naar|op weg naar|vooruitblik\w*|voorbeschouwing\w*|wat (?:je|u) moet weten|wat (?:we|je) kunnen verwachten|hier wordt het|wordt (?:vandaag|morgen|vanavond) beslist|vandaag beslist|morgen beslist|beslissende dag|spannende dag|ahead of|what to expect|preview|previewing|heads? to the polls|go(?:es)? to the polls|polls open|on the eve of|countdown to|set to vote|gears? up for)\b/
@@ -1661,18 +1726,23 @@ export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, 
     if (!lead || dutchTier(lead) === 0) continue
     const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)) && timeOf(i) > since && !staleOutlook(i, items))
     if (!fit.length) continue
-    const central = centralItems(items)
-    const core = new Set(central)
-    // Ronde 10 · B: de kern van een grote bundel komt uit de koppen, en in een bundel van vooral Engelse koppen valt een
-    // Nederlandse kop over hetzelfde feit er vaak buiten (Paraguay: Trouw en NU.nl naast BBC, Le Monde en Al Jazeera).
-    // Zo'n kop telt mee als hij verbonden is met een stuk uit de kern zelf (niet met een ander stuk buiten de kern): een
-    // verdwaald stuk deelt geen onderwerp met de kern.
-    const inCore = fit.filter((i) => core.has(i) || linkedItems([...central, i], [i]).length > 0)
-    if (!inCore.length) continue
-    // De kenmerken pas als er een kandidaat is, de uitgebreide alleen als sameSubject niets vindt (rekentijd).
-    const near = linkedItems(items, inCore)
-    if (!near.length) continue
     const front = k < DUTCH_HEAD_TOP
+    let near
+    if (front) {
+      const core = new Set(centralItems(items))
+      const inCore = fit.filter((i) => core.has(i))
+      if (!inCore.length) continue
+      // De kenmerken pas als er een kandidaat is, de uitgebreide alleen als sameSubject niets vindt (rekentijd).
+      near = linkedItems(items, inCore)
+    } else {
+      // Ronde 10 · B en 10b: onder de voorpagina een kop over hetzelfde feit als de huidige kop (sameFactHead), ook buiten
+      // de kern van de bundel. Die kern komt uit de koppen, en in een bundel van vooral Engelse koppen valt een Nederlandse
+      // kop over hetzelfde feit er vaak buiten (Paraguay: Trouw en NU.nl naast BBC, Le Monde en Al Jazeera). Wie hetzelfde
+      // feit meldt als de kop, is met het verhaal verbonden; een verdwaald stuk of een zijverhaal niet.
+      const kit = {}
+      near = fit.filter((i) => sameFactHead(lead, i, items, kit))
+    }
+    if (!near.length) continue
     const others = new Set((front ? entries.slice(0, DUTCH_HEAD_TOP) : entries).filter((x) => x !== e).map((x) => itemsOf(x).find((i) => i?.id === (x.leadId || x.id))?.source).filter(Boolean))
     const order = leadCandidates(freshest(near), mainIds, null, now, { role: front ? 'front' : 'neutral' })
     const next = order.find((i) => !others.has(i.source)) || order[0]
