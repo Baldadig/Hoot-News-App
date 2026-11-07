@@ -4,7 +4,11 @@ import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mj
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectEdition, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { profileOf } from '../../shared/editor.mjs'
+import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
+import { isOpinion } from '../../shared/article-signals.mjs'
+import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
@@ -566,6 +570,72 @@ const compact = (o) => {
 }
 
 // ---------- 7. Editie ----------
+// De algemene Editie (Redacteur 3b, besluit van Alex 6 november): de persoonlijke Editie met een leeg profiel
+// (de basisbronnen, geen interesses), met dezelfde vangrails: de voorpagina met een Nederlandse plek, hooguit
+// INT_MAX buitenland zonder reden, de kernrubrieken en de toelating (selectForReader). Wie niets koos, koos ook niet
+// tegen buitenland: groot buitenlands nieuws (OPEN_WORLD_MIN uitgevers) is voor een leeg profiel een reden en valt
+// buiten INT_MAX (ronde 2, shared/edition-policy.mjs: openWorld). Daarna opent plek 01 met
+// nieuws (openWithNews). Geen waarom, geen trends: alleen de plekken, in de vorm van de vastgelegde Editie.
+// `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
+export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null } = {}) {
+  const prof = profileOf({ followed: mainIds, sources })
+  // Voor de Nederlandse plekken (dutchPlace) tellen alle stukken van een verhaal, ook die buiten de nieuwspool (ronde 4 · 2).
+  const allById = new Map(pool.map((i) => [i.id, i]))
+  const fullStory = new Map(stories.map((st) => [st.id, st]))
+  const allOf = (id) => (fullStory.get(id)?.itemIds || []).map((x) => allById.get(x)).filter(Boolean)
+  const storyItems = new Map(newsStories.map((st) => [st.id, allOf(st.id)]))
+  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems } })
+  const byId = new Map(newsPool.map((i) => [i.id, i]))
+  const storyById = new Map(newsStories.map((st) => [st.id, st]))
+  const entries = sel.map((e) => ({ ...(e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }), ...(e.held ? { held: true } : {}) }))
+  const itemsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [e.id]).map((id) => byId.get(id)).filter(Boolean)
+  // Curiosa nooit in de top 3 (3b · 5), nieuwsbelang boven sensatie (ronde 6 · 2), dan plek 01 met nieuws, dan de
+  // Nederlandse ondergrens (3b · 3) en bovenaan Nederlandse koppen (ronde 6 · 1).
+  // Wat zonder nieuwe ontwikkeling één Editie langer blijft, zakt onder de top 5 (ronde 7 · 3c).
+  heldDown(entries)
+  curiosaDown(entries, { itemsOf, storyOf: (e) => storyById.get(e.id) })
+  const allItemsOf = (e) => (e.kind === 'story' ? storyItems.get(e.id) || itemsOf(e) : itemsOf(e))
+  // Nieuwsbelang boven sensatie (ronde 6 · 2): een verhaal over een bekend persoon opent niet als er bovenaan een even
+  // groot verhaal over economie, politiek of grote gevolgen staat; een misdaad- of rechtszaak ook niet (ronde 7 · 2).
+  newsBeforePeople(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources })
+  // Actualiteit (ronde 7 · 3): met een vorige Editie komt elke kop uit de stukken van daarna.
+  const since = previous?.at || 0
+  const after = (xs) => xs.filter((i) => !(Date.parse(i.publishedAt) <= since))
+  openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(after(xs), mainIds, null, now, { role: 'front' }), all, now)[0] })
+  dutchFloor(entries, { itemsOf: allItemsOf, byId, storyOf: (e) => storyById.get(e.id), sources })
+  // Bovenaan een Nederlandse kop als het verhaal er een heeft (ronde 6 · 1). Na de ondergrens: die telt de plekken met de
+  // kop die de selectie koos, zodat een buitenlands verhaal met een Nederlandse kop geen Nederlandse plek verdringt.
+  dutchHeads(entries, { itemsOf, mainIds, now, since })
+  return entries
+}
+
+// De Nederlandse ondergrens (Redacteur 3b · 3, besluit van Alex): in de top 5 van de algemene Editie staan
+// minstens NL_TOP5_MIN Nederlandse plekken voor echt nieuws (dutchPlace). Echt nieuws: een verhaal van minstens twee
+// uitgevers, niet licht, en de kop is geen opinie. Staan er te weinig, dan schuiven de hoogste Nederlandse plekken van
+// verder in de Editie op naar het eind van de top 5, en zakken de laagste niet-Nederlandse plekken daar direct onder;
+// plek 01 blijft staan. Nog geen normalisatie per taalgebied.
+// Wat een Nederlandse plek is, staat bij dutchPlace (netlify/lib/stories.mjs): één definitie voor bouw en meetlat.
+export { NL_TOP5_MIN, dutchPlace }
+export function dutchFloor(entries, { itemsOf, byId, storyOf = () => null, sources = SOURCES, top = 5, min = NL_TOP5_MIN }) {
+  const dutch = (e) => dutchPlace(e, { itemsOf, byId, storyOf, sources })
+  const news = (e) => {
+    const items = itemsOf(e)
+    const lead = byId.get(e.leadId || e.id)
+    return e.kind === 'story' && coverageOf(items).publisherCount >= 2 && !lightNews({}, items) && !!lead && !isOpinion(lead)
+  }
+  const head = entries.slice(0, top)
+  const need = min - head.filter(dutch).length
+  if (need <= 0) return entries
+  const up = entries.slice(top).filter((e) => dutch(e) && news(e)).slice(0, need)
+  const down = head.slice(1).filter((e) => !dutch(e)).slice(-up.length)
+  if (!up.length || down.length < up.length) return entries
+  // De top 5 zonder de laagste niet-Nederlandse plekken, dan de Nederlandse in hun eigen volgorde; wat zakt,
+  // staat direct daarna, dan de rest zoals het was.
+  const next = [...head.filter((e) => !down.includes(e)), ...up, ...down, ...entries.slice(top).filter((e) => !up.includes(e))]
+  entries.splice(0, entries.length, ...next)
+  return entries
+}
+
 // Per dagdeel één keer samengesteld en daarna vast: selectie en volgorde veranderen niet meer;
 // een verhaal dat nog loopt toont wel zijn nieuwe publicaties. Daarbij (één keer, dan vast):
 // "Buiten je bubbel" en het AI-overzicht.
@@ -583,7 +653,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
     // Wat in de vorige editie stond, komt alleen terug als het zich echt ontwikkelde.
     const previous = previousOf(await kvGet(editionCacheKey(previousSlotId(slot))).catch(() => null) || await kvGet('edition3-' + previousSlotId(slot)).catch(() => null))
-    const entries = selectEdition(newsStories, newsPool, { mainIds: MAIN_IDS, now, previous })
+    const entries = generalEdition({ stories, newsStories, pool, newsPool, now, mainIds: MAIN_IDS, sources: SOURCES, previous })
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
     stored = { id: slot.id, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => byId.get(id)).filter(Boolean) }

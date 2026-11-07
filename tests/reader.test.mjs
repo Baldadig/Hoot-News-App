@@ -38,13 +38,17 @@ const run = (o = {}, w = world()) => selectForReader(w.stories, w.pool, { mainId
 // land), Vance (6) en de Braziliaanse ontbossing geen groot nieuws. Wie Wereld koos, heeft geen plafond;
 // de toetsen op lengte en mechaniek gebruiken die lezer.
 const WERELD = { interests: ['wereld'] }
+// Redacteur 3b · ronde 2: een leeg profiel (niets gekozen) is geen keuze tegen buitenland; daar telt groot buitenlands
+// nieuws (OPEN_WORLD_MIN uitgevers) als reden. De toetsen op het plafond gebruiken daarom een lezer die wel iets koos,
+// maar geen Wereld (Economie: niets in deze kleine wereld hoort daarbij).
+const ZONDER = { interests: ['economie'] }
 
 test('selectie: precies het gevraagde aantal plekken, deterministisch, gesorteerd op gewicht', () => {
   const sel = run({ prof: WERELD })
   assert.equal(sel.length, 6)
   assert.equal(JSON.stringify(sel), JSON.stringify(run({ prof: WERELD })))
   // Zonder Wereld liever korter dan ongeoorloofd aanvullen: alleen wat de norm toelaat.
-  const plain = run()
+  const plain = run({ prof: ZONDER })
   // Normen 4 november: de review (consumententech) is licht en komt alleen bij wie gadgets koos.
   assert.deepEqual(plain.map((e) => e.id), ['s-kab', 's-ai', 's-brand'])
   assert.deepEqual(run({ prof: { interests: ['tech'], topics: ['gadgets'] } }).map((e) => e.id).includes('i10'), true)
@@ -54,7 +58,7 @@ test('selectie: precies het gevraagde aantal plekken, deterministisch, gesorteer
 
 test('selectie: de voorpagina is voor iedereen gelijk, met de rubriek van de server', () => {
   // Gelijk voor iedereen met dezelfde keuze voor Wereld; zonder Wereld valt Zelensky (geen groot nieuws) af.
-  const plain = run().filter((e) => e.front)
+  const plain = run({ prof: ZONDER }).filter((e) => e.front)
   const tech = run({ prof: { interests: ['tech'], topics: ['ai'] } }).filter((e) => e.front)
   assert.deepEqual(plain.map((e) => [e.id, e.desk]), [['s-kab', 'binnenland']])
   assert.deepEqual(tech.map((e) => [e.id, e.desk]), plain.map((e) => [e.id, e.desk]))
@@ -244,8 +248,30 @@ test('voorpagina: zonder Wereld alleen groot buitenlands nieuws, ook met minder 
   assert.ok(front.includes('s-zel') && front.includes('s-vance'), front.join(',')) // 9 en 8 uitgevers
   const w = nlWorld()
   w.stories.find((s) => s.id === 's-vance').sourceCount = 7 // geen groot nieuws meer
-  assert.ok(!run({}, w).some((e) => e.id === 's-vance'))
+  assert.ok(!run({ prof: ZONDER }, w).some((e) => e.id === 's-vance'))
   assert.ok(run({ prof: WERELD }, w).some((e) => e.id === 's-vance')) // met Wereld wel
+  assert.ok(run({}, w).some((e) => e.id === 's-vance')) // en zonder enige keuze ook: zeven uitgevers is een reden
+})
+
+test('leeg profiel: groot buitenlands nieuws (≥ OPEN_WORLD_MIN uitgevers) is een reden, buiten het plafond (3b · ronde 2)', async () => {
+  const { OPEN_WORLD_MIN, openWorld, emptyProfile } = await import('../shared/edition-policy.mjs')
+  assert.equal(OPEN_WORLD_MIN, 4)
+  assert.ok(emptyProfile(profOf()) && !emptyProfile(profOf(ZONDER)))
+  // Vier buitenlandse verhalen van vier tot negen uitgevers en één van drie: een lege lezer krijgt de vier, ook
+  // boven INT_MAX; de kleine blijft weg. Wie iets koos maar geen Wereld, houdt het plafond en de grens voor groot nieuws.
+  const w = nlWorld()
+  const extra = [['s-par', 'Franse premier stapt op na motie', 5], ['s-ber', 'Duitse regering valt over begroting', 4], ['s-kl', 'Kleine rel in Belgische gemeenteraad', 3]]
+  for (const [id, title, count] of extra) {
+    const its = [art('bbc', title, { topics: ['europa'] }), art('nos', title, { topics: ['europa'] })]
+    w.pool.push(...its)
+    w.stories.push(story(id, its, count, { desk: 'buitenland' }))
+  }
+  const leeg = run({ opts: { size: 10 } }, w).map((e) => e.id)
+  for (const id of ['s-zel', 's-vance', 's-par', 's-ber']) assert.ok(leeg.includes(id), id + ' ' + leeg)
+  assert.ok(!leeg.includes('s-kl'), leeg.join())
+  assert.ok(openWorld(profOf(), [], { sourceCount: 4 }) && !openWorld(profOf(), [], { sourceCount: 3 }) && !openWorld(profOf(ZONDER), [], { sourceCount: 9 }))
+  const zonder = run({ prof: ZONDER, opts: { size: 10 } }, w)
+  assert.ok(zonder.filter((e) => ['s-zel', 's-vance', 's-par', 's-ber', 's-kl'].includes(e.id)).length <= G.INT_MAX)
 })
 
 test('voorpagina: wie Binnenland koos, opent met Nederlands nieuws, ook onder FRONT_MIN', () => {

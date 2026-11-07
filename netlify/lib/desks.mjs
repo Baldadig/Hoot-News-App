@@ -130,6 +130,55 @@ export function placeSignals({ title = '', summary = '', text = '' }) {
   }
 }
 
+// Redacteur 3b · ronde 4 · 2 (lijst verbreed in ronde 5 · 2): een buitenlands land als onderwerp in de kop. Alle landen
+// van de wereld per werelddeel, op alfabet, met Nederlandse en Engelse namen en bijvoeglijke vormen, bovenop countriesIn
+// (shared/article-signals.mjs) en de rubrieken Oekraïne en Midden-Oosten. Niet in de lijst: instellingen als de EU of de
+// NAVO (die gaan Nederland ook aan), namen die ook een gewoon woord of een voornaam zijn (Chad, Jordan), de landen van het
+// Koninkrijk (Aruba, Curaçao, Sint Maarten), en hoofdsteden en andere steden: een stad staat in een Nederlandse kop vaak
+// als bestemming of vertrekplaats ("vlucht uit Boekarest vertrok niet") en maakt het onderwerp niet buitenlands. Zonder
+// Nederlands anker in dezelfde kop (Nederland, Nederlands, Dutch, of een Nederlandse plaats, instelling, persoon of bedrijf:
+// placeSignals) is de kop buitenlands: "Zuid-Amerikaanse president treedt af" wel, "Nederlandse militairen naar Litouwen"
+// niet.
+const L = '\\p{L}*'
+const WORLD = W([
+  // Europa
+  `albani${L}`, 'andorra', `armeni${L}`, `azerbeidzjan${L}`, `azerbaijan${L}`, 'wit-rusland', `belarus${L}`, `bosni${L}`, `bulgar${L}`, `bulgaria${L}`,
+  'cyprus', `cyprio${L}`, 'denemarken', `deens${L}`, 'denmark', 'danish', 'finland', 'fins', 'finse', 'finnish', `georgi[eë]`, `griek${L}`, 'greece', 'greek',
+  `hongarij${L}`, `hongaar${L}`, `hungar${L}`, 'ierland', 'ireland', 'iers', 'ierse', 'irish', `ijsland${L}`, `iceland${L}`, `kosov${L}`, `kroati${L}`, `croatia${L}`,
+  'letland', 'letse', 'latvia', `latvian${L}`, 'liechtenstein', `litouw${L}`, `lithuania${L}`, `luxemburg${L}`, 'luxembourg', `macedoni${L}`, 'malta', 'maltees', 'maltese',
+  `moldavi${L}`, `moldova${L}`, 'monaco', `montenegr${L}`, `noorweg${L}`, 'noors', 'noorse', `norw${L}`, `oostenrijk${L}`, `austria${L}`, `portug${L}`,
+  `roemeni${L}`, `romania${L}`, 'san marino', `servi${L}`, `serbia${L}`, `sloveni${L}`, `slowakij${L}`, `slowaak${L}`, `slovak${L}`,
+  `tsjechi${L}`, 'tsjech', 'tsjechen', `czech${L}`, 'vaticaan', 'vatican', 'schotland', 'scotland', 'schots', 'schotse', 'scottish', 'wales', 'welsh', 'noord-ierland', 'northern ireland',
+  'zweden', `zweed${L}`, 'sweden', 'swedish', `zwitser${L}`, 'switzerland', 'swiss',
+  // Afrika
+  `algerij${L}`, `algeri${L}`, `angola${L}`, `benin${L}`, 'botswana', 'burkina faso', 'burundi', `centraal-afrikaans${L}`, 'central african republic', 'comoren', 'comoros', `congo${L}`, 'djibouti',
+  `egypt${L}`, `egypte${L}`, 'equatoriaal-guinee', 'equatorial guinea', `eritre${L}`, 'eswatini', `ethiopi${L}`, 'gabon', 'gambia', `ghana${L}`, `guinee${L}`, `guinea${L}`, 'ivoorkust', 'ivory coast',
+  'kaapverdi[eë]', 'cape verde', `kameroen${L}`, 'cameroon', `keni${L}`, `kenya${L}`, 'lesotho', `liberia${L}`, `libi[eë]`, `libisch${L}`, `libya${L}`, 'madagaskar', 'madagascar', 'malawi', 'mali', 'malinees', 'malinese',
+  `marokk${L}`, `morocc${L}`, `mauritani${L}`, 'mauritius', 'mozambique', `namibi${L}`, 'niger', `nigeria${L}`, 'oeganda', `oegandees${L}`, `uganda${L}`, `rwanda${L}`,
+  `senegal${L}`, 'seychellen', 'seychelles', 'sierra leone', `somali${L}`, `soedan${L}`, `sudan${L}`, `tanzania${L}`, 'tsjaad', 'togo', `tunesi${L}`, `tunisi${L}`, `zambia${L}`,
+  `zimbabw${L}`, `zuid-afrika${L}`, `south africa${L}`,
+  // Azië
+  'afghanistan', `afghaan${L}`, `afghan${L}`, 'bahrein', 'bahrain', `bangladesh${L}`, 'bhutan', 'brunei', 'cambodja', `cambodjaan${L}`, `cambodia${L}`, `filipijn${L}`, `philippine${L}`,
+  'hongkong', 'hong kong', `indonesi${L}`, 'irak', `irakees${L}`, 'iraq', `iraqi${L}`, `jemen${L}`, `yemen${L}`, `jordani${L}`, 'kazachstan', 'kazakhstan',
+  `kirgizi${L}`, `kyrgyz${L}`, 'koeweit', `kuwait${L}`, 'laos', `maleisi${L}`, `malaysia${L}`, 'maldiven', 'maldives', `mongoli${L}`, 'myanmar', 'birma', 'burma', `nepal${L}`,
+  `korea${L}`, `noord-korea${L}`, `zuid-korea${L}`, 'oezbekistan', 'uzbekistan', 'oman', 'oost-timor', 'east timor', `pakistan${L}`,
+  `qatar${L}`, 'singapore', `sri lanka${L}`, `syri${L}`, 'tadzjikistan', 'tajikistan', `taiwan${L}`, 'thailand', 'thai', 'thaise?', 'turkmenistan', 'emiraten', 'emirates',
+  `vietnam${L}`,
+  // Amerika
+  `argentin${L}`, "bahama's", 'bahamas', 'barbados', 'belize', `bolivia${L}`, `boliviaan${L}`, 'chili', `chileen${L}`, 'chile', `chilean${L}`, `colombia${L}`, 'costa rica', `costa ricaan${L}`, `costa rican${L}`,
+  'cuba', `cubaan${L}`, `cuban${L}`, 'dominicaanse republiek', 'dominican republic', `ecuador${L}`, 'el salvador', `salvadoraan${L}`, `salvadoran${L}`, `guatemala${L}`, 'guyana', 'haïti', 'haiti', `haïtiaan${L}`, `haitian${L}`,
+  'honduras', `hondura${L}`, `jamaica${L}`, `mexic${L}`, `nicaragua${L}`, `panama${L}`, `paraguay${L}`, `peru${L}`, 'puerto rico', `suriname${L}`, 'trinidad', `uruguay${L}`,
+  `venezuela${L}`, `groenland${L}`, 'greenland',
+  // Oceanië
+  'fiji', 'nieuw-zeeland', 'new zealand', `papoea${L}`, `papua${L}`, 'samoa', 'tonga',
+])
+const NL_ANCHOR = W(['nederland\\p{L}*', 'dutch', 'holland\\p{L}*'])
+export function foreignHead(title = '') {
+  const t = String(title || '')
+  if (!t || !(WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || countriesIn(t).some((c) => c !== 'nl'))) return false
+  return !NL_ANCHOR.test(t) && !placeSignals({ title: t }).nl
+}
+
 // Nederlands bezit, ZWAK: woorden die in een Nederlandse krant meestal over Nederland gaan (de
 // gemeente, de politie, "Nederlandse"), maar ook over elders kunnen gaan. Telt alleen bij een
 // Nederlandse bron zonder buitenlandse plek (regel 6 hieronder), nooit alleen.

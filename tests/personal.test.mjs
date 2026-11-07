@@ -182,10 +182,13 @@ test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen 
   assert.equal(e.entries.find(x=>(x.leadId||x.id)==='k1')?.supplement,'groot')
   // Zonder eigen bron in het verhaal komt het er wel, via de gratis bron.
   const st2 = [...stories, { id: 'sKyiv', leadId: 'k1', itemIds: ['k1'], sourceCount: 6 }]
-  const e2 = composePersonal({ global: g, stories: st2, items, followed, now: NOW, builtAt: 'T' })
+  // Wie iets koos, maar geen Wereld (Redacteur 3b · ronde 2: een leeg profiel telt groot buitenlands nieuws wel als reden).
+  const e2 = composePersonal({ global: g, stories: st2, items, followed, interests: ['economie'], now: NOW, builtAt: 'T' })
   assert.ok(!e2.entries.some(x=>x.desk === 'breed'), 'zes uitgevers uit één land is zonder Wereld geen groot nieuws')
+  const e2leeg = composePersonal({ global: g, stories: st2, items, followed, now: NOW, builtAt: 'T' })
+  assert.equal(e2leeg.entries.find(x=>x.desk === 'breed')?.id, 'sKyiv', 'zonder enige keuze is zes uitgevers een reden')
   const st3 = st2.map(s=>s.id === 'sKyiv' ? {...s,publisherCount:8,publisherCountries:['GB']} : s)
-  const e3 = composePersonal({global:g,stories:st3,items,followed,now:NOW,builtAt:'T'})
+  const e3 = composePersonal({global:g,stories:st3,items,followed,interests:['economie'],now:NOW,builtAt:'T'})
   assert.equal(e3.entries.find(x=>x.desk === 'breed')?.id,'sKyiv')
 })
 

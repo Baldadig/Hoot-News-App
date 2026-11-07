@@ -191,13 +191,16 @@ function topicHits(item, prof, geo = null, area = null, politics = false) {
   // Amerikaanse politiek zonder Wereld: alleen Politiek of Wereld kan het waarom zijn. Economie telt hier
   // alleen met een zakenbron of een zakenkop (feedback 31 oktober: "Trump and GOP Close Midterms With Ugly
   // Personal Attacks" was "Omdat je Economie volgt" via 'inflation' in de intro).
-  const headTopics = politics ? keywordTopics(item.title || '') : []
-  const politicsWhy = (t) => FAMILY_OF[t] === 'politiek' || FAMILY_OF[t] === 'wereld' || (FAMILY_OF[t] === 'economie' && (FAMILY_OF_CAT[prof.catOf?.get(item.source)] === 'economie' || headTopics.includes(t)))
+  // Kop en intro pas lezen als een onderwerp van het profiel meedoet (rekentijd, Redacteur 3b ronde 8 · 2: een leeg profiel,
+  // zoals de algemene Editie, heeft ze nooit nodig).
+  let headTopics = null
+  const politicsWhy = (t) => FAMILY_OF[t] === 'politiek' || FAMILY_OF[t] === 'wereld' || (FAMILY_OF[t] === 'economie' && (FAMILY_OF_CAT[prof.catOf?.get(item.source)] === 'economie' || (headTopics ??= politics ? keywordTopics(item.title || '') : []).includes(t)))
   // VS-politiek is ook geografie: het trefwoord "verkiezing" maakte van Lula's zege in Brazilië VS-politiek.
   const notUs = ts.includes('vs-politiek') && !desksOf(item).has('vs')
   // `seen`: kop of intro noemt het onderwerp zelf (shownTopics); alleen zo'n treffer mag het waarom zijn.
-  const vis = shownTopics(item)
-  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === 'desk' || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) && !(politics && !world && !politicsWhy(t)) }))
+  let vis
+  const shown = (t) => (vis === undefined ? (vis = shownTopics(item)) : vis) === null || vis.includes(t)
+  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: shown(t) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === 'desk' || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) && !(politics && !world && !politicsWhy(t)) }))
   // Een aantoonbare wetenschappelijke hoofdzaak telt ook voor de gekozen familie wanneer een
   // secundaire AI-tag aanwezig is; algemene wetenschap past niet altijd in één van de vijf subtopics.
   if (area && !politics && prof.family[area] > 0 && !out.some(h => h.f === area && h.v > 0)) out.push({ t: `gebied:${area}`, f: area, v: Math.min(prof.family[area], W_INHERITED), s: item.source, seen: true })

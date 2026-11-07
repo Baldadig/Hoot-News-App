@@ -1,0 +1,260 @@
+{
+ "uitleg": "Stukken uit de feed van vrijdag 6 november, ochtend (Hoot-design/woensdag-2026-11-04/ijkset/feeds/feed-2026-11-06-ochtend-0633Z.json.gz): de beurscrash van 5 november en, als controle, het Belastingplan. Voor tests/beursverhaal.test.mjs.",
+ "items": [
+  {
+   "id": "1wir9nt",
+   "kind": "article",
+   "source": "lemonde",
+   "sourceName": "Le Monde in English",
+   "title": "On Wall Street, Democrats’ midterm victory bursts the AI bubble",
+   "summary": "The Nasdaq, the index that includes many technology stocks, lost more than 5% during trading on November 5.",
+   "url": "https://www.lemonde.fr/en/economy/article/2026/11/06/on-wall-street-democrats-midterm-victory-bursts-the-ai-bubble_6773164_19.html",
+   "publishedAt": "2026-11-06T01:26:47.000Z",
+   "topics": [
+    "economie",
+    "ai",
+    "vs-politiek"
+   ]
+  },
+  {
+   "id": "ub46qt",
+   "kind": "article",
+   "source": "nyt",
+   "sourceName": "NYT",
+   "title": "Stocks Erase Post-Midterm Elections Rally, Dragged Down by Tech",
+   "summary": "The S&P 500 slumped to its worst daily decline since April 2025 and the tech-heavy Nasdaq entered correction territory, as investors fretted about the durability of the A.I. build-out.",
+   "url": "https://www.nytimes.com/2026/11/05/business/stocks-midterms-artificial-intelligence.html",
+   "publishedAt": "2026-11-06T00:48:29.000Z",
+   "topics": [
+    "verkiezingen",
+    "economie",
+    "vs-politiek",
+    "ai"
+   ]
+  },
+  {
+   "id": "12sqgxq",
+   "kind": "article",
+   "source": "npr",
+   "sourceName": "NPR",
+   "title": "Fears of an AI crackdown after midterms spark $2 trillion rout in tech stocks",
+   "summary": "Shares sank, with the tech-heavy Nasdaq dropping over 5%, as investors reacted with fear that a Democratic Congress — and states across the country -— would crack down on AI and data centers.",
+   "url": "https://www.npr.org/2026/11/05/nx-s1-6031987/stock-markets-ai-midterm-elections",
+   "publishedAt": "2026-11-06T00:16:53.000Z",
+   "topics": [
+    "economie",
+    "ai",
+    "vs-politiek"
+   ]
+  },
+  {
+   "id": "1ewubnh",
+   "kind": "article",
+   "source": "fd",
+   "sourceName": "Het Financieele Dagblad",
+   "title": "Vrees voor einde AI-hausse duwt Amerikaanse beurzen in het rood",
+   "summary": "Techbeurs Nasdaq was op het dieptepunt van de handelsdag zelfs 6,4% van de waarde kwijt.",
+   "url": "https://fd.nl/financiele-markten/1618297/vrees-voor-einde-ai-hausse-duwt-amerikaanse-beurzen-in-het-rood",
+   "publishedAt": "2026-11-05T21:25:41.000Z",
+   "topics": [
+    "ai",
+    "economie"
+   ]
+  },
+  {
+   "id": "2dregx",
+   "kind": "article",
+   "source": "tijd",
+   "sourceName": "De Tijd",
+   "title": "Ware slachting onder chipaandelen: staat AI-revolutie op losse schroeven?",
+   "summary": "Amerikaanse beleggers hebben alles wat met AI te maken heeft in de verkoop gegooid, de chipaandelen in het bijzonder. De Nasdaq kelderde met liefst 5,5 procent.",
+   "url": "https://www.tijd.be/r/t/1/id/10698749",
+   "publishedAt": "2026-11-05T19:52:46.000Z",
+   "topics": [
+    "ai",
+    "economie"
+   ]
+  },
+  {
+   "id": "1r0c9rt",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "title": "Techaandelen krijgen flinke klappen, Amerikaanse Nasdaq zo’n 5 procent omlaag",
+   "summary": "Techaandelen wereldwijd krijgen flinke klappen. Zo daalde de koers van tech-aandelenbeurs Nasdaq op Wall Street een uur na opening met vijf procent.",
+   "url": "https://nos.nl/l/2638178",
+   "publishedAt": "2026-11-05T16:43:40.000Z",
+   "topics": [
+    "economie"
+   ]
+  },
+  {
+   "id": "19tdun",
+   "kind": "article",
+   "source": "vrt",
+   "sourceName": "VRT NWS",
+   "title": "Verkiezingsuitslag Amerikaanse midterms ook voelbaar op de beurs: technologie-index Nasdaq krijgt stevige klappen",
+   "summary": "Amerikaanse technologieaandelen krijgen zware klappen. Vooral bedrijven die betrokken zijn bij de uitbouw van AI-datacenters gaan stevig lager.",
+   "url": "https://vrtnws.be/p.0YpAJDO1M",
+   "publishedAt": "2026-11-05T16:12:18.000Z",
+   "topics": [
+    "economie",
+    "vs-politiek",
+    "ai"
+   ]
+  },
+  {
+   "id": "ewu1qv",
+   "kind": "article",
+   "source": "ars",
+   "sourceName": "Ars Technica",
+   "title": "Agility Robotics’ Nasdaq debut invites scrutiny of humanoid robot market",
+   "summary": "US leader in deploying humanoid robots goes public on the Nasdaq stock exchange.",
+   "url": "https://arstechnica.com/ai/2026/11/agility-robotics-nasdaq-debut-invites-scrutiny-of-humanoid-robot-market/",
+   "publishedAt": "2026-11-05T12:00:41.000Z",
+   "topics": [
+    "economie"
+   ]
+  },
+  {
+   "id": "161xlhu",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "title": "Grootste verliesdag van 2026 op Wall Street door techuitverkoop",
+   "summary": "Techaandelen kelderden donderdag op de aandelenbeurzen in New York, waardoor Wall Street zijn slechtste beursdag sinds april vorig jaar doormaakte.",
+   "url": "https://www.nd.nl/varia/varia/1337773/grootste-verliesdag-van-2026-op-wall-street-door-techuitverkoop",
+   "publishedAt": "2026-11-05T22:11:35.000Z",
+   "topics": [
+    "economie"
+   ]
+  },
+  {
+   "id": "ixb64g",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "title": "Waarde bitcoin flink omlaag door techuitverkoop op Wall Street",
+   "summary": "De bitcoin is donderdag fors in waarde gezakt doordat de uitverkoop van techaandelen op Wall Street oversloeg op risicovolle beleggingen als crypto’s.",
+   "url": "https://www.nd.nl/varia/varia/1337772/waarde-bitcoin-flink-omlaag-door-techuitverkoop-op-wall-street",
+   "publishedAt": "2026-11-05T22:08:58.000Z",
+   "topics": [
+    "economie",
+    "geld"
+   ]
+  },
+  {
+   "id": "1r2f21r",
+   "kind": "article",
+   "source": "ad",
+   "sourceName": "AD",
+   "title": "Brede S&P 500-index op Wall Street sluit 4,4 procent lager, grootste dagverlies sinds april 2025",
+   "summary": "Techaandelen kelderden donderdag op de aandelenbeurzen in New York, waardoor Wall Street zijn slechtste beursdag sinds april vorig jaar doormaakte.",
+   "url": "https://www.ad.nl/economie/brede-senp-500-index-op-wall-street-sluit-4-4-procent-lager-grootste-dagverlies-sinds-april-2025~adbfe28c/",
+   "publishedAt": "2026-11-05T21:11:27.000Z",
+   "topics": [
+    "economie"
+   ]
+  },
+  {
+   "id": "o80a80",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Aandelen zwaar onderuit op Amerikaanse beurs; 3,2 biljoen dollar aan waarde in rook opgegaan",
+   "summary": "De aandelen van chip- en techbedrijven krijgen wereldwijd harde klappen na de grote overwinning van de Democraten bij de tussentijdse verkiezingen afgelopen dinsdag.",
+   "url": "https://www.volkskrant.nl/economie/aandelen-zwaar-onderuit-op-amerikaanse-beurs-3-2-biljoen-dollar-aan-waarde-in-rook-opgegaan~bec0aebbe/",
+   "publishedAt": "2026-11-05T21:25:00.000Z",
+   "topics": [
+    "economie",
+    "verkiezingen",
+    "vs-politiek"
+   ]
+  },
+  {
+   "id": "18o5lfk",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Aandelen chipbedrijven hard onderuit door Amerikaanse verkiezingen",
+   "summary": "De aandelen van chip- en techbedrijven krijgen wereldwijd harde klappen na de grote overwinning van de Democraten bij de tussentijdse verkiezingen afgelopen dinsdag.",
+   "url": "https://www.volkskrant.nl/economie/aandelen-chipbedrijven-hard-onderuit-door-amerikaanse-verkiezingen~bec0aebbe/",
+   "publishedAt": "2026-11-05T19:37:26.000Z",
+   "topics": [
+    "verkiezingen",
+    "vs-politiek"
+   ]
+  },
+  {
+   "id": "cd5qe6",
+   "kind": "article",
+   "source": "ft",
+   "sourceName": "Financial Times",
+   "title": "Global stocks tumble as Democratic midterm sweep sparks AI rout",
+   "summary": "Investors fear US will now seek to slow data centre buildout in potential blow to tech companies",
+   "url": "https://www.ft.com/content/7c6ceb4f-d7b1-49ec-9047-0e2e4cd2615c?syn-25a6b1a6=1",
+   "publishedAt": "2026-11-05T16:59:34.000Z",
+   "topics": [
+    "economie",
+    "ai",
+    "vs-politiek"
+   ]
+  },
+  {
+   "id": "1i8gs84",
+   "kind": "article",
+   "source": "scmp",
+   "sourceName": "South China Morning Post",
+   "title": "Post-US midterms AI worries pummel shares in Japan, South Korea",
+   "summary": "Japanese and South Korean shares plunged on Friday after US shares tumbled overnight on worries that midterm election results could slow or derail the artificial intelligence data centre investment boom.",
+   "url": "https://www.scmp.com/news/asia/east-asia/article/3373478/post-us-midterms-ai-worries-pummel-shares-japan-south-korea",
+   "publishedAt": "2026-11-06T02:31:40.000Z",
+   "topics": [
+    "azie",
+    "ai",
+    "vs-politiek",
+    "verkiezingen"
+   ]
+  },
+  {
+   "id": "b5e24f",
+   "kind": "article",
+   "source": "bloomberg",
+   "sourceName": "Bloomberg",
+   "title": "Japan’s Nikkei Poised to Enter Bear Market as AI Selloff Deepens",
+   "summary": "Japan’s Nikkei 225 Stock Average slumped Friday, putting the tech-heavy gauge on course to enter a technical bear market as investors unwind artificial intelligence-related trades.",
+   "url": "https://www.bloomberg.com/news/articles/2026-11-06/japan-s-nikkei-breaks-below-key-60-000-level-on-ai-selloff",
+   "publishedAt": "2026-11-06T00:15:36.000Z",
+   "topics": [
+    "azie",
+    "ai"
+   ]
+  },
+  {
+   "id": "1r0c7dj",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "title": "Fractieleiders D66, VVD en CDA praten een-op-een met oppositie over belastingplan",
+   "summary": "De fractievoorzitters van D66, VVD en CDA zoeken de komende dagen los van elkaar contact met oppositiepartijen om een oplossing te vinden voor de problemen rondom het belastingplan voor 2027.",
+   "url": "https://nos.nl/l/2638202",
+   "publishedAt": "2026-11-05T19:16:19.000Z",
+   "topics": [
+    "nederland"
+   ]
+  },
+  {
+   "id": "1rkk5x3",
+   "kind": "article",
+   "source": "parool",
+   "sourceName": "Het Parool",
+   "title": "D66, VVD en CDA hebben een creatieve list bedacht: los van elkaar onderhandelen met de oppositie",
+   "summary": "De fractieleiders van D66, VVD en CDA zoeken naar uitwegen om het belastingplan én het kabinet te redden. In de Haagse wandelgangen heerst een onbestemd sentiment.",
+   "url": "https://www.parool.nl/nederland/d66-vvd-en-cda-hebben-een-creatieve-list-bedacht-los-van-elkaar-onderhandelen-met-de-oppositie~b5040ac9/",
+   "publishedAt": "2026-11-05T17:35:16.000Z",
+   "topics": [
+    "nederland"
+   ]
+  }
+ ]
+}
