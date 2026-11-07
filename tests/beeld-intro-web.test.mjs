@@ -103,7 +103,7 @@ test('web met beelden uit: in de krant-vorm geen ruimte voor de miniatuur', () =
   }
   // De maat van de intro rekent dan met de hele kolom.
   assert.match(src('src/components/Items.jsx'), /introMax\(lineCount, 'rij', \(prefs\?\.images \?\? 'aan'\) === 'aan'\)/)
-  assert.match(src('src/views/Edition.jsx'), /useIntroMax\(\)\(INTRO_LINES, \(prefs\?\.images \?\? 'aan'\) === 'aan' \? 'voorpagina' : 'rij'\)/)
+  assert.match(src('src/views/Edition.jsx'), /useIntroMax\(\)\(INTRO_LINES, \(prefs\?\.images \?\? 'aan'\) === 'aan' \? 'voorpagina' : 'rij', false, width\)/)
 })
 
 test('beeldloos: een beeld dat pas bij het laden mislukt, volgt ook de buurregel (PlaceholderList)', () => {

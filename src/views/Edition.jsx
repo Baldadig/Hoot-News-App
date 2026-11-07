@@ -30,7 +30,7 @@ import { Why, whyLine } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
 import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
-import { useIntroMax } from '../lib/intro.js'
+import { useIntroMax, useColumnWidth } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
@@ -55,7 +55,10 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   const opinie = item.type === 'opinie'
   const title = item.title
   // De miniatuur staat er altijd (het beeld of het placeholderbeeld), behalve met beelden uit: dan de hele breedte.
-  const fit = useIntroMax()(INTRO_LINES, (prefs?.images ?? 'aan') === 'aan' ? 'voorpagina' : 'rij')
+  // Gemeten is gemeten: de echte breedte van de tekstkolom (useColumnWidth). Tot die er is, de smalste maat.
+  const textRef = useRef(null)
+  const width = useColumnWidth(textRef)
+  const fit = useIntroMax()(INTRO_LINES, (prefs?.images ?? 'aan') === 'aan' ? 'voorpagina' : 'rij', false, width)
   const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
@@ -75,7 +78,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
       <Why why={why} />
       {whySpace && !whyLine(why) ? <p className="why why--leeg" aria-hidden="true">&nbsp;</p> : null}
       <a className="fitem__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
-        <span className="fitem__text">
+        <span className="fitem__text" ref={textRef}>
           <span className="head-4 fitem__title" role="heading" aria-level="3">
             {title}
           </span>
