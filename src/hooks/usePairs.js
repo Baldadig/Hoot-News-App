@@ -34,7 +34,8 @@ export function usePairs(pairsRef, frontRef, on, key) {
     fitLead(front)
     if (!grid || columns(grid) < 2) return setPlan({ at, boven: {} })
     grid.classList.add('pairs--measure')
-    const cells = [...grid.children].filter((el) => !el.classList.contains('pairs__label')).map((el, i) => ({ key: key.split(',')[i] ?? String(i), el }))
+    // Het kopje en het katern Buiten je bubbel zijn geen plekken: die tellen niet mee in de paren.
+    const cells = [...grid.children].filter((el) => !el.classList.contains('pairs__label') && !el.classList.contains('bubble')).map((el, i) => ({ key: key.split(',')[i] ?? String(i), el }))
     const width = cells[0]?.el.offsetWidth || 0
     const measured = cells.map(({ key: k, el }) => ({ key: k, h: el.offsetHeight, image: !!el.querySelector('.thumb') }))
     grid.classList.remove('pairs--measure')
