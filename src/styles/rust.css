@@ -23,19 +23,41 @@
   }
 }
 
-/* ---------- 3. Editie, breed: één kolommaat na het raster ----------
-   Een los laatste verhaal (10) blijft in het raster, één kolom breed zoals de andere, links. Wat
-   erna komt (Buiten je bubbel, De Editie in één minuut, de eindkaart) staat op precies die kolommaat
-   en op dezelfde linkerlijn. Zo is er onder de voorpagina één leeskolom met één rechterlijn; het
-   raam blijft links verankerd en de rechterbaan mag leeg zijn (zoals .col--read, audit §2). Een
-   eindkaart over de hele breedte zou het zwaarste blok van de pagina worden; de leesmaat (720)
-   paste op geen van beide rasterlijnen. */
+/* ---------- 3. Editie, breed: Buiten je bubbel als katern, het einde over de hele breedte ----------
+   (Alex 7-11: "Buiten je bubbel mag in een aparte katern naast 10 staan. De footer mag passend over
+   de breedte.") Een los laatste verhaal (10) blijft in het raster, één kolom breed zoals de andere,
+   links. Buiten je bubbel staat als eigen katern in het raster (Edition.jsx: .bubble--katern): naast
+   de laatste plek als die alleen staat (.bubble--naast), met zijn bovenlijn op die van die plek; staat
+   de laatste rij vol, dan op een eigen rij links (.bubble--rij), met de gewone lucht erboven. Nooit
+   plek 11: de sterke lijn, het kopje en de ondertitel maken er een apart katern van, en de plek-lijn
+   (1px) van de paren valt weg. De Editie in één minuut en de eindkaart lopen daarna over de hele
+   breedte van het raster: zelfde linker- en rechterlijn als de paren, zelfde opbouw en hoogte als op
+   de telefoon (alleen breder). Zonder paren (een Editie van drie) staat de bubbel op één kolommaat. */
+/* Smaller (één leeskolom) staat het katern ook in .pairs, maar ziet het er precies zo uit als ervoor:
+   zonder de lijn van een lijstrij, zodat zijn eigen sterke lijn de enige is en de lucht erboven gelijk blijft. */
+.pairs > .bubble--katern {
+  border-top: 0;
+}
 @container front (width > 48rem) {
   .pairs > :last-child:nth-child(odd of :not(.pairs__label)) {
     grid-column: auto;
   }
-  .col--front > :is(.bubble, .briefcta--end, .endcap) {
+  .pairs > .bubble--katern {
+    max-inline-size: none;
+    margin-top: 0;
+    border-top: 0;
+  }
+  .pairs > .bubble--katern > .front__more {
+    max-inline-size: none;
+  }
+  .pairs > .bubble--naast > .front__more {
+    margin-top: 0;
+  }
+  .col--front > .bubble {
     max-inline-size: calc((100cqi - var(--s6)) / 2);
+  }
+  .col--front > :is(.briefcta--end, .endcap) {
+    max-inline-size: none;
   }
 }
 

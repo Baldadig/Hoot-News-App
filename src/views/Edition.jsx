@@ -210,6 +210,21 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const pairsRef = useRef(null)
   usePairs(pairsRef, frontRef, active && ready && !phone, rows.slice(SIDE).map((r) => r.key).join(','))
 
+  // Buiten je bubbel: een eigen katern. Breed (twee kolommen) staat hij in het raster van de paren,
+  // naast de laatste plek als die alleen staat (bubble--naast), anders op een eigen rij; smaller
+  // en op de telefoon onder de Editie, zoals altijd.
+  const bubbleInGrid = !phone && rows.length > SIDE
+  const bubbleNaast = (rows.length - SIDE) % 2 === 1
+  const bubbleKatern = editionBubble.length ? (
+    <section className={`bubble${bubbleInGrid ? ` bubble--katern ${bubbleNaast ? 'bubble--naast' : 'bubble--rij'}` : ''}`} aria-label="Buiten je bubbel">
+      <h2 className="label label--section front__more">Buiten je bubbel</h2>
+      <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
+      <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: phone ? 'tijdlijn' : 'krant' }))}>
+      {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} lines={INTRO_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain />}</Slot>)}
+      </PlaceholderList>
+    </section>
+  ) : null
+
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       {pull}
@@ -372,19 +387,14 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                     <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} whySpace={!!whyLine(paired[i % 2 ? i - 1 : i + 1]?.why)} />
                   </Slot>,
                 ])}
+                {/* Buiten je bubbel als eigen katern in het raster: in de lege cel naast de laatste plek, of
+                    (staat de laatste rij vol) op een eigen rij. Nooit plek 11: eigen kop, eigen lijn. */}
+                {bubbleInGrid ? bubbleKatern : null}
               </div>
             ) : null}
             </PlaceholderList>
             )}
-            {editionBubble.length ? (
-              <section className="bubble" aria-label="Buiten je bubbel">
-                <h2 className="label label--section front__more">Buiten je bubbel</h2>
-                <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
-                <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: phone ? 'tijdlijn' : 'krant' }))}>
-                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} lines={INTRO_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain />}</Slot>)}
-                </PlaceholderList>
-              </section>
-            ) : null}
+            {editionBubble.length && !bubbleInGrid ? bubbleKatern : null}
             {/* "De Editie in één minuut" staat onder het nieuws, vóór het einde (op iOS staat de rij er niet boven): het nieuws begint direct onder de lijn. */}
             {hasBrief ? (
               <button type="button" className="briefcta briefcta--end desk-only" onClick={() => setReading(true)} aria-haspopup="dialog">
