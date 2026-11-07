@@ -70,9 +70,15 @@ struct HangRow<Content: View>: View {
 // leeg vrij (`whySpace`), zodat beide koppen en beide beelden op één lijn beginnen. Een los laatste
 // verhaal blijft één kolom breed, links. (EditionPairs.plan blijft bestaan voor de toetsen, maar het
 // raster gebruikt hem niet meer.)
+//
+// Buiten je bubbel (Alex 7-11, gelijk aan .bubble--katern in src/styles/rust.css): een eigen katern in
+// het raster, nooit plek 11. Staat de laatste plek alleen, dan vult het katern de lege cel ernaast, met
+// zijn sterke lijn op de hoogte van de lijn van die plek; staat de laatste rij vol, dan op een eigen rij
+// links, met de gewone lucht erboven.
 struct EditionPairsGrid<Cell: View>: View {
     let rows: [EditionRowModel]
     let width: CGFloat
+    var katern: AnyView? = nil
     @ViewBuilder let cell: (EditionRowModel, Bool) -> Cell // rij, waarom-regel vrijhouden
 
     // Houdt dit verhaal een lege waarom-regel vrij? Alleen als het zelf geen waarom heeft en zijn buur wel.
@@ -94,7 +100,16 @@ struct EditionPairsGrid<Cell: View>: View {
                         }
                         .frame(maxHeight: .infinity, alignment: .top)
                     }
-                    if pair.count == 1 { Color.clear.gridCellUnsizedAxes([.horizontal, .vertical]) } // de rechterbaan blijft leeg
+                    if pair.count == 1 {
+                        if let katern { katern.frame(maxHeight: .infinity, alignment: .top) } // het katern naast de laatste plek
+                        else { Color.clear.gridCellUnsizedAxes([.horizontal, .vertical]) } // de rechterbaan blijft leeg
+                    }
+                }
+            }
+            if let katern, rows.count % 2 == 0 {
+                GridRow(alignment: .top) {
+                    katern.padding(.top, Space.s5)
+                    Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                 }
             }
         }

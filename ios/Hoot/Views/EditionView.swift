@@ -229,9 +229,27 @@ struct EditionView: View {
     }
     @State private var sideHeight: CGFloat = 0
 
-    // A: de breedte van één kolom van de paren. Buiten je bubbel en het einde staan daarop, links, zodat
-    // er onder de voorpagina één leeskolom met één rechterlijn is (gelijk aan src/styles/rust.css §3).
+    // A: de breedte van één kolom van de paren. Buiten je bubbel staat als katern in het raster; alleen
+    // zonder paren (een Editie van drie) staat hij hierop, links (gelijk aan src/styles/rust.css §3).
     private var pairColumn: CGFloat { contentWidth > 0 ? max(0, (contentWidth - Space.s6) / 2) : Layout.readable }
+
+    // Buiten je bubbel als eigen katern: de sterke lijn, de kop en de ondertitel (zoals .bubble op het web),
+    // dan het verhaal. In het raster (A) staat de lijn op de hoogte van de lijn van de plek ernaast
+    // (EditionPairsGrid: Rule met s2 erboven); daarbuiten met de gewone lucht erboven.
+    @ViewBuilder private func bubbleKatern(_ outsideRows: [EditionRowModel], inGrid: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            StrongRule().padding(.top, inGrid ? Space.s2 : Space.s5)
+            Kop("Buiten je bubbel", .title2).accessibilityAddTraits(.isHeader).padding(.top, Space.s3)
+            Text("Een verhaal naast je Editie.")
+                .font(.ui(.footnote))
+                .foregroundStyle(Theme.ink3)
+                .padding(.top, Space.s1)
+                .padding(.bottom, Space.s3)
+            ForEach(outsideRows) { row in
+                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
+            }
+        }
+    }
 
     enum Grid { case lijst, kolom, paren }
     private var grid: Grid {
@@ -416,7 +434,7 @@ struct EditionView: View {
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             if rows.count > 3 {
-                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, whySpace in
+                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth, katern: outsideRows.isEmpty ? nil : AnyView(bubbleKatern(outsideRows, inGrid: true))) { row, whySpace in
                                     slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, pinSource: true, whySpace: whySpace) }
                                 }
                                 .padding(.top, Space.s4)
@@ -450,17 +468,12 @@ struct EditionView: View {
                                     .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                             }
                         }
-                        if !outsideRows.isEmpty {
-                            VStack(alignment: .leading, spacing: 0) {
-                                StrongRule().padding(.top, Space.s5)
-                                Kop("Buiten je bubbel", .title2).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
-                                ForEach(outsideRows) { row in
-                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
-                                }
-                            }
-                            .padding(.leading, grid == .kolom ? hang : 0) // op de lijn van de tekst, niet van de nummers
-                            .frame(maxWidth: grid == .paren ? pairColumn : nil, alignment: .leading) // A: op de kolommaat van de paren (rust.css §3)
-                            .tienBlock(tien, 8)
+                        // Buiten je bubbel. A (paren): als katern in het raster hierboven; anders onder de Editie.
+                        if !outsideRows.isEmpty && !(grid == .paren && rows.count > 3) {
+                            bubbleKatern(outsideRows, inGrid: false)
+                                .padding(.leading, grid == .kolom ? hang : 0) // op de lijn van de tekst, niet van de nummers
+                                .frame(maxWidth: grid == .paren ? pairColumn : nil, alignment: .leading) // A zonder paren: op de kolommaat
+                                .tienBlock(tien, 8)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
@@ -497,7 +510,7 @@ struct EditionView: View {
                         .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
                         .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                        .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable) // op de leesbreedte, niet over de hele iPad (E9); A: de kolommaat van de paren, links
+                        .frame(maxWidth: grid == .paren ? .infinity : Layout.readable) // op de leesbreedte; A (paren): over de hele breedte van het raster, zoals op het web (Alex 7-11)
                         .padding(.leading, grid == .kolom ? hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
@@ -506,7 +519,7 @@ struct EditionView: View {
                         // kaart heen (keuze r5-einde-rust).
                         if alertAsk || alertYes {
                             AlertOffer(done: alertYes, slot: $alertSlot, yes: askAlerts, no: { answerAlerts(false) })
-                                .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable)
+                                .frame(maxWidth: grid == .paren ? .infinity : Layout.readable)
                                 .padding(.leading, grid == .kolom ? hang : 0)
                                 .padding(.bottom, Space.s6)
                                 .transition(.opacity)
