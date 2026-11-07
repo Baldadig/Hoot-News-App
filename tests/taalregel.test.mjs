@@ -169,3 +169,22 @@ for (const f of FILES) {
     assert.equal(createHash('sha256').update(JSON.stringify(withoutDebug(ed))).digest('hex').slice(0, 16), BEFORE[f])
   })
 }
+
+// Ronde 9 · 2: de server kiest de kop van een breed verhaal eerst uit de Nederlandstalige stukken (isDutch), Nederlands
+// vóór Vlaams. Zo krijgt ook de huidige app (zonder de taalregel in de rekenkern) vaker vanzelf een Nederlandse kop.
+test('widelyCovered: de kop van een breed verhaal komt eerst uit een Nederlandstalig gratis stuk', async () => {
+  const { widelyCovered } = await import('../netlify/lib/stories.mjs')
+  const feed = FEEDS['live-feed-2026-11-07.json.gz']
+  const SRC = new Map(SOURCES.map((s) => [s.id, s]))
+  const byId = new Map([...feed.related, ...feed.items].map((i) => [i.id, i]))
+  const opts = { isFree: (id) => SRC.has(id) && !SRC.get(id).paid, isDutch: (id) => SRC.get(id)?.lang === 'nl', isSport: (i) => SRC.get(i.source)?.cat === 'sport' }
+  const wide = widelyCovered(feed.stories, byId, opts)
+  const paus = wide.find((w) => feed.stories.find((s) => s.id === w.storyId)?.itemIds.some((id) => /Pope Leo XIV arrives/.test(byId.get(id)?.title || '')))
+  assert.ok(paus, 'het pausverhaal is breed')
+  assert.equal(SRC.get(paus.item.source).lang, 'nl', `${paus.item.source}: ${paus.item.title}`)
+  for (const w of wide) {
+    const members = feed.stories.find((s) => s.id === w.storyId).itemIds.map((id) => byId.get(id)).filter(Boolean)
+    const dutchFree = members.some((i) => opts.isFree(i.source) && opts.isDutch(i.source) && i.type !== 'opinie' && (i.lang || 'nl') === 'nl' && !/^\W*live\b|liveblog/i.test(i.title))
+    if (dutchFree) assert.ok(opts.isDutch(w.item.source), `${w.item.title}: er is een Nederlandstalig gratis stuk`)
+  }
+})

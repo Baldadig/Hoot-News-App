@@ -2371,7 +2371,10 @@ export function widelyCovered(stories = [], byId = new Map(), { isFree = () => f
     if (st.sourceCount < min && !majorNews(st, items)) continue
     if (!items.length || items.filter(isSport).length * 2 >= items.length) continue
     const free = items.filter((i) => isFree(i.source) && !isLive(i) && i.type !== 'opinie')
-    const lead = leadCandidates(free, new Set())[0] // dezelfde kwaliteit/actualiteit, geen landbonus
+    // De kop eerst uit de Nederlandstalige stukken (`isDutch`, Nederlands vóór Vlaams: dutchFirst), daarbinnen dezelfde
+    // kwaliteit en actualiteit, geen landbonus (taalregel, 7 november 2026: de paus in Uruguay kreeg de Engelse Al
+    // Jazeera-kop terwijl de VRT het bracht). Pas zonder Nederlandstalig gratis stuk een anderstalig.
+    const lead = leadCandidates(dutchFirst(prefer(free, (i) => isDutch(i.source))), new Set())[0]
     if (!lead) continue
     out.push({ storyId: st.id, sourceCount: st.sourceCount, ...coverageOf(items), topics: [...new Set(items.flatMap((i) => i.topics || []))], item: lead })
   }
