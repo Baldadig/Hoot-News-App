@@ -182,3 +182,62 @@ test('B · 10b: onder de top wel de Nederlandse kop over hetzelfde feit als de h
   const lead = itemsOf(entries[6]).find((i) => i.id === entries[6].leadId)
   assert.equal(lead.source, 'trouw', `hetzelfde feit in het Nederlands, niet ${lead.source}: ${lead.title}`)
 })
+
+// B · 10b poging 2 (keuring 10b-1: op bewaarde feeds werden nog vier koppen een Nederlandse kop over een ander feit). Elk
+// geval met verzonnen namen in hetzelfde patroon; de huidige kop staat op plek 7 (onder de voorpagina), zonder vorige Editie.
+function swapAt7(members, leadSource) {
+  const { entries, itemsOf } = patriarchEdition(members, leadSource)
+  dutchHeads(entries, { itemsOf, mainIds: MAIN_IDS, now: T, since: 0 })
+  return itemsOf(entries[6]).find((i) => i.id === entries[6].leadId)
+}
+
+const withSummary = (a, summary) => ({ ...a, summary })
+
+test('B · 10b-2: een brede naam plus een verkiezingsbegrip is geen zelfde feit', () => {
+  // Patroon Trump/Abbott → "Trump voor lastige keuzes": alleen een brede naam en een verkiezing in beide koppen.
+  const lead = swapAt7([
+    withSummary(art('independent', 'Trump U-turns on former MAGA ally Ronald Pemberly with dizzying speed after his election loss became clear', 3), 'Donald Trump dropped Ronald Pemberly after the governor lost the election in Texas, as Republicans count their midterm losses.'),
+    art('nyt', 'Ronald Pemberly concedes governor race as Trump allies distance themselves', 4),
+    withSummary(art('fd', 'Na harde midterms-klap staat Donald Trump voor lastige keuzes', 1), 'Na de verkiezingsnederlaag van de Republikeinen, ook in Texas waar Ronald Pemberly verloor, moet Trump kiezen.'),
+  ], 'independent')
+  assert.equal(lead.source, 'independent', `de Engelse kop blijft, niet ${lead.source}: ${lead.title}`)
+})
+
+test('B · 10b-2: een voor- en achternaam in losse reeksen van een tussenstuk maken geen tweede naam', () => {
+  // Patroon Carney/EU → "Canada zegt 500 miljoen toe": via een tussenstuk met de premier en een woordspeling op zijn
+  // voornaam; het verkeerde stuk is het nieuwste.
+  const lead = swapAt7([
+    withSummary(art('scmp', 'Corvin expects to conclude talks on making Velmark EU’s first associate member in June', 3), 'Velmark prime minister Halvard Corvin said talks with the EU would conclude in June.'),
+    withSummary(art('politico', 'The Brandt way or the Corvin method? Velmark’s leader is off the Halvard', 5), 'Halvard Corvin of Velmark has a method for dealing with the EU and Ukraine.'),
+    withSummary(art('nd', 'EU en Velmark ondertekenen ‘alliantie voor de toekomst’', 6), 'Premier Halvard Corvin van Velmark tekende in Brussel.'),
+    withSummary(art('nhd', 'Velmark zegt 500 miljoen euro toe aan EU-lening voor Oekraïne', 1), 'Premier Halvard Corvin van Velmark zegde in Brussel 500 miljoen toe aan de EU-lening voor Oekraïne.'),
+  ], 'scmp')
+  assert.notEqual(lead.source, 'nhd', `geen kop over de lening: ${lead.title}`)
+})
+
+test('B · 10b-2: koppen die maar één kenmerk delen (de rest uit de intro) zijn geen zelfde feit', () => {
+  // Patroon Fifa → "uitdager van de Fifa-voorzitter" en RTX 5080 → "Nvidia wil de RTX 5080 eerder uitbrengen".
+  const bond = [
+    art('guardiansport', 'Billions in revenue proves Folbex right on the World Cup, but only on things it cares about', 3),
+    art('trouw', 'Rhamon Vielle, de eerste uitdager van Folbex-voorzitter Tandino: ‘Ik heb geen ego’', 1),
+  ]
+  bond[0].summary = 'Folbex and its president Tandino face a challenger, Rhamon Vielle, as the World Cup revenue grows.'
+  bond[1].summary = 'Rhamon Vielle daagt Tandino uit; Folbex verdiende miljarden aan het WK.'
+  assert.equal(swapAt7(bond, 'guardiansport').source, 'guardiansport')
+  const chip = [
+    art('ign', 'ZX 7080 Disappears From Norvia’s Store as Prices Reach $2,000', 3),
+    art('tweakers', '‘Norvia wil ZX 7080 met 24GB eerder uitbrengen dan verwacht en 16GB uitfaseren’', 1),
+  ]
+  chip[0].summary = 'Norvia’s ZX 7080 with 16GB is gone from its store; a 24GB version is reportedly coming.'
+  assert.equal(swapAt7(chip, 'ign').source, 'ign')
+})
+
+test('B · 10b-2: twee wedstrijden uit één speelronde zijn geen zelfde feit, dezelfde wedstrijd wel', () => {
+  const round = () => [
+    art('demorgen', 'Club Brelde boekt derde zege op rij in Champions League en ziet knock-outfase dichterbij komen', 3),
+    art('sporza', 'Na nederlaag in Brelde gaat Renlo helemaal onderuit tegen Tossano, dat grootste zege ooit evenaart', 4),
+    art('nos', 'Tossano boekt grootste Champions League-zege ooit tegen Renlo, ook Varto wint', 1),
+  ]
+  assert.equal(swapAt7(round(), 'demorgen').source, 'demorgen', 'een andere wedstrijd uit de speelronde wordt geen kop')
+  assert.equal(swapAt7(round(), 'sporza').source, 'nos', 'dezelfde wedstrijd wel')
+})
