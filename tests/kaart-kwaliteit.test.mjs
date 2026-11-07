@@ -65,3 +65,10 @@ test('server: beeld en reserve-intro alleen van een stuk over hetzelfde feit, in
   assert.equal(borrowImagesFromStories([{ id: 't', itemIds: ['los', 'leeg'] }], new Map([[los.id, los], [leeg.id, leeg]])), 0)
   assert.equal(los.image, undefined)
 })
+
+test('app: in de zijkolom staat de intro onder kop en beeld, net als op het web', () => {
+  const c = src('ios/Hoot/Views/Components.swift')
+  assert.match(c, /private var introBelow: Bool \{ narrow && !timeline && thumbShown \}/)
+  assert.match(c, /if introBelow \{ introView \}/)
+  assert.match(c, /if !introBelow \{ introView \}/)
+})
