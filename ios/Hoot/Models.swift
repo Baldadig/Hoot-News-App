@@ -79,7 +79,7 @@ struct Item: Codable, Identifiable, Hashable {
     func cardIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
         if let shownSummary {
             let own = wholeSentences(shownSummary, max: max - viaLength, rek: rek.map { $0 - viaLength })
-            if !own.isEmpty { return (own, borrowedFrom) }
+            if !own.isEmpty, borrowedFrom == nil || Self.endsSentence(own) { return (own, borrowedFrom) }
         }
         return reserveIntro(max: max, rek: rek)
     }
@@ -96,8 +96,12 @@ struct Item: Codable, Identifiable, Hashable {
         guard let introAlt, let introAltFrom else { return nil }
         let cost = introAltFrom.count + 8
         let alt = wholeSentences(Aanhef.shown(EditionDisplay.cleanIntro(introAlt, author: nil)), max: max - cost, rek: rek.map { $0 - cost })
-        // Alleen als hele zin (endsSentence in shared/kaart-intro.mjs): een stuk tot een komma van een ander zegt te weinig.
-        return alt.range(of: #"[.!?]["'’”)]?$"#, options: .regularExpression) == nil ? nil : (alt, introAltFrom)
+        return Self.endsSentence(alt) ? (alt, introAltFrom) : nil
+    }
+    // Een intro van een ander ("via") alleen als hele zin (endsSentence in shared/kaart-intro.mjs): een stuk tot een
+    // komma van een ander zegt te weinig.
+    static func endsSentence(_ text: String) -> Bool {
+        text.range(of: #"[.!?]["'’”)]?$"#, options: .regularExpression) != nil
     }
     // Met het vangnet van het web (FrontItem in src/views/Edition.jsx, fitem__sum--rek): levert de gewone maat
     // niets op, dan mag één lange eerste zin een regel (`line` tekens) langer zijn. IntroText meet daarna wat er

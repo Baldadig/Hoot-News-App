@@ -20,14 +20,15 @@ export const viaCost = (name) => (name ? name.length + 8 : 0)
 // toont (kaart, hoofdverhaal, verhaal, Selectie).
 export const ownIntro = (item) => (item?.introLoose ? '' : introShown(cleanIntro(item?.summary, item?.author)))
 
-// Een reserve-intro staat er alleen als hele zin: een stuk tot een komma van een ander ("Ahold Delhaize, eigenaar van
-// onder meer Albert Heijn, Etos, Gall & Gall en bol — via AD") zegt te weinig. Item.reserveIntro in de app.
+// Een intro van een ander (met "via": geleend of reserve) staat er alleen als hele zin: een stuk tot een komma ("Ahold
+// Delhaize, eigenaar van onder meer Albert Heijn, Etos, Gall & Gall en bol — via AD") zegt te weinig.
+// Item.cardIntro en Item.reserveIntro in de app.
 export const endsSentence = (t) => /[.!?]["'’”)]?$/.test(t)
 
 // `fit`: { max, rek } van de plek. Geeft { text, via }: via is de bron van een geleende intro, of null.
 export function cardIntro(item, fit = { max: Infinity, rek: Infinity }) {
   const own = wholeSentences(ownIntro(item), fit.max - viaCost(item?.borrowedFrom), fit.rek - viaCost(item?.borrowedFrom))
-  if (own) return { text: own, via: item.borrowedFrom || null }
+  if (own && (!item.borrowedFrom || endsSentence(own))) return { text: own, via: item.borrowedFrom || null }
   if (item?.introAlt && item.introAltFrom) {
     const alt = wholeSentences(introShown(cleanIntro(item.introAlt)), fit.max - viaCost(item.introAltFrom), fit.rek - viaCost(item.introAltFrom))
     if (alt && endsSentence(alt)) return { text: alt, via: item.introAltFrom }

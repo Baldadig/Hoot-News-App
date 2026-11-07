@@ -131,6 +131,10 @@ final class BeeldIntroTests: XCTestCase {
         let r = try JSONDecoder().decode(Item.self, from: Data(#"{"id":"f","source":"volkskrant","url":"https://www.volkskrant.nl/f","title":"Ahold","introAlt":"\#(ahold)","introAltFrom":"AD"}"#.utf8))
         XCTAssertNil(r.reserveIntro(max: 120)) // alleen een stuk tot een komma: geen reserve
         XCTAssertEqual(r.reserveIntro(max: 300)?.text, ahold)
+        // Ook een geleende eigen intro ("via") alleen als hele zin.
+        let g = try JSONDecoder().decode(Item.self, from: Data(#"{"id":"h","source":"volkskrant","url":"https://www.volkskrant.nl/h","title":"Ahold","summary":"\#(ahold)","borrowedFrom":"AD"}"#.utf8))
+        XCTAssertNil(g.cardIntro(max: 120))
+        XCTAssertEqual(g.cardIntro(max: 300)?.via, "AD")
     }
 
     // Het rek-vangnet van het web (fitem__sum--rek): past de eerste zin niet binnen de maat, dan mag hij een regel

@@ -212,7 +212,14 @@ test('reserve-intro alleen als hele zin, nooit een stuk tot een komma van een an
   const smal = introMax(INTRO_LINES, { width: 267, font: 15 })
   assert.deepEqual(cardIntro(item, smal), { text: '', via: null })
   assert.deepEqual(cardIntro(item, { max: 260, rek: 260 }), { text: ahold, via: 'AD' })
-  assert.match(src('ios/Hoot/Models.swift'), /return alt\.range\(of: #"\[\.!\?\]\["'’”\)\]\?\$"#, options: \.regularExpression\) == nil \? nil : \(alt, introAltFrom\)/)
+  // Ook een geleende eigen intro ("via"): nooit "Óscar Puente, de Spaanse minister van Transport — via Nederlands Dagblad".
+  const geleend = { summary: ahold, borrowedFrom: 'AD' }
+  assert.deepEqual(cardIntro(geleend, smal), { text: '', via: null })
+  assert.deepEqual(cardIntro(geleend, { max: 260, rek: 260 }), { text: ahold, via: 'AD' })
+  const m = src('ios/Hoot/Models.swift')
+  assert.ok(m.includes(`text.range(of: #"[.!?]["'’”)]?$"#, options: .regularExpression) != nil`))
+  assert.match(m, /if !own\.isEmpty, borrowedFrom == nil \|\| Self\.endsSentence\(own\) \{ return \(own, borrowedFrom\) \}/)
+  assert.match(m, /return Self\.endsSentence\(alt\) \? \(alt, introAltFrom\) : nil/)
 })
 
 test('een bewaarde geleende intro van vóór de toets wordt alsnog getoetst, zonder de samenvatting te veranderen', async () => {
