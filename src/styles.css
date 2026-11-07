@@ -3968,6 +3968,10 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   font-size: var(--t3);
   line-height: var(--lh-2-read);
 }
+/* Vangnet (FrontItem): één lange eerste zin mag twee regels doorlopen; de clamp staat dan een regel ruimer. */
+.fitem__sum--rek {
+  --lines: 4;
+}
 .fitem .thumb {
   display: block;
   width: var(--thumb-w);
@@ -4463,9 +4467,25 @@ html[data-images='hoofd'] .fitem__link {
     border-top: 0;
     border-left: 1px solid var(--rule);
   }
-  /* Naast het hoofdverhaal: tekst voorop, alleen het laatste krijgt een klein beeld */
-  .front__side .fitem:not(:last-child) .thumb {
-    display: none;
+  /* Naast het hoofdverhaal heeft elk verhaal zijn kleine beeld (of het placeholderbeeld), net als in
+     de paren: een plek zonder beeld zag er vergeten uit (kaartkwaliteit, 7 november). */
+  /* Het beeld staat naast de kop; de intro loopt eronder over de hele kolom, zodat hij niet in een
+     smalle strook naast het beeld hoeft te passen (en daar zo vaak wegviel). */
+  .front__side .fitem__link {
+    grid-template-areas: 'kop beeld' 'intro intro';
+    row-gap: var(--s1);
+  }
+  .front__side .fitem__text {
+    display: contents;
+  }
+  .front__side .fitem__title {
+    grid-area: kop;
+  }
+  .front__side .fitem__sum {
+    grid-area: intro;
+  }
+  .front__side .fitem .thumb {
+    grid-area: beeld;
   }
   .pairs {
     display: grid;
@@ -4488,6 +4508,11 @@ html[data-images='hoofd'] .fitem__link {
   /* De bronregel onderaan: zo staan de bronregels van een paar op één lijn. */
   .pairs > .fitem > .fitem__link {
     flex: 1 0 auto;
+  }
+  /* Zonder intro geen gat tussen kop en bron: de bronregel volgt direct op de kop en de witruimte
+     komt onderaan de cel (kaartkwaliteit). */
+  .pairs > .fitem:not(:has(.fitem__sum)) > .fitem__link {
+    flex: 0 0 auto;
   }
   .pairs > :last-child:nth-child(odd of :not(.pairs__label)) {
     grid-column: 1 / -1;

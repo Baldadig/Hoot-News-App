@@ -1,5 +1,6 @@
+import { cardIntro, ownIntro } from '../../shared/kaart-intro.mjs'
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
-import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
+import { headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { usePhone } from '../hooks/usePhone.js'
@@ -280,12 +281,13 @@ export function aboutOf(items) {
 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength in de app).
 export const viaLength = (item) => (item.borrowedFrom ? item.borrowedFrom.length + 8 : 0)
 // `tekst`: een al gekozen intro (de vouw van 01 kiest zelf een zin minder, src/lib/vouw.js).
+// Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (shared/kaart-intro.mjs).
 const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity }, tekst }) => {
-  const text = tekst ?? wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item))
-  return text ? (
+  const chosen = tekst != null ? { text: tekst, via: item.borrowedFrom || null } : cardIntro(item, fit)
+  return chosen.text ? (
     <p className={className}>
-      {text}
-      {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+      {chosen.text}
+      {chosen.via ? <span className="via"> — via {chosen.via}</span> : null}
     </p>
   ) : null
 }
@@ -434,7 +436,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
   // 01 boven de vouw (src/lib/vouw.js): alleen het hoofdverhaal op een telefoon.
   const phone = usePhone()
   const kaartRef = useRef(null)
-  const vouw = useVouw(kaartRef, { aan: lead && phone, introTekst: lead ? wholeSentences(cleanIntro(item.summary, item.author), 240 - viaLength(item), 240 - viaLength(item)) : '', key: item.id })
+  const vouw = useVouw(kaartRef, { aan: lead && phone, introTekst: lead ? wholeSentences(ownIntro(item), 240 - viaLength(item), 240 - viaLength(item)) : '', key: item.id })
   const beeld = klein ? (
     <Beeld item={item} kind="krant" className={`thumb kaart__thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
       {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}

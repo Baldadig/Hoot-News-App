@@ -15,6 +15,7 @@ import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
+import { ownIntro } from '../../shared/kaart-intro.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
 
@@ -85,7 +86,7 @@ function Card({ item, rank, feature = false }) {
   // stuk 4 regels in de grotere letter (.dcard__sum --lines). De clamp staat een regel ruimer.
   const fit = useIntroMax()(feature ? 4 : 3, feature ? 'kaartEerste' : 'kaart')
   // Komt hier ooit een geleende intro, dan met zijn bron ("via X"); die tekens gaan van de maat af.
-  const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item))
+  const summary = wholeSentences(ownIntro(item), fit.max - viaLength(item), fit.rek - viaLength(item))
   return (
     <article className={`card dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="dcard__link" href={item.url} rel="noreferrer" onClick={() => markRead(item.id)}>

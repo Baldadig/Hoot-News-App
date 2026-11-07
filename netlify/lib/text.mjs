@@ -115,3 +115,13 @@ export function plausibleTime(iso, now = Date.now(), tz = 'Europe/Amsterdam') {
   const fixed = t - tzOffsetMs(t, tz)
   return new Date(fixed <= now + SLACK ? fixed : now).toISOString()
 }
+
+// Eigen intro's: alleen gebiedende reclamezinnen, met woordgrenzen. "Downloading", "a malicious download" of
+// "subscribers" is gewoon nieuws (Wired, IGN, Eurogamer).
+export const PROMO_OWN = /\b(?:download\s+(?:de|onze|deze|ons|the|our|this|my|gratis|free|now|today)\b|download\s+hier\b|installeer\b|(?:get|download)\s+the\s+app\b|(?:in|via)\s+onze\s+app\b|abonneer\s+(?:je|u)\b|schrijf\s+je\s+in\b|meld\s+je\s+aan\b|volg\s+ons\b|sign\s+up\b|subscribe\s+(?:to|now|today|for|here)\b|subscribe[.!]|(?:our|this|the)\s+(?:daily\s+|weekly\s+)?newsletter\b|(?:onze|de|deze)\s+nieuwsbrief\b|schakel\s+(?:pushmeldingen|notificaties)\s+in\b|zet\s+(?:pushmeldingen|notificaties)\s+aan\b|turn\s+on\s+notifications\b|this\s+(?:is\s+an\s+edition\s+of|article\s+was\s+featured\s+in)\b|subscribe\s+(?:to|on)\s+[\w\s,]*(?:apple\s+podcasts|spotify)\b)/i
+// Ook de eigen intro van een bron krijgt dit filter (build.mjs: stripPromoIntros; rss.mjs vóór preview) ("Download de app" onder een kop van De Standaard):
+// valt er niets over, dan is er geen intro.
+export function withoutPromo(text, re = PROMO_OWN) {
+  const sentences = String(text || '').match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
+  return sentences.filter((z) => !re.test(z)).join('').trim()
+}

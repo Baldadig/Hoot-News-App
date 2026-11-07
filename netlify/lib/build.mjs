@@ -1,4 +1,5 @@
 import { cleanIntro } from '../../shared/edition-display.mjs'
+import { wholeSentences, introMax, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { EDITOR_REVISION, EDITION_REBUILD_SLOT, editionCacheKey, editionRevisionKey } from '../../shared/editor-version.mjs'
 import { previousEdition, carriedEdition } from './edition-history.mjs'
 // De feed samenstellen: alles ophalen, de Stroom vullen, bundelen tot verhalen en de editie
@@ -21,7 +22,9 @@ import { loadOgImage } from './og.mjs'
 import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
-import { normTitle, preview } from './text.mjs'
+import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
+import { isBlog, introShown } from '../../shared/aanhef.mjs'
+export { withoutPromo } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
@@ -89,6 +92,9 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // Nog zonder intro (de Volkskrant als de zoekindex achterloopt): die van een ander stuk uit
   // hetzelfde verhaal, met "via X". Nooit een samenvatting die we zelf schrijven.
   borrowFromStories(stories, poolById)
+  // Kaartkwaliteit: een beeld van een andere bron over hetzelfde feit, en een reserve-intro die wél past.
+  borrowImagesFromStories(stories, poolById)
+  introAlternatives(stories, poolById)
 
   // 6. Eerst-gezien-tijd per bericht, en bij welk verhaal het hoort (houdt id's stabiel).
   await updateRegistry(registry, items, now)
@@ -319,8 +325,9 @@ async function imagesFromBluesky(items, now) {
 // deelafbeelding van het artikel (og.mjs; nooit achter een cookiemuur of login om). Elk artikel één
 // keer proberen en onthouden (ook "geen beeld"), per ronde hooguit 60 nieuwe, de nieuwste eerst,
 // 10 tegelijk, elke pagina hooguit 4 seconden en de hele stap hooguit 8: wat dan nog open is, komt
-// de volgende ronde. Nooit een beeld van een ander artikel (fotorechten); een kopie van hetzelfde stuk
-// bij een zusterkrant (zelfde kop) is wel hetzelfde artikel.
+// de volgende ronde. Hier alleen het beeld van het artikel zelf; een kopie van hetzelfde stuk bij een
+// zusterkrant (zelfde kop) is wel hetzelfde artikel. Een beeld van een andere bron over hetzelfde feit
+// komt pas daarna, in borrowImagesFromStories (5c).
 const OG_KEEP = 4 * 24 * 60 * MIN
 export function wantsArticleImage(it, src) {
   return !!src && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url, it.title)
@@ -420,19 +427,30 @@ const borrowWords = (title) => {
 // meldingen aan te zetten gaan eruit ("Download de app DS Nieuws ..." onder een kop van De Morgen). Blijft
 // er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit.
 const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|volg hier|subscribe|sign up|newsletter)/i
-// Eigen intro's: alleen gebiedende reclamezinnen, met woordgrenzen. "Downloading", "a malicious download" of
-// "subscribers" is gewoon nieuws (Wired, IGN, Eurogamer).
-const PROMO_OWN = /\b(?:download\s+(?:de|onze|deze|ons|the|our|this|my|gratis|free|now|today)\b|download\s+hier\b|installeer\b|(?:get|download)\s+the\s+app\b|(?:in|via)\s+onze\s+app\b|abonneer\s+(?:je|u)\b|schrijf\s+je\s+in\b|meld\s+je\s+aan\b|volg\s+ons\b|sign\s+up\b|subscribe\s+(?:to|now|today|for|here)\b|subscribe[.!]|(?:our|this|the)\s+(?:daily\s+|weekly\s+)?newsletter\b|(?:onze|de|deze)\s+nieuwsbrief\b|schakel\s+(?:pushmeldingen|notificaties)\s+in\b|zet\s+(?:pushmeldingen|notificaties)\s+aan\b|turn\s+on\s+notifications\b)/i
-// Ook de eigen intro van een bron krijgt dit filter ("Download de app" onder een kop van De Standaard):
-// valt er niets over, dan is er geen intro.
-export function withoutPromo(text, re = PROMO_OWN) {
-  const sentences = String(text || '').match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
-  return sentences.filter((z) => !re.test(z)).join('').trim()
-}
+// Eigen intro's: het reclamefilter (PROMO_OWN, withoutPromo) staat in text.mjs, zodat ook de feed (rss.mjs)
+// het al vóór het inkorten toepast.
 export function lendableIntro(d) {
   if (!d?.summary || isLiveblog(d.url, d.title)) return ''
   return withoutPromo(d.summary, PROMO)
 }
+// Strenger, voor wat er GETOOND wordt (de reserve-intro, en de toets of een geleende intro er mag staan): ook geen
+// stuk waarvan de samenvatting de tekst van een blog over de hele dag is ("Welkom in het blog …", "Volg alle
+// ontwikkelingen … in onze liveblog."; shared/aanhef.mjs), ook niet de rest van die tekst, en zonder losse
+// verwijzingen ("Read more"). lendableIntro zelf blijft zoals hij was: daarmee rekent de samenstelling.
+export function reserveIntro(d) {
+  const text = lendableIntro(d)
+  return !text || isBlog(d.summary) ? '' : introShown(text)
+}
+// Een geleende intro (borrowPreviews, borrowFromStories) die niet aantoonbaar over het feit van de kop van de
+// ontvanger gaat, of van een blog komt, staat er niet (`introLoose`; shared/kaart-intro.mjs en Item.shownSummary
+// in de app). De samenvatting zelf blijft: de redacteur rekent ermee, en het nieuws mag niet verschuiven.
+function looseBorrow(it, d) {
+  const text = reserveIntro(d)
+  return !text || !fitsHeadline(it, d, text, onSmallest(text, d.sourceName) || text)
+}
+// Een bewaarde geleende intro van vóór deze toets (de bewaarde feed draagt borrowPreviews mee, tot 36 uur): de donor is
+// er misschien niet meer, dus toetsen we de geleende tekst zelf tegen de kop.
+const looseText = (it) => isBlog(it.summary) || !fitsHeadline(it, null, it.summary, onSmallest(it.summary, it.borrowedFrom) || it.summary)
 // Eigen intro's van alle berichten (geen posts), vóór het lenen: een intro die alleen reclame was, laat de
 // plek leeg en mag dan lenen.
 export function stripPromoIntros(items) {
@@ -447,6 +465,7 @@ export function borrowPreviews(items, mainItems) {
     .filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it) && lendableIntro(it))
     .map((d) => ({ d, w: borrowWords(d.title) }))
   for (const it of items) {
+    if (it.kind === 'article' && it.summary && it.borrowedFrom && it.introLoose === undefined) it.introLoose = looseText(it)
     if (it.kind !== 'article' || it.summary || !dutchItem(it) || isLiveblog(it.url, it.title)) continue
     const w = borrowWords(it.title)
     if (w.size < 3) continue
@@ -462,6 +481,7 @@ export function borrowPreviews(items, mainItems) {
       it.summary = lendableIntro(best)
       it.text = it.summary
       it.borrowedFrom = best.sourceName
+      it.introLoose = looseBorrow(it, best)
     }
   }
 }
@@ -492,6 +512,137 @@ export function borrowFromStories(stories, byId) {
       it.summary = lendableIntro(donor)
       if (!it.text) it.text = it.summary
       it.borrowedFrom = donor.sourceName
+      // Ook hier de toets van de reserve: gaat de geleende tekst niet aantoonbaar over het feit van deze kop
+      // ("Eerbetoon aan Paulien Cornelisse" kreeg "Mats Akkerman is uitgeroepen tot de winnaar"), dan staat hij
+      // er niet. De keuze van de donor blijft zoals hij was: daarmee rekent de samenstelling.
+      it.introLoose = looseBorrow(it, donor)
+      n++
+    }
+  }
+  return n
+}
+
+// ---------- 5c. Kaartkwaliteit: beeld en intro uit hetzelfde verhaal ----------
+// Elke plek in de Editie moet er verzorgd uitzien: een kop, een intro en een beeld (Alex, 7 november).
+// Belangrijk nieuws wijkt niet voor een mooier stuk, maar binnen hetzelfde verhaal mag een ander stuk
+// over hetzelfde feit aanvullen wat er ontbreekt. Dezelfde strenge toets als bij het lenen van een intro:
+// sterke overlap in de kop en geen botsende eigen namen (sameFact), zodat een ten onrechte gebundeld stuk
+// nooit iets levert.
+const sameFact = (a, b) => {
+  const wa = borrowWords(a.title)
+  const wb = borrowWords(b.title)
+  return wa.size >= 3 && strongOverlap(sharedCount(wa, wb), wa.size, wb.size) && !conflictingNames(a.title, b.title)
+}
+
+// Beeld (besluit van Alex, 7 november): "Als er geen image is, mag een van onze fallback images geplaatst
+// worden, of de image van een andere bron / zelfde artikel." Dus: na de feed, de zoekindex en de deelafbeelding
+// van het artikel zelf (imagesFromArticles) krijgt een stuk zonder beeld het beeld van een stuk van een andere
+// bron over hetzelfde feit (`imageFrom`: die bron). Is dat er niet, dan tekent de app het placeholderbeeld
+// (Beeld.jsx, Beeldloos.swift). Een liveblog geeft en krijgt niets: zijn beeld hoort bij de hele dag.
+export function borrowImagesFromStories(stories, byId) {
+  let n = 0
+  for (const st of stories) {
+    const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article' && !isLiveblog(i.url, i.title))
+    for (const it of members) {
+      if (it.image) continue
+      const donor = members.find((d) => d !== it && d.image && !d.imageFrom && d.source !== it.source && sameFact(it, d))
+      if (!donor) continue
+      it.image = donor.image
+      if (donor.imageMeta) it.imageMeta = donor.imageMeta
+      it.imageFrom = donor.sourceName || donor.source
+      n++
+    }
+  }
+  return n
+}
+
+// Intro (kaartkwaliteit): een eigen intro waarvan geen hele zin op de kleinste Editie-plek past (de
+// voorpagina naast een miniatuur op een telefoon: INTRO_LINES regels in 267 px, src/lib/intro.js) laat daar
+// een leeg vlak onder de kop. Zo'n stuk krijgt een reserve-intro mee (`introAlt`, met `introAltFrom`: "via X")
+// van een stuk uit hetzelfde verhaal over hetzelfde feit, in dezelfde taal als de kop (de taalregel blijft heel:
+// de intro volgt de kop), dat daar wél past. Het toestel neemt hem alleen als de eigen intro op die plek
+// echt niets oplevert (shared/kaart-intro.mjs, Item.cardIntro in de app).
+// Past de reserve bij de kop van de ontvanger? Het verhaal bundelt ruim, en de samenvatting van de donor kan
+// over iets anders gaan dan zijn eigen kop ("Parket start onderzoek naar zwaard in mobilhome" kreeg "… krijgt zijn
+// mobilhome terug"). Dus toetsen we de tekst zelf: kernwoorden van de kop die erin terugkomen (ook verbogen:
+// aanhouding/aanhoudingen), en getallen die elkaar tegenspreken ("Bijna 450 aanhoudingen" naast "565 mensen
+// opgepakt"). Twijfel is geen reserve: een kaart zonder intro staat er al netjes.
+const stemHit = (w, words) => {
+  for (const x of words) {
+    if (x === w) return true
+    let p = 0
+    while (p < x.length && p < w.length && x[p] === w[p]) p++
+    if (p >= 5 && p >= Math.min(x.length, w.length) - 3) return true
+  }
+  return false
+}
+const hits = (title, text) => {
+  const tw = sigWords(text)
+  let n = 0
+  for (const w of borrowWords(title)) if (stemHit(w, tw)) n++
+  return n
+}
+// Getallen als waarde: "2.000" en "2,000" (duizendtallen) zijn 2000, "6,3" en "2.1" zijn kommagetallen. Geen jaartallen.
+// Ook de telwoorden van twee tot twintig ("three tankers" naast "four tankers"); één/een/one niet, dat is ook een lidwoord,
+// en het Engelse "ten" niet, dat is ook Nederlands ("ten noorden van").
+const NUMBER_WORDS = new Map(
+  ['twee two 2', 'drie three 3', 'vier four 4', 'vijf five 5', 'zes six 6', 'zeven seven 7', 'acht eight 8', 'negen nine 9', 'tien - 10', 'elf eleven 11', 'twaalf twelve 12', 'dertien thirteen 13', 'veertien fourteen 14', 'vijftien fifteen 15', 'zestien sixteen 16', 'zeventien seventeen 17', 'achttien eighteen 18', 'negentien nineteen 19', 'twintig twenty 20']
+    .flatMap((r) => { const [nl, en, n] = r.split(' '); return [[nl, +n], [en, +n]].filter(([w]) => w !== '-') })
+)
+export const numbersIn = (s) => {
+  const text = String(s || '')
+  const digits = (text.match(/\d+(?:[.,]\d+)*/g) || [])
+    .filter((n) => !/^(19|20)\d\d$/.test(n))
+    .map((n) => (/^\d{1,3}(?:[.,]\d{3})+$/.test(n) ? +n.replace(/[.,]/g, '') : +n.replace(',', '.')))
+  const words = (text.toLowerCase().match(/\p{L}+/gu) || []).filter((w) => NUMBER_WORDS.has(w)).map((w) => NUMBER_WORDS.get(w))
+  return [...digits, ...words].filter((n) => Number.isFinite(n) && n > 0)
+}
+// Een getal in de kop dat de tekst niet noemt, terwijl de tekst een ander getal van dezelfde orde noemt (binnen een
+// factor drie): dat spreekt elkaar tegen. "2.000 jaar oude kast" naast "24 hangertjes" niet.
+export function numbersClash(title, text) {
+  const t = numbersIn(text)
+  return numbersIn(title).some((n) => !t.includes(n) && t.some((m) => m / n >= 1 / 3 && m / n <= 3))
+}
+// De reserve past bij de kop van de ontvanger als:
+// - minstens twee kernwoorden van die kop in de tekst terugkomen,
+// - noemt die kop eigen namen en komen er maar twee kernwoorden terug, dan staat er minstens één naam in de tekst
+//   ("Eerbetoon aan Paulien Cornelisse" kreeg "Mats Akkerman is uitgeroepen tot de winnaar": een ander feit uit
+//   dezelfde uitzending, met alleen "slimste" en "mens" gemeen),
+// - de tekst ook past bij de eigen kop van de donor (minstens één kernwoord),
+// - en geen getal in de hele tekst botst met een getal in de kop.
+// De woorden tellen in wat er op de kleinste plek staat (`shown`, de eerste hele zin of zinnen): dat moet op
+// zichzelf al over het feit van de kop gaan.
+export function fitsHeadline(it, donor, text, shown = text) {
+  const n = shown ? hits(it.title, shown) : 0
+  if (n < 2 || numbersClash(it.title, text)) return false
+  if (donor && hits(donor.title, shown) < 1) return false
+  const names = namesOf(it.title)
+  if (!names.size || n >= 3) return true
+  const words = wordsOf(shown)
+  return [...names].some((name) => named(name, words))
+}
+const SMALLEST = introMax(INTRO_LINES, { width: 267, font: 15 })
+const viaLen = (name) => (name ? name.length + 8 : 0)
+const onSmallest = (text, via = null) => wholeSentences(cleanIntro(text), SMALLEST.max - viaLen(via), SMALLEST.rek - viaLen(via))
+export const fitsSmallest = (text, via = null) => !!onSmallest(text, via)
+export function introAlternatives(stories, byId) {
+  let n = 0
+  for (const st of stories) {
+    const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article' && !isLiveblog(i.url, i.title))
+    for (const it of members) {
+      if (!it.summary) continue
+      // Wat er van de eigen intro getoond wordt (geen blogtekst, geen losse geleende intro): past dat, dan geen reserve.
+      const own = it.introLoose ? '' : introShown(cleanIntro(it.summary, it.author))
+      if (own && fitsSmallest(own, it.borrowedFrom)) continue
+      const donor = members.find((d) => {
+        if (d === it || !d.summary || d.borrowedFrom || d.source === it.source || langOf(d) !== langOf(it) || !visibleFor(d)) return false
+        const text = reserveIntro(d)
+        const shown = text && onSmallest(text, d.sourceName)
+        return !!shown && sameFact(it, d) && fitsHeadline(it, d, text, shown)
+      })
+      if (!donor) continue
+      it.introAlt = reserveIntro(donor)
+      it.introAltFrom = donor.sourceName
       n++
     }
   }
@@ -550,12 +701,16 @@ function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     title: it.title,
     summary: it.kind === 'post' ? it.summary : withoutPromo(cleanIntro(it.summary, it.author)),
     borrowedFrom: it.borrowedFrom,
+    introLoose: it.borrowedFrom ? it.introLoose : null,
+    introAlt: it.introAlt ? withoutPromo(cleanIntro(it.introAlt)) : null,
+    introAltFrom: it.introAlt ? it.introAltFrom : null,
     readMin: it.readMin,
     topics,
     mainTopics: mainTopics.length ? mainTopics : null,
     url: safeHttpUrl(it.url),
     linkTitle: it.linkTitle,
     image: safeHttpUrl(it.image),
+    imageFrom: it.image ? it.imageFrom : null,
     imageRatio: it.imageRatio,
     imageMeta: it.imageMeta,
     video: safeHttpUrl(it.video),

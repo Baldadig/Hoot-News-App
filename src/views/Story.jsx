@@ -7,6 +7,7 @@ import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
 import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
+import { ownIntro } from '../../shared/kaart-intro.mjs'
 import { useIntroMax } from '../lib/intro.js'
 
 // Esc sluit het vaste zijpaneel (breed scherm), zoals het de dialoog sluit op een smal scherm. Alleen als
@@ -33,7 +34,7 @@ function SourceItem({ item, note }) {
   const { markRead, read } = useHoot()
   const fit = useIntroMax()(INTRO_LINES, 'paneel')
   // Een geleende intro draagt zijn bron ("via X"), ook naast het origineel; die tekens gaan van de maat af.
-  const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
+  const summary = wholeSentences(ownIntro(item), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="srcitem__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>

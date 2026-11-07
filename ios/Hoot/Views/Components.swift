@@ -854,7 +854,7 @@ struct LeadCard: View {
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .loadLinesHead(item.title, style: EditionDisplay.headlineStyle(item.title)) // hier landen de laadstrepen
-            if let intro = item.summary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
+            if let intro = item.shownSummary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
                 // Gemeten, niet afgekapt: past de intro niet in 5 (breed 6) regels, dan een zin minder (IntroText).
                 IntroText(text: intro, style: wide ? .title3 : .body, lines: wide ? 6 : 5, suffix: item.introWithSource)
             }
@@ -908,7 +908,7 @@ struct LeadCard: View {
     }
 
     private func vouwKaart(_ ruimte: VouwRuimte) -> some View {
-        let intro = item.summary.map { wholeSentences($0, max: 240 - item.viaLength) } ?? ""
+        let intro = item.shownSummary.map { wholeSentences($0, max: 240 - item.viaLength) } ?? ""
         let kandidaten = intro.isEmpty ? [] : IntroText.candidates(intro)
         let regels = Vouw.introRegels(ruimte.profiel)
         return VStack(alignment: .leading, spacing: 0) {
@@ -958,7 +958,7 @@ struct LeadCard: View {
                         .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                         .loadLinesHead(item.title, style: EditionDisplay.headlineStyle(item.title)) // hier landen de laadstrepen
-                    if let intro = item.summary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
+                    if let intro = item.shownSummary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
                         IntroText(text: intro, style: .body, lines: 5, suffix: item.introWithSource, size: 20, line: 30)
                     }
                 }
@@ -1020,7 +1020,7 @@ struct ItemRow: View {
     var pinSource = false // in een paar (A): de bronregel onderaan de rij
     var whySpace = false // in een paar (A): een lege waarom-regel, omdat de buur er een heeft (koppen en beelden op één lijn)
     var narrow = false // de smalle zijkolom van de voorpagina (A): "N bronnen" klein achter de tijd
-    var thumbShown = true // in de krant-vorm: het kleine beeld rechts (de zijkolom toont het alleen bij het laatste verhaal)
+    var thumbShown = true // in de krant-vorm: het kleine beeld rechts
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
@@ -1123,8 +1123,11 @@ struct ItemRow: View {
     }
 
     @ViewBuilder private func kaartIntro(thumb: Bool) -> some View {
-        if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: thumb) - item.viaLength) }), !intro.isEmpty {
-            IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource, size: 18, line: 28)
+        // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro), met het rek-vangnet van
+        // het web; valt hij bij het meten weg, dan probeert IntroText de reserve (fallback).
+        let max = introMax(lines: store.preview, thumb: thumb), line = introMax(lines: 1, thumb: thumb)
+        if let intro = item.cardIntro(max: max, line: line) {
+            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via), fallback: item.introFallback(for: intro, max: max, line: line), size: 18, line: 28)
         }
     }
 
@@ -1153,30 +1156,54 @@ struct ItemRow: View {
                         }
                     }
                 } else {
-                    HStack(alignment: .top, spacing: Space.s3) {
-                        text.frame(maxWidth: .infinity, alignment: .leading)
-                        // Een vaste breedte (96; bij grotere tekst 108), zodat de tekstkolom op één lijn blijft,
-                        // wat de verhouding van het beeld ook is. Bij heel grote tekst krijgt de kop de hele breedte.
-                        let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
-                        if !thumbShown {
-                            EmptyView()
-                        } else if hasPicture, !typeSize.isAccessibilitySize {
-                            RemoteImage(url: picture(.thumb), measure: pictureMeasure, onFail: mislukt)
-                                .frame(width: width, height: width * 2 / 3)
-                                .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
-                                .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
-                        } else if !typeSize.isAccessibilitySize {
-                            BeeldloosView(item: item, kind: .krant, width: width)
+                    VStack(alignment: .leading, spacing: Space.s2) {
+                        HStack(alignment: .top, spacing: Space.s3) {
+                            text.frame(maxWidth: .infinity, alignment: .leading)
+                            // Een vaste breedte (96; bij grotere tekst 108), zodat de tekstkolom op één lijn blijft,
+                            // wat de verhouding van het beeld ook is. Bij heel grote tekst krijgt de kop de hele breedte.
+                            let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
+                            if !thumbShown {
+                                EmptyView()
+                            } else if hasPicture, !typeSize.isAccessibilitySize {
+                                RemoteImage(url: picture(.thumb), measure: pictureMeasure, onFail: mislukt)
+                                    .frame(width: width, height: width * 2 / 3)
+                                    .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+                                    .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
+                            } else if !typeSize.isAccessibilitySize {
+                                BeeldloosView(item: item, kind: .krant, width: width)
+                            }
                         }
+                        // De zijkolom naast het hoofdverhaal (narrow): de intro onder kop en beeld, over de hele kolom, zoals
+                        // .front__side op het web; anders past er in de strook naast het beeld bijna nooit een intro.
+                        if introBelow { introView }
                     }
                 }
             }
             .contentShape(Rectangle())
             .opensArticle(item)
-            if pinSource { Spacer(minLength: 0) }
+            // In een paar staat de bronregel onderaan, zodat de bronregels van de rij op één lijn staan. Zonder
+            // intro geen gat tussen kop en bron: dan volgt de bronregel op de kop en komt de witruimte onderaan
+            // (.pairs > .fitem zonder .fitem__sum op het web; kaartkwaliteit).
+            if pinSource && krantIntro != nil { Spacer(minLength: 0) }
             SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, narrow: narrow)
+            if pinSource && krantIntro == nil { Spacer(minLength: 0) }
         }
         .padding(.vertical, Space.s2)
+    }
+
+    // De intro in hele zinnen voor de rij- en krant-vorm, of nil als er geen past.
+    // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro).
+    // Met het rek-vangnet van het web (Item.cardIntro(max:line:)); IntroText meet daarna wat er echt past.
+    private var krantThumb: Bool { !introBelow && (!timeline || klein) && store.showsImage(lead: false) }
+    private var krantIntro: (text: String, via: String?)? {
+        item.cardIntro(max: introMax(lines: store.preview, thumb: krantThumb), line: introMax(lines: 1, thumb: krantThumb))
+    }
+    // In de zijkolom van de voorpagina (breed) staat de intro onder kop en beeld (web: .front__side).
+    private var introBelow: Bool { narrow && !timeline && thumbShown }
+    @ViewBuilder private var introView: some View {
+        if let intro = krantIntro {
+            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via), fallback: item.introFallback(for: intro, max: introMax(lines: store.preview, thumb: krantThumb), line: introMax(lines: 1, thumb: krantThumb)))
+        }
     }
 
     private var text: some View {
@@ -1201,9 +1228,7 @@ struct ItemRow: View {
                 // nooit afgekapt op een beletselteken.
                 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
                 // In de krant-vorm staat er altijd een miniatuur: het beeld of het placeholderbeeld.
-                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: (!timeline || klein) && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty {
-                    IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource)
-                }
+                if !introBelow { introView }
             }
         }
     }

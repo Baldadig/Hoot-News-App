@@ -34,8 +34,9 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
   const css = src('src/styles.css')
   assert.match(css, /\.fitem__sum \{\n  --lines: 3;/)
   assert.match(css, /\.srcitem__sum \{\n  --lines: 3;/)
-  // Geleende intro's dragen hun bron, ook in de Editie.
-  assert.match(src('src/views/Edition.jsx'), /via \{item\.borrowedFrom\}/)
+  // Geleende intro's dragen hun bron, ook in de Editie (cardIntro geeft de bron mee: eigen geleende of reserve).
+  assert.match(src('src/views/Edition.jsx'), /const gewoon = cardIntro\(item, maat\)/)
+  assert.match(src('src/views/Edition.jsx'), /— via \{via\}/)
   // Ook in het vergelijkpaneel en de Selectie-kaart, met de maat-aftrek; en in de app (DigestView).
   for (const f of ['src/views/Story.jsx', 'src/views/Vak.jsx']) {
     assert.match(src(f), /via \{item\.borrowedFrom\}/, f)
@@ -46,7 +47,8 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
 
 test('iOS: een intro wordt gemeten en nooit afgekapt (geen lineLimit op een intro, IntroText overal)', () => {
   const components = src('ios/Hoot/Views/Components.swift')
-  assert.equal((components.match(/IntroText\(text: intro,/g) || []).length, 5) // LeadCard en ItemRow, elk met de gewone en de kaart-A+-vorm, plus 01 boven de vouw (vouwTekst)
+  assert.equal((components.match(/IntroText\(text: intro,/g) || []).length, 3) // LeadCard in de gewone en de kaart-A+-vorm, plus 01 boven de vouw (vouwTekst)
+  assert.equal((components.match(/IntroText\(text: intro\.text,/g) || []).length, 2) // ItemRow, gewone en kaart-A+-vorm: met de reserve-intro (Item.cardIntro)
   assert.doesNotMatch(components, /introWithSource\(intro\)\)\.font/)
   assert.doesNotMatch(src('ios/Hoot/Views/DigestView.swift'), /introWithSource\(intro\)\)\.font/)
   assert.match(src('ios/Hoot/Views/IntroText.swift'), /ViewThatFits\(in: \.vertical\)/)
@@ -103,7 +105,7 @@ test('web met beelden uit: in de krant-vorm geen ruimte voor de miniatuur', () =
   }
   // De maat van de intro rekent dan met de hele kolom.
   assert.match(src('src/components/Items.jsx'), /introMax\(lineCount, 'rij', \(prefs\?\.images \?\? 'aan'\) === 'aan'\)/)
-  assert.match(src('src/views/Edition.jsx'), /useIntroMax\(\)\(INTRO_LINES, \(prefs\?\.images \?\? 'aan'\) === 'aan' \? 'voorpagina' : 'rij'\)/)
+  assert.match(src('src/views/Edition.jsx'), /useIntroMax\(\)\(INTRO_LINES, \(prefs\?\.images \?\? 'aan'\) === 'aan' \? 'voorpagina' : 'rij', false, width\)/)
 })
 
 test('beeldloos: een beeld dat pas bij het laden mislukt, volgt ook de buurregel (PlaceholderList)', () => {

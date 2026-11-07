@@ -3,7 +3,8 @@ import SwiftUI
 // Beeldloos (build 46): een bericht zonder beeld krijgt een Hoot-placeholderbeeld dat het beeldvak precies
 // vult. Eén plek, voor de app; het web spiegelt hem in Beeldloos (src/components/Beeld.jsx). Hij staat waar
 // anders het beeld zou staan: het stuk heeft geen beeld, het beeld is te klein voor die plek, of het laadt
-// niet. Nooit een grijs vlak en nooit een beeld van een ander artikel.
+// niet. Nooit een grijs vlak. Een beeld van een ander verhaal nooit; wel (besluit Alex, 7 november) dat van een
+// andere bron over hetzelfde feit, dat de server al als `image` meegeeft (borrowImagesFromStories). Pas daarna dit.
 // Tien beelden in vijf sets (shared/placeholder.mjs, de tekening in PlaceholderBeelden.swift): welk, volgt
 // uit de id van het artikel, en twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit
 // dezelfde set (Placeholder.plan, via de omgeving). Het is decoratie: verborgen voor VoiceOver.

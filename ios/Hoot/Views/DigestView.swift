@@ -408,7 +408,7 @@ private struct DigestCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                     // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
                     if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.hint) }
-                    if let intro = item.summary.map({ wholeSentences($0, max: (feature ? 260 : 200) - item.asItem.viaLength) }), !intro.isEmpty { IntroText(text: intro, style: .body, lines: feature ? 5 : 4, suffix: item.asItem.introWithSource) } // hele zinnen, gemeten: past het niet, dan een zin minder
+                    if let intro = item.asItem.shownSummary.map({ wholeSentences($0, max: (feature ? 260 : 200) - item.asItem.viaLength) }), !intro.isEmpty { IntroText(text: intro, style: .body, lines: feature ? 5 : 4, suffix: item.asItem.introWithSource) } // hele zinnen, gemeten: past het niet, dan een zin minder
                 }
                 .padding(.horizontal, Space.s4)
                 .padding(.top, showImage ? 4 : 16)

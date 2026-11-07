@@ -2,7 +2,7 @@
 // waarin hij staat. Dat is een telefoon van 375 breed met de marge (--gutter 16) aan twee kanten;
 // past een intro daar, dan ook op elke bredere kolom. De tekens per regel rekent shared/zinnen.mjs
 // (lineFit); hier staan alleen de kolommen van web, gemeten in de echte opmaak.
-import { useSyncExternalStore } from 'react'
+import { useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { introMax } from '../../shared/zinnen.mjs'
 
 // Kolombreedte in px op 375 (normale tekst). Met een miniatuur gaat het beeld (--thumb-w, onder
@@ -66,7 +66,12 @@ const getServerSnapshot = () => '1|normaal'
 export function useIntroMax() {
   const [scale, text] = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot).split('|')
   const s = Number(scale) || 1
-  return (lines, kind = 'rij', image = false) => {
+  // `column`: de gemeten breedte van de tekstkolom (useColumnWidth). Op een breed scherm is de kolom
+  // van een plek in de Editie veel breder dan de telefoon waarop de vaste maten rekenen; daar
+  // viel een intro van één zin van 150 tekens weg die er ruim in paste (kaartkwaliteit, 7 november).
+  return (lines, kind = 'rij', image = false, column = 0) => {
+    // Nooit breder dan de regellengte van een intro (--measure-prose: 28.8em van de intro, 17 px).
+    if (column > 0) return introMax(lines, { width: Math.min(column, 28.8 * T3 * s), font: T2 * s })
     // Kaart A+: de intro is 18 (hoofdverhaal 20) in Newsreader. Gerekend op 16 en 18: een tik ruimer
     // dan de gemeten 15,9 en 17,6 (0,51 em per teken), zodat de clamp (+1 regel) nooit knipt.
     if (kind === 'kaartA') return introMax(lines, { width: KOLOM.kaartA, font: 16 * s })
@@ -75,4 +80,46 @@ export function useIntroMax() {
     const width = kind === 'rij' && image ? KOLOM.rijBeeld(text === 'groot' ? 108 : 96) : KOLOM[kind] ?? KOLOM.rij
     return introMax(lines, { width, font: T2 * s })
   }
+}
+
+// De breedte van een tekstkolom, gemeten (ResizeObserver), vóór het tekenen (useLayoutEffect): zo
+// rekent de intro op de kolom waarin hij echt staat. 0 zolang er niets gemeten is (dan de vaste maat).
+// Elke 8 px één stap, zodat een paar pixels schuiven niet steeds opnieuw rekent.
+// `measure(el)`: wat er van het waargenomen element telt (standaard zijn eigen breedte).
+export function useColumnWidth(ref, measure = (el) => el.getBoundingClientRect().width) {
+  const [width, setWidth] = useState(0)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const take = () => {
+      const w = Math.floor(measure(el) / 8) * 8
+      setWidth((old) => (old === w ? old : w))
+    }
+    take()
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(take)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ref])
+  return width
+}
+
+// Vangnet: past de gekozen intro toch niet binnen de clamp (in een smalle kolom verliest elke regel een half
+// woord aan het afbreken, meer dan lineFit rekent), dan een halve regel kleiner, tot hij past of er geen hele
+// zin meer overblijft. Zo knipt de clamp nooit midden in een zin ("… via De…"). Zoals IntroText in de app
+// meet wat er echt past. `ref`: het element met de clamp; `key`: opnieuw beginnen (ander stuk, andere breedte).
+export function useShrinkToFit(ref, key) {
+  const [step, setStep] = useState(0)
+  useLayoutEffect(() => setStep(0), [key])
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (el && step < 8 && el.scrollHeight > el.clientHeight + 1) setStep((n) => n + 1)
+  })
+  return step
+}
+// De maat `fit` ({ max, rek }) `step` halve regels kleiner (rek − max is precies één regel).
+export const shrunk = (fit, step) => {
+  if (!step) return fit
+  const half = Math.ceil(Math.max(1, fit.rek - fit.max) / 2) * step
+  return { max: Math.max(0, fit.max - half), rek: Math.max(0, fit.rek - half) }
 }
