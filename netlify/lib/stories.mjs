@@ -1676,6 +1676,19 @@ const HEAD_CONCEPTS = [
   ['impeach', /\b(afgezet\w*|afzetting\w*|ousted|impeach\w*)\b/],
   ['arrest', /(huisarrest|house arrest)/],
 ]
+// Een volgende stap is een ander feit: een ontkenning, een onderzoek of een reactie op het feit. Noemt de Nederlandse kop zo'n
+// stap en de huidige kop niet, dan meldt hij niet hetzelfde ("de hackers kwamen binnen via een sollicitatie" en "Noord-Korea
+// ontkent de hack", "de speler overleed" en "de politie onderzoekt de keeper").
+const HEAD_STEPS = [
+  /\b(ontkent|ontkennen|ontkende|ontkenning|denies|denied|deny|denial)\b/,
+  /\b(onderzoekt|onderzoeken|onderzocht|onderzoek|investigat\w*|probe|probes|probing)\b/,
+  /\b(reageert|reageren|reageerde|reactie|reacties|responds|responded|reacts|reacted|doorbreekt stilzwijgen|breaks (?:her |his )?silence)\b/,
+]
+const nextStep = (lead, head) => {
+  const a = norm(lead || '')
+  const b = norm(head || '')
+  return HEAD_STEPS.some((re) => re.test(b) && !re.test(a))
+}
 const eventName = (k) => CONCEPTS_EXT.some(([, re]) => re.test(k))
 const headConcepts = (title, names) => {
   const t = norm(title || '')
@@ -1727,6 +1740,7 @@ export function sameFactHead(lead, i, items, kit, direct = false) {
   const ext = (kit.ext ||= signatures(items, items.map((x) => ({ id: `kop:${x.id}`, title: cut(x.title), publishedAt: x.publishedAt })), { extended: true }))
   const head = (x) => ext.get(`kop:${x.id}`)
   const link = (x, y) => headFact(head(x), head(y), x.title, y.title)
+  if (nextStep(lead.title, i.title)) return false
   if (link(lead, i)) return true
   if (direct) return false
   // Een omweg: de eerste stap via een gedeelde eigen naam, en de twee koppen zelf hebben geen elk hun eigen hoofdrolspeler.

@@ -241,3 +241,13 @@ test('B · 10b-2: twee wedstrijden uit één speelronde zijn geen zelfde feit, d
   assert.equal(swapAt7(round(), 'demorgen').source, 'demorgen', 'een andere wedstrijd uit de speelronde wordt geen kop')
   assert.equal(swapAt7(round(), 'sporza').source, 'nos', 'dezelfde wedstrijd wel')
 })
+
+test('B · 10b-2: een volgende stap (een ontkenning, een onderzoek, een reactie) is geen zelfde feit', () => {
+  const heist = (extra) => [
+    art('verge', 'Kryptal says hackers used fake job interviews to pull off the $6.3 billion heist', 3),
+    art('wired', 'Kryptal Says Hackers Used Well-Known Tricks to Carry Out a $6.3 Billion Heist', 4),
+    ...extra,
+  ]
+  assert.equal(swapAt7(heist([art('nos', 'Noord-Korea ontkent achter de Kryptal-hack te zitten', 1)]), 'verge').source, 'verge', 'de ontkenning wordt geen kop')
+  assert.equal(swapAt7(heist([art('nos', 'Noord-Korea ontkent achter de Kryptal-hack te zitten', 1), art('nu', 'Kryptal: hackers kwamen binnen via nepsollicitatie', 2)]), 'verge').source, 'nu', 'hetzelfde feit wel')
+})
