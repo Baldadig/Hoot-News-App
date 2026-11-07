@@ -1638,6 +1638,12 @@ export function openWithNews(entries, { itemsOf, pick }) {
 // koppen weg die meer dan 12 uur ouder waren dan de gekozen kop; daarmee verdween op 6 november middag de Volkskrant-kop
 // over de beurs onder een Engelse kop. Een ingehaalde stand vangen de twee regels hierboven: een vooruitblik na de
 // uitkomst, en (met een vorige Editie) alles van vóór die Editie.
+// Ronde 10 · B (7 november middag: Paraguay stond als vervolgplek op 7 met een Engelse Al Jazeera-kop van de vroege
+// ochtend, terwijl Trouw en NU.nl later hetzelfde feit in het Nederlands brachten; besluit van Alex: een Nederlandse kop over
+// hetzelfde feit gaat voor, ook al zijn Engelse bronnen in de algemene Editie mogelijk): de regel geldt voor elke plek, ook
+// held- en vervolgplekken onder de top, met dezelfde voorwaarden. DUTCH_HEAD_TOP is nu alleen de voorpagina: daar geen
+// beschouwende kop op 01 (zie boven), de rol 'front' in leadCandidates, en een bron die al een kop in de voorpagina heeft
+// doet daar liever niet nog een keer mee. Daaronder telt elke andere kop in de Editie.
 // Wijzigt `entries` (de plek met een nieuwe kop is een kopie). `itemsOf(e)`: de stukken van een plek.
 export const DUTCH_HEAD_TOP = 3
 // Een vooruitblik of aankondiging naar de kop: wat er gaat gebeuren, niet wat er gebeurde. Alleen vaste uitdrukkingen, geen
@@ -1646,7 +1652,7 @@ const OUTLOOK = /\b(naar de stembus|naar de stembussen|gaat stemmen|gaan stemmen
 export const outlookTitle = (i) => OUTLOOK.test(norm(i?.title || ''))
 // Een vooruitblik die al ingehaald is: het verhaal heeft een nieuwer stuk (met titel) dat geen vooruitblik is.
 export const staleOutlook = (i, items) => outlookTitle(i) && items.some((j) => j !== i && titled(j) && timeOf(j) > timeOf(i) && !outlookTitle(j))
-export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, top = DUTCH_HEAD_TOP, since = 0 }) {
+export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, top = Infinity, since = 0 }) {
   for (let k = 0; k < Math.min(top, entries.length); k++) {
     const e = entries[k]
     if (e.kind !== 'story' || e.desk === 'bubbel') continue
@@ -1655,14 +1661,20 @@ export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, 
     if (!lead || dutchTier(lead) === 0) continue
     const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)) && timeOf(i) > since && !staleOutlook(i, items))
     if (!fit.length) continue
-    const core = new Set(centralItems(items))
-    const inCore = fit.filter((i) => core.has(i))
+    const central = centralItems(items)
+    const core = new Set(central)
+    // Ronde 10 · B: de kern van een grote bundel komt uit de koppen, en in een bundel van vooral Engelse koppen valt een
+    // Nederlandse kop over hetzelfde feit er vaak buiten (Paraguay: Trouw en NU.nl naast BBC, Le Monde en Al Jazeera).
+    // Zo'n kop telt mee als hij verbonden is met een stuk uit de kern zelf (niet met een ander stuk buiten de kern): een
+    // verdwaald stuk deelt geen onderwerp met de kern.
+    const inCore = fit.filter((i) => core.has(i) || linkedItems([...central, i], [i]).length > 0)
     if (!inCore.length) continue
     // De kenmerken pas als er een kandidaat is, de uitgebreide alleen als sameSubject niets vindt (rekentijd).
     const near = linkedItems(items, inCore)
     if (!near.length) continue
-    const others = new Set(entries.slice(0, top).filter((x) => x !== e).map((x) => itemsOf(x).find((i) => i?.id === (x.leadId || x.id))?.source).filter(Boolean))
-    const order = leadCandidates(freshest(near), mainIds, null, now, { role: k < 3 ? 'front' : 'neutral' })
+    const front = k < DUTCH_HEAD_TOP
+    const others = new Set((front ? entries.slice(0, DUTCH_HEAD_TOP) : entries).filter((x) => x !== e).map((x) => itemsOf(x).find((i) => i?.id === (x.leadId || x.id))?.source).filter(Boolean))
+    const order = leadCandidates(freshest(near), mainIds, null, now, { role: front ? 'front' : 'neutral' })
     const next = order.find((i) => !others.has(i.source)) || order[0]
     entries[k] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
   }
