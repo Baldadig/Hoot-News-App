@@ -4,6 +4,12 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Editie op brede schermen** (web en iPad liggend):
+  - **Buiten je bubbel:** staat als eigen katern naast de laatste plek, met een eigen lijn, kop en ondertitel. Staat de laatste rij al vol, dan krijgt het katern een eigen rij.
+  - **De Editie in één minuut en het slotblok:** lopen over de volle breedte.
+  - **Telefoon:** de opmaak blijft gelijk.
+  - **Ondertitel in de iPhone-app:** "Een verhaal naast je Editie." staat nu ook in de iPhone-app.
+
 - **De Redacteur 3b:**
   - **Nederlandse kop:** een Nederlandse kop over hetzelfde feit gaat voor een Engelse.
   - **Taal volgt je bronkeuze:** volg je in een rubriek geen Engelse bron, dan staat daar nooit een Engelse kop. Volg je bijvoorbeeld IGN, dan kan Games Engels zijn, het nieuws niet. Engelse bronnen blijven wel in "+N bronnen" en in de bronvergelijking staan.
