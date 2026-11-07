@@ -447,6 +447,9 @@ function looseBorrow(it, d) {
   const text = reserveIntro(d)
   return !text || !fitsHeadline(it, d, text, onSmallest(text, d.sourceName) || text)
 }
+// Een bewaarde geleende intro van vóór deze toets (de bewaarde feed draagt borrowPreviews mee, tot 36 uur): de donor is
+// er misschien niet meer, dus toetsen we de geleende tekst zelf tegen de kop.
+const looseText = (it) => isBlog(it.summary) || !fitsHeadline(it, null, it.summary, onSmallest(it.summary, it.borrowedFrom) || it.summary)
 // Eigen intro's van alle berichten (geen posts), vóór het lenen: een intro die alleen reclame was, laat de
 // plek leeg en mag dan lenen.
 export function stripPromoIntros(items) {
@@ -461,6 +464,7 @@ export function borrowPreviews(items, mainItems) {
     .filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it) && lendableIntro(it))
     .map((d) => ({ d, w: borrowWords(d.title) }))
   for (const it of items) {
+    if (it.kind === 'article' && it.summary && it.borrowedFrom && it.introLoose === undefined) it.introLoose = looseText(it)
     if (it.kind !== 'article' || it.summary || !dutchItem(it) || isLiveblog(it.url, it.title)) continue
     const w = borrowWords(it.title)
     if (w.size < 3) continue
@@ -476,7 +480,7 @@ export function borrowPreviews(items, mainItems) {
       it.summary = lendableIntro(best)
       it.text = it.summary
       it.borrowedFrom = best.sourceName
-      if (looseBorrow(it, best)) it.introLoose = true
+      it.introLoose = looseBorrow(it, best)
     }
   }
 }
@@ -510,7 +514,7 @@ export function borrowFromStories(stories, byId) {
       // Ook hier de toets van de reserve: gaat de geleende tekst niet aantoonbaar over het feit van deze kop
       // ("Eerbetoon aan Paulien Cornelisse" kreeg "Mats Akkerman is uitgeroepen tot de winnaar"), dan staat hij
       // er niet. De keuze van de donor blijft zoals hij was: daarmee rekent de samenstelling.
-      if (looseBorrow(it, donor)) it.introLoose = true
+      it.introLoose = looseBorrow(it, donor)
       n++
     }
   }

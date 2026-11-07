@@ -201,7 +201,7 @@ test('intro lenen binnen een verhaal (borrowFromStories): dezelfde toets als de 
   const a = { id: 'a', kind: 'article', source: 'rtl', sourceName: 'RTL Nieuws', title: 'VS keurt verkoop van 500 Patriot-raketten aan Oekraïne goed', url: 'https://rtl.example/b' }
   const b = { id: 'b', kind: 'article', source: 'nos', sourceName: 'NOS', title: 'VS keurt verkoop Patriot-raketten aan Oekraïne goed', summary: 'De Verenigde Staten heeft de verkoop van 500 Patriot-raketten aan Oekraïne goedgekeurd.', url: 'https://nos.example/b' }
   borrowFromStories([{ id: 't', itemIds: ['a', 'b'] }], new Map([[a.id, a], [b.id, b]]))
-  assert.equal(a.introLoose, undefined)
+  assert.equal(a.introLoose, false)
   assert.deepEqual(cardIntro(a), { text: b.summary, via: 'NOS' })
 })
 
@@ -213,4 +213,18 @@ test('reserve-intro alleen als hele zin, nooit een stuk tot een komma van een an
   assert.deepEqual(cardIntro(item, smal), { text: '', via: null })
   assert.deepEqual(cardIntro(item, { max: 260, rek: 260 }), { text: ahold, via: 'AD' })
   assert.match(src('ios/Hoot/Models.swift'), /return alt\.range\(of: #"\[\.!\?\]\["'’”\)\]\?\$"#, options: \.regularExpression\) == nil \? nil : \(alt, introAltFrom\)/)
+})
+
+test('een bewaarde geleende intro van vóór de toets wordt alsnog getoetst, zonder de samenvatting te veranderen', async () => {
+  const { borrowPreviews } = await import('../netlify/lib/build.mjs')
+  const { cardIntro } = await import('../shared/kaart-intro.mjs')
+  const winnaar = 'WNL-verslaggever Mats Akkerman heeft de finale van het dertigste seizoen van kennisquiz De Slimste Mens gewonnen.'
+  const oud = { id: 'o', kind: 'article', source: 'nu', sourceName: 'NU.nl', title: 'Video | Zo nam De slimste mens afscheid van Paulien Cornelisse', summary: winnaar, borrowedFrom: 'NOS', url: 'https://nu.example/o' }
+  const goed = { id: 'g', kind: 'article', source: 'trouw', sourceName: 'Trouw', title: 'Spaanse transportminister stapt op na dodelijke treinramp', summary: 'De Spaanse minister van Transport Óscar Puente treedt af na de dodelijke treinramp van vorige week.', borrowedFrom: 'Nederlands Dagblad', url: 'https://trouw.example/g' }
+  borrowPreviews([oud, goed], [])
+  assert.equal(oud.summary, winnaar)
+  assert.equal(oud.introLoose, true)
+  assert.deepEqual(cardIntro(oud), { text: '', via: null })
+  assert.equal(goed.introLoose, false)
+  assert.equal(cardIntro(goed).via, 'Nederlands Dagblad')
 })
