@@ -5,7 +5,7 @@ import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { typeset } from '../../shared/typeset.mjs'
 import { BRAND, UA, editionWindowOf } from './sources.mjs'
 import { firstOf } from './stream.mjs'
-import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime } from './text.mjs'
+import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime, withoutPromo, PROMO_OWN } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
 
 const parser = new Parser({
@@ -47,12 +47,20 @@ export function isNoise(it, cats = []) {
 // De intro uit de feed: de samenvatting, of anders de artikeltekst (content:encoded), zonder
 // een vaste aanhef als "Nature, Published online: …; doi:…". Herhaalt hij alleen de kop, dan
 // is er geen intro.
+// Een Atom-feed (The Atlantic, The Verge) levert naast de artikeltekst (<content>, bij rss-parser
+// contentSnippet) een eigen korte dek (<summary>). Die dek is de intro die de redactie schreef en past
+// vaker op een plek in de Editie dan de eerste alinea (kaartkwaliteit, 7 november): hij gaat voor,
+// als hij iets zegt (minstens 40 tekens, niet de kop) en korter is dan de artikeltekst.
+const DEK_MIN = 40
+const same = (a) => a.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
 export function introOf(it, title = '') {
-  const raw = it.contentSnippet || it.summary || it.description || it.contentEncoded || ''
+  const dek = typeof it.summary === 'string' ? toText(it.summary).trim() : ''
+  const body = it.contentSnippet ? toText(it.contentSnippet).trim() : ''
+  const useDek = dek.length >= DEK_MIN && body && dek.length < body.length && same(dek) !== same(title)
+  const raw = useDek ? dek : it.contentSnippet || it.summary || it.description || it.contentEncoded || ''
   const text = toText(raw)
     .replace(/^[^.;]{0,60}Published online:[^;]*;\s*doi:\s*\S+\s*/i, '')
     .trim()
-  const same = (a) => a.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
   return text && same(text) !== same(title) ? text : ''
 }
 
@@ -136,7 +144,10 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
         // taal van de bron. Al opgeslagen koppen blijven zoals ze zijn; normTitle en de ontdubbeling
         // zien geen verschil (leestekens tellen daar niet).
         const title = typeset(toText(it.title || '').trim(), src.lang)
-        const fullText = typeset(cleanIntro(introOf(it, title), authorOf(it)), src.lang)
+        // Reclame en nieuwsbrief-aanhef ("Sign up for …", "This is an edition of …") gaan eruit vóór het
+        // inkorten: anders bleef van een intro die met reclame begon niets over (kaartkwaliteit).
+        const intro = typeset(cleanIntro(introOf(it, title), authorOf(it)), src.lang)
+        const fullText = PROMO_OWN.test(intro) ? withoutPromo(intro) : intro
         const teaser = clip(fullText, 280)
         const summary = preview(fullText)
         // Leestijd alleen tonen als de feed de echte artikeltekst meelevert (NOS, The Verge);
