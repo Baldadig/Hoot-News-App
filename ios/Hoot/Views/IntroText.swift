@@ -11,6 +11,9 @@ struct IntroText: View {
     let style: Font.TextStyle
     var lines: Int? // nil: geen grens
     var suffix: (String) -> String = { $0 } // bijvoorbeeld " — via X" achter elke kandidaat
+    // Past er van `text` geen hele zin, dan deze (de reserve-intro uit hetzelfde verhaal, met zijn eigen " — via X"),
+    // zoals op het web (kaartkwaliteit): liever de reserve dan een leeg vlak, liever niets dan een afgeknipte zin.
+    var fallback: (text: String, suffix: (String) -> String)? = nil
     var color: Color = Theme.ink2
     var size: CGFloat? = nil // een eigen maat en regelhoogte (kaart A+: 18/28, hoofdverhaal 20/30)
     var line: CGFloat? = nil
@@ -23,19 +26,24 @@ struct IntroText: View {
             let afgebroken = typeSize.isAccessibilitySize && Afbreken.woorden(text) != text
             CapHeight(limit: Self.limit(lines: lines + (afgebroken ? 1 : 0), style: style, typeSize: typeSize, size: size, line: line)) {
                 ViewThatFits(in: .vertical) {
-                    ForEach(Array(Self.candidates(text).enumerated()), id: \.offset) { _, candidate in
+                    ForEach(Array(shown.enumerated()), id: \.offset) { _, candidate in
                         line(candidate)
                     }
                     Color.clear.frame(height: 0) // geen enkele hele zin past: geen intro
                 }
             }
         } else {
-            line(text)
+            line(suffix(text))
         }
     }
 
+    // Alle kandidaten, al met hun " — via X": eerst de eigen intro, dan de reserve.
+    private var shown: [String] {
+        Self.candidates(text).map(suffix) + (fallback.map { f in Self.candidates(f.text).map(f.suffix) } ?? [])
+    }
+
     private func line(_ s: String) -> some View {
-        Text(afgebroken: suffix(s), typeSize: typeSize).leestekst(style, size: size, line: line).foregroundStyle(color).fixedSize(horizontal: false, vertical: true)
+        Text(afgebroken: s, typeSize: typeSize).leestekst(style, size: size, line: line).foregroundStyle(color).fixedSize(horizontal: false, vertical: true)
     }
 
     // De hele intro, en dan steeds één hele zin minder (de kortste is de eerste zin).

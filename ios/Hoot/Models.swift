@@ -73,18 +73,35 @@ struct Item: Codable, Identifiable, Hashable {
     var viaLength: Int { borrowedFrom.map { $0.count + 8 } ?? 0 }
     // De intro op een kaart (shared/kaart-intro.mjs, cardIntro): de eigen in hele zinnen tot `max` (en `rek`);
     // levert die niets op, dan de reserve uit hetzelfde verhaal (introAlt, in de taal van de kop) met zijn bron.
-    // nil: er past geen intro. `via` gaat als " — via X" achter de tekst (Item.withVia).
+    // De aanhef van een (live)blog telt nooit als intro (Aanhef). nil: er past geen intro. `via` gaat als
+    // " — via X" achter de tekst (Item.withVia).
     func cardIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
         if let summary {
-            let own = wholeSentences(summary, max: max - viaLength, rek: rek.map { $0 - viaLength })
+            let own = wholeSentences(Aanhef.strip(EditionDisplay.cleanIntro(summary, author: nil)), max: max - viaLength, rek: rek.map { $0 - viaLength })
             if !own.isEmpty { return (own, borrowedFrom) }
         }
-        if let introAlt, let introAltFrom {
-            let cost = introAltFrom.count + 8
-            let alt = wholeSentences(EditionDisplay.cleanIntro(introAlt, author: nil), max: max - cost, rek: rek.map { $0 - cost })
-            if !alt.isEmpty { return (alt, introAltFrom) }
-        }
-        return nil
+        return reserveIntro(max: max, rek: rek)
+    }
+    // Alleen de reserve, in hele zinnen tot `max` (en `rek`), of nil.
+    func reserveIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
+        guard let introAlt, let introAltFrom else { return nil }
+        let cost = introAltFrom.count + 8
+        let alt = wholeSentences(Aanhef.strip(EditionDisplay.cleanIntro(introAlt, author: nil)), max: max - cost, rek: rek.map { $0 - cost })
+        return alt.isEmpty ? nil : (alt, introAltFrom)
+    }
+    // Met het vangnet van het web (FrontItem in src/views/Edition.jsx, fitem__sum--rek): levert de gewone maat
+    // niets op, dan mag één lange eerste zin een regel (`line` tekens) langer zijn. IntroText meet daarna wat er
+    // in de echte kolom past; liever een regel langer dan een leeg vlak onder de kop.
+    func cardIntro(max: Int, line: Int) -> (text: String, via: String?)? {
+        cardIntro(max: max) ?? cardIntro(max: max, rek: Self.longer(max, by: line))
+    }
+    // `max` een regel langer; "alles" (Int.max, Instellingen › Intro op 0) blijft alles.
+    static func longer(_ max: Int, by line: Int) -> Int { max > Int.max - line ? Int.max : max + line }
+    // Wat IntroText probeert als de gekozen intro bij het meten niet past: de reserve, als die iets anders is
+    // (zoals het web: knipt de clamp, dan een kleinere maat, en dan neemt cardIntro daar de reserve).
+    func introFallback(for chosen: (text: String, via: String?), max: Int, line: Int) -> (text: String, suffix: (String) -> String)? {
+        guard let alt = reserveIntro(max: max) ?? reserveIntro(max: max, rek: Self.longer(max, by: line)), alt.text != chosen.text else { return nil }
+        return (alt.text, Item.withVia(alt.via))
     }
     static func withVia(_ via: String?) -> (String) -> String { { intro in via.map { "\(intro) — via \($0)" } ?? intro } }
     var isPost: Bool { kind == "post" }
@@ -623,5 +640,25 @@ enum HootDate {
         if s < 86400 { return "\(Int(s / 3600)) uur geleden" }
         let d = Int(s / 86400)
         return d == 1 ? "gisteren" : "\(d) dagen geleden"
+    }
+}
+
+// De aanhef van een (live)blog en de reclame voor een liveblog (shared/aanhef.mjs, AANHEF_SOURCE): "Welkom in het
+// blog …", "Volg alle ontwikkelingen … in onze liveblog." Zo'n zin valt uit de intro; was dat de hele intro, dan
+// is er geen. Hetzelfde patroon als op het web, letterlijk (tests/kaart-kwaliteit.test.mjs houdt ze gelijk).
+enum Aanhef {
+    static let pattern = #"\blive(?:\s|-)?blog|^\s*(?:welkom|welcome)\b|\bin\s+(?:het|dit|ons|deze|onze|this|our|the)\s+blog\b|^\s*(?:volg|lees|luister|bekijk|follow|read)\s+(?:alle|al|alles|hier|live|ons|onze|meer|ook|het\s+laatste|de\s+ontwikkelingen|our|the\s+latest|along|more)\b|\bop\s+deze\s+pagina\b|\bon\s+this\s+page\b|\b(?:u|je|jou)\s+(?:\w+\s+)?op\s+de\s+hoogte\b|\bkeep\s+you\s+(?:up\s+to\s+date|updated|posted)\b|\blive\s+(?:updates?|coverage)\b"#
+    // Zinnen zoals withoutPromo op de server ze telt (SENTENCES_SOURCE).
+    static let sentencesPattern = #"[^.!?]+(?:[.!?]+["'’”)]?|$)\s*"#
+    private static let regex = try! NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
+    private static let sentences = try! NSRegularExpression(pattern: sentencesPattern)
+    static func isAanhef(_ sentence: String) -> Bool {
+        regex.firstMatch(in: sentence, range: NSRange(location: 0, length: (sentence as NSString).length)) != nil
+    }
+    static func strip(_ text: String) -> String {
+        let ns = text as NSString
+        let parts = sentences.matches(in: text, range: NSRange(location: 0, length: ns.length)).map { ns.substring(with: $0.range) }
+        guard parts.contains(where: isAanhef) else { return text }
+        return parts.filter { !isAanhef($0) }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

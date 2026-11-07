@@ -90,4 +90,34 @@ final class BeeldIntroTests: XCTestCase {
         XCTAssertEqual(item.cardIntro(max: 160)?.text, pope)
         XCTAssertNil(item.cardIntro(max: 160)?.via)
     }
+
+    // Ronde 2: de aanhef van een (live)blog is geen intro, ook niet als reserve (Aanhef, gelijk aan shared/aanhef.mjs).
+    func testBlogaanhefIsGeenIntro() throws {
+        let blog = "Welkom in het blog over de midtermverkiezingen in de Verenigde Staten."
+        let json = #"{"id":"b","source":"volkskrant","url":"https://www.volkskrant.nl/b","title":"Rechter blokkeert bouw triomfboog","summary":"\#(blog)","introAlt":"Volg alle ontwikkelingen over het Midden-Oosten in onze liveblog.","introAltFrom":"HLN"}"#
+        let item = try JSONDecoder().decode(Item.self, from: Data(json.utf8))
+        XCTAssertNil(item.cardIntro(max: 200))
+        XCTAssertEqual(Aanhef.strip(blog + " De rechter legt de bouw stil."), "De rechter legt de bouw stil.")
+        XCTAssertEqual(Aanhef.strip("Op deze pagina blijft u op de hoogte van al het nieuws in het wielrennen."), "")
+        // Gewoon nieuws blijft staan.
+        for z in ["Vluchtelingen zijn welkom in de gemeente.", "Het kabinet houdt de Kamer op de hoogte.", "The blogger was arrested on Friday."] {
+            XCTAssertEqual(Aanhef.strip(z), z)
+        }
+    }
+
+    // Het rek-vangnet van het web (fitem__sum--rek): past de eerste zin niet binnen de maat, dan mag hij een regel
+    // langer zijn; en valt de eigen intro bij het meten weg, dan probeert IntroText de reserve.
+    func testRekVangnetEnReserveBijHetMeten() throws {
+        let pope = "Less than a month after losing part of a lung, Pope Leo XIV set out this morning on one of the longest and most ambitious trips of his pontificate."
+        let kort = "Pope Leo travels to Uruguay just three weeks after having surgery for lung cancer."
+        let own = try JSONDecoder().decode(Item.self, from: Data(#"{"id":"c","source":"atlantic","url":"https://www.theatlantic.com/c","title":"The Pope","summary":"\#(pope)"}"#.utf8))
+        XCTAssertNil(own.cardIntro(max: 120))
+        XCTAssertEqual(own.cardIntro(max: 120, line: 48)?.text, pope)
+        XCTAssertEqual(own.cardIntro(max: Int.max, line: 48)?.text, pope) // "alles" loopt niet over
+        let both = try JSONDecoder().decode(Item.self, from: Data(#"{"id":"d","source":"atlantic","url":"https://www.theatlantic.com/d","title":"The Pope","summary":"\#(pope)","introAlt":"\#(kort)","introAltFrom":"BBC"}"#.utf8))
+        let chosen = try XCTUnwrap(both.cardIntro(max: 160, line: 48))
+        XCTAssertEqual(chosen.text, pope)
+        let fallback = try XCTUnwrap(both.introFallback(for: chosen, max: 160, line: 48))
+        XCTAssertEqual(fallback.suffix(fallback.text), kort + " — via BBC")
+    }
 }

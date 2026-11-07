@@ -1123,9 +1123,11 @@ struct ItemRow: View {
     }
 
     @ViewBuilder private func kaartIntro(thumb: Bool) -> some View {
-        // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro).
-        if let intro = item.cardIntro(max: introMax(lines: store.preview, thumb: thumb)) {
-            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via), size: 18, line: 28)
+        // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro), met het rek-vangnet van
+        // het web; valt hij bij het meten weg, dan probeert IntroText de reserve (fallback).
+        let max = introMax(lines: store.preview, thumb: thumb), line = introMax(lines: 1, thumb: thumb)
+        if let intro = item.cardIntro(max: max, line: line) {
+            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via), fallback: item.introFallback(for: intro, max: max, line: line), size: 18, line: 28)
         }
     }
 
@@ -1191,14 +1193,16 @@ struct ItemRow: View {
 
     // De intro in hele zinnen voor de rij- en krant-vorm, of nil als er geen past.
     // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro).
+    // Met het rek-vangnet van het web (Item.cardIntro(max:line:)); IntroText meet daarna wat er echt past.
+    private var krantThumb: Bool { !introBelow && (!timeline || klein) && store.showsImage(lead: false) }
     private var krantIntro: (text: String, via: String?)? {
-        item.cardIntro(max: introMax(lines: store.preview, thumb: !introBelow && (!timeline || klein) && store.showsImage(lead: false)))
+        item.cardIntro(max: introMax(lines: store.preview, thumb: krantThumb), line: introMax(lines: 1, thumb: krantThumb))
     }
     // In de zijkolom van de voorpagina (breed) staat de intro onder kop en beeld (web: .front__side).
     private var introBelow: Bool { narrow && !timeline && thumbShown }
     @ViewBuilder private var introView: some View {
         if let intro = krantIntro {
-            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via))
+            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via), fallback: item.introFallback(for: intro, max: introMax(lines: store.preview, thumb: krantThumb), line: introMax(lines: 1, thumb: krantThumb)))
         }
     }
 

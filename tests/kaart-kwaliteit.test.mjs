@@ -132,3 +132,14 @@ test('reserve: alleen over het feit van de kop van de ontvanger, niet over een a
   assert.equal(await reserve(st('rtl2', 'rtl', 'RTL Nieuws', 'VS keurt mogelijke verkoop van 500 Patriot-raketten aan Oekraïne goed', LANG), nos), nos.summary)
 })
 
+test('app: hetzelfde aanhef-patroon als het web, en het rek-vangnet met de reserve in IntroText', async () => {
+  const { AANHEF_SOURCE, SENTENCES_SOURCE } = await import('../shared/aanhef.mjs')
+  const m = src('ios/Hoot/Models.swift')
+  assert.ok(m.includes(`static let pattern = #"${AANHEF_SOURCE}"#`), 'Aanhef.pattern gelijk aan AANHEF_SOURCE')
+  assert.ok(m.includes(`static let sentencesPattern = #"${SENTENCES_SOURCE}"#`), 'Aanhef.sentencesPattern gelijk aan SENTENCES_SOURCE')
+  assert.match(m, /wholeSentences\(Aanhef\.strip\(EditionDisplay\.cleanIntro\(summary, author: nil\)\)/)
+  assert.match(m, /cardIntro\(max: max\) \?\? cardIntro\(max: max, rek: Self\.longer\(max, by: line\)\)/)
+  assert.match(src('ios/Hoot/Views/IntroText.swift'), /var fallback: \(text: String, suffix: \(String\) -> String\)\? = nil/)
+  const c = src('ios/Hoot/Views/Components.swift')
+  assert.equal((c.match(/fallback: item\.introFallback\(for: intro/g) || []).length, 2)
+})
