@@ -30,3 +30,36 @@ test('een paar zonder intro: geen gat tussen kop en bron, web en app', () => {
   assert.match(c, /if pinSource && krantIntro != nil \{ Spacer\(minLength: 0\) \}/)
   assert.match(c, /if pinSource && krantIntro == nil \{ Spacer\(minLength: 0\) \}/)
 })
+
+test('cardIntro: eigen intro eerst; past die niet, dan de reserve uit hetzelfde verhaal met via', async () => {
+  const { cardIntro } = await import('../shared/kaart-intro.mjs')
+  const fit = introMax(INTRO_LINES, { width: 267, font: 15 })
+  const kort = 'Pope Leo travels to Uruguay just three weeks after having surgery for lung cancer.'
+  assert.deepEqual(cardIntro({ summary: kort }, fit), { text: kort, via: null })
+  assert.deepEqual(cardIntro({ summary: POPE, introAlt: kort, introAltFrom: 'BBC' }, fit), { text: kort, via: 'BBC' })
+  // Op een brede kolom past de eigen intro: dan nooit de reserve.
+  assert.deepEqual(cardIntro({ summary: POPE, introAlt: kort, introAltFrom: 'BBC' }, introMax(INTRO_LINES, { width: 400, font: 15 })), { text: POPE, via: null })
+  assert.deepEqual(cardIntro({ summary: POPE }, fit), { text: '', via: null })
+})
+
+test('server: beeld en reserve-intro alleen van een stuk over hetzelfde feit, intro in de taal van de kop', async () => {
+  const { borrowImagesFromStories, introAlternatives } = await import('../netlify/lib/build.mjs')
+  const a = (id, source, sourceName, title, extra = {}) => ({ id, kind: 'article', source, sourceName, title, url: `https://${source}.example/${id}`, ...extra })
+  const atl = a('atl', 'atlantic', 'The Atlantic', 'Pope Leo travels to Uruguay after lung surgery', { summary: POPE })
+  const bbc = a('bbc', 'bbc', 'BBC', 'Pope Leo travels to Uruguay weeks after lung surgery', { summary: 'Pope Leo travels to Uruguay just three weeks after having surgery for lung cancer.', image: 'https://bbc.example/pope.jpg' })
+  const nos = a('nos', 'nos', 'NOS', 'Paus Leo reist naar Uruguay na longoperatie', { summary: 'De paus reist naar Uruguay.', image: 'https://nos.example/paus.jpg' })
+  const ander = a('ander', 'guardian', 'The Guardian', 'Pope Leo meets Argentina president Milei in Buenos Aires', { summary: 'Short.', image: 'https://g.example/x.jpg' })
+  const byId = new Map([atl, bbc, nos, ander].map((i) => [i.id, i]))
+  const stories = [{ id: 's', itemIds: ['atl', 'bbc', 'nos', 'ander'] }]
+  assert.equal(introAlternatives(stories, byId), 1)
+  assert.equal(atl.introAlt, bbc.summary)
+  assert.equal(atl.introAltFrom, 'BBC') // Engels bij een Engelse kop, nooit de NOS
+  assert.equal(borrowImagesFromStories(stories, byId), 1)
+  assert.equal(atl.image, bbc.image)
+  assert.equal(atl.imageFrom, 'BBC')
+  // Botsende eigen namen (een ander geval): geen beeld.
+  const los = a('los', 'nyt', 'NYT', 'Pope Leo visits Montevideo cathedral on Sunday')
+  const leeg = a('leeg', 'wapo', 'Washington Post', 'Pope Leo visits Buenos Aires cathedral on Sunday', { image: 'https://w.example/y.jpg' })
+  assert.equal(borrowImagesFromStories([{ id: 't', itemIds: ['los', 'leeg'] }], new Map([[los.id, los], [leeg.id, leeg]])), 0)
+  assert.equal(los.image, undefined)
+})

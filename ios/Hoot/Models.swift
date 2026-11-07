@@ -40,6 +40,8 @@ struct Item: Codable, Identifiable, Hashable {
     var title: String // leeg bij een Bluesky-post: de tekst staat in `summary`
     var summary: String?
     var borrowedFrom: String? // de intro is van een ander stuk over hetzelfde (server): "via X"
+    var introAlt: String? // reserve-intro uit hetzelfde verhaal, als de eigen op een kleine plek niet past (server: introAlternatives)
+    var introAltFrom: String? // de bron van die reserve: "via X"
     let url: String
     var image: String?
     var publishedAt: String?
@@ -69,6 +71,22 @@ struct Item: Codable, Identifiable, Hashable {
     func introWithSource(_ intro: String) -> String { borrowedFrom.map { "\(intro) — via \($0)" } ?? intro }
     // Zoveel tekens kost " — via X" (VIA_LENGTH in src/components/Items.jsx); de maat van de intro wordt zoveel kleiner.
     var viaLength: Int { borrowedFrom.map { $0.count + 8 } ?? 0 }
+    // De intro op een kaart (shared/kaart-intro.mjs, cardIntro): de eigen in hele zinnen tot `max` (en `rek`);
+    // levert die niets op, dan de reserve uit hetzelfde verhaal (introAlt, in de taal van de kop) met zijn bron.
+    // nil: er past geen intro. `via` gaat als " — via X" achter de tekst (Item.withVia).
+    func cardIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
+        if let summary {
+            let own = wholeSentences(summary, max: max - viaLength, rek: rek.map { $0 - viaLength })
+            if !own.isEmpty { return (own, borrowedFrom) }
+        }
+        if let introAlt, let introAltFrom {
+            let cost = introAltFrom.count + 8
+            let alt = wholeSentences(EditionDisplay.cleanIntro(introAlt, author: nil), max: max - cost, rek: rek.map { $0 - cost })
+            if !alt.isEmpty { return (alt, introAltFrom) }
+        }
+        return nil
+    }
+    static func withVia(_ via: String?) -> (String) -> String { { intro in via.map { "\(intro) — via \($0)" } ?? intro } }
     var isPost: Bool { kind == "post" }
     // Rechtstreeks van Bluesky's video-CDN (het gewone adres stuurt daar alleen naartoe, en dat
     // reageerde eind oktober urenlang niet), ook voor berichten van vóór die omzetting.
@@ -81,7 +99,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, introAlt, introAltFrom, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -97,6 +115,8 @@ extension Item {
         let rawSummary = try? c.decodeIfPresent(String.self, forKey: .summary)
         summary = rawSummary
         borrowedFrom = try? c.decodeIfPresent(String.self, forKey: .borrowedFrom)
+        introAlt = try? c.decodeIfPresent(String.self, forKey: .introAlt)
+        introAltFrom = try? c.decodeIfPresent(String.self, forKey: .introAltFrom)
         image = try? c.decodeIfPresent(String.self, forKey: .image)
         publishedAt = try? c.decodeIfPresent(String.self, forKey: .publishedAt)
         let rawAuthor = try? c.decodeIfPresent(String.self, forKey: .author)

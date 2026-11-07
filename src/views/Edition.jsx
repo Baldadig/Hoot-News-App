@@ -2,7 +2,6 @@ import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
 import { kantenTip } from '../lib/kanten-tip.js'
 import MaakVanJou from '../components/MaakVanJou.jsx'
 import { pastThird } from '../lib/maak-van-jou.js'
-import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { usePairs } from '../hooks/usePairs.js'
@@ -28,7 +27,8 @@ import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why, whyLine } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
-import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
+import { INTRO_LINES } from '../../shared/zinnen.mjs'
+import { cardIntro } from '../../shared/kaart-intro.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
 import { useIntroMax, useColumnWidth } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
@@ -59,7 +59,8 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   const textRef = useRef(null)
   const width = useColumnWidth(textRef)
   const fit = useIntroMax()(INTRO_LINES, (prefs?.images ?? 'aan') === 'aan' ? 'voorpagina' : 'rij', false, width)
-  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
+  // Hele zinnen, nooit "…"; past de eigen intro niet, dan de reserve uit hetzelfde verhaal (cardIntro).
+  const { text: summary, via } = cardIntro(item, fit)
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
       {boven && item.image ? (
@@ -85,7 +86,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
           {summary ? (
             <span className="clamp clamp--vangnet fitem__sum">
               {summary}
-              {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+              {via ? <span className="via"> — via {via}</span> : null}
             </span>
           ) : null}
         </span>

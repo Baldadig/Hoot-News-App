@@ -1,3 +1,4 @@
+import { cardIntro } from '../../shared/kaart-intro.mjs'
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -280,12 +281,13 @@ export function aboutOf(items) {
 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength in de app).
 export const viaLength = (item) => (item.borrowedFrom ? item.borrowedFrom.length + 8 : 0)
 // `tekst`: een al gekozen intro (de vouw van 01 kiest zelf een zin minder, src/lib/vouw.js).
+// Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (shared/kaart-intro.mjs).
 const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity }, tekst }) => {
-  const text = tekst ?? wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item))
-  return text ? (
+  const chosen = tekst != null ? { text: tekst, via: item.borrowedFrom || null } : cardIntro(item, fit)
+  return chosen.text ? (
     <p className={className}>
-      {text}
-      {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+      {chosen.text}
+      {chosen.via ? <span className="via"> — via {chosen.via}</span> : null}
     </p>
   ) : null
 }

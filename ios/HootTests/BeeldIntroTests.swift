@@ -74,4 +74,20 @@ final class BeeldIntroTests: XCTestCase {
         XCTAssertTrue(components.contains("} else if loader.failed {\n                Color.clear"))
         XCTAssertTrue(components.contains("onFail: mislukt"))
     }
+
+    // Kaartkwaliteit (7 november): past de eigen intro niet, dan de reserve uit hetzelfde verhaal (introAlt), met zijn
+    // bron; gelijk aan cardIntro in shared/kaart-intro.mjs.
+    func testReserveIntroUitHetzelfdeVerhaal() throws {
+        let pope = "Less than a month after losing part of a lung, Pope Leo XIV set out this morning on one of the longest and most ambitious trips of his pontificate."
+        let kort = "Pope Leo travels to Uruguay just three weeks after having surgery for lung cancer."
+        let json = #"{"id":"a","source":"atlantic","url":"https://www.theatlantic.com/a","title":"The Pope","summary":"\#(pope)","introAlt":"\#(kort)","introAltFrom":"BBC"}"#
+        let item = try JSONDecoder().decode(Item.self, from: Data(json.utf8))
+        let smal = item.cardIntro(max: 86, rek: 116)
+        XCTAssertEqual(smal?.text, kort)
+        XCTAssertEqual(smal?.via, "BBC")
+        XCTAssertEqual(Item.withVia(smal?.via)(kort), kort + " — via BBC")
+        // Ruim genoeg: de eigen intro, zonder via.
+        XCTAssertEqual(item.cardIntro(max: 160)?.text, pope)
+        XCTAssertNil(item.cardIntro(max: 160)?.via)
+    }
 }

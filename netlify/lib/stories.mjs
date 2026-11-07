@@ -691,7 +691,7 @@ export function leadCandidates(items, mainIds, preferred = null, now = null, { r
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
   // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
   // Een fotogalerij of slideshow is nooit het hoofdbericht als er iets anders is (isGallery).
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
   const scores = new Map(items.map(i => [i, score(i)]))
   return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b))
 }

@@ -841,12 +841,6 @@ struct LeadCard: View {
         }
     }
 
-    // De intro in hele zinnen voor de rij- en krant-vorm, of nil als er geen past.
-    private var krantIntro: String? {
-        guard let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: (!timeline || klein) && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty else { return nil }
-        return intro
-    }
-
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
@@ -1129,8 +1123,9 @@ struct ItemRow: View {
     }
 
     @ViewBuilder private func kaartIntro(thumb: Bool) -> some View {
-        if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: thumb) - item.viaLength) }), !intro.isEmpty {
-            IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource, size: 18, line: 28)
+        // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro).
+        if let intro = item.cardIntro(max: introMax(lines: store.preview, thumb: thumb)) {
+            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via), size: 18, line: 28)
         }
     }
 
@@ -1189,6 +1184,12 @@ struct ItemRow: View {
         .padding(.vertical, Space.s2)
     }
 
+    // De intro in hele zinnen voor de rij- en krant-vorm, of nil als er geen past.
+    // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro).
+    private var krantIntro: (text: String, via: String?)? {
+        item.cardIntro(max: introMax(lines: store.preview, thumb: (!timeline || klein) && store.showsImage(lead: false)))
+    }
+
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
             if number != nil || label != nil || why != nil || whySpace {
@@ -1212,7 +1213,7 @@ struct ItemRow: View {
                 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
                 // In de krant-vorm staat er altijd een miniatuur: het beeld of het placeholderbeeld.
                 if let intro = krantIntro {
-                    IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource)
+                    IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via))
                 }
             }
         }

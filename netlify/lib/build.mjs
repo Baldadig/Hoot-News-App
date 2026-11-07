@@ -1,4 +1,5 @@
 import { cleanIntro } from '../../shared/edition-display.mjs'
+import { wholeSentences, introMax, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mjs'
 // De feed samenstellen: alles ophalen, de Stroom vullen, bundelen tot verhalen en de editie
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
@@ -89,6 +90,9 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // Nog zonder intro (de Volkskrant als de zoekindex achterloopt): die van een ander stuk uit
   // hetzelfde verhaal, met "via X". Nooit een samenvatting die we zelf schrijven.
   borrowFromStories(stories, poolById)
+  // Kaartkwaliteit: een beeld van een andere bron over hetzelfde feit, en een reserve-intro die wél past.
+  borrowImagesFromStories(stories, poolById)
+  introAlternatives(stories, poolById)
 
   // 6. Eerst-gezien-tijd per bericht, en bij welk verhaal het hoort (houdt id's stabiel).
   await updateRegistry(registry, items, now)
@@ -319,8 +323,9 @@ async function imagesFromBluesky(items, now) {
 // deelafbeelding van het artikel (og.mjs; nooit achter een cookiemuur of login om). Elk artikel één
 // keer proberen en onthouden (ook "geen beeld"), per ronde hooguit 60 nieuwe, de nieuwste eerst,
 // 10 tegelijk, elke pagina hooguit 4 seconden en de hele stap hooguit 8: wat dan nog open is, komt
-// de volgende ronde. Nooit een beeld van een ander artikel (fotorechten); een kopie van hetzelfde stuk
-// bij een zusterkrant (zelfde kop) is wel hetzelfde artikel.
+// de volgende ronde. Hier alleen het beeld van het artikel zelf; een kopie van hetzelfde stuk bij een
+// zusterkrant (zelfde kop) is wel hetzelfde artikel. Een beeld van een andere bron over hetzelfde feit
+// komt pas daarna, in borrowImagesFromStories (5c).
 const OG_KEEP = 4 * 24 * 60 * MIN
 export function wantsArticleImage(it, src) {
   return !!src && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url, it.title)
@@ -491,6 +496,69 @@ export function borrowFromStories(stories, byId) {
   return n
 }
 
+// ---------- 5c. Kaartkwaliteit: beeld en intro uit hetzelfde verhaal ----------
+// Elke plek in de Editie moet er verzorgd uitzien: een kop, een intro en een beeld (Alex, 7 november).
+// Belangrijk nieuws wijkt niet voor een mooier stuk, maar binnen hetzelfde verhaal mag een ander stuk
+// over hetzelfde feit aanvullen wat er ontbreekt. Dezelfde strenge toets als bij het lenen van een intro:
+// sterke overlap in de kop en geen botsende eigen namen (sameFact), zodat een ten onrechte gebundeld stuk
+// nooit iets levert.
+const sameFact = (a, b) => {
+  const wa = borrowWords(a.title)
+  const wb = borrowWords(b.title)
+  return wa.size >= 3 && strongOverlap(sharedCount(wa, wb), wa.size, wb.size) && !conflictingNames(a.title, b.title)
+}
+
+// Beeld (besluit van Alex, 7 november): "Als er geen image is, mag een van onze fallback images geplaatst
+// worden, of de image van een andere bron / zelfde artikel." Dus: na de feed, de zoekindex en de deelafbeelding
+// van het artikel zelf (imagesFromArticles) krijgt een stuk zonder beeld het beeld van een stuk van een andere
+// bron over hetzelfde feit (`imageFrom`: die bron). Is dat er niet, dan tekent de app het placeholderbeeld
+// (Beeld.jsx, Beeldloos.swift). Een liveblog geeft en krijgt niets: zijn beeld hoort bij de hele dag.
+export function borrowImagesFromStories(stories, byId) {
+  let n = 0
+  for (const st of stories) {
+    const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article' && !isLiveblog(i.url, i.title))
+    for (const it of members) {
+      if (it.image) continue
+      const donor = members.find((d) => d !== it && d.image && !d.imageFrom && d.source !== it.source && sameFact(it, d))
+      if (!donor) continue
+      it.image = donor.image
+      if (donor.imageMeta) it.imageMeta = donor.imageMeta
+      it.imageFrom = donor.sourceName || donor.source
+      n++
+    }
+  }
+  return n
+}
+
+// Intro (kaartkwaliteit): een eigen intro waarvan geen hele zin op de kleinste Editie-plek past (de
+// voorpagina naast een miniatuur op een telefoon: INTRO_LINES regels in 267 px, src/lib/intro.js) laat daar
+// een leeg vlak onder de kop. Zo'n stuk krijgt een reserve-intro mee (`introAlt`, met `introAltFrom`: "via X")
+// van een stuk uit hetzelfde verhaal over hetzelfde feit, in dezelfde taal als de kop (de taalregel blijft heel:
+// de intro volgt de kop), dat daar wél past. Het toestel neemt hem alleen als de eigen intro op die plek
+// echt niets oplevert (shared/kaart-intro.mjs, Item.cardIntro in de app).
+const SMALLEST = introMax(INTRO_LINES, { width: 267, font: 15 })
+const viaLen = (name) => (name ? name.length + 8 : 0)
+export const fitsSmallest = (text, via = null) => !!wholeSentences(cleanIntro(text), SMALLEST.max - viaLen(via), SMALLEST.rek - viaLen(via))
+export function introAlternatives(stories, byId) {
+  let n = 0
+  for (const st of stories) {
+    const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article' && !isLiveblog(i.url, i.title))
+    for (const it of members) {
+      if (!it.summary || fitsSmallest(it.summary, it.borrowedFrom)) continue
+      const donor = members.find((d) => {
+        if (d === it || !d.summary || d.borrowedFrom || d.source === it.source || langOf(d) !== langOf(it) || !visibleFor(d)) return false
+        const text = lendableIntro(d)
+        return text && fitsSmallest(text, d.sourceName) && sameFact(it, d)
+      })
+      if (!donor) continue
+      it.introAlt = lendableIntro(donor)
+      it.introAltFrom = donor.sourceName
+      n++
+    }
+  }
+  return n
+}
+
 // ---------- 6. Register ----------
 async function updateRegistry(registry, list, now) {
   let changed = false
@@ -543,12 +611,15 @@ function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     title: it.title,
     summary: it.kind === 'post' ? it.summary : withoutPromo(cleanIntro(it.summary, it.author)),
     borrowedFrom: it.borrowedFrom,
+    introAlt: it.introAlt ? withoutPromo(cleanIntro(it.introAlt)) : null,
+    introAltFrom: it.introAlt ? it.introAltFrom : null,
     readMin: it.readMin,
     topics,
     mainTopics: mainTopics.length ? mainTopics : null,
     url: safeHttpUrl(it.url),
     linkTitle: it.linkTitle,
     image: safeHttpUrl(it.image),
+    imageFrom: it.image ? it.imageFrom : null,
     imageRatio: it.imageRatio,
     imageMeta: it.imageMeta,
     video: safeHttpUrl(it.video),

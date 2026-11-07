@@ -6,7 +6,9 @@ import { placeholderBase, placeholderPlan } from '../../shared/placeholder.mjs'
 // Beeldloos (build 46): een bericht zonder beeld krijgt een Hoot-placeholderbeeld dat het beeldvak
 // precies vult. Eén plek, voor web; de app spiegelt hem in BeeldloosView (ios/Hoot/Views/Beeldloos.swift).
 // Hij staat waar anders het beeld zou staan: het stuk heeft geen beeld, het beeld is te klein voor die
-// plek, of het laadt niet. Nooit een grijs vlak en nooit een beeld van een ander artikel.
+// plek, of het laadt niet. Nooit een grijs vlak. Een beeld van een ander verhaal nooit; wel (besluit Alex,
+// 7 november) dat van een andere bron over hetzelfde feit, dat de server dan al als `image` meegeeft (build.mjs:
+// borrowImagesFromStories). Pas als ook dat er niet is, dit placeholderbeeld.
 // Tien beelden in vijf sets (shared/placeholder.mjs): welk, volgt uit de id van het artikel, en twee
 // beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit dezelfde set (PlaceholderList). Het is decoratie: aria-hidden.
 // `kind`: 'lead' (hoofdverhaal), 'tijdlijn' (beeld over de kolom) of 'krant' (miniatuur).
