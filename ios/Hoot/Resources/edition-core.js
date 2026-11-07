@@ -3405,18 +3405,46 @@ var HootCore = (() => {
       ...st.publisherCountries === void 0 ? { homeCovered: homeOf(st) } : {}
     }));
   }
-  function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set() }) {
-    if (!global?.entries?.length) return null;
-    items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics);
-    global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w) };
-    const catOf = new Map(sources.map((s) => [s.id, s.cat]));
-    const kindOf = (i) => {
+  function kindOfWith(catOf) {
+    return (i) => {
       if (isSport(i, catOf)) return "sport";
       const byTopic = (i.topics || []).map((t) => TOPIC_KIND[t]).find(Boolean);
       if (byTopic) return byTopic;
       const cat = catOf.get(i.source);
       return !catOf.size || NEWS_CATS.has(cat) ? "nieuws" : cat;
     };
+  }
+  var NEWS_RUBRIC = /* @__PURE__ */ new Set(["nl", "vl", "regio", "int"]);
+  var rubricOfCat = (cat) => !cat || NEWS_RUBRIC.has(cat) ? "nieuws" : cat;
+  function languageRule({ followed = /* @__PURE__ */ new Set(), sources = [] } = {}) {
+    const langOfSource = new Map(sources.map((s) => [s.id, s.lang]));
+    const readerLangs = /* @__PURE__ */ new Map();
+    for (const s of sources) {
+      if (!followed.has(s.id) || !s.lang || String(s.id).startsWith("bsky:")) continue;
+      const r = rubricOfCat(s.cat);
+      if (!readerLangs.has(r)) readerLangs.set(r, /* @__PURE__ */ new Set());
+      readerLangs.get(r).add(s.lang);
+    }
+    const catOf = new Map(sources.map((s) => [s.id, s.cat]));
+    const kindOf = kindOfWith(catOf);
+    const rubricOf = (i) => {
+      const k = kindOf(i);
+      return k === "nieuws" ? rubricOfCat(catOf.get(i.source)) : k;
+    };
+    const readableIn = (i, rubric) => {
+      if (!i || followed.has(i.source)) return true;
+      const ok = (lang) => !lang || lang === "nl" || !!readerLangs.get(rubric)?.has(lang);
+      return ok(i.lang || langOfSource.get(i.source)) && ok(langOfSource.get(i.source));
+    };
+    const readable = (i) => !i || readableIn(i, rubricOf(i));
+    return { rubricOf, readableIn, readable, readerLangs };
+  }
+  function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set() }) {
+    if (!global?.entries?.length) return null;
+    items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics);
+    global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w) };
+    const catOf = new Map(sources.map((s) => [s.id, s.cat]));
+    const kindOf = kindOfWith(catOf);
     const pool = items.filter((i) => i.kind === "article" && followed.has(i.source));
     const prof = profileOf({ interests, topics, affinity, taste, favorites, followed, sources, supply: supplyOf(pool) });
     const tempo = tempoWindows(items.filter((i) => followed.has(i.source)));
@@ -3439,7 +3467,11 @@ var HootCore = (() => {
     const ownIds = new Set(items.filter((i) => followed.has(i.source)).map((i) => i.id));
     const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id));
     const bigWide = (w) => majorNews(storyById.get(w.storyId) || w, [w.item]);
-    const wideLead = (w) => covered(w) ? itemAny.get([w.item.id, ...storyById.get(w.storyId)?.itemIds || []].find((id) => ownIds.has(id))) : w.item;
+    const wideLeads = /* @__PURE__ */ new Map();
+    const wideLead = (w) => {
+      if (!wideLeads.has(w)) wideLeads.set(w, covered(w) ? itemAny.get([w.item.id, ...storyById.get(w.storyId)?.itemIds || []].find((id) => ownIds.has(id))) : relead(w.item, storyMembers(w.storyId, w.item.id)));
+      return wideLeads.get(w);
+    };
     const storyOfItem = new Map(stories.flatMap((s) => s.itemIds.map((id) => [id, s.id])));
     const readOf = (id, sid) => {
       if (!readIds.size || !id) return {};
@@ -3450,13 +3482,33 @@ var HootCore = (() => {
       return followUp ? { followUp } : { seen: seen || { pts: 0 } };
     };
     const preferred = new Set(favorites.filter((id) => followed.has(id)));
+    const { rubricOf, readableIn, readable } = languageRule({ followed, sources });
+    const storyMembers = (sid, id) => [.../* @__PURE__ */ new Set([id, ...storyById.get(sid)?.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
+    const relead = (head, xs) => {
+      if (readable(head)) return head;
+      const rubric = rubricOf(head);
+      const ok = xs.filter((i) => i && i.kind !== "post" && readableIn(i, rubric));
+      if (!ok.length) return null;
+      const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok;
+      const mine = fresh.filter((i) => followed.has(i.source));
+      return leadPool(leadCandidates(mine.length ? mine : dutchFirst(fresh), followed, preferred, now), xs.filter(Boolean), now, (i) => followed.has(i.source))[0] || null;
+    };
+    const releadEntry = (e) => {
+      const head = itemAny.get(e.leadId || e.id);
+      if (readable(head)) return e;
+      const next = e.kind === "story" ? relead(head, [...membersOf(e)].map((x) => itemAny.get(x))) : null;
+      return next ? { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} } : null;
+    };
     const againOf = (id, sid) => {
       if (!previous || !id) return {};
       const st = storyById.get(sid || storyOfItem.get(id) || itemAny.get(id)?.storyId);
       const members = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
       if (!seenBefore(st || { id }, members, previous)) return {};
       const dev = st ? developedSince(st, members, previous, sigAll, { mainIds: followed, preferred, now, known: itemAny }) : null;
-      return dev ? { vervolg: dev.fresh.length, leadId: dev.lead.id } : { seen: true };
+      if (!dev) return { seen: true };
+      const rubric = rubricOf(itemAny.get(id) || dev.lead);
+      const lead = readableIn(dev.lead, rubric) ? dev.lead : leadCandidates(dev.fresh.filter((i) => readableIn(i, rubric)), followed, preferred, now)[0];
+      return { vervolg: dev.fresh.length, leadId: lead ? lead.id : id };
     };
     const unread = (id, sid) => !readOf(id, sid).seen && !againOf(id, sid).seen;
     const withHistory = (e, id, sid) => {
@@ -3481,7 +3533,7 @@ var HootCore = (() => {
       const p = policyOf(id, sid, entry);
       return p.allowed && (!capAbroad || !p.capped || abroad < INT_MAX);
     };
-    const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId));
+    const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId) && wideLead(w));
     const size = EDITION_SIZE - (wideAny ? 1 : 0);
     const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed };
     const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false }) : [];
@@ -3512,7 +3564,7 @@ var HootCore = (() => {
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
     const prevHeads = previous ? previousHeads(sigAll, previous, now) : [];
     const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg;
-    const free2 = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
+    const free2 = (w) => w?.item?.id && !!wideLead(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
     const wide0 = (global.wide || []).find((w) => free2(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free2(w) && bigWide(w)) || (global.wide || []).find((w) => free2(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free2).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
     let wide = wide0 ? { ...wide0, item: wideLead(wide0) } : null;
     let swapped = 0;
@@ -3555,7 +3607,7 @@ var HootCore = (() => {
     };
     const otherPool = [...global.wide || [], ...global.near || []].filter((w) => w?.item?.id).map((w) => ({ kind: "story", id: w.storyId, leadId: w.item.id, desk: storyById.get(w.storyId)?.desk ?? null, sourceCount: w.sourceCount }));
     const supplementPool = [...new Map([...global.entries, ...otherPool].map((g) => [`${g.kind}:${g.id}`, g])).values()];
-    const fillCands = supplementPool.map((g, idx) => ({ g, idx, score: sumParts(personalParts([itemAny.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => supplementReason(x.g) && x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
+    const fillCands = supplementPool.map((g0, idx) => ({ g0, g: releadEntry(g0), idx })).filter((x) => x.g).map(({ g0, g, idx }) => ({ g0, g, idx, score: sumParts(personalParts([itemAny.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => supplementReason(x.g) && x.g0 !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
     const fill = [];
     const unchosenG = (g) => capAbroad && policyOf(g.leadId || g.id, g.kind === "story" ? g.id : null, g).capped;
     const fillUp = (to) => {
@@ -3576,7 +3628,7 @@ var HootCore = (() => {
     const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))];
     let nearItem = null;
     if (bubbleEntry) {
-      const okB = (b) => itemAny.has(b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
+      const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
       const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id };
       const alt = [first, ...global.bubble || []].find(okB);
       if (alt) {
@@ -3587,7 +3639,9 @@ var HootCore = (() => {
         const next = new Set(NEIGHBOURS[home] || []);
         const recent = stories.filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5).sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id)).map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }));
         const fits = (w) => w?.item?.id && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
-        const pick = [...global.near || [], ...recent].find(fits);
+        const nearLead = (w) => relead(w.item, storyMembers(w.storyId, w.item.id));
+        const pick0 = [...global.near || [], ...recent].find((w) => fits(w) && nearLead(w));
+        const pick = pick0 && nearLead(pick0) !== pick0.item ? { ...pick0, item: nearLead(pick0) } : pick0;
         bubbleEntry = pick ? withHistory({ kind: "story", id: pick.storyId, leadId: pick.item.id, desk: "bubbel", near: home }, pick.item.id, pick.storyId) : null;
         if (pick) {
           nearItem = pick.item;
@@ -3610,6 +3664,7 @@ var HootCore = (() => {
     const accept = (e) => {
       if (accepted.length >= capacity) return;
       const id = e.leadId || e.id;
+      if (!readable(itemAny.get(id))) return;
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
       if (ids.some((x) => finalTaken.has(x)) || sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
@@ -3650,7 +3705,13 @@ var HootCore = (() => {
       if (first > 0) entries.unshift(...entries.splice(first, 1));
     }
     curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => e.kind === "story" ? storyById.get(e.id) : null });
-    openWithNews(entries, { itemsOf: knownOf, pick: (xs, all) => leadPool(leadCandidates(xs, followed, preferred, now, { role: "front" }), all, now, (i) => followed.has(i.source))[0] });
+    openWithNews(entries, {
+      itemsOf: knownOf,
+      pick: (xs, all) => {
+        const rubric = rubricOf(itemAny.get(entries[0].leadId || entries[0].id) || xs[0]);
+        return leadPool(leadCandidates(xs.filter((i) => readableIn(i, rubric)), followed, preferred, now, { role: "front" }), all, now, (i) => followed.has(i.source))[0];
+      }
+    });
     const poolById = new Map(pool.map((i) => [i.id, i]));
     const wideById = new Map([...(global.wide || []).map((w) => w?.item).filter(Boolean), ...wide ? [wide.item] : [], ...nearItem ? [nearItem] : []].map((i) => [i.id, i]));
     const itemOf = (id) => poolById.get(id) || wideById.get(id) || globalItems.get(id) || itemAny.get(id);
@@ -3701,7 +3762,7 @@ var HootCore = (() => {
       for (const i of pool) if (!examined.has(i.id)) decisions.push({ kind: "item", id: i.id, itemIds: [i.id], reason: !extraKinds.has(kindOf(i)) && kindOf(i) !== "nieuws" ? "niet-gekozen-vakgebied" : "onverklaard" });
       for (const g of supplementPool) {
         const id = g.leadId || g.id, sid = g.kind === "story" ? g.id : null;
-        decisions.push({ kind: g.kind, id: g.id, itemIds: [...membersOf(g)], route: "algemene-editie", reason: represented([...membersOf(g)]) ? "vertegenwoordigd" : !supplementReason(g) ? finalReason(id, sid, g) === "onverklaard" ? "geen-aantoonbare-aanvulreden" : finalReason(id, sid, g) : finalReason(id, sid, g) });
+        decisions.push({ kind: g.kind, id: g.id, itemIds: [...membersOf(g)], route: "algemene-editie", reason: represented([...membersOf(g)]) ? "vertegenwoordigd" : !releadEntry(g) ? "andere-taal" : !supplementReason(g) ? finalReason(id, sid, g) === "onverklaard" ? "geen-aantoonbare-aanvulreden" : finalReason(id, sid, g) : finalReason(id, sid, g) });
       }
       const counts = Object.fromEntries([...new Set(decisions.map((d) => d.reason))].sort().map((r) => [r, decisions.filter((d) => d.reason === r).length]));
       const unresolved = decisions.filter((d) => /onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason));

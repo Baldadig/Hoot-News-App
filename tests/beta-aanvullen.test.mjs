@@ -20,7 +20,11 @@ test('relevant internationaal vaknieuws houdt zijn land, maar verbruikt geen alg
 test('eerst een passende kandidaat van buiten de voorpagina zoeken; kop en aanvulreden gaan mee',()=>{
   const home={id:'home',kind:'article',source:'nos',title:'Den Haag bouwt extra sociale huurwoningen',summary:'De bouw gaat beginnen.',publishedAt}
   const global={id:'slot',builtAt:publishedAt,entries:[{kind:'item',id:'home',desk:'binnenland'}],items:[home],near:[{storyId:'chips',sourceCount:3,item:chip}],wide:[]}
-  const ed=composePersonal({global,stories:[st],items:[home],sources,followed:new Set(['nos']),interests:['tech'],now})
+  // De lezer volgt ook een Engelse nieuwsbron (de NYT): zonder die mag de Engelse Guardian-kop niet (taalregel, 7 november).
+  const withNyt=[...sources,{id:'nyt',name:'NYT',cat:'int',lang:'en'}]
+  const alleenNos=composePersonal({global,stories:[st],items:[home],sources:withNyt,followed:new Set(['nos']),interests:['tech'],now})
+  assert.ok(!alleenNos.entries.some(e=>(e.leadId||e.id)==='chip'),'geen Engelse kop voor wie geen Engelse nieuwsbron volgt')
+  const ed=composePersonal({global,stories:[st],items:[home],sources:withNyt,followed:new Set(['nos','nyt']),interests:['tech'],now})
   const chosen=ed.entries.find(e=>(e.leadId||e.id)==='chip')
   assert.ok(chosen)
   assert.equal(chosen.desk,'extern')
