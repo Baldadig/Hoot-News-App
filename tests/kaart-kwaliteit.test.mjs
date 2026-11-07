@@ -143,3 +143,12 @@ test('app: hetzelfde aanhef-patroon als het web, en het rek-vangnet met de reser
   const c = src('ios/Hoot/Views/Components.swift')
   assert.equal((c.match(/fallback: item\.introFallback\(for: intro/g) || []).length, 2)
 })
+
+test('intro lenen binnen een verhaal (borrowFromStories): dezelfde toets als de reserve', async () => {
+  // Nu "Welkom in het blog …" geen intro meer is, leent zo'n stuk; dan niet van een stuk over een ander feit.
+  const { borrowFromStories } = await import('../netlify/lib/build.mjs')
+  const rtl = { id: 'rtl', kind: 'article', source: 'rtl', sourceName: 'RTL Nieuws', title: 'Eerbetoon aan Paulien Cornelisse voor finale De slimste mens', url: 'https://rtl.example/a' }
+  const nu = { id: 'nu', kind: 'article', source: 'nu', sourceName: 'NU.nl', title: 'Winnaar De slimste mens bekend, vooraf eerbetoon aan Paulien Cornelisse', summary: 'Mats Akkerman is vrijdag uitgeroepen tot de winnaar van het 28e seizoen van De slimste mens.', url: 'https://nu.example/a' }
+  assert.equal(borrowFromStories([{ id: 's', itemIds: ['rtl', 'nu'] }], new Map([[rtl.id, rtl], [nu.id, nu]])), 0)
+  assert.equal(rtl.summary, undefined)
+})

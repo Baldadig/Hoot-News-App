@@ -482,9 +482,13 @@ export function borrowFromStories(stories, byId) {
     for (const it of members) {
       if (it.summary || isLiveblog(it.url, it.title)) continue
       const w = borrowWords(it.title)
+      // Ook hier de toets van de reserve (fitsHeadline): de geleende tekst zelf gaat over het feit van deze kop.
+      // Nu de aanhef van een blog geen intro meer is, leent zo'n stuk vaker; liever geen intro dan een verkeerde.
       const matches = (d) => {
         const dw = borrowWords(d.title)
-        return strongOverlap(sharedCount(w, dw), w.size, dw.size) && !conflictingNames(it.title, d.title)
+        if (!strongOverlap(sharedCount(w, dw), w.size, dw.size) || conflictingNames(it.title, d.title)) return false
+        const text = lendableIntro(d)
+        return fitsHeadline(it, d, text, onSmallest(text, d.sourceName) || text)
       }
       const donor = members
         .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && lendableIntro(d) && matches(d))
@@ -582,19 +586,21 @@ export function numbersClash(title, text) {
 }
 // De reserve past bij de kop van de ontvanger als:
 // - minstens twee kernwoorden van die kop in de tekst terugkomen,
-// - noemt die kop eigen namen, dan staat er minstens één in de tekst ("Eerbetoon aan Paulien Cornelisse" kreeg
-//   "Mats Akkerman is uitgeroepen tot de winnaar": een ander feit uit dezelfde uitzending),
+// - noemt die kop eigen namen en komen er maar twee kernwoorden terug, dan staat er minstens één naam in de tekst
+//   ("Eerbetoon aan Paulien Cornelisse" kreeg "Mats Akkerman is uitgeroepen tot de winnaar": een ander feit uit
+//   dezelfde uitzending, met alleen "slimste" en "mens" gemeen),
 // - de tekst ook past bij de eigen kop van de donor (minstens één kernwoord),
 // - en geen getal in de hele tekst botst met een getal in de kop.
 // De woorden tellen in wat er op de kleinste plek staat (`shown`, de eerste hele zin of zinnen): dat moet op
 // zichzelf al over het feit van de kop gaan.
 export function fitsHeadline(it, donor, text, shown = text) {
-  if (!shown || numbersClash(it.title, text) || hits(it.title, shown) < 2) return false
+  const n = shown ? hits(it.title, shown) : 0
+  if (n < 2 || numbersClash(it.title, text)) return false
   if (donor && hits(donor.title, shown) < 1) return false
   const names = namesOf(it.title)
-  if (!names.size) return true
+  if (!names.size || n >= 3) return true
   const words = wordsOf(shown)
-  return [...names].some((n) => named(n, words))
+  return [...names].some((name) => named(name, words))
 }
 const SMALLEST = introMax(INTRO_LINES, { width: 267, font: 15 })
 const viaLen = (name) => (name ? name.length + 8 : 0)
