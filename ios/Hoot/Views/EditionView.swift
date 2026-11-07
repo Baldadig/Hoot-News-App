@@ -255,9 +255,9 @@ struct EditionView: View {
                     let side = Array(rows.dropFirst().prefix(2))
                     ForEach(Array(side.enumerated()), id: \.element.id) { i, row in
                         if i > 0 { Rule().padding(.vertical, Space.s2) }
-                        // Tekst voorop: alleen het laatste verhaal van de zijkolom krijgt een klein beeld (gelijk aan
-                        // .front__side op het web), zodat de koppen niet op twee woorden per regel breken.
-                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: true, thumbShown: phone || i == side.count - 1) }
+                        // Elk verhaal in de zijkolom heeft zijn kleine beeld (of het placeholderbeeld), net als in de paren
+                        // en op het web (.front__side): een plek zonder beeld zag er vergeten uit (kaartkwaliteit).
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: true) }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }

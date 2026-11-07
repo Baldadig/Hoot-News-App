@@ -841,6 +841,12 @@ struct LeadCard: View {
         }
     }
 
+    // De intro in hele zinnen voor de rij- en krant-vorm, of nil als er geen past.
+    private var krantIntro: String? {
+        guard let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: (!timeline || klein) && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty else { return nil }
+        return intro
+    }
+
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
@@ -1020,7 +1026,7 @@ struct ItemRow: View {
     var pinSource = false // in een paar (A): de bronregel onderaan de rij
     var whySpace = false // in een paar (A): een lege waarom-regel, omdat de buur er een heeft (koppen en beelden op één lijn)
     var narrow = false // de smalle zijkolom van de voorpagina (A): "N bronnen" klein achter de tijd
-    var thumbShown = true // in de krant-vorm: het kleine beeld rechts (de zijkolom toont het alleen bij het laatste verhaal)
+    var thumbShown = true // in de krant-vorm: het kleine beeld rechts
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
@@ -1173,8 +1179,12 @@ struct ItemRow: View {
             }
             .contentShape(Rectangle())
             .opensArticle(item)
-            if pinSource { Spacer(minLength: 0) }
+            // In een paar staat de bronregel onderaan, zodat de bronregels van de rij op één lijn staan. Zonder
+            // intro geen gat tussen kop en bron: dan volgt de bronregel op de kop en komt de witruimte onderaan
+            // (.pairs > .fitem zonder .fitem__sum op het web; kaartkwaliteit).
+            if pinSource && krantIntro != nil { Spacer(minLength: 0) }
             SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, narrow: narrow)
+            if pinSource && krantIntro == nil { Spacer(minLength: 0) }
         }
         .padding(.vertical, Space.s2)
     }
@@ -1201,7 +1211,7 @@ struct ItemRow: View {
                 // nooit afgekapt op een beletselteken.
                 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
                 // In de krant-vorm staat er altijd een miniatuur: het beeld of het placeholderbeeld.
-                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: (!timeline || klein) && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty {
+                if let intro = krantIntro {
                     IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource)
                 }
             }
