@@ -91,18 +91,46 @@ final class BeeldIntroTests: XCTestCase {
         XCTAssertNil(item.cardIntro(max: 160)?.via)
     }
 
-    // Ronde 2: de aanhef van een (live)blog is geen intro, ook niet als reserve (Aanhef, gelijk aan shared/aanhef.mjs).
+    // Ronde 2: de tekst van een blog is geen intro, ook niet de rest, ook niet als reserve (Aanhef, gelijk aan shared/aanhef.mjs).
+    // Pas bij het tonen: `summary` zelf blijft (de redacteur rekent ermee).
     func testBlogaanhefIsGeenIntro() throws {
         let blog = "Welkom in het blog over de midtermverkiezingen in de Verenigde Staten."
         let json = #"{"id":"b","source":"volkskrant","url":"https://www.volkskrant.nl/b","title":"Rechter blokkeert bouw triomfboog","summary":"\#(blog)","introAlt":"Volg alle ontwikkelingen over het Midden-Oosten in onze liveblog.","introAltFrom":"HLN"}"#
         let item = try JSONDecoder().decode(Item.self, from: Data(json.utf8))
         XCTAssertNil(item.cardIntro(max: 200))
-        XCTAssertEqual(Aanhef.strip(blog + " De rechter legt de bouw stil."), "De rechter legt de bouw stil.")
-        XCTAssertEqual(Aanhef.strip("Op deze pagina blijft u op de hoogte van al het nieuws in het wielrennen."), "")
+        XCTAssertNil(item.shownSummary)
+        XCTAssertEqual(item.summary, blog)
+        XCTAssertEqual(Aanhef.shown(blog + " De rechter legt de bouw stil."), "")
+        XCTAssertEqual(Aanhef.shown("Op deze pagina blijft u op de hoogte van al het nieuws in het wielrennen."), "")
+        // Restanten van een liveblog: geen intro.
+        XCTAssertEqual(Aanhef.shown("Hallo en welkom in dit liveblog. Hier houden we je op de hoogte van de oorlog. Heb je een vraag? Mail die naar redactie@nu.nl."), "")
+        XCTAssertEqual(Aanhef.shown("De Formule 1 dendert door in deze periode. Volg alle ontwikkelingen hier."), "")
+        // Een losse verwijzing gaat er alleen zelf uit; een welkom verderop is gewoon tekst.
+        XCTAssertEqual(Aanhef.shown("Sony has snatched up the movie rights for Mouthwashing. Read more"), "Sony has snatched up the movie rights for Mouthwashing.")
+        XCTAssertEqual(Aanhef.shown("Gone are the days of scooping and smells. Welcome to the future."), "Gone are the days of scooping and smells. Welcome to the future.")
         // Gewoon nieuws blijft staan.
         for z in ["Vluchtelingen zijn welkom in de gemeente.", "Het kabinet houdt de Kamer op de hoogte.", "The blogger was arrested on Friday."] {
-            XCTAssertEqual(Aanhef.strip(z), z)
+            XCTAssertEqual(Aanhef.shown(z), z)
         }
+    }
+
+    // Zinnen knippen met de afkortingenregel (Sentences.ends): "No. 150" is geen zinseinde, net als sentencesOf op het web.
+    func testZinnenMetAfkortingen() {
+        XCTAssertEqual(Aanhef.sentences("Hi, friends! Welcome to Installer No. 150, your guide to the best stuff."), ["Hi, friends!", " Welcome to Installer No. 150, your guide to the best stuff."])
+        XCTAssertEqual(Aanhef.sentences("Dat zei dr. Jansen. Lees hier meer."), ["Dat zei dr. Jansen.", " Lees hier meer."])
+        XCTAssertEqual(Aanhef.shown("Hi, friends! Welcome to Installer No. 150, your guide to the best and Verge-iest stuff in the world."), "")
+        XCTAssertEqual(Aanhef.shown("De bus van lijn nr. 12 reed door rood. Lees ook ons achtergrondstuk."), "De bus van lijn nr. 12 reed door rood.")
+    }
+
+    // Een geleende intro over een ander feit (introLoose, server: looseBorrow) staat er niet; een reserve alleen als hele zin.
+    func testLosseLeningEnReserveAlsHeleZin() throws {
+        let loose = try JSONDecoder().decode(Item.self, from: Data(#"{"id":"e","source":"rtl","url":"https://www.rtlnieuws.nl/e","title":"Eerbetoon aan Paulien Cornelisse","summary":"Mats Akkerman is uitgeroepen tot de winnaar.","borrowedFrom":"NU.nl","introLoose":true}"#.utf8))
+        XCTAssertNil(loose.shownSummary)
+        XCTAssertNil(loose.cardIntro(max: 200))
+        let ahold = "Ahold Delhaize, eigenaar van onder meer Albert Heijn, Etos, Gall & Gall en bol, verwacht dat de omzet in het vierde kwartaal tussen de 200 miljoen en 250 miljoen euro lager uitvalt."
+        let r = try JSONDecoder().decode(Item.self, from: Data(#"{"id":"f","source":"volkskrant","url":"https://www.volkskrant.nl/f","title":"Ahold","introAlt":"\#(ahold)","introAltFrom":"AD"}"#.utf8))
+        XCTAssertNil(r.reserveIntro(max: 120)) // alleen een stuk tot een komma: geen reserve
+        XCTAssertEqual(r.reserveIntro(max: 300)?.text, ahold)
     }
 
     // Het rek-vangnet van het web (fitem__sum--rek): past de eerste zin niet binnen de maat, dan mag hij een regel

@@ -204,3 +204,13 @@ test('intro lenen binnen een verhaal (borrowFromStories): dezelfde toets als de 
   assert.equal(a.introLoose, undefined)
   assert.deepEqual(cardIntro(a), { text: b.summary, via: 'NOS' })
 })
+
+test('reserve-intro alleen als hele zin, nooit een stuk tot een komma van een ander', async () => {
+  const { cardIntro } = await import('../shared/kaart-intro.mjs')
+  const ahold = 'Ahold Delhaize, eigenaar van onder meer Albert Heijn, Etos, Gall & Gall en bol, verwacht dat de omzet in het vierde kwartaal tussen de 200 miljoen en 250 miljoen euro lager uitvalt als gevolg van de cyberaanval van vorige maand.'
+  const item = { summary: 'x'.repeat(300).replace(/x{10}/g, 'woordenlang '), introAlt: ahold, introAltFrom: 'AD' }
+  const smal = introMax(INTRO_LINES, { width: 267, font: 15 })
+  assert.deepEqual(cardIntro(item, smal), { text: '', via: null })
+  assert.deepEqual(cardIntro(item, { max: 260, rek: 260 }), { text: ahold, via: 'AD' })
+  assert.match(src('ios/Hoot/Models.swift'), /return alt\.range\(of: #"\[\.!\?\]\["'’”\)\]\?\$"#, options: \.regularExpression\) == nil \? nil : \(alt, introAltFrom\)/)
+})
