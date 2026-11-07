@@ -149,7 +149,7 @@ export function languageRule({ followed = new Set(), sources = [] } = {}) {
 // `readIds`: wat je al las (een Set); dat komt niet terug, tenzij er genoeg nieuws bij kwam.
 // `now`: de start van het dagdeel (global.builtAt), zodat elk toestel dezelfde Editie maakt.
 // Velden met een `_` (zoals `_parts`) zijn alleen ter inzage; withoutDebug haalt ze eraf.
-export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set() }) {
+export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set(), _langRule = true }) {
   if (!global?.entries?.length) return null
   // Wat alleen in de Stroom hoort (streamOnly) telt niet mee: De Redacteur rekent met het oude venster
   // per bron, ook op het toestel (shared/stroom.mjs).
@@ -223,8 +223,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   }
   const preferred = new Set(favorites.filter((id) => followed.has(id)))
 
-  // De taalregel (languageRule hieronder): een kop die je kunt lezen.
-  const { rubricOf, readableIn, readable } = languageRule({ followed, sources })
+  // De taalregel (languageRule hierboven): een kop die je kunt lezen. `_langRule: false` alleen voor de toets dat de
+  // regel niets verandert voor wie in elke rubriek een Engelse bron volgt (tests/taalregel.test.mjs).
+  const { rubricOf, readableIn, readable } = _langRule ? languageRule({ followed, sources }) : { rubricOf: () => 'nieuws', readableIn: () => true, readable: () => true }
   const storyMembers = (sid, id) => [...new Set([id, ...(storyById.get(sid)?.itemIds || [])])].map((x) => itemAny.get(x)).filter(Boolean)
   // De kop van een plek met kop `head` en stukken `xs`: dezelfde kop als die leesbaar is, anders de beste leesbare.
   const relead = (head, xs) => {

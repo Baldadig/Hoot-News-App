@@ -1941,7 +1941,7 @@ var HootCore = (() => {
   var allowedNews = (prof, story, items, desk = null, opts = {}) => newsRejection(prof, story, items, desk, opts) === null;
 
   // shared/editor-version.mjs
-  var EDITOR_REVISION = "redacteur-2026-11-02-beta2";
+  var EDITOR_REVISION = "redacteur-2026-11-07-taalregel";
 
   // shared/lang.mjs
   var NL = new Set(
@@ -3439,7 +3439,7 @@ var HootCore = (() => {
     const readable = (i) => !i || readableIn(i, rubricOf(i));
     return { rubricOf, readableIn, readable, readerLangs };
   }
-  function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set() }) {
+  function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set(), _langRule = true }) {
     if (!global?.entries?.length) return null;
     items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics);
     global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w) };
@@ -3482,7 +3482,7 @@ var HootCore = (() => {
       return followUp ? { followUp } : { seen: seen || { pts: 0 } };
     };
     const preferred = new Set(favorites.filter((id) => followed.has(id)));
-    const { rubricOf, readableIn, readable } = languageRule({ followed, sources });
+    const { rubricOf, readableIn, readable } = _langRule ? languageRule({ followed, sources }) : { rubricOf: () => "nieuws", readableIn: () => true, readable: () => true };
     const storyMembers = (sid, id) => [.../* @__PURE__ */ new Set([id, ...storyById.get(sid)?.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
     const relead = (head, xs) => {
       if (readable(head)) return head;

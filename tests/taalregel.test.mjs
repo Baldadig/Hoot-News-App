@@ -154,21 +154,20 @@ test('taalregel: Naast je bubbel slaat een Engelse kop zonder Nederlands stuk ov
   }
 })
 
-// Wie in elke rubriek een Engelse bron volgt, krijgt byte voor byte dezelfde Editie als vóór de taalregel. De afdrukken
-// zijn vastgelegd met de code van 601c172 (ronde 8, zonder taalregel). Verandert de Redacteur later bewust, dan
-// horen deze afdrukken mee te veranderen, net als de goldens.
+// Wie in elke rubriek een Engelse bron volgt, krijgt byte voor byte dezelfde Editie als zonder de taalregel. Bij de bouw
+// (ronde 9 · 1) ook nagerekend tegen de code van 601c172: dezelfde afdruk op alle drie de feeds.
 const EN_ALL = ['guardian', 'bloomberg', 'theverge', 'nature', 'bbc-sport', 'variety', 'ign', 'nos', 'nrc']
-const BEFORE = {
-  'live-feed-2026-11-04.json.gz': '9eb3050a7442384a',
-  'live-feed-2026-11-04-midterms.json.gz': 'b314df33e096d7f7',
-  'live-feed-2026-11-07.json.gz': '1bddbb3c108810e8',
-}
+const print = (ed) => createHash('sha256').update(JSON.stringify(withoutDebug(ed))).digest('hex')
 for (const f of FILES) {
   test(`taalregel ${f}: met een Engelse bron in elke rubriek precies dezelfde Editie als zonder de regel`, () => {
-    const ed = compose(FEEDS[f], EN_ALL, { interests: ['binnenland', 'wereld', 'tech'] })
-    assert.equal(createHash('sha256').update(JSON.stringify(withoutDebug(ed))).digest('hex').slice(0, 16), BEFORE[f])
+    const opts = { interests: ['binnenland', 'wereld', 'tech'] }
+    assert.equal(print(compose(FEEDS[f], EN_ALL, opts)), print(compose(FEEDS[f], EN_ALL, { ...opts, _langRule: false })))
   })
 }
+test('taalregel: de regel doet echt iets (zonder Engelse bron verschilt de Editie op 7 november)', () => {
+  const feed = FEEDS['live-feed-2026-11-07.json.gz']
+  assert.notEqual(print(compose(feed, NL)), print(compose(feed, NL, { _langRule: false })))
+})
 
 // Ronde 9 · 2: de server kiest de kop van een breed verhaal eerst uit de Nederlandstalige stukken (isDutch), Nederlands
 // vóór Vlaams. Zo krijgt ook de huidige app (zonder de taalregel in de rekenkern) vaker vanzelf een Nederlandse kop.
