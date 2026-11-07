@@ -30,7 +30,7 @@ import { labelFor } from '../lib/label.js'
 import { INTRO_LINES } from '../../shared/zinnen.mjs'
 import { cardIntro } from '../../shared/kaart-intro.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
-import { useIntroMax, useColumnWidth } from '../lib/intro.js'
+import { useIntroMax, useColumnWidth, useShrinkToFit, shrunk } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
@@ -50,17 +50,32 @@ const SIDE = 3 // breed: het hoofdverhaal met 02 en 03 ernaast, daarna de paren
 // (jouw Editie) staat als stille regel onder de rubriek, boven de kop (zie Why.js).
 // `boven`: breed, in een paar dat anders een gat laat (Edition: usePairs). Het beeld staat dan groot
 // boven het verhaal, precies zo hoog als het paar nodig heeft, in plaats van klein naast de kop.
+// De kolom van de intro in een FrontItem: de tekstkolom naast het beeld, of (zijkolom, breed) de hele link.
+const introColumn = (link) => {
+  const text = link.querySelector('.fitem__text')
+  return text && getComputedStyle(text).display !== 'contents' ? text.getBoundingClientRect().width : link.getBoundingClientRect().width
+}
 function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null, whySpace = false }) {
   const { markRead, read, prefs } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
   // De miniatuur staat er altijd (het beeld of het placeholderbeeld), behalve met beelden uit: dan de hele breedte.
   // Gemeten is gemeten: de echte breedte van de tekstkolom (useColumnWidth). Tot die er is, de smalste maat.
-  const textRef = useRef(null)
-  const width = useColumnWidth(textRef)
+  // In de zijkolom naast het hoofdverhaal (breed) staat de intro onder kop en beeld, over de hele kolom: dan
+  // is .fitem__text 'display: contents' en telt de breedte van de link (zie .front__side in styles.css).
+  const linkRef = useRef(null)
+  const width = useColumnWidth(linkRef, introColumn)
   const fit = useIntroMax()(INTRO_LINES, (prefs?.images ?? 'aan') === 'aan' ? 'voorpagina' : 'rij', false, width)
+  // Knipt de clamp toch (smalle zijkolom), dan een halve regel kleiner (useShrinkToFit).
+  const sumRef = useRef(null)
+  const step = useShrinkToFit(sumRef, `${item.id}|${width}`)
   // Hele zinnen, nooit "…"; past de eigen intro niet, dan de reserve uit hetzelfde verhaal (cardIntro).
-  const { text: summary, via } = cardIntro(item, fit)
+  // Vangnet op een gemeten kolom: is er dan nog niets, dan mag één lange eerste zin twee regels doorlopen
+  // in plaats van één (de clamp gaat mee: fitem__sum--rek). Liever een regel langer dan een leeg vlak.
+  const maat = shrunk(fit, step)
+  const gewoon = cardIntro(item, maat)
+  const rek = !gewoon.text && width > 0 && !step ? cardIntro(item, { max: maat.max, rek: maat.rek + (fit.rek - fit.max) }) : null
+  const { text: summary, via } = rek?.text ? rek : gewoon
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
       {boven && item.image ? (
@@ -78,13 +93,13 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
       ) : null}
       <Why why={why} />
       {whySpace && !whyLine(why) ? <p className="why why--leeg" aria-hidden="true">&nbsp;</p> : null}
-      <a className="fitem__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
-        <span className="fitem__text" ref={textRef}>
+      <a className="fitem__link" ref={linkRef} href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
+        <span className="fitem__text">
           <span className="head-4 fitem__title" role="heading" aria-level="3">
             {title}
           </span>
           {summary ? (
-            <span className="clamp clamp--vangnet fitem__sum">
+            <span className={`clamp clamp--vangnet fitem__sum${rek?.text ? ' fitem__sum--rek' : ''}`} ref={sumRef}>
               {summary}
               {via ? <span className="via"> — via {via}</span> : null}
             </span>

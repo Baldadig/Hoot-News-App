@@ -85,13 +85,14 @@ export function useIntroMax() {
 // De breedte van een tekstkolom, gemeten (ResizeObserver), vóór het tekenen (useLayoutEffect): zo
 // rekent de intro op de kolom waarin hij echt staat. 0 zolang er niets gemeten is (dan de vaste maat).
 // Elke 8 px één stap, zodat een paar pixels schuiven niet steeds opnieuw rekent.
-export function useColumnWidth(ref) {
+// `measure(el)`: wat er van het waargenomen element telt (standaard zijn eigen breedte).
+export function useColumnWidth(ref, measure = (el) => el.getBoundingClientRect().width) {
   const [width, setWidth] = useState(0)
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
     const take = () => {
-      const w = Math.floor(el.getBoundingClientRect().width / 8) * 8
+      const w = Math.floor(measure(el) / 8) * 8
       setWidth((old) => (old === w ? old : w))
     }
     take()
@@ -101,4 +102,24 @@ export function useColumnWidth(ref) {
     return () => ro.disconnect()
   }, [ref])
   return width
+}
+
+// Vangnet: past de gekozen intro toch niet binnen de clamp (in een smalle kolom verliest elke regel een half
+// woord aan het afbreken, meer dan lineFit rekent), dan een halve regel kleiner, tot hij past of er geen hele
+// zin meer overblijft. Zo knipt de clamp nooit midden in een zin ("… via De…"). Zoals IntroText in de app
+// meet wat er echt past. `ref`: het element met de clamp; `key`: opnieuw beginnen (ander stuk, andere breedte).
+export function useShrinkToFit(ref, key) {
+  const [step, setStep] = useState(0)
+  useLayoutEffect(() => setStep(0), [key])
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (el && step < 8 && el.scrollHeight > el.clientHeight + 1) setStep((n) => n + 1)
+  })
+  return step
+}
+// De maat `fit` ({ max, rek }) `step` halve regels kleiner (rek − max is precies één regel).
+export const shrunk = (fit, step) => {
+  if (!step) return fit
+  const half = Math.ceil(Math.max(1, fit.rek - fit.max) / 2) * step
+  return { max: Math.max(0, fit.max - half), rek: Math.max(0, fit.rek - half) }
 }

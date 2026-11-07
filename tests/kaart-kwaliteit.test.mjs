@@ -9,9 +9,11 @@ const POPE = 'Less than a month after losing part of a lung, Pope Leo XIV set ou
 
 test('web: de intro van een Editie-plek rekent op de gemeten kolom, niet op de telefoon', () => {
   const e = src('src/views/Edition.jsx')
-  assert.match(e, /const width = useColumnWidth\(textRef\)/)
-  assert.match(e, /className="fitem__text" ref=\{textRef\}/)
-  assert.match(src('src/lib/intro.js'), /export function useColumnWidth\(ref\)/)
+  assert.match(e, /const width = useColumnWidth\(linkRef, introColumn\)/)
+  assert.match(e, /className="fitem__link" ref=\{linkRef\}/)
+  // Zijkolom, breed: de intro onder kop en beeld, over de hele kolom.
+  assert.match(src('src/styles.css'), /\.front__side \.fitem__link \{\n    grid-template-areas: 'kop beeld' 'intro intro';/)
+  assert.match(src('src/lib/intro.js'), /export function useColumnWidth\(ref, measure/)
   // De telefoonmaat (267 px) liet de pauszin van 147 tekens vallen; de echte kolom van een paar (± 400 px) niet.
   const smal = introMax(INTRO_LINES, { width: 267, font: 15 })
   const breed = introMax(INTRO_LINES, { width: 400, font: 15 })
