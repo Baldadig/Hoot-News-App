@@ -15,7 +15,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
   - **Taal volgt je bronkeuze:** volg je in een rubriek geen Engelse bron, dan staat daar nooit een Engelse kop. Volg je bijvoorbeeld IGN, dan kan Games Engels zijn, het nieuws niet. Engelse bronnen blijven wel in "+N bronnen" en in de bronvergelijking staan.
   - **Waar iedereen over schrijft:** de server kiest eerst een Nederlandse kop.
   - **Cultuuroverlijden:** een overlijden in de cultuur opent de algemene Editie niet.
-  - **Revisie `redacteur-2026-11-07-taalregel`:** vastgelegde Edities worden opnieuw samengesteld.
+  - **Uitrol zonder herhaling:** de eerste Editie na een nieuwe revisie kent de vorige Editie (ook van een oude revisie), dus geen tweede keer dezelfde krant. Een Editie die al vaststaat, blijft staan tot het volgende dagdeel.
+  - **Revisie `redacteur-2026-11-07-taalregel`:** geldt vanaf het eerste dagdeel na de uitrol.
   - **iPhone:** de app krijgt de regel pas met een nieuwe build.
 
 - Placeholderbeelden van zes naar tien: bij Zonnestand en Iris komen Horizonlijnen (alleen lijnen), Raster (met één rode punt, twee beelden) en De stapel (vellen uit het laadteken), elk in Licht, Donker en Nacht en elk met een eigen kleine tekening voor het kleine vak rechts. De zon van Zonnestand is nu in alle drie de beelden een vol vlak. Ze staan door elkaar; twee beeldloze buren krijgen nooit hetzelfde beeld en nooit dezelfde set. Web en iOS kiezen hetzelfde.

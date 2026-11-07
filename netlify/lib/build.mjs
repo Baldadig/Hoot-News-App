@@ -1,5 +1,6 @@
 import { cleanIntro } from '../../shared/edition-display.mjs'
-import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mjs'
+import { EDITOR_REVISION, EDITION_REBUILD_SLOT, editionCacheKey, editionRevisionKey } from '../../shared/editor-version.mjs'
+import { previousEdition, carriedEdition } from './edition-history.mjs'
 // De feed samenstellen: alles ophalen, de Stroom vullen, bundelen tot verhalen en de editie
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
@@ -639,7 +640,9 @@ export function dutchFloor(entries, { itemsOf, byId, storyOf = () => null, sourc
 // Per dagdeel één keer samengesteld en daarna vast: selectie en volgorde veranderen niet meer;
 // een verhaal dat nog loopt toont wel zijn nieuwe publicaties. Daarbij (één keer, dan vast):
 // "Buiten je bubbel" en het AI-overzicht.
-// Een nieuwe Redacteur-revisie krijgt een eigen snapshot; alleen geschiedenis valt terug op edition3.
+// Een nieuwe Redacteur-revisie geldt vanaf het volgende dagdeel (ronde 10 · A, netlify/lib/edition-history.mjs): staat de
+// Editie van dit dagdeel al onder een eerdere revisie vast, dan blijft die staan (onder de nieuwe sleutel bewaard, met
+// zijn eigen revisie in `version`); de vorige Editie komt uit het vorige dagdeel, welke revisie ook.
 async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   const slot = editionSlot(new Date(now))
   const key = editionCacheKey(slot.id)
@@ -647,17 +650,22 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   let stored = await kvGet(key)
   let changed = false
   if (!stored?.entries?.length) {
+    stored = await carriedEdition(kvGet, slot.id, { rebuild: EDITION_REBUILD_SLOT }).catch(() => null)
+    changed = !!stored
+  }
+  if (!stored?.entries?.length) {
     // Muziek hoort in de Stroom, niet in de editie van het nieuws.
     const newsPool = articlePool
     const newsIds = new Set(newsPool.map((a) => a.id))
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
     // Wat in de vorige editie stond, komt alleen terug als het zich echt ontwikkelde.
-    const previous = previousOf(await kvGet(editionCacheKey(previousSlotId(slot))).catch(() => null) || await kvGet('edition3-' + previousSlotId(slot)).catch(() => null))
+    const previous = previousOf(await previousEdition(kvGet, previousSlotId(slot)))
     const entries = generalEdition({ stories, newsStories, pool, newsPool, now, mainIds: MAIN_IDS, sources: SOURCES, previous })
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
-    stored = { id: slot.id, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => byId.get(id)).filter(Boolean) }
+    stored = { id: slot.id, revision: EDITOR_REVISION, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => byId.get(id)).filter(Boolean) }
     changed = entries.length > 0
+    if (changed) await kvSet(editionRevisionKey(slot.id), EDITOR_REVISION).catch(() => {})
   }
   const storyById = new Map([...stories, ...stored.stories].map((st) => [st.id, st]))
   const rows = () => briefRows(stored.entries, storyById, new Map([...byId, ...stored.items.map((i) => [i.id, i])]))
@@ -720,7 +728,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       date: slot.date,
       next: slot.next,
       builtAt: stored.builtAt,
-      version: `${EDITOR_REVISION}:${stored.id}@${stored.builtAt}`,
+      version: `${stored.revision || EDITOR_REVISION}:${stored.id}@${stored.builtAt}`,
       entries: relinkEdition(stored.entries, { stories, snapshot: stored.stories, byId: new Map([...snapItems, ...byId]) }),
       items: [...new Set(shown)].map((id) => snapItems.get(id)).filter(Boolean),
       bubble: stored.bubble || [],
