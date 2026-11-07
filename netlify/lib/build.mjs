@@ -21,8 +21,8 @@ import { loadOgImage } from './og.mjs'
 import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
-import { normTitle, preview, withoutPromo, hasPromo } from './text.mjs'
-import { hasAanhef } from '../../shared/aanhef.mjs'
+import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
+import { isBlog, introShown } from '../../shared/aanhef.mjs'
 export { withoutPromo } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
@@ -424,23 +424,36 @@ const borrowWords = (title) => {
 }
 // Een intro om te lenen, zonder reclame: zinnen die oproepen een app te downloaden, je te abonneren of
 // meldingen aan te zetten gaan eruit ("Download de app DS Nieuws ..." onder een kop van De Morgen). Blijft
-// er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit, en ook geen stuk
-// waarvan de samenvatting de aanhef van een (live)blog heeft ("Welkom in het blog …", "Volg alle ontwikkelingen
-// … in onze liveblog."; shared/aanhef.mjs): dat is een blog over de hele dag, niet over dit ene feit.
+// er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit.
 const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|volg hier|subscribe|sign up|newsletter)/i
 // Eigen intro's: het reclamefilter (PROMO_OWN, withoutPromo) staat in text.mjs, zodat ook de feed (rss.mjs)
 // het al vóór het inkorten toepast.
 export function lendableIntro(d) {
-  if (!d?.summary || isLiveblog(d.url, d.title) || hasAanhef(d.summary)) return ''
+  if (!d?.summary || isLiveblog(d.url, d.title)) return ''
   return withoutPromo(d.summary, PROMO)
+}
+// Strenger, voor wat er GETOOND wordt (de reserve-intro, en de toets of een geleende intro er mag staan): ook geen
+// stuk waarvan de samenvatting de tekst van een blog over de hele dag is ("Welkom in het blog …", "Volg alle
+// ontwikkelingen … in onze liveblog."; shared/aanhef.mjs), ook niet de rest van die tekst, en zonder losse
+// verwijzingen ("Read more"). lendableIntro zelf blijft zoals hij was: daarmee rekent de samenstelling.
+export function reserveIntro(d) {
+  const text = lendableIntro(d)
+  return !text || isBlog(d.summary) ? '' : introShown(text)
+}
+// Een geleende intro (borrowPreviews, borrowFromStories) die niet aantoonbaar over het feit van de kop van de
+// ontvanger gaat, of van een blog komt, staat er niet (`introLoose`; shared/kaart-intro.mjs en Item.shownSummary
+// in de app). De samenvatting zelf blijft: de redacteur rekent ermee, en het nieuws mag niet verschuiven.
+function looseBorrow(it, d) {
+  const text = reserveIntro(d)
+  return !text || !fitsHeadline(it, d, text, onSmallest(text, d.sourceName) || text)
 }
 // Eigen intro's van alle berichten (geen posts), vóór het lenen: een intro die alleen reclame was, laat de
 // plek leeg en mag dan lenen.
 export function stripPromoIntros(items) {
   for (const it of items) {
     if (it.kind === 'post') continue
-    if (typeof it.summary === 'string' && hasPromo(it.summary)) it.summary = withoutPromo(it.summary)
-    if (typeof it.text === 'string' && hasPromo(it.text)) it.text = withoutPromo(it.text)
+    if (typeof it.summary === 'string' && PROMO_OWN.test(it.summary)) it.summary = withoutPromo(it.summary)
+    if (typeof it.text === 'string' && PROMO_OWN.test(it.text)) it.text = withoutPromo(it.text)
   }
 }
 export function borrowPreviews(items, mainItems) {
@@ -463,6 +476,7 @@ export function borrowPreviews(items, mainItems) {
       it.summary = lendableIntro(best)
       it.text = it.summary
       it.borrowedFrom = best.sourceName
+      if (looseBorrow(it, best)) it.introLoose = true
     }
   }
 }
@@ -482,13 +496,9 @@ export function borrowFromStories(stories, byId) {
     for (const it of members) {
       if (it.summary || isLiveblog(it.url, it.title)) continue
       const w = borrowWords(it.title)
-      // Ook hier de toets van de reserve (fitsHeadline): de geleende tekst zelf gaat over het feit van deze kop.
-      // Nu de aanhef van een blog geen intro meer is, leent zo'n stuk vaker; liever geen intro dan een verkeerde.
       const matches = (d) => {
         const dw = borrowWords(d.title)
-        if (!strongOverlap(sharedCount(w, dw), w.size, dw.size) || conflictingNames(it.title, d.title)) return false
-        const text = lendableIntro(d)
-        return fitsHeadline(it, d, text, onSmallest(text, d.sourceName) || text)
+        return strongOverlap(sharedCount(w, dw), w.size, dw.size) && !conflictingNames(it.title, d.title)
       }
       const donor = members
         .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && lendableIntro(d) && matches(d))
@@ -497,6 +507,10 @@ export function borrowFromStories(stories, byId) {
       it.summary = lendableIntro(donor)
       if (!it.text) it.text = it.summary
       it.borrowedFrom = donor.sourceName
+      // Ook hier de toets van de reserve: gaat de geleende tekst niet aantoonbaar over het feit van deze kop
+      // ("Eerbetoon aan Paulien Cornelisse" kreeg "Mats Akkerman is uitgeroepen tot de winnaar"), dan staat hij
+      // er niet. De keuze van de donor blijft zoals hij was: daarmee rekent de samenstelling.
+      if (looseBorrow(it, donor)) it.introLoose = true
       n++
     }
   }
@@ -611,15 +625,18 @@ export function introAlternatives(stories, byId) {
   for (const st of stories) {
     const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article' && !isLiveblog(i.url, i.title))
     for (const it of members) {
-      if (!it.summary || fitsSmallest(it.summary, it.borrowedFrom)) continue
+      if (!it.summary) continue
+      // Wat er van de eigen intro getoond wordt (geen blogtekst, geen losse geleende intro): past dat, dan geen reserve.
+      const own = it.introLoose ? '' : introShown(cleanIntro(it.summary, it.author))
+      if (own && fitsSmallest(own, it.borrowedFrom)) continue
       const donor = members.find((d) => {
         if (d === it || !d.summary || d.borrowedFrom || d.source === it.source || langOf(d) !== langOf(it) || !visibleFor(d)) return false
-        const text = lendableIntro(d)
+        const text = reserveIntro(d)
         const shown = text && onSmallest(text, d.sourceName)
         return !!shown && sameFact(it, d) && fitsHeadline(it, d, text, shown)
       })
       if (!donor) continue
-      it.introAlt = lendableIntro(donor)
+      it.introAlt = reserveIntro(donor)
       it.introAltFrom = donor.sourceName
       n++
     }
@@ -679,6 +696,7 @@ function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     title: it.title,
     summary: it.kind === 'post' ? it.summary : withoutPromo(cleanIntro(it.summary, it.author)),
     borrowedFrom: it.borrowedFrom,
+    introLoose: it.borrowedFrom ? it.introLoose : null,
     introAlt: it.introAlt ? withoutPromo(cleanIntro(it.introAlt)) : null,
     introAltFrom: it.introAlt ? it.introAltFrom : null,
     readMin: it.readMin,

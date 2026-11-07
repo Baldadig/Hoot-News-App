@@ -854,7 +854,7 @@ struct LeadCard: View {
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .loadLinesHead(item.title, style: EditionDisplay.headlineStyle(item.title)) // hier landen de laadstrepen
-            if let intro = item.summary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
+            if let intro = item.shownSummary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
                 // Gemeten, niet afgekapt: past de intro niet in 5 (breed 6) regels, dan een zin minder (IntroText).
                 IntroText(text: intro, style: wide ? .title3 : .body, lines: wide ? 6 : 5, suffix: item.introWithSource)
             }
@@ -908,7 +908,7 @@ struct LeadCard: View {
     }
 
     private func vouwKaart(_ ruimte: VouwRuimte) -> some View {
-        let intro = item.summary.map { wholeSentences($0, max: 240 - item.viaLength) } ?? ""
+        let intro = item.shownSummary.map { wholeSentences($0, max: 240 - item.viaLength) } ?? ""
         let kandidaten = intro.isEmpty ? [] : IntroText.candidates(intro)
         let regels = Vouw.introRegels(ruimte.profiel)
         return VStack(alignment: .leading, spacing: 0) {
@@ -958,7 +958,7 @@ struct LeadCard: View {
                         .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                         .loadLinesHead(item.title, style: EditionDisplay.headlineStyle(item.title)) // hier landen de laadstrepen
-                    if let intro = item.summary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
+                    if let intro = item.shownSummary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
                         IntroText(text: intro, style: .body, lines: 5, suffix: item.introWithSource, size: 20, line: 30)
                     }
                 }

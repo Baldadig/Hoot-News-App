@@ -42,6 +42,7 @@ struct Item: Codable, Identifiable, Hashable {
     var borrowedFrom: String? // de intro is van een ander stuk over hetzelfde (server): "via X"
     var introAlt: String? // reserve-intro uit hetzelfde verhaal, als de eigen op een kleine plek niet past (server: introAlternatives)
     var introAltFrom: String? // de bron van die reserve: "via X"
+    var introLoose: Bool? // de geleende intro gaat niet aantoonbaar over het feit van de kop (server: looseBorrow): niet tonen
     let url: String
     var image: String?
     var publishedAt: String?
@@ -76,17 +77,25 @@ struct Item: Codable, Identifiable, Hashable {
     // De aanhef van een (live)blog telt nooit als intro (Aanhef). nil: er past geen intro. `via` gaat als
     // " — via X" achter de tekst (Item.withVia).
     func cardIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
-        if let summary {
-            let own = wholeSentences(Aanhef.strip(EditionDisplay.cleanIntro(summary, author: nil)), max: max - viaLength, rek: rek.map { $0 - viaLength })
+        if let shownSummary {
+            let own = wholeSentences(shownSummary, max: max - viaLength, rek: rek.map { $0 - viaLength })
             if !own.isEmpty { return (own, borrowedFrom) }
         }
         return reserveIntro(max: max, rek: rek)
+    }
+    // De eigen intro zoals hij getoond mag worden, of nil (ownIntro in shared/kaart-intro.mjs): geen tekst van een
+    // blog, geen losse verwijzing, en geen geleende intro over een ander feit (introLoose). Voor elke plek die de
+    // intro van een stuk toont.
+    var shownSummary: String? {
+        guard introLoose != true, let summary else { return nil }
+        let s = Aanhef.shown(EditionDisplay.cleanIntro(summary, author: author))
+        return s.isEmpty ? nil : s
     }
     // Alleen de reserve, in hele zinnen tot `max` (en `rek`), of nil.
     func reserveIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
         guard let introAlt, let introAltFrom else { return nil }
         let cost = introAltFrom.count + 8
-        let alt = wholeSentences(Aanhef.strip(EditionDisplay.cleanIntro(introAlt, author: nil)), max: max - cost, rek: rek.map { $0 - cost })
+        let alt = wholeSentences(Aanhef.shown(EditionDisplay.cleanIntro(introAlt, author: nil)), max: max - cost, rek: rek.map { $0 - cost })
         return alt.isEmpty ? nil : (alt, introAltFrom)
     }
     // Met het vangnet van het web (FrontItem in src/views/Edition.jsx, fitem__sum--rek): levert de gewone maat
@@ -116,7 +125,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, introAlt, introAltFrom, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, introAlt, introAltFrom, introLoose, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -134,6 +143,7 @@ extension Item {
         borrowedFrom = try? c.decodeIfPresent(String.self, forKey: .borrowedFrom)
         introAlt = try? c.decodeIfPresent(String.self, forKey: .introAlt)
         introAltFrom = try? c.decodeIfPresent(String.self, forKey: .introAltFrom)
+        introLoose = try? c.decodeIfPresent(Bool.self, forKey: .introLoose)
         image = try? c.decodeIfPresent(String.self, forKey: .image)
         publishedAt = try? c.decodeIfPresent(String.self, forKey: .publishedAt)
         let rawAuthor = try? c.decodeIfPresent(String.self, forKey: .author)
@@ -643,22 +653,43 @@ enum HootDate {
     }
 }
 
-// De aanhef van een (live)blog en de reclame voor een liveblog (shared/aanhef.mjs, AANHEF_SOURCE): "Welkom in het
-// blog …", "Volg alle ontwikkelingen … in onze liveblog." Zo'n zin valt uit de intro; was dat de hele intro, dan
-// is er geen. Hetzelfde patroon als op het web, letterlijk (tests/kaart-kwaliteit.test.mjs houdt ze gelijk).
+// De tekst van een blog en losse verwijzingen in een intro (shared/aanhef.mjs). Hetzelfde als op het web,
+// letterlijk (tests/kaart-kwaliteit.test.mjs houdt de patronen gelijk). Alleen bij het tonen: de samenvatting
+// waarmee de redacteur rekent, blijft zoals hij was.
+// - blog ("Welkom in het blog …", "Volg alle ontwikkelingen … in onze liveblog."): geen intro, ook niet de rest;
+// - promo ("Read more", "Lees hier …", "This story was updated …"): alleen die zin gaat eruit.
+// Zinnen knippen met Sentences.sentenceEnd (de afkortingenregel), nooit vóór een cijfer of kleine letter ("No. 150").
 enum Aanhef {
-    static let pattern = #"\blive(?:\s|-)?blog|^\s*(?:welkom|welcome)\b|\bin\s+(?:het|dit|ons|deze|onze|this|our|the)\s+blog\b|^\s*(?:volg|lees|luister|bekijk|follow|read)\s+(?:alle|al|alles|hier|live|ons|onze|meer|ook|het\s+laatste|de\s+ontwikkelingen|our|the\s+latest|along|more)\b|\bop\s+deze\s+pagina\b|\bon\s+this\s+page\b|\b(?:u|je|jou)\s+(?:\w+\s+)?op\s+de\s+hoogte\b|\bkeep\s+you\s+(?:up\s+to\s+date|updated|posted)\b|\blive\s+(?:updates?|coverage)\b"#
-    // Zinnen zoals withoutPromo op de server ze telt (SENTENCES_SOURCE).
-    static let sentencesPattern = #"[^.!?]+(?:[.!?]+["'’”)]?|$)\s*"#
-    private static let regex = try! NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
-    private static let sentences = try! NSRegularExpression(pattern: sentencesPattern)
-    static func isAanhef(_ sentence: String) -> Bool {
-        regex.firstMatch(in: sentence, range: NSRange(location: 0, length: (sentence as NSString).length)) != nil
+    static let blogPattern = #"\blive(?:\s|-)?blogs?\b|\bin\s+(?:het|dit|ons|deze|onze|this|our|the)\s+blog\b|^\s*(?:volg|follow)\s+(?:alle|al|alles|hier|live|ons|onze|het\s+laatste|de\s+ontwikkelingen|our|the\s+latest|along)\b|\bop\s+deze\s+pagina\b|\bon\s+this\s+page\b|\b(?:u|je|jou)\s+(?:\w+\s+)?op\s+de\s+hoogte\b|\bkeep\s+you\s+(?:up\s+to\s+date|updated|posted)\b|\blive\s+(?:updates?|coverage)\b"#
+    static let greetingPattern = #"^\s*(?:(?:hallo|hoi|hi|hey|hello|goede(?:morgen|middag|avond)|good\s+(?:morning|afternoon|evening))\b[^.!?]{0,30}[.!?,]?\s*(?:en\s+|and\s+)?)?(?:welkom|welcome)\b"#
+    static let promoPattern = #"^\s*(?:lees|luister|bekijk|kijk|read|listen|watch)\s+(?:hier|meer|ook|alles|terug|more|here|also)\b|^\s*(?:this|the)\s+(?:story|article)\s+(?:was|has\s+been)\s+updated\b"#
+    private static let blog = try! NSRegularExpression(pattern: blogPattern, options: [.caseInsensitive])
+    private static let greeting = try! NSRegularExpression(pattern: greetingPattern, options: [.caseInsensitive])
+    private static let promo = try! NSRegularExpression(pattern: promoPattern, options: [.caseInsensitive])
+    private static func hit(_ re: NSRegularExpression, _ s: String) -> Bool {
+        re.firstMatch(in: s, range: NSRange(location: 0, length: (s as NSString).length)) != nil
     }
-    static func strip(_ text: String) -> String {
+    // De zinnen van een tekst, met hun witruimte (samen weer de hele tekst); sentencesOf op het web.
+    static func sentences(_ text: String) -> [String] {
         let ns = text as NSString
-        let parts = sentences.matches(in: text, range: NSRange(location: 0, length: ns.length)).map { ns.substring(with: $0.range) }
-        guard parts.contains(where: isAanhef) else { return text }
-        return parts.filter { !isAanhef($0) }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
+        var out: [String] = []
+        var start = 0
+        for end in Sentences.ends(in: ns) {
+            var j = end
+            while j < ns.length, let u = UnicodeScalar(ns.character(at: j)), CharacterSet.whitespacesAndNewlines.contains(u) { j += 1 }
+            if j < ns.length, let u = UnicodeScalar(ns.character(at: j)), CharacterSet.lowercaseLetters.contains(u) || CharacterSet.decimalDigits.contains(u) { continue }
+            out.append(ns.substring(with: NSRange(location: start, length: end - start)))
+            start = end
+        }
+        if start < ns.length { out.append(ns.substring(from: start)) }
+        return out.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+    static func isBlog(_ text: String) -> Bool { hit(greeting, text) || sentences(text).contains { hit(blog, $0) } }
+    // De intro zoals hij op een kaart mag staan: "" bij een blog, anders zonder de losse verwijzingen (introShown).
+    static func shown(_ text: String) -> String {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !isBlog(text) else { return "" }
+        let parts = sentences(text)
+        guard parts.contains(where: { hit(promo, $0) }) else { return text }
+        return parts.filter { !hit(promo, $0) }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

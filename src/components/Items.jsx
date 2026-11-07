@@ -1,6 +1,6 @@
-import { cardIntro } from '../../shared/kaart-intro.mjs'
+import { cardIntro, ownIntro } from '../../shared/kaart-intro.mjs'
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
-import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
+import { headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { usePhone } from '../hooks/usePhone.js'
@@ -436,7 +436,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
   // 01 boven de vouw (src/lib/vouw.js): alleen het hoofdverhaal op een telefoon.
   const phone = usePhone()
   const kaartRef = useRef(null)
-  const vouw = useVouw(kaartRef, { aan: lead && phone, introTekst: lead ? wholeSentences(cleanIntro(item.summary, item.author), 240 - viaLength(item), 240 - viaLength(item)) : '', key: item.id })
+  const vouw = useVouw(kaartRef, { aan: lead && phone, introTekst: lead ? wholeSentences(ownIntro(item), 240 - viaLength(item), 240 - viaLength(item)) : '', key: item.id })
   const beeld = klein ? (
     <Beeld item={item} kind="krant" className={`thumb kaart__thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
       {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}

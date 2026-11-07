@@ -91,23 +91,55 @@ test('reserve: nooit reclame voor een liveblog ("Volg alle ontwikkelingen … in
   assert.equal(await reserve(st('hbvl', 'hbvl', 'Het Belang van Limburg', beenders, LANG), st('ds', 'standaard', 'De Standaard', 'Beenders: banken hollen bescherming phishing-slachtoffers uit', 'In de liveblog economie brengen we nog meer en sneller financieel-economisch nieuws.')), null)
 })
 
-test('reserve en eigen intro: de aanhef van een blog is geen intro ("Welkom in het blog over …")', async () => {
-  const { lendableIntro, stripPromoIntros } = await import('../netlify/lib/build.mjs')
-  const { cardIntro } = await import('../shared/kaart-intro.mjs')
-  const { withoutAanhef, hasAanhef } = await import('../shared/aanhef.mjs')
+test('reserve en eigen intro: de tekst van een blog is geen intro ("Welkom in het blog over …")', async () => {
+  const { reserveIntro, lendableIntro, stripPromoIntros } = await import('../netlify/lib/build.mjs')
+  const { cardIntro, ownIntro } = await import('../shared/kaart-intro.mjs')
+  const { introShown, hasAanhef, isBlog } = await import('../shared/aanhef.mjs')
   const blog = 'Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.'
   assert.equal(await reserve(st('nos', 'nos', 'NOS', 'Groen licht voor Trumps triomfboog, maar rechter legt bouw direct stil', LANG), st('vk', 'volkskrant', 'de Volkskrant', 'Rechter blokkeert tijdelijk begin bouw van Trumps triomfboog', blog)), null)
-  // Een stuk met zo'n aanhef leent helemaal niets uit, ook niet de zin erna: het is een blog over de hele dag.
-  assert.equal(lendableIntro({ summary: `${blog} Trump zegt dat hij wint.`, url: 'https://vk.example/x', title: 'x' }), '')
-  // De eigen intro: alleen aanhef is geen intro, op de server en op de kaart (web; de app in Item.cardIntro).
+  // Een stuk met zo'n tekst leent als reserve helemaal niets uit, ook niet de zin erna: het is een blog over de hele dag.
+  assert.equal(reserveIntro({ summary: `${blog} Trump zegt dat hij wint.`, url: 'https://vk.example/x', title: 'x' }), '')
+  // De eigen intro: een blogtekst is geen intro, ook niet wat erna komt (web en app: ownIntro, Item.shownSummary).
+  assert.deepEqual(cardIntro({ summary: blog }), { text: '', via: null })
+  assert.deepEqual(cardIntro({ summary: `${blog} De rechter legt de bouw stil.` }), { text: '', via: null })
+  // Maar pas bij het tonen: de samenvatting waarmee de redacteur rekent, blijft (keuring ronde 2: het nieuws verschoof).
   const it = { kind: 'article', summary: blog }
   stripPromoIntros([it])
-  assert.equal(it.summary, '')
-  assert.deepEqual(cardIntro({ summary: blog }), { text: '', via: null })
-  assert.deepEqual(cardIntro({ summary: `${blog} De rechter legt de bouw stil.` }), { text: 'De rechter legt de bouw stil.', via: null })
-  for (const z of ['Op deze pagina blijft u op de hoogte van al het nieuws in het wielrennen.', 'Volg hier de persconferentie.', 'Follow our live coverage here.', 'Lees alles over de verkiezingen.', 'In ons blog houden we je op de hoogte.']) assert.ok(hasAanhef(z), z)
+  assert.equal(it.summary, blog)
+  assert.equal(lendableIntro({ summary: `${blog} Trump zegt dat hij wint.`, url: 'https://vk.example/x', title: 'x' }), `${blog} Trump zegt dat hij wint.`)
+  for (const z of ['Op deze pagina blijft u op de hoogte van al het nieuws in het wielrennen.', 'Volg hier de persconferentie.', 'Follow our live coverage here.', 'In ons blog houden we je op de hoogte.', 'Of dat lukt, leest u in deze liveblog.']) assert.ok(isBlog(z), z)
+  assert.ok(hasAanhef('Lees alles over de verkiezingen.'))
   // Gewoon nieuws blijft: een gemeente die vluchtelingen welkom heet, de Kamer die op de hoogte wordt gehouden.
-  for (const z of ['Vluchtelingen zijn welkom in de gemeente.', 'Het kabinet houdt de Kamer op de hoogte.', 'The blogger was arrested on Friday.']) assert.equal(withoutAanhef(z), z)
+  for (const z of ['Vluchtelingen zijn welkom in de gemeente.', 'Het kabinet houdt de Kamer op de hoogte.', 'The blogger was arrested on Friday.']) assert.equal(introShown(z), z)
+  assert.equal(ownIntro({ summary: 'Iets anders.', introLoose: true }), '')
+})
+
+test('restanten van een liveblog zijn geen intro en lenen niet; een losse verwijzing gaat er alleen zelf uit', async () => {
+  const { introShown } = await import('../shared/aanhef.mjs')
+  const { reserveIntro } = await import('../netlify/lib/build.mjs')
+  const nu = 'Hallo en welkom in dit liveblog. Hier houden we je op de hoogte van de laatste ontwikkelingen rond de oorlog in Oekraïne. Heb je een vraag? Mail die naar redactie@nu.nl.'
+  const ad = 'De Formule 1 dendert door in deze periode. Volg alle ontwikkelingen hier.'
+  const knvb = 'Welkom in dit liveblog! Mijn naam is Hein Nooijens en ik begeleid je bij de loting voor ronde 2 in de KNVB-beker. Veel plezier!'
+  const ds = 'Club Brugge is al vijf competitiewedstrijden op rij ongeslagen, en wil die reeks graag verderzetten op het veld van Zulte Waregem. Of dat lukt, leest u in deze liveblog.'
+  for (const t of [nu, ad, knvb, ds]) {
+    assert.equal(introShown(t), '', t)
+    assert.equal(reserveIntro({ summary: t, url: 'https://x.example/a', title: 'Een kop' }), '', t)
+  }
+  // "Read more", "Lees hier …", "This story was updated …": alleen die zin.
+  assert.equal(introShown('Sony has snatched up the movie rights for Mouthwashing, the hit independent horror video game released in 2024. Read more'), 'Sony has snatched up the movie rights for Mouthwashing, the hit independent horror video game released in 2024.')
+  assert.equal(introShown('This story was updated on November 5, 2026 at 11:00 am EST.'), '')
+  // Een welkom verderop is gewoon tekst.
+  const wired = 'With these high-tech automatic litter boxes, gone are the days of scooping and smells. Welcome to the future.'
+  assert.equal(introShown(wired), wired)
+})
+
+test('zinnen knippen met de afkortingenregel: "No. 150" is geen zinseinde', async () => {
+  const { sentencesOf, introShown } = await import('../shared/aanhef.mjs')
+  assert.deepEqual(sentencesOf('Hi, friends! Welcome to Installer No. 150, your guide to the best stuff.'), ['Hi, friends!', ' Welcome to Installer No. 150, your guide to the best stuff.'])
+  assert.deepEqual(sentencesOf('Dat zei dr. Jansen. Lees hier meer.'), ['Dat zei dr. Jansen.', ' Lees hier meer.'])
+  // Nooit "Hi, friends! 150, your guide …": een nieuwsbrief die met een welkom opent, heeft geen intro.
+  assert.equal(introShown('Hi, friends! Welcome to Installer No. 150, your guide to the best and Verge-iest stuff in the world.'), '')
+  assert.equal(introShown('De bus van lijn nr. 12 reed door rood. Lees ook ons achtergrondstuk.'), 'De bus van lijn nr. 12 reed door rood.')
 })
 
 test('reserve: geen getal dat de kop tegenspreekt ("Bijna 450 aanhoudingen" naast "565 mensen opgepakt")', async () => {
@@ -132,23 +164,43 @@ test('reserve: alleen over het feit van de kop van de ontvanger, niet over een a
   assert.equal(await reserve(st('rtl2', 'rtl', 'RTL Nieuws', 'VS keurt mogelijke verkoop van 500 Patriot-raketten aan Oekraïne goed', LANG), nos), nos.summary)
 })
 
-test('app: hetzelfde aanhef-patroon als het web, en het rek-vangnet met de reserve in IntroText', async () => {
-  const { AANHEF_SOURCE, SENTENCES_SOURCE } = await import('../shared/aanhef.mjs')
+test('app: dezelfde patronen als het web, en het rek-vangnet met de reserve in IntroText', async () => {
+  const { BLOG_SOURCE, GREETING_SOURCE, PROMO_SOURCE } = await import('../shared/aanhef.mjs')
   const m = src('ios/Hoot/Models.swift')
-  assert.ok(m.includes(`static let pattern = #"${AANHEF_SOURCE}"#`), 'Aanhef.pattern gelijk aan AANHEF_SOURCE')
-  assert.ok(m.includes(`static let sentencesPattern = #"${SENTENCES_SOURCE}"#`), 'Aanhef.sentencesPattern gelijk aan SENTENCES_SOURCE')
-  assert.match(m, /wholeSentences\(Aanhef\.strip\(EditionDisplay\.cleanIntro\(summary, author: nil\)\)/)
+  assert.ok(m.includes(`static let blogPattern = #"${BLOG_SOURCE}"#`), 'Aanhef.blogPattern gelijk aan BLOG_SOURCE')
+  assert.ok(m.includes(`static let greetingPattern = #"${GREETING_SOURCE}"#`), 'Aanhef.greetingPattern gelijk aan GREETING_SOURCE')
+  assert.ok(m.includes(`static let promoPattern = #"${PROMO_SOURCE}"#`), 'Aanhef.promoPattern gelijk aan PROMO_SOURCE')
+  // Zinnen met de afkortingenregel van de intro, zoals sentencesOf.
+  assert.match(m, /for end in Sentences\.ends\(in: ns\)/)
+  // De eigen intro zoals hij getoond mag worden: ook de app laat een losse geleende intro weg (introLoose).
+  assert.match(m, /guard introLoose != true, let summary else \{ return nil \}/)
+  assert.match(m, /Aanhef\.shown\(EditionDisplay\.cleanIntro\(summary, author: author\)\)/)
   assert.match(m, /cardIntro\(max: max\) \?\? cardIntro\(max: max, rek: Self\.longer\(max, by: line\)\)/)
   assert.match(src('ios/Hoot/Views/IntroText.swift'), /var fallback: \(text: String, suffix: \(String\) -> String\)\? = nil/)
   const c = src('ios/Hoot/Views/Components.swift')
   assert.equal((c.match(/fallback: item\.introFallback\(for: intro/g) || []).length, 2)
+  // Het hoofdverhaal en de vouw tonen ook alleen wat getoond mag worden, net als het web (ownIntro).
+  assert.equal((c.match(/item\.shownSummary\.map/g) || []).length, 3)
+  assert.doesNotMatch(c, /item\.summary\.map\(\{ wholeSentences/)
+  for (const f of ['src/views/Story.jsx', 'src/views/Vak.jsx']) assert.match(src(f), /wholeSentences\(ownIntro\(item\)/, f)
+  assert.match(src('src/components/Items.jsx'), /introTekst: lead \? wholeSentences\(ownIntro\(item\)/)
 })
 
-test('intro lenen binnen een verhaal (borrowFromStories): dezelfde toets als de reserve', async () => {
-  // Nu "Welkom in het blog …" geen intro meer is, leent zo'n stuk; dan niet van een stuk over een ander feit.
+test('intro lenen binnen een verhaal (borrowFromStories): dezelfde toets als de reserve, alleen bij het tonen', async () => {
+  // De keuze van de donor blijft zoals hij was (de samenstelling rekent met de samenvatting), maar een geleende
+  // tekst over een ander feit staat er niet: het eerbetoon is niet de winnaar.
   const { borrowFromStories } = await import('../netlify/lib/build.mjs')
+  const { cardIntro } = await import('../shared/kaart-intro.mjs')
   const rtl = { id: 'rtl', kind: 'article', source: 'rtl', sourceName: 'RTL Nieuws', title: 'Eerbetoon aan Paulien Cornelisse voor finale De slimste mens', url: 'https://rtl.example/a' }
   const nu = { id: 'nu', kind: 'article', source: 'nu', sourceName: 'NU.nl', title: 'Winnaar De slimste mens bekend, vooraf eerbetoon aan Paulien Cornelisse', summary: 'Mats Akkerman is vrijdag uitgeroepen tot de winnaar van het 28e seizoen van De slimste mens.', url: 'https://nu.example/a' }
-  assert.equal(borrowFromStories([{ id: 's', itemIds: ['rtl', 'nu'] }], new Map([[rtl.id, rtl], [nu.id, nu]])), 0)
-  assert.equal(rtl.summary, undefined)
+  assert.equal(borrowFromStories([{ id: 's', itemIds: ['rtl', 'nu'] }], new Map([[rtl.id, rtl], [nu.id, nu]])), 1)
+  assert.equal(rtl.summary, nu.summary)
+  assert.equal(rtl.introLoose, true)
+  assert.deepEqual(cardIntro(rtl), { text: '', via: null })
+  // Wel over hetzelfde feit: dan gewoon met "via".
+  const a = { id: 'a', kind: 'article', source: 'rtl', sourceName: 'RTL Nieuws', title: 'VS keurt verkoop van 500 Patriot-raketten aan Oekraïne goed', url: 'https://rtl.example/b' }
+  const b = { id: 'b', kind: 'article', source: 'nos', sourceName: 'NOS', title: 'VS keurt verkoop Patriot-raketten aan Oekraïne goed', summary: 'De Verenigde Staten heeft de verkoop van 500 Patriot-raketten aan Oekraïne goedgekeurd.', url: 'https://nos.example/b' }
+  borrowFromStories([{ id: 't', itemIds: ['a', 'b'] }], new Map([[a.id, a], [b.id, b]]))
+  assert.equal(a.introLoose, undefined)
+  assert.deepEqual(cardIntro(a), { text: b.summary, via: 'NOS' })
 })
