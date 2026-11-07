@@ -5,7 +5,7 @@ import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { typeset } from '../../shared/typeset.mjs'
 import { BRAND, UA, editionWindowOf } from './sources.mjs'
 import { firstOf } from './stream.mjs'
-import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime, withoutPromo, PROMO_OWN } from './text.mjs'
+import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime, withoutPromo, hasPromo } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
 
 const parser = new Parser({
@@ -147,7 +147,7 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
         // Reclame en nieuwsbrief-aanhef ("Sign up for …", "This is an edition of …") gaan eruit vóór het
         // inkorten: anders bleef van een intro die met reclame begon niets over (kaartkwaliteit).
         const intro = typeset(cleanIntro(introOf(it, title), authorOf(it)), src.lang)
-        const fullText = PROMO_OWN.test(intro) ? withoutPromo(intro) : intro
+        const fullText = hasPromo(intro) ? withoutPromo(intro) : intro
         const teaser = clip(fullText, 280)
         const summary = preview(fullText)
         // Leestijd alleen tonen als de feed de echte artikeltekst meelevert (NOS, The Verge);

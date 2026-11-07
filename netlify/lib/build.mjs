@@ -21,7 +21,8 @@ import { loadOgImage } from './og.mjs'
 import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
-import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
+import { normTitle, preview, withoutPromo, hasPromo } from './text.mjs'
+import { hasAanhef } from '../../shared/aanhef.mjs'
 export { withoutPromo } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
@@ -423,12 +424,14 @@ const borrowWords = (title) => {
 }
 // Een intro om te lenen, zonder reclame: zinnen die oproepen een app te downloaden, je te abonneren of
 // meldingen aan te zetten gaan eruit ("Download de app DS Nieuws ..." onder een kop van De Morgen). Blijft
-// er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit.
+// er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit, en ook geen stuk
+// waarvan de samenvatting de aanhef van een (live)blog heeft ("Welkom in het blog …", "Volg alle ontwikkelingen
+// … in onze liveblog."; shared/aanhef.mjs): dat is een blog over de hele dag, niet over dit ene feit.
 const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|volg hier|subscribe|sign up|newsletter)/i
 // Eigen intro's: het reclamefilter (PROMO_OWN, withoutPromo) staat in text.mjs, zodat ook de feed (rss.mjs)
 // het al vóór het inkorten toepast.
 export function lendableIntro(d) {
-  if (!d?.summary || isLiveblog(d.url, d.title)) return ''
+  if (!d?.summary || isLiveblog(d.url, d.title) || hasAanhef(d.summary)) return ''
   return withoutPromo(d.summary, PROMO)
 }
 // Eigen intro's van alle berichten (geen posts), vóór het lenen: een intro die alleen reclame was, laat de
@@ -436,8 +439,8 @@ export function lendableIntro(d) {
 export function stripPromoIntros(items) {
   for (const it of items) {
     if (it.kind === 'post') continue
-    if (typeof it.summary === 'string' && PROMO_OWN.test(it.summary)) it.summary = withoutPromo(it.summary)
-    if (typeof it.text === 'string' && PROMO_OWN.test(it.text)) it.text = withoutPromo(it.text)
+    if (typeof it.summary === 'string' && hasPromo(it.summary)) it.summary = withoutPromo(it.summary)
+    if (typeof it.text === 'string' && hasPromo(it.text)) it.text = withoutPromo(it.text)
   }
 }
 export function borrowPreviews(items, mainItems) {
@@ -536,9 +539,67 @@ export function borrowImagesFromStories(stories, byId) {
 // van een stuk uit hetzelfde verhaal over hetzelfde feit, in dezelfde taal als de kop (de taalregel blijft heel:
 // de intro volgt de kop), dat daar wél past. Het toestel neemt hem alleen als de eigen intro op die plek
 // echt niets oplevert (shared/kaart-intro.mjs, Item.cardIntro in de app).
+// Past de reserve bij de kop van de ontvanger? Het verhaal bundelt ruim, en de samenvatting van de donor kan
+// over iets anders gaan dan zijn eigen kop ("Parket start onderzoek naar zwaard in mobilhome" kreeg "… krijgt zijn
+// mobilhome terug"). Dus toetsen we de tekst zelf: kernwoorden van de kop die erin terugkomen (ook verbogen:
+// aanhouding/aanhoudingen), en getallen die elkaar tegenspreken ("Bijna 450 aanhoudingen" naast "565 mensen
+// opgepakt"). Twijfel is geen reserve: een kaart zonder intro staat er al netjes.
+const stemHit = (w, words) => {
+  for (const x of words) {
+    if (x === w) return true
+    let p = 0
+    while (p < x.length && p < w.length && x[p] === w[p]) p++
+    if (p >= 5 && p >= Math.min(x.length, w.length) - 3) return true
+  }
+  return false
+}
+const hits = (title, text) => {
+  const tw = sigWords(text)
+  let n = 0
+  for (const w of borrowWords(title)) if (stemHit(w, tw)) n++
+  return n
+}
+// Getallen als waarde: "2.000" en "2,000" (duizendtallen) zijn 2000, "6,3" en "2.1" zijn kommagetallen. Geen jaartallen.
+// Ook de telwoorden van twee tot twintig ("three tankers" naast "four tankers"); één/een/one niet, dat is ook een lidwoord,
+// en het Engelse "ten" niet, dat is ook Nederlands ("ten noorden van").
+const NUMBER_WORDS = new Map(
+  ['twee two 2', 'drie three 3', 'vier four 4', 'vijf five 5', 'zes six 6', 'zeven seven 7', 'acht eight 8', 'negen nine 9', 'tien - 10', 'elf eleven 11', 'twaalf twelve 12', 'dertien thirteen 13', 'veertien fourteen 14', 'vijftien fifteen 15', 'zestien sixteen 16', 'zeventien seventeen 17', 'achttien eighteen 18', 'negentien nineteen 19', 'twintig twenty 20']
+    .flatMap((r) => { const [nl, en, n] = r.split(' '); return [[nl, +n], [en, +n]].filter(([w]) => w !== '-') })
+)
+export const numbersIn = (s) => {
+  const text = String(s || '')
+  const digits = (text.match(/\d+(?:[.,]\d+)*/g) || [])
+    .filter((n) => !/^(19|20)\d\d$/.test(n))
+    .map((n) => (/^\d{1,3}(?:[.,]\d{3})+$/.test(n) ? +n.replace(/[.,]/g, '') : +n.replace(',', '.')))
+  const words = (text.toLowerCase().match(/\p{L}+/gu) || []).filter((w) => NUMBER_WORDS.has(w)).map((w) => NUMBER_WORDS.get(w))
+  return [...digits, ...words].filter((n) => Number.isFinite(n) && n > 0)
+}
+// Een getal in de kop dat de tekst niet noemt, terwijl de tekst een ander getal van dezelfde orde noemt (binnen een
+// factor drie): dat spreekt elkaar tegen. "2.000 jaar oude kast" naast "24 hangertjes" niet.
+export function numbersClash(title, text) {
+  const t = numbersIn(text)
+  return numbersIn(title).some((n) => !t.includes(n) && t.some((m) => m / n >= 1 / 3 && m / n <= 3))
+}
+// De reserve past bij de kop van de ontvanger als:
+// - minstens twee kernwoorden van die kop in de tekst terugkomen,
+// - noemt die kop eigen namen, dan staat er minstens één in de tekst ("Eerbetoon aan Paulien Cornelisse" kreeg
+//   "Mats Akkerman is uitgeroepen tot de winnaar": een ander feit uit dezelfde uitzending),
+// - de tekst ook past bij de eigen kop van de donor (minstens één kernwoord),
+// - en geen getal in de hele tekst botst met een getal in de kop.
+// De woorden tellen in wat er op de kleinste plek staat (`shown`, de eerste hele zin of zinnen): dat moet op
+// zichzelf al over het feit van de kop gaan.
+export function fitsHeadline(it, donor, text, shown = text) {
+  if (!shown || numbersClash(it.title, text) || hits(it.title, shown) < 2) return false
+  if (donor && hits(donor.title, shown) < 1) return false
+  const names = namesOf(it.title)
+  if (!names.size) return true
+  const words = wordsOf(shown)
+  return [...names].some((n) => named(n, words))
+}
 const SMALLEST = introMax(INTRO_LINES, { width: 267, font: 15 })
 const viaLen = (name) => (name ? name.length + 8 : 0)
-export const fitsSmallest = (text, via = null) => !!wholeSentences(cleanIntro(text), SMALLEST.max - viaLen(via), SMALLEST.rek - viaLen(via))
+const onSmallest = (text, via = null) => wholeSentences(cleanIntro(text), SMALLEST.max - viaLen(via), SMALLEST.rek - viaLen(via))
+export const fitsSmallest = (text, via = null) => !!onSmallest(text, via)
 export function introAlternatives(stories, byId) {
   let n = 0
   for (const st of stories) {
@@ -548,7 +609,8 @@ export function introAlternatives(stories, byId) {
       const donor = members.find((d) => {
         if (d === it || !d.summary || d.borrowedFrom || d.source === it.source || langOf(d) !== langOf(it) || !visibleFor(d)) return false
         const text = lendableIntro(d)
-        return text && fitsSmallest(text, d.sourceName) && sameFact(it, d)
+        const shown = text && onSmallest(text, d.sourceName)
+        return !!shown && sameFact(it, d) && fitsHeadline(it, d, text, shown)
       })
       if (!donor) continue
       it.introAlt = lendableIntro(donor)

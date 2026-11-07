@@ -2,6 +2,7 @@
 export { hostname, safeIso } from '../../shared/util.mjs'
 // Zinseinde met de afkortingen: één bron met de intro-knip van de app (shared/zinnen.mjs).
 import { SENTENCE_END } from '../../shared/zinnen.mjs'
+import { AANHEF_SOURCE } from '../../shared/aanhef.mjs'
 
 export function favicon(domain) {
   return domain ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128` : null
@@ -118,10 +119,16 @@ export function plausibleTime(iso, now = Date.now(), tz = 'Europe/Amsterdam') {
 
 // Eigen intro's: alleen gebiedende reclamezinnen, met woordgrenzen. "Downloading", "a malicious download" of
 // "subscribers" is gewoon nieuws (Wired, IGN, Eurogamer).
-export const PROMO_OWN = /\b(?:download\s+(?:de|onze|deze|ons|the|our|this|my|gratis|free|now|today)\b|download\s+hier\b|installeer\b|(?:get|download)\s+the\s+app\b|(?:in|via)\s+onze\s+app\b|abonneer\s+(?:je|u)\b|schrijf\s+je\s+in\b|meld\s+je\s+aan\b|volg\s+ons\b|sign\s+up\b|subscribe\s+(?:to|now|today|for|here)\b|subscribe[.!]|(?:our|this|the)\s+(?:daily\s+|weekly\s+)?newsletter\b|(?:onze|de|deze)\s+nieuwsbrief\b|schakel\s+(?:pushmeldingen|notificaties)\s+in\b|zet\s+(?:pushmeldingen|notificaties)\s+aan\b|turn\s+on\s+notifications\b|this\s+(?:is\s+an\s+edition\s+of|article\s+was\s+featured\s+in)\b|subscribe\s+(?:to|on)\s+[\w\s,]*(?:apple\s+podcasts|spotify)\b)/i
+// Plus de aanhef van een (live)blog (shared/aanhef.mjs): "Welkom in het blog …", "Volg alle ontwikkelingen … in onze liveblog."
+const PROMO_IMPERATIVE = /\b(?:download\s+(?:de|onze|deze|ons|the|our|this|my|gratis|free|now|today)\b|download\s+hier\b|installeer\b|(?:get|download)\s+the\s+app\b|(?:in|via)\s+onze\s+app\b|abonneer\s+(?:je|u)\b|schrijf\s+je\s+in\b|meld\s+je\s+aan\b|volg\s+ons\b|sign\s+up\b|subscribe\s+(?:to|now|today|for|here)\b|subscribe[.!]|(?:our|this|the)\s+(?:daily\s+|weekly\s+)?newsletter\b|(?:onze|de|deze)\s+nieuwsbrief\b|schakel\s+(?:pushmeldingen|notificaties)\s+in\b|zet\s+(?:pushmeldingen|notificaties)\s+aan\b|turn\s+on\s+notifications\b|this\s+(?:is\s+an\s+edition\s+of|article\s+was\s+featured\s+in)\b|subscribe\s+(?:to|on)\s+[\w\s,]*(?:apple\s+podcasts|spotify)\b)/i
+export const PROMO_OWN = new RegExp(`${PROMO_IMPERATIVE.source}|${AANHEF_SOURCE}`, 'i')
 // Ook de eigen intro van een bron krijgt dit filter (build.mjs: stripPromoIntros; rss.mjs vóór preview) ("Download de app" onder een kop van De Standaard):
 // valt er niets over, dan is er geen intro.
 export function withoutPromo(text, re = PROMO_OWN) {
   const sentences = String(text || '').match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
   return sentences.filter((z) => !re.test(z)).join('').trim()
+}
+// Heeft de tekst een reclamezin? Per zin, want de aanhef staat aan het begin van een zin ("^\s*welkom").
+export function hasPromo(text, re = PROMO_OWN) {
+  return (String(text || '').match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []).some((z) => re.test(z))
 }
