@@ -1941,7 +1941,7 @@ var HootCore = (() => {
   var allowedNews = (prof, story, items, desk = null, opts = {}) => newsRejection(prof, story, items, desk, opts) === null;
 
   // shared/editor-version.mjs
-  var EDITOR_REVISION = "redacteur-2026-11-07-r10";
+  var EDITOR_REVISION = "redacteur-2026-11-07-taalregel";
 
   // shared/lang.mjs
   var NL = new Set(
