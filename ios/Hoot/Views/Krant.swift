@@ -55,6 +55,12 @@ enum KrantIndeling: Equatable {
     /// boven kijken, onder bedienen). Vlak liggend is er geen dwarse vouw: dan ligt de grens op `tafelOnder` van onder.
     case tafel(boven: CGRect, onder: CGRect)
 
+    /// SCHAKELAAR TAFELBLAD (besluit Alex, 8 november): in 1.2 staat de tafelblad-Editie uit. Open liggend (en half
+    /// gevouwen als laptop) toont de Duo dan wat hij zonder tafelblad doet: op de echte Duo liggend één rustige
+    /// krantenpagina (`enkel`), nooit een leeg blad. 1.2.1 zet hem weer aan (`true`), samen met de fix voor de
+    /// echte Duo (branch `duo`: cd44535, 08ab0fb). Getoetst in TafelUitTests.
+    static let tafelblad = false
+
     /// Een bladzijde moet minstens zo breed zijn: zo smal als de kleinste iPhone (375) min wat lucht.
     /// Een verticale systeembalk opzij (iOS 27.1, binnen liggend) mag een bladzijde smaller maken.
     static let minPagina: CGFloat = 360
@@ -112,6 +118,7 @@ enum KrantIndeling: Equatable {
     ///   - tafelOnder: de hoogte van de inhoudsopgave vlak liggend (meegroeiend met de tekstgrootte).
     static func kies(size: CGSize, horizontal: UserInterfaceSizeClass?, rug: Rug?, krant: Bool = false, rechtsVrij: Bool = true,
                      tafel: Bool = false, tafelOnder: CGFloat = KrantIndeling.tafelOnder) -> KrantIndeling {
+        let tafel = tafel && tafelblad // 1.2: het tafelblad uit (zie `tafelblad`)
         // Compact (dicht, iPhone, smal venster): de iPhone-app.
         guard horizontal == .regular, size.width > 0, size.height > 0 else { return .enkel(pagina: nil) }
         // Geen vouw: iPad, Mac, een iPhone zonder rug. Daar blijft alles zoals het was.

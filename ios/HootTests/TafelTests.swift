@@ -10,9 +10,15 @@ import SwiftUI
     static let liggend = CGSize(width: 951, height: 669)
     static let staand = CGSize(width: 669, height: 951)
 
+    /// In 1.2 staat het tafelblad uit (KrantIndeling.tafelblad, besluit Alex 8 november); deze toetsen gelden weer in 1.2.1.
+    static func tafelbladAan() throws {
+        try XCTSkipUnless(KrantIndeling.tafelblad, "tafelblad uit in 1.2, terug in 1.2.1")
+    }
+
     // MARK: Wanneer het tafelblad
 
-    func testOpenLiggendVlakIsDeTafelbladEditie() {
+    func testOpenLiggendVlakIsDeTafelbladEditie() throws {
+        try Self.tafelbladAan()
         let indeling = KrantIndeling.kies(size: Self.liggend, horizontal: .regular, rug: T.boekVlak, krant: true, tafel: true)
         guard case let .tafel(boven, onder) = indeling else { return XCTFail("verwacht tafel, kreeg \(indeling)") }
         XCTAssertEqual(boven.minY, 0)
@@ -28,7 +34,8 @@ import SwiftUI
         XCTAssertTrue(KrantIndeling.kies(size: Self.liggend, horizontal: .regular, rug: T.boekVlak, krant: true, rechtsVrij: false, tafel: true).isTafel)
     }
 
-    func testHalfGevouwenAlsLaptopDezelfdeOpmaakMetDeGrensOpDeVouw() {
+    func testHalfGevouwenAlsLaptopDezelfdeOpmaakMetDeGrensOpDeVouw() throws {
+        try Self.tafelbladAan()
         let indeling = KrantIndeling.kies(size: Self.staand, horizontal: .regular, rug: T.tafel, krant: true, tafel: true)
         guard case let .tafel(boven, onder) = indeling else { return XCTFail("verwacht tafel, kreeg \(indeling)") }
         XCTAssertLessThanOrEqual(boven.maxY, T.tafel.vrij.minY, "het verhaal boven de vouw")
@@ -66,7 +73,8 @@ import SwiftUI
         XCTAssertEqual(KrantIndeling.kies(size: CGSize(width: 678, height: 466), horizontal: .compact, rug: T.boekVlak, krant: true, tafel: true), .enkel(pagina: nil), "dicht liggend")
     }
 
-    func testGroteTekstMaaktDeInhoudsopgaveHogerNietHetVerhaalTeKlein() {
+    func testGroteTekstMaaktDeInhoudsopgaveHogerNietHetVerhaalTeKlein() throws {
+        try Self.tafelbladAan()
         // XL: de rij groeit mee (ScaledMetric), boven blijft minstens minHoogte.
         guard case let .tafel(boven, onder) = KrantIndeling.kies(size: Self.liggend, horizontal: .regular, rug: T.boekVlak, krant: true, tafel: true, tafelOnder: 330) else { return XCTFail("verwacht tafel") }
         XCTAssertEqual(onder.height, 330, accuracy: 0.01)
@@ -113,7 +121,8 @@ import SwiftUI
 
     // MARK: Duo 1.2: de rij vult de ruimte, de koppen passen
 
-    func testDeRuimeRijAlleenAlsLaptop() {
+    func testDeRuimeRijAlleenAlsLaptop() throws {
+        try Self.tafelbladAan()
         // Vlak liggend is de onderste helft `tafelOnder` hoog (min de veilige zone): de gewone rij.
         XCTAssertFalse(TafelEditie.ruim(hoogte: KrantIndeling.tafelOnder, tafelOnder: KrantIndeling.tafelOnder))
         XCTAssertFalse(TafelEditie.ruim(hoogte: KrantIndeling.tafelOnder - 20, tafelOnder: KrantIndeling.tafelOnder))
