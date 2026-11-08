@@ -39,6 +39,15 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 - Web: uitleg- en hulpzinnen (lege staten, Welkom, Selectie, Over en Privacy) staan schreefloos in Schibsted Grotesk; Newsreader blijft voor koppen, intro's en artikeltekst. De grote kaart van de Selectie houdt zijn eigen beeldverhouding (2:1).
 - **Landing naar 1.1.0:** de slotband is een persvel met een papieren halve zon onder de knop, en de Stroom staat op papier (minder rood). Overal "Gratis, met of zonder account.", een eigen voordeel voor de Selectie en nieuwe vragen over het account en de App Store. De voorbeelden zijn van 1.1.0: genummerd 01–10 met de bubbel apart, Bluesky in de Stroom, de Selectie met de inhoud bovenaan, zonder "Omdat je X volgt" en met Wereld in plaats van Buitenland. Nieuw deelbeeld. De App Store-link staat klaar achter één regel in `landing/build.mjs` (`APP_STORE`).
 
+## 1.2 · 8 november 2026 — de krant vouwt mee
+
+- **iPhone Duo:** je Editie leest als een krant. Dicht een dichte voorpagina met bijna vijf verhalen per scherm, open staand twee kolommen. Open liggend één rustige pagina; het tafelblad komt in 1.2.1.
+- **Beeld en intro:** elke plek in de Editie heeft een beeld, en de intro gaat over hetzelfde als de kop. Op de telefoon mag de intro vier regels lang zijn.
+- **Taal volgt je bronkeuze:** volg je in een rubriek geen Engelse bron, dan staat daar geen Engelse kop (De Redacteur 3b, revisie `redacteur-2026-11-07-taalregel`).
+- **Buiten je bubbel:** op de iPad liggend een eigen katern naast de laatste plek.
+- **Geen herhaling:** een nieuwe Editie herhaalt de vorige niet.
+- iPhone en iPad zonder vouw zien er verder uit zoals in 1.1.1. De details staan hierboven onder Onuitgebracht.
+
 ## 1.1.1 · 6 november 2026 — de app in de App Store
 
 - **Volg alles:** in het Welkom volg je met één knop alle onderwerpen ("Volg alles" in plaats van "Volg alle drie").

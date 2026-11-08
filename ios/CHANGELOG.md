@@ -52,6 +52,14 @@
 
 - Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
 
+## [1.2] — 2026-11-08 — De krant vouwt mee (build 51)
+
+- iPhone Duo: de Editie als krant. Dicht de dichte voorpagina, open staand de tabloid in twee kolommen. Open liggend één krantenpagina: het tafelblad staat in 1.2 uit (`KrantIndeling.tafelblad = false`) en komt in 1.2.1, met de fix voor de echte Duo (branch `duo`: cd44535, 08ab0fb).
+- Elke plek in de Editie verzorgd (beeld en intro), en de kaartintro in de Editie op de telefoon vier regels (`HootStore.kaartLines`).
+- De Redacteur 3b in `edition-core.js` (`redacteur-2026-11-07-taalregel`): de taal volgt je bronkeuze; uitrol zonder herhaling.
+- Buiten je bubbel op de iPad liggend als katern in het raster; "Een verhaal naast je Editie." ook op de iPhone.
+- Zonder vouw blijven iPhone en iPad gelijk aan main (schermvergelijking in Hoot-design/release-1.2).
+
 ## [1.0.1] — 2026-10-31 — De Redacteur op de iPhone, Welkom zoals het web, Tijdlijn | Krant (build 36; TestFlight: build 34 en 35 op 29-10-2026)
 
 - **De Redacteur kent je (build 36):** dezelfde rekenkern als web 1.56.0: Binnenland is Nederland, hooguit één buitenlands verhaal zonder dat je Wereld koos (met het waarom), een label dat bij het verhaal past en één plek per gebeurtenis.
