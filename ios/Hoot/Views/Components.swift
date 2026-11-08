@@ -1177,6 +1177,7 @@ struct ItemRow: View {
     var narrow = false // de smalle zijkolom van de voorpagina (A): "N bronnen" klein achter de tijd
     var thumbShown = true // in de krant-vorm: het kleine beeld rechts
     var dicht = false // de compacte voorpagina (iPhone Duo dicht, Voorpagina.swift): rubriek, kop en bronregel, klein beeld rechts
+    var lines: Int? = nil // regels intro op de kaart (Kaart A+); de Editie geeft HootStore.kaartLines, anders de instelling
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
@@ -1337,9 +1338,11 @@ struct ItemRow: View {
     @ViewBuilder private func kaartIntro(thumb: Bool) -> some View {
         // Past de eigen intro niet, dan de reserve uit hetzelfde verhaal (Item.cardIntro), met het rek-vangnet van
         // het web; valt hij bij het meten weg, dan probeert IntroText de reserve (fallback).
-        let max = introMax(lines: store.preview, thumb: thumb), line = introMax(lines: 1, thumb: thumb)
+        // De Editie geeft 4 regels (HootStore.kaartLines, KAART_LINES op het web); de Stroom volgt de instelling.
+        let n = lines ?? store.preview
+        let max = introMax(lines: n, thumb: thumb), line = introMax(lines: 1, thumb: thumb)
         if let intro = item.cardIntro(max: max, line: line) {
-            IntroText(text: intro.text, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: Item.withVia(intro.via), fallback: item.introFallback(for: intro, max: max, line: line), size: 18, line: 28)
+            IntroText(text: intro.text, style: .body, lines: n == 0 ? nil : typeSize > .large ? n * 2 : n + 1, suffix: Item.withVia(intro.via), fallback: item.introFallback(for: intro, max: max, line: line), size: 18, line: 28)
         }
     }
 

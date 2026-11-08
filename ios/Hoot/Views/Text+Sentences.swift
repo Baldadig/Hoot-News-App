@@ -46,7 +46,7 @@ func introMax(lines: Int, width: Double, font: Double) -> (max: Int, rek: Int) {
 }
 
 // Hoeveel tekens een intro mag hebben bij de regelinstelling (Instellingen › Intro): 1 regel ≈ 60,
-// 2 ≈ 130, 3 ≈ 200, 0 = de hele intro. Naast een miniatuur is de kolom smaller: 20 procent minder.
+// 2 ≈ 130, 3 ≈ 200, 0 = de hele intro; 4 (de kaart in de Editie, HootStore.kaartLines) ≈ 270. Naast een miniatuur is de kolom smaller: 20 procent minder.
 // De intro staat sinds de letterwissel in Newsreader 17 (was SF 15); het budget blijft, net als op
 // het web (src/lib/intro.js): Newsreader 17 is per teken ongeveer even breed als SF 15 en het past.
 func introMax(lines: Int, thumb: Bool) -> Int {
@@ -55,6 +55,7 @@ func introMax(lines: Int, thumb: Bool) -> Int {
     case 0: return Int.max
     case 1: base = 60
     case 2: base = 130
+    case 4: base = 270
     default: base = 200
     }
     return thumb ? base * 8 / 10 : base

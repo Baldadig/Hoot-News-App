@@ -53,6 +53,9 @@ final class HootStore {
     }
     // Regels intro standaard (build 46): 3 in plaats van 2, zoals INTRO_LINES in shared/zinnen.mjs.
     static let introLines = 3
+    // Regels intro op een kaart van de Editie op de iPhone (kaart A+, besluit 8 november: 4 in plaats van 3),
+    // zoals KAART_LINES in shared/zinnen.mjs. iPad en opengevouwen (krant-vorm) en de Stroom houden hun regels.
+    static let kaartLines = 4
     // De oude sleutel (`hoot.preview`, `preview` in de sync) had 2 als standaard, en die ging ook mee
     // zonder dat je iets koos: 2 daar is niet van een keuze te onderscheiden en wordt 3. Wat je vanaf nu
     // kiest staat in `hoot.regels` (`regels` in de sync) en geldt zoals het is, ook 2.

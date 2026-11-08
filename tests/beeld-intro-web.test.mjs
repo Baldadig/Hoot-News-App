@@ -6,7 +6,7 @@ import { build } from 'esbuild'
 import { createRequire } from 'node:module'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { wholeSentences, introMax, INTRO_LINES } from '../shared/zinnen.mjs'
+import { wholeSentences, introMax, INTRO_LINES, KAART_LINES } from '../shared/zinnen.mjs'
 import { fitsLarge, fitsHero } from '../src/lib/img.js'
 import { placeholderBase, placeholderSet, PLACEHOLDER_COUNT, PLACEHOLDER_SHIFT } from '../shared/placeholder.mjs'
 
@@ -25,6 +25,24 @@ test('intro: standaard 3 regels; een eerste zin die in 2 regels wegviel, staat e
   for (const t of ['Een zin die stopt middenin…', 'Eerste zin is af. Tweede zin stopt mid...']) {
     for (const n of [1, 2, 3]) assert.doesNotMatch(wholeSentences(t, tl(n).max, tl(n).rek), /…|\.\.\.$/)
   }
+})
+
+// Besluit 8 november: de kaart van de Editie op de telefoon krijgt 4 regels intro; de rest houdt 3 (of de instelling).
+test('intro vier regels: kaart A+ in de Editie op de telefoon rekent met KAART_LINES (4), web en app gelijk', () => {
+  assert.equal(KAART_LINES, 4)
+  const ed = src('src/views/Edition.jsx')
+  assert.equal((ed.match(/<KaartItem [^>]*lines=\{KAART_LINES\} \/>/g) || []).length, 2) // de Editie en Buiten je bubbel
+  assert.doesNotMatch(ed, /<KaartItem [^>]*lines=\{INTRO_LINES\}/)
+  assert.match(src('src/components/Items.jsx'), /lines \?\? \(n \? KAART_LINES : prefs\?\.preview \?\? INTRO_LINES\)/)
+  // Telefoonmaat: in 4 regels past wat in 3 net niet paste (kaart A+ 343/16: 104 → 141 tekens, rek 141 → 178).
+  const k = (n) => introMax(n, { width: 343, font: 16 })
+  assert.deepEqual([k(3), k(KAART_LINES)], [{ max: 104, rek: 141 }, { max: 141, rek: 178 }])
+  const twee = 'De Wereldgezondheidsorganisatie heeft twee nieuwe vaccins tegen ebola goedgekeurd. De vaccins worden eerst in Congo gebruikt.'
+  assert.equal(wholeSentences(twee, k(3).max, k(3).rek), 'De Wereldgezondheidsorganisatie heeft twee nieuwe vaccins tegen ebola goedgekeurd.')
+  assert.equal(wholeSentences(twee, k(4).max, k(4).rek), twee)
+  // De app: zelfde getal, en de Editie geeft het mee aan de kaart.
+  assert.match(src('ios/Hoot/HootStore.swift'), /static let kaartLines = 4\b/)
+  assert.equal((src('ios/Hoot/Views/EditionView.swift').match(/lines: ?HootStore\.kaartLines/g) || []).length, 2)
 })
 
 test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp van Editie en paneel ook 3', () => {
