@@ -248,6 +248,11 @@ struct RootView: View {
             // `-HootScreen lezer`: bij voorkeur een gratis, Nederlandstalig stuk (dan het hele artikel), ook
             // als dat niet het hoofdstuk van het verhaal is.
             if DebugLaunch.screen("lezer"), reader.item == nil, !store.editionRows.isEmpty {
+                // Eerst de vouw: op de Duo geeft iOS de gereserveerde zone pas ± 1,5 s na de start door. Ging de lezer
+                // eerder open, dan kwam hij als blad over het scherm (nog geen krant), en het blad dat daarna voor het
+                // tafelblad of de bladzijde moest wijken, bleef leeg staan.
+                try? await Task.sleep(for: .seconds(2.5))
+                guard !Task.isCancelled, reader.item == nil else { return }
                 let all = store.editionRows.flatMap { row in [row.item] + (row.story?.itemIds.compactMap { store.itemsById[$0] } ?? []) }
                 let free = { (i: Item) in store.source(i.source).map { $0.paid != true } ?? false }
                 // In de Stroom (de Duo open: de lezer naast de Stroom) een stuk uit de Stroom.
