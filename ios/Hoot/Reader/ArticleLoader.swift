@@ -55,6 +55,13 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
         webView.uiDelegate = self
     }
 
+    // Al geladen (de lezer kwam terug na vouwen): meteen tonen, zonder de pagina van de uitgever opnieuw.
+    func toon(_ artikel: Article, url: URL?) {
+        article = url
+        round += 1
+        state = .ready(artikel)
+    }
+
     func load(_ url: URL) {
         article = url
         autoRetries = 0

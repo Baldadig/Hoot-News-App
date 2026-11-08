@@ -42,6 +42,16 @@ enum Theme {
 final class Reader {
     var item: Item?
 
+    // Vouwen (iPhone Duo) zet de lezer van blad naar bladzijde en terug: een nieuwe view. Het geladen artikel
+    // en de alinea waar je was blijven hier, per venster, zodat hij niet opnieuw laadt en niet naar boven springt.
+    // Alleen het laatste artikel: genoeg voor vouwen en draaien, en geen geheugen dat groeit.
+    @ObservationIgnored private(set) var geladen: (id: Item.ID, artikel: Article)?
+    @ObservationIgnored private(set) var plek: (id: Item.ID, plek: LeesPlek)?
+    func artikel(voor id: Item.ID) -> Article? { geladen?.id == id ? geladen?.artikel : nil }
+    func bewaar(_ artikel: Article, voor id: Item.ID) { if geladen?.id != id || geladen?.artikel != artikel { geladen = (id, artikel) } }
+    func plek(voor id: Item.ID) -> LeesPlek? { plek?.id == id ? plek?.plek : nil }
+    func bewaarPlek(_ nieuw: LeesPlek, voor id: Item.ID) { plek = (id, nieuw) }
+
     // De Safari-weergave kan alleen http(s) tonen.
     static func canShow(_ url: URL) -> Bool { ["http", "https"].contains(url.scheme?.lowercased() ?? "") }
 
@@ -216,8 +226,12 @@ private struct WordmarkBody: View {
 // meer over de koppen en foto's. Het eerste en het laatste teken staan optisch op de kolomlijn: het
 // icoon is 24 in een raakvlak van 44, dus de rij schuift (44 − 24) / 2 de goot in, zoals --tap-inset
 // op het web. Gelijk aan de kop op het web (.edbrand en .vh__row).
+//
+// Staat de systeembalk opzij (iPhone Duo dicht, en open liggend: iOS 27.1), dan gaan het tandwiel en de
+// bronnen naar die balk (`hootKopScreen`), en blijft hier alleen het woordmerk: de bediening op één plek.
 struct HootKop<Extra: View>: View {
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.balkOpzij) private var balkOpzij
     var gearX: ((CGFloat) -> Void)? = nil // waar het tandwiel staat (de stapel van de Stroom eindigt eronder)
     @ViewBuilder var extra: () -> Extra
 
@@ -225,15 +239,17 @@ struct HootKop<Extra: View>: View {
         HStack(spacing: 0) {
             Wordmark(handoff: true)
             Spacer(minLength: Space.s3)
-            extra()
-            Button { openSettings() } label: {
-                Image(systemName: "gearshape").font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+            if !balkOpzij {
+                extra()
+                Button { openSettings() } label: {
+                    Image(systemName: "gearshape").font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Theme.ink3) // bediening is stil: grijs, zonder glazen rondje
+                .accessibilityLabel("Instellingen")
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
+                .padding(.trailing, -HootKop.inset)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(Theme.ink3) // bediening is stil: grijs, zonder glazen rondje
-            .accessibilityLabel("Instellingen")
-            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
-            .padding(.trailing, -HootKop.inset)
         }
         // Even begrensd als het woordmerk: bij heel grote tekst blijven tandwiel en bronnen 24 in hun
         // raakvlak van 44, en wordt de kopregel geen tweede titel.
@@ -267,9 +283,94 @@ extension View {
     // Een hoofdscherm met de kopregel in de scroll: geen navigatiebalk, en achter de statusbalk een
     // vlakke strook papier precies zo hoog als die balk (geen vervaging, geen verloop), zodat de
     // statusbalk ook boven een foto leesbaar blijft. In Nacht is het papier zwart.
-    func hootKopScreen() -> some View {
-        toolbar(.hidden, for: .navigationBar)
-            .overlay(alignment: .top) { StatusStrip() }
+    //
+    // Staat de systeembalk opzij (iPhone Duo, iOS 27.1), dan blijft de navigatiebalk en staan het tandwiel
+    // en (in de Stroom) de bronnen erin, met symbool én titel: alleen zo gaan ze mee in de verticale balk
+    // (ONDERZOEK §2.4). De kopregel houdt dan alleen het woordmerk. Eén structuur voor beide: vouwen
+    // wisselt de balk, en de scroll (je plek) mag daarbij niet opnieuw beginnen.
+    func hootKopScreen(bronnen: (@MainActor () -> Void)? = nil) -> some View {
+        modifier(HootKopScherm(bronnen: bronnen)).modifier(BalkOpzijLezer())
+    }
+}
+
+private struct HootKopScherm: ViewModifier {
+    let bronnen: (@MainActor () -> Void)?
+    @Environment(\.balkOpzij) private var opzij
+    @Environment(\.openSettings) private var openSettings
+    func body(content: Content) -> some View {
+        content
+            // De titel staat in de scroll; in een verticale balk niet nog eens (de navigationTitle blijft voor
+            // VoiceOver). Op iPhone en iPad is de balk verborgen: daar verandert dit niets.
+            .toolbar(removing: .title)
+            .toolbar(opzij ? .automatic : .hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(opzij ? .inline : .automatic)
+            .toolbar {
+                if opzij {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Instellingen", systemImage: "gearshape") { openSettings() }.tint(Theme.ink3)
+                    }
+                    if let bronnen {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { bronnen() }.tint(Theme.ink3)
+                        }
+                    }
+                }
+            }
+            .overlay(alignment: .top) { if !opzij { StatusStrip() } }
+    }
+}
+
+// "Klaar" rechtsboven in een blad, met symbool én titel. Op iPhone en iPad tekst in inkt (een bevestigingsknop
+// kleurt iOS vanzelf als een gevulde cirkel); staat de balk opzij (iPhone Duo dicht), dan het vinkje, want een
+// item dat alleen tekst toont gaat niet mee in de verticale balk (ONDERZOEK §2.4).
+extension View {
+    func klaarKnop(zichtbaar: Bool = true, _ action: @escaping @MainActor () -> Void) -> some View {
+        modifier(KlaarKnop(zichtbaar: zichtbaar, action: action)).modifier(BalkOpzijLezer())
+    }
+}
+
+private struct KlaarKnop: ViewModifier {
+    let zichtbaar: Bool
+    let action: @MainActor () -> Void
+    @Environment(\.balkOpzij) private var opzij
+    func body(content: Content) -> some View {
+        content.toolbar {
+            if zichtbaar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if opzij {
+                    Button("Klaar", systemImage: "checkmark") { action() }
+                } else {
+                    Button("Klaar", systemImage: "checkmark") { action() }.labelStyle(.titleOnly)
+                }
+            }
+            }
+        }
+    }
+}
+
+// Staat de systeembalk opzij? Op de iPhone Duo (iOS 27.1) staan navigatie-, werk- en tabbalk verticaal op het
+// buitenscherm en op het binnenscherm liggend (`toolbarVerticalEdge`). Op iPhone en iPad is dit altijd onwaar:
+// daar verandert er niets. In Debug kan `-HootBalkOpzij 1` het nabootsen.
+struct BalkOpzijKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var balkOpzij: Bool { get { self[BalkOpzijKey.self] } set { self[BalkOpzijKey.self] = newValue } }
+}
+
+struct BalkOpzijLezer: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 27.1, *) {
+            content.modifier(BalkOpzij271())
+        } else {
+            content.environment(\.balkOpzij, DebugLaunch.balkOpzij)
+        }
+    }
+}
+
+@available(iOS 27.1, *)
+private struct BalkOpzij271: ViewModifier {
+    @Environment(\.toolbarVerticalEdge) private var rand
+    func body(content: Content) -> some View {
+        content.environment(\.balkOpzij, rand != nil || DebugLaunch.balkOpzij)
     }
 }
 
@@ -473,6 +574,7 @@ struct SourceLine: View {
     var outside = false // het verhaal staat buiten de bronnen die je volgt
     var kaart = false // kaart A+ (iPhone): "Abonnement" stil, "N bronnen" als tekstknop, bewaren en het ⋯-menu met delen
     var narrow = false // smalle kolom (zijkolom van de voorpagina op de iPad): "N bronnen" klein achter de tijd
+    var dicht = false // de dichte rij (iPhone Duo dicht): past "tijd · N bronnen" niet op één regel, dan onder elkaar, nooit "3 uur / geleden"
     var body: some View {
         if kaart { kaartBody } else if narrow { narrowBody } else { regular }
     }
@@ -486,14 +588,14 @@ struct SourceLine: View {
             sourceLink { SourceMark(item: item) }
             VStack(alignment: .leading, spacing: 0) {
                 sourceLink { Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink) }
-                HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    sourceLink { Text(narrowMeta) }
-                    if let story, let count = story.sourceCount, count > 1 {
-                        NavigationLink(value: tapped(story)) {
-                            Text("\u{00A0}·\u{00A0}\(Self.label(count))").lineLimit(1).fixedSize().contentShape(Rectangle())
+                Group {
+                    if dicht {
+                        ViewThatFits(in: .horizontal) {
+                            narrowMetaRegel(stapel: false).fixedSize()
+                            narrowMetaRegel(stapel: true)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Vergelijk \(count) bronnen")
+                    } else {
+                        narrowMetaRegel(stapel: false)
                     }
                 }
                 .font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint)
@@ -503,6 +605,24 @@ struct SourceLine: View {
             SaveButton(item: item)
         }
         .frame(minHeight: Space.tap)
+    }
+
+    // "1 uur geleden · 7 bronnen" op één regel; `stapel`: de bronnen onder de tijd (dichte rij bij grote tekst).
+    @ViewBuilder private func narrowMetaRegel(stapel: Bool) -> some View {
+        let bronnen: some View = Group {
+            if let story, let count = story.sourceCount, count > 1 {
+                StoryLink(story: tapped(story)) {
+                    Text(stapel ? Self.label(count) : "\u{00A0}·\u{00A0}\(Self.label(count))").lineLimit(1).fixedSize().contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Vergelijk \(count) bronnen")
+            }
+        }
+        if stapel {
+            VStack(alignment: .leading, spacing: 0) { sourceLink { Text(narrowMeta) }; bronnen }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 0) { sourceLink { Text(narrowMeta) }; bronnen }
+        }
     }
 
     private var narrowMeta: String { [HootDate.ago(item.date), outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ") }
@@ -534,7 +654,7 @@ struct SourceLine: View {
 
     @ViewBuilder private var kaartCount: some View {
         if let story, let count = story.sourceCount, count > 1 {
-            NavigationLink(value: tapped(story)) {
+            StoryLink(story: tapped(story)) {
                 Text(Self.label(count)).monospacedDigit()
                     .font(.ui(.subheadline, .semibold))
                     .foregroundStyle(Theme.ink2)
@@ -609,7 +729,7 @@ struct SourceLine: View {
     @ViewBuilder private var more: some View {
         if let story, let count = story.sourceCount, count > 1 {
             // Het stuk waarop je tikte is de kop in Vergelijken, niet een ander stuk uit de bundel.
-            NavigationLink(value: tapped(story)) { moreLabel(Self.label(count)) }
+            StoryLink(story: tapped(story)) { moreLabel(Self.label(count)) }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Vergelijk \(count) bronnen")
         }
@@ -635,6 +755,20 @@ struct SourceLine: View {
     }
 }
 
+// "N bronnen": vergelijken. Als stap in de lijst, of open op de Duo op de rechterbladzijde (Krant.swift).
+struct StoryLink<Label: View>: View {
+    @Environment(\.openStory) private var openStory
+    let story: Story
+    @ViewBuilder var label: () -> Label
+    var body: some View {
+        if let openStory {
+            Button { openStory(story) } label: { label() }
+        } else {
+            NavigationLink(value: story) { label() }
+        }
+    }
+}
+
 struct SaveButton: View {
     @Environment(HootStore.self) private var store
     let item: Item
@@ -653,6 +787,20 @@ struct SaveButton: View {
         .foregroundStyle(on ? Theme.accent : Theme.ink3)
         .sensoryFeedback(.selection, trigger: on)
         .accessibilityLabel(on ? "Bewaard, tik om te verwijderen" : "Bewaar")
+    }
+}
+
+// Bewaren in de werkbalk van de lezer: een gewone knop met symbool én titel, zodat hij op de iPhone Duo
+// meegaat in de verticale balk (een eigen view gaat niet mee, ONDERZOEK §2.4). Rood als hij aan staat.
+struct SaveToolbarButton: View {
+    @Environment(HootStore.self) private var store
+    let item: Item
+    var body: some View {
+        let on = store.isSaved(item)
+        Button(on ? "Bewaard" : "Bewaar", systemImage: on ? "bookmark.fill" : "bookmark") { store.toggleSave(item) }
+            .tint(on ? Theme.accent : Theme.ink3)
+            .sensoryFeedback(.selection, trigger: on)
+            .accessibilityLabel(on ? "Bewaard, tik om te verwijderen" : "Bewaar")
     }
 }
 
@@ -706,6 +854,7 @@ struct ArticleActions: ViewModifier {
     func body(content: Content) -> some View {
         Button { reader.open(item, store: store) } label: { content }
             .buttonStyle(.plain)
+            .krantGekozen(item) // open op de Duo: het stuk op de rechterbladzijde
             .hoverEffect(.highlight) // muis of trackpad op iPad
             .contextMenu { ArticleMenuContent(item: item) { noticeTitle = $0; noticeText = $1; noticeOpen = true } }
             .alert(noticeTitle,isPresented:$noticeOpen) { Button("Oké",role:.cancel) {} } message: { Text(noticeText) }
@@ -912,7 +1061,7 @@ struct LeadCard: View {
         let kandidaten = intro.isEmpty ? [] : IntroText.candidates(intro)
         let regels = Vouw.introRegels(ruimte.profiel)
         return VStack(alignment: .leading, spacing: 0) {
-            VouwStapel(ruimte: ruimte.hoogte, metBeeld: store.showsImage(lead: true)) {
+            VouwStapel(ruimte: ruimte.hoogte, profiel: ruimte.profiel, metBeeld: store.showsImage(lead: true)) {
                 Group {
                     if hasImage { FocusBeeld(item: item, onFail: mislukt) }
                     else { GeometryReader { g in BeeldloosView(item: item, kind: .lead, height: g.size.height, flat: true) } }
@@ -926,7 +1075,13 @@ struct LeadCard: View {
                     ForEach(Array(kandidaten.enumerated()), id: \.offset) { _, kandidaat in
                         vouwTekst(kop: Vouw.kopKlein, intro: kandidaat, regels: regels)
                     }
-                    vouwTekst(kop: Vouw.kopKlein, intro: nil, regels: regels) // past ook dit niet: het loopt door
+                    if let kleinst = Vouw.kopKleinst(ruimte.profiel) {
+                        // Eigen id's: ViewThatFits eist dat geen twee varianten hetzelfde id hebben.
+                        ForEach(Array(kandidaten.enumerated()).map { ("kleinst-\($0.offset)", $0.element) }, id: \.0) { _, kandidaat in
+                            vouwTekst(kop: kleinst, intro: kandidaat, regels: regels)
+                        }
+                    }
+                    vouwTekst(kop: Vouw.kopKleinst(ruimte.profiel) ?? Vouw.kopKlein, intro: nil, regels: regels) // past ook dit niet: het loopt door
                 }
             }
             StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4 + Space.s1)
@@ -935,7 +1090,7 @@ struct LeadCard: View {
 
     private var kaartLead: some View {
         Group {
-            if let vouw, !wide, typeSize <= .large { vouwKaart(vouw) } else { kaartLeadGewoon }
+            if let vouw, !wide, typeSize <= Vouw.maxTekst(vouw.profiel) { vouwKaart(vouw) } else { kaartLeadGewoon }
         }
     }
 
@@ -1021,6 +1176,7 @@ struct ItemRow: View {
     var whySpace = false // in een paar (A): een lege waarom-regel, omdat de buur er een heeft (koppen en beelden op één lijn)
     var narrow = false // de smalle zijkolom van de voorpagina (A): "N bronnen" klein achter de tijd
     var thumbShown = true // in de krant-vorm: het kleine beeld rechts
+    var dicht = false // de compacte voorpagina (iPhone Duo dicht, Voorpagina.swift): rubriek, kop en bronregel, klein beeld rechts
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
@@ -1041,8 +1197,64 @@ struct ItemRow: View {
     // (poetsbeurt 5 november; gelijk aan .kaart__in--klein en .compact--klein op het web).
     private var klein: Bool { hasPicture && item.image != nil && (!ImageURL.fitsLarge(item.image) || !ImageURL.sharpHere(item)) }
 
+    // Dicht: niet bij heel grote tekst (dan krijgt de kop de hele breedte, zoals elders) en niet voor een post.
+    private var dichtVorm: Bool { dicht && !item.isPost && !typeSize.isAccessibilitySize && boven == nil }
+
     var body: some View {
-        if kaart { if klein { kaartKlein } else { kaartBody } } else { regular }
+        if dichtVorm { dichtBody } else if kaart { if klein { kaartKlein } else { kaartBody } } else { regular }
+    }
+
+    // De dichte rij (Voorpagina.swift): rubriek en waarom op één regel, de kop over de volle breedte (zo breekt hij
+    // in twee, hooguit drie regels), en onderaan de bronregel met rechts een klein beeld: die zijn even hoog (44 en
+    // 48), dus het beeld kost geen hoogte. Geen intro: zo staan er ± vijf verhalen in één scherm van 678 hoog. De
+    // intro staat in de lezer, één tik verder.
+    private var dichtBody: some View {
+        VStack(alignment: .leading, spacing: Space.s1) {
+            VStack(alignment: .leading, spacing: Space.s1) {
+                if number != nil || label != nil || why != nil {
+                    // Rubriek en waarom op één regel als dat past ("02 · VS · Groot nieuws"), anders onder elkaar.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+                            Kicker(text: label, number: number, read: store.isRead(item)).fixedSize()
+                            if WhyLine.shows(why) {
+                                Text("·").font(.ui(.caption)).foregroundStyle(Theme.hint).accessibilityHidden(true)
+                                WhyLine(text: why, compact: true).fixedSize()
+                            }
+                        }
+                        VStack(alignment: .leading, spacing: 0) {
+                            Kicker(text: label, number: number, read: store.isRead(item))
+                            WhyLine(text: why, compact: true)
+                        }
+                    }
+                }
+                Kop(item.title, .title3, size: Layout.kopDicht)
+                    .lineSpacing(1)
+                    .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            HStack(alignment: .center, spacing: Space.s3) {
+                SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, narrow: true, dicht: true)
+                if store.showsImage(lead: false) {
+                    Group {
+                        if hasPicture {
+                            RemoteImage(url: picture(.thumb), measure: pictureMeasure, onFail: mislukt)
+                                .frame(width: Layout.thumbDicht, height: Layout.thumbDicht * 2 / 3)
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+                                .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
+                        } else {
+                            BeeldloosView(item: item, kind: .krant, width: Layout.thumbDicht)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .opensArticle(item)
+                    .accessibilityHidden(true) // de kop opent het stuk al: geen tweede element voor VoiceOver
+                }
+            }
+        }
+        .padding(.vertical, Space.s1)
     }
 
     // Kaart A+ met een te klein beeld: rubriek over de hele breedte, dan kop en intro links en het beeld klein

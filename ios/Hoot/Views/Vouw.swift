@@ -11,24 +11,34 @@ import Vision
 // Op de mini strakker: kop 26 al vanaf 4 regels op 30. De intro hooguit 5 regels, net als op de Pro. De SE (667) en grotere
 // tekst houden de gewone kaart. Het web doet hetzelfde (src/lib/vouw.js, src/styles/vouw.css).
 enum Vouw {
-    enum Profiel: Equatable { case mini, pro }
+    /// `duo`: de compacte voorpagina (Voorpagina.swift), het buitenscherm van de iPhone Duo (678 hoog, breed).
+    enum Profiel: Equatable { case mini, pro, duo }
 
-    static func profiel(vensterHoogte: CGFloat, typeSize: DynamicTypeSize) -> Profiel? {
+    static func profiel(vensterHoogte: CGFloat, typeSize: DynamicTypeSize, compacteVoorpagina: Bool = false) -> Profiel? {
+        if compacteVoorpagina { return typeSize <= maxTekst(.duo) ? .duo : nil }
         guard typeSize <= .large, vensterHoogte >= 800 else { return nil } // 812 min een halve statusbalk speling; de SE is 667
         return vensterHoogte < 850 ? .mini : .pro
     }
 
-    // Hoeveel regels intro hooguit (hele zinnen).
-    static func introRegels(_ p: Profiel) -> Int { 5 } // mini gelijk aan de Pro (Alex, 6 november)
+    // Tot welke tekstgrootte 01 boven de vouw past. Dicht op de Duo ook bij XL en XXL: het scherm is breder,
+    // en zonder deze regel valt de kop van 01 daar onder het scherm.
+    static func maxTekst(_ p: Profiel) -> DynamicTypeSize { p == .duo ? .xxLarge : .large }
+
+    // Hoeveel regels intro hooguit (hele zinnen). Op de Duo dicht drie: daar is het scherm laag.
+    static func introRegels(_ p: Profiel) -> Int { p == .duo ? 3 : 5 } // mini gelijk aan de Pro (Alex, 6 november)
     // Vanaf hoeveel regels op 30 de kop meteen 26 wordt (nil: alleen als het anders niet past).
-    static func kop26Vanaf(_ p: Profiel) -> Int? { p == .mini ? 4 : nil }
+    static func kop26Vanaf(_ p: Profiel) -> Int? { p == .pro ? nil : 4 }
 
     static let kopGroot: CGFloat = 30
     static let kopKlein: CGFloat = 26
+    // Dicht op de Duo nog een stap kleiner (24), vóórdat de intro wegvalt: 01 is daar beeld, kop én intro.
+    static func kopKleinst(_ p: Profiel) -> CGFloat? { p == .duo ? 24 : nil }
 
-    // Het beeld tot de rand: tussen 2:1 (minst) en 3:2 (meest) van de schermbreedte.
-    static func beeld(ruimte: CGFloat, tekst: CGFloat, breedte: CGFloat) -> CGFloat {
-        min(breedte * 2 / 3, max(breedte / 2, ruimte - tekst))
+    // Het beeld tot de rand: tussen 2:1 (minst) en 3:2 (meest) van de schermbreedte. Op de Duo dicht mag het
+    // tot 5:2: het scherm is breed en laag, en zo past de intro van 01 er nog bij.
+    static func minBeeld(_ p: Profiel?) -> CGFloat { p == .duo ? 2 / 5 : 1 / 2 }
+    static func beeld(ruimte: CGFloat, tekst: CGFloat, breedte: CGFloat, profiel: Profiel? = nil) -> CGFloat {
+        min(breedte * 2 / 3, max(breedte * minBeeld(profiel), ruimte - tekst))
     }
 
     // Hoeveel regels de kop op deze maat in deze kolom krijgt (de letter van Kop, met zijn afbreking).
@@ -60,15 +70,16 @@ extension EnvironmentValues {
 // beeld 2:1 is; het beeld neemt daarna wat er nog over is, tot 3:2. `bleed`: het beeld loopt tot de schermrand.
 struct VouwStapel: SwiftUI.Layout { // SwiftUI.Layout: Hoot heeft zelf een enum Layout
     let ruimte: CGFloat
+    var profiel: Vouw.Profiel? = nil
     var metBeeld = true // beelden uit (Instellingen): geen vak, de tekst krijgt alles
     var bleed: CGFloat = Space.s4
 
-    private func minBeeld(_ w: CGFloat) -> CGFloat { metBeeld ? (w + 2 * bleed) / 2 : 0 }
+    private func minBeeld(_ w: CGFloat) -> CGFloat { metBeeld ? (w + 2 * bleed) * Vouw.minBeeld(profiel) : 0 }
 
     private func maten(_ proposal: ProposedViewSize, _ subviews: Subviews) -> (w: CGFloat, beeld: CGFloat, tekst: CGFloat) {
         let w = proposal.width ?? 0
         let tekst = subviews.count > 1 ? subviews[1].sizeThatFits(ProposedViewSize(width: w, height: max(0, ruimte - minBeeld(w)))).height : 0
-        return (w, metBeeld ? Vouw.beeld(ruimte: ruimte, tekst: tekst, breedte: w + 2 * bleed) : 0, tekst)
+        return (w, metBeeld ? Vouw.beeld(ruimte: ruimte, tekst: tekst, breedte: w + 2 * bleed, profiel: profiel) : 0, tekst)
     }
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
