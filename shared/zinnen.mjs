@@ -70,6 +70,12 @@ export function wholeSentences(text, max = Infinity, rek = max) {
 // De app gebruikt hetzelfde getal (HootStore.introLines).
 export const INTRO_LINES = 3
 
+// Hoeveel regels intro op een kaart van de Editie op de telefoon (kaart A+, besluit 8 november: 4 in plaats
+// van 3). In 3 regels viel op de telefoon een kwart van de intro's weg (plek 02-10); de kaart wordt iets
+// langer. Desktop en iPad (FrontItem, CompactItem) en het vergelijkpaneel houden INTRO_LINES; de Stroom volgt
+// de instelling. De app gebruikt hetzelfde getal (HootStore.kaartLines).
+export const KAART_LINES = 4
+
 // Hoeveel tekens er op `lines` regels passen, in een kolom van `width` px met een intro van
 // `font` px. Gemeten met de 1679 intro's uit de snapshot op 375 breed (normaal, groot en 130 %):
 // een teken is gemiddeld hooguit 0,58 × de lettermaat breed, en de eerste regel verliest ± 6

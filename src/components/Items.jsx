@@ -20,7 +20,7 @@ import { Video } from './Video.jsx'
 import { Why } from './Why.js'
 import { directVideo, withoutBareLinks } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
-import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES, KAART_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { EditionNumber } from './EditionNumber.jsx'
 import { useVouw } from '../lib/vouw.js'
@@ -428,7 +428,8 @@ export function KaartMeta({ item, story, showSave = true, taste = null, outside 
 export function KaartItem({ item, story, note, n = null, why = null, followed = null, showSave = true, taste = null, outside = false, lead = false, priority = false, lines }) {
   const { markRead, read, prefs } = useHoot()
   const introMax = useIntroMax()
-  const lineCount = lines ?? (n ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
+  // Editie (met nummer): KAART_LINES (4); de Stroom: de instelling.
+  const lineCount = lines ?? (n ? KAART_LINES : prefs?.preview ?? INTRO_LINES)
   // Te klein voor de volle breedte (onscherp, zie sharpHere): klein rechts naast de tekst, zoals in de
   // Stroom op desktop. Het hoofdverhaal houdt dan het placeholderbeeld (heroFits).
   const klein = !lead && !!item.image && (!fitsLarge(item.image) || !sharpHere(item))
