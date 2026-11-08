@@ -34,6 +34,22 @@ import SwiftUI
         XCTAssertTrue(KrantIndeling.kies(size: Self.liggend, horizontal: .regular, rug: T.boekVlak, krant: true, rechtsVrij: false, tafel: true).isTafel)
     }
 
+    func testEchteDuoLiggendVlakIsDeTafelbladEditie() throws {
+        try Self.tafelbladAan()
+        // De echte Duo (iOS 27.2): balk opzij en een vouw van 40 + 2 × 20. Was: één krantenpagina, en de lezer als blad
+        // over het hele scherm in plaats van boven op het tafelblad.
+        let indeling = KrantIndeling.kies(size: T.echtLiggend, horizontal: .regular, rug: T.echtVlak, krant: true, tafel: true)
+        guard case let .tafel(boven, onder) = indeling else { return XCTFail("verwacht tafel, kreeg \(indeling)") }
+        XCTAssertEqual(boven.width, 867, accuracy: 0.01)
+        XCTAssertEqual(onder.maxY, 635, accuracy: 0.01)
+        XCTAssertGreaterThanOrEqual(boven.height, KrantIndeling.minHoogte)
+        XCTAssertTrue(KrantIndeling.kies(size: T.echtLiggend, horizontal: .regular, rug: T.echtVlak, krant: true, rechtsVrij: false, tafel: true).isTafel,
+                      "met de lezer open blijft het tafelblad")
+        // Te smal voor twee bladzijden (Split View): geen tafelblad.
+        XCTAssertFalse(KrantIndeling.kies(size: CGSize(width: 600, height: 635), horizontal: .regular,
+                                          rug: Rug(frame: CGRect(x: 300, y: 0, width: 0, height: 635), actief: false), krant: true, tafel: true).isTafel)
+    }
+
     func testHalfGevouwenAlsLaptopDezelfdeOpmaakMetDeGrensOpDeVouw() throws {
         try Self.tafelbladAan()
         let indeling = KrantIndeling.kies(size: Self.staand, horizontal: .regular, rug: T.tafel, krant: true, tafel: true)

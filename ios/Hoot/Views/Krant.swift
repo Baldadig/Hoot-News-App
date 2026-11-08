@@ -62,8 +62,11 @@ enum KrantIndeling: Equatable {
     static let tafelblad = false
 
     /// Een bladzijde moet minstens zo breed zijn: zo smal als de kleinste iPhone (375) min wat lucht.
-    /// Een verticale systeembalk opzij (iOS 27.1, binnen liggend) mag een bladzijde smaller maken.
-    static let minPagina: CGFloat = 360
+    /// Een verticale systeembalk opzij (iOS 27.1, binnen liggend) mag een bladzijde smaller maken. Gemeten op de
+    /// echte Duo-simulator (iOS 27.2), binnen liggend en vlak: het vlak is 867 breed (balk 84), de vouw is ook vlak
+    /// 40 breed met 20 marge aan elke kant (niet 0 breed, zoals eerst aangenomen). Dan is de rechterbladzijde 351,5:
+    /// dat moet nog twee bladzijden zijn (en het tafelblad), geen enkele krantenpagina.
+    static let minPagina: CGFloat = 340
     /// Een bladzijde boven of onder de rug moet minstens zo hoog zijn.
     static let minHoogte: CGFloat = 280
     /// Eén bladzijde op een breed vlak met een vouw (open, staand): de breedte van een krantenpagina.
@@ -127,16 +130,18 @@ enum KrantIndeling: Equatable {
         if rug.staand {
             let lijst = CGRect(x: 0, y: 0, width: max(0, vrij.minX), height: size.height)
             let verhaal = CGRect(x: vrij.maxX, y: 0, width: max(0, size.width - vrij.maxX), height: size.height)
-            if lijst.width >= minPagina && verhaal.width >= minPagina {
-                // Open liggend en vlak: de tafelblad-Editie (besluit Alex, 6 november). Boven lezen, onder de rij.
-                // Half gevouwen als boek niet: dan zou de leeskolom boven over de vouw lopen (ONDERZOEK §6.4).
-                if tafel && !rug.actief {
-                    let onder = min(max(0, tafelOnder), size.height - minHoogte)
-                    if onder > 0 {
-                        return .tafel(boven: CGRect(x: 0, y: 0, width: size.width, height: size.height - onder),
-                                      onder: CGRect(x: 0, y: size.height - onder, width: size.width, height: onder))
-                    }
+            // Open liggend en vlak: de tafelblad-Editie (besluit Alex, 6 november). Boven lezen, onder de rij.
+            // Half gevouwen als boek niet: dan zou de leeskolom boven over de vouw lopen (ONDERZOEK §6.4).
+            // Het tafelblad loopt over de hele breedte: het hangt niet af van hoe breed elke bladzijde naast de vouw is,
+            // alleen van of het vlak breed genoeg is voor twee bladzijden.
+            if tafel && !rug.actief && size.width >= 2 * minPagina {
+                let onder = min(max(0, tafelOnder), size.height - minHoogte)
+                if onder > 0 {
+                    return .tafel(boven: CGRect(x: 0, y: 0, width: size.width, height: size.height - onder),
+                                  onder: CGRect(x: 0, y: size.height - onder, width: size.width, height: onder))
                 }
+            }
+            if lijst.width >= minPagina && verhaal.width >= minPagina {
                 // Een opengeslagen boek: zolang rechts niets open ligt, loopt de Editie over beide bladzijden.
                 return krant && rechtsVrij ? .tabloid(boek: true) : .naast(lijst: lijst, verhaal: verhaal)
             }
