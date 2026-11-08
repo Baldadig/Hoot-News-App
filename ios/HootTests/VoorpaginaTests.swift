@@ -77,7 +77,12 @@ import SwiftUI
         // Met de lijn ertussen (16 + 1): minstens vier rijen op 678 bij een lange kop, en vier en een half bij een
         // kop van twee regels (op de echte Duo: 02 tot 05 helemaal, 06 half). Zonder de kop van de Editie.
         print("Voorpagina: dichte rij", dicht, "krant", krant, "kaart", kaart)
-        XCTAssertLessThanOrEqual(4 * (dicht + Space.s4 + 1), 678, "rij \(dicht)")
+        // Grens bewust bijgesteld (release 1.2, 8 november): de art director keurde de dichte rijen zoals ze nu zijn,
+        // met ± 4,5 verhalen per scherm. Bij een lange kop (drie regels) zijn vier rijen 682,67: de vierde rij steekt
+        // 4,7 pt onder het scherm uit, en dat hoort zo (je ziet dat er meer komt). De opmaak blijft; de grens krijgt
+        // 12 pt speling (690). Wordt een rij nog hoger, dan faalt hij weer: dan opnieuw naar de opmaak kijken.
+        let speling: CGFloat = 12
+        XCTAssertLessThanOrEqual(4 * (dicht + Space.s4 + 1), 678 + speling, "rij \(dicht)")
         var kort = item
         kort.title = "Kabinet wil sneller bouwen in de grote steden"
         let kortDicht = hoogte(ItemRow(item: kort, number: 3, label: "Binnenland", form: .krant, dicht: true), breedte: kolom)
