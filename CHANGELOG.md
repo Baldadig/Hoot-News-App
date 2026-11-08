@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Intro op de telefoon vier regels** (web en app): de kaart in de Editie mag op de telefoon een intro van vier regels hebben in plaats van drie. Daardoor krijgen veel meer kaarten een intro (plekken 02–10 zonder intro: van 241 naar 101 op 1035). Desktop, iPad en de Stroom houden drie regels.
+
 - **Elke plek in de Editie verzorgd** (web en app):
   - **Zijkolom:** elke plek heeft een beeld.
   - **Geen beeld:** een plek zonder eigen beeld krijgt het beeld van een andere bron over hetzelfde artikel, en anders een eigen placeholderbeeld.
