@@ -160,6 +160,10 @@
   .meta__bronnen::before {
     content: '·\00a0';
   }
+  /* Op een eigen regel (useBronnenAchterTijd): zonder punt, op de lijn van de tijd. */
+  .meta__bronnen.is-eigen-regel::before {
+    content: none;
+  }
   .meta__bronnen:hover {
     color: var(--ink-2);
   }

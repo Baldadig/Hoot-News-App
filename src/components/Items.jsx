@@ -1,7 +1,7 @@
 import { cardIntro, ownIntro } from '../../shared/kaart-intro.mjs'
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { headlineTier } from '../../shared/edition-display.mjs'
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, createContext, useCallback, useContext, useId, useLayoutEffect, useRef, useState } from 'react'
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { usePhone } from '../hooks/usePhone.js'
 import { timeAgo, readTime } from '../lib/time.js'
@@ -13,6 +13,7 @@ import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
 import { avatarUrl, fitsLarge, fitsHero, sharpHere } from '../lib/img.js'
 import { Beeld } from './Beeld.jsx'
+import { Popmenu } from './Popmenu.jsx'
 import { TermHelp } from './Terms.jsx'
 import { Img, MeasuredImg } from './Img.jsx'
 import { isPlayableVideo } from '../lib/video-fullscreen.js'
@@ -186,6 +187,7 @@ function useBronnenAchterTijd(ref, dep) {
     if (!count || !time || !btn) return undefined
     const place = () => {
       count.style.marginInlineStart = ''
+      count.classList.remove('is-eigen-regel')
       if (getComputedStyle(count).display === 'none') return
       const r = document.createRange()
       r.selectNodeContents(time)
@@ -193,6 +195,13 @@ function useBronnenAchterTijd(ref, dep) {
       const end = rects.length ? rects[rects.length - 1].right : time.getBoundingClientRect().right
       const pull = Math.max(0, btn.getBoundingClientRect().right - end)
       if (pull > 0.5) count.style.marginInlineStart = `${-pull}px`
+      // Past "· N bronnen" niet meer achter de tijd, dan een eigen regel op de lijn van naam en tijd
+      // (niet onder het logo), zonder de punt vooraan: nooit een regel die met "·" begint.
+      const last = rects.length ? rects[rects.length - 1] : time.getBoundingClientRect()
+      if (count.getBoundingClientRect().top >= last.bottom - 1) {
+        count.classList.add('is-eigen-regel')
+        count.style.marginInlineStart = `${time.getBoundingClientRect().left - btn.getBoundingClientRect().left}px`
+      }
     }
     place()
     if (typeof ResizeObserver === 'undefined') return undefined
@@ -212,62 +221,70 @@ export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(stor
 
 const wideOrMouse = () => typeof matchMedia === 'function' && matchMedia('(min-width: 960px), ((hover: hover) and (pointer: fine))').matches
 
-// Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel.
+// Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel: ⋯ opent
+// een zwevend menu (Popmenu.jsx), zoals het contextmenu van de app (ArticleMenuContent in
+// ios/Hoot/Views/Components.swift): Meer hiervan, Minder hiervan, en "Klopt dit niet?" met de redenen.
+// De bronregel verandert daarbij niet: de knop blijft op zijn plek, niets klapt in de regel open.
+// Na een keuze sluit het menu en zegt de melding onderin (dezelfde pil als "Link gekopieerd") wat er
+// bewaard is, zoals de app dat met een korte melding doet.
 // `withShare` (kaart A+): delen zit altijd in dit menu, niet als eigen knop in de bronregel.
 // Zonder: alleen op een touch-telefoon (web-staten), waar de deelknop ernaast wegvalt.
 export function TasteButton({ entryKey, item, story, withShare = false }) {
-  const { voteOn, itemsById, reportMistake, share } = useHoot()
+  const { voteOn, itemsById, reportMistake, share, notify } = useHoot()
   const [open, setOpen] = useState(false)
-  const [said, setSaid] = useState(null)
-  const [reporting, setReporting] = useState(false)
+  const [view, setView] = useState('main')
   const moreRef = useRef(null)
-  const reopened = useRef(false)
+  const menuId = useId()
   const items = itemsOfEntry(item, story, itemsById)
-  const pick = (dir) => {
-    voteOn(entryKey, items, dir)
+  const close = useCallback((refocus = true) => {
     setOpen(false)
-    setSaid(`Je voorkeur voor ${dir > 0 ? 'meer' : 'minder'} over ${aboutOf(items)} is bewaard.`)
+    setView('main')
+    if (refocus) moreRef.current?.focus({ preventScroll: true })
+  }, [])
+  const pick = (dir) => {
+    close()
+    voteOn(entryKey, items, dir)
+    notify?.(`Je voorkeur voor ${dir > 0 ? 'meer' : 'minder'} over ${aboutOf(items)} is bewaard.`)
   }
-  // Esc sluit het paneel en zet de focus terug op de knop "…" die het opende (die knop bestaat dan weer).
-  useEffect(() => {
-    if (!open && !reporting) return
-    const key = (e) => {
-      if (e.key !== 'Escape' || e.defaultPrevented) return
-      e.preventDefault()
-      reopened.current = true
-      setReporting(false)
-      setOpen(false)
-    }
-    document.addEventListener('keydown', key)
-    return () => document.removeEventListener('keydown', key)
-  }, [open, reporting])
-  useEffect(() => {
-    if (!open && !reporting && reopened.current) {
-      reopened.current = false
-      moreRef.current?.focus()
-    }
-  })
+  const report = (reason) => {
+    close()
+    reportMistake?.(item, story?.id || null, reason) // de melding onderin komt van App.jsx
+  }
   // Delen staat in het menu bij kaart A+ (withShare), en anders alleen waar de knop ernaast wegvalt
   // (touch-telefoon): zelfde voorwaarde als .phone-only.
   const canShare = !!(share && shareLink(item)) && (withShare || !wideOrMouse())
-  if (said) return <span className="taste__said" role="status">{said}<button type="button" className="linkbtn linkbtn--plain hit" onClick={() => setSaid(null)}>Oké</button></span>
-  if (reporting) return <span className="taste" role="group" aria-label="Klopt dit niet?">{Object.entries(CORRECTION_REASONS).map(([reason,label])=><button type="button" className="pill pill--sm hit" key={reason} onClick={() => {const ok=reportMistake?.(item,story?.id || null,reason);setReporting(false);setOpen(false);setSaid(ok?'Melding bewaard op dit toestel. Nog niet verstuurd.':'De melding kon niet worden bewaard.')}}>{label}</button>)}<button type="button" className="linkbtn hit" onClick={()=>setReporting(false)}>Annuleer</button></span>
-  return open ? (
-    <span className="taste" role="group" aria-label="Meer of minder hiervan">
-      {canShare ? <button type="button" className="pill pill--sm hit" onClick={() => { share(item); setOpen(false) }}>Deel</button> : null}
-      {voteOn ? <><button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
-        Meer hiervan
-      </button>
-      <button type="button" className="pill pill--sm hit" onClick={() => pick(-1)}>
-        Minder hiervan
-      </button></> : null}
-      {reportMistake ? <button type="button" className="pill pill--sm hit" onClick={()=>setReporting(true)}>Klopt dit niet?</button> : null}
-      <button type="button" className="linkbtn hit" onClick={()=>setOpen(false)}>Sluiten</button>
-    </span>
-  ) : (
-    <button type="button" ref={moreRef} className="iconbtn" onClick={() => setOpen(true)} aria-haspopup="true" aria-label={canShare ? 'Verhaalopties: delen, meer, minder of een fout melden' : 'Verhaalopties: meer, minder of een fout melden'} title="Verhaalopties">
-      <MoreIcon />
+  const row = (label, onClick, extra = null) => (
+    <button type="button" role="menuitem" className="popmenu__item" onClick={onClick}>
+      <span>{label}</span>
+      {extra}
     </button>
+  )
+  return (
+    <>
+      <button type="button" ref={moreRef} className={`iconbtn${open ? ' is-open' : ''}`} onClick={() => (open ? close() : setOpen(true))} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined} aria-label={canShare ? 'Verhaalopties: delen, meer, minder of een fout melden' : 'Verhaalopties: meer, minder of een fout melden'} title="Verhaalopties">
+        <MoreIcon />
+      </button>
+      {open ? (
+        <Popmenu anchor={moreRef} id={menuId} view={view} label={view === 'report' ? 'Klopt dit niet?' : 'Verhaalopties'} onClose={close}>
+          {view === 'report' ? (
+            <>
+              <button type="button" role="menuitem" className="popmenu__item popmenu__back" onClick={() => setView('main')} aria-label="Terug naar verhaalopties">
+                <CaretIcon dir="left" size={ICON_SM} />
+                <span>Klopt dit niet?</span>
+              </button>
+              <div role="separator" className="popmenu__sep" />
+              {Object.entries(CORRECTION_REASONS).map(([reason, label]) => <Fragment key={reason}>{row(label, () => report(reason))}</Fragment>)}
+            </>
+          ) : (
+            <>
+              {canShare ? <>{row('Deel', () => { close(); share(item) })}<div role="separator" className="popmenu__sep" /></> : null}
+              {voteOn ? <>{row('Meer hiervan', () => pick(1))}{row('Minder hiervan', () => pick(-1))}</> : null}
+              {reportMistake ? <>{voteOn ? <div role="separator" className="popmenu__sep" /> : null}{row('Klopt dit niet?', () => setView('report'), <CaretIcon size={ICON_SM} />)}</> : null}
+            </>
+          )}
+        </Popmenu>
+      ) : null}
+    </>
   )
 }
 // "voetbal en Ajax", of de bron als er geen onderwerp is.

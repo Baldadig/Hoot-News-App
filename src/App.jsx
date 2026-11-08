@@ -583,6 +583,7 @@ export default function App() {
       saved,
       toggleSave,
       share,
+      notify: setNotice, // korte melding onderin (het ⋯-menu na een keuze)
       read,
       markRead,
       openSource,
