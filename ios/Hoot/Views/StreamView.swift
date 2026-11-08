@@ -12,6 +12,7 @@ struct StreamView: View {
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var categoryTask: Task<Void, Never>?
     @State private var viewportHeight: CGFloat = 0
+    @State private var compact = false // de compacte voorpagina (iPhone Duo dicht): dichte rijen
     @State private var headerHeight: CGFloat = 0
     // Het einde van de Stroom (StroomEinde.swift): de grens van dit bezoek, en hoeveel ouder nieuws je opende.
     @State private var grens: StroomEinde.Grens?
@@ -132,9 +133,10 @@ struct StreamView: View {
                                 if marker && i == bIdx { SeenMarker() }
                                 Group {
                                     if item.isPost { PostRow(item: item) }
-                                    else { ItemRow(item: item, story: store.story(of: item)) }
+                                    else { ItemRow(item: item, story: store.story(of: item), form: compact ? .krant : nil, dicht: compact) } // dicht op de Duo: dichte rijen
                                 }
                                     .transition(.identity)
+                                    .plekAnker(item.id) // je plek bij vouwen en draaien (Krant.swift)
                                 if !(marker && i == bIdx - 1) { Rule() }
                             }
                             if cap >= items.count {
@@ -163,18 +165,21 @@ struct StreamView: View {
                     .padding(.horizontal)
                     .column()
                     // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift).
-                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(cap).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
+                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(cap).map { ($0, store.layout == "krant" || compact ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
                     }
                 }
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+            .compacteVoorpagina { compact = $0 } // iPhone Duo dicht (Voorpagina.swift)
+            .plekBewaren(scroll)
             .debugScroll()
             .background(Theme.paper)
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
-            .hootKopScreen()
+            .hootKopScreen(bronnen: { lijn.open = false; showSources = true }) // de bronnen: in de kopregel, of in de verticale balk
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .hootRefresh(indicator: !store.stream.isEmpty, label: "Stroom", failed: { store.coreFailed }) { await store.load() }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
@@ -287,9 +292,7 @@ struct SourcesView: View {
             SourcesList()
                 .navigationTitle("Bronnen")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } // tekst in inkt, zoals Instellingen
-                }
+                .klaarKnop { dismiss() } // tekst in inkt, zoals Instellingen
         }
         .presentationDetents([.large]) // een rustig, dicht blad: geen feed die erdoorheen schijnt
     }
@@ -455,6 +458,7 @@ struct SavedView: View {
             .hootScreenTitle()
             .settingsButton(toolbar: true)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
         }
     }
@@ -514,6 +518,7 @@ struct SearchView: View {
             .hootBrandHeader()
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek op woord of bron") // past ook op de SE; auteurs noemt de lege staat
         }

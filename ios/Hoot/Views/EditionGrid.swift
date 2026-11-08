@@ -79,6 +79,7 @@ struct EditionPairsGrid<Cell: View>: View {
     let rows: [EditionRowModel]
     let width: CGFloat
     var katern: AnyView? = nil
+    var kolommen: KrantKolommen? = nil // de tabloid op de Duo: de kolommen en de goot op de vouw (Krant.swift)
     @ViewBuilder let cell: (EditionRowModel, Bool) -> Cell // rij, waarom-regel vrijhouden
 
     // Houdt dit verhaal een lege waarom-regel vrij? Alleen als het zelf geen waarom heeft en zijn buur wel.
@@ -90,7 +91,7 @@ struct EditionPairsGrid<Cell: View>: View {
 
     var body: some View {
         let pairs = stride(from: 0, to: rows.count, by: 2).map { Array(rows.indices[$0..<min($0 + 2, rows.count)]) }
-        Grid(alignment: .topLeading, horizontalSpacing: Space.s6, verticalSpacing: 0) {
+        Grid(alignment: .topLeading, horizontalSpacing: kolommen?.goot ?? Space.s6, verticalSpacing: 0) {
             ForEach(pairs, id: \.first!) { pair in
                 GridRow(alignment: .top) {
                     ForEach(pair, id: \.self) { i in
@@ -98,6 +99,7 @@ struct EditionPairsGrid<Cell: View>: View {
                             Rule().padding(.vertical, Space.s2)
                             cell(rows[i], Self.whySpace(rows, at: i))
                         }
+                        .frame(width: kolommen.map { i % 2 == 0 ? $0.links : $0.rechts })
                         .frame(maxHeight: .infinity, alignment: .top)
                     }
                     if pair.count == 1 {

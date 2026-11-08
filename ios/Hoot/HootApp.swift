@@ -196,6 +196,7 @@ struct RootView: View {
     @Environment(HootStore.self) private var store
     // Eén lezer per venster: op iPad met twee vensters opent een artikel alleen waar je tikt.
     @State private var reader = Reader()
+    @State private var krant = KrantStaat() // concept A: de krant open op de iPhone Duo (Krant.swift)
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
     @Environment(EditionAlerts.self) private var alerts
@@ -220,11 +221,11 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView().tint(Theme.ink).environment(\.brandHandoff, tab == .editie ? handoff : nil) }
-            Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView().tint(Theme.ink).environment(\.brandHandoff, tab == .stroom ? handoff : nil) }
-            Tab("Selectie", systemImage: "books.vertical", value: Destination.digest) { DigestView().tint(Theme.ink).environment(\.brandHandoff, tab == .digest ? handoff : nil) }
-            Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView().tint(Theme.ink).environment(\.brandHandoff, tab == .bewaard ? handoff : nil) }
-            Tab(value: Destination.zoek, role: .search) { SearchView().tint(Theme.ink).environment(\.brandHandoff, tab == .zoek ? handoff : nil) }
+            Tab("Editie", systemImage: "newspaper", value: Destination.editie) { KrantSpread { EditionView().tint(Theme.ink).environment(\.brandHandoff, tab == .editie ? handoff : nil) }.environment(\.krantTab, .editie) }
+            Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { KrantSpread { StreamView().tint(Theme.ink).environment(\.brandHandoff, tab == .stroom ? handoff : nil) }.environment(\.krantTab, .stroom) }
+            Tab("Selectie", systemImage: "books.vertical", value: Destination.digest) { KrantSpread { DigestView().tint(Theme.ink).environment(\.brandHandoff, tab == .digest ? handoff : nil) }.environment(\.krantTab, .digest) }
+            Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { KrantSpread { SavedView().tint(Theme.ink).environment(\.brandHandoff, tab == .bewaard ? handoff : nil) }.environment(\.krantTab, .bewaard) }
+            Tab(value: Destination.zoek, role: .search) { KrantSpread { SearchView().tint(Theme.ink).environment(\.brandHandoff, tab == .zoek ? handoff : nil) }.environment(\.krantTab, .zoek) }
         }
         // De actieve tab is rood, zoals op het web: dat is waar je bent. De inhoud houdt de inkt.
         .tint(Theme.accent)
@@ -245,7 +246,13 @@ struct RootView: View {
             if DebugLaunch.screen("lezer"), reader.item == nil, !store.editionRows.isEmpty {
                 let all = store.editionRows.flatMap { row in [row.item] + (row.story?.itemIds.compactMap { store.itemsById[$0] } ?? []) }
                 let free = { (i: Item) in store.source(i.source).map { $0.paid != true } ?? false }
-                reader.item = all.first { free($0) && store.source($0.source)?.lang == "nl" } ?? all.first(where: free) ?? all.first
+                // In de Stroom (de Duo open: de lezer naast de Stroom) een stuk uit de Stroom.
+                let pool = tab == .stroom && store.stream.contains(where: { $0.link != nil }) ? store.stream.filter { $0.link != nil } : all
+                reader.item = pool.first { free($0) && store.source($0.source)?.lang == "nl" } ?? pool.first(where: free) ?? pool.first
+                // `-HootLeesPlek <n>`: de lezer begint bij alinea n (vouwproeven: blijft hij daar?).
+                if let item = reader.item, UserDefaults.standard.object(forKey: "HootLeesPlek") != nil {
+                    reader.bewaarPlek(LeesPlek(alinea: UserDefaults.standard.integer(forKey: "HootLeesPlek"), binnen: 0), voor: item.id)
+                }
             }
             // `-HootScreen inloggen [-HootSource nrc]`: een stuk van die (of een andere betaalde) bron, met het
             // inlogscherm open.
@@ -273,18 +280,17 @@ struct RootView: View {
             Task { await store.load() }
         }
         .environment(reader)
-        .fullScreenCover(item: $reader.item) { item in
-            // Reader.open laat alleen http(s) door; mocht er toch niets te tonen zijn, dan meteen dicht.
-            if let url = item.link, Reader.canShow(url) {
-                // Een Bluesky-post zonder eigen link heeft geen artikel: meteen de post op bsky.app.
-                if item.isPost && url.host()?.hasSuffix("bsky.app") == true {
-                    SafariView(url: url, reader: false).ignoresSafeArea()
-                } else {
-                    ArticleReaderView(item: item).tint(Theme.ink) // niet het rood van de tabbalk
-                }
-            } else {
-                Color.clear.onAppear { reader.item = nil }
-            }
+        .environment(krant)
+        // De lezer als blad. Ligt de krant open, dan staat hij op de rechterbladzijde (KrantPagina) en is
+        // er geen blad; vouw je dicht, dan komt hetzelfde artikel als blad terug, op dezelfde plek
+        // (Reader bewaart het geladen artikel en de alinea waar je was). Een Bluesky-post zonder eigen
+        // link heeft geen artikel: dan de post op bsky.app (LeesBlad).
+        .fullScreenCover(item: Binding(
+            get: { krant.spread ? nil : reader.item },
+            set: { nieuw in if !krant.spread || nieuw != nil { reader.item = nieuw } } // het blad verdwijnt door het openen: het artikel blijft
+        )) { item in
+            // Het blad hangt buiten de omgeving hierboven: de lezer en de krant expliciet meegeven.
+            LeesBlad(item: item).environment(reader).environment(krant)
         }
     }
 }

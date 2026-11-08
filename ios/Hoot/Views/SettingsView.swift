@@ -67,10 +67,7 @@ struct SettingsView: View {
             .navigationDestination(for: String.self) { page in
                 SettingsDestination(page: page, onReset: reset)
             }
-            .toolbar {
-                // Klaar als tekst in inkt (een bevestigingsknop kleurt iOS vanzelf als een gevulde cirkel).
-                ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } }
-            }
+            .klaarKnop { dismiss() } // tekst in inkt; op een verticale balk het vinkje (klaarKnop)
         }
     }
 

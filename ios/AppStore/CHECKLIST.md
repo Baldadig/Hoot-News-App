@@ -62,7 +62,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Nieuw in deze versie | `release_notes.txt` | |
 | 🟡 | Naam beschikbaar? | | "Hoot" alleen is waarschijnlijk bezet; App Store Connect zegt het bij het aanmaken. Alternatief: *Hoot: rustig nieuws*. |
 | ✅ | Categorie: Nieuws (tweede: Tijdschriften en kranten) | `primary_category.txt` | |
-| ✅ | Copyright: 2026 Alex Vrees | `copyright.txt` | |
+| ✅ | Copyright: © 2026 Baldadig | `copyright.txt` | In `copyright.txt` staat "2026 Baldadig"; App Store Connect zet het © ervoor (besluit Alex, 8 november 2026). |
 | ✅ | Privacybeleid-URL: https://gethoot.app/#/privacy | `privacy_url.txt` | Sinds 31-10 op gethoot.app (alias van dezelfde Netlify-site). In App Store Connect bij 1.0.1 bijwerken. |
 | ✅ | Privacybeleid dekt de app | | Alinea "De app voor iPhone en iPad" en contactadres toegevoegd (web 1.32.4). |
 | ✅ | **Support-URL met contactgegevens** | `support_url.txt` | `https://gethoot.app/#/over`: pagina "Over Hoot" met contact en veelgestelde vragen (web 1.32.4), ook voor nieuwe bezoekers direct leesbaar. |
