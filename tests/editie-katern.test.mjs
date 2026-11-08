@@ -52,5 +52,7 @@ test('iPad: zelfde katern in het raster en de eindkaart over de hele breedte (we
   assert.match(ed, /katern: outsideRows\.isEmpty \? nil : AnyView\(bubbleKatern\(outsideRows, inGrid: true\)\)/)
   assert.match(ed, /if !outsideRows\.isEmpty && !\(grid == \.paren && rows\.count > 3\)/)
   assert.match(ed, /Text\("Een verhaal naast je Editie\."\)/)
-  assert.match(ed, /\.frame\(maxWidth: grid == \.paren \? \.infinity : Layout\.readable\) \/\/ op de leesbreedte; A \(paren\)/)
+  // Release 1.2: de Duo (tabloid, boek) houdt het einde op de linkerkolom; zonder Duo is linkerKolom nil
+  // buiten A, dus iPhone en iPad B houden Layout.readable.
+  assert.match(ed, /\.frame\(maxWidth: grid == \.paren \? \.infinity : linkerKolom \?\? Layout\.readable\) \/\/ op de leesbreedte; A \(paren\)/)
 })

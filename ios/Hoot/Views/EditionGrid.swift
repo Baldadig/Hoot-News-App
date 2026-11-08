@@ -103,14 +103,14 @@ struct EditionPairsGrid<Cell: View>: View {
                         .frame(maxHeight: .infinity, alignment: .top)
                     }
                     if pair.count == 1 {
-                        if let katern { katern.frame(width: kolommen?.rechts).frame(maxHeight: .infinity, alignment: .top) } // het katern naast de laatste plek
+                        if let katern { katern.frame(maxHeight: .infinity, alignment: .top) } // het katern naast de laatste plek
                         else { Color.clear.gridCellUnsizedAxes([.horizontal, .vertical]) } // de rechterbaan blijft leeg
                     }
                 }
             }
             if let katern, rows.count % 2 == 0 {
                 GridRow(alignment: .top) {
-                    katern.padding(.top, Space.s5).frame(width: kolommen?.links)
+                    katern.padding(.top, Space.s5)
                     Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                 }
             }
