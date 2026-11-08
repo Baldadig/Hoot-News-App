@@ -27,7 +27,7 @@ import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why, whyLine } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
-import { INTRO_LINES } from '../../shared/zinnen.mjs'
+import { INTRO_LINES, KAART_LINES } from '../../shared/zinnen.mjs'
 import { cardIntro } from '../../shared/kaart-intro.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
 import { useIntroMax, useColumnWidth, useShrinkToFit, shrunk } from '../lib/intro.js'
@@ -239,7 +239,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       <h2 className="label label--section front__more">Buiten je bubbel</h2>
       <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
       <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: phone ? 'tijdlijn' : 'krant' }))}>
-      {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} lines={INTRO_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain />}</Slot>)}
+      {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} lines={KAART_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain />}</Slot>)}
       </PlaceholderList>
     </section>
   ) : null
@@ -373,7 +373,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                       </h2>
                     ) : null,
                     <Slot key={r.key} less={less} row={r}>
-                      <KaartItem lead={i === 0} priority={i === 0 && active} n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} lines={INTRO_LINES} />
+                      <KaartItem lead={i === 0} priority={i === 0 && active} n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} lines={KAART_LINES} />
                     </Slot>,
                   ])}
                 </div>

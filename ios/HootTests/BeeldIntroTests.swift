@@ -15,6 +15,21 @@ final class BeeldIntroTests: XCTestCase {
         XCTAssertNil(HootStore.oldPreview(nil))
     }
 
+    // Besluit 8 november: de kaart van de Editie op de iPhone krijgt 4 regels intro (KAART_LINES op het web).
+    // Het budget groeit mee (270, naast een miniatuur 216) en IntroText meet in 5 regels (bij grote tekst 8).
+    func testKaartInDeEditieVierRegels() {
+        XCTAssertEqual(HootStore.kaartLines, 4)
+        XCTAssertEqual(HootStore.introLines, 3) // de Stroom en de krant-vorm houden 3
+        XCTAssertEqual(introMax(lines: 4, thumb: false), 270)
+        XCTAssertEqual(introMax(lines: 4, thumb: true), 216)
+        XCTAssertEqual(introMax(lines: 4, width: 343, font: 16).max, 141) // zelfde maat als het web (kaart A+)
+        XCTAssertEqual(introMax(lines: 4, width: 343, font: 16).rek, 178)
+        // Vier regels zijn hoger dan drie, met dezelfde halve regel speling.
+        let drie = IntroText.limit(lines: 4, style: .body, typeSize: .large, size: 18, line: 28)
+        let vier = IntroText.limit(lines: 5, style: .body, typeSize: .large, size: 18, line: 28)
+        XCTAssertEqual(vier - drie, 28, accuracy: 1)
+    }
+
     func testDrieRegelsHoudtEenZinDieInTweeWegviel() {
         let intro = "De Democraten hebben bij de tussentijdse verkiezingen in de Verenigde Staten een grote overwinning behaald op de Republikeinen en ook in staten waar Trump twee jaar geleden nog ruim won. Trump erkent zijn verlies niet."
         XCTAssertEqual(wholeSentences(intro, max: introMax(lines: 2, thumb: false)), "")

@@ -246,7 +246,7 @@ struct EditionView: View {
                 .padding(.top, Space.s1)
                 .padding(.bottom, Space.s3)
             ForEach(outsideRows) { row in
-                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
+                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn,lines:HootStore.kaartLines) }
             }
         }
     }
@@ -462,7 +462,7 @@ struct EditionView: View {
                             ForEach(rows.dropFirst()) { row in
                                 // Kaart A+ (iPhone): na het hoofdverhaal komt de sterke lijn uit LeadCard; tussen de kaarten 16 boven en onder.
                                 if wide || row.id != rows[1].id { Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0)) }
-                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: wide ? .krant : .tijdlijn) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: wide ? .krant : .tijdlijn, lines: HootStore.kaartLines) }
                                     .padding(.top, !wide && row.id == rows[1].id ? Space.s2 : 0)
                                     .loadLinesRise(lines)
                                     .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
