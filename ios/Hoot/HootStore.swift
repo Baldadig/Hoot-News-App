@@ -711,6 +711,11 @@ final class HootStore {
     private var parts: [String: String] = [:]
     private var partsTask: Task<Void, Never>?
     private var partsGeneration = 0
+    // Bij welke Editie (dagdeel) de berichten in `itemsById` horen, en of er een ronde loopt. Jouw Editie
+    // wacht tot de berichten van deze ronde er zijn (P0, 9 november): bij terugkomen staat de nieuwe kern
+    // er al (`edition`) terwijl `itemsById` nog de berichten van je vorige bezoek heeft.
+    @ObservationIgnored private(set) var itemsEdition: String?
+    @ObservationIgnored private(set) var partsLoading = false
 
     private func reloadParts() {
         partsTask?.cancel()
@@ -718,6 +723,8 @@ final class HootStore {
         let generation = partsGeneration
         let wanted = (followed + (bluesky ? followedSocial : [])).map(\.id).filter { parts[$0] != nil }
         let versions = parts
+        let forEdition = edition?.id
+        partsLoading = true
         partsTask = Task {
             let lists = await withTaskGroup(of: (String, [Item]?).self) { group in
                 for id in wanted {
@@ -736,9 +743,19 @@ final class HootStore {
             for item in itemsById.values where failed.contains(item.source) { map[item.id] = item }
             for item in lists.compactMap(\.1).joined() { map[item.id] = item }
             itemsById = map
+            itemsEdition = forEdition
+            partsLoading = false
             if !failed.isEmpty { stale = true }
             rebuildStream()
+            // Wie tijdens het laden wilde samenstellen (je account, een bron die je aanzette), wachtte: nu.
+            refreshPersonal()
         }
+    }
+
+    // Mag Jouw Editie nu samengesteld worden met wat het toestel aan berichten heeft? Alleen als die bij de
+    // Editie van dit dagdeel horen en er geen ronde meer loopt (zoals editionReady/itemsCurrent op het web).
+    static func itemsCurrent(itemsEdition: String?, loading: Bool, edition: String) -> Bool {
+        !loading && itemsEdition == edition
     }
 
     private func rebuildStream() {
@@ -929,6 +946,7 @@ final class HootStore {
     }
     func loadPersonal() async {
         guard let global = edition, !sources.isEmpty, !itemsById.isEmpty else { return }
+        guard Self.itemsCurrent(itemsEdition: itemsEdition, loading: partsLoading, edition: global.id) else { return }
         if let a = account, !Self.mayCompose(status: a.status, uid: a.uid, pulled: a.pulled, sync: a.sync) { return }
         let owner = ownerNow
         let followedIds = followed.map(\.id)
@@ -1039,6 +1057,8 @@ final class HootStore {
             if let v = parts[s.id], let data = HootAPI.cached("api/feed", ["bron": s.id, "v": v]), let part = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any], let list = part["items"] as? [Any] {
                 items += list
             } else if let list = Self.encoded(itemsById.values.filter { $0.source == s.id }) as? [Any] {
+                // Niet in de cache: wat deze ronde van de bron gaf (loadPersonal wacht op die ronde), of bij een
+                // mislukt deel wat we er al van hadden.
                 items += list
             }
         }

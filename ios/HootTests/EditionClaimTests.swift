@@ -100,6 +100,15 @@ final class EditionClaimTests: XCTestCase {
         XCTAssertTrue(HootStore.mayCompose(status: nil, uid: nil, pulled: false, sync: .idle))
     }
 
+    // P0 (9 november): Jouw Editie wacht tot de berichten bij de Editie van dit dagdeel horen en de ronde klaar is.
+    // Bij terugkomen staat de nieuwe kern er al, terwijl de berichten nog die van je vorige bezoek zijn.
+    func testComposeWaitsForItemsOfThisSlot() {
+        XCTAssertFalse(HootStore.itemsCurrent(itemsEdition: "2026-11-08-ochtend", loading: false, edition: "2026-11-09-middag"), "berichten van een vorig dagdeel")
+        XCTAssertFalse(HootStore.itemsCurrent(itemsEdition: nil, loading: false, edition: "2026-11-09-middag"), "nog geen ronde")
+        XCTAssertFalse(HootStore.itemsCurrent(itemsEdition: "2026-11-09-middag", loading: true, edition: "2026-11-09-middag"), "een ronde loopt nog (je zette een bron aan)")
+        XCTAssertTrue(HootStore.itemsCurrent(itemsEdition: "2026-11-09-middag", loading: false, edition: "2026-11-09-middag"))
+    }
+
     // H3: de laatste drie dagdelen uit toestel en account samen (earlierEditions in de rekenkern, zoals
     // loadPersonal ze vraagt), elk één keer, nieuw naar oud, zonder het huidige; lokaal alleen van deze lezer.
     func testEarlierKeepsLastThree() async throws {
