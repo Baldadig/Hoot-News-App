@@ -19,8 +19,18 @@ export const TABLE = 'user_state'
 // Anders rekent een vers toestel met de standaardinstellingen, overschrijft het de Editie van het eerste
 // toestel en rekent het na het ophalen nog een keer. Lukt het ophalen niet (offline, `sync` 'error'),
 // dan toch samenstellen: lokaal, zonder naar je account te schrijven (settleEdition, `pulled`).
-export function editionReady({ status, global, items = 0, uid = null, pulled = false, sync = 'idle' }) {
-  return status === 'ready' && !!global && items > 0 && (!uid || pulled || sync === 'error')
+// En pas als de berichten bij déze Editie en je bronnen van nu horen (`itemsFor`, useFeed): bij het
+// openen staat de feed van je vorige bezoek klaar, en een nieuwe kern komt binnen vóór de berichten
+// van dit dagdeel. Wie dan samenstelt, rekent met de berichten van gisteren en legt die Editie voor het
+// hele dagdeel vast (P0, 9 november). Zonder `followed` toetsen we alleen het dagdeel.
+export function itemsCurrent(itemsFor, global, followed = null) {
+  if (!itemsFor || !global || itemsFor.edition !== global.id) return false
+  if (!followed) return true
+  const asked = new Set(itemsFor.sources || [])
+  return [...followed].every((id) => asked.has(id))
+}
+export function editionReady({ status, global, items = 0, uid = null, pulled = false, sync = 'idle', itemsFor = null, followed = null }) {
+  return status === 'ready' && !!global && items > 0 && itemsCurrent(itemsFor, global, followed) && (!uid || pulled || sync === 'error')
 }
 
 // Past een vastgelegde Editie bij dit dagdeel en deze afdruk (P8-1b)? Zonder afdruk (de bronnenlijst

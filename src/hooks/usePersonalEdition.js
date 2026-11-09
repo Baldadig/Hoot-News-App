@@ -33,8 +33,9 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
   const uid = syncedUid(account)
   const owner = uid || 'anon'
   const pulled = !!sync?.pulled
-  const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status })
   const followed = useMemo(() => (data?.sources || []).filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id), [data?.sources, muted])
+  // Pas als de berichten bij de Editie van nu en je bronnen van nu horen (data.itemsFor, useFeed).
+  const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status, itemsFor: data?.itemsFor, followed })
   const basis = editionBasis(followed, prefs.interests || [], prefs.topics || [], prefs.favorites || [])
   // Zonder bronnenlijst (nog aan het laden) kunnen we de afdruk niet controleren: dan niet weigeren.
   const fits = (e) => fitsEdition(e, { id: global?.id, basis: followed.length ? basis : null }) && e.owner === owner

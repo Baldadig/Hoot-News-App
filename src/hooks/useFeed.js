@@ -4,10 +4,8 @@ import { takeFeedCache, saveFeedCache } from '../lib/feedCache.js'
 import { carryOver } from '../lib/sourceStatus.js'
 import { freshCount, refreshPlan } from '../lib/fresh.js'
 import { mutedSet } from '../lib/sourcesel.js'
-import { eachLimited } from '../lib/pool.js'
+import { gatherParts } from '../lib/feedParts.js'
 import { withoutRepeats } from '../../shared/stroom.mjs'
-
-const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
 // Eén vaste vorm, ook als de server (of een oude cache) een veld mist.
 function normalize(d) {
@@ -20,6 +18,10 @@ function normalize(d) {
     stories: Array.isArray(d.stories) ? d.stories : [],
     edition: d.edition && Array.isArray(d.edition.entries) ? d.edition : null,
     meta: d.meta || null,
+    // Bij welke kern de berichten horen: de Editie van dat dagdeel en de bronnen die
+    // toen gevraagd werden (src/lib/feedParts.js). Een cache van vóór dit veld weet het niet: dan null,
+    // en Jouw Editie wacht op de verse berichten (editionReady).
+    itemsFor: d.itemsFor && typeof d.itemsFor === 'object' ? d.itemsFor : null,
   }
 }
 
@@ -47,28 +49,21 @@ export function useFeed(prefs) {
   const prefsRef = useRef(prefs)
   prefsRef.current = prefs
   const parts = useRef(new Map()) // bron → { version, items }
+  const pendingFor = useRef(null) // waarvoor de wachtende berichten verzameld zijn
+  const coreRound = useRef(0) // telt elke kern die load toepast
 
   // In de cache staan ook de berichten die nog achter de knop wachten: bij een koude start
   // staan ze er dan gewoon.
+  // `dataRef` meteen bij: een ronde die net klaar is (zie het wantKey-effect) ziet de nieuwe kern al,
+  // ook vóór React opnieuw tekent.
   const apply = useCallback((next) => {
+    dataRef.current = next
     setData(next)
-    saveFeedCache(pending.current ? { ...next, items: pending.current } : next)
+    saveFeedCache(pending.current ? { ...next, items: pending.current, itemsFor: pendingFor.current } : next)
   }, [])
 
-  // De berichten van de gevolgde bronnen; een deel dat niet veranderde halen we niet opnieuw.
-  const gather = useCallback(async (core, signal) => {
-    const versions = core.meta?.parts || {}
-    const want = wantedSources(core.sources, prefsRef.current).filter((id) => versions[id])
-    const stale = want.filter((id) => parts.current.get(id)?.version !== versions[id])
-    await eachLimited(stale, 6, async (id) => {
-      try {
-        parts.current.set(id, { version: versions[id], items: await fetchPart(id, versions[id], { signal }) })
-      } catch (e) {
-        if (e.name === 'AbortError') throw e // een enkele bron die niet lukt houdt de rest niet op
-      }
-    })
-    return want.flatMap((id) => parts.current.get(id)?.items || []).sort(byRecency)
-  }, [])
+  // De berichten van de gevolgde bronnen bij deze kern (src/lib/feedParts.js): { items, itemsFor }.
+  const gather = useCallback((core, signal) => gatherParts({ core, wanted: wantedSources(core.sources, prefsRef.current), parts: parts.current, fetchPart, signal }), [])
 
   // Alle publicaties per verhaal: pas als je vergelijkt of in alle bronnen zoekt (App roept dit
   // aan). Daarna houden we ze bij: bij een nieuwe versie halen we ze opnieuw.
@@ -100,7 +95,8 @@ export function useFeed(prefs) {
         const core = normalize(got.data)
         if (!core) throw new Error('Onverwacht antwoord')
         // De vergelijkingsdata zit niet in de kern: houd wat we hadden (zie loadRelated).
-        const fetched = { ...core, items: await gather(core, controller.signal), related: dataRef.current?.related || [], relatedTag: dataRef.current?.relatedTag || null }
+        const { items, itemsFor } = await gather(core, controller.signal)
+        const fetched = { ...core, items, itemsFor, related: dataRef.current?.related || [], relatedTag: dataRef.current?.relatedTag || null }
         // Valt een bron uit, dan blijven de berichten staan die we er al van hadden.
         const next = carryOver(dataRef.current, fetched)
         // Data uit de cache van de service worker: tonen, maar de verversing is mislukt.
@@ -114,19 +110,21 @@ export function useFeed(prefs) {
         if (plan === 'wachten') {
           // Alleen de berichten wachten; de rest (Editie, verhalen, bronnen) meteen bijwerken.
           pending.current = next.items
+          pendingFor.current = next.itemsFor
           setPendingCount(fresh)
-          apply({ ...next, items: dataRef.current.items })
+          apply({ ...next, items: dataRef.current.items, itemsFor: dataRef.current.itemsFor })
         } else if (plan === 'rest') {
           // Niets nieuws in de Stroom: alleen de rest bijwerken (bronnen, editie, verhalen). Wat nog
           // achter de knop wachtte is achterhaald: deze ronde is nieuwer.
           pending.current = null
           setPendingCount(0)
-          apply({ ...next, items: dataRef.current.items })
+          apply({ ...next, items: dataRef.current.items, itemsFor: dataRef.current.itemsFor })
         } else {
           pending.current = null
           setPendingCount(0)
           apply(next)
         }
+        coreRound.current += 1
         setStatus('ready')
         if (wantRelated.current) loadRelated()
       } catch (e) {
@@ -148,13 +146,25 @@ export function useFeed(prefs) {
     if (!dataRef.current || wantKey === firstKey.current) return
     firstKey.current = wantKey
     const controller = new AbortController()
-    gather(dataRef.current, controller.signal)
-      .then((items) => {
+    // Kwam er intussen een nieuwe kern (load), dan horen deze berichten bij de vorige: niet onder de
+    // nieuwe zetten (dan rekende Jouw Editie van nu met de berichten van een vorig dagdeel), maar
+    // opnieuw verzamelen bij de kern van nu.
+    const round = async () => {
+      for (let tries = 0; tries < 3; tries++) {
+        const seen = coreRound.current
+        const got = await gather(dataRef.current, controller.signal)
+        if (coreRound.current === seen) return got
+      }
+      return null
+    }
+    round()
+      .then((got) => {
+        if (!got) return
         // Deze berichten zijn de nieuwste, met de bron die je net aanzette: wat nog achter de knop
         // wachtte is daarmee achterhaald (anders haalde die knop de nieuwe bron weer weg).
         pending.current = null
         setPendingCount(0)
-        apply({ ...dataRef.current, items })
+        apply({ ...dataRef.current, items: got.items, itemsFor: got.itemsFor })
       })
       .catch(() => {})
     return () => controller.abort()
@@ -162,8 +172,9 @@ export function useFeed(prefs) {
 
   const applyPending = useCallback(() => {
     if (pending.current) {
-      apply({ ...dataRef.current, items: pending.current })
+      const items = pending.current
       pending.current = null
+      apply({ ...dataRef.current, items, itemsFor: pendingFor.current })
     }
     setPendingCount(0)
   }, [apply])
