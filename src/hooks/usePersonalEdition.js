@@ -87,8 +87,9 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       .then((r) => {
         // Het vangnet weigerde (berichten achterhaald): niet eindeloos laden, maar de terugval.
         if (!r) return setRefused(task)
-        // Je account heeft al een later dagdeel: dit toestel loopt achter; niets schrijven, de kern van nu komt.
-        if (!r.edition) return
+        // Je account heeft al een later dagdeel: dit toestel loopt achter; niets schrijven, maar ook niet
+        // blijven laden: de terugval toont de Editie tot de kern van nu er is (keuring P0 ronde 3).
+        if (!r.edition) return setRefused(task)
         keep(r.edition)
         if (r.source !== 'unsynced') settled.current = task
       })
