@@ -110,3 +110,47 @@ export async function settleEdition({ client = null, uid = null, owner = 'anon',
   if (fits(r.theirs)) return { edition: adoptEdition(r.theirs, { local, owner, id }), source: 'account' }
   return { edition: stamped, source: 'unsynced' }
 }
+
+// `previous` in de platte vorm die POST /api/edition leest (arrays en objecten in plaats van Sets en Maps).
+export function previousForServer(previous) {
+  if (!previous) return null
+  const arr = (v) => [...(v || [])]
+  return {
+    storyIds: arr(previous.storyIds),
+    itemIds: arr(previous.itemIds),
+    leadIds: arr(previous.leadIds),
+    leadStoryId: previous.leadStoryId || null,
+    leadStoryIds: arr(previous.leadStoryIds),
+    at: previous.at || 0,
+    atOf: Object.fromEntries(previous.atOf || []),
+    titles: arr(previous.titles),
+    shown: previous.shown || [],
+    keysOf: Object.fromEntries([...(previous.keysOf || [])].map(([id, ks]) => [id, [...ks]])),
+  }
+}
+
+// De terugval als de berichten van dit dagdeel niet binnenkomen, ook niet na één extra ronde (useFeed
+// `stuck`: offline, of een bron die niet antwoordt). Dan stelt dit toestel níet samen — met de berichten die
+// het nog heeft (van een vorige kern) gaf dat op 9 november een Editie van gisteren voor het hele dagdeel —
+// en wacht het ook niet eindeloos. In deze volgorde:
+//   1. 'account'  als lid na de pull: de Editie van dit dagdeel uit je account (een ander toestel was eerder);
+//                 die is van jou en wordt hier vastgelegd zoals bij settleEdition;
+//   2. 'server'   POST /api/edition (`server`): de server stelt samen met de berichten van nu. Gemerkt als
+//                 terugval; gaat nooit naar je account en wordt niet vastgelegd, zodat dit toestel alsnog
+//                 zelf samenstelt zodra de berichten er zijn;
+//   3. 'global'   de algemene Editie van dit dagdeel ("De Editie voor iedereen"), zonder samenvatting.
+// Een Editie die al op dit toestel vastligt toont usePersonalEdition zelf al; daar komt dit niet aan.
+export async function fallbackEdition({ client = null, uid = null, owner = 'anon', global, basis, local = null, pulled = false, server = null, request = null }) {
+  if (!global) return null
+  const id = global.id
+  if (uid && client && pulled) {
+    const theirs = await readAccountEdition(client, uid).catch(() => null)
+    if (fitsEdition(theirs, { id, basis })) return { edition: adoptEdition(theirs, { local, owner, id }), source: 'account' }
+  }
+  if (server) {
+    const earlier = earlierEditions({ local, account: null, id, owner })
+    const mine = await server({ ...(request || {}), previous: previousForServer(previousOf(earlier)) }).catch(() => null)
+    if (mine && typeof mine === 'object' && mine.id === id && Array.isArray(mine.entries)) return { edition: { ...mine, personal: true, fallback: true, owner, basis: mine.basis || basis }, source: 'server' }
+  }
+  return { edition: { ...global, brief: null, fallback: true, owner }, source: 'global' }
+}
