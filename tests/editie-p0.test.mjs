@@ -125,6 +125,10 @@ test('P0: twee rondes tegelijk geven elk de berichten van hun eigen kern', async
   const d = await gatherParts({ core: core('2026-11-09-avond', 'avond'), wanted: ['nos', 'nyt'], parts, fetchPart: failing })
   assert.ok(d.items.some((i) => i.source === 'nyt'))
   assert.ok(d.items.some((i) => i.id === 'nos-avond-1'))
+  // Maar die berichten zijn van een vorige kern: NYT telt niet als gedekt, Jouw Editie stelt er niet mee samen
+  // (ronde 2: één extra ronde, daarna de terugval; tests/editie-p0-dekking.test.mjs).
+  assert.deepEqual(d.missing, ['nyt'])
+  assert.deepEqual(d.itemsFor.sources, ['nos'])
 })
 
 test('P0: de vloer blijft gelden; met verse berichten is er geen reden om korter te zijn', () => {

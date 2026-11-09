@@ -1,201 +1,69 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchCore, fetchPart, fetchRelated } from '../lib/api.js'
 import { takeFeedCache, saveFeedCache } from '../lib/feedCache.js'
-import { carryOver } from '../lib/sourceStatus.js'
-import { freshCount, refreshPlan } from '../lib/fresh.js'
-import { mutedSet } from '../lib/sourcesel.js'
-import { gatherParts } from '../lib/feedParts.js'
-import { withoutRepeats } from '../../shared/stroom.mjs'
+import { wantedSources } from '../lib/feedParts.js'
+import { createFeedRounds, normalize } from '../lib/feedRounds.js'
 
-// Eén vaste vorm, ook als de server (of een oude cache) een veld mist.
-function normalize(d) {
-  if (!d || typeof d !== 'object') return null
-  return {
-    sources: Array.isArray(d.sources) ? d.sources : [],
-    items: Array.isArray(d.items) ? d.items : [],
-    related: Array.isArray(d.related) ? d.related : [],
-    relatedTag: d.relatedTag || null, // welke versie van de vergelijkingsdata we hebben
-    stories: Array.isArray(d.stories) ? d.stories : [],
-    edition: d.edition && Array.isArray(d.edition.entries) ? d.edition : null,
-    meta: d.meta || null,
-    // Bij welke kern de berichten horen: de Editie van dat dagdeel en de bronnen die
-    // toen gevraagd werden (src/lib/feedParts.js). Een cache van vóór dit veld weet het niet: dan null,
-    // en Jouw Editie wacht op de verse berichten (editionReady).
-    itemsFor: d.itemsFor && typeof d.itemsFor === 'object' ? d.itemsFor : null,
-  }
-}
+export { wantedSources }
 
-// Welke bronnen deze lezer volgt: wat aan staat; Bluesky alleen als die bestemming aan staat.
-export function wantedSources(sources, prefs) {
-  const off = mutedSet(prefs, sources)
-  return sources.filter((s) => !off.has(s.id) && (s.kind !== 'sociaal' || prefs.bluesky)).map((s) => s.id)
-}
-
-// De feed: eerst de kern, dan per gevolgde bron de berichten (alleen wat veranderde).
-// Wat je de vorige keer had staat meteen in beeld; nieuwe berichten in de Stroom wachten bij het
-// automatisch verversen achter een knop, zodat de inhoud niet verspringt terwijl je leest. De
-// Editie, de verhalen en de bronnen gaan wel meteen door; bij een nieuw dagdeel ook de berichten.
+// De feed: eerst de kern, dan per gevolgde bron de berichten (alleen wat veranderde). De rondes zelf staan
+// los van React in src/lib/feedRounds.js (getest in tests/editie-p0-dekking.test.mjs); dit is de laag
+// eromheen: state voor de weergave, verversen bij terugkomen en elk kwartier, en een nieuwe ronde als je
+// bronkeuze verandert.
+// `stuck`: de berichten dekken je bronnen van nu niet, ook niet na één extra ronde (offline, een bron die
+// niet antwoordt). Jouw Editie valt dan terug op wat vastligt of op de server (usePersonalEdition).
 export function useFeed(prefs) {
+  const prefsRef = useRef(prefs)
+  prefsRef.current = prefs
   const [data, setData] = useState(() => normalize(takeFeedCache()))
   const [status, setStatus] = useState(() => (data ? 'ready' : 'loading')) // loading | ready | error
   const [refreshing, setRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
+  const [stuck, setStuck] = useState(false)
 
-  const ctrl = useRef(null)
-  const dataRef = useRef(data)
-  dataRef.current = data
-  const pending = useRef(null) // de berichten van de Stroom die achter de knop wachten
-  const prefsRef = useRef(prefs)
-  prefsRef.current = prefs
-  const parts = useRef(new Map()) // bron → { version, items }
-  const pendingFor = useRef(null) // waarvoor de wachtende berichten verzameld zijn
-  const coreRound = useRef(0) // telt elke kern die load toepast
+  const rounds = useRef(null)
+  if (!rounds.current) {
+    rounds.current = createFeedRounds({
+      initial: data,
+      fetchCore,
+      fetchPart,
+      fetchRelated,
+      getPrefs: () => prefsRef.current,
+      save: saveFeedCache,
+      on: { data: setData, status: setStatus, refreshing: setRefreshing, refreshError: setRefreshError, pending: setPendingCount, stuck: setStuck },
+    })
+  }
 
-  // In de cache staan ook de berichten die nog achter de knop wachten: bij een koude start
-  // staan ze er dan gewoon.
-  // `dataRef` meteen bij: een ronde die net klaar is (zie het wantKey-effect) ziet de nieuwe kern al,
-  // ook vóór React opnieuw tekent.
-  const apply = useCallback((next) => {
-    dataRef.current = next
-    setData(next)
-    saveFeedCache(pending.current ? { ...next, items: pending.current, itemsFor: pendingFor.current } : next)
-  }, [])
-
-  // De berichten van de gevolgde bronnen bij deze kern (src/lib/feedParts.js): { items, itemsFor }.
-  const gather = useCallback((core, signal) => gatherParts({ core, wanted: wantedSources(core.sources, prefsRef.current), parts: parts.current, fetchPart, signal }), [])
-
-  // Alle publicaties per verhaal: pas als je vergelijkt of in alle bronnen zoekt (App roept dit
-  // aan). Daarna houden we ze bij: bij een nieuwe versie halen we ze opnieuw.
-  const wantRelated = useRef(false)
-  const loadRelated = useCallback(async () => {
-    wantRelated.current = true
-    const tag = dataRef.current?.meta?.related
-    if (!tag || dataRef.current?.relatedTag === tag) return
-    try {
-      const related = await fetchRelated(tag)
-      if (dataRef.current?.meta?.related !== tag) return // intussen een nieuwere kern
-      apply({ ...dataRef.current, related, relatedTag: tag })
-    } catch {
-      /* geen vergelijking nu; de volgende keer opnieuw */
-    }
-  }, [apply])
-
-  const load = useCallback(
-    async ({ defer } = {}) => {
-      ctrl.current?.abort()
-      const controller = new AbortController()
-      ctrl.current = controller
-      const had = !!dataRef.current
-      if (had) setRefreshing(true)
-      else setStatus('loading')
-      try {
-        const got = await fetchCore({ signal: controller.signal })
-        const fromCache = got.fromCache
-        const core = normalize(got.data)
-        if (!core) throw new Error('Onverwacht antwoord')
-        // De vergelijkingsdata zit niet in de kern: houd wat we hadden (zie loadRelated).
-        const { items, itemsFor } = await gather(core, controller.signal)
-        const fetched = { ...core, items, itemsFor, related: dataRef.current?.related || [], relatedTag: dataRef.current?.relatedTag || null }
-        // Valt een bron uit, dan blijven de berichten staan die we er al van hadden.
-        const next = carryOver(dataRef.current, fetched)
-        // Data uit de cache van de service worker: tonen, maar de verversing is mislukt.
-        setRefreshError(fromCache && had)
-        const off = mutedSet(prefsRef.current, next.sources)
-        // Hetzelfde stuk bij twee zusterkranten is één nieuw bericht (de Stroom toont het één keer).
-        const fresh = defer && had ? freshCount(dataRef.current.items, withoutRepeats(next.items), off) : 0
-        // Een nieuw dagdeel gaat in zijn geheel door (zie refreshPlan): de Stroom verspringt dan één
-        // keer, maar Jouw Editie komt uit de berichten van nu.
-        const plan = refreshPlan({ defer, prev: had ? dataRef.current : null, next, fresh })
-        if (plan === 'wachten') {
-          // Alleen de berichten wachten; de rest (Editie, verhalen, bronnen) meteen bijwerken.
-          pending.current = next.items
-          pendingFor.current = next.itemsFor
-          setPendingCount(fresh)
-          apply({ ...next, items: dataRef.current.items, itemsFor: dataRef.current.itemsFor })
-        } else if (plan === 'rest') {
-          // Niets nieuws in de Stroom: alleen de rest bijwerken (bronnen, editie, verhalen). Wat nog
-          // achter de knop wachtte is achterhaald: deze ronde is nieuwer.
-          pending.current = null
-          setPendingCount(0)
-          apply({ ...next, items: dataRef.current.items, itemsFor: dataRef.current.itemsFor })
-        } else {
-          pending.current = null
-          setPendingCount(0)
-          apply(next)
-        }
-        coreRound.current += 1
-        setStatus('ready')
-        if (wantRelated.current) loadRelated()
-      } catch (e) {
-        if (e.name === 'AbortError') return
-        if (!dataRef.current) setStatus('error')
-        else setRefreshError(true)
-      } finally {
-        // Afgebroken door een nieuwere ronde: die is nog bezig, de draaier blijft staan.
-        if (ctrl.current === controller) setRefreshing(false)
-      }
-    },
-    [apply, gather, loadRelated]
-  )
-
-  // Zet je een bron aan of uit, dan meteen de berichten erbij halen of weglaten.
+  // Zet je een bron aan of uit (of geeft je account andere bronnen), dan meteen de berichten erbij halen of weglaten.
   const wantKey = data ? wantedSources(data.sources, prefs).join(',') : ''
   const firstKey = useRef(wantKey)
   useEffect(() => {
-    if (!dataRef.current || wantKey === firstKey.current) return
+    if (!rounds.current.data || wantKey === firstKey.current) return
     firstKey.current = wantKey
-    const controller = new AbortController()
-    // Kwam er intussen een nieuwe kern (load), dan horen deze berichten bij de vorige: niet onder de
-    // nieuwe zetten (dan rekende Jouw Editie van nu met de berichten van een vorig dagdeel), maar
-    // opnieuw verzamelen bij de kern van nu.
-    const round = async () => {
-      for (let tries = 0; tries < 3; tries++) {
-        const seen = coreRound.current
-        const got = await gather(dataRef.current, controller.signal)
-        if (coreRound.current === seen) return got
-      }
-      return null
-    }
-    round()
-      .then((got) => {
-        if (!got) return
-        // Deze berichten zijn de nieuwste, met de bron die je net aanzette: wat nog achter de knop
-        // wachtte is daarmee achterhaald (anders haalde die knop de nieuwe bron weer weg).
-        pending.current = null
-        setPendingCount(0)
-        apply({ ...dataRef.current, items: got.items, itemsFor: got.itemsFor })
-      })
-      .catch(() => {})
-    return () => controller.abort()
-  }, [wantKey, gather, apply])
+    return rounds.current.wantChanged()
+  }, [wantKey])
 
-  const applyPending = useCallback(() => {
-    if (pending.current) {
-      const items = pending.current
-      pending.current = null
-      apply({ ...dataRef.current, items, itemsFor: pendingFor.current })
-    }
-    setPendingCount(0)
-  }, [apply])
-
-  const reload = useCallback(() => load({ defer: false }), [load])
+  const applyPending = useCallback(() => rounds.current.applyPending(), [])
+  const loadRelated = useCallback(() => rounds.current.loadRelated(), [])
+  const reload = useCallback(() => rounds.current.load({ defer: false }), [])
 
   useEffect(() => {
-    load({ defer: false })
+    const r = rounds.current
+    r.load({ defer: false })
     const onVisible = () => {
-      if (document.visibilityState === 'visible') load({ defer: true })
+      if (document.visibilityState === 'visible') r.load({ defer: true })
     }
     document.addEventListener('visibilitychange', onVisible)
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') load({ defer: true })
+      if (document.visibilityState === 'visible') r.load({ defer: true })
     }, 15 * 60 * 1000)
     return () => {
       document.removeEventListener('visibilitychange', onVisible)
       clearInterval(timer)
-      ctrl.current?.abort()
+      r.abort()
     }
-  }, [load])
+  }, [])
 
-  return { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated }
+  return { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated, stuck }
 }

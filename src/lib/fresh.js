@@ -16,8 +16,11 @@ export function freshCount(prevItems = [], nextItems = [], muted = new Set()) {
 //   daarna het hele dagdeel vast).
 // - 'wachten': de nieuwe berichten van de Stroom wachten achter de knop; de rest gaat door.
 // - 'rest': niets nieuws in de Stroom; de rest gaat door, de berichten blijven staan.
-export function refreshPlan({ defer = false, prev = null, next = null, fresh = 0 } = {}) {
-  if (!defer || !prev) return 'alles'
+// Dekken de berichten die er staan je bronnen van nu niet (`covered` false: je account gaf net een bron,
+// of een deel kwam de vorige keer niet binnen), dan ook 'alles': anders bleef Jouw Editie wachten op
+// berichten die geen ronde meer haalt (keuring P0, 9 november).
+export function refreshPlan({ defer = false, prev = null, next = null, fresh = 0, covered = true } = {}) {
+  if (!defer || !prev || !covered) return 'alles'
   if (next?.edition && next.edition.id !== prev.edition?.id) return 'alles'
   return fresh > 0 ? 'wachten' : 'rest'
 }
