@@ -689,6 +689,7 @@ final class HootStore {
             parts = start.meta.parts ?? [:]
             stale = false // een mislukt deel zet hem hieronder weer aan
             coreFailed = fromCache
+            coreFresh = !fromCache
             reloadParts()
             // Eigen Bluesky-accounts los ophalen: een trage Bluesky houdt de editie niet op.
             Task { await loadOwnPosts() }
@@ -716,6 +717,10 @@ final class HootStore {
     // er al (`edition`) terwijl `itemsById` nog de berichten van je vorige bezoek heeft.
     @ObservationIgnored private(set) var itemsEdition: String?
     @ObservationIgnored private(set) var partsLoading = false
+    // Kwam de kern (`edition`) in deze sessie van het netwerk, niet uit de bewaarde kopie (offline, of de server
+    // gaf een fout)? Alleen dan schrijft Jouw Editie naar je account (mayClaim; keuring P0 ronde 2, §4). Blijft
+    // staan als een latere verversing mislukt: de kern die er dan staat kwam eerder deze sessie van het netwerk.
+    @ObservationIgnored private(set) var coreFresh = false
 
     private func reloadParts() {
         partsTask?.cancel()
@@ -756,6 +761,22 @@ final class HootStore {
     // Editie van dit dagdeel horen en er geen ronde meer loopt (zoals editionReady/itemsCurrent op het web).
     static func itemsCurrent(itemsEdition: String?, loading: Bool, edition: String) -> Bool {
         !loading && itemsEdition == edition
+    }
+
+    // Mag dit toestel de Editie die het net samenstelde in je account zetten (keuring P0 ronde 2, §4)?
+    // - Alleen op een kern die in deze sessie van het netwerk kwam: een kern uit de bewaarde kopie kan van een
+    //   vorig dagdeel zijn, en dan overschreef de claim (`edition->>id.neq`) de Editie van vandaag van je andere
+    //   toestel. Lokaal samenstellen mag dan wel (offline houdt de app zo een eigen Editie), alleen niet claimen.
+    // - Nooit over een Editie van een later dagdeel heen (accountAhead, zoals het web).
+    static func mayClaim(coreFresh: Bool, theirs: [String: Any]?, id: String, builtAt: String?) -> Bool {
+        coreFresh && !accountAhead(theirs, id: id, builtAt: builtAt)
+    }
+    // Staat er in je account al een Editie van een later dagdeel dan deze (`id`, `builtAt`)? Zonder tijd aan een
+    // van beide niet te toetsen: dan nee (accountAhead in src/lib/editionSync.js).
+    static func accountAhead(_ theirs: [String: Any]?, id: String, builtAt: String?) -> Bool {
+        guard let theirs, theirs["id"] as? String != id,
+              let a = (theirs["builtAt"] as? String).flatMap(HootDate.parse), let b = builtAt.flatMap(HootDate.parse) else { return false }
+        return a > b
     }
 
     private func rebuildStream() {
@@ -990,6 +1011,8 @@ final class HootStore {
             mine["history"] = Self.rows(try await EditionEngine.shared.nextHistory(prior: Self.json(prior), edition: String(decoding: out, as: UTF8.self)))
             keep(mine)
             if DebugLaunch.engine { return } // gedwongen samengesteld: niet naar je account
+            // Niet naar je account met een kern uit de bewaarde kopie, of over een later dagdeel heen (mayClaim).
+            guard Self.mayClaim(coreFresh: coreFresh, theirs: theirs, id: global.id, builtAt: global.builtAt) else { return }
             if account?.uid != nil, let a = account, let claim = try? await a.claimEdition(mine, id: global.id), !claim.won {
                 // Een ander toestel was eerder: dan die Editie, ook hier, zodat beide hetzelfde `previous` hebben (P8-5).
                 if let w = claim.edition, fits(Self.decodeEdition(w)) { await adopt(w, owner: owner) }

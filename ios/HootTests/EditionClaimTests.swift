@@ -109,6 +109,20 @@ final class EditionClaimTests: XCTestCase {
         XCTAssertTrue(HootStore.itemsCurrent(itemsEdition: "2026-11-09-middag", loading: false, edition: "2026-11-09-middag"))
     }
 
+    // P0 ronde 3 (keuring 2 §4): een kern uit de bewaarde kopie (van gisteren) mag lokaal een Editie geven, maar
+    // die gaat niet naar je account; en nooit over de Editie van een later dagdeel van je andere toestel heen.
+    func testNoClaimFromCachedCoreOrOverLaterSlot() {
+        let vandaag: [String: Any] = ["id": "2026-11-09-middag", "builtAt": "2026-11-09T11:00:00Z", "basis": "b1"]
+        let gisteren: [String: Any] = ["id": "2026-11-08-ochtend", "builtAt": "2026-11-08T05:00:00Z", "basis": "b1"]
+        XCTAssertFalse(HootStore.mayClaim(coreFresh: false, theirs: nil, id: "2026-11-09-middag", builtAt: "2026-11-09T11:00:00Z"), "kern uit de bewaarde kopie")
+        XCTAssertFalse(HootStore.mayClaim(coreFresh: true, theirs: vandaag, id: "2026-11-08-ochtend", builtAt: "2026-11-08T05:00:00Z"), "je account heeft al vandaag")
+        XCTAssertTrue(HootStore.mayClaim(coreFresh: true, theirs: gisteren, id: "2026-11-09-middag", builtAt: "2026-11-09T11:00:00Z"), "gisteren in je account: vervangen")
+        XCTAssertTrue(HootStore.mayClaim(coreFresh: true, theirs: vandaag, id: "2026-11-09-middag", builtAt: "2026-11-09T11:00:00Z"), "zelfde dagdeel: de gewone wedloop")
+        XCTAssertTrue(HootStore.mayClaim(coreFresh: true, theirs: nil, id: "2026-11-09-middag", builtAt: "2026-11-09T11:00:00Z"))
+        XCTAssertFalse(HootStore.accountAhead(["id": "x"], id: "2026-11-09-middag", builtAt: "2026-11-09T11:00:00Z"), "zonder tijd niet te toetsen")
+        XCTAssertFalse(HootStore.accountAhead(vandaag, id: "2026-11-09-avond", builtAt: "2026-11-09T16:00:00Z"))
+    }
+
     // H3: de laatste drie dagdelen uit toestel en account samen (earlierEditions in de rekenkern, zoals
     // loadPersonal ze vraagt), elk één keer, nieuw naar oud, zonder het huidige; lokaal alleen van deze lezer.
     func testEarlierKeepsLastThree() async throws {
