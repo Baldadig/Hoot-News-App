@@ -149,8 +149,25 @@ export function languageRule({ followed = new Set(), sources = [] } = {}) {
 // `readIds`: wat je al las (een Set); dat komt niet terug, tenzij er genoeg nieuws bij kwam.
 // `now`: de start van het dagdeel (global.builtAt), zodat elk toestel dezelfde Editie maakt.
 // Velden met een `_` (zoals `_parts`) zijn alleen ter inzage; withoutDebug haalt ze eraf.
+// Vangnet (P0, 9 november): rekent het toestel met berichten van een vorig bezoek? De algemene Editie
+// komt vers van de server; staan daarin stukken van je eigen bronnen die ruim een halve dag nieuwer zijn
+// dan het nieuwste eigen bericht dat het toestel heeft, dan zijn die berichten achterhaald. Dan geen
+// Editie: wie zo samenstelt, vult met wat je al zag en met bronnen die je niet volgt, en legt dat voor het
+// hele dagdeel vast. Zonder eigen stukken in de algemene Editie of zonder gedateerde eigen berichten valt
+// dit niet te toetsen: dan niet weigeren.
+// Geen klok: alleen de berichten zelf (web en app gelijk, bouwspec §9).
+export const STALE_INPUT_MS = 12 * 3600e3
+export function staleInput({ global, items = [], followed = new Set() }) {
+  const at = (i) => Date.parse(i?.publishedAt) || 0
+  const newest = (list) => list.reduce((m, i) => (i && i.kind !== 'post' && followed.has(i.source) ? Math.max(m, at(i)) : m), 0)
+  const theirs = newest(global?.items || [])
+  const own = newest(items)
+  return theirs > 0 && own > 0 && theirs - own > STALE_INPUT_MS
+}
+
 export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set(), _langRule = true }) {
   if (!global?.entries?.length) return null
+  if (staleInput({ global, items, followed })) return null
   // Wat alleen in de Stroom hoort (streamOnly) telt niet mee: De Redacteur rekent met het oude venster
   // per bron, ook op het toestel (shared/stroom.mjs).
   items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics)

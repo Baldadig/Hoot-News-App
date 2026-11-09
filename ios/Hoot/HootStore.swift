@@ -689,6 +689,7 @@ final class HootStore {
             parts = start.meta.parts ?? [:]
             stale = false // een mislukt deel zet hem hieronder weer aan
             coreFailed = fromCache
+            coreFresh = !fromCache
             reloadParts()
             // Eigen Bluesky-accounts los ophalen: een trage Bluesky houdt de editie niet op.
             Task { await loadOwnPosts() }
@@ -711,6 +712,15 @@ final class HootStore {
     private var parts: [String: String] = [:]
     private var partsTask: Task<Void, Never>?
     private var partsGeneration = 0
+    // Bij welke Editie (dagdeel) de berichten in `itemsById` horen, en of er een ronde loopt. Jouw Editie
+    // wacht tot de berichten van deze ronde er zijn (P0, 9 november): bij terugkomen staat de nieuwe kern
+    // er al (`edition`) terwijl `itemsById` nog de berichten van je vorige bezoek heeft.
+    @ObservationIgnored private(set) var itemsEdition: String?
+    @ObservationIgnored private(set) var partsLoading = false
+    // Kwam de kern (`edition`) in deze sessie van het netwerk, niet uit de bewaarde kopie (offline, of de server
+    // gaf een fout)? Alleen dan schrijft Jouw Editie naar je account (mayClaim; keuring P0 ronde 2, §4). Blijft
+    // staan als een latere verversing mislukt: de kern die er dan staat kwam eerder deze sessie van het netwerk.
+    @ObservationIgnored private(set) var coreFresh = false
 
     private func reloadParts() {
         partsTask?.cancel()
@@ -718,6 +728,8 @@ final class HootStore {
         let generation = partsGeneration
         let wanted = (followed + (bluesky ? followedSocial : [])).map(\.id).filter { parts[$0] != nil }
         let versions = parts
+        let forEdition = edition?.id
+        partsLoading = true
         partsTask = Task {
             let lists = await withTaskGroup(of: (String, [Item]?).self) { group in
                 for id in wanted {
@@ -736,9 +748,35 @@ final class HootStore {
             for item in itemsById.values where failed.contains(item.source) { map[item.id] = item }
             for item in lists.compactMap(\.1).joined() { map[item.id] = item }
             itemsById = map
+            itemsEdition = forEdition
+            partsLoading = false
             if !failed.isEmpty { stale = true }
             rebuildStream()
+            // Wie tijdens het laden wilde samenstellen (je account, een bron die je aanzette), wachtte: nu.
+            refreshPersonal()
         }
+    }
+
+    // Mag Jouw Editie nu samengesteld worden met wat het toestel aan berichten heeft? Alleen als die bij de
+    // Editie van dit dagdeel horen en er geen ronde meer loopt (zoals editionReady/itemsCurrent op het web).
+    static func itemsCurrent(itemsEdition: String?, loading: Bool, edition: String) -> Bool {
+        !loading && itemsEdition == edition
+    }
+
+    // Mag dit toestel de Editie die het net samenstelde in je account zetten (keuring P0 ronde 2, §4)?
+    // - Alleen op een kern die in deze sessie van het netwerk kwam: een kern uit de bewaarde kopie kan van een
+    //   vorig dagdeel zijn, en dan overschreef de claim (`edition->>id.neq`) de Editie van vandaag van je andere
+    //   toestel. Lokaal samenstellen mag dan wel (offline houdt de app zo een eigen Editie), alleen niet claimen.
+    // - Nooit over een Editie van een later dagdeel heen (accountAhead, zoals het web).
+    static func mayClaim(coreFresh: Bool, theirs: [String: Any]?, id: String, builtAt: String?) -> Bool {
+        coreFresh && !accountAhead(theirs, id: id, builtAt: builtAt)
+    }
+    // Staat er in je account al een Editie van een later dagdeel dan deze (`id`, `builtAt`)? Zonder tijd aan een
+    // van beide niet te toetsen: dan nee (accountAhead in src/lib/editionSync.js).
+    static func accountAhead(_ theirs: [String: Any]?, id: String, builtAt: String?) -> Bool {
+        guard let theirs, theirs["id"] as? String != id,
+              let a = (theirs["builtAt"] as? String).flatMap(HootDate.parse), let b = builtAt.flatMap(HootDate.parse) else { return false }
+        return a > b
     }
 
     private func rebuildStream() {
@@ -929,6 +967,7 @@ final class HootStore {
     }
     func loadPersonal() async {
         guard let global = edition, !sources.isEmpty, !itemsById.isEmpty else { return }
+        guard Self.itemsCurrent(itemsEdition: itemsEdition, loading: partsLoading, edition: global.id) else { return }
         if let a = account, !Self.mayCompose(status: a.status, uid: a.uid, pulled: a.pulled, sync: a.sync) { return }
         let owner = ownerNow
         let followedIds = followed.map(\.id)
@@ -972,6 +1011,8 @@ final class HootStore {
             mine["history"] = Self.rows(try await EditionEngine.shared.nextHistory(prior: Self.json(prior), edition: String(decoding: out, as: UTF8.self)))
             keep(mine)
             if DebugLaunch.engine { return } // gedwongen samengesteld: niet naar je account
+            // Niet naar je account met een kern uit de bewaarde kopie, of over een later dagdeel heen (mayClaim).
+            guard Self.mayClaim(coreFresh: coreFresh, theirs: theirs, id: global.id, builtAt: global.builtAt) else { return }
             if account?.uid != nil, let a = account, let claim = try? await a.claimEdition(mine, id: global.id), !claim.won {
                 // Een ander toestel was eerder: dan die Editie, ook hier, zodat beide hetzelfde `previous` hebben (P8-5).
                 if let w = claim.edition, fits(Self.decodeEdition(w)) { await adopt(w, owner: owner) }
@@ -1039,6 +1080,8 @@ final class HootStore {
             if let v = parts[s.id], let data = HootAPI.cached("api/feed", ["bron": s.id, "v": v]), let part = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any], let list = part["items"] as? [Any] {
                 items += list
             } else if let list = Self.encoded(itemsById.values.filter { $0.source == s.id }) as? [Any] {
+                // Niet in de cache: wat deze ronde van de bron gaf (loadPersonal wacht op die ronde), of bij een
+                // mislukt deel wat we er al van hadden.
                 items += list
             }
         }

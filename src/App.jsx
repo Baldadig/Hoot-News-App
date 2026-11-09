@@ -110,7 +110,7 @@ export default function App() {
   const openDisplay = useCallback(() => setDisplay(true), [])
   const [splash, setSplash] = useState(splashShown)
   const endSplash = useCallback(() => setSplash(false), [])
-  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated } = useFeed(prefs)
+  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated, stuck: feedStuck } = useFeed(prefs)
   const online = useOnline()
   const { theme, setTheme, themeDark, setThemeDark } = useTheme(prefs.palette, prefs, setPref)
   const hasPanel = useWide('(min-width: 1200px)')
@@ -176,7 +176,7 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled } })
+  const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled }, stuck: feedStuck })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   // Wie vroeger een vast Bluesky-account van Hoot volgde (Aaron Rupar e.a.), volgt dat nu als eigen account:

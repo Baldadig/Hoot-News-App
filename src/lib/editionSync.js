@@ -19,8 +19,32 @@ export const TABLE = 'user_state'
 // Anders rekent een vers toestel met de standaardinstellingen, overschrijft het de Editie van het eerste
 // toestel en rekent het na het ophalen nog een keer. Lukt het ophalen niet (offline, `sync` 'error'),
 // dan toch samenstellen: lokaal, zonder naar je account te schrijven (settleEdition, `pulled`).
-export function editionReady({ status, global, items = 0, uid = null, pulled = false, sync = 'idle' }) {
-  return status === 'ready' && !!global && items > 0 && (!uid || pulled || sync === 'error')
+// En pas als de berichten bij déze Editie en je bronnen van nu horen (`itemsFor`, useFeed): bij het
+// openen staat de feed van je vorige bezoek klaar, en een nieuwe kern komt binnen vóór de berichten
+// van dit dagdeel. Wie dan samenstelt, rekent met de berichten van gisteren en legt die Editie voor het
+// hele dagdeel vast (P0, 9 november). Zonder `followed` toetsen we alleen het dagdeel.
+// En pas als de kern in déze sessie van het netwerk kwam (`coreFresh`, useFeed): de cache van je vorige bezoek
+// heeft een kern van een vorig dagdeel mét de berichten die erbij horen. Is je account eerder opgehaald dan de
+// feed, dan stelde het web de Editie van gisteren samen en schreef die over de Editie van vandaag van je
+// iPhone heen (keuring P0 ronde 2, §4). Komt er geen verse kern (offline), dan `stuck` en de terugval.
+export function itemsCurrent(itemsFor, global, followed = null) {
+  if (!itemsFor || !global || itemsFor.edition !== global.id) return false
+  if (!followed) return true
+  const asked = new Set(itemsFor.sources || [])
+  return [...followed].every((id) => asked.has(id))
+}
+export function editionReady({ status, global, items = 0, uid = null, pulled = false, sync = 'idle', itemsFor = null, followed = null, coreFresh = false }) {
+  return status === 'ready' && !!global && items > 0 && coreFresh === true && itemsCurrent(itemsFor, global, followed) && (!uid || pulled || sync === 'error')
+}
+
+// Staat er in je account al een Editie van een later dagdeel dan `global`? Dan loopt dit toestel achter (een
+// kern van gisteren) en schrijft het niets in je account: anders verdwijnt de Editie van vandaag van je
+// andere toestel (keuring P0 ronde 2, §4). Zonder tijd aan een van beide kunnen we het niet toetsen: dan nee.
+export function accountAhead(theirs, global) {
+  if (!theirs || typeof theirs !== 'object' || !global || theirs.id === global.id) return false
+  const a = Date.parse(theirs.builtAt)
+  const b = Date.parse(global.builtAt)
+  return Number.isFinite(a) && Number.isFinite(b) && a > b
 }
 
 // Past een vastgelegde Editie bij dit dagdeel en deze afdruk (P8-1b)? Zonder afdruk (de bronnenlijst
@@ -74,7 +98,9 @@ export function adoptEdition(theirs, { local = null, owner, id }) {
 //   'claimed'  hier samengesteld en als eerste in je account geschreven;
 //   'anon'     zonder account samengesteld, alleen op dit toestel;
 //   'unsynced' als lid samengesteld maar (nog) niet in je account: het ophalen is niet gelukt (P8-2), er
-//              is geen rij, of het schrijven mislukte — lokaal houden, een volgende keer opnieuw.
+//              is geen rij, of het schrijven mislukte — lokaal houden, een volgende keer opnieuw;
+//   'behind'   (edition null) je account heeft al een Editie van een later dagdeel (accountAhead): dit toestel
+//              loopt achter; niets samenstellen, niets schrijven — de kern van nu komt zo.
 export async function settleEdition({ client = null, uid = null, owner = 'anon', global, basis, local = null, pulled = false, compose }) {
   const id = global.id
   const fits = (e) => fitsEdition(e, { id, basis })
@@ -83,6 +109,7 @@ export async function settleEdition({ client = null, uid = null, owner = 'anon',
   if (member && pulled) {
     theirs = await readAccountEdition(client, uid)
     if (fits(theirs)) return { edition: adoptEdition(theirs, { local, owner, id }), source: 'account' }
+    if (accountAhead(theirs, global)) return { edition: null, source: 'behind' }
   }
   // Ligt hier al een Editie van deze lezer voor dit dagdeel, dan is die af (alleen nog vastleggen in het
   // account); anders samenstellen met de Edities van toen (dit toestel plus je account, de laatste drie).
@@ -99,4 +126,48 @@ export async function settleEdition({ client = null, uid = null, owner = 'anon',
   if (r.won) return { edition: stamped, source: 'claimed' }
   if (fits(r.theirs)) return { edition: adoptEdition(r.theirs, { local, owner, id }), source: 'account' }
   return { edition: stamped, source: 'unsynced' }
+}
+
+// `previous` in de platte vorm die POST /api/edition leest (arrays en objecten in plaats van Sets en Maps).
+export function previousForServer(previous) {
+  if (!previous) return null
+  const arr = (v) => [...(v || [])]
+  return {
+    storyIds: arr(previous.storyIds),
+    itemIds: arr(previous.itemIds),
+    leadIds: arr(previous.leadIds),
+    leadStoryId: previous.leadStoryId || null,
+    leadStoryIds: arr(previous.leadStoryIds),
+    at: previous.at || 0,
+    atOf: Object.fromEntries(previous.atOf || []),
+    titles: arr(previous.titles),
+    shown: previous.shown || [],
+    keysOf: Object.fromEntries([...(previous.keysOf || [])].map(([id, ks]) => [id, [...ks]])),
+  }
+}
+
+// De terugval als de berichten van dit dagdeel niet binnenkomen, ook niet na één extra ronde (useFeed
+// `stuck`: offline, of een bron die niet antwoordt). Dan stelt dit toestel níet samen — met de berichten die
+// het nog heeft (van een vorige kern) gaf dat op 9 november een Editie van gisteren voor het hele dagdeel —
+// en wacht het ook niet eindeloos. In deze volgorde:
+//   1. 'account'  als lid na de pull: de Editie van dit dagdeel uit je account (een ander toestel was eerder);
+//                 die is van jou en wordt hier vastgelegd zoals bij settleEdition;
+//   2. 'server'   POST /api/edition (`server`): de server stelt samen met de berichten van nu. Gemerkt als
+//                 terugval; gaat nooit naar je account en wordt niet vastgelegd, zodat dit toestel alsnog
+//                 zelf samenstelt zodra de berichten er zijn;
+//   3. 'global'   de algemene Editie van dit dagdeel ("De Editie voor iedereen"), zonder samenvatting.
+// Een Editie die al op dit toestel vastligt toont usePersonalEdition zelf al; daar komt dit niet aan.
+export async function fallbackEdition({ client = null, uid = null, owner = 'anon', global, basis, local = null, pulled = false, server = null, request = null }) {
+  if (!global) return null
+  const id = global.id
+  if (uid && client && pulled) {
+    const theirs = await readAccountEdition(client, uid).catch(() => null)
+    if (fitsEdition(theirs, { id, basis })) return { edition: adoptEdition(theirs, { local, owner, id }), source: 'account' }
+  }
+  if (server) {
+    const earlier = earlierEditions({ local, account: null, id, owner })
+    const mine = await server({ ...(request || {}), previous: previousForServer(previousOf(earlier)) }).catch(() => null)
+    if (mine && typeof mine === 'object' && mine.id === id && Array.isArray(mine.entries)) return { edition: { ...mine, personal: true, fallback: true, owner, basis: mine.basis || basis }, source: 'server' }
+  }
+  return { edition: { ...global, brief: null, fallback: true, owner }, source: 'global' }
 }

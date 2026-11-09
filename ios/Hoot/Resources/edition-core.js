@@ -3439,8 +3439,17 @@ var HootCore = (() => {
     const readable = (i) => !i || readableIn(i, rubricOf(i));
     return { rubricOf, readableIn, readable, readerLangs };
   }
+  var STALE_INPUT_MS = 12 * 36e5;
+  function staleInput({ global, items = [], followed = /* @__PURE__ */ new Set() }) {
+    const at = (i) => Date.parse(i?.publishedAt) || 0;
+    const newest = (list) => list.reduce((m, i) => i && i.kind !== "post" && followed.has(i.source) ? Math.max(m, at(i)) : m, 0);
+    const theirs = newest(global?.items || []);
+    const own = newest(items);
+    return theirs > 0 && own > 0 && theirs - own > STALE_INPUT_MS;
+  }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set(), _langRule = true }) {
     if (!global?.entries?.length) return null;
+    if (staleInput({ global, items, followed })) return null;
     items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics);
     global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w) };
     const catOf = new Map(sources.map((s) => [s.id, s.cat]));

@@ -92,6 +92,29 @@ final class EditionParityTests: XCTestCase {
         }
     }
 
+    // P0 (9 november), het vangnet in de rekenkern: dezelfde invoer, maar de eigen berichten zijn twee dagen ouder
+    // dan de stukken van je bronnen in de algemene Editie (de cache van een vorig bezoek). Dan geeft de app, net als
+    // het web, geen Editie (de app valt terug op de server), en met verse berichten wel.
+    func testStaleItemsGiveNoEdition() async throws {
+        guard let ctx = JSContext(), let g = try Self.golden().first else { throw XCTSkip("geen JSContext") }
+        ctx.setObject(g.input, forKeyedSubscript: "__in" as NSString)
+        let stale = ctx.evaluateScript("""
+            (function () {
+              var input = JSON.parse(__in);
+              var f = new Set(input.followed);
+              input.items = input.items.map(function (i) {
+                if (!f.has(i.source) || !i.publishedAt) return i;
+                return Object.assign({}, i, { publishedAt: new Date(Date.parse(i.publishedAt) - 2 * 864e5).toISOString() });
+              });
+              return JSON.stringify(input);
+            })()
+            """).toString()!
+        let out = try await EditionEngine.shared.compose(inputJSON: stale)
+        XCTAssertEqual(out, "null", "met berichten van een vorig bezoek geen Editie")
+        let fresh = try await EditionEngine.shared.compose(inputJSON: g.input)
+        XCTAssertNotEqual(fresh, "null")
+    }
+
     // De uitkomst laat zich lezen als Edition, met alles wat P8-4 vraagt.
     func testOutputDecodesAsEdition() async throws {
         for g in try Self.golden() {

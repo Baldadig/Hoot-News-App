@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
-import { editionReady, fitsEdition, settleEdition, writeBrief } from '../lib/editionSync.js'
+import { editionReady, fitsEdition, settleEdition, writeBrief, fallbackEdition } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
 import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
 
@@ -28,13 +28,21 @@ const KEY = 'hoot:my-edition'
 // voor het volgende dagdeel.
 // Leden krijgen er een eigen "editie in één minuut" bij (POST /api/brief). Zonder account geen
 // samenvatting: die van de algemene editie hoort niet bij jouw verhalen.
-export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null, readIds = null, sync = null }) {
+// Komen de berichten van dit dagdeel niet binnen, ook niet na één extra ronde (`stuck`, useFeed), dan
+// stellen we niet samen met wat er nog is (berichten van een vorige kern) en wachten we ook niet eindeloos:
+// fallbackEdition (editionSync.js) geeft de Editie uit je account, die van de server of de algemene Editie.
+// Komen de berichten later alsnog, dan stelt dit toestel gewoon zelf samen en legt het vast. Weigert het
+// vangnet (staleInput) de berichten die er zijn, dan dezelfde terugval.
+export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null, readIds = null, sync = null, stuck = false }) {
   const global = data?.edition || null
   const uid = syncedUid(account)
   const owner = uid || 'anon'
   const pulled = !!sync?.pulled
-  const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status })
   const followed = useMemo(() => (data?.sources || []).filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id), [data?.sources, muted])
+  // Pas als de berichten bij de Editie van nu en je bronnen van nu horen (data.itemsFor, useFeed).
+  // En alleen op een kern die in deze sessie van het netwerk kwam (data.coreFresh): nooit de Editie van een
+  // vorig dagdeel uit de cache samenstellen en in je account zetten.
+  const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status, itemsFor: data?.itemsFor, followed, coreFresh: data?.coreFresh })
   const basis = editionBasis(followed, prefs.interests || [], prefs.topics || [], prefs.favorites || [])
   // Zonder bronnenlijst (nog aan het laden) kunnen we de afdruk niet controleren: dan niet weigeren.
   const fits = (e) => fitsEdition(e, { id: global?.id, basis: followed.length ? basis : null }) && e.owner === owner
@@ -43,6 +51,9 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
     return fits(e) ? e : null
   })
   const pending = useRef('')
+  const [fallback, setFallback] = useState(null)
+  const [refused, setRefused] = useState('') // de taak waarvoor samenstellen niets gaf (het vangnet, staleInput)
+  const fallbackTask = useRef('')
   const settled = useRef('') // de taak (dagdeel, lezer, afdruk) die met je account is afgestemd
 
   const keep = (e) => {
@@ -74,7 +85,11 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       compose: ({ previous, now }) => composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
     })
       .then((r) => {
-        if (!r) return
+        // Het vangnet weigerde (berichten achterhaald): niet eindeloos laden, maar de terugval.
+        if (!r) return setRefused(task)
+        // Je account heeft al een later dagdeel: dit toestel loopt achter; niets schrijven, maar ook niet
+        // blijven laden: de terugval toont de Editie tot de kern van nu er is (keuring P0 ronde 3).
+        if (!r.edition) return setRefused(task)
         keep(r.edition)
         if (r.source !== 'unsynced') settled.current = task
       })
@@ -83,6 +98,28 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
         if (pending.current === task) pending.current = ''
       })
   }, [global?.id, ready, owner, basis, pulled]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // De terugval: alleen als de berichten niet komen en er op dit toestel niets voor dit dagdeel vastligt.
+  useEffect(() => {
+    const task0 = `${global?.id}|${owner}|${basis}`
+    if (!global || !((!ready && stuck) || refused === task0) || fits(readJSON(KEY, null))) return
+    const task = `${global.id}|${owner}|${basis}|${pulled}`
+    if (fallbackTask.current === task) return
+    fallbackTask.current = task
+    const request = { followed, interests: prefs.interests || [], topics: prefs.topics || [], favorites: prefs.favorites || [], taste: prefs.taste || null, readIds: [...(readIds || [])].slice(-1500) }
+    const server = async (body) => {
+      const res = await fetch('/api/edition', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      return res.ok ? (await res.json()).edition : null
+    }
+    fallbackEdition({ client: account.client, uid, owner, global, basis, local: readJSON(KEY, null), pulled, server, request })
+      .then((r) => {
+        if (!r) return
+        // Uit je account: die is van jou, en ligt dan ook hier vast.
+        if (r.source === 'account') keep(r.edition)
+        else setFallback(r.edition)
+      })
+      .catch(() => {})
+  }, [global?.id, ready, stuck, refused, owner, basis, pulled]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Leden: een eigen samenvatting, één keer per editie (de server bewaakt het maximum).
   const asked = useRef('')
@@ -112,7 +149,8 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
   }, [edition?.version, edition?.basis, edition?.brief, uid, prefs.brief, pulled]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Uitloggen of een andere lezer: niet de editie van een ander tonen.
-  const shown = edition && edition.owner === owner && edition.id === global?.id ? edition : null
+  const mine = (e) => e && e.owner === owner && e.id === global?.id
+  const shown = mine(edition) ? edition : mine(fallback) ? fallback : null
   const briefNote = shown && !shown.brief && briefFull === `${shown.version}|${shown.basis}` ? BRIEF_FULL_TEXT : null
   return { edition: shown, member: !!uid, briefNote }
 }
