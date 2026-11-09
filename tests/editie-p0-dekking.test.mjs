@@ -62,12 +62,13 @@ function harness({ initial, prefs, coreFn, gate = {}, fail = {} }) {
     },
   })
   const followed = () => SOURCES.map((s) => s.id).filter((id) => !(state.prefs.muted || []).includes(id))
-  const ready = (d = rounds.data) => editionReady({ status: 'ready', global: d.edition, items: d.items.length, itemsFor: d.itemsFor, followed: followed() })
+  const ready = (d = rounds.data) => editionReady({ status: 'ready', global: d.edition, items: d.items.length, itemsFor: d.itemsFor, followed: followed(), coreFresh: d.coreFresh })
   // De invariant: nooit "klaar om samen te stellen" met berichten van een andere kern dan die van nu.
   const checkAll = () => {
     for (const d of states) {
-      const ok = editionReady({ status: 'ready', global: d.edition, items: d.items.length, itemsFor: d.itemsFor, followed: d.itemsFor?.sources || [] })
+      const ok = editionReady({ status: 'ready', global: d.edition, items: d.items.length, itemsFor: d.itemsFor, followed: d.itemsFor?.sources || [], coreFresh: d.coreFresh })
       if (!ok) continue
+      assert.equal(d.coreFresh, true, 'klaar alleen op een kern van het netwerk')
       const v = d.meta.parts.nos.split('-')[1] // de versie van de kern die er staat
       assert.ok(d.items.every((i) => i.id.includes(`-${v}-`)), `klaar voor ${d.edition.id} met berichten van een andere kern: ${d.items.map((i) => i.id)}`)
     }
@@ -138,16 +139,16 @@ test('dekking: toestand met de oude dekking (itemsFor van vóór de pull) en daa
   h.checkAll()
 })
 
-test('dekking: offline met de cache van gisteren → begrensd, dan stuck; nooit klaar met oude berichten', async () => {
+test('dekking: offline met de cache van gisteren → meteen stuck; nooit klaar met oude berichten', async () => {
   const h = harness({ initial: cache(), prefs: ALLEEN_NOS, coreFn: offline, fail: { 'nos-oud': Infinity } })
   await h.rounds.load({ defer: false })
   assert.equal(h.ready(), false)
   assert.equal(h.state.stuck, true, 'geen eindeloos laden: de terugval mag')
-  assert.equal(h.calls.length, 1, 'één extra poging')
+  assert.equal(h.calls.length, 0, 'geen extra ronde op de kern van gisteren (ronde 3: die kern is niet vers)')
   // Terugkomen terwijl je nog offline bent: geen nieuwe pogingen, geen samenstelling.
   await h.rounds.load({ defer: true })
   await h.rounds.load({ defer: true })
-  assert.equal(h.calls.length, 1)
+  assert.equal(h.calls.length, 0)
   assert.equal(h.state.stuck, true)
   h.checkAll()
 })
@@ -156,7 +157,10 @@ test('dekking: offline, en de pull geeft een bron erbij → stuck, de cache-beri
   // Een cache die wél weet bij welke kern hij hoort (gisteren, alleen NOS).
   const h = harness({ initial: cache({ edition: OUD, sources: ['nos'] }), prefs: ALLEEN_NOS, coreFn: offline, fail: { 'nos-oud': Infinity, 'ftm-oud': Infinity } })
   await h.rounds.load({ defer: false })
-  assert.equal(h.state.stuck, false, 'de cache dekt zijn eigen kern; de vastgelegde Editie van toen mag blijven')
+  // Ronde 3: de cache dekt zijn eigen kern, maar die kern is niet vers → stuck (de terugval; een vastgelegde
+  // Editie van toen blijft zichtbaar, usePersonalEdition), en nooit klaar.
+  assert.equal(h.ready(), false)
+  assert.equal(h.state.stuck, true)
   h.state.prefs = NOS_FTM
   await h.rounds.wantChanged().done
   assert.equal(h.ready(), false)

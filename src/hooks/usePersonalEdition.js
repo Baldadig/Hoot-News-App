@@ -40,7 +40,9 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
   const pulled = !!sync?.pulled
   const followed = useMemo(() => (data?.sources || []).filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id), [data?.sources, muted])
   // Pas als de berichten bij de Editie van nu en je bronnen van nu horen (data.itemsFor, useFeed).
-  const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status, itemsFor: data?.itemsFor, followed })
+  // En alleen op een kern die in deze sessie van het netwerk kwam (data.coreFresh): nooit de Editie van een
+  // vorig dagdeel uit de cache samenstellen en in je account zetten.
+  const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status, itemsFor: data?.itemsFor, followed, coreFresh: data?.coreFresh })
   const basis = editionBasis(followed, prefs.interests || [], prefs.topics || [], prefs.favorites || [])
   // Zonder bronnenlijst (nog aan het laden) kunnen we de afdruk niet controleren: dan niet weigeren.
   const fits = (e) => fitsEdition(e, { id: global?.id, basis: followed.length ? basis : null }) && e.owner === owner
@@ -85,6 +87,8 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       .then((r) => {
         // Het vangnet weigerde (berichten achterhaald): niet eindeloos laden, maar de terugval.
         if (!r) return setRefused(task)
+        // Je account heeft al een later dagdeel: dit toestel loopt achter; niets schrijven, de kern van nu komt.
+        if (!r.edition) return
         keep(r.edition)
         if (r.source !== 'unsynced') settled.current = task
       })

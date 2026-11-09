@@ -34,6 +34,10 @@ export function normalize(d) {
     // binnengekomen) zijn. Een cache van vóór dit veld weet het niet: dan null, en Jouw Editie wacht op de
     // verse berichten (editionReady).
     itemsFor: d.itemsFor && typeof d.itemsFor === 'object' ? d.itemsFor : null,
+    // Kwam deze kern in déze sessie van het netwerk (load, niet uit de cache van je vorige bezoek of van de
+    // service worker)? Alleen dan stelt Jouw Editie samen en schrijft ze naar je account (editionReady;
+    // keuring P0 ronde 2, §4). Gaat nooit mee de cache in: een kern uit de cache is nooit vers.
+    coreFresh: false,
   }
 }
 
@@ -50,6 +54,7 @@ export function createFeedRounds({ initial = null, fetchCore, fetchPart, fetchRe
   let topUpKey = '' // voor welke kern en bronkeuze de extra ronde al liep
   let stuck = false
   let wantRelated = false
+  let tried = false // load is minstens één keer helemaal gelopen (gelukt of mislukt, niet afgebroken)
 
   const wanted = (core) => wantedSources(core?.sources || [], getPrefs())
   const gather = (core, signal) => gatherParts({ core, wanted: wanted(core), parts, fetchPart, signal })
@@ -57,7 +62,8 @@ export function createFeedRounds({ initial = null, fetchCore, fetchPart, fetchRe
   const apply = (next) => {
     data = next
     emit('data', next)
-    save(pending ? { ...next, items: pending, itemsFor: pendingFor } : next)
+    const { coreFresh, ...kept } = next // eslint-disable-line no-unused-vars
+    save(pending ? { ...kept, items: pending, itemsFor: pendingFor } : kept)
   }
   const setStuck = (v) => {
     if (stuck === v) return
@@ -71,9 +77,17 @@ export function createFeedRounds({ initial = null, fetchCore, fetchPart, fetchRe
   }
 
   // Dekken de berichten de kern en de bronnen van nu? Zo niet: één extra ronde, daarna `stuck`.
+  // Staat er nog een kern die niet van het netwerk kwam (de cache van je vorige bezoek, of de service worker
+  // omdat je offline bent), dan heeft een extra ronde op díe kern geen zin: zolang load nog loopt wachten we,
+  // en is load gelopen zonder verse kern, dan `stuck` — Jouw Editie valt dan terug en stelt niet samen met
+  // de kern van een vorig dagdeel (keuring P0 ronde 2, §4).
   async function settle() {
     const d = data
     if (!d) return
+    if (!d.coreFresh) {
+      if (tried) setStuck(true)
+      return
+    }
     const w = wanted(d)
     if (covers(d.itemsFor, d, w)) return setStuck(false)
     const key = `${coreRound}|${d.edition?.id || ''}|${w.join(',')}`
@@ -126,7 +140,7 @@ export function createFeedRounds({ initial = null, fetchCore, fetchPart, fetchRe
       if (!core) throw new Error('Onverwacht antwoord')
       // De vergelijkingsdata zit niet in de kern: houd wat we hadden (zie loadRelated).
       const { items, itemsFor } = await gather(core, controller.signal)
-      const fetched = { ...core, items, itemsFor, related: data?.related || [], relatedTag: data?.relatedTag || null }
+      const fetched = { ...core, items, itemsFor, related: data?.related || [], relatedTag: data?.relatedTag || null, coreFresh: !fromCache }
       // Valt een bron uit (volgens de server), dan blijven de berichten staan die we er al van hadden.
       const next = carryOver(data, fetched)
       // Data uit de cache van de service worker: tonen, maar de verversing is mislukt.
@@ -165,7 +179,10 @@ export function createFeedRounds({ initial = null, fetchCore, fetchPart, fetchRe
     }
     // Ook als de kern niet binnenkwam (offline): dekt wat er staat de bronnen van nu niet, dan één keer
     // de delen opnieuw, en anders `stuck`.
-    if (ctrl === controller) await settle()
+    if (ctrl === controller) {
+      tried = true
+      await settle()
+    }
   }
 
   // Je zette een bron aan of uit, of je account gaf andere bronnen: de berichten erbij halen. Kwam er

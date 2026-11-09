@@ -196,7 +196,8 @@ test('P8-3: een Editie uit andere bronnen of interesses (andere afdruk) is niet 
 })
 
 test('G7 / P8-2: niet samenstellen vóór één geslaagde sync-pull; zonder account anoniem, nooit naar user_state', async () => {
-  const base = { status: 'ready', global: snap.edition, items: 10, itemsFor: { edition: snap.edition.id, sources: [] } }
+  const base = { status: 'ready', global: snap.edition, items: 10, itemsFor: { edition: snap.edition.id, sources: [] }, coreFresh: true }
+  assert.equal(editionReady({ ...base, uid: null, coreFresh: false }), false, 'een kern uit de cache: niet samenstellen (keuring P0 ronde 2)')
   assert.equal(editionReady({ ...base, uid: UID, pulled: false, sync: 'syncing' }), false)
   assert.equal(editionReady({ ...base, uid: UID, pulled: false, sync: 'idle' }), false)
   assert.equal(editionReady({ ...base, uid: UID, pulled: true, sync: 'syncing' }), true)

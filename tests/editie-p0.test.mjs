@@ -80,7 +80,10 @@ test('P0: het vangnet weigert niet wat het niet kan toetsen of wat gewoon traag 
 
 test('P0: Jouw Editie wacht tot de berichten bij de Editie en je bronnen van nu horen', () => {
   const global = feed.edition
-  const base = { status: 'ready', global, items: 400, uid: null, followed: FOLLOWED }
+  const base = { status: 'ready', global, items: 400, uid: null, followed: FOLLOWED, coreFresh: true }
+  // Een kern die niet in deze sessie van het netwerk kwam (de cache van je vorige bezoek): nooit.
+  assert.equal(editionReady({ ...base, coreFresh: false, itemsFor: { edition: global.id, sources: FOLLOWED } }), false)
+  assert.equal(editionReady({ ...base, coreFresh: undefined, itemsFor: { edition: global.id, sources: FOLLOWED } }), false)
   // Bij het openen: de cache van het vorige bezoek (ander dagdeel), of een cache van vóór dit veld.
   assert.equal(editionReady({ ...base, itemsFor: { edition: '2026-11-08-ochtend', sources: FOLLOWED } }), false)
   assert.equal(editionReady({ ...base, itemsFor: null }), false)
