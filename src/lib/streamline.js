@@ -59,8 +59,10 @@ export function inRubriek(item, rubriek, source) {
 }
 
 // Een oude link met een onderwerp (#/stroom?onderwerp=ai) wordt de rubriek waar het onder valt:
-// de rij kent alleen hoofdrubrieken. Buiten je bubbel blijft zichzelf.
+// de rij kent alleen hoofdrubrieken. Buiten je bubbel blijft zichzelf. Een oude link met de soort
+// Opinie (?soort=opinie, het filterblad tot 11 november 2026) wordt de tab Opinie.
 export function alsRubriek(filters = {}) {
+  if (filters.soort === OPINIE) return alsRubriek({ ...filters, soort: '', onderwerp: '', rubriek: OPINIE })
   const t = filters.onderwerp
   if (!t || t === 'bubbel') return filters
   const i = INTERESTS.find((x) => x.topics.includes(t))
@@ -117,9 +119,9 @@ export function plek({ i, k, n, peek = false, all = false }) {
 // ---- Een lege lijst ----
 // Eén stille regel waar het eerste bericht zou staan: "Nog niets van NOS in Wereld.", "Nog geen
 // opinie van NOS en NRC vandaag.", "Nog niets buiten je bubbel." `rubriek` is het label van wat aan
-// staat ('' = Alles), `soort` het soortfilter.
+// staat ('' = Alles), `soort` het soortfilter (alleen nog Artikelen; Opinie is een tab).
 export function legeRegel({ namen = [], rubriek = '', soort = '' } = {}) {
-  const opinie = soort === 'opinie' || rubriek === 'Opinie'
+  const opinie = rubriek === 'Opinie'
   const wat = opinie ? 'Nog geen opinie' : soort === 'artikelen' ? 'Nog geen artikelen' : 'Nog niets'
   const van = namen.length ? ` van ${joinNL(namen)}` : ''
   const waar = rubriek === 'Buiten je bubbel' ? ' buiten je bubbel' : rubriek && rubriek !== 'Opinie' ? ` in ${rubriek}` : ' vandaag'
