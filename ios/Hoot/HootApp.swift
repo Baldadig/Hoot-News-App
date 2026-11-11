@@ -205,6 +205,18 @@ struct RootView: View {
 
     enum Destination: String, Sendable { case editie, stroom, digest, bewaard, zoek }
 
+    // Een verhaal uit de widget dat nog niet in de Editie stond (koude start): openen zodra hij er is.
+    @State private var widgetVerhaal: String?
+    // Het verhaal uit de widget openen in de lezer (of in Safari, zoals je ingesteld hebt); het telt als gelezen,
+    // net als in de Editie. Ook als de Editie het stuk intussen onder een ander hoofdstuk heeft.
+    private func openFromWidget(_ id: String) -> Bool {
+        let rows = store.editionRows
+        guard let row = rows.first(where: { $0.item.id == id || ($0.item.formerIds ?? []).contains(id) })
+            ?? rows.first(where: { $0.story?.itemIds.contains(id) == true }) else { return false }
+        reader.open(row.item, store: store)
+        return true
+    }
+
     // Met een toetsenbord (iPad): ⌘1–4 voor de tabbladen, ⌘F zoeken, ⌘R verversen.
     private var shortcuts: some View {
         Group {
@@ -304,6 +316,24 @@ struct RootView: View {
             reader.item = nil
             tab = .editie
             Task { await store.load() }
+        }
+        // De widgets (HootWidget): na elke nieuwe Editie en elk gelezen verhaal het bestand in de App Group bij.
+        .task(id: WidgetSchrijver.sleutel(store)) { await WidgetSchrijver.schrijf(store) }
+        // Een tik op een widget: hoot://editie of hoot://verhaal/<id> (HootLink). Bij een koude start wacht het
+        // verhaal tot de Editie er is.
+        .onOpenURL { url in
+            guard let doel = HootLink.doel(url) else { return }
+            reader.item = nil
+            tab = .editie
+            switch doel {
+            case .editie:
+                Task { await store.load() }
+            case let .verhaal(id):
+                if !openFromWidget(id) { widgetVerhaal = id; Task { await store.load() } }
+            }
+        }
+        .onChange(of: store.editionRows.count) {
+            if let id = widgetVerhaal, openFromWidget(id) { widgetVerhaal = nil }
         }
         .environment(reader)
         .environment(krant)

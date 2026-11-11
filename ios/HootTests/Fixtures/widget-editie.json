@@ -1,0 +1,204 @@
+{
+ "id": "2026-11-11-avond",
+ "slot": "avond",
+ "date": "2026-11-11",
+ "entries": [
+  {
+   "kind": "story",
+   "id": "sts2z5a",
+   "leadId": "1r0cz5j",
+   "desk": "binnenland",
+   "kortKop": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan…"
+  },
+  {
+   "kind": "story",
+   "id": "s11wahg9",
+   "leadId": "1kwpmfa",
+   "desk": "buitenland",
+   "kortKop": "Honderden scholen in Europa doelwit van bommeldingen…"
+  },
+  {
+   "kind": "story",
+   "id": "s14i41n",
+   "leadId": "1r0cgda",
+   "desk": "binnenland",
+   "kortKop": "Sluiting dreigt voor verouderde laboratoria RIVM…"
+  },
+  {
+   "kind": "story",
+   "id": "s1lv9osq",
+   "leadId": "1xl8dy3",
+   "desk": "buitenland",
+   "kortKop": "Italy: Hundreds of schools evacuated after bomb threats"
+  },
+  {
+   "kind": "story",
+   "id": "s1nkjbl7",
+   "leadId": "8up9m",
+   "desk": "oekraine",
+   "kortKop": "Russia, Ukraine agree on prisoner exchange as talks end…"
+  },
+  {
+   "kind": "story",
+   "id": "sxiay2m",
+   "leadId": "1cybvol",
+   "desk": "buitenland",
+   "kortKop": "‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe…"
+  },
+  {
+   "kind": "story",
+   "id": "s1od42bd",
+   "leadId": "zmlz5e",
+   "desk": "vs",
+   "kortKop": "AI-pionier Anthropic bestormt lijst grootste beursgangen…"
+  },
+  {
+   "kind": "story",
+   "id": "s1hogiw1",
+   "leadId": "1gvyg5o",
+   "desk": "middenoosten",
+   "kortKop": "Three Iran-backed suspects plotted attacks including RAF…"
+  },
+  {
+   "kind": "story",
+   "id": "srtc6p7",
+   "leadId": "ty3kua",
+   "desk": "vs",
+   "kortKop": "US soldier arrested for Russia spying: What we know"
+  },
+  {
+   "kind": "story",
+   "id": "s19f28ob",
+   "leadId": "1r0cgfo",
+   "desk": "buitenland",
+   "kortKop": "OM vermoedt dat verdachte zorgmedewerker nog meer…"
+  },
+  {
+   "kind": "item",
+   "id": "1is8ixz",
+   "desk": "bubbel",
+   "kortKop": "Emma Heesters is de nieuwe Bachelorette"
+  }
+ ],
+ "items": [
+  {
+   "id": "1r0cz5j",
+   "source": "nos",
+   "sourceName": "NOS",
+   "title": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD",
+   "image": "https://images.cdn.nos.nl/6/5/h/B/U/r/EVmhuEAQ6iE8BYFM8VQoTPyca7AAomryFbg1Muk/378x116x3488x1962-1024x576.webp"
+  },
+  {
+   "id": "1kwpmfa",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "title": "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
+   "image": "https://images.nrc.nl/RUy-K9vpKGxMRQT0ToNtPqA4Dyc=/1280x/filters:no_upscale()/s3/static.nrc.nl/wp-content/uploads/2026/11/11132551/111126VER_2038483187_italie-1.jpg"
+  },
+  {
+   "id": "1r0cgda",
+   "source": "nos",
+   "sourceName": "NOS",
+   "title": "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet",
+   "image": "https://images.cdn.nos.nl/1/H/A/p/4/a/ppKMzFs54WKqxPNQ8LpBaD93XWHgEpDiAMie53U/0x0x1088x612-1024x576.webp"
+  },
+  {
+   "id": "1xl8dy3",
+   "source": "dw",
+   "sourceName": "Deutsche Welle",
+   "title": "Italy: Hundreds of schools evacuated after bomb threats",
+   "image": "https://static.dw.com/image/79920504_6.jpg"
+  },
+  {
+   "id": "8up9m",
+   "source": "scmp",
+   "sourceName": "South China Morning Post",
+   "title": "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough",
+   "image": "https://cdn.i-scmp.com/sites/default/files/styles/1280x720/public/d8/images/canvas/2026/11/11/6172028c-ff8c-4c7e-97db-d0d30268356d_5892fb4c.jpg?itok=99CwTZlZ&v=1794408837"
+  },
+  {
+   "id": "1cybvol",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe techwet tegen manipulatieve trucs van big tech",
+   "image": "https://image.volkskrant.nl/133204783/feature-crop/320/320/afbeelding"
+  },
+  {
+   "id": "zmlz5e",
+   "source": "rtl",
+   "sourceName": "RTL Nieuws",
+   "title": "AI-pionier Anthropic bestormt lijst grootste beursgangen ooit",
+   "image": "https://redactie.rtl.nl/sites/default/files/content/images/2026/11/11/daniela%20amodei.jpg?itok=04AFrNMS&offsetX=0&offsetY=30&cropWidth=1023&cropHeight=575&width=1024&height=576&impolicy=dynamic"
+  },
+  {
+   "id": "1gvyg5o",
+   "source": "bbc",
+   "sourceName": "BBC",
+   "title": "Three Iran-backed suspects plotted attacks including RAF Fairford incident, US says",
+   "image": "https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/9ba2/live/c17cf610-dd8f-11f1-8c82-87885cae71d3.jpg"
+  },
+  {
+   "id": "ty3kua",
+   "source": "aljazeera",
+   "sourceName": "Al Jazeera",
+   "title": "US soldier arrested for Russia spying: What we know",
+   "image": "https://www.aljazeera.com/wp-content/uploads/2026/11/getty_6af446a808-1794393768.jpg?resize=1920%2C1440"
+  },
+  {
+   "id": "1r0cgfo",
+   "source": "nos",
+   "sourceName": "NOS",
+   "title": "OM vermoedt dat verdachte zorgmedewerker nog meer slachtoffers heeft gemaakt",
+   "image": "https://images.cdn.nos.nl/7/H/2/L/S/d/UiXvvnxxkcgoNDBw4CanCJ7eAgwiKNt5MMgaEGw/8x32x3984x2241-1024x576.webp"
+  },
+  {
+   "id": "1is8ixz",
+   "source": "nu",
+   "sourceName": "NU.nl",
+   "title": "Emma Heesters is de nieuwe Bachelorette: ‘Geloof nog steeds in de liefde’",
+   "image": "https://images.nu.nl/m/400xz2navqal_sqr256/1562/0/5127/5127/emma-heesters-is-de-nieuwe-bachelorette-geloof-nog-steeds-in-de-liefde.jpg"
+  },
+  {
+   "id": "b7eul9",
+   "source": "rtl",
+   "sourceName": "RTL Nieuws",
+   "title": "112 Vandaag-presentator Gallyon van Vessem deelt eerste foto met nieuwe liefde",
+   "image": "https://redactie.rtl.nl/sites/default/files/content/images/2025/09/02/ANP-532711435.jpg?itok=AmejwMiH&offsetX=0&offsetY=28&cropWidth=1997&cropHeight=1123&width=1024&height=576&impolicy=dynamic"
+  },
+  {
+   "id": "gub1ew",
+   "source": "rtl",
+   "sourceName": "RTL Nieuws",
+   "title": "Groot onderzoek naar werking antidepressiva: verrassende uitkomst",
+   "image": "https://redactie.rtl.nl/sites/default/files/content/images/2026/11/11/ANP-488499166.jpg?itok=zIW6NeRc&width=1024&height=576&impolicy=semi_dynamic"
+  },
+  {
+   "id": "cy753f",
+   "source": "rtl",
+   "sourceName": "RTL Nieuws",
+   "title": "Oud-spits Van de Haar opnieuw getroffen door herseninfarct",
+   "image": "https://redactie.rtl.nl/sites/default/files/ANP111126143-1.jpg?itok=vitLyBRd&width=1024&height=576&impolicy=semi_dynamic"
+  },
+  {
+   "id": "12ppj5a",
+   "source": "rtl",
+   "sourceName": "RTL Nieuws",
+   "title": "Verdachten explosie Tarwekamp betuigen spijt na dagen vol emotionele verklaringen",
+   "image": "https://redactie.rtl.nl/sites/default/files/content/images/2026/11/11/ANP-574632079.jpg?itok=dGA3OMEd&offsetX=0&offsetY=0&cropWidth=1279&cropHeight=719&width=1024&height=576&impolicy=dynamic"
+  },
+  {
+   "id": "6xmqw7",
+   "source": "rtl",
+   "sourceName": "RTL Nieuws",
+   "title": "Winterjas aan en paraplu blijft thuis: zo wordt het weer tijdens de intocht",
+   "image": "https://redactie.rtl.nl/sites/default/files/content/images/2026/11/11/ANP-542168551.jpg?itok=CchTkwX4&offsetX=0&offsetY=32&cropWidth=1277&cropHeight=718&width=1024&height=576&impolicy=dynamic"
+  },
+  {
+   "id": "1r0cz4i",
+   "source": "nos",
+   "sourceName": "NOS",
+   "title": "Podcast De Dag: Tarwekamp-slachtoffers en nabestaanden aan het woord",
+   "image": "https://images.cdn.nos.nl/3/4/v/w/u/C/qmzphfczWKioFp8pTfcDHmWJwe45E7b91EPbG43/0x0x1920x1080-1024x576.webp"
+  }
+ ]
+}

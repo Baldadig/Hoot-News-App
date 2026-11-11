@@ -15,6 +15,18 @@
 		<string>SchibstedGrotesk-700.ttf</string>
 		<string>SchibstedGrotesk-800.ttf</string>
 	</array>
+	<!-- Deep links vanuit de widgets: hoot://editie en hoot://verhaal/<id> (HootLink, RootView.onOpenURL). -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>nl.hootnews.Hoot</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>hoot</string>
+			</array>
+		</dict>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- Opstartscherm: een merkmoment in merkrood met "hoot." in papierwit (licht en donker gelijk). -->

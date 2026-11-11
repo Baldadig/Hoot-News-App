@@ -6,5 +6,10 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- De widgets (HootWidget): de Editie, wat gelezen is en het beeld van 01 in een gedeelde map. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.nl.hootnews.Hoot</string>
+	</array>
 </dict>
 </plist>
