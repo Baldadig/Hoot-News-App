@@ -3420,6 +3420,147 @@ var HootCore = (() => {
   var forEdition = (it) => !it?.streamOnly;
   var INTRO_WINDOW_MS = 6 * 3600 * 1e3;
 
+  // shared/kort-kop.mjs
+  var KORT_MAX = 60;
+  var KERN_MIN2 = 24;
+  var LOSSE_EINDES = /* @__PURE__ */ new Set([
+    "de",
+    "het",
+    "een",
+    "en",
+    "of",
+    "maar",
+    "van",
+    "in",
+    "op",
+    "aan",
+    "met",
+    "voor",
+    "naar",
+    "bij",
+    "om",
+    "te",
+    "tot",
+    "door",
+    "over",
+    "uit",
+    "na",
+    "als",
+    "dat",
+    "die",
+    "dit",
+    "deze",
+    "wie",
+    "wat",
+    "is",
+    "zijn",
+    "wordt",
+    "worden",
+    "heeft",
+    "hebben",
+    "moet",
+    "moeten",
+    "kan",
+    "kunnen",
+    "wil",
+    "willen",
+    "zal",
+    "zullen",
+    "gaat",
+    "gaan",
+    "nog",
+    "niet",
+    "geen",
+    "zo",
+    "zó",
+    "er",
+    "ook",
+    "want",
+    "omdat",
+    "toen",
+    "tegen",
+    "onder",
+    "tussen",
+    "zonder",
+    "via",
+    "per",
+    "sinds",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "but",
+    "of",
+    "to",
+    "for",
+    "on",
+    "at",
+    "by",
+    "with",
+    "from",
+    "as",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "has",
+    "have",
+    "will",
+    "can",
+    "that",
+    "this",
+    "its",
+    "his",
+    "her",
+    "their",
+    "into",
+    "after",
+    "over"
+  ]);
+  var woorden = (s) => s.split(" ").filter(Boolean).length;
+  var schoon = (s) => String(s ?? "").replace(/\s+/g, " ").trim();
+  var staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, "");
+  var kern = (s, min) => s.length >= KERN_MIN2 && woorden(s) >= min;
+  function kortKop(title, max = KORT_MAX) {
+    const t = schoon(title);
+    if (t.length <= max) return t;
+    const streep = t.match(/^(.+?)\s[–—-]\s.+$/u);
+    if (streep) {
+      const voor = staart(streep[1]);
+      if (voor.length <= max && kern(voor, 3)) return voor;
+    }
+    const haakjes = t.match(/^(.+?)\s*\([^()]*\)$/u);
+    if (haakjes) {
+      const voor = staart(haakjes[1]);
+      if (voor.length <= max && kern(voor, 3)) return voor;
+    }
+    const punt = t.match(/^([^:]+):\s.+$/u);
+    if (punt) {
+      const voor = staart(punt[1]);
+      if (voor.length <= max && kern(voor, 4)) return voor;
+    }
+    const ruimte = max - 1;
+    const delen = t.slice(0, ruimte).split(" ");
+    if (t[ruimte] !== " ") delen.pop();
+    while (delen.length > 1 && LOSSE_EINDES.has(delen[delen.length - 1].toLowerCase().replace(/[^\p{L}]/gu, ""))) delen.pop();
+    let uit = staart(delen.join(" "));
+    if (!uit) uit = t.slice(0, ruimte);
+    return `${uit}…`;
+  }
+  function metKorteKoppen(edition) {
+    if (!edition || !Array.isArray(edition.entries)) return edition;
+    const byId2 = new Map((edition.items || []).map((i) => [i.id, i]));
+    return {
+      ...edition,
+      entries: edition.entries.map((e) => {
+        const kop = byId2.get(e.kind === "story" ? e.leadId || e.id : e.id)?.title || e.title;
+        return kop ? { ...e, kortKop: kortKop(kop) } : e;
+      })
+    };
+  }
+
   // src/lib/personal.js
   var EXTERN = "extern";
   var WIDE = "breed";
@@ -3836,7 +3977,7 @@ var HootCore = (() => {
       supply = { target: EDITION_SIZE, auditBelow: EDITION_AUDIT_BELOW, floor: EDITION_FLOOR, selected: regularCount, totalSlots: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: regularCount >= EDITION_FLOOR && unresolved.length === 0 };
     }
     const shown2 = [...new Set(out.map((e) => e.leadId || e.id))];
-    return {
+    return metKorteKoppen({
       id: global.id,
       slot: global.slot,
       date: global.date,
@@ -3851,7 +3992,7 @@ var HootCore = (() => {
       brief: null,
       _plan: sel.deskOrder,
       ...supply ? { _supply: supply } : {}
-    };
+    });
   }
   function withoutDebug(edition) {
     if (!edition) return edition;
