@@ -8,6 +8,7 @@ import { StreamArt, FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { rubriekRij, alsRubriek, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel, inRubriek } from '../lib/streamline.js'
 import { opinieInStroom } from '../../shared/opinie.mjs'
+import { tabsMetBerichten, TERUGVAL } from '../../shared/stroom-tabs.mjs'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
 import { readJSON } from '../lib/store.js'
@@ -54,7 +55,7 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
   )
 }
 
-export default function Stream({ active, stream, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
+export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById, sourcesById, muted, setMuted, prefs, layout } = useHoot()
   const ref = useRef(null)
   // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de berichten.
@@ -165,21 +166,25 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   // dan altijd dezelfde URL (en dus dezelfde leespositie).
   // Een bron kiezen zet de rubriek terug op Alles: je kijkt dan naar die bron, niet naar een onderwerp.
   const togglePick = (id) => apply({ ...filters, onderwerp: '', rubriek: '', bron: inRijVolgorde(picks.has(id) ? pickList.filter((p) => p !== id) : [...pickList, id], rij).join(',') })
-  // De rubrieken: Alles, je hoofdrubrieken in vaste volgorde, Opinie (als die er is), Buiten je bubbel als laatste.
+  // De rubrieken: Alles, je hoofdrubrieken in vaste volgorde, de tabs van de server met iets erin
+  // (nu Opinie; shared/stroom-tabs.mjs), Buiten je bubbel als laatste.
   const interests = prefs?.interests || []
-  const hasOpinie = useMemo(() => stream.some(opinieInStroom), [stream])
+  const metBerichten = useMemo(() => tabsMetBerichten(stream, stroomTabs), [stream, stroomTabs])
+  const tabSleutel = [...metBerichten].join(',')
   const rubrieken = useMemo(
-    () => rubriekRij({ interests, hasBubble: bubble.length > 0, hasOpinie, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
-    [interests.join(','), bubble.length, hasOpinie, filters.onderwerp, filters.rubriek], // eslint-disable-line react-hooks/exhaustive-deps
+    () => rubriekRij({ interests, hasBubble: bubble.length > 0, tabs: stroomTabs, metBerichten, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
+    [interests.join(','), bubble.length, stroomTabs, tabSleutel, filters.onderwerp, filters.rubriek], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const actief = actieveRubriek(filters)
 
   // Niets voor deze keuze: één stille regel met de weg terug. "Buiten je bubbel" kijkt niet naar
   // bron en soort, dus daar alleen de regel.
   const bubbel = filters.onderwerp === 'bubbel'
+  const actieveRij = actief ? rubrieken.items.find((r) => r.sig === actief) : null
   const leeg = legeRegel({
     namen: bubbel ? [] : rij.filter((s) => picks.has(s.id)).map((s) => s.name),
-    rubriek: actief ? rubrieken.items.find((r) => r.sig === actief)?.label || '' : '',
+    rubriek: actieveRij?.label || '',
+    tab: !!actieveRij?.tab,
     soort: bubbel ? '' : filters.soort,
   })
 

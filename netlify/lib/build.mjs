@@ -11,6 +11,7 @@ import { profileOf } from '../../shared/editor.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { isOpinie } from '../../shared/opinie.mjs'
+import { tabsVan, stroomTabsFeed } from '../../shared/stroom-tabs.mjs'
 import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
@@ -133,6 +134,8 @@ export async function buildFeed({ now = Date.now() } = {}) {
     related: [...storyItems, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id) || !i.storyId)],
     stories: [...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))],
     edition: edition.public,
+    // De Stroom-tabs tussen Sport en Buiten je bubbel (shared/stroom-tabs.mjs): web en app lezen dezelfde lijst.
+    stroomTabs: stroomTabsFeed(),
     meta: {
       updatedAt: new Date(now).toISOString(),
       storage: storageMode(),
@@ -697,6 +700,8 @@ export function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     // Opinie voor de Stroom (shared/opinie.mjs): de tab Opinie, en het label "Opinie" boven de kop.
     // Alleen `true` gaat mee (compact laat false weg); een oudere app negeert het veld.
     opinion: isOpinie(it),
+    // De server-gestuurde Stroom-tabs die dit bericht draagt (shared/stroom-tabs.mjs), alleen als het er een heeft.
+    tabs: tabsVan(it),
     // Alleen bij een afwijkende taal (de brontaal staat in de bronnenlijst): scheelt omvang.
     lang: it.offLang ? it.lang : null,
     offLang: it.offLang,

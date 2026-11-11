@@ -1,7 +1,7 @@
 // De lijn bovenaan de Stroom: rubrieken links, je bronnen als stapel rechts — pure gegevens en
 // functies (tests/streamline.test.mjs). Het tekenen en bewegen staat in components/StreamLine.jsx.
 import { INTERESTS, inInterest } from './topics.js'
-import { opinieInStroom } from '../../shared/opinie.mjs'
+import { inTab, TERUGVAL } from '../../shared/stroom-tabs.mjs'
 
 // Maten van de stapel, gelijk aan de tokens in styles.css (--tap, --s2, --s3, --s4).
 export const TAP = 44 // aanraakvlak van elk bolletje
@@ -33,29 +33,32 @@ export function actieveRubriek(filters = {}) {
 
 // De rij: alleen hoofdrubrieken, in een vaste volgorde (gelijk aan de app): Alles, dan de rubrieken
 // die je koos (Politiek, Binnenland, Wereld, Economie, Tech, Wetenschap, Cultuur, Sport; koos je er
-// geen, dan alle acht), dan Opinie, en Buiten je bubbel als laatste. Geen subonderwerpen. Staat er een
-// rubriek aan die je niet koos (een oude link), dan staat die op zijn vaste plek: een filter is nooit
-// onzichtbaar. `sep` wordt niet meer getekend.
-// Opinie (besluit Alex 10 november) is een extra filter, geen eigen hoek: een column staat ook in zijn
-// rubriek en in Alles. De tab staat er alleen als er opinie is (`hasOpinie`; de server zet `opinion`).
+// geen, dan alle acht), dan de tabs van de server (nu Opinie), en Buiten je bubbel als laatste. Geen
+// subonderwerpen. Staat er een rubriek aan die je niet koos (een oude link), dan staat die op zijn
+// vaste plek: een filter is nooit onzichtbaar. `sep` wordt niet meer getekend.
+// De tabs van de server (shared/stroom-tabs.mjs, `stroomTabs` in de feed) zijn een extra filter, geen
+// eigen hoek: een column staat ook in zijn rubriek en in Alles. Een tab staat er alleen als er in de
+// Stroom iets onder valt (`metBerichten`, de ids). `hasOpinie` is de vorm van vóór de server-tabs.
 export const OPINIE = 'opinie'
-export function rubriekRij({ interests = [], hasBubble = false, hasOpinie = false, filters = {} } = {}) {
+export function rubriekRij({ interests = [], hasBubble = false, hasOpinie = false, tabs = TERUGVAL, metBerichten = null, filters = {} } = {}) {
   const chosen = INTERESTS.filter((i) => interests.includes(i.id))
   const shown = (chosen.length ? chosen : INTERESTS).map((i) => i.id)
   const items = [R(null, 'alles', 'Alles')]
   for (const i of INTERESTS) if (shown.includes(i.id) || filters.rubriek === i.id) items.push(R('rubriek', i.id, i.label))
-  if (hasOpinie || filters.rubriek === OPINIE) items.push(R('rubriek', OPINIE, 'Opinie'))
+  const aanwezig = metBerichten || new Set(hasOpinie ? [OPINIE] : [])
+  for (const t of tabs) if (aanwezig.has(t.id) || filters.rubriek === t.id) items.push({ ...R('rubriek', t.id, t.label), tab: true })
   if (hasBubble || filters.onderwerp === 'bubbel') items.push(R('onderwerp', 'bubbel', 'Buiten je bubbel'))
   return { items, sep: 1 }
 }
 
-// Hoort een bericht onder deze rubriek ('' = Alles)? Opinie kijkt naar het veld van de server, de rest
-// naar de onderwerpen en het vak van de bron (inInterest). Een opiniestuk valt dus onder Opinie én
-// onder zijn eigen rubriek.
+// Hoort een bericht onder deze rubriek ('' = Alles)? Een hoofdrubriek kijkt naar de onderwerpen en
+// het vak van de bron (inInterest), al het andere is een tab van de server (inTab: `tabs` van het
+// bericht, voor Opinie met terugval op `opinion`). Een opiniestuk valt dus onder Opinie én onder zijn
+// eigen rubriek.
 export function inRubriek(item, rubriek, source) {
   if (!rubriek) return true
-  if (rubriek === OPINIE) return opinieInStroom(item)
-  return inInterest(item, rubriek, source)
+  if (INTERESTS.some((i) => i.id === rubriek)) return inInterest(item, rubriek, source)
+  return inTab(item, rubriek)
 }
 
 // Een oude link met een onderwerp (#/stroom?onderwerp=ai) wordt de rubriek waar het onder valt:
@@ -119,12 +122,12 @@ export function plek({ i, k, n, peek = false, all = false }) {
 // ---- Een lege lijst ----
 // Eén stille regel waar het eerste bericht zou staan: "Nog niets van NOS in Wereld.", "Nog geen
 // opinie van NOS en NRC vandaag.", "Nog niets buiten je bubbel." `rubriek` is het label van wat aan
-// staat ('' = Alles), `soort` het soortfilter (alleen nog Artikelen; Opinie is een tab).
-export function legeRegel({ namen = [], rubriek = '', soort = '' } = {}) {
-  const opinie = rubriek === 'Opinie'
-  const wat = opinie ? 'Nog geen opinie' : soort === 'artikelen' ? 'Nog geen artikelen' : 'Nog niets'
+// staat ('' = Alles), `tab` zegt of dat een tab van de server is (Opinie), `soort` het soortfilter
+// (alleen nog Artikelen; Opinie is een tab).
+export function legeRegel({ namen = [], rubriek = '', soort = '', tab = rubriek === 'Opinie' } = {}) {
+  const wat = tab ? `Nog geen ${rubriek.toLowerCase()}` : soort === 'artikelen' ? 'Nog geen artikelen' : 'Nog niets'
   const van = namen.length ? ` van ${joinNL(namen)}` : ''
-  const waar = rubriek === 'Buiten je bubbel' ? ' buiten je bubbel' : rubriek && rubriek !== 'Opinie' ? ` in ${rubriek}` : ' vandaag'
+  const waar = rubriek === 'Buiten je bubbel' ? ' buiten je bubbel' : rubriek && !tab ? ` in ${rubriek}` : ' vandaag'
   return `${wat}${van}${waar}.`
 }
 

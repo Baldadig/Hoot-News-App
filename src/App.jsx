@@ -46,6 +46,7 @@ import { shareItem, shareNotice } from './lib/share.js'
 import Splash from './components/Splash.jsx'
 import { startSysteemTekst, setSchaal } from './lib/systeemtekst.js'
 import { textSizeOf } from './lib/tekstgrootte.js'
+import { stroomTabsUit } from '../shared/stroom-tabs.mjs'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
@@ -198,6 +199,8 @@ export default function App() {
   const itemsById = useMemo(() => new Map([...(data?.related || []), ...(data?.items || []), ...social.items].map((i) => [i.id, i])), [data, social.items])
   // Ook vindbaar op een eerdere id (als twee bundels zijn samengegaan): bladwijzers en links blijven werken.
   const storiesById = useMemo(() => indexStories(data?.stories), [data])
+  // De Stroom-tabs van de server (shared/stroom-tabs.mjs); een feed zonder de lijst: Opinie.
+  const stroomTabs = useMemo(() => stroomTabsUit(data), [data])
 
   // "Buiten je bubbel": de berichten bij de signalen van deze editie (als ze er zijn).
   // Zoals gepubliceerd (vast), en juist ook uit bronnen die je niet volgt: daar is dit blok voor.
@@ -662,6 +665,7 @@ export default function App() {
               bubble={bubble}
               preview={prefs.preview}
               stream={stream}
+              stroomTabs={stroomTabs}
               params={path === 'stroom' ? route.params : navMem.stroom || {}}
               go={route.go}
               sources={sources}
