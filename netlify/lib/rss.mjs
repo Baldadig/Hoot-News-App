@@ -47,8 +47,9 @@ function categoriesOf(it) {
 // FTC-toezicht op Black Friday, "Bitcoin 30% off", de beurs "na massale uitverkoop"; de categorie "Software" weerde een
 // Politico-stuk over AI). Wat nu nog wegvalt:
 //   1. reclame: de feed markeert het (categorie "Sponsored", "Advertorial", "Partner content", "Newsletter sign-up" …),
-//      de link staat in een reclame- of commercerubriek (/advertorial/, /sponsored/, /partner/, /commerce/,
-//      /product-recommendations/ …), of de kop begint met een reclamelabel ("Advertentie:", "Sponsored |");
+//      de link staat in een reclame- of commercerubriek (/advertorial/, /sponsored/, /partner/, /commerce/, /pricewatch/ …),
+//      of de kop begint met een reclamelabel ("Advertentie:", "Sponsored |"). Bewust NIET: /product-recommendations/
+//      (daar schrijft een commerce-redactie ook stukken die op nieuws lijken; bij twijfel blijft het staan, B beoordeelt het);
 //   2. wat de uitgever zelf als geen-bericht indeelt: een persbericht (/press-releases/), puzzels (/puzzels/), een
 //      versie-overzicht (/downloads/) en een eigen actie of winactie (feedcategorie ".Actie" of ".Plan");
 //   3. lege of kapotte items (geen kop of geen http(s)-link) en dubbele items (dezelfde link): in loadSource.
