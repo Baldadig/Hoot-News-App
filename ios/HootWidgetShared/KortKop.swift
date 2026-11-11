@@ -13,7 +13,7 @@ enum KortKop {
     static let losseEindes: Set<String> = [
         "de", "het", "een", "en", "of", "maar", "van", "in", "op", "aan", "met", "voor", "naar", "bij", "om", "te", "tot",
         "door", "over", "uit", "na", "als", "dat", "die", "dit", "deze", "wie", "wat", "is", "zijn", "wordt", "worden", "heeft",
-        "hebben", "moet", "moeten", "kan", "kunnen", "wil", "willen", "zal", "zullen", "gaat", "gaan", "nog", "niet", "geen",
+        "hebben", "moet", "moeten", "kan", "kunnen", "wil", "willen", "zal", "zullen", "gaat", "gaan", "nog",
         "zo", "zó", "er", "ook", "want", "omdat", "toen", "tegen", "onder", "tussen", "zonder", "via", "per", "sinds",
         "rond", "rondom", "langs", "binnen", "buiten", "nabij", "jegens", "achter", "boven", "naast", "vanaf", "volgens",
         "tijdens", "wegens", "vanwege", "zoals", "dan", "hoe", "waar", "waarom", "wanneer", "nadat", "terwijl", "doordat",
@@ -21,11 +21,31 @@ enum KortKop {
         "jij", "ik", "mijn", "onze", "ons", "jouw", "uw", "meer", "minder", "vol", "wel", "heel", "zeer", "zelfs",
         "the", "a", "an", "and", "or", "but", "of", "to", "for", "on", "at", "by", "with", "from", "as", "is", "are", "was",
         "were", "be", "has", "have", "will", "can", "that", "this", "its", "his", "her", "their", "into", "after", "over",
-        "about", "amid", "against", "than", "who", "what", "which", "how", "why", "when", "where", "not", "more", "our", "your", "my",
+        "about", "amid", "against", "than", "who", "what", "which", "how", "why", "when", "where", "more", "our", "your", "my",
         "could", "would", "should", "may", "might", "must", "does", "do", "did", "had", "been", "being", "if", "he", "she",
         "they", "you", "it", "there", "i",
     ]
     static let voegwoorden: Set<String> = ["en", "of", "maar", "want", "dus", "and", "or", "but"]
+    // Een ontkenning is nooit een los einde, en valt nooit weg uit de zin waarin wordt afgekapt.
+    static let ontkenningen: Set<String> = [
+        "niet", "geen", "nooit", "niets", "niks", "niemand", "nergens", "not", "no", "never", "nothing", "none", "nobody", "neither", "nor",
+    ]
+    // Een deel dat met een voorzetsel of voegwoord begint, heeft geen eigen onderwerp vooraan.
+    static let openers: Set<String> = [
+        "van", "in", "op", "aan", "met", "voor", "naar", "bij", "om", "te", "tot", "door", "over", "uit", "na", "als", "tegen",
+        "onder", "tussen", "zonder", "via", "per", "sinds", "rond", "rondom", "langs", "binnen", "buiten", "nabij", "achter",
+        "boven", "naast", "vanaf", "volgens", "tijdens", "wegens", "vanwege", "zoals", "ondanks", "dankzij", "namens", "richting",
+        "en", "of", "maar", "want", "dus", "omdat", "toen", "nadat", "terwijl", "doordat", "zodat", "hoewel", "indien", "mits",
+        "to", "for", "on", "at", "by", "with", "from", "into", "after", "before", "about", "amid", "against",
+        "as", "than", "through", "since", "until", "under", "between", "despite", "without", "during", "towards", "toward",
+        "and", "or", "but", "if", "because", "while", "although", "though", "unless", "whether",
+    ]
+    // Woorden waarmee een nieuwe (bij)zin begint; geen "en", "of", "and" of "or".
+    static let bijzin: Set<String> = [
+        "maar", "want", "omdat", "als", "terwijl", "doordat", "zodat", "hoewel", "nadat", "toen", "dat", "die", "wie",
+        "waar", "waardoor", "waarna", "waarin", "waarmee", "indien", "tenzij", "zolang", "zodra",
+        "but", "as", "while", "because", "although", "though", "that", "which", "who", "when", "where", "unless", "whereas", "yet",
+    ]
 
     // MARK: Zoals JavaScript
 
@@ -55,7 +75,9 @@ enum KortKop {
     private static func delen(_ s: String) -> [String] { s.components(separatedBy: " ") }
 
     private static func woorden(_ s: String) -> Int { delen(s).filter { !$0.isEmpty }.count }
-    private static func schoon(_ s: String) -> String { vervang("^ +| +$", vervang("\\s+", s, " "), "") }
+    private static func schoon(_ s: String) -> String {
+        vervang("^ +| +$", vervang("\\s+", vervang("[\\u200B-\\u200D\\uFEFF]", s, ""), " "), "")
+    }
     private static func staart(_ s: String) -> String { vervang("[\\s,;:–—\\-‘“'\"(]+$", s, "") }
     private static func kern(_ s: String, _ min: Int) -> Bool { lengte(s) >= kernMin && woorden(s) >= min }
     private static func hoofdletter(_ s: String) -> String {
@@ -63,6 +85,23 @@ enum KortKop {
         return eerste.uppercased() + s.dropFirst()
     }
     private static func letters(_ w: String) -> String { vervang("[^\\p{L}]", w.lowercased(), "") }
+    private static func ontkenning(_ w: String) -> Bool { ontkenningen.contains(letters(w)) }
+    private static func heeftOntkenning(_ s: String) -> Bool { delen(s).contains { ontkenning($0) } }
+    private static func opent(_ s: String) -> Bool { openers.contains(letters(delen(s).first ?? "")) }
+    // Begint bij woord `i` een nieuwe zin of bijzin: na een leesteken, bij een gedachtestreep of een bijzinswoord.
+    private static func zinsbegin(_ alle: [String], _ i: Int) -> Bool {
+        i > 0 && i < alle.count && (test("[,;:.?!]$", alle[i - 1]) || test("^[–—-]$", alle[i]) || bijzin.contains(letters(alle[i])))
+    }
+    // Valt er een ontkenning weg uit de zin waarin na `n` woorden wordt afgekapt?
+    private static func ontkenningWeg(_ alle: [String], _ n: Int) -> Bool {
+        var i = n
+        while i < alle.count {
+            if zinsbegin(alle, i) { return false }
+            if ontkenning(alle[i]) { return true }
+            i += 1
+        }
+        return false
+    }
 
     private static let openCitaat = "^[‘’“'\"„«‚]"
     private static let sluitCitaat = "[’”'\"»]$"
@@ -73,7 +112,7 @@ enum KortKop {
         return d
     }
 
-    private static func afkappen(_ t: String, _ max: Int) -> String {
+    private static func afkappen(_ t: String, _ max: Int) -> String? {
         let ruimte = max - 1
         let alle = delen(t)
         var d = delen(begin(t, ruimte))
@@ -89,6 +128,14 @@ enum KortKop {
             let korter = zonderLosEinde(Array(d.dropLast()))
             if Double(lengte(korter.joined(separator: " "))) < Double(ruimte) / 3 { break }
             d = korter
+        }
+        // Valt er een ontkenning weg uit de zin waarin wordt afgekapt, dan terug naar het begin van die zin;
+        // blijft er dan geen kop over, geen veilige kop op deze maat (nil).
+        var j = d.count - 1
+        while j > 0, !zinsbegin(alle, j) { j -= 1 }
+        if !d.isEmpty, ontkenningWeg(alle, d.count) {
+            let terug = j > 0 ? staart(zonderLosEinde(Array(d.prefix(j))).joined(separator: " ")) : ""
+            return j > 0 && kern(terug, 2) ? terug + "…" : nil
         }
         var uit = staart(d.joined(separator: " "))
         if uit.isEmpty { uit = begin(t, ruimte) }
@@ -112,25 +159,33 @@ enum KortKop {
 
     // MARK: De korte kop
 
-    static func kort(_ title: String?, max: Int = KortKop.max) -> String {
+    // nil: op deze maat is er geen veilige korte kop (er zou een ontkenning wegvallen).
+    static func kort(_ title: String?, max: Int = KortKop.max) -> String? {
         let t = schoon(title ?? "")
         if lengte(t) <= max { return t }
 
         // De eerste zin, als die zelf een kop is.
-        if let z = match("^(.+?(?:[?!]|\\p{Ll}{3}\\.))\\s+\\S", t), lengte(z[1]) <= max, kern(z[1], 4) { return z[1] }
+        if let z = match("^(.+?(?:[?!]|\\s\\p{Ll}{3,}\\.))\\s+\\S", t), lengte(z[1]) <= max, kern(z[1], 4) { return z[1] }
 
         // Dubbele punt, of een citaat vooraan zonder dubbele punt.
-        if let p = match("^([^:]+):\\s(.+)$", t) ?? match("^([‘“'\"„«‚][^’”'\"»]+[’”'\"»])\\s(\\p{Lu}.+)$", t) {
+        // Zonder dubbele punt telt een citaat vooraan pas vanaf drie woorden ("‘Little Britain’ Star …" is een titel).
+        let vooraan = match("^([‘“'\"„«‚][^’”'\"»]+[’”'\"»])\\s(\\p{Lu}.+)$", t).flatMap { woorden($0[1]) >= 3 ? $0 : nil }
+        if let p = match("^([^:]+):\\s(.+)$", t) ?? vooraan {
             let a = staart(zonderLosEinde(delen(p[1]), voegwoorden).joined(separator: " "))
             let b = vervang("^\\s+|\\s+$", p[2], "")
             let toevoegingB = woorden(b) <= kortToevoeging || test(openCitaat, b) || b.hasSuffix("?")
+            let bKop = kern(b, 4) && !opent(b)
+            let alsB = { bKop && !titleCase(b) ? kort(hoofdletter(b), max: max) : nil }
             if isCitaat(a) {
-                if kern(b, 4) { return kort(hoofdletter(b), max: max) }
+                if bKop, let k = kort(hoofdletter(b), max: max) { return k }
             } else if kern(a, 4), !titelOverPunt(a, b) {
-                let wilB = !toevoegingB && kern(b, 4) && (test("^\\p{Lu}", b) || !benoemd(a))
-                if !wilB { return kort(a, max: max) }
-                if !titleCase(b) { return kort(hoofdletter(b), max: max) }
+                // Noemt B niets, dan blijft A; zonder veilige kop op deze maat het andere deel.
+                let wilB = !toevoegingB && bKop && (test("^\\p{Lu}", b) || (!benoemd(a) && (benoemd(b) || opent(a))))
                 // B in Title Case: twijfel, de hele kop inkorten.
+                if !wilB || !titleCase(b) {
+                    if let k = wilB ? alsB() : kort(a, max: max) { return k }
+                    if let k = wilB ? kort(a, max: max) : alsB() { return k }
+                }
             }
             // Een titel over de dubbele punt: de hele kop inkorten.
         }
@@ -140,11 +195,16 @@ enum KortKop {
             let voor = staart(m[1])
             if lengte(voor) <= max, kern(voor, 3) { return voor }
         }
-        if let m = match("^(.+?)\\s*\\([^()]*\\)$", t) {
+        if let m = match("^(.+?)\\s*\\(([^()]*)\\)$", t), !heeftOntkenning(m[2]) {
             let voor = staart(m[1])
             if lengte(voor) <= max, kern(voor, 3) { return voor }
         }
-        let zonderHaakjes = vervang("\\s+\\([^()]*\\)(?=\\s|$)", t, "")
+        // Haakjes met een ontkenning erin ("Kabinet stemt (niet) in") blijven altijd staan.
+        var zonderHaakjes = t
+        for m in re("\\s+\\(([^()]*)\\)(?=\\s|$)").matches(in: t, range: NSRange(location: 0, length: lengte(t))).reversed()
+        where !heeftOntkenning(ns(t).substring(with: m.range(at: 1))) {
+            zonderHaakjes = ns(zonderHaakjes).replacingCharacters(in: m.range, with: "")
+        }
         if zonderHaakjes != t, lengte(zonderHaakjes) <= max, kern(zonderHaakjes, 3) { return zonderHaakjes }
         let basis = zonderHaakjes != t && kern(zonderHaakjes, 3) ? zonderHaakjes : t
 
@@ -152,20 +212,21 @@ enum KortKop {
         let r = ns(begin(basis, max - 1)).range(of: ", ", options: .backwards)
         if r.location != NSNotFound, r.location > 0 {
             let voor = staart(zonderLosEinde(delen(begin(basis, r.location))).joined(separator: " "))
-            if kern(voor, 4), Double(lengte(voor)) >= Double(max - 1) / 2, !isCitaat(voor) { return voor + "…" }
+            if kern(voor, 4), Double(lengte(voor)) >= Double(max - 1) / 2, !isCitaat(voor), !opent(voor) { return voor + "…" }
         }
 
         return afkappen(basis, max)
     }
 
     // Steeds kortere versies van een kop, voor een plek waar de korte kop van de server niet past: de widget
-    // kiest de eerste die past (WidgetZet.pas), zodat iOS nooit midden in een woord afkapt.
+    // kiest de eerste die past (WidgetZet.pas), zodat iOS nooit midden in een woord afkapt. Een maat zonder
+    // veilige kop (er zou een ontkenning wegvallen) wordt overgeslagen; is er geen enkele, dan de kop zelf.
     static func trap(_ kop: String, kort: String?) -> [String] {
         var uit: [String] = []
-        for k in [kort ?? self.kort(kop)] + [56, 52, 48, 44, 40, 36, 32, 28, 24].map({ self.kort(kop, max: $0) })
+        for k in ([kort ?? self.kort(kop)] + [56, 52, 48, 44, 40, 36, 32, 28, 24].map({ self.kort(kop, max: $0) })).compactMap({ $0 })
         where !k.isEmpty && !uit.contains(k) && (uit.last.map { lengte(k) < lengte($0) } ?? true) {
             uit.append(k)
         }
-        return uit
+        return uit.isEmpty ? [schoon(kop)] : uit
     }
 }

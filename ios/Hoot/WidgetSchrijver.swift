@@ -88,8 +88,10 @@ enum WidgetVerhaalWacht {
     enum Stap: Equatable { case open(String), wacht, vervalt }
     // `geladen`: het laden na de tik is klaar. Staat het verhaal dan nog niet in de Editie, dan vervalt de link
     // en blijf je in de Editie (de nieuwe), in plaats van dat de app blijft wachten op een volgende.
-    static func stap(_ id: String, rows: [EditionRowModel], geladen: Bool) -> Stap {
+    // Keuring 3: alleen als er een Editie staat en het account niet meer laadt. Bij een koude start met account
+    // kan de feed eerder klaar zijn dan je sessie; je eigen Editie komt dan pas daarna, en daarin staat het verhaal.
+    static func stap(_ id: String, rows: [EditionRowModel], geladen: Bool, accountLaadt: Bool = false) -> Stap {
         if let r = rij(id, in: rows) { return .open(r.item.id) }
-        return geladen ? .vervalt : .wacht
+        return geladen && !accountLaadt && !rows.isEmpty ? .vervalt : .wacht
     }
 }

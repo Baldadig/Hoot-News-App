@@ -9,11 +9,46 @@ const fx = JSON.parse(readFileSync(new URL('./fixtures/kort-kop.json', import.me
 test('korte kop: dezelfde uitkomst als de gedeelde gevallen', () => {
   assert.equal(fx.max, KORT_MAX)
   assert.ok(fx.gevallen.length >= 20)
-  for (const c of fx.gevallen) assert.equal(kortKop(c.kop), c.verwacht, c.kop)
+  // `max` per geval: de kortere stappen van de widget (vergrendelscherm 36 en 40). `verwacht: null`: op die maat
+  // is er geen veilige korte kop, want er zou een ontkenning wegvallen.
+  for (const c of fx.gevallen) assert.equal(kortKop(c.kop, c.max ?? KORT_MAX), c.verwacht, `${c.kop} (${c.max ?? KORT_MAX})`)
 })
 
+test('korte kop: een ontkenning valt nooit weg uit de zin waarin wordt afgekapt', () => {
+  const ontkenning = /(^|\s|\()(niet|geen|nooit|not|no|never)(\s|\)|$|[,.?!])/iu
+  for (const c of fx.gevallen) {
+    for (const max of [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]) {
+      const k = kortKop(c.kop, max)
+      if (k === null) continue
+      assert.ok(k.length <= max, k)
+      // Wat overblijft is het begin van een zin uit de kop; stond daar een ontkenning in vóór het volgende
+      // leesteken of bijzinswoord, dan staat die er nog.
+      const body = k.replace(/…$/u, '')
+      const i = schoonKop(c.kop).indexOf(body)
+      if (i < 0) continue
+      const rest = schoonKop(c.kop).slice(i + body.length)
+      const zin = rest.split(/[,;:.?!]|\s[–—-]\s|\s(?:maar|als|dat|die|omdat|terwijl|but|as|that|while|because)\s/iu)[0]
+      // (Eén woord dat langer is dan alles wordt midden afgekapt; daar staat nog geen zin.)
+      if (body.includes(' ') && !/[,;:]$/u.test(body)) assert.ok(!ontkenning.test(zin), `${c.kop} (${max}) → ${k}`)
+    }
+  }
+  // Ook bij een komma (stap 5) en tussen haakjes.
+  assert.equal(kortKop('Tweede Kamer steunt het nieuwe belastingplan niet, coalitie in zwaar weer na lange nacht van onderhandelen'), 'Tweede Kamer steunt het nieuwe belastingplan niet…')
+  assert.match(kortKop('Kabinet stemt (niet) in met plan voor nieuwe kerncentrales in Borssele en op de Maasvlakte'), /\(niet\)/u)
+})
+
+test('korte kop: na een dubbele punt nooit een deel zonder onderwerp, en geen onzichtbare tekens', () => {
+  assert.equal(kortKop('Jongeren nemen heft in eigen handen: met eigen trekkers werken aan toekomstig huis'), 'Jongeren nemen heft in eigen handen')
+  assert.equal(kortKop('Amsterdam begint ‘offensief tegen drugsoverlast’: miljoenen voor opvang en zorg'), 'Amsterdam begint ‘offensief tegen drugsoverlast’')
+  const k = kortKop('‘Young, Black and female in Brixton is hard’: \u200Bfrom football to Top Boy and wordplay, the inspiring journey of UK rapper Cristale')
+  assert.ok(!/[\u200B-\u200D\uFEFF]/u.test(k), 'onzichtbaar teken')
+  assert.match(k, /^‘Young/u)
+  assert.equal(kortKop('Kop met\u200B onzichtbaar\uFEFF teken'), 'Kop met onzichtbaar teken')
+})
+const schoonKop = (s) => s.replace(/[\u200B-\u200D\uFEFF]/gu, '').replace(/\s+/g, ' ').trim()
+
 test('korte kop: hooguit 60 tekens, en een kop die past blijft precies zo', () => {
-  for (const c of fx.gevallen) assert.ok(kortKop(c.kop).length <= KORT_MAX, c.kop)
+  for (const c of fx.gevallen) assert.ok((kortKop(c.kop) ?? '').length <= KORT_MAX, c.kop)
   const past = 'Een kop van precies zestig tekens die nog net past, wel fijn'
   assert.equal(past.length, 60)
   assert.equal(kortKop(past), past)
@@ -26,7 +61,7 @@ test('korte kop: afkappen op een woordgrens, met een beletselteken en zonder los
   assert.equal(k, 'Iraanse dreiging is zó groot dat Amerikaanse minister…')
   for (const c of fx.gevallen) {
     const out = kortKop(c.kop)
-    if (!out.endsWith('…')) continue
+    if (!out || !out.endsWith('…')) continue
     const laatste = out.slice(0, -1).split(' ').pop()
     // Elk woord voor het beletselteken staat zo in de kop: nooit een half woord (behalve één woord dat alles vult).
     if (out.slice(0, -1).includes(' ')) assert.ok([' ', ',', ':', ';'].some((n) => c.kop.replace(/\s+/g, ' ').includes(`${laatste}${n}`)), out)
@@ -68,7 +103,9 @@ test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt,
   assert.ok(kortKop('‘Romanticus’ Emma Heesters gaat op zoek naar de liefde in nieuw seizoen De Bachelorette').startsWith('‘Romanticus’ Emma Heesters'))
   // d. Een uitwerking met een eigen, benoemd onderwerp valt niet weg.
   assert.equal(kortKop('Meteen twee seizoenen tegelijk besteld: Netflix blaast vampierensaga ‘Twilight’ nieuw leven in'), 'Netflix blaast vampierensaga ‘Twilight’ nieuw leven in')
-  assert.equal(kortKop('Winterjas aan en paraplu blijft thuis: zo wordt het weer tijdens de intocht'), 'Zo wordt het weer tijdens de intocht')
+  // Noemt het deel erna niets (geen naam of getal), dan blijft het deel ervoor (keuring 3: anders valt het
+  // onderwerp weg, "Amsterdam begint …: miljoenen voor opvang en zorg" → "Miljoenen voor opvang en zorg").
+  assert.equal(kortKop('Winterjas aan en paraplu blijft thuis: zo wordt het weer tijdens de intocht'), 'Winterjas aan en paraplu blijft thuis')
   // Maar is het deel ervoor het nieuws (met een naam of getal), dan blijft dat.
   assert.equal(kortKop('Geen bezorgverbod voor Uber Eats in Amsterdam: onvoldoende nagedacht over gevolgen, oordeelt Raad van State'), 'Geen bezorgverbod voor Uber Eats in Amsterdam')
   assert.equal(kortKop('Amsterdamse ict-blunder kost zeker 30 miljoen euro: ambtenaren komen weg met ’stevig gesprek’'), 'Amsterdamse ict-blunder kost zeker 30 miljoen euro')
@@ -78,7 +115,7 @@ test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt,
   assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet'), 'Sluiting dreigt voor verouderde laboratoria RIVM…')
   assert.equal(kortKop('Manon Bakker ploetert in crossweer naar eerste grote zege in 3 jaar, Lucinda Brand misstapt zich en valt uit in Niel'), 'Manon Bakker ploetert in crossweer naar eerste grote zege…')
   assert.equal(kortKop('Topfavoriete Lucinda Brand stapt uit met blessure in Superprestige Niel'), 'Topfavoriete Lucinda Brand stapt uit met blessure…')
-  for (const kop of fx.gevallen.map((c) => kortKop(c.kop))) {
+  for (const kop of fx.gevallen.map((c) => kortKop(c.kop, c.max ?? 60)).filter(Boolean)) {
     const laatste = kop.replace(/…$/, '').split(' ').pop().toLowerCase()
     assert.ok(!['rond', 'langs', 'binnen', 'rondom', 'nabij', 'jegens', 'wegens', 'nadat'].includes(laatste), kop)
   }

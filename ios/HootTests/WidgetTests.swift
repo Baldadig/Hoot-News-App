@@ -20,13 +20,14 @@ import WidgetKit
     // MARK: Korte kop
 
     func testKorteKopGelijkAanHetWeb() throws {
-        struct Geval: Decodable { let kop: String; let verwacht: String }
+        // `max`: de kortere stappen van de widget; `verwacht` nil: op die maat geen veilige korte kop.
+        struct Geval: Decodable { let kop: String; let verwacht: String?; let max: Int? }
         struct Fixture: Decodable { let max: Int; let kernMin: Int; let gevallen: [Geval] }
         let fx = try JSONDecoder().decode(Fixture.self, from: Data(contentsOf: Self.root.appending(path: "tests/fixtures/kort-kop.json")))
         XCTAssertEqual(fx.max, KortKop.max)
         XCTAssertEqual(fx.kernMin, KortKop.kernMin)
         XCTAssertGreaterThanOrEqual(fx.gevallen.count, 20)
-        for g in fx.gevallen { XCTAssertEqual(KortKop.kort(g.kop), g.verwacht, g.kop) }
+        for g in fx.gevallen { XCTAssertEqual(KortKop.kort(g.kop, max: g.max ?? KortKop.max), g.verwacht, "\(g.kop) (\(g.max ?? KortKop.max))") }
     }
 
     func testTrapWordtSteedsKorterEnEindigtOpEenWoord() {
@@ -38,6 +39,22 @@ import WidgetKit
         for t in trap { XCTAssertFalse(t.hasSuffix(" …"), t); XCTAssertLessThanOrEqual(t.utf16.count, 60) }
         // De korte kop van de server gaat voor.
         XCTAssertEqual(KortKop.trap(kop, kort: "Iran bedreigt minister").first, "Iran bedreigt minister")
+    }
+
+    // Keuring 3: een maat waarop een ontkenning zou wegvallen, slaat de trap over; nooit "D66 en CDA zwichten…".
+    func testTrapLaatNooitEenOntkenningWeg() {
+        let kop = "Coalitie ten dode opgeschreven: D66 en CDA zwichten niet na powerplay VVD"
+        let trap = KortKop.trap(kop, kort: nil)
+        XCTAssertEqual(trap.first, "D66 en CDA zwichten niet na powerplay VVD")
+        // Staat het werkwoord er, dan ook de ontkenning (op de kleinste maat blijft alleen het deel voor de dubbele punt).
+        for t in trap where t.contains("zwichten") { XCTAssertTrue(t.contains("niet"), t) }
+        let tweede = KortKop.trap("Tweede Kamer steunt het nieuwe belastingplan niet, coalitie in zwaar weer na lange nacht van onderhandelen", kort: nil)
+        XCTAssertFalse(tweede.isEmpty)
+        for t in tweede where t.contains("steunt") { XCTAssertTrue(t.contains("niet"), t) }
+        // Geen enkele veilige maat: dan de kop zelf (de widget zet hem zo goed als het gaat).
+        let geen = "Twee Franse parlementariërs en twee journalisten mogen Rusland niet meer in"
+        XCTAssertNil(KortKop.kort(geen))
+        XCTAssertEqual(KortKop.trap(geen, kort: nil), [geen])
     }
 
     // MARK: Dagdelen en tijdlijn
@@ -158,6 +175,11 @@ import WidgetKit
         let e = WidgetEditie.bouw(id: "2026-11-11-middag", datum: "2026-11-11", dagdeel: "middag",
                                   stenen: [.init(plek: "a", itemId: "a", kop: lang, kortKop: nil, bron: "AD")], gelezen: [], vraag: .lid)
         XCTAssertEqual(e.verhalen[0].kortKop, KortKop.kort(lang))
+        // Zonder veilige korte kop op 60: de eerste veilige kortere stap, of de kop zelf.
+        let geen = "Twee Franse parlementariërs en twee journalisten mogen Rusland niet meer in"
+        let g = WidgetEditie.bouw(id: "2026-11-11-middag", datum: "2026-11-11", dagdeel: "middag",
+                                  stenen: [.init(plek: "a", itemId: "a", kop: geen, kortKop: nil, bron: "NOS")], gelezen: [], vraag: .lid)
+        XCTAssertEqual(g.verhalen[0].kortKop, geen)
     }
 
     func testStandDoorDeDagHeen() throws {
@@ -233,6 +255,13 @@ import WidgetKit
         XCTAssertEqual(WidgetVerhaalWacht.stap("vroeger", rows: eerder, geladen: false), .open("nieuw0"))
         // Klaar met laden en het staat er niet in: de link vervalt, je blijft in de Editie.
         XCTAssertEqual(WidgetVerhaalWacht.stap("nergens", rows: nieuwe, geladen: true), .vervalt)
+        // Keuring 3, koude start met account: de feed is klaar, maar je sessie laadt nog (geen rijen, of de
+        // voorlopige Editie). Dan wachten op je eigen Editie; pas als het account klaar is, vervalt de link.
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nieuw5", rows: [], geladen: true, accountLaadt: true), .wacht)
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nieuw5", rows: vorige, geladen: true, accountLaadt: true), .wacht)
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nieuw5", rows: [], geladen: true), .wacht)
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nieuw5", rows: nieuwe, geladen: true, accountLaadt: false), .open("nieuw5"))
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nergens", rows: nieuwe, geladen: true, accountLaadt: false), .vervalt)
     }
 
     // Keuring 2: zonder account nooit `lid`. Zonder bewaarde vraag haalt de widget de Editie voor iedereen.

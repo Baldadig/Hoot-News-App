@@ -194,6 +194,7 @@ struct HootApp: App {
 // Bij omlaag scrollen krimpt de balk, zodat het lezen voorgaat.
 struct RootView: View {
     @Environment(HootStore.self) private var store
+    @Environment(Account.self) private var account
     // Eén lezer per venster: op iPad met twee vensters opent een artikel alleen waar je tikt.
     @State private var reader = Reader()
     @State private var krant = KrantStaat() // concept A: de krant open op de iPhone Duo (Krant.swift)
@@ -207,6 +208,10 @@ struct RootView: View {
 
     // Een verhaal uit de widget dat nog niet in de Editie stond (koude start): openen zodra hij er is.
     @State private var widgetVerhaal: String?
+    // Het laden na de tik op de widget is klaar (pas dan kan de link vervallen).
+    @State private var widgetGeladen = false
+    // Waar een wachtend verhaal op let: de Editie (id en rijen) en of je account nog laadt.
+    private var widgetWachtSleutel: String { WidgetVerhaalWacht.sleutel(store) + (account.status == .loading ? "|laadt" : "") }
     // Het verhaal uit de widget openen in de lezer (of in Safari, zoals je ingesteld hebt); het telt als gelezen,
     // net als in de Editie. Ook als de Editie het stuk intussen onder een ander hoofdstuk heeft.
     private func openFromWidget(_ id: String) -> Bool {
@@ -215,9 +220,9 @@ struct RootView: View {
         return true
     }
     // Wacht een verhaal uit de widget, dan nu openen; of, na het laden, laten vervallen als het niet in de Editie staat.
-    private func widgetVerhaalStap(geladen: Bool) {
+    private func widgetVerhaalStap() {
         guard let id = widgetVerhaal else { return }
-        switch WidgetVerhaalWacht.stap(id, rows: store.editionRows, geladen: geladen) {
+        switch WidgetVerhaalWacht.stap(id, rows: store.editionRows, geladen: widgetGeladen, accountLaadt: account.status == .loading) {
         case .open: _ = openFromWidget(id); widgetVerhaal = nil
         case .vervalt: widgetVerhaal = nil
         case .wacht: break
@@ -338,12 +343,14 @@ struct RootView: View {
             case let .verhaal(id):
                 if !openFromWidget(id) {
                     widgetVerhaal = id
-                    Task { await store.load(); widgetVerhaalStap(geladen: true) }
+                    widgetGeladen = false
+                    Task { await store.load(); widgetGeladen = true; widgetVerhaalStap() }
                 }
             }
         }
         // Op de Editie zelf letten (id en rijen), niet op het aantal rijen (keuring 2).
-        .onChange(of: WidgetVerhaalWacht.sleutel(store)) { widgetVerhaalStap(geladen: false) }
+        // Ook op het account: is je sessie hersteld (of blijk je uitgelogd), dan komt je eigen Editie of vervalt de link.
+        .onChange(of: widgetWachtSleutel) { widgetVerhaalStap() }
         .environment(reader)
         .environment(krant)
         // De lezer als blad. Ligt de krant open, dan staat hij op de rechterbladzijde (KrantPagina) en is

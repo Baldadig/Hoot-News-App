@@ -3518,8 +3518,6 @@ var HootCore = (() => {
     "gaat",
     "gaan",
     "nog",
-    "niet",
-    "geen",
     "zo",
     "zó",
     "er",
@@ -3630,7 +3628,6 @@ var HootCore = (() => {
     "why",
     "when",
     "where",
-    "not",
     "more",
     "our",
     "your",
@@ -3656,14 +3653,175 @@ var HootCore = (() => {
     "there",
     "i"
   ]);
+  var ONTKENNINGEN = /* @__PURE__ */ new Set([
+    "niet",
+    "geen",
+    "nooit",
+    "niets",
+    "niks",
+    "niemand",
+    "nergens",
+    "not",
+    "no",
+    "never",
+    "nothing",
+    "none",
+    "nobody",
+    "neither",
+    "nor"
+  ]);
+  var OPENERS = /* @__PURE__ */ new Set([
+    "van",
+    "in",
+    "op",
+    "aan",
+    "met",
+    "voor",
+    "naar",
+    "bij",
+    "om",
+    "te",
+    "tot",
+    "door",
+    "over",
+    "uit",
+    "na",
+    "als",
+    "tegen",
+    "onder",
+    "tussen",
+    "zonder",
+    "via",
+    "per",
+    "sinds",
+    "rond",
+    "rondom",
+    "langs",
+    "binnen",
+    "buiten",
+    "nabij",
+    "achter",
+    "boven",
+    "naast",
+    "vanaf",
+    "volgens",
+    "tijdens",
+    "wegens",
+    "vanwege",
+    "zoals",
+    "ondanks",
+    "dankzij",
+    "namens",
+    "richting",
+    "en",
+    "of",
+    "maar",
+    "want",
+    "dus",
+    "omdat",
+    "toen",
+    "nadat",
+    "terwijl",
+    "doordat",
+    "zodat",
+    "hoewel",
+    "indien",
+    "mits",
+    "of",
+    "to",
+    "for",
+    "on",
+    "at",
+    "by",
+    "with",
+    "from",
+    "into",
+    "after",
+    "before",
+    "over",
+    "about",
+    "amid",
+    "against",
+    "as",
+    "than",
+    "through",
+    "since",
+    "until",
+    "under",
+    "between",
+    "despite",
+    "without",
+    "during",
+    "towards",
+    "toward",
+    "and",
+    "or",
+    "but",
+    "if",
+    "because",
+    "while",
+    "although",
+    "though",
+    "unless",
+    "whether"
+  ]);
   var OPEN_CITAAT = /^[‘’“'"„«‚]/u;
   var SLUIT_CITAAT = /[’”'"»]$/u;
   var woorden = (s) => s.split(" ").filter(Boolean).length;
-  var schoon = (s) => String(s ?? "").replace(/\s+/g, " ").trim();
+  var schoon = (s) => String(s ?? "").replace(/[\u200B-\u200D\uFEFF]/gu, "").replace(/\s+/g, " ").trim();
   var staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, "");
   var kern = (s, min) => s.length >= KERN_MIN2 && woorden(s) >= min;
   var hoofdletter = (s) => /^\p{Ll}\p{Ll}/u.test(s) ? s[0].toLocaleUpperCase("nl") + s.slice(1) : s;
   var letters = (w) => w.toLowerCase().replace(/[^\p{L}]/gu, "");
+  var ontkenning = (w) => ONTKENNINGEN.has(letters(w));
+  var heeftOntkenning = (s) => s.split(" ").some(ontkenning);
+  var opent = (s) => OPENERS.has(letters(s.split(" ")[0] || ""));
+  var BIJZIN = /* @__PURE__ */ new Set([
+    "maar",
+    "want",
+    "omdat",
+    "als",
+    "terwijl",
+    "doordat",
+    "zodat",
+    "hoewel",
+    "nadat",
+    "toen",
+    "dat",
+    "die",
+    "wie",
+    "waar",
+    "waardoor",
+    "waarna",
+    "waarin",
+    "waarmee",
+    "indien",
+    "tenzij",
+    "zolang",
+    "zodra",
+    "but",
+    "as",
+    "while",
+    "because",
+    "although",
+    "though",
+    "that",
+    "which",
+    "who",
+    "when",
+    "where",
+    "unless",
+    "whereas",
+    "yet"
+  ]);
+  var zinsbegin = (alle, i) => i > 0 && i < alle.length && (/[,;:.?!]$/u.test(alle[i - 1]) || /^[–—-]$/u.test(alle[i]) || BIJZIN.has(letters(alle[i])));
+  function ontkenningWeg(alle, n) {
+    for (let i = n; i < alle.length; i++) {
+      if (zinsbegin(alle, i)) return false;
+      if (ontkenning(alle[i])) return true;
+    }
+    return false;
+  }
   function zonderLosEinde(delen, set = LOSSE_EINDES) {
     const d = [...delen];
     while (d.length > 1 && /\p{L}$/u.test(d[d.length - 1]) && set.has(letters(d[d.length - 1]))) d.pop();
@@ -3686,6 +3844,12 @@ var HootCore = (() => {
       if (korter.join(" ").length < ruimte / 3) break;
       delen = korter;
     }
+    let j = delen.length - 1;
+    while (j > 0 && !zinsbegin(alle, j)) j--;
+    if (delen.length > 0 && ontkenningWeg(alle, delen.length)) {
+      const terug = staart(zonderLosEinde(delen.slice(0, j)).join(" "));
+      return j > 0 && kern(terug, 2) ? `${terug}…` : null;
+    }
     let uit = staart(delen.join(" "));
     if (!uit) uit = t.slice(0, ruimte);
     return `${uit}…`;
@@ -3704,19 +3868,27 @@ var HootCore = (() => {
   function kortKop(title, max = KORT_MAX) {
     const t = schoon(title);
     if (t.length <= max) return t;
-    const zin = t.match(/^(.+?(?:[?!]|\p{Ll}{3}\.))\s+\S/u);
+    const zin = t.match(/^(.+?(?:[?!]|\s\p{Ll}{3,}\.))\s+\S/u);
     if (zin && zin[1].length <= max && kern(zin[1], 4)) return zin[1];
-    const punt = t.match(/^([^:]+):\s(.+)$/u) || t.match(/^([‘“'"„«‚][^’”'"»]+[’”'"»])\s(\p{Lu}.+)$/u);
+    const vooraan = t.match(/^([‘“'"„«‚][^’”'"»]+[’”'"»])\s(\p{Lu}.+)$/u);
+    const punt = t.match(/^([^:]+):\s(.+)$/u) || (vooraan && woorden(vooraan[1]) >= 3 ? vooraan : null);
     if (punt) {
       const a = staart(zonderLosEinde(punt[1].split(" "), VOEGWOORDEN).join(" "));
       const b = punt[2].trim();
       const toevoegingB = woorden(b) <= KORT_TOEVOEGING || OPEN_CITAAT.test(b) || b.endsWith("?");
+      const bKop = kern(b, 4) && !opent(b);
+      const alsB = () => bKop && !titleCase(b) ? kortKop(hoofdletter(b), max) : null;
       if (isCitaat(a)) {
-        if (kern(b, 4)) return kortKop(hoofdletter(b), max);
+        const k = bKop ? kortKop(hoofdletter(b), max) : null;
+        if (k) return k;
       } else if (kern(a, 4) && !titelOverPunt(a, b)) {
-        const wilB = !toevoegingB && kern(b, 4) && (/^\p{Lu}/u.test(b) || !benoemd(a));
-        if (!wilB) return kortKop(a, max);
-        if (!titleCase(b)) return kortKop(hoofdletter(b), max);
+        const wilB = !toevoegingB && bKop && (/^\p{Lu}/u.test(b) || !benoemd(a) && (benoemd(b) || opent(a)));
+        if (!wilB || !titleCase(b)) {
+          const k = wilB ? alsB() : kortKop(a, max);
+          if (k) return k;
+          const ander = wilB ? kortKop(a, max) : alsB();
+          if (ander) return ander;
+        }
       }
     }
     const streep = t.match(/^(.+?)\s[–—-]\s.+$/u);
@@ -3724,18 +3896,18 @@ var HootCore = (() => {
       const voor = staart(streep[1]);
       if (voor.length <= max && kern(voor, 3)) return voor;
     }
-    const haakjes = t.match(/^(.+?)\s*\([^()]*\)$/u);
-    if (haakjes) {
+    const haakjes = t.match(/^(.+?)\s*\(([^()]*)\)$/u);
+    if (haakjes && !heeftOntkenning(haakjes[2])) {
       const voor = staart(haakjes[1]);
       if (voor.length <= max && kern(voor, 3)) return voor;
     }
-    const zonderHaakjes = t.replace(/\s+\([^()]*\)(?=\s|$)/gu, "");
+    const zonderHaakjes = t.replace(/\s+\(([^()]*)\)(?=\s|$)/gu, (m, binnen) => heeftOntkenning(binnen) ? m : "");
     if (zonderHaakjes !== t && zonderHaakjes.length <= max && kern(zonderHaakjes, 3)) return zonderHaakjes;
     const basis = zonderHaakjes !== t && kern(zonderHaakjes, 3) ? zonderHaakjes : t;
     const komma = basis.slice(0, max - 1).lastIndexOf(", ");
     if (komma > 0) {
       const voor = staart(zonderLosEinde(basis.slice(0, komma).split(" ")).join(" "));
-      if (kern(voor, 4) && voor.length >= (max - 1) / 2 && !isCitaat(voor)) return `${voor}…`;
+      if (kern(voor, 4) && voor.length >= (max - 1) / 2 && !isCitaat(voor) && !opent(voor)) return `${voor}…`;
     }
     return afkappen(basis, max);
   }
@@ -3746,7 +3918,8 @@ var HootCore = (() => {
       ...edition,
       entries: edition.entries.map((e) => {
         const kop = byId2.get(e.kind === "story" ? e.leadId || e.id : e.id)?.title || e.title;
-        return kop ? { ...e, kortKop: kortKop(kop) } : e;
+        const kort = kop ? kortKop(kop) : null;
+        return kort ? { ...e, kortKop: kort } : e;
       })
     };
   }
