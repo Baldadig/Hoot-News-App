@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Opinie in de Stroom** (web; app volgt in 1.2.1): een eigen tab Opinie na Sport, vóór Buiten je bubbel. Opiniestukken blijven ook in hun rubriek en in Alles. De server herkent opinie beter (columnrubrieken, opiniemappen in de link, een kop die met de naam van de columnist opent) en zet dat per bericht in de feed.
+
 - **Jouw Editie nooit meer met berichten uit een oude cache** (web en app): opende Safari na een dag, dan werd je Editie samengesteld met je eigen berichten van gisteren en voor het hele dagdeel vastgelegd (8 plekken, bijna geen eigen bronnen). Nu stelt het toestel pas samen met verse berichten van dit dagdeel, schrijft nooit een eerder dagdeel over een later heen, en valt anders terug op de Editie uit je account of van de server. Laden eindigt altijd.
 
 - **Intro op de telefoon vier regels** (web en app): de kaart in de Editie mag op de telefoon een intro van vier regels hebben in plaats van drie. Daardoor krijgen veel meer kaarten een intro (plekken 02–10 zonder intro: van 241 naar 101 op 1035). Desktop, iPad en de Stroom houden drie regels.
