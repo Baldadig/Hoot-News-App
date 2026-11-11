@@ -1,5 +1,5 @@
 {
-  "uitleg": "Nagebootste modelantwoorden voor de drie verhalen uit feed-fragment-2026-11-11.json (er was geen ANTHROPIC_API_KEY). 'schrijver' heeft de vorm van het structured-output-antwoord van claude-sonnet-5-5; 'controle' zegt per zin (op een stukje tekst) wat claude-haiku-5-5 zou oordelen; zinnen die er niet in staan zijn gedragen en echt. Er zitten met opzet zwakke zinnen in (vals contrast, twee telwoorden, een Engels citaat, 'zeker' dat de bron niet zegt) om de keuringen te laten zien.",
+  "uitleg": "Nagebootste modelantwoorden voor de drie verhalen uit feed-fragment-2026-11-11.json (er was geen ANTHROPIC_API_KEY). 'schrijver' heeft de vorm van het structured-output-antwoord van claude-sonnet-5-5; 'controle' zegt per zin (op een stukje tekst) wat claude-haiku-5-5 zou oordelen; zinnen die er niet in staan zijn gedragen en echt. Er zitten met opzet zwakke zinnen in (vals contrast, twee telwoorden, een Engels citaat, 'zeker' dat de bron niet zegt) om de keuringen te laten zien. Herstelronde (keuring 1): de nagebootste controle oordeelt nu ook over de twee vals-contrastzinnen die de keuring vond. 'Het woord verschilt' (Het Parool zegt zelf ook 'miljonairsbelasting') valt al in de codecontrole; 'Al Jazeera brengt het anders' (The Independent staat aan beide kanten, DW en De Standaard ontbreken, en de twee kanten sluiten elkaar niet uit) valt in de controle. Daardoor krijgt Hegseth geen blok: liever niets.",
   "verhalen": {
     "sts2z5a": {
       "naam": "Belastingplan",
@@ -9,17 +9,54 @@
           {
             "soort": "gedeeld",
             "tekst": "Alle negen bronnen melden een deal van D66 en CDA met Pro en Volt.",
-            "bronnen": [1, 2, 3, 6, 7, 8, 9, 10, 11],
+            "bronnen": [
+              1,
+              2,
+              3,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
             "fragmenten": [
-              { "bron": 1, "tekst": "PRO en Volt een deal hebben gesloten met D66 en het CDA" },
-              { "bron": 2, "tekst": "linkse deal zonder VVD" },
-              { "bron": 3, "tekst": "CDA en D66 hebben een deal" },
-              { "bron": 6, "tekst": "D66 en CDA sluiten akkoord met Pro en Volt over Belastingplan" },
-              { "bron": 7, "tekst": "deal links met D66 en CDA over belastingplan" },
-              { "bron": 8, "tekst": "Deal D66 en CDA met PRO en Volt" },
-              { "bron": 9, "tekst": "D66 en CDA sluiten deal ‘over links’ met PRO en Volt" },
-              { "bron": 10, "tekst": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan" },
-              { "bron": 11, "tekst": "D66 en CDA sluiten akkoord met links over belastingplan" }
+              {
+                "bron": 1,
+                "tekst": "PRO en Volt een deal hebben gesloten met D66 en het CDA"
+              },
+              {
+                "bron": 2,
+                "tekst": "linkse deal zonder VVD"
+              },
+              {
+                "bron": 3,
+                "tekst": "CDA en D66 hebben een deal"
+              },
+              {
+                "bron": 6,
+                "tekst": "D66 en CDA sluiten akkoord met Pro en Volt over Belastingplan"
+              },
+              {
+                "bron": 7,
+                "tekst": "deal links met D66 en CDA over belastingplan"
+              },
+              {
+                "bron": 8,
+                "tekst": "Deal D66 en CDA met PRO en Volt"
+              },
+              {
+                "bron": 9,
+                "tekst": "D66 en CDA sluiten deal ‘over links’ met PRO en Volt"
+              },
+              {
+                "bron": 10,
+                "tekst": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan"
+              },
+              {
+                "bron": 11,
+                "tekst": "D66 en CDA sluiten akkoord met links over belastingplan"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -27,14 +64,39 @@
           {
             "soort": "verschil",
             "tekst": "Het woord verschilt: NRC, RTL Nieuws, AD en ND schrijven ‘miljonairsbelasting’, Het Parool ‘miljonairstaks’ en De Telegraaf ‘vermogenstaks’.",
-            "bronnen": [6, 8, 3, 4, 9, 12],
+            "bronnen": [
+              6,
+              8,
+              3,
+              4,
+              9,
+              12
+            ],
             "fragmenten": [
-              { "bron": 6, "tekst": "‘miljonairsbelasting’" },
-              { "bron": 8, "tekst": "over miljonairsbelasting" },
-              { "bron": 3, "tekst": "over een miljonairsbelasting" },
-              { "bron": 4, "tekst": "over een ‘miljonairsbelasting’" },
-              { "bron": 9, "tekst": "VVD miljonairstaks gaat pruimen" },
-              { "bron": 12, "tekst": "over vermogenstaks" }
+              {
+                "bron": 6,
+                "tekst": "‘miljonairsbelasting’"
+              },
+              {
+                "bron": 8,
+                "tekst": "over miljonairsbelasting"
+              },
+              {
+                "bron": 3,
+                "tekst": "over een miljonairsbelasting"
+              },
+              {
+                "bron": 4,
+                "tekst": "over een ‘miljonairsbelasting’"
+              },
+              {
+                "bron": 9,
+                "tekst": "VVD miljonairstaks gaat pruimen"
+              },
+              {
+                "bron": 12,
+                "tekst": "over vermogenstaks"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -42,22 +104,46 @@
           {
             "soort": "verschil",
             "tekst": "Alleen NOS en NU.nl melden dat de VVD nog niet reageerde.",
-            "bronnen": [10, 11],
-            "fragmenten": [
-              { "bron": 10, "tekst": "nog geen reactie VVD" },
-              { "bron": 11, "tekst": "geen reactie VVD" }
+            "bronnen": [
+              10,
+              11
             ],
-            "uniek": ["reactie VVD"],
+            "fragmenten": [
+              {
+                "bron": 10,
+                "tekst": "nog geen reactie VVD"
+              },
+              {
+                "bron": 11,
+                "tekst": "geen reactie VVD"
+              }
+            ],
+            "uniek": [
+              "reactie VVD"
+            ],
             "afwezig": []
           },
           {
             "soort": "verschil",
             "tekst": "De toon ook: De Telegraaf kopt ‘Bom in coalitie’, het FD ‘Spanning in coalitie’ en het AD vraagt of een kabinetscrisis dreigt.",
-            "bronnen": [12, 7, 3],
+            "bronnen": [
+              12,
+              7,
+              3
+            ],
             "fragmenten": [
-              { "bron": 12, "tekst": "Bom in coalitie" },
-              { "bron": 7, "tekst": "Spanning in coalitie" },
-              { "bron": 3, "tekst": "dreigt er een kabinetscrisis?" }
+              {
+                "bron": 12,
+                "tekst": "Bom in coalitie"
+              },
+              {
+                "bron": 7,
+                "tekst": "Spanning in coalitie"
+              },
+              {
+                "bron": 3,
+                "tekst": "dreigt er een kabinetscrisis?"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -65,11 +151,24 @@
           {
             "soort": "onbekend",
             "tekst": "Nog open is of er een meerderheid voor het belastingplan is; donderdag debatteert de Kamer verder.",
-            "bronnen": [4, 1, 2],
+            "bronnen": [
+              4,
+              1,
+              2
+            ],
             "fragmenten": [
-              { "bron": 4, "tekst": "meerderheid voor belastingplan is nog steeds ongewis" },
-              { "bron": 1, "tekst": "Kamer debatteert donderdag toch verder" },
-              { "bron": 2, "tekst": "Kamer debatteert donderdag" }
+              {
+                "bron": 4,
+                "tekst": "meerderheid voor belastingplan is nog steeds ongewis"
+              },
+              {
+                "bron": 1,
+                "tekst": "Kamer debatteert donderdag toch verder"
+              },
+              {
+                "bron": 2,
+                "tekst": "Kamer debatteert donderdag"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -77,7 +176,12 @@
         ]
       },
       "controle": [
-        { "zin": "Alleen NOS en NU.nl", "gedragen": true, "echt_verschil": false, "reden": "Ook NRC (positie VVD onduidelijk) en het AD (de VVD spoorloos) melden dat de VVD nog niets zei; het is geen tegenstelling." }
+        {
+          "zin": "Alleen NOS en NU.nl",
+          "gedragen": true,
+          "echt_verschil": false,
+          "reden": "Ook NRC (positie VVD onduidelijk) en het AD (de VVD spoorloos) melden dat de VVD nog niets zei; het is geen tegenstelling."
+        }
       ]
     },
     "s11wahg9": {
@@ -88,19 +192,64 @@
           {
             "soort": "gedeeld",
             "tekst": "Elf bronnen melden bommeldingen bij scholen in Italië, Schotland of Ierland.",
-            "bronnen": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            "bronnen": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
             "fragmenten": [
-              { "bron": 1, "tekst": "Bommeldingen bij 6.000 Italiaanse scholen" },
-              { "bron": 2, "tekst": "Bommeldingen bij 6.000 Italiaanse scholen" },
-              { "bron": 3, "tekst": "scholen in Italië krijgen valse bommelding" },
-              { "bron": 4, "tekst": "bommeldingen op scholen in Italië, Ierland en Schotland" },
-              { "bron": 5, "tekst": "scholen in Ierland en Schotland hebben bommeldingen ontvangen" },
-              { "bron": 6, "tekst": "Italiaanse scholen ontruimd na valse bommeldingen" },
-              { "bron": 7, "tekst": "Honderden scholen in Italië, het Verenigd Koninkrijk en Ierland kregen per mail een bommelding" },
-              { "bron": 8, "tekst": "Honderden scholen in Italië, Schotland, Ierland en Noord-Ierland hebben bommeldingen gekregen" },
-              { "bron": 9, "tekst": "Scholen in Italië, Schotland en Noord-Ierland ontruimd om bommeldingen" },
-              { "bron": 10, "tekst": "ook meldingen in Ierland en Schotland" },
-              { "bron": 11, "tekst": "scholen in Italië, Schotland en Noord-Ierland" }
+              {
+                "bron": 1,
+                "tekst": "Bommeldingen bij 6.000 Italiaanse scholen"
+              },
+              {
+                "bron": 2,
+                "tekst": "Bommeldingen bij 6.000 Italiaanse scholen"
+              },
+              {
+                "bron": 3,
+                "tekst": "scholen in Italië krijgen valse bommelding"
+              },
+              {
+                "bron": 4,
+                "tekst": "bommeldingen op scholen in Italië, Ierland en Schotland"
+              },
+              {
+                "bron": 5,
+                "tekst": "scholen in Ierland en Schotland hebben bommeldingen ontvangen"
+              },
+              {
+                "bron": 6,
+                "tekst": "Italiaanse scholen ontruimd na valse bommeldingen"
+              },
+              {
+                "bron": 7,
+                "tekst": "Honderden scholen in Italië, het Verenigd Koninkrijk en Ierland kregen per mail een bommelding"
+              },
+              {
+                "bron": 8,
+                "tekst": "Honderden scholen in Italië, Schotland, Ierland en Noord-Ierland hebben bommeldingen gekregen"
+              },
+              {
+                "bron": 9,
+                "tekst": "Scholen in Italië, Schotland en Noord-Ierland ontruimd om bommeldingen"
+              },
+              {
+                "bron": 10,
+                "tekst": "ook meldingen in Ierland en Schotland"
+              },
+              {
+                "bron": 11,
+                "tekst": "scholen in Italië, Schotland en Noord-Ierland"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -108,14 +257,39 @@
           {
             "soort": "verschil",
             "tekst": "Zes van hen noemen e-mail, de andere vijf niet.",
-            "bronnen": [1, 3, 7, 9, 2, 11],
+            "bronnen": [
+              1,
+              3,
+              7,
+              9,
+              2,
+              11
+            ],
             "fragmenten": [
-              { "bron": 1, "tekst": "bommeldingen per e-mail" },
-              { "bron": 3, "tekst": "via een anonieme e-mail" },
-              { "bron": 7, "tekst": "per mail een bommelding" },
-              { "bron": 9, "tekst": "per e-mail bedreigd" },
-              { "bron": 2, "tekst": "honderden e-mails naar scholen" },
-              { "bron": 11, "tekst": "Dreigende mails" }
+              {
+                "bron": 1,
+                "tekst": "bommeldingen per e-mail"
+              },
+              {
+                "bron": 3,
+                "tekst": "via een anonieme e-mail"
+              },
+              {
+                "bron": 7,
+                "tekst": "per mail een bommelding"
+              },
+              {
+                "bron": 9,
+                "tekst": "per e-mail bedreigd"
+              },
+              {
+                "bron": 2,
+                "tekst": "honderden e-mails naar scholen"
+              },
+              {
+                "bron": 11,
+                "tekst": "Dreigende mails"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -123,11 +297,24 @@
           {
             "soort": "verschil",
             "tekst": "De cijfers verschillen: Het Nieuwsblad en HLN noemen zo'n 6.000 Italiaanse scholen met een melding, VRT NWS 6.300.",
-            "bronnen": [1, 2, 3],
+            "bronnen": [
+              1,
+              2,
+              3
+            ],
             "fragmenten": [
-              { "bron": 1, "tekst": "zowat 6.000 scholen een bommelding gekregen" },
-              { "bron": 2, "tekst": "zowat 6.000 scholen een bommelding gekregen" },
-              { "bron": 3, "tekst": "ongeveer 6.300 scholen" }
+              {
+                "bron": 1,
+                "tekst": "zowat 6.000 scholen een bommelding gekregen"
+              },
+              {
+                "bron": 2,
+                "tekst": "zowat 6.000 scholen een bommelding gekregen"
+              },
+              {
+                "bron": 3,
+                "tekst": "ongeveer 6.300 scholen"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -135,11 +322,24 @@
           {
             "soort": "verschil",
             "tekst": "Trouw, AD en RTL Nieuws tellen zeker driehonderd ontruimde scholen.",
-            "bronnen": [10, 11, 8],
+            "bronnen": [
+              10,
+              11,
+              8
+            ],
             "fragmenten": [
-              { "bron": 10, "tekst": "Driehonderd Italiaanse scholen zijn geëvacueerd" },
-              { "bron": 11, "tekst": "ten minste driehonderd scholen ontruimd" },
-              { "bron": 8, "tekst": "zeker driehonderd scholen geëvacueerd" }
+              {
+                "bron": 10,
+                "tekst": "Driehonderd Italiaanse scholen zijn geëvacueerd"
+              },
+              {
+                "bron": 11,
+                "tekst": "ten minste driehonderd scholen ontruimd"
+              },
+              {
+                "bron": 8,
+                "tekst": "zeker driehonderd scholen geëvacueerd"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -147,15 +347,32 @@
           {
             "soort": "onbekend",
             "tekst": "Wie de mails stuurde, staat in geen van de koppen of intro's; VRT NWS noemt de e-mail anoniem.",
-            "bronnen": [3],
-            "fragmenten": [{ "bron": 3, "tekst": "via een anonieme e-mail" }],
+            "bronnen": [
+              3
+            ],
+            "fragmenten": [
+              {
+                "bron": 3,
+                "tekst": "via een anonieme e-mail"
+              }
+            ],
             "uniek": [],
-            "afwezig": ["afzender", "dader", "verdachte", "opgeëist"]
+            "afwezig": [
+              "afzender",
+              "dader",
+              "verdachte",
+              "opgeëist"
+            ]
           }
         ]
       },
       "controle": [
-        { "zin": "zeker driehonderd", "gedragen": false, "echt_verschil": true, "reden": "Trouw zegt 'driehonderd', niet 'zeker'; de zin maakt het steviger dan die bron." }
+        {
+          "zin": "zeker driehonderd",
+          "gedragen": false,
+          "echt_verschil": true,
+          "reden": "Trouw zegt 'driehonderd', niet 'zeker'; de zin maakt het steviger dan die bron."
+        }
       ]
     },
     "s1rwx2k0": {
@@ -166,17 +383,54 @@
           {
             "soort": "gedeeld",
             "tekst": "Negen bronnen melden dat het Huis van Afgevaardigden een poging om defensieminister Pete Hegseth af te zetten tegenhield.",
-            "bronnen": [1, 6, 3, 4, 5, 9, 10, 11, 12],
+            "bronnen": [
+              1,
+              6,
+              3,
+              4,
+              5,
+              9,
+              10,
+              11,
+              12
+            ],
             "fragmenten": [
-              { "bron": 1, "tekst": "Eerste poging tot afzetting tegen Pete" },
-              { "bron": 6, "tekst": "Pete Hegseth’s impeachment stymied" },
-              { "bron": 3, "tekst": "spared from the House’s impeachment effort" },
-              { "bron": 4, "tekst": "US House blocks bid to impeach" },
-              { "bron": 5, "tekst": "narrowly shelves House impeachment vote" },
-              { "bron": 9, "tekst": "derail push to impeach" },
-              { "bron": 10, "tekst": "Hegseth survives impeachment attempt" },
-              { "bron": 11, "tekst": "overleeft voorlopig een poging" },
-              { "bron": 12, "tekst": "Republikeinen blokkeren afzettingsprocedure" }
+              {
+                "bron": 1,
+                "tekst": "Eerste poging tot afzetting tegen Pete"
+              },
+              {
+                "bron": 6,
+                "tekst": "Pete Hegseth’s impeachment stymied"
+              },
+              {
+                "bron": 3,
+                "tekst": "spared from the House’s impeachment effort"
+              },
+              {
+                "bron": 4,
+                "tekst": "US House blocks bid to impeach"
+              },
+              {
+                "bron": 5,
+                "tekst": "narrowly shelves House impeachment vote"
+              },
+              {
+                "bron": 9,
+                "tekst": "derail push to impeach"
+              },
+              {
+                "bron": 10,
+                "tekst": "Hegseth survives impeachment attempt"
+              },
+              {
+                "bron": 11,
+                "tekst": "overleeft voorlopig een poging"
+              },
+              {
+                "bron": 12,
+                "tekst": "Republikeinen blokkeren afzettingsprocedure"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -184,11 +438,24 @@
           {
             "soort": "verschil",
             "tekst": "Wie hem redde, brengen ze anders: volgens DW en De Standaard blokkeerden de Republikeinen het, Al Jazeera vraagt of de Democraten hem redden.",
-            "bronnen": [9, 12, 5],
+            "bronnen": [
+              9,
+              12,
+              5
+            ],
             "fragmenten": [
-              { "bron": 9, "tekst": "US Republicans derail push" },
-              { "bron": 12, "tekst": "Republikeinen blokkeren afzettingsprocedure" },
-              { "bron": 5, "tekst": "Did Democrats save Pete Hegseth" }
+              {
+                "bron": 9,
+                "tekst": "US Republicans derail push"
+              },
+              {
+                "bron": 12,
+                "tekst": "Republikeinen blokkeren afzettingsprocedure"
+              },
+              {
+                "bron": 5,
+                "tekst": "Did Democrats save Pete Hegseth"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -196,11 +463,24 @@
           {
             "soort": "verschil",
             "tekst": "Al Jazeera brengt het anders: volgens de zender waren elf Democraten afwezig bij de nipte stemming; NPR en The Independent schrijven dat de Republikeinen de afzetting tegenhielden.",
-            "bronnen": [5, 7, 6],
+            "bronnen": [
+              5,
+              7,
+              6
+            ],
             "fragmenten": [
-              { "bron": 5, "tekst": "Eleven Democrats are absent from procedural vote that narrowly shelves" },
-              { "bron": 7, "tekst": "Republicans block Hegseth impeachment" },
-              { "bron": 6, "tekst": "Republicans unite to save his defense secretary" }
+              {
+                "bron": 5,
+                "tekst": "Eleven Democrats are absent from procedural vote that narrowly shelves"
+              },
+              {
+                "bron": 7,
+                "tekst": "Republicans block Hegseth impeachment"
+              },
+              {
+                "bron": 6,
+                "tekst": "Republicans unite to save his defense secretary"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -208,19 +488,39 @@
           {
             "soort": "verschil",
             "tekst": "The Independent noemt het een ‘much-needed victory’ voor Trump.",
-            "bronnen": [6],
-            "fragmenten": [{ "bron": 6, "tekst": "Trump gets a much-needed victory" }],
+            "bronnen": [
+              6
+            ],
+            "fragmenten": [
+              {
+                "bron": 6,
+                "tekst": "Trump gets a much-needed victory"
+              }
+            ],
             "uniek": [],
             "afwezig": []
           },
           {
             "soort": "onbekend",
             "tekst": "Of het klaar is, staat open: NRC en NPR houden het op voorlopig, en volgens de BBC kunnen de Democraten het volgend jaar opnieuw proberen.",
-            "bronnen": [11, 3, 4],
+            "bronnen": [
+              11,
+              3,
+              4
+            ],
             "fragmenten": [
-              { "bron": 11, "tekst": "overleeft voorlopig" },
-              { "bron": 3, "tekst": "at least for now" },
-              { "bron": 4, "tekst": "Democrats can try again next year" }
+              {
+                "bron": 11,
+                "tekst": "overleeft voorlopig"
+              },
+              {
+                "bron": 3,
+                "tekst": "at least for now"
+              },
+              {
+                "bron": 4,
+                "tekst": "Democrats can try again next year"
+              }
             ],
             "uniek": [],
             "afwezig": []
@@ -228,7 +528,18 @@
         ]
       },
       "controle": [
-        { "zin": "Wie hem redde", "gedragen": true, "echt_verschil": false, "reden": "Ook NPR ('Republicans block') en The Independent ('Republicans unite to save') geven de Republikeinen de eer; alleen Al Jazeera wijkt af." }
+        {
+          "zin": "Wie hem redde",
+          "gedragen": true,
+          "echt_verschil": false,
+          "reden": "Ook NPR ('Republicans block') en The Independent ('Republicans unite to save') geven de Republikeinen de eer; alleen Al Jazeera wijkt af."
+        },
+        {
+          "zin": "Al Jazeera brengt het anders",
+          "gedragen": true,
+          "echt_verschil": false,
+          "reden": "The Independent kopt zelf over afwezige Democraten (no-show colleagues), DW en De Standaard zeggen ook dat de Republikeinen het blokkeerden maar staan niet in de groep, en 'Democraten afwezig' en 'Republikeinen blokkeerden' sluiten elkaar niet uit."
+        }
       ]
     }
   }

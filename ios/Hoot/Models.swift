@@ -246,11 +246,13 @@ struct StoryVerschillen: Codable, Hashable {
         return lijst
     }
 
-    // Typografie: ’ in plaats van een rechte apostrof tussen letters, en een vaste spatie na een getal.
+    // Typografie: ’ in plaats van een rechte apostrof tussen letters, een vaste spatie na een getal en een
+    // vast streepje na een kort voorvoegsel ("e-mail"), net als op het web.
     static func zet(_ t: String) -> String {
         var s = t.trimmingCharacters(in: .whitespacesAndNewlines)
         s = s.replacingOccurrences(of: #"(\p{L})'(\p{L})"#, with: "$1’$2", options: .regularExpression)
         s = s.replacingOccurrences(of: #"(\d[\d.,]*) (?=\p{L})"#, with: "$1\u{00A0}", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"(?<!\p{L})(\p{L}{1,2})-(?=\p{L})"#, with: "$1\u{2011}", options: .regularExpression)
         return s
     }
 }

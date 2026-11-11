@@ -9,12 +9,14 @@ export const VERSCHILLEN_VOET = 'Door AI samengevat uit de koppen en intro’s h
 const SOORTEN = ['gedeeld', 'verschil', 'onbekend']
 
 // Typografie zoals in de rest van Hoot: ’ in plaats van een rechte apostrof, en een vaste spatie na een
-// getal, zodat "1" en "miljard euro" niet over twee regels breken.
+// getal, zodat "1" en "miljard euro" niet over twee regels breken. Een kort voorvoegsel met streepje
+// ("e-mail") krijgt een vast streepje, zodat "e-" niet alleen aan het eind van een regel staat.
 export const zetTekst = (t) =>
   String(t || '')
     .trim()
     .replace(/(\p{L})'(\p{L})/gu, '$1’$2')
     .replace(/(\d[\d.,]*) (?=\p{L})/gu, '$1 ')
+    .replace(/(?<!\p{L})(\p{L}{1,2})-(?=\p{L})/gu, '$1\u2011')
 
 // De alinea's om te tonen, in vaste volgorde (wat iedereen zegt, waar ze verschillen, wat open is), of null.
 export function verschillenDelen(story) {

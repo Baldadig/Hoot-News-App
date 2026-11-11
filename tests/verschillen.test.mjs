@@ -59,7 +59,7 @@ test('codecontrole: elke genoemde bron (ook kort of afgekort) hoort bij de aange
 
 test('codecontrole: getallen, citaten (letterlijk, kort, Nederlands) en telwoorden', () => {
   const getal = toetsZin(zin({ tekst: 'Het Nieuwsblad noemt 7.000 scholen, VRT NWS 6.300.', bronnen: [1, 3], fragmenten: [{ bron: 1, tekst: 'zowat 6.000 scholen' }, { bron: 3, tekst: 'ongeveer 6.300 scholen' }] }), ctx(BOM))
-  assert.ok(getal.includes('getal 7000 niet in de bronnen'))
+  assert.ok(getal.includes('getal 7000 niet bij Het Nieuwsblad'), getal.join('; '))
   // 6.000 en 6000 zijn hetzelfde getal.
   assert.deepEqual(toetsZin(zin({ soort: 'onbekend', tekst: 'Het Nieuwsblad noemt 6000 scholen.', bronnen: [1], fragmenten: [{ bron: 1, tekst: 'zowat 6.000 scholen' }] }), ctx(BOM)), [])
   const lang = toetsZin(zin({ soort: 'onbekend', tekst: 'NRC schrijft ‘volgens de politie zijn de berichten nep’.', bronnen: [7], fragmenten: [{ bron: 7, tekst: 'Volgens de politie zijn de berichten nep' }] }), ctx(BOM))
@@ -95,6 +95,62 @@ test('codecontrole: geen oordelen over media, motieven of kloktijden', () => {
   }
 })
 
+// De aanvallen uit keuring 1: elk van deze zinnen moet de codecontrole tegenhouden.
+test('codecontrole: getallen in woorden, alle aanhalingstekens, per bron, en geen bronnen buiten het verhaal', () => {
+  const heg = (tekst, extra = {}) => toetsZin(zin({ soort: 'onbekend', tekst, bronnen: [5], fragmenten: [{ bron: 5, tekst: 'Eleven Democrats are absent' }], ...extra }), ctx(HEG))
+  // Getallen in woorden, ook tegenover een Engelse bron ("Eleven" is elf).
+  assert.deepEqual(heg('Volgens Al Jazeera waren elf Democraten afwezig.'), [])
+  assert.ok(heg('Volgens Al Jazeera waren twaalf Democraten afwezig.').includes('getal 12 niet bij Al Jazeera'))
+  const trouw = (tekst) => toetsZin(zin({ soort: 'onbekend', tekst, bronnen: [10], fragmenten: [{ bron: 10, tekst: 'Driehonderd Italiaanse scholen' }] }), ctx(BOM))
+  assert.deepEqual(trouw('Trouw meldt driehonderd geëvacueerde scholen.'), [])
+  assert.ok(trouw('Trouw meldt vierhonderd geëvacueerde scholen.').includes('getal 400 niet bij Trouw'))
+  assert.ok(trouw('Trouw meldt tienduizend geëvacueerde scholen.').includes('getal 10000 niet bij Trouw'))
+  assert.deepEqual(trouw('Trouw meldt ten minste 300 scholen.').filter((r) => /getal 10\b/.test(r)), []) // "ten minste" is geen tien
+  // Parafrase tussen elke soort aanhalingstekens.
+  const ad = (tekst) => toetsZin(zin({ soort: 'onbekend', tekst, bronnen: [3], fragmenten: [{ bron: 3, tekst: 'dreigt er een kabinetscrisis?' }] }), ctx(BEL))
+  for (const q of ['„dreigt een kabinetscrisis”', '«dreigt een kabinetscrisis»', "'dreigt een kabinetscrisis'", '‚dreigt een kabinetscrisis‘']) assert.ok(ad(`Het AD vraagt ${q}.`).some((r) => /citaat niet letterlijk/.test(r)), q)
+  assert.deepEqual(ad('Het AD vraagt „dreigt er een kabinetscrisis?”'), [])
+  assert.deepEqual(ad("Het AD kopt over de VVD, zo'n partij."), []) // een apostrof in zo'n is geen citaat
+  // Verwisseld: getal of citaat bij de verkeerde bron, ook al staat het bij een andere aangehaalde bron.
+  const bom = (tekst) => toetsZin(zin({ tekst, bronnen: [1, 3], fragmenten: [{ bron: 1, tekst: 'zowat 6.000 scholen' }, { bron: 3, tekst: 'ongeveer 6.300 scholen' }] }), ctx(BOM))
+  assert.deepEqual(bom('Het Nieuwsblad noemt 6.000 scholen, VRT NWS 6.300.'), [])
+  const om = bom('Het Nieuwsblad noemt 6.300 scholen, VRT NWS 6.000.')
+  assert.ok(om.includes('getal 6300 niet bij Het Nieuwsblad') && om.includes('getal 6000 niet bij VRT NWS'), om.join('; '))
+  const toon = (tekst) => toetsZin(zin({ tekst, bronnen: [12, 7], fragmenten: [{ bron: 12, tekst: 'Bom in coalitie' }, { bron: 7, tekst: 'Spanning in coalitie' }] }), ctx(BEL))
+  assert.deepEqual(toon('De Telegraaf kopt ‘Bom in coalitie’, het FD ‘Spanning in coalitie’.'), [])
+  const toonOm = toon('De Telegraaf kopt ‘Spanning in coalitie’, het FD ‘Bom in coalitie’.')
+  assert.ok(toonOm.includes('citaat ‘Spanning in coalitie’ niet bij De Telegraaf') && toonOm.includes('citaat ‘Bom in coalitie’ niet bij Het Financieele Dagblad'), toonOm.join('; '))
+  // Een groep: wat volgt geldt voor elk lid.
+  const groep = toetsZin(zin({ soort: 'onbekend', tekst: 'Het Nieuwsblad, HLN en VRT NWS noemen 6.000 scholen.', bronnen: [1, 2, 3], fragmenten: [{ bron: 1, tekst: 'zowat 6.000 scholen' }, { bron: 2, tekst: 'zowat 6.000 scholen' }, { bron: 3, tekst: 'ongeveer 6.300 scholen' }] }), ctx(BOM))
+  assert.ok(groep.includes('getal 6000 niet bij VRT NWS'), groep.join('; '))
+  // Bronnen buiten het verhaal, en "Volkskrant" zonder "de".
+  for (const t of ['Volgens het ANP gaat het om 6.000 scholen.', 'Volgens Reuters gaat het om 6.000 scholen.', 'Reuters meldt 6.000 scholen.']) {
+    const r = toetsZin(zin({ soort: 'onbekend', tekst: t, bronnen: [1], fragmenten: [{ bron: 1, tekst: 'zowat 6.000 scholen' }] }), ctx(BOM))
+    assert.ok(r.some((x) => /geen bron van dit verhaal/.test(x)), t)
+  }
+  const persoon = toetsZin(zin({ soort: 'onbekend', tekst: 'Volgens Trump is het een overwinning.', bronnen: [4], fragmenten: [{ bron: 4, tekst: 'Trump welcomes the outcome' }] }), ctx(HEG))
+  assert.ok(!persoon.some((x) => /volgens Trump/.test(x)), persoon.join('; ')) // een naam uit de aangehaalde regels mag
+  assert.ok(toetsZin(zin({ soort: 'onbekend', tekst: 'Volgens Massiefski is het nep.', bronnen: [7], fragmenten: [{ bron: 7, tekst: 'Volgens de politie zijn de berichten nep' }] }), ctx(BOM)).some((x) => /"volgens Massiefski"/.test(x)))
+  assert.ok(namenIn('Volkskrant en Telegraaf melden het').includes('de Volkskrant'))
+  assert.ok(toetsZin(zin({ soort: 'onbekend', tekst: 'Volkskrant meldt 6.000 scholen.', bronnen: [1], fragmenten: [{ bron: 1, tekst: 'zowat 6.000 scholen' }] }), ctx(BOM)).includes('noemt de Volkskrant zonder bron'))
+})
+
+test('geen vals contrast in code: een bron aan beide kanten, of een citaat dat ook buiten de groep staat', () => {
+  // De zin uit de eerste proef: Het Parool zegt zelf ook "miljonairsbelasting".
+  const parool = toetsZin(zin({
+    tekst: 'Het woord verschilt: NRC, RTL Nieuws, AD en ND schrijven ‘miljonairsbelasting’, Het Parool ‘miljonairstaks’.',
+    bronnen: [6, 8, 3, 4, 9],
+    fragmenten: [{ bron: 6, tekst: '‘miljonairsbelasting’' }, { bron: 8, tekst: 'over miljonairsbelasting' }, { bron: 3, tekst: 'over een miljonairsbelasting' }, { bron: 4, tekst: 'over een ‘miljonairsbelasting’' }, { bron: 9, tekst: 'VVD miljonairstaks gaat pruimen' }],
+  }), ctx(BEL))
+  assert.ok(parool.includes('Het Parool zegt ook ‘miljonairsbelasting’ (vals contrast)'), parool.join('; '))
+  // Een getal van de ene kant dat ook bij de andere kant staat.
+  const beide = toetsZin(zin({ tekst: 'Het Nieuwsblad noemt 6.000 scholen, HLN ook 6.000 en VRT NWS 6.300.', bronnen: [1, 2, 3], fragmenten: [{ bron: 1, tekst: 'zowat 6.000 scholen' }, { bron: 2, tekst: 'zowat 6.000 scholen' }, { bron: 3, tekst: 'ongeveer 6.300 scholen' }] }), ctx(BOM))
+  assert.ok(beide.some((r) => /zegt ook 6000 \(vals contrast\)/.test(r)), beide.join('; '))
+  // Een citaat van één kant dat ook bij een niet-genoemde bron staat.
+  const elders = toetsZin(zin({ tekst: 'NRC schrijft ‘miljonairsbelasting’, De Telegraaf ‘vermogenstaks’.', bronnen: [6, 12], fragmenten: [{ bron: 6, tekst: 'miljonairsbelasting' }, { bron: 12, tekst: 'vermogenstaks' }] }), ctx(BEL))
+  assert.ok(elders.some((r) => /‘miljonairsbelasting’ staat ook bij .*Het Parool/.test(r)), elders.join('; '))
+})
+
 // ---------- Geen vals contrast ----------
 test('geen vals contrast: noemen tegenover zwijgen, of een "verschil" met één kant, valt weg', () => {
   const zwijgen = toetsZin(zin({ tekst: 'NOS en VRT NWS noemen e-mail, de andere bronnen niet.', bronnen: [9, 3], fragmenten: [{ bron: 9, tekst: 'per e-mail bedreigd' }, { bron: 3, tekst: 'anonieme e-mail' }] }), ctx(BOM))
@@ -105,22 +161,30 @@ test('geen vals contrast: noemen tegenover zwijgen, of een "verschil" met één 
   assert.ok(gedeeldTeSmal.some((r) => /gedeeld maar 2 van 9/.test(r)))
 })
 
-test('de controle (Haiku) haalt een vals contrast eruit dat de code niet ziet', async () => {
+test('de controle (Haiku) haalt een vals contrast eruit dat de code niet ziet; blijft er geen verschil, dan geen blok', async () => {
   const r = await maakVerschillen(nepClient(nagebootst.s1rwx2k0), ctx(HEG), { now: 0 })
-  assert.ok(r.resultaat)
-  const weg = r.verslag.weg.find((w) => w.tekst.startsWith('Wie hem redde'))
-  assert.equal(weg.stap, 'controle')
-  assert.match(weg.reden[0], /^vals contrast/)
-  assert.ok(!r.resultaat.delen.some((d) => d.tekst.includes('Wie hem redde')))
+  for (const begin of ['Wie hem redde', 'Al Jazeera brengt het anders']) {
+    const weg = r.verslag.weg.find((w) => w.tekst.startsWith(begin))
+    assert.equal(weg.stap, 'controle', begin)
+    assert.match(weg.reden[0], /^vals contrast/)
+  }
+  // De Haiku-controle krijgt álle bronregels, niet alleen de aangehaalde: alleen zo ziet hij een bron die ontbreekt.
+  const client = nepClient(nagebootst.s1rwx2k0)
+  await maakVerschillen(client, ctx(HEG), { now: 0 })
+  assert.equal(client.calls[1].messages[0].content.split('\nZinnen:\n')[0].split('\n').filter((l) => /^\[\d+\] /.test(l)).length, HEG.rows.length)
+  assert.match(client.calls[1].system, /bron aan de ene kant staat, terwijl zijn kop of intro ook zegt wat de andere kant zegt/)
+  assert.equal(r.resultaat, null)
+  assert.equal(r.verslag.waarom, 'geen verschil over')
 })
 
 // ---------- De drie verhalen van 11 november ----------
-test('drie verhalen: een kort blok met wat iedereen zegt, het verschil en wat open is; zwakke zinnen weg', async () => {
-  for (const [v, id] of [[BEL, 'sts2z5a'], [BOM, 's11wahg9'], [HEG, 's1rwx2k0']]) {
+test('drie verhalen: een kort blok met wat iedereen zegt, één verschil en wat open is; zwakke zinnen weg', async () => {
+  for (const [v, id] of [[BEL, 'sts2z5a'], [BOM, 's11wahg9']]) {
     const client = nepClient(nagebootst[id])
     const { resultaat, verslag } = await maakVerschillen(client, ctx(v), { now: Date.parse('2026-11-11T16:00:00Z') })
     assert.ok(resultaat, id)
     assert.deepEqual(resultaat.delen.map((d) => d.soort), ['gedeeld', 'verschil', 'onbekend'], id)
+    assert.equal(verslag.zinnen.filter((z) => z.soort === 'verschil').length, 1, id)
     assert.ok(resultaat.woorden <= MAX_WOORDEN, `${id}: ${resultaat.woorden} woorden`)
     assert.ok(resultaat.refs.every((ref) => v.itemsById.has(ref)))
     assert.equal(resultaat.at, '2026-11-11T16:00:00.000Z')
@@ -138,8 +202,12 @@ test('drie verhalen: een kort blok met wat iedereen zegt, het verschil en wat op
   }
   const bom = await maakVerschillen(nepClient(nagebootst.s11wahg9), ctx(BOM), { now: 0 })
   assert.deepEqual(bom.verslag.weg.map((w) => [w.stap, w.tekst.slice(0, 20)]), [['code', 'Zes van hen noemen e'], ['controle', 'Trouw, AD en RTL Nie']])
+  const bel = await maakVerschillen(nepClient(nagebootst.sts2z5a), ctx(BEL), { now: 0 })
+  assert.deepEqual(bel.verslag.weg.map((w) => [w.stap, w.tekst.slice(0, 20)]), [['code', 'Het woord verschilt:'], ['controle', 'Alleen NOS en NU.nl ']])
+  assert.ok(!bel.resultaat.delen.some((d) => /Parool|miljonairs/.test(d.tekst)))
   const heg = await maakVerschillen(nepClient(nagebootst.s1rwx2k0), ctx(HEG), { now: 0 })
   assert.ok(heg.verslag.weg.some((w) => w.stap === 'code' && w.reden.some((r) => /anderstalige bron/.test(r))))
+  assert.equal(heg.resultaat, null)
 })
 
 // ---------- Weigeren: liever niets ----------
@@ -162,11 +230,11 @@ test('weigeren: oordeel "geen", een weigering, minder dan drie bronnen, of allee
   assert.equal((await maakVerschillen(nepClient(geenVerschil), ctx(BEL))).resultaat, null)
 })
 
-test('samenstellen: hooguit één gedeeld, twee verschillen en één open; te lang wordt korter', () => {
+test('samenstellen: hooguit één gedeeld, één verschil en één open; te lang wordt korter', () => {
   const z = (soort, n) => ({ soort, tekst: Array.from({ length: n }, () => 'woord').join(' ') + '.', bronnen: [1], fragmenten: [] })
-  const s = stelSamen([z('gedeeld', 10), z('gedeeld', 10), z('verschil', 30), z('verschil', 30), z('verschil', 5), z('onbekend', 15)])
+  const s = stelSamen([z('gedeeld', 30), z('gedeeld', 10), z('verschil', 40), z('verschil', 5), z('onbekend', 15)])
   assert.ok(s.woorden <= MAX_WOORDEN)
-  assert.deepEqual(s.delen.map((d) => d.soort), ['gedeeld', 'verschil', 'onbekend'])
+  assert.deepEqual(s.delen.map((d) => d.soort), ['gedeeld', 'verschil']) // wat open is, gaat er bij te lang als eerste af
   assert.equal(s.zinnen.filter((x) => x.soort === 'verschil').length, 1)
   assert.ok(s.weg.some((w) => /te lang/.test(w.reden[0])))
   assert.ok(s.weg.some((w) => /meer dan 1 zin/.test(w.reden[0])))
@@ -206,11 +274,12 @@ test('cache: per verhaal-versie in KV; tweede ronde zonder model; nieuwe bron = 
   assert.deepEqual(twee.get(BEL.story.id), een.get(BEL.story.id))
   assert.equal(client.calls.length, 2) // uit de cache
   const key = verschillenKey(BEL.story, BEL.rows)
-  assert.match(key, /^verschillen-v1:[a-z0-9]+$/)
+  assert.match(key, /^verschillen-v2:[a-z0-9]+$/)
   const entry = kv.m.get(key)
   assert.equal(entry.status, 'klaar')
   assert.doesNotMatch(JSON.stringify(entry), /owner|user|email|account|device/i)
-  // Een nieuwe uitgever: een andere sleutel; tot die klaar is blijft de vorige versie staan.
+  // Een nieuwe uitgever: een andere sleutel; tot die klaar is, is er géén blok (de telwoorden van de oude versie,
+  // "Alle negen bronnen", zouden niet meer kloppen).
   const extra = { id: 'x1', sourceName: 'Trouw', publishedAt: '2026-11-11T15:30:00Z', title: 'D66 en CDA sluiten deal met links', summary: 'Pro en Volt steunen het belastingplan.' }
   const story2 = { ...BEL.story, itemIds: [...BEL.story.itemIds, 'x1'], sourceNames: [...BEL.story.sourceNames, 'Trouw'] }
   const items2 = new Map([...BEL.itemsById, ['x1', extra]])
@@ -219,7 +288,28 @@ test('cache: per verhaal-versie in KV; tweede ronde zonder model; nieuwe bron = 
   const t0 = Date.now()
   const drie = await verschillenVoorEditie({ aan: true, client: traag, entries: [{ kind: 'story', id: story2.id }], storyById: new Map([[story2.id, story2]]), itemsById: items2, get: kv.get, set: kv.set, now, budget: 30 })
   assert.ok(Date.now() - t0 < 150)
-  assert.deepEqual(drie.get(BEL.story.id), een.get(BEL.story.id)) // de oude versie blijft
+  assert.equal(drie.has(BEL.story.id), false)
+  assert.ok(!src('netlify/lib/verschillen.mjs').includes('-laatst:'))
+})
+
+test('time-out: wat de schrijver al gaf, wordt bewaard; de volgende ronde doet alleen de controle', async () => {
+  const kv = memKv()
+  const now = Date.parse('2026-11-11T16:00:00Z')
+  // De schrijver is snel, de controle traag: na het budget is alleen de schrijver af.
+  const half = nepClient(nagebootst.sts2z5a, { vertraging: 0 })
+  const create = half.messages.create
+  half.messages.create = async (req, opts) => (req.model === VERSCHILLEN_CONTROLE ? new Promise((_, rej) => opts.signal.addEventListener('abort', () => rej(new Error('afgebroken')))) : create(req, opts))
+  assert.equal((await verschillenVoorEditie({ aan: true, client: half, ...editie(BEL), get: kv.get, set: kv.set, now, budget: 30 })).size, 0)
+  await new Promise((r) => setTimeout(r, 20))
+  const entry = kv.m.get(verschillenKey(BEL.story, BEL.rows))
+  assert.equal(entry.status, 'fout')
+  assert.equal(entry.schrijver.oordeel, 'verschil')
+  const dag = [...kv.m.entries()].find(([k]) => k.includes('-dag:'))[1]
+  const daarna = nepClient(nagebootst.sts2z5a)
+  const r = await verschillenVoorEditie({ aan: true, client: daarna, ...editie(BEL), get: kv.get, set: kv.set, now: now + 6e5 })
+  assert.ok(r.get(BEL.story.id)?.delen)
+  assert.deepEqual(daarna.calls.map((c) => c.model), [VERSCHILLEN_CONTROLE]) // geen tweede schrijfronde
+  assert.equal([...kv.m.entries()].find(([k]) => k.includes('-dag:'))[1].n, dag.n) // telt niet opnieuw voor het plafond
 })
 
 test('time-out: de Editie wacht nooit langer dan het budget; afgebroken telt als poging, hooguit drie per dag', async () => {
@@ -287,6 +377,8 @@ test('tonen: vaste volgorde, typografie, en niets zonder verschil of met een kap
   assert.deepEqual(d.map((x) => x.soort), ['gedeeld', 'verschil', 'onbekend'])
   assert.equal(d[1].tekst, 'Het ND noemt 1 miljard euro, zo’n bedrag.')
   assert.equal(zetTekst("intro's"), 'intro’s')
+  assert.equal(zetTekst('noemt de e-mail anoniem'), 'noemt de e\u2011mail anoniem') // "e-" breekt niet af
+  assert.equal(zetTekst('Noord-Ierland'), 'Noord-Ierland')
   assert.equal(verschillenDelen({ verschillen: { delen: [{ soort: 'gedeeld', tekst: 'x' }, { soort: 'onbekend', tekst: 'y' }] } }), null)
   assert.equal(verschillenDelen({ verschillen: { delen: [{ soort: 'verschil', tekst: 'x' }] } }), null)
   assert.equal(verschillenDelen({ verschillen: 'kapot' }), null)

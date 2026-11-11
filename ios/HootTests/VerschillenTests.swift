@@ -22,6 +22,12 @@ final class VerschillenTests: XCTestCase {
         XCTAssertEqual(s.verschillen?.versie, 1)
     }
 
+    // Gelijk aan zetTekst op het web: "e-mail" breekt niet na "e-", "Noord-Ierland" blijft gewoon.
+    func testVastStreepjeNaKortVoorvoegsel() {
+        XCTAssertEqual(StoryVerschillen.zet("noemt de e-mail anoniem"), "noemt de e\u{2011}mail anoniem")
+        XCTAssertEqual(StoryVerschillen.zet("Noord-Ierland"), "Noord-Ierland")
+    }
+
     func testZonderVerschilOfAlleenEenVerschilNiets() throws {
         XCTAssertNil(try story(#"{"id":"s","itemIds":[],"verschillen":{"delen":[{"soort":"gedeeld","tekst":"x"},{"soort":"onbekend","tekst":"y"}]}}"#).verschillen?.getoond)
         XCTAssertNil(try story(#"{"id":"s","itemIds":[],"verschillen":{"delen":[{"soort":"verschil","tekst":"x"}]}}"#).verschillen?.getoond)
