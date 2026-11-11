@@ -29,7 +29,7 @@ test('korte kop: afkappen op een woordgrens, met een beletselteken en zonder los
     if (!out.endsWith('…')) continue
     const laatste = out.slice(0, -1).split(' ').pop()
     // Elk woord voor het beletselteken staat zo in de kop: nooit een half woord (behalve één woord dat alles vult).
-    if (out.slice(0, -1).includes(' ')) assert.ok(c.kop.replace(/\s+/g, ' ').includes(`${laatste} `) || c.kop.includes(`${laatste},`), out)
+    if (out.slice(0, -1).includes(' ')) assert.ok([' ', ',', ':', ';'].some((n) => c.kop.replace(/\s+/g, ' ').includes(`${laatste}${n}`)), out)
     assert.ok(!['de', 'het', 'een', 'van', 'met', 'in', 'op', 'naar', 'en', 'the', 'of', 'to'].includes(laatste.toLowerCase()), out)
   }
 })
@@ -82,4 +82,23 @@ test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt,
     const laatste = kop.replace(/…$/, '').split(' ').pop().toLowerCase()
     assert.ok(!['rond', 'langs', 'binnen', 'rondom', 'nabij', 'jegens', 'wegens', 'nadat'].includes(laatste), kop)
   }
+})
+
+test('korte kop: een dubbele punt in een titel of naam geeft nooit alleen het deel erna (keuring 2)', () => {
+  // A eindigt op een naam of getal en B begint met een naam: twijfel, dus de hele kop vanaf het begin.
+  for (const kop of [
+    'Blizzard Can’t Stop Tweaking WoW: Forever and It’s Only Been 6 Days',
+    'Don’t expect more information on The Elder Scrolls 6: Sentinel ‘for some time,’ Bethesda says',
+    'Domper voor Rode Duivels: Romelu Lukaku mist duel met Turkije door heupproblemen',
+  ]) {
+    const k = kortKop(kop)
+    assert.ok(kop.startsWith(k.replace(/…$/u, '')), `${kop} → ${k}`)
+  }
+  // B in Title Case is geen eigen zin: ook dan de hele kop.
+  assert.equal(kortKop('Everything about the long-awaited second season: What We Know So Far About It'), 'Everything about the long-awaited second season…')
+  // Een zin in zinsopbouw na de dubbele punt blijft de korte kop, ook met namen erin.
+  assert.equal(kortKop('Bone broth, sweets ban and acupuncture: Harry Kane’s road to record England cap'), 'Harry Kane’s road to record England cap')
+  assert.equal(kortKop('Stuntfietser, veganist, actief vlogger en liefhebber van… kringloopwinkels: dit is ‘Snorremans’ Cameron Mason'), 'Dit is ‘Snorremans’ Cameron Mason')
+  // Een beletselteken in de kop komt bij afkappen niet dubbel.
+  assert.equal(kortKop('Stuntfietser, veganist, actief vlogger en liefhebber van… kringloopwinkels, tweedehands spullen en meer'), 'Stuntfietser, veganist, actief vlogger en liefhebber…')
 })

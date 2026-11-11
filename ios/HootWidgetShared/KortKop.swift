@@ -21,7 +21,7 @@ enum KortKop {
         "jij", "ik", "mijn", "onze", "ons", "jouw", "uw", "meer", "minder", "vol", "wel", "heel", "zeer", "zelfs",
         "the", "a", "an", "and", "or", "but", "of", "to", "for", "on", "at", "by", "with", "from", "as", "is", "are", "was",
         "were", "be", "has", "have", "will", "can", "that", "this", "its", "his", "her", "their", "into", "after", "over",
-        "about", "amid", "against", "than", "who", "which", "how", "why", "when", "where", "not", "more", "our", "your", "my",
+        "about", "amid", "against", "than", "who", "what", "which", "how", "why", "when", "where", "not", "more", "our", "your", "my",
         "could", "would", "should", "may", "might", "must", "does", "do", "did", "had", "been", "being", "if", "he", "she",
         "they", "you", "it", "there", "i",
     ]
@@ -78,6 +78,9 @@ enum KortKop {
         let alle = delen(t)
         var d = delen(begin(t, ruimte))
         if ruimte >= lengte(t) || ns(t).character(at: ruimte) != 0x20 { d.removeLast() }
+        // Een beletselteken in de kop zelf komt niet dubbel.
+        if d.count > 1 { d[d.count - 1] = vervang("…+$", d[d.count - 1], "") }
+        if d.count > 1, d[d.count - 1].isEmpty { d.removeLast() }
         d = zonderLosEinde(d)
         while true {
             let laatste = d.last ?? ""
@@ -96,6 +99,16 @@ enum KortKop {
     private static func benoemd(_ s: String) -> Bool {
         test("\\d", s) || delen(s).dropFirst().contains { test("^[‘’“'\"„«‚(]?\\p{Lu}", $0) }
     }
+    // Title Case: na het eerste woord meestal een hoofdletter, ook op een klein woord ("It's", "Been").
+    private static func titleCase(_ s: String) -> Bool {
+        let w = delen(s).dropFirst().filter { test("\\p{L}", $0) }
+        let groot = w.filter { test("^[‘’“'\"„«‚(]?\\p{Lu}", $0) }
+        return w.count >= 3 && Double(groot.count) / Double(w.count) >= 0.6 && groot.contains { losseEindes.contains(letters($0)) }
+    }
+    // Een titel of naam over de dubbele punt: A eindigt op een naam of getal, B begint met een naam.
+    private static func titelOverPunt(_ a: String, _ b: String) -> Bool {
+        test("^[‘’“'\"„«‚(]?(?:\\p{Lu}|\\d)", delen(a).last ?? "") && test("^(?:\\p{Lu}|\\d)", b)
+    }
 
     // MARK: De korte kop
 
@@ -113,10 +126,13 @@ enum KortKop {
             let toevoegingB = woorden(b) <= kortToevoeging || test(openCitaat, b) || b.hasSuffix("?")
             if isCitaat(a) {
                 if kern(b, 4) { return kort(hoofdletter(b), max: max) }
-            } else if kern(a, 4) {
-                let kiesB = !toevoegingB && kern(b, 4) && (test("^\\p{Lu}", b) || !benoemd(a))
-                return kiesB ? kort(hoofdletter(b), max: max) : kort(a, max: max)
+            } else if kern(a, 4), !titelOverPunt(a, b) {
+                let wilB = !toevoegingB && kern(b, 4) && (test("^\\p{Lu}", b) || !benoemd(a))
+                if !wilB { return kort(a, max: max) }
+                if !titleCase(b) { return kort(hoofdletter(b), max: max) }
+                // B in Title Case: twijfel, de hele kop inkorten.
             }
+            // Een titel over de dubbele punt: de hele kop inkorten.
         }
 
         // Toevoeging na een gedachtestreep, of tussen haakjes.

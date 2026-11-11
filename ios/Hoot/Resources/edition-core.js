@@ -3624,6 +3624,7 @@ var HootCore = (() => {
     "against",
     "than",
     "who",
+    "what",
     "which",
     "how",
     "why",
@@ -3674,6 +3675,8 @@ var HootCore = (() => {
     const alle = t.split(" ");
     let delen = t.slice(0, ruimte).split(" ");
     if (t[ruimte] !== " ") delen.pop();
+    if (delen.length > 1) delen[delen.length - 1] = delen[delen.length - 1].replace(/…+$/u, "");
+    if (delen.length > 1 && !delen[delen.length - 1]) delen.pop();
     delen = zonderLosEinde(delen);
     for (; ; ) {
       const laatste = delen[delen.length - 1] || "";
@@ -3689,6 +3692,15 @@ var HootCore = (() => {
   }
   var isCitaat = (s) => OPEN_CITAAT.test(s) && SLUIT_CITAAT.test(s) && woorden(s) >= 2;
   var benoemd = (s) => /\d/u.test(s) || s.split(" ").slice(1).some((w) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(w));
+  function titleCase(s) {
+    const w = s.split(" ").slice(1).filter((x) => /\p{L}/u.test(x));
+    const groot = w.filter((x) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(x));
+    return w.length >= 3 && groot.length / w.length >= 0.6 && groot.some((x) => LOSSE_EINDES.has(letters(x)));
+  }
+  function titelOverPunt(a, b) {
+    const laatste = a.split(" ").pop() || "";
+    return /^[‘’“'"„«‚(]?(?:\p{Lu}|\d)/u.test(laatste) && /^(?:\p{Lu}|\d)/u.test(b);
+  }
   function kortKop(title, max = KORT_MAX) {
     const t = schoon(title);
     if (t.length <= max) return t;
@@ -3701,9 +3713,10 @@ var HootCore = (() => {
       const toevoegingB = woorden(b) <= KORT_TOEVOEGING || OPEN_CITAAT.test(b) || b.endsWith("?");
       if (isCitaat(a)) {
         if (kern(b, 4)) return kortKop(hoofdletter(b), max);
-      } else if (kern(a, 4)) {
-        const kiesB = !toevoegingB && kern(b, 4) && (/^\p{Lu}/u.test(b) || !benoemd(a));
-        return kiesB ? kortKop(hoofdletter(b), max) : kortKop(a, max);
+      } else if (kern(a, 4) && !titelOverPunt(a, b)) {
+        const wilB = !toevoegingB && kern(b, 4) && (/^\p{Lu}/u.test(b) || !benoemd(a));
+        if (!wilB) return kortKop(a, max);
+        if (!titleCase(b)) return kortKop(hoofdletter(b), max);
       }
     }
     const streep = t.match(/^(.+?)\s[–—-]\s.+$/u);

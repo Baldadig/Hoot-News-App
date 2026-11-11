@@ -12,7 +12,12 @@
 //      c. A is kort (een spreker of label, "Raad van State:"): A blijft staan, B wordt afgekapt (stap 6).
 //      d. A en B zijn allebei een kop: B heeft een eigen onderwerp en is het nieuws ("Meteen twee seizoenen
 //         besteld: Netflix blaast 'Twilight' nieuw leven in" → "Netflix blaast …"). Past B niet, dan
-//         wordt B ingekort volgens deze regels.
+//         wordt B ingekort volgens deze regels. Alleen als B een eigen zin is in zinsopbouw, niet in
+//         Title Case ("…: Forever and It's Only Been 6 Days" is geen zin maar het vervolg van een titel).
+//      e. Twijfel: de dubbele punt hoort waarschijnlijk bij een titel of naam. A eindigt op een naam of getal
+//         en B begint met een naam ("The Elder Scrolls 6: Sentinel …", "WoW: Forever …"). Dan A noch B: de
+//         hele kop wordt vanaf het begin ingekort (stap 4 tot 6), want alleen B of alleen A kan de betekenis
+//         veranderen. Ook als B alleen in Title Case de reden is om B niet te kiezen.
 //   4. Een toevoeging na een gedachtestreep (" – ", " — ", " - ") of tussen haakjes valt weg, als wat
 //      overblijft een eigen kop is (minstens KERN_MIN tekens en drie woorden). Losse haakjes in de kop
 //      ("(90)") vallen ook weg als de kop dan past, of om ruimte te maken voor stap 5 en 6.
@@ -41,7 +46,7 @@ export const LOSSE_EINDES = new Set([
   'jij', 'ik', 'mijn', 'onze', 'ons', 'jouw', 'uw', 'meer', 'minder', 'vol', 'wel', 'heel', 'zeer', 'zelfs',
   'the', 'a', 'an', 'and', 'or', 'but', 'of', 'to', 'for', 'on', 'at', 'by', 'with', 'from', 'as', 'is', 'are', 'was',
   'were', 'be', 'has', 'have', 'will', 'can', 'that', 'this', 'its', 'his', 'her', 'their', 'into', 'after', 'over',
-  'about', 'amid', 'against', 'than', 'who', 'which', 'how', 'why', 'when', 'where', 'not', 'more', 'our', 'your', 'my',
+  'about', 'amid', 'against', 'than', 'who', 'what', 'which', 'how', 'why', 'when', 'where', 'not', 'more', 'our', 'your', 'my',
   'could', 'would', 'should', 'may', 'might', 'must', 'does', 'do', 'did', 'had', 'been', 'being', 'if', 'he', 'she',
   'they', 'you', 'it', 'there', 'i',
 ])
@@ -76,6 +81,9 @@ function afkappen(t, max) {
   let delen = t.slice(0, ruimte).split(' ')
   // Viel de grens midden in een woord, dan dat woord eraf.
   if (t[ruimte] !== ' ') delen.pop()
+  // Een beletselteken in de kop zelf ("liefhebber van… kringloopwinkels") komt niet dubbel.
+  if (delen.length > 1) delen[delen.length - 1] = delen[delen.length - 1].replace(/…+$/u, '')
+  if (delen.length > 1 && !delen[delen.length - 1]) delen.pop()
   delen = zonderLosEinde(delen)
   // Een bijvoeglijk naamwoord zonder zijn zelfstandig naamwoord ("voor verouderde…"): eraf, zolang er genoeg
   // overblijft. Herkend aan de buiging (klein geschreven, op -e) en aan wat er in de kop op volgt: een gewoon
@@ -98,6 +106,19 @@ function afkappen(t, max) {
 const isCitaat = (s) => OPEN_CITAAT.test(s) && SLUIT_CITAAT.test(s) && woorden(s) >= 2
 // Heeft dit deel een eigen, benoemd onderwerp: een naam (een hoofdletter na het eerste woord) of een getal?
 const benoemd = (s) => /\d/u.test(s) || s.split(' ').slice(1).some((w) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(w))
+// Title Case: na het eerste woord begint het merendeel van de woorden (minstens drie met letters) met een
+// hoofdletter, en ook een klein woord als "It's" of "Been" ("Forever and It's Only Been 6 Days"). Een gewone
+// zin met een paar namen telt niet ("dit is ‘Snorremans’ Cameron Mason").
+function titleCase(s) {
+  const w = s.split(' ').slice(1).filter((x) => /\p{L}/u.test(x))
+  const groot = w.filter((x) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(x))
+  return w.length >= 3 && groot.length / w.length >= 0.6 && groot.some((x) => LOSSE_EINDES.has(letters(x)))
+}
+// Loopt een titel of naam door over de dubbele punt: A eindigt op een naam of getal, B begint met een naam.
+function titelOverPunt(a, b) {
+  const laatste = a.split(' ').pop() || ''
+  return /^[‘’“'"„«‚(]?(?:\p{Lu}|\d)/u.test(laatste) && /^(?:\p{Lu}|\d)/u.test(b)
+}
 
 export function kortKop(title, max = KORT_MAX) {
   const t = schoon(title)
@@ -116,13 +137,17 @@ export function kortKop(title, max = KORT_MAX) {
     if (isCitaat(a)) {
       // a. Het citaat valt weg; spreker en onderwerp staan erna.
       if (kern(b, 4)) return kortKop(hoofdletter(b), max)
-    } else if (kern(a, 4)) {
+    } else if (kern(a, 4) && !titelOverPunt(a, b)) {
       // b. Een korte toevoeging, een citaat of een vraag erna: de kop ervoor.
       // d. Allebei een kop: het deel met het benoemde onderwerp. B wint als het met een naam begint, of als A
-      //    niets benoemt ("Meteen twee seizoenen besteld: Netflix …", "Winterjas aan …: zo wordt het weer …").
-      const kiesB = !toevoegingB && kern(b, 4) && (/^\p{Lu}/u.test(b) || !benoemd(a))
-      return kiesB ? kortKop(hoofdletter(b), max) : kortKop(a, max)
+      //    niets benoemt ("Meteen twee seizoenen besteld: Netflix …", "Winterjas aan …: zo wordt het weer …"),
+      //    en alleen als B een zin is, geen Title Case.
+      const wilB = !toevoegingB && kern(b, 4) && (/^\p{Lu}/u.test(b) || !benoemd(a))
+      if (!wilB) return kortKop(a, max)
+      if (!titleCase(b)) return kortKop(hoofdletter(b), max)
+      // e. B in Title Case: twijfel, dan de hele kop inkorten (hieronder).
     }
+    // e. Een titel over de dubbele punt: de hele kop inkorten (hieronder).
     // c. Een kort label of spreker ervoor: blijft staan, en wat erna komt wordt afgekapt (stap 6).
   }
 
