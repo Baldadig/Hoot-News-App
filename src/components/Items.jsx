@@ -303,12 +303,17 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
   const { markRead, read } = useHoot()
   const tier = headlineTier(item.title)
   const titleRole = tier === 'compact' ? 'head-lg' : tier === 'medium' ? 'head-5' : 'head-6'
+  // Staand (beeld links, tekst rechts) alleen als het staande beeld er ook echt staat. Krijgt 01 het
+  // placeholderbeeld (te klein of onscherp voor het hoofdvak, ook een geleend beeld), dan de gewone vorm:
+  // anders zakt alles in de rechterkolom en blijft links een leeg vak (melding Alex, 11 november).
+  // Mislukt het laden pas later, dan vangt rust.css (§ Hoofdverhaal staand) het op.
+  const staand = portraitImage(item) && !!item.image && heroFits(item)(item.image)
   return (
     <article className={`entry lead${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
+      <a className={`lead__link${staand ? ' lead__link--portrait' : ''}`} href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
-        <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+        <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media media--lead${staand ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
           {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
         </Beeld>
         <Kicker item={item} extra={note} followed={followed} n={n} />
