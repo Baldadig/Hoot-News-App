@@ -1,7 +1,8 @@
 // Wat je leest en bewaart, als smaak voor je editie — pure functies (tests/affinity.test.mjs).
 // Per onderwerp en per bron een gewicht: openen telt 1, bewaren 3. Bij elke handeling wordt
 // alles een beetje ouder (×0,98), zodat wat je deze week las zwaarder weegt dan wat je in de
-// zomer las. Het blijft op je toestel; het gaat niet mee met je account.
+// zomer las. Het blijft op je toestel en gaat niet mee met je account; alleen een samenvatting gaat mee
+// naar de server om je Editie samen te stellen (readingSummary), en die bewaart de server niet.
 import { currentTopic } from './topics.js'
 export const READ = 1
 export const SAVE = 3
@@ -40,6 +41,33 @@ export function forgetTopic(affinity, topic) {
   if (!topic || !Object.keys(a.topics || {}).some(gone)) return a
   const topics = Object.fromEntries(Object.entries(a.topics).filter(([k]) => !gone(k)))
   return { ...a, topics }
+}
+
+// ---- Je leesprofiel, samengevat voor de server ----
+// Besluit Alex (11 november 2026): "Leesprofiel meesturen". De server stelt je Editie samen (POST /api/edition
+// v2) en kijkt dan ook naar wat je vaak leest. Er gaat alleen mee wat De Redacteur daarvan gebruikt (profileOf
+// in shared/editor.mjs): per onderwerp en per bron een gewicht, afgerond op twee decimalen, en de teller tot
+// READING_N_MAX (meer verandert niets: zo telt de server niet hoeveel je las). Geen artikelen, geen tijden.
+// Onder MIN_EVENTS telt lezen nog niet mee: dan gaat er niets mee (null). Altijd dezelfde volgorde (zwaarste
+// eerst, dan op naam), zodat web en iPhone voor hetzelfde profiel hetzelfde sturen. De server maakt de body
+// er ook mee schoon; een samenvatting gaat er ongewijzigd doorheen.
+export const READING_N_MAX = 30 // = READ_RAMP in shared/editor.mjs (tests/leesprofiel.test.mjs)
+const READING_KEY = /^[a-z0-9][a-z0-9:._-]{0,79}$/i
+const READING_W_MAX = 1000
+const weights = (o, keep) =>
+  Object.fromEntries(
+    Object.entries(o && typeof o === 'object' && !Array.isArray(o) ? o : {})
+      .filter(([k, v]) => READING_KEY.test(k) && typeof v === 'number' && Number.isFinite(v) && v > 0)
+      .map(([k, v]) => [k, Math.round(Math.min(v, READING_W_MAX) * 100) / 100])
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+      .slice(0, keep)
+  )
+export function readingSummary(affinity) {
+  if (!affinity || typeof affinity !== 'object' || Array.isArray(affinity)) return null
+  const n = Number.isFinite(affinity.n) ? Math.floor(affinity.n) : 0
+  if (n < MIN_EVENTS) return null
+  return { n: Math.min(n, READING_N_MAX), topics: weights(affinity.topics, KEEP_TOPICS), sources: weights(affinity.sources, KEEP_SOURCES) }
 }
 
 // Hoeveel een verhaal (zijn berichten) bij je smaak past: 0 tot AFFINITY_MAX. Onderwerp telt

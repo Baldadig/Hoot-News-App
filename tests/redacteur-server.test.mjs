@@ -332,11 +332,11 @@ test('askServer: het token mee; bij 401 één keer vernieuwen en opnieuw; geen v
   assert.equal((await askServer({ v: 2 }, { fetchImpl: async () => new Response('{}', { status: 429 }) })).status, 429)
 })
 
-test('het web vraagt server-first: geen settleEdition, claimEdition of affinity meer in de hook', () => {
+test('het web vraagt server-first: geen settleEdition of claimEdition meer in de hook; het leesprofiel alleen samengevat', () => {
   const hook = readFileSync(new URL('../src/hooks/usePersonalEdition.js', import.meta.url), 'utf8')
   assert.match(hook, /serverFirst\(/)
   assert.doesNotMatch(hook, /settleEdition|claimEdition|adoptEdition|fallbackEdition/)
-  assert.match(hook, /affinity: null/)
+  assert.match(hook, /affinity: reading/) // leesprofiel meesturen (11 november): tests/leesprofiel.test.mjs
   assert.ok(fitsEdition({ id: 'a', basis: 'b' }, { id: 'a', basis: 'b' }))
 })
 

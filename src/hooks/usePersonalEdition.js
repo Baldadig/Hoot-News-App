@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
 import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
+import { readingSummary } from '../lib/affinity.js'
 import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
 
 const KEY = 'hoot:my-edition'
@@ -17,11 +18,13 @@ const KEY = 'hoot:my-edition'
 //    Die gaat nooit naar je account en nooit in je geschiedenis; zodra de server antwoordt (weer online,
 //    terug in de app, een volgende feedronde) vervangt zijn Editie het vangnet;
 // 4. komen ook de berichten niet (`stuck`): de algemene Editie.
-// Je leesprofiel (`affinity`) blijft op dit toestel en doet niet mee: web en iPhone hebben elk een eigen
-// leesprofiel, en zo geven ze dezelfde Editie. Het vangnet rekent ook zonder, zodat het lijkt op wat komt.
+// Je leesprofiel (`affinity`) blijft op dit toestel; alleen een samenvatting gaat mee naar de server
+// (readingSummary, besluit Alex 11 november 2026: "Leesprofiel meesturen"). Het vangnet rekent met dezelfde
+// samenvatting, zodat het gelijk is aan wat de server met hetzelfde profiel geeft. Als lid wint de eerste
+// schrijver: web en iPhone (elk een eigen leesprofiel) tonen zo toch dezelfde Editie.
 // Leden krijgen er een eigen "editie in één minuut" bij (POST /api/brief). Zonder account geen
 // samenvatting: die van de algemene editie hoort niet bij jouw verhalen.
-export function usePersonalEdition({ data, status, prefs, muted, account, readIds = null, sync = null, stuck = false }) {
+export function usePersonalEdition({ data, status, prefs, muted, account, readIds = null, affinity = null, sync = null, stuck = false }) {
   const global = data?.edition || null
   const uid = syncedUid(account)
   const owner = uid || 'anon'
@@ -78,6 +81,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
     if (pending.current === run) return
     pending.current = run
     const online = typeof navigator === 'undefined' || navigator.onLine !== false
+    const reading = readingSummary(affinity)
     const request = serverRequest({
       followed,
       interests: prefs.interests || [],
@@ -85,6 +89,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       favorites: prefs.favorites || [],
       taste: prefs.taste || null,
       readIds: [...(readIds || [])],
+      reading,
       earlier: uid ? [] : earlierForServer(localFromServer ? local : null, { id: global.id, owner }),
     })
     const ask = async (body) => {
@@ -109,7 +114,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       request,
       ready,
       stuck,
-      compose: ({ previous, now }) => composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: null, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
+      compose: ({ previous, now }) => composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: reading, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
     })
       .then((r) => {
         if (!r || pending.current !== run) return

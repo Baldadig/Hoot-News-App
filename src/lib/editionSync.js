@@ -188,10 +188,11 @@ export function provisionalReady({ status, global, items = 0, itemsFor = null, f
   return status === 'ready' && !!global && items > 0 && itemsCurrent(itemsFor, global, followed)
 }
 
-// De vraag aan de server (v2): het profiel, wat je las, en zonder account de history-regels van je vorige
-// Edities op dit toestel (`earlier`). Nooit `affinity`, nooit `previous`.
-export function serverRequest({ followed = [], interests = [], topics = [], favorites = [], taste = null, readIds = [], earlier = [] }) {
-  return { v: 2, followed: [...followed], interests: [...interests], topics: [...topics], favorites: [...favorites], taste: taste || null, readIds: [...readIds].slice(-1500), ...(earlier.length ? { earlier } : {}) }
+// De vraag aan de server (v2): het profiel, wat je las, de samenvatting van je leesprofiel (`reading`,
+// readingSummary in affinity.js; weg zolang lezen nog niet meetelt) en zonder account de history-regels van je
+// vorige Edities op dit toestel (`earlier`). Nooit het ruwe `affinity`, nooit `previous`.
+export function serverRequest({ followed = [], interests = [], topics = [], favorites = [], taste = null, readIds = [], reading = null, earlier = [] }) {
+  return { v: 2, followed: [...followed], interests: [...interests], topics: [...topics], favorites: [...favorites], taste: taste || null, readIds: [...readIds].slice(-1500), ...(reading ? { reading } : {}), ...(earlier.length ? { earlier } : {}) }
 }
 
 // POST /api/edition met het token van het lid (als dat er is). 401: één keer het token vernieuwen en opnieuw.

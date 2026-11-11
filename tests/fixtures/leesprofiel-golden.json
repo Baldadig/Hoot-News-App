@@ -1,0 +1,981 @@
+{
+ "cases": [
+  {
+   "name": "haags",
+   "affinity": {
+    "n": 60,
+    "topics": {
+     "wonen": 10.11,
+     "nederland": 9.83,
+     "europa": 6,
+     "verkiezingen": 5.29,
+     "migratie": 2.79,
+     "middenoosten": 1.56,
+     "economie": 0.9,
+     "boeken": 0.84,
+     "gadgets": 0.82,
+     "voetbal": 0.72,
+     "ev": 0.68,
+     "muziek": 0.57,
+     "film": 0.52,
+     "oekraine": 0.46,
+     "privacy": 0.45,
+     "misdaad": 0.35
+    },
+    "sources": {
+     "nrc": 21.49,
+     "nyt": 4.21,
+     "trouw": 3.48,
+     "nos": 2.88,
+     "atlantic": 2.72,
+     "nu": 2.46,
+     "volkskrant": 1.9,
+     "politico-eu": 1.84,
+     "politico": 0.87
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "wonen": 10.11,
+     "nederland": 9.83,
+     "europa": 6,
+     "verkiezingen": 5.29,
+     "migratie": 2.79,
+     "middenoosten": 1.56,
+     "economie": 0.9,
+     "boeken": 0.84,
+     "gadgets": 0.82,
+     "voetbal": 0.72,
+     "ev": 0.68,
+     "muziek": 0.57,
+     "film": 0.52,
+     "oekraine": 0.46,
+     "privacy": 0.45,
+     "misdaad": 0.35
+    },
+    "sources": {
+     "nrc": 21.49,
+     "nyt": 4.21,
+     "trouw": 3.48,
+     "nos": 2.88,
+     "atlantic": 2.72,
+     "nu": 2.46,
+     "volkskrant": 1.9,
+     "politico-eu": 1.84,
+     "politico": 0.87
+    }
+   }
+  },
+  {
+   "name": "ai",
+   "affinity": {
+    "n": 80,
+    "topics": {
+     "ai": 13.42,
+     "privacy": 12.13,
+     "tech": 9.86,
+     "bedrijven": 9.1,
+     "nederland": 1.05,
+     "muziek": 0.73,
+     "gezondheid": 0.71,
+     "kunst": 0.68,
+     "natuur": 0.54,
+     "wielrennen": 0.53,
+     "afrika": 0.29,
+     "misdaad": 0.25,
+     "migratie": 0.25
+    },
+    "sources": {
+     "theverge": 11.39,
+     "ars": 9.19,
+     "wired": 7.26,
+     "techcrunch": 5.81,
+     "tweakers": 5.33,
+     "nu": 4.01,
+     "mittr": 3.33,
+     "nos": 2.65,
+     "nrc": 0.56
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "ai": 13.42,
+     "privacy": 12.13,
+     "tech": 9.86,
+     "bedrijven": 9.1,
+     "nederland": 1.05,
+     "muziek": 0.73,
+     "gezondheid": 0.71,
+     "kunst": 0.68,
+     "natuur": 0.54,
+     "wielrennen": 0.53,
+     "afrika": 0.29,
+     "migratie": 0.25,
+     "misdaad": 0.25
+    },
+    "sources": {
+     "theverge": 11.39,
+     "ars": 9.19,
+     "wired": 7.26,
+     "techcrunch": 5.81,
+     "tweakers": 5.33,
+     "nu": 4.01,
+     "mittr": 3.33,
+     "nos": 2.65,
+     "nrc": 0.56
+    }
+   }
+  },
+  {
+   "name": "gamer",
+   "affinity": {
+    "n": 40,
+    "topics": {
+     "games": 14.28,
+     "voetbal": 7.99,
+     "gadgets": 5.1,
+     "werk": 2.14,
+     "tech": 2.13,
+     "vs-politiek": 0.63,
+     "gezondheid": 0.56,
+     "middenoosten": 0.55
+    },
+    "sources": {
+     "gamespot": 8.16,
+     "polygon": 4.59,
+     "eurogamer": 4.49,
+     "tweakers": 4.16,
+     "ign": 3.06,
+     "theverge": 2.94,
+     "ars": 2.13,
+     "wired": 2.05,
+     "vi": 1.16,
+     "bbc-sport": 0.64
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "games": 14.28,
+     "voetbal": 7.99,
+     "gadgets": 5.1,
+     "werk": 2.14,
+     "tech": 2.13,
+     "vs-politiek": 0.63,
+     "gezondheid": 0.56,
+     "middenoosten": 0.55
+    },
+    "sources": {
+     "gamespot": 8.16,
+     "polygon": 4.59,
+     "eurogamer": 4.49,
+     "tweakers": 4.16,
+     "ign": 3.06,
+     "theverge": 2.94,
+     "ars": 2.13,
+     "wired": 2.05,
+     "vi": 1.16,
+     "bbc-sport": 0.64
+    }
+   }
+  },
+  {
+   "name": "klimaat",
+   "affinity": {
+    "n": 50,
+    "topics": {
+     "natuur": 12.01,
+     "energie": 8.66,
+     "klimaat": 8.54,
+     "wielrennen": 1.04,
+     "film": 0.93,
+     "ai": 0.9,
+     "onderwijs": 0.82,
+     "ruimte": 0.68,
+     "latam": 0.54,
+     "tech": 0.39
+    },
+    "sources": {
+     "nature": 10.3,
+     "quanta": 6.29,
+     "carbonbrief": 6.19,
+     "sciam": 4.18,
+     "volkskrant": 3.13,
+     "nu": 1.94,
+     "nrc": 1.33,
+     "nos": 0.7,
+     "guardian": 0.39
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "natuur": 12.01,
+     "energie": 8.66,
+     "klimaat": 8.54,
+     "wielrennen": 1.04,
+     "film": 0.93,
+     "ai": 0.9,
+     "onderwijs": 0.82,
+     "ruimte": 0.68,
+     "latam": 0.54,
+     "tech": 0.39
+    },
+    "sources": {
+     "nature": 10.3,
+     "quanta": 6.29,
+     "carbonbrief": 6.19,
+     "sciam": 4.18,
+     "volkskrant": 3.13,
+     "nu": 1.94,
+     "nrc": 1.33,
+     "nos": 0.7,
+     "guardian": 0.39
+    }
+   }
+  },
+  {
+   "name": "belegger",
+   "affinity": {
+    "n": 70,
+    "topics": {
+     "energie": 10.36,
+     "ai": 7.87,
+     "bedrijven": 7.61,
+     "geld": 4.68,
+     "economie": 4.52,
+     "natuur": 1,
+     "tennis": 0.94,
+     "onderwijs": 0.68,
+     "afrika": 0.65,
+     "gezondheid": 0.57,
+     "brein": 0.53,
+     "tech": 0.51,
+     "media": 0.46,
+     "games": 0.39,
+     "migratie": 0.25,
+     "europa": 0.25
+    },
+    "sources": {
+     "fd": 11.46,
+     "bloomberg": 9.51,
+     "ft": 7.17,
+     "economist": 5.36,
+     "nyt": 3.32,
+     "nos": 2.06,
+     "nrc": 1.2,
+     "nu": 1.17
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "energie": 10.36,
+     "ai": 7.87,
+     "bedrijven": 7.61,
+     "geld": 4.68,
+     "economie": 4.52,
+     "natuur": 1,
+     "tennis": 0.94,
+     "onderwijs": 0.68,
+     "afrika": 0.65,
+     "gezondheid": 0.57,
+     "brein": 0.53,
+     "tech": 0.51,
+     "media": 0.46,
+     "games": 0.39,
+     "europa": 0.25,
+     "migratie": 0.25
+    },
+    "sources": {
+     "fd": 11.46,
+     "bloomberg": 9.51,
+     "ft": 7.17,
+     "economist": 5.36,
+     "nyt": 3.32,
+     "nos": 2.06,
+     "nrc": 1.2,
+     "nu": 1.17
+    }
+   }
+  },
+  {
+   "name": "wereld",
+   "affinity": {
+    "n": 60,
+    "topics": {
+     "geopolitiek": 13.53,
+     "oekraine": 7.33,
+     "middenoosten": 5.94,
+     "azie": 5.38,
+     "ruimte": 2.94,
+     "wonen": 0.8,
+     "nederland": 0.74,
+     "brein": 0.65,
+     "muziek": 0.63,
+     "film": 0.59,
+     "verkiezingen": 0.56,
+     "boeken": 0.52,
+     "economie": 0.48,
+     "zorg": 0.32,
+     "games": 0.29
+    },
+    "sources": {
+     "foreignpolicy": 23.43,
+     "guardian": 5.2,
+     "aljazeera": 3.47,
+     "bbc": 1.85,
+     "volkskrant": 1.74,
+     "dw": 1.37,
+     "economist": 0.95,
+     "nos": 0.79,
+     "nyt": 0.74,
+     "nu": 0.65,
+     "nrc": 0.52
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "geopolitiek": 13.53,
+     "oekraine": 7.33,
+     "middenoosten": 5.94,
+     "azie": 5.38,
+     "ruimte": 2.94,
+     "wonen": 0.8,
+     "nederland": 0.74,
+     "brein": 0.65,
+     "muziek": 0.63,
+     "film": 0.59,
+     "verkiezingen": 0.56,
+     "boeken": 0.52,
+     "economie": 0.48,
+     "zorg": 0.32,
+     "games": 0.29
+    },
+    "sources": {
+     "foreignpolicy": 23.43,
+     "guardian": 5.2,
+     "aljazeera": 3.47,
+     "bbc": 1.85,
+     "volkskrant": 1.74,
+     "dw": 1.37,
+     "economist": 0.95,
+     "nos": 0.79,
+     "nyt": 0.74,
+     "nu": 0.65,
+     "nrc": 0.52
+    }
+   }
+  },
+  {
+   "name": "muziek",
+   "affinity": {
+    "n": 50,
+    "topics": {
+     "film": 14.21,
+     "muziek": 10.56,
+     "boeken": 7.73,
+     "wonen": 1.7,
+     "economie": 0.96,
+     "onderwijs": 0.71,
+     "azie": 0.68,
+     "gadgets": 0.66,
+     "nederland": 0.64,
+     "ruimte": 0.62,
+     "ev": 0.6,
+     "voetbal": 0.54,
+     "gezondheid": 0.46
+    },
+    "sources": {
+     "variety": 6.66,
+     "nos-cultuur": 6.41,
+     "guardian-music": 4.8,
+     "pitchfork": 4.75,
+     "atlantic": 4.23,
+     "3voor12": 3.72,
+     "stereogum": 3.54,
+     "nu": 2.66,
+     "volkskrant": 1.86,
+     "nos": 1.36
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "film": 14.21,
+     "muziek": 10.56,
+     "boeken": 7.73,
+     "wonen": 1.7,
+     "economie": 0.96,
+     "onderwijs": 0.71,
+     "azie": 0.68,
+     "gadgets": 0.66,
+     "nederland": 0.64,
+     "ruimte": 0.62,
+     "ev": 0.6,
+     "voetbal": 0.54,
+     "gezondheid": 0.46
+    },
+    "sources": {
+     "variety": 6.66,
+     "nos-cultuur": 6.41,
+     "guardian-music": 4.8,
+     "pitchfork": 4.75,
+     "atlantic": 4.23,
+     "3voor12": 3.72,
+     "stereogum": 3.54,
+     "nu": 2.66,
+     "volkskrant": 1.86,
+     "nos": 1.36
+    }
+   }
+  },
+  {
+   "name": "koers",
+   "affinity": {
+    "n": 45,
+    "topics": {
+     "f1": 11.56,
+     "wielrennen": 11.5,
+     "wintersport": 10.78,
+     "gadgets": 0.73,
+     "energie": 0.7,
+     "ai": 0.68,
+     "boeken": 0.59,
+     "europa": 0.57,
+     "latam": 0.44
+    },
+    "sources": {
+     "sporza": 11.1,
+     "bbc-sport": 7.23,
+     "wielerflits": 5.74,
+     "nos-sport": 5.05,
+     "autosport": 3,
+     "ad": 2.2,
+     "nos": 1.96,
+     "nu": 1.22
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "f1": 11.56,
+     "wielrennen": 11.5,
+     "wintersport": 10.78,
+     "gadgets": 0.73,
+     "energie": 0.7,
+     "ai": 0.68,
+     "boeken": 0.59,
+     "europa": 0.57,
+     "latam": 0.44
+    },
+    "sources": {
+     "sporza": 11.1,
+     "bbc-sport": 7.23,
+     "wielerflits": 5.74,
+     "nos-sport": 5.05,
+     "autosport": 3,
+     "ad": 2.2,
+     "nos": 1.96,
+     "nu": 1.22
+    }
+   }
+  },
+  {
+   "name": "vlaming",
+   "affinity": {
+    "n": 40,
+    "topics": {
+     "verkeer": 11.49,
+     "europa": 7.62,
+     "zorg": 3.49,
+     "misdaad": 2.58,
+     "onderwijs": 1.76,
+     "kunst": 1.45,
+     "media": 1.37,
+     "tennis": 0.9,
+     "azie": 0.74,
+     "f1": 0.7,
+     "games": 0.67,
+     "geld": 0.53,
+     "middenoosten": 0.52
+    },
+    "sources": {
+     "standaard": 8.16,
+     "vrt": 6.64,
+     "demorgen": 5.11,
+     "nyt": 3.89,
+     "hln": 2.68,
+     "atlantic": 2.62,
+     "nu": 2.4,
+     "politico-eu": 2.28
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "verkeer": 11.49,
+     "europa": 7.62,
+     "zorg": 3.49,
+     "misdaad": 2.58,
+     "onderwijs": 1.76,
+     "kunst": 1.45,
+     "media": 1.37,
+     "tennis": 0.9,
+     "azie": 0.74,
+     "f1": 0.7,
+     "games": 0.67,
+     "geld": 0.53,
+     "middenoosten": 0.52
+    },
+    "sources": {
+     "standaard": 8.16,
+     "vrt": 6.64,
+     "demorgen": 5.11,
+     "nyt": 3.89,
+     "hln": 2.68,
+     "atlantic": 2.62,
+     "nu": 2.4,
+     "politico-eu": 2.28
+    }
+   }
+  },
+  {
+   "name": "brabant",
+   "affinity": {
+    "n": 35,
+    "topics": {
+     "verkeer": 13.07,
+     "voetbal": 8.59,
+     "misdaad": 5.61,
+     "wonen": 1.63,
+     "oekraine": 0.98,
+     "werk": 0.88,
+     "nederland": 0.84,
+     "wielrennen": 0.82,
+     "vs-politiek": 0.59,
+     "kunst": 0.57,
+     "gadgets": 0.56,
+     "migratie": 0.55
+    },
+    "sources": {
+     "bd": 18.29,
+     "ed": 8.27,
+     "nos": 3.19,
+     "nu": 2.81,
+     "volkskrant": 1.6,
+     "ad": 0.53
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "verkeer": 13.07,
+     "voetbal": 8.59,
+     "misdaad": 5.61,
+     "wonen": 1.63,
+     "oekraine": 0.98,
+     "werk": 0.88,
+     "nederland": 0.84,
+     "wielrennen": 0.82,
+     "vs-politiek": 0.59,
+     "kunst": 0.57,
+     "gadgets": 0.56,
+     "migratie": 0.55
+    },
+    "sources": {
+     "bd": 18.29,
+     "ed": 8.27,
+     "nos": 3.19,
+     "nu": 2.81,
+     "volkskrant": 1.6,
+     "ad": 0.53
+    }
+   }
+  },
+  {
+   "name": "nieuw",
+   "affinity": null,
+   "summary": null
+  },
+  {
+   "name": "vs",
+   "affinity": {
+    "n": 70,
+    "topics": {
+     "vs-politiek": 17.84,
+     "verkiezingen": 13.77,
+     "ai": 13.05,
+     "ruimte": 0.96,
+     "film": 0.92,
+     "tennis": 0.69,
+     "brein": 0.6,
+     "gezondheid": 0.55,
+     "natuur": 0.36,
+     "kunst": 0.28
+    },
+    "sources": {
+     "atlantic": 25.75,
+     "volkskrant": 6.31,
+     "npr": 4.68,
+     "nu": 2.33,
+     "nos": 2.21,
+     "politico": 2.21,
+     "nrc": 2.09,
+     "nyt": 1.74,
+     "politico-eu": 1.7
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "vs-politiek": 17.84,
+     "verkiezingen": 13.77,
+     "ai": 13.05,
+     "ruimte": 0.96,
+     "film": 0.92,
+     "tennis": 0.69,
+     "brein": 0.6,
+     "gezondheid": 0.55,
+     "natuur": 0.36,
+     "kunst": 0.28
+    },
+    "sources": {
+     "atlantic": 25.75,
+     "volkskrant": 6.31,
+     "npr": 4.68,
+     "nu": 2.33,
+     "nos": 2.21,
+     "politico": 2.21,
+     "nrc": 2.09,
+     "nyt": 1.74,
+     "politico-eu": 1.7
+    }
+   }
+  },
+  {
+   "name": "te-weinig",
+   "affinity": {
+    "n": 7,
+    "topics": {
+     "ai": 3
+    },
+    "sources": {
+     "nos": 3
+    }
+   },
+   "summary": null
+  },
+  {
+   "name": "hoge-teller",
+   "affinity": {
+    "n": 412,
+    "topics": {
+     "ai": 12.5,
+     "tech": 3.21
+    },
+    "sources": {
+     "nos": 9.87
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "ai": 12.5,
+     "tech": 3.21
+    },
+    "sources": {
+     "nos": 9.87
+    }
+   }
+  },
+  {
+   "name": "rommel",
+   "affinity": {
+    "n": 12,
+    "topics": {
+     "met spatie": 4,
+     "ai": 2.345,
+     "klimaat": -1,
+     "x": 0,
+     "geopolitiek": 0.004,
+     "a/b": 1
+    },
+    "sources": {
+     "nos": 1000000000,
+     "nrc": 0.05
+    }
+   },
+   "summary": {
+    "n": 12,
+    "topics": {
+     "ai": 2.35
+    },
+    "sources": {
+     "nos": 1000,
+     "nrc": 0.05
+    }
+   }
+  },
+  {
+   "name": "te-veel",
+   "affinity": {
+    "n": 30,
+    "topics": {
+     "onderwerp-00": 18.5,
+     "onderwerp-01": 18.13,
+     "onderwerp-02": 17.76,
+     "onderwerp-03": 17.39,
+     "onderwerp-04": 17.02,
+     "onderwerp-05": 16.65,
+     "onderwerp-06": 16.28,
+     "onderwerp-07": 15.91,
+     "onderwerp-08": 15.54,
+     "onderwerp-09": 15.17,
+     "onderwerp-10": 14.8,
+     "onderwerp-11": 14.43,
+     "onderwerp-12": 14.06,
+     "onderwerp-13": 13.69,
+     "onderwerp-14": 13.32,
+     "onderwerp-15": 12.95,
+     "onderwerp-16": 12.58,
+     "onderwerp-17": 12.21,
+     "onderwerp-18": 11.84,
+     "onderwerp-19": 11.47,
+     "onderwerp-20": 11.1,
+     "onderwerp-21": 10.73,
+     "onderwerp-22": 10.36,
+     "onderwerp-23": 9.99,
+     "onderwerp-24": 9.62,
+     "onderwerp-25": 9.25,
+     "onderwerp-26": 8.88,
+     "onderwerp-27": 8.51,
+     "onderwerp-28": 8.14,
+     "onderwerp-29": 7.77,
+     "onderwerp-30": 7.4,
+     "onderwerp-31": 7.03,
+     "onderwerp-32": 6.66,
+     "onderwerp-33": 6.29,
+     "onderwerp-34": 5.92,
+     "onderwerp-35": 5.55,
+     "onderwerp-36": 5.18,
+     "onderwerp-37": 4.81,
+     "onderwerp-38": 4.44,
+     "onderwerp-39": 4.07,
+     "onderwerp-40": 3.7,
+     "onderwerp-41": 3.33,
+     "onderwerp-42": 2.96,
+     "onderwerp-43": 2.59,
+     "onderwerp-44": 2.22,
+     "onderwerp-45": 1.85,
+     "onderwerp-46": 1.48,
+     "onderwerp-47": 1.11,
+     "onderwerp-48": 0.74,
+     "onderwerp-49": 0.37
+    },
+    "sources": {
+     "nos": 1,
+     "nrc": 1,
+     "vk": 1
+    }
+   },
+   "summary": {
+    "n": 30,
+    "topics": {
+     "onderwerp-00": 18.5,
+     "onderwerp-01": 18.13,
+     "onderwerp-02": 17.76,
+     "onderwerp-03": 17.39,
+     "onderwerp-04": 17.02,
+     "onderwerp-05": 16.65,
+     "onderwerp-06": 16.28,
+     "onderwerp-07": 15.91,
+     "onderwerp-08": 15.54,
+     "onderwerp-09": 15.17,
+     "onderwerp-10": 14.8,
+     "onderwerp-11": 14.43,
+     "onderwerp-12": 14.06,
+     "onderwerp-13": 13.69,
+     "onderwerp-14": 13.32,
+     "onderwerp-15": 12.95,
+     "onderwerp-16": 12.58,
+     "onderwerp-17": 12.21,
+     "onderwerp-18": 11.84,
+     "onderwerp-19": 11.47,
+     "onderwerp-20": 11.1,
+     "onderwerp-21": 10.73,
+     "onderwerp-22": 10.36,
+     "onderwerp-23": 9.99,
+     "onderwerp-24": 9.62,
+     "onderwerp-25": 9.25,
+     "onderwerp-26": 8.88,
+     "onderwerp-27": 8.51,
+     "onderwerp-28": 8.14,
+     "onderwerp-29": 7.77,
+     "onderwerp-30": 7.4,
+     "onderwerp-31": 7.03,
+     "onderwerp-32": 6.66,
+     "onderwerp-33": 6.29,
+     "onderwerp-34": 5.92,
+     "onderwerp-35": 5.55,
+     "onderwerp-36": 5.18,
+     "onderwerp-37": 4.81,
+     "onderwerp-38": 4.44,
+     "onderwerp-39": 4.07
+    },
+    "sources": {
+     "nos": 1,
+     "nrc": 1,
+     "vk": 1
+    }
+   }
+  },
+  {
+   "name": "gelijk",
+   "affinity": {
+    "n": 9,
+    "topics": {
+     "zorg": 2,
+     "ai": 2,
+     "wonen": 2
+    },
+    "sources": {
+     "vk": 1,
+     "nos": 1
+    }
+   },
+   "summary": {
+    "n": 9,
+    "topics": {
+     "ai": 2,
+     "wonen": 2,
+     "zorg": 2
+    },
+    "sources": {
+     "nos": 1,
+     "vk": 1
+    }
+   }
+  }
+ ],
+ "request": {
+  "profile": {
+   "followed": [
+    "nos",
+    "nu",
+    "nrc",
+    "volkskrant",
+    "guardian",
+    "quanta",
+    "sciam",
+    "nature",
+    "carbonbrief"
+   ],
+   "interests": [
+    "wetenschap"
+   ],
+   "topics": [
+    "klimaat",
+    "natuur"
+   ],
+   "favorites": [
+    "carbonbrief"
+   ],
+   "taste": {
+    "topics": {
+     "klimaat": 4,
+     "f1": -4
+    },
+    "sources": {}
+   },
+   "readIds": []
+  },
+  "affinity": {
+   "n": 50,
+   "topics": {
+    "natuur": 12.01,
+    "energie": 8.66,
+    "klimaat": 8.54,
+    "wielrennen": 1.04,
+    "film": 0.93,
+    "ai": 0.9,
+    "onderwijs": 0.82,
+    "ruimte": 0.68,
+    "latam": 0.54,
+    "tech": 0.39
+   },
+   "sources": {
+    "nature": 10.3,
+    "quanta": 6.29,
+    "carbonbrief": 6.19,
+    "sciam": 4.18,
+    "volkskrant": 3.13,
+    "nu": 1.94,
+    "nrc": 1.33,
+    "nos": 0.7,
+    "guardian": 0.39
+   }
+  },
+  "body": {
+   "v": 2,
+   "followed": [
+    "nos",
+    "nu",
+    "nrc",
+    "volkskrant",
+    "guardian",
+    "quanta",
+    "sciam",
+    "nature",
+    "carbonbrief"
+   ],
+   "interests": [
+    "wetenschap"
+   ],
+   "topics": [
+    "klimaat",
+    "natuur"
+   ],
+   "favorites": [
+    "carbonbrief"
+   ],
+   "taste": {
+    "topics": {
+     "klimaat": 4,
+     "f1": -4
+    },
+    "sources": {}
+   },
+   "readIds": [],
+   "reading": {
+    "n": 30,
+    "topics": {
+     "natuur": 12.01,
+     "energie": 8.66,
+     "klimaat": 8.54,
+     "wielrennen": 1.04,
+     "film": 0.93,
+     "ai": 0.9,
+     "onderwijs": 0.82,
+     "ruimte": 0.68,
+     "latam": 0.54,
+     "tech": 0.39
+    },
+    "sources": {
+     "nature": 10.3,
+     "quanta": 6.29,
+     "carbonbrief": 6.19,
+     "sciam": 4.18,
+     "volkskrant": 3.13,
+     "nu": 1.94,
+     "nrc": 1.33,
+     "nos": 0.7,
+     "guardian": 0.39
+    }
+   }
+  }
+ }
+}

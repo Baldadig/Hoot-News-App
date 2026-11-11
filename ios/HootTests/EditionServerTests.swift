@@ -113,14 +113,63 @@ final class EditionServerTests: XCTestCase {
         XCTAssertEqual(ServerEditionStub.bodies.first?["v"] as? Int, 2)
     }
 
-    // De app claimt niets meer en stuurt geen leesprofiel: alleen de server schrijft in je account.
-    func testAppNoLongerClaimsOrSendsAffinity() throws {
+    // De app claimt niets meer en stuurt het leesprofiel alleen samengevat: alleen de server schrijft in je account.
+    func testAppNoLongerClaimsOrSendsRawAffinity() throws {
         let src = try String(contentsOf: Self.repo.appending(path: "ios/Hoot/HootStore.swift"), encoding: .utf8)
         XCTAssertFalse(src.contains(".claimEdition("), "loadPersonal claimt niet meer")
         XCTAssertFalse(src.contains("fallbackPersonal"), "de oude terugval is weg")
         let ask = try XCTUnwrap(src.range(of: "private func askServer")).upperBound
         let end = try XCTUnwrap(src.range(of: "static func acceptServer")).lowerBound
-        XCTAssertFalse(src[ask ..< end].contains("affinity"), "geen leesprofiel naar de server")
+        let body = src[ask ..< end]
+        XCTAssertFalse(body.contains("\"affinity\""), "geen ruw leesprofiel naar de server")
+        XCTAssertTrue(body.contains("Self.readingSummary(of: affinity)"), "wel de samenvatting")
         XCTAssertTrue(src.contains("personalProvisional = Self.decodeEdition(raw)"), "het vangnet blijft in het geheugen")
+        XCTAssertTrue(src.contains("previous: prior, reading: true)"), "het vangnet rekent met dezelfde samenvatting")
+    }
+
+    // Leesprofiel meesturen (besluit Alex, 11 november 2026): voor elk profiel stuurt de app precies de samenvatting
+    // die het web stuurt (<repo>/tests/fixtures/leesprofiel-golden.json, scripts/make-reading-golden.mjs; op het web
+    // tests/leesprofiel.test.mjs). Via het Affinity-model van de app en de rekenkern, zoals askServer het doet.
+    func testReadingSummaryEqualsWeb() async throws {
+        let data = try Data(contentsOf: Self.repo.appending(path: "tests/fixtures/leesprofiel-golden.json"))
+        let g = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let cases = try XCTUnwrap(g["cases"] as? [[String: Any]])
+        XCTAssertEqual(cases.count, 17)
+        var with = 0
+        for c in cases {
+            let name = c["name"] as? String ?? "?"
+            let want = c["summary"] as? [String: Any]
+            guard let raw = c["affinity"] as? [String: Any] else {
+                XCTAssertNil(want, name)
+                continue
+            }
+            let profile = try JSONDecoder().decode(Affinity.self, from: JSONSerialization.data(withJSONObject: raw))
+            let got = await HootStore.readingSummary(of: profile)
+            if let want {
+                with += 1
+                XCTAssertEqual(NSDictionary(dictionary: try XCTUnwrap(got, name)), NSDictionary(dictionary: want), name)
+            } else {
+                XCTAssertNil(got, name)
+            }
+        }
+        XCTAssertEqual(with, 15)
+
+        // De hele vraag: dezelfde samenvatting op dezelfde plek, en nooit het ruwe profiel.
+        let request = try XCTUnwrap(g["request"] as? [String: Any])
+        let profile = try XCTUnwrap(request["profile"] as? [String: Any])
+        let webBody = try XCTUnwrap(request["body"] as? [String: Any])
+        let affinity = try JSONDecoder().decode(Affinity.self, from: JSONSerialization.data(withJSONObject: try XCTUnwrap(request["affinity"])))
+        let taste = try JSONDecoder().decode(Taste.self, from: JSONSerialization.data(withJSONObject: profile["taste"] ?? [:]))
+        let body = HootStore.serverBody(followed: profile["followed"] as? [String] ?? [], interests: profile["interests"] as? [String] ?? [],
+                                        topics: profile["topics"] as? [String] ?? [], favorites: profile["favorites"] as? [String] ?? [],
+                                        taste: taste, readIds: [], reading: await HootStore.readingSummary(of: affinity))
+        XCTAssertEqual(NSDictionary(dictionary: try XCTUnwrap(body["reading"] as? [String: Any])), NSDictionary(dictionary: try XCTUnwrap(webBody["reading"] as? [String: Any])))
+        XCTAssertNil(body["affinity"])
+        XCTAssertEqual(body["v"] as? Int, 2)
+        XCTAssertEqual(body["followed"] as? [String], webBody["followed"] as? [String])
+        // Zonder leesprofiel (nog te weinig gelezen): geen `reading`, zoals het web.
+        let none = await HootStore.readingSummary(of: Affinity())
+        XCTAssertNil(none)
+        XCTAssertNil(HootStore.serverBody(followed: [], interests: [], topics: [], favorites: [], taste: Taste(), readIds: [], reading: none)["reading"])
     }
 }

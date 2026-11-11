@@ -120,7 +120,8 @@ export default function App() {
 
   const [saved, setSaved] = useStored('hoot:saved-v2', {})
   const [readIds, setReadIds] = useStored('hoot:read', [])
-  // Je smaak: wat je opent en bewaart (src/lib/affinity.js). Alleen op dit toestel.
+  // Je smaak: wat je opent en bewaart (src/lib/affinity.js). Op dit toestel; alleen een samenvatting gaat mee
+  // naar de server voor je Editie (readingSummary).
   const [affinity, setAffinity] = useStored('hoot:affinity', null)
   const [seenStories, setSeenStories] = useStored('hoot:stories-seen', {})
 
@@ -176,7 +177,7 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, readIds: read, sync: { status: syncStatus, pulled: syncPulled }, stuck: feedStuck })
+  const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, readIds: read, affinity, sync: { status: syncStatus, pulled: syncPulled }, stuck: feedStuck })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   // Wie vroeger een vast Bluesky-account van Hoot volgde (Aaron Rupar e.a.), volgt dat nu als eigen account:

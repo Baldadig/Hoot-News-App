@@ -42,6 +42,8 @@ var HootCore = (() => {
     profileSummary: () => profileSummary,
     profileSummaryJSON: () => profileSummaryJSON,
     profileSummaryOf: () => profileSummaryOf,
+    readingSummary: () => readingSummary,
+    readingSummaryJSON: () => readingSummaryJSON,
     recentEditions: () => recentEditions,
     voorstelJSON: () => voorstelJSON
   });
@@ -187,7 +189,21 @@ var HootCore = (() => {
   }
 
   // src/lib/affinity.js
+  var KEEP_TOPICS = 40;
+  var KEEP_SOURCES = 30;
   var MIN_EVENTS = 8;
+  var READING_N_MAX = 30;
+  var READING_KEY = /^[a-z0-9][a-z0-9:._-]{0,79}$/i;
+  var READING_W_MAX = 1e3;
+  var weights = (o, keep) => Object.fromEntries(
+    Object.entries(o && typeof o === "object" && !Array.isArray(o) ? o : {}).filter(([k, v]) => READING_KEY.test(k) && typeof v === "number" && Number.isFinite(v) && v > 0).map(([k, v]) => [k, Math.round(Math.min(v, READING_W_MAX) * 100) / 100]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).slice(0, keep)
+  );
+  function readingSummary(affinity) {
+    if (!affinity || typeof affinity !== "object" || Array.isArray(affinity)) return null;
+    const n = Number.isFinite(affinity.n) ? Math.floor(affinity.n) : 0;
+    if (n < MIN_EVENTS) return null;
+    return { n: Math.min(n, READING_N_MAX), topics: weights(affinity.topics, KEEP_TOPICS), sources: weights(affinity.sources, KEEP_SOURCES) };
+  }
 
   // shared/opinie.mjs
   var DIR = /^(opinie[a-z-]*|opinies|opinion|opinions|[a-z]+-opinion|meningen|mening|columns?|columns-[a-z-]+|columnisten|commentaar|commentisfree|[a-z]+-commentary|opinion-and-essays|wat-u-zegt)$/i;
@@ -1662,9 +1678,9 @@ var HootCore = (() => {
         }
       }
     }
-    const weights = {};
-    for (const d of PLAN_DESKS) weights[d] = Math.round(w[d] * 100) / 100;
-    return { order, weights };
+    const weights2 = {};
+    for (const d of PLAN_DESKS) weights2[d] = Math.round(w[d] * 100) / 100;
+    return { order, weights: weights2 };
   }
   var OWN_DESK_FAMILY = { tech: "tech", economie: "economie", regio: "binnenland" };
   var OWN_DESK_CAT = { tech: ["tech"], economie: ["economie"], regio: ["regio"] };
@@ -3959,7 +3975,9 @@ var HootCore = (() => {
       interests: input.interests || [],
       topics: input.topics || [],
       favorites: input.favorites || [],
-      affinity: input.affinity || null,
+      // `reading`: je leesprofiel zoals het naar de server gaat (readingSummary); het vangnet van de app rekent
+      // daarmee, net als het web. Zonder `reading` het ruwe `affinity` (de pariteitstests, app 1.2).
+      affinity: "reading" in input ? readingSummary(input.reading) : input.affinity || null,
       taste: input.taste || null,
       readIds,
       previous: previousFrom(input.previous),
@@ -4027,6 +4045,9 @@ var HootCore = (() => {
   }
   function profileSummaryJSON(jsonIn) {
     return JSON.stringify(profileSummaryOf(typeof jsonIn === "string" ? JSON.parse(jsonIn) : jsonIn));
+  }
+  function readingSummaryJSON(affinityJSON) {
+    return JSON.stringify(readingSummary(typeof affinityJSON === "string" ? JSON.parse(affinityJSON) : affinityJSON));
   }
   return __toCommonJS(editionCore_exports);
 })();
