@@ -34,6 +34,9 @@ import SwiftUI
 //   -HootBalkOpzij 1   (de bediening in de systeembalk, zoals bij een verticale balk op de iPhone Duo)
 //   -HootDuoReeks binnen-liggend,buiten,…   (daarna vouwen: zelfde venster, telkens een andere houding)
 //   -HootDuoNaam <naam>   -HootDuoWacht <s>   (de opname in Documents/duo-<naam>….png)
+//   -HootVerschillen <pad>   (Waar media verschillen: een JSON-bestand verhaal-id → blok, zoals de server het
+//                            meegeeft, voor verhalen waar de feed er (nog) geen heeft; alleen voor schermen)
+//   -HootVerhaal <verhaal-id>   (met -HootScreen verhaal: dit verhaal openen in plaats van dat met de meeste bronnen)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
     #if DEBUG
@@ -75,7 +78,14 @@ enum DebugLaunch {
         default: nil
         }
     }
+    static var verhaal: String? { defaults.string(forKey: "HootVerhaal") }
+    static func verschillen(_ storyId: String) -> StoryVerschillen? {
+        guard let pad = defaults.string(forKey: "HootVerschillen"), let data = FileManager.default.contents(atPath: pad) else { return nil }
+        return (try? JSONDecoder().decode([String: StoryVerschillen].self, from: data))?[storyId]
+    }
     #else
+    static func verschillen(_ storyId: String) -> StoryVerschillen? { nil }
+    static let verhaal: String? = nil
     static let screen: String? = nil
     static let engine = false
     static let grid: String? = nil

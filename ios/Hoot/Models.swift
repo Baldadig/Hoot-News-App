@@ -196,10 +196,81 @@ struct Story: Codable, Identifiable, Hashable {
     // feed met hetzelfde oordeel als het web. Ontbreekt het veld, dan blijft het weg.
     var sport: Bool?
     var light: StoryLight?
+    // Waar media verschillen (server, achter een vlag): een gekeurd blok, of niets.
+    var verschillen: StoryVerschillen?
 
     // `tappedId` hoort niet in de opslag: het geldt alleen voor één keer openen.
     private enum CodingKeys: String, CodingKey {
-        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt, sport, light
+        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt, sport, light, verschillen
+    }
+}
+
+// "Waar media verschillen" in Vergelijken (`story.verschillen` van de server; gelijk aan
+// shared/verschillen.mjs op het web): drie korte alinea's in vaste volgorde, alleen als er een verschil is
+// en nog een deel (wat iedereen zegt of wat open is). Leest nooit fout: wat niet klopt wordt nil, zodat
+// een verhaal er nooit door wegvalt.
+struct StoryVerschillen: Codable, Hashable {
+    struct Deel: Codable, Hashable {
+        var soort: String
+        var tekst: String
+    }
+    var delen: [Deel]
+    var versie: Int?
+
+    static let label = "Waar media verschillen"
+    static let voet = "Door AI samengevat uit de koppen en intro’s hieronder."
+    static let soorten = ["gedeeld", "verschil", "onbekend"]
+
+    init(delen: [Deel], versie: Int? = nil) {
+        self.delen = delen
+        self.versie = versie
+    }
+
+    private enum CodingKeys: String, CodingKey { case delen, versie }
+    private struct LosDeel: Decodable {
+        let deel: Deel?
+        init(from decoder: Decoder) throws { deel = try? Deel(from: decoder) }
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        delen = ((try? c.decodeIfPresent([LosDeel].self, forKey: .delen)) ?? nil)?.compactMap(\.deel) ?? []
+        versie = try? c.decodeIfPresent(Int.self, forKey: .versie)
+    }
+
+    // Wat Vergelijken toont, of nil (dan ziet het scherm eruit als altijd).
+    var getoond: [Deel]? {
+        let lijst = Self.soorten.compactMap { soort in delen.first { $0.soort == soort && !$0.tekst.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } }
+            .map { Deel(soort: $0.soort, tekst: Self.zet($0.tekst)) }
+        guard lijst.contains(where: { $0.soort == "verschil" }), lijst.count >= 2 else { return nil }
+        return lijst
+    }
+
+    // Typografie: ’ in plaats van een rechte apostrof tussen letters, en een vaste spatie na een getal.
+    static func zet(_ t: String) -> String {
+        var s = t.trimmingCharacters(in: .whitespacesAndNewlines)
+        s = s.replacingOccurrences(of: #"(\p{L})'(\p{L})"#, with: "$1’$2", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"(\d[\d.,]*) (?=\p{L})"#, with: "$1\u{00A0}", options: .regularExpression)
+        return s
+    }
+}
+
+// Een Story leest `verschillen` zonder ooit te falen: een kapot blok wordt nil.
+extension Story {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        leadId = try c.decodeIfPresent(String.self, forKey: .leadId)
+        itemIds = try c.decode([String].self, forKey: .itemIds)
+        sourceCount = try c.decodeIfPresent(Int.self, forKey: .sourceCount)
+        sourceNames = try c.decodeIfPresent([String].self, forKey: .sourceNames)
+        publisherCount = try c.decodeIfPresent(Int.self, forKey: .publisherCount)
+        publisherCountries = try c.decodeIfPresent([String].self, forKey: .publisherCountries)
+        desk = try c.decodeIfPresent(String.self, forKey: .desk)
+        latestAt = try c.decodeIfPresent(String.self, forKey: .latestAt)
+        sport = try c.decodeIfPresent(Bool.self, forKey: .sport)
+        light = try c.decodeIfPresent(StoryLight.self, forKey: .light)
+        verschillen = (try? c.decodeIfPresent(StoryVerschillen.self, forKey: .verschillen)) ?? nil
     }
 }
 
