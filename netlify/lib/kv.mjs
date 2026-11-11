@@ -20,7 +20,7 @@ export function fellBack(op, key, e) {
   if (logged.has(k)) return true
   logged.add(k)
   // Sleutels van de persoonlijke Editie (`pe-…`) bevatten een afdruk van je account of profiel: nooit in de log.
-  const shown = String(key).startsWith('pe-') ? String(key).split(':')[0] + ':…' : key
+  const shown = String(key).startsWith('pe') ? String(key).split(':')[0] + ':…' : key
   console.error(`[kv] Netlify Blobs ${op} mislukte voor "${shown}"; terugval op het geheugen van deze functie-instantie: ${e?.message || e}`)
   return true
 }
