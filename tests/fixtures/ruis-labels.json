@@ -1,0 +1,1368 @@
+{
+ "vastgelegd": "2026-11-11, Redacteur · ruis. De gelabelde stukken van AI-keuring 1 en 2 (ai-keuring-1-labels.json, ai-keuring-2-labels.json, met hun randgevallen), ongewijzigd overgenomen. N = nieuws (moet blijven, in de Stroom én de Editie), W = deal/aankondiging, G = grensgeval. Randgevallen (set *-rand) zijn nieuws dat A bewust weert (bekende ontwerprisico’s, geen eis voor de Editie), maar dat wel in de Stroom moet staan.",
+ "items": [
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "ACM waarschuwt webwinkels voor nepkortingen rond Black Friday",
+   "url": "https://nos.nl/artikel/2642311-acm-waarschuwt-webwinkels-voor-nepkortingen-rond-black-friday",
+   "summary": "De toezichthouder controleert dit jaar extra op kortingen die zijn berekend vanaf een opgeblazen adviesprijs."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Black Friday-deals blijken vaak geen echte korting, zegt Consumentenbond",
+   "url": "https://www.nu.nl/geldzaken/6372110/black-friday-deals-blijken-vaak-geen-echte-korting-zegt-consumentenbond.html",
+   "summary": "Bij ruim de helft van de onderzochte producten was de prijs een maand eerder even laag of lager."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "tweakers",
+   "title": "ACM beboet webwinkel voor misleidende Black Friday-sale",
+   "url": "https://tweakers.net/nieuws/241002/acm-beboet-webwinkel-voor-misleidende-black-friday-sale.html",
+   "summary": "Een elektronicawinkel moet 400.000 euro betalen omdat de getoonde vanafprijzen nooit werden gehanteerd."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "The FTC is cracking down on fake Black Friday discounts",
+   "url": "https://www.theverge.com/news/824411/ftc-fake-black-friday-discounts-rule",
+   "summary": "The agency says retailers can no longer advertise a sale price against a reference price they never charged."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "US shoppers spend record $11 billion online on Black Friday, Adobe says",
+   "url": "https://www.reuters.com/business/retail-consumer/us-shoppers-spend-record-11-billion-online-black-friday-adobe-says-2026-11-28/",
+   "summary": "Online spending rose 9% from a year earlier as steep discounts on electronics drew buyers."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nrc",
+   "title": "Waarom Black Friday in Nederland maar niet wil verdwijnen",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/waarom-black-friday-in-nederland-maar-niet-wil-verdwijnen-a4912873",
+   "summary": "Winkeliers klagen over de kortingsdag, maar durven niet als enige niet mee te doen."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Winkeliers verwachten recordomzet op Black Friday ondanks lager consumentenvertrouwen",
+   "url": "https://nos.nl/artikel/2642390-winkeliers-verwachten-recordomzet-op-black-friday-ondanks-lager-consumentenvertrouwen",
+   "summary": "Branchevereniging Thuiswinkel.org rekent op een omzet van ruim 700 miljoen euro."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "Amazon sued over Prime Day “deals” that were never discounted",
+   "url": "https://www.theverge.com/news/824590/amazon-lawsuit-prime-day-deals-reference-prices",
+   "summary": "A class action claims Amazon showed strikethrough prices that products never sold at."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Europese Commissie onderzoekt kortingscodes van Temu",
+   "url": "https://tweakers.net/nieuws/241118/europese-commissie-onderzoekt-kortingscodes-van-temu.html",
+   "summary": "De Commissie wil weten of de platformen consumenten onder druk zetten met aftellende kortingen."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Politie pakt bende op die nep-kortingscodes verkocht via Telegram",
+   "url": "https://www.nu.nl/binnenland/6372201/politie-pakt-bende-op-die-nep-kortingscodes-verkocht-via-telegram.html",
+   "summary": "De verdachten zouden duizenden mensen hebben opgelicht met codes voor webwinkels."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Top 10 M&A deals of 2026",
+   "url": "https://www.reuters.com/markets/deals/top-10-ma-deals-2026-2026-12-30/",
+   "summary": "Dealmaking rebounded this year as megadeals in tech and pharma returned."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Unilever agrees $9 billion deal to sell food brands to private equity",
+   "url": "https://www.reuters.com/markets/deals/unilever-agrees-9-billion-deal-sell-food-brands-2026-11-11/",
+   "summary": "The consumer goods group will sell Knorr and Hellmann’s to a consortium led by CVC."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Shell, BP held early merger talks, sources say",
+   "url": "https://www.reuters.com/business/energy/shell-bp-held-early-merger-talks-sources-say-2026-11-11/",
+   "summary": "The talks did not progress beyond an initial stage, according to three people familiar with the matter."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Overnamedeal ABN Amro en NIBC rond: bank betaalt 960 miljoen",
+   "url": "https://nos.nl/artikel/2642404-overnamedeal-abn-amro-en-nibc-rond-bank-betaalt-960-miljoen",
+   "summary": "ABN Amro neemt de kleinere zakenbank volledig over, als de toezichthouders instemmen."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nrc",
+   "title": "De deal van de eeuw: hoe Prosus zijn belang in Tencent verkocht",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/de-deal-van-de-eeuw-hoe-prosus-zijn-belang-in-tencent-verkocht-a4912901",
+   "summary": "Een reconstructie van de grootste aandelenverkoop in de Nederlandse beursgeschiedenis."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "Microsoft’s $69 billion Activision deal faces new FTC challenge",
+   "url": "https://www.theverge.com/news/824622/microsoft-activision-deal-ftc-appeal",
+   "summary": "The agency says it will appeal the court ruling that cleared the acquisition."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "EU clears Mars deal for Kellanova with conditions",
+   "url": "https://www.reuters.com/markets/deals/eu-clears-mars-deal-kellanova-with-conditions-2026-11-11/",
+   "summary": "The European Commission said remedies addressed its concerns about snack prices."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Handelsdeal tussen EU en VS: dit betekent het voor de prijs van je auto",
+   "url": "https://www.nu.nl/economie/6372250/handelsdeal-tussen-eu-en-vs-dit-betekent-het-voor-de-prijs-van-je-auto.html",
+   "summary": "De importheffing op Europese auto’s gaat omlaag naar 10 procent."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Prijs van zonnepanelen daalt naar laagste niveau ooit",
+   "url": "https://nos.nl/artikel/2642420-prijs-van-zonnepanelen-daalt-naar-laagste-niveau-ooit",
+   "summary": "Door overproductie in China kost een paneel nog maar een derde van de prijs van vijf jaar geleden."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Benzineprijs zakt onder 1,80 euro per liter",
+   "url": "https://www.nu.nl/economie/6372261/benzineprijs-zakt-onder-180-euro-per-liter.html",
+   "summary": "Voor het eerst in drie jaar is tanken goedkoper dan 1,80 euro."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Bitcoin falls 30% off its record high as risk appetite fades",
+   "url": "https://www.reuters.com/markets/currencies/bitcoin-falls-30-off-its-record-high-risk-appetite-fades-2026-11-11/",
+   "summary": "The cryptocurrency slid below $80,000 as investors pulled money from crypto funds."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nrc",
+   "title": "AEX sluit 2 procent lager door zorgen over rente",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/aex-sluit-2-procent-lager-door-zorgen-over-rente-a4912915",
+   "summary": "Vooral chipbedrijven moesten terrein prijsgeven."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Prijzen van DDR5-geheugen stijgen 40 procent door AI-vraag",
+   "url": "https://tweakers.net/nieuws/241150/prijzen-van-ddr5-geheugen-stijgen-40-procent-door-ai-vraag.html",
+   "summary": "Fabrikanten verschuiven hun productie naar geheugen voor datacenters."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "Nintendo raises Switch 2 price by $50 in the US, citing tariffs",
+   "url": "https://www.theverge.com/news/824700/nintendo-switch-2-price-increase-tariffs",
+   "summary": "The console will now cost $499 starting next month."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Huizenprijzen stijgen voor het eerst sinds maanden minder hard",
+   "url": "https://nos.nl/artikel/2642433-huizenprijzen-stijgen-voor-het-eerst-sinds-maanden-minder-hard",
+   "summary": "Een gemiddelde koopwoning kost nu 470.000 euro, meldt het CBS."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Oil prices slump to four-year low on OPEC+ output hike",
+   "url": "https://www.reuters.com/business/energy/oil-prices-slump-four-year-low-opec-output-hike-2026-11-11/",
+   "summary": "Brent crude fell below $55 a barrel."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Kabinet verlengt korting op energiebelasting niet",
+   "url": "https://nos.nl/artikel/2642450-kabinet-verlengt-korting-op-energiebelasting-niet",
+   "summary": "Huishoudens betalen volgend jaar gemiddeld 180 euro meer voor energie."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Gratis kinderopvang schuift weer een jaar op",
+   "url": "https://www.nu.nl/politiek/6372290/gratis-kinderopvang-schuift-weer-een-jaar-op.html",
+   "summary": "Het kabinet heeft het geld voor de invoering in 2027 niet rond."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nrc",
+   "title": "Studenten krijgen korting op het OV, maar alleen buiten de spits",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/studenten-krijgen-korting-op-het-ov-maar-alleen-buiten-de-spits-a4912930",
+   "summary": "De NS en het kabinet sloten een akkoord over de studentenreisproductie."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Zorgverzekeraars schrappen collectiviteitskorting",
+   "url": "https://nos.nl/artikel/2642466-zorgverzekeraars-schrappen-collectiviteitskorting",
+   "summary": "Wie via de werkgever verzekerd is, gaat volgend jaar tot 60 euro meer betalen."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Subsidie op elektrische auto’s keert terug: 2950 euro korting",
+   "url": "https://tweakers.net/nieuws/241177/subsidie-op-elektrische-autos-keert-terug-2950-euro-korting.html",
+   "summary": "De SEPP-regeling gaat op 1 januari weer open voor nieuwe en tweedehands auto’s."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Spotify stopt met betalen voor exclusieve podcasts",
+   "url": "https://nos.nl/artikel/2642480-spotify-stopt-met-betalen-voor-exclusieve-podcasts",
+   "summary": "De streamingdienst wil voortaan vooral verdienen aan videopodcasts."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "YouTube now has 1 billion monthly podcast viewers",
+   "url": "https://www.theverge.com/news/824733/youtube-podcast-viewers-billion",
+   "summary": "The company says video podcasts are the fastest-growing category on the platform."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Podcastmaker Giel Beelen stopt na ophef over uitspraken",
+   "url": "https://www.nu.nl/media/6372305/podcastmaker-giel-beelen-stopt-na-ophef-over-uitspraken.html",
+   "summary": "Adverteerders trokken zich terug na een aflevering over vluchtelingen."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nrc",
+   "title": "Hoe de podcast ‘Boer zoekt Waarheid’ een rechtszaak veroorzaakte",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/hoe-de-podcast-boer-zoekt-waarheid-een-rechtszaak-veroorzaakte-a4912944",
+   "summary": "Een melkveehouder eist een rectificatie van de makers."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "NPO schrapt talkshow Op1 na dit seizoen",
+   "url": "https://nos.nl/artikel/2642491-npo-schrapt-talkshow-op1-na-dit-seizoen",
+   "summary": "De publieke omroep wil het geld steken in onderzoeksjournalistiek."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Joe Rogan signs $250 million podcast deal with SiriusXM",
+   "url": "https://www.reuters.com/business/media-telecom/joe-rogan-signs-250-million-podcast-deal-with-siriusxm-2026-11-11/",
+   "summary": "The deal moves the world’s most popular podcast off Spotify after six years."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "Netflix will stream live NFL games on Christmas Day again",
+   "url": "https://www.theverge.com/news/824760/netflix-nfl-christmas-games-2026-stream",
+   "summary": "The streamer has renewed its deal with the league for three more seasons."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Kijkcijfers: 3,1 miljoen mensen keken naar de troonrede",
+   "url": "https://www.nu.nl/media/6372320/kijkcijfers-31-miljoen-mensen-keken-naar-de-troonrede.html",
+   "summary": "Dat is het hoogste aantal kijkers in tien jaar."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Videoland stopt met goedkoopste abonnement met reclame",
+   "url": "https://tweakers.net/nieuws/241190/videoland-stopt-met-goedkoopste-abonnement-met-reclame.html",
+   "summary": "Abonnees worden automatisch overgezet naar het duurdere abonnement."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Livestream van gemeenteraad Utrecht gehackt tijdens debat",
+   "url": "https://nos.nl/artikel/2642502-livestream-van-gemeenteraad-utrecht-gehackt-tijdens-debat",
+   "summary": "Kijkers zagen ineens beelden van een pornosite."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "Twitch streamer arrested after swatting dozens of rivals live on stream",
+   "url": "https://www.theverge.com/news/824781/twitch-streamer-arrested-swatting",
+   "summary": "Police say the 22-year-old made more than 40 false emergency calls."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Live-streamed shooting prompts EU demand for answers from Meta",
+   "url": "https://www.reuters.com/technology/live-streamed-shooting-prompts-eu-demand-answers-meta-2026-11-11/",
+   "summary": "The Commission wants to know why the video stayed online for 40 minutes."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Kamer wil verbod op livestreamen van rechtszaken",
+   "url": "https://www.nu.nl/politiek/6372333/kamer-wil-verbod-op-livestreamen-van-rechtszaken.html",
+   "summary": "Een meerderheid vreest dat getuigen zich laten afschrikken."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Blijf binnen: KNMI geeft code rood af voor zware storm",
+   "url": "https://nos.nl/artikel/2642515-blijf-binnen-knmi-geeft-code-rood-af-voor-zware-storm",
+   "summary": "In de kustprovincies worden windstoten tot 140 kilometer per uur verwacht."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Kook je water af: drinkwater in Leiden besmet met bacterie",
+   "url": "https://www.nu.nl/binnenland/6372340/kook-je-water-af-drinkwater-in-leiden-besmet-met-bacterie.html",
+   "summary": "Dunea adviseert 40.000 huishoudens het kraanwater minstens een minuut te koken."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "Update your iPhone now: Apple patches actively exploited zero-day",
+   "url": "https://www.theverge.com/news/824800/apple-ios-zero-day-update-now",
+   "summary": "The flaw in WebKit was used in targeted attacks, Apple says."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Update nu: kritiek lek in Chrome wordt actief misbruikt",
+   "url": "https://tweakers.net/nieuws/241201/update-nu-kritiek-lek-in-chrome-wordt-actief-misbruikt.html",
+   "summary": "Google brengt een noodupdate uit voor alle platformen."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Kijk uit voor gladheid: KNMI waarschuwt voor ijzel in het noorden",
+   "url": "https://nos.nl/artikel/2642524-kijk-uit-voor-gladheid-knmi-waarschuwt-voor-ijzel-in-het-noorden",
+   "summary": "Vanaf middernacht kan het spekglad worden op de weg."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Sell everything, warns bond king as Treasury yields surge",
+   "url": "https://www.reuters.com/markets/us/sell-everything-warns-bond-king-treasury-yields-surge-2026-11-11/",
+   "summary": "The veteran investor says the 30-year yield could reach 7%."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nrc",
+   "title": "Koop geen huis nu, adviseert De Nederlandsche Bank",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/koop-geen-huis-nu-adviseert-de-nederlandsche-bank-a4912960",
+   "summary": "DNB waarschuwt dat de huizenmarkt overgewaardeerd is."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Gemeente stopt met gratis parkeren tijdens koopzondagen",
+   "url": "https://nos.nl/artikel/2642540-gemeente-stopt-met-gratis-parkeren-tijdens-koopzondagen",
+   "summary": "Ondernemers in de binnenstad zijn boos."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Uitverkoop bij Hema: winkelketen sluit 40 filialen",
+   "url": "https://www.nu.nl/economie/6372360/uitverkoop-bij-hema-winkelketen-sluit-40-filialen.html",
+   "summary": "Bij de te sluiten winkels begint maandag de opheffingsuitverkoop; 600 banen verdwijnen."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "theverge",
+   "title": "Apple’s holiday sale was a flop, analysts say",
+   "url": "https://www.theverge.com/news/824820/apple-holiday-sale-iphone-analysts",
+   "summary": "iPhone shipments fell 8% in the quarter despite promotions."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Sotheby’s sale of Klimt portrait sets $236 million record",
+   "url": "https://www.reuters.com/lifestyle/sothebys-sale-klimt-portrait-sets-236-million-record-2026-11-11/",
+   "summary": "The painting became the most expensive modern artwork sold at auction."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nrc",
+   "title": "Podcastoorlog: hoe NPO en DPG vechten om dezelfde makers",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/podcastoorlog-hoe-npo-en-dpg-vechten-om-dezelfde-makers-a4912977",
+   "summary": "Een analyse van de Nederlandse podcastmarkt."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Gerucht: PlayStation 6 krijgt goedkopere versie zonder schijfstation",
+   "url": "https://tweakers.net/nieuws/241215/gerucht-playstation-6-krijgt-goedkopere-versie-zonder-schijfstation.html",
+   "summary": "Dat meldt een bekende leaker op basis van documenten van Sony."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nos",
+   "title": "Video toont hoe Russische drone Pools grondgebied binnenvliegt",
+   "url": "https://nos.nl/artikel/2642555-video-toont-hoe-russische-drone-pools-grondgebied-binnenvliegt",
+   "summary": "Polen heeft de Russische ambassadeur ontboden."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "reuters",
+   "title": "Watch: The moment SpaceX’s Starship booster was caught",
+   "url": "https://www.reuters.com/science/spacex-starship-booster-caught-again-2026-11-11/",
+   "summary": "SpaceX caught the Super Heavy booster with the launch tower arms for the fifth time."
+  },
+  {
+   "set": "ai-k1",
+   "label": "N",
+   "source": "nu",
+   "title": "Luister: zo klonk het noodsignaal van de gezonken vissersboot",
+   "url": "https://www.nu.nl/binnenland/6372377/luister-zo-klonk-het-noodsignaal-van-de-gezonken-vissersboot.html",
+   "summary": "De kustwacht heeft de opname vrijgegeven; drie bemanningsleden worden nog vermist."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "theverge",
+   "title": "Apple’s AirPods Pro 3 are $70 off for Black Friday",
+   "url": "https://www.theverge.com/deals/824900/apple-airpods-pro-3-black-friday-deal",
+   "summary": "The best deal we’ve seen on Apple’s latest earbuds."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "tweakers",
+   "title": "Samsung Galaxy S26 Ultra nu met 300 euro korting",
+   "url": "https://tweakers.net/aanbiedingen/2311/samsung-galaxy-s26-ultra-nu-met-300-euro-korting.html",
+   "summary": "Bij verschillende winkels is de telefoon tijdelijk flink goedkoper."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "theverge",
+   "title": "The best Black Friday TV deals you can get right now",
+   "url": "https://www.theverge.com/24300100/best-black-friday-tv-deals-2026",
+   "summary": "Big screens from LG, Samsung and Sony are cheaper than ever."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "theverge",
+   "title": "Grab the Kindle Paperwhite for its lowest price ever",
+   "url": "https://www.theverge.com/tech/824910/amazon-kindle-paperwhite-deal-sale",
+   "summary": "Amazon’s best e-reader is down to $109."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "wired",
+   "title": "62 Best Black Friday Deals Under $50",
+   "url": "https://www.wired.com/story/best-black-friday-deals-under-50-2026/",
+   "summary": "Cheap gifts that don’t feel cheap."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "ign",
+   "title": "Black Friday PS5 deals: save $100 on the PS5 Pro",
+   "url": "https://www.ign.com/articles/black-friday-ps5-deals-2026",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "tweakers",
+   "title": "Dagdeal: Philips Hue-starterset voor 99 euro",
+   "url": "https://tweakers.net/aanbiedingen/2318/dagdeal-philips-hue-starterset-voor-99-euro.html",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "theverge",
+   "title": "Where to preorder the Pixel 11",
+   "url": "https://www.theverge.com/tech/824930/google-pixel-11-preorder-where-to-buy",
+   "summary": "Here’s how to get one, and which retailers include a free gift card."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "techcrunch",
+   "title": "Last chance to save $500 on Disrupt 2027 passes",
+   "url": "https://techcrunch.com/2026/11/11/last-chance-to-save-500-on-disrupt-2027-passes/",
+   "summary": "Prices go up at midnight."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "ars",
+   "title": "Dealmaster: The best early Black Friday deals on laptops and SSDs",
+   "url": "https://arstechnica.com/staff/2026/11/dealmaster-the-best-early-black-friday-deals-on-laptops-and-ssds/",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "nu",
+   "title": "Podcast | Is de formatie al mislukt?",
+   "url": "https://www.nu.nl/podcast/6372400/podcast-is-de-formatie-al-mislukt.html",
+   "summary": "In deze aflevering bespreken politiek verslaggevers de stand van de formatie."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "nos",
+   "title": "Podcast De Dag: de storm die niemand zag aankomen",
+   "url": "https://nos.nl/podcast/2642600-de-storm-die-niemand-zag-aankomen",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "theverge",
+   "title": "Vergecast: Is the iPhone Fold worth it?",
+   "url": "https://www.theverge.com/podcast/824950/iphone-fold-review-vergecast",
+   "summary": "On this episode, Nilay and David discuss the iPhone Fold review.",
+   "mediaType": "audio/mpeg"
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "atlantic",
+   "title": "Radio Atlantic: What the Election Means",
+   "url": "https://www.theatlantic.com/podcasts/archive/2026/11/radio-atlantic-election/684300/",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "nrc",
+   "title": "Luister: Haagse Zaken over de val van het kabinet",
+   "url": "https://www.nrc.nl/podcast/haagse-zaken/2026/11/11/luister-haagse-zaken-over-de-val-van-het-kabinet",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "nos",
+   "title": "Kijk live: persconferentie van de premier na de ministerraad",
+   "url": "https://nos.nl/l/2642610-kijk-live-persconferentie-van-de-premier",
+   "summary": "Om half zeven spreekt de premier de pers toe."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "theverge",
+   "title": "How to watch Apple’s November event",
+   "url": "https://www.theverge.com/news/824960/apple-november-event-how-to-watch-livestream",
+   "summary": "The event starts at 10AM PT."
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "nu",
+   "title": "Video | Kijk hier de samenvatting van Ajax tegen PSV",
+   "url": "https://www.nu.nl/video/6372410/kijk-hier-de-samenvatting-van-ajax-tegen-psv.html",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "politico-eu",
+   "title": "Berlin Bulletin: Merz’s coalition wobbles",
+   "url": "https://www.politico.eu/podcast/berlin-bulletin-merz-coalition-wobbles/",
+   "summary": "Präsentiert von Bayer"
+  },
+  {
+   "set": "ai-k1",
+   "label": "W",
+   "source": "guardian",
+   "title": "Today in Focus: The man who fooled the art world",
+   "url": "https://www.theguardian.com/news/audio/2026/nov/11/the-man-who-fooled-the-art-world-podcast",
+   "summary": "",
+   "podcastEpisode": "00:31:12",
+   "mediaType": "audio/mpeg"
+  },
+  {
+   "set": "ai-k1",
+   "label": "G",
+   "source": "ad",
+   "title": "Roxeanne en André Hazes winnen publieksprijs Dutch Podcast Awards",
+   "url": "https://www.ad.nl/podcast/roxeanne-en-andre-hazes-winnen-publieksprijs-dutch-podcast-awards~a7d4158d/",
+   "summary": "Roxeanne en André Hazes hebben de publieksprijs gewonnen bij de Dutch Podcast Awards.",
+   "borrowedFrom": "Telegraaf"
+  },
+  {
+   "set": "ai-k1",
+   "label": "G",
+   "source": "reuters",
+   "title": "LISTEN: Air traffic control audio before the Schiphol near-miss",
+   "url": "https://www.reuters.com/world/europe/listen-air-traffic-control-audio-schiphol-near-miss-2026-11-11/",
+   "summary": ""
+  },
+  {
+   "set": "ai-k1-rand",
+   "label": "N",
+   "title": "The Podcast Bubble Has Burst",
+   "url": "https://www.theatlantic.com/ideas/archive/2026/11/podcasts/684400/",
+   "summary": "",
+   "noot": "slug van één woord vóór een id-segment telt als rubriek"
+  },
+  {
+   "set": "ai-k1-rand",
+   "label": "N",
+   "title": "Joe Rogan leaves Spotify",
+   "url": "https://www.theguardian.com/media/2026/nov/11/joe-rogan-leaves-spotify",
+   "summary": "The podcaster has signed with SiriusXM in a deal worth $250m.",
+   "categories": [
+    "Podcasts",
+    "Spotify",
+    "Media"
+   ],
+   "noot": "eerste categorie Podcasts"
+  },
+  {
+   "set": "ai-k1-rand",
+   "label": "N",
+   "title": "Kabinet valt over asielwet",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/kabinet-valt-a4913000",
+   "summary": "Het kabinet is gevallen.",
+   "enclosure": "audio/mpeg",
+   "noot": "voorleesversie als audio-enclosure"
+  },
+  {
+   "set": "ai-k1-rand",
+   "label": "N",
+   "title": "Brand in Rotterdamse haven",
+   "url": "https://www.aljazeera.com/video/newsfeed/2026/11/11/fire-rotterdam-port",
+   "summary": "Een grote brand in de haven.",
+   "enclosure": "video/mp4",
+   "itunesDuration": "00:01:30",
+   "noot": "nieuwsvideo met itunes:duration"
+  },
+  {
+   "set": "ai-k1-rand",
+   "label": "N",
+   "title": "TV-zenders sluiten distributiedeal met Ziggo",
+   "url": "https://www.example.nl/tv/deals/tv-zenders-sluiten-distributiedeal",
+   "summary": "Een nieuw contract tussen zenders en Ziggo.",
+   "noot": "tv gezien als taalsegment"
+  },
+  {
+   "set": "ai-k1-rand",
+   "label": "N",
+   "title": "Adyen buys Mollie in €3bn deal",
+   "url": "https://www.pymnts.com/deals/2026/adyen-buys-mollie/",
+   "summary": "The Dutch payments group agreed to buy its rival.",
+   "noot": "M&A-rubriek /deals/ als eerste segment"
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "ACM start onderzoek naar nepkortingen bij vijf grote webwinkels voor Black Friday",
+   "url": "https://nos.nl/artikel/2643101-acm-start-onderzoek-naar-nepkortingen-bij-vijf-grote-webwinkels-voor-black-friday",
+   "summary": "De toezichthouder vraagt prijsgegevens op van de afgelopen dertig dagen om vanafprijzen te controleren."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Black Friday-sale van kledingketen misleidend, oordeelt Reclame Code Commissie",
+   "url": "https://www.nu.nl/geldzaken/6373220/black-friday-sale-van-kledingketen-misleidend-oordeelt-reclame-code-commissie.html",
+   "summary": "De keten moet zijn advertenties aanpassen; de korting van 70 procent gold maar voor een handvol artikelen."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "EU regulators warn retailers over fake Black Friday discounts",
+   "url": "https://www.reuters.com/business/retail-consumer/eu-regulators-warn-retailers-over-fake-black-friday-discounts-2026-11-11/",
+   "summary": "The Consumer Protection Cooperation network said it would sweep hundreds of websites in the run-up to the sales weekend."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "FTC sues Amazon over Prime Day 'deal' badges it says were deceptive",
+   "url": "https://www.theverge.com/news/812233/ftc-amazon-prime-day-deal-badges-lawsuit",
+   "summary": "The agency claims the 'limited time deal' labels appeared on items whose price had not changed in months."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Consumentenbond: helft Black Friday-aanbiedingen is geen echte korting",
+   "url": "https://tweakers.net/nieuws/241550/consumentenbond-helft-black-friday-aanbiedingen-is-geen-echte-korting.html",
+   "summary": "De bond volgde vier weken lang de prijzen van 300 elektronicaproducten bij tien winkels."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nrc",
+   "title": "Hoe Black Friday de pakketbezorgers tot het uiterste drijft",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/hoe-black-friday-de-pakketbezorgers-tot-het-uiterste-drijft-a4912877",
+   "summary": "Bezorgers werken in de weken rond de koopjesdag tot veertien uur per dag, blijkt uit onderzoek van de FNV."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Shell agrees $12 billion deal to buy Norwegian gas producer",
+   "url": "https://www.reuters.com/markets/deals/shell-agrees-12-billion-deal-buy-norwegian-gas-producer-2026-11-11/",
+   "summary": "The acquisition would be Shell's largest since its takeover of BG Group in 2016."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Top 10 M&A deals of the year so far",
+   "url": "https://www.reuters.com/markets/deals/top-10-ma-deals-year-so-far-2026-11-10/",
+   "summary": "Dealmaking has rebounded to its highest level since 2021, led by technology and energy."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Unilever ice cream spin-off draws private equity deal interest",
+   "url": "https://www.reuters.com/business/deals/unilever-ice-cream-spin-off-draws-private-equity-deal-interest-2026-11-11/",
+   "summary": "Several buyout firms are weighing bids for a stake, people familiar with the matter said."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Overname van PostNL door Belgische bpost gaat niet door",
+   "url": "https://nos.nl/artikel/2643122-overname-van-postnl-door-belgische-bpost-gaat-niet-door",
+   "summary": "De twee bedrijven werden het niet eens over de prijs en de banen in Nederland."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Deal tussen ASML en Chinese klant tegengehouden door kabinet",
+   "url": "https://www.nu.nl/economie/6373231/deal-tussen-asml-en-chinese-klant-tegengehouden-door-kabinet.html",
+   "summary": "Het kabinet weigert een exportvergunning voor de levering van tientallen lithografiemachines."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nrc",
+   "title": "Handelsdeal met Mercosur splijt de Europese landbouwministers",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/handelsdeal-met-mercosur-splijt-de-europese-landbouwministers-a4912881",
+   "summary": "Frankrijk en Polen blokkeren, Nederland twijfelt nog over de steun aan het akkoord."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "Microsoft closes $9 billion deal for game studio after UK approval",
+   "url": "https://www.theverge.com/news/812240/microsoft-closes-game-studio-deal-uk-cma-approval",
+   "summary": "The UK competition regulator dropped its objections after Microsoft offered cloud streaming remedies."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Prijs van zonnepanelen nog nooit zo laag: installateurs in de problemen",
+   "url": "https://nos.nl/artikel/2643130-prijs-van-zonnepanelen-nog-nooit-zo-laag-installateurs-in-de-problemen",
+   "summary": "Door een overschot uit China zijn panelen een derde goedkoper dan vorig jaar, terwijl de vraag daalt."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Benzineprijs daalt onder 1,80 euro per liter voor het eerst in drie jaar",
+   "url": "https://www.nu.nl/economie/6373240/benzineprijs-daalt-onder-180-euro-per-liter-voor-het-eerst-in-drie-jaar.html",
+   "summary": "De adviesprijs van Euro95 zakte dinsdag naar 1,79 euro, door de lagere olieprijs."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Bitcoin slides 30% off record high as ETF outflows mount",
+   "url": "https://www.reuters.com/markets/currencies/bitcoin-slides-30-off-record-high-etf-outflows-mount-2026-11-11/",
+   "summary": "The world's largest cryptocurrency fell below $80,000 for the first time since March."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Oil prices drop 4% on surprise OPEC+ output increase",
+   "url": "https://www.reuters.com/business/energy/oil-prices-drop-4-surprise-opec-output-increase-2026-11-11/",
+   "summary": "Brent crude futures fell to $61.20 a barrel, the lowest since 2021."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Prijzen van DDR5-geheugen stijgen 40 procent door tekort aan chips",
+   "url": "https://tweakers.net/nieuws/241560/prijzen-van-ddr5-geheugen-stijgen-40-procent-door-tekort-aan-chips.html",
+   "summary": "Fabrikanten verschuiven productie naar geheugen voor AI-servers, waardoor consumentengeheugen schaars wordt."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "The Steam Deck 2 will cost $649, Valve confirms",
+   "url": "https://www.theverge.com/news/812251/valve-steam-deck-2-price-649-release-date",
+   "summary": "Valve's next handheld arrives in February with a new AMD chip and an OLED screen as standard."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nrc",
+   "title": "AEX sluit op recordhoogte na sterke cijfers van ASML",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/aex-sluit-op-recordhoogte-na-sterke-cijfers-van-asml-a4912890",
+   "summary": "De hoofdindex steeg 1,8 procent tot 1.012 punten; de chipmachinemaker won ruim 6 procent."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Huizenprijzen dalen voor het eerst in twee jaar",
+   "url": "https://nos.nl/artikel/2643140-huizenprijzen-dalen-voor-het-eerst-in-twee-jaar",
+   "summary": "Een gemiddelde woning was in oktober 0,4 procent goedkoper dan een maand eerder, meldt het CBS."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Kabinet verlengt korting op energierekening voor lage inkomens",
+   "url": "https://nos.nl/artikel/2643150-kabinet-verlengt-korting-op-energierekening-voor-lage-inkomens",
+   "summary": "Huishoudens met een inkomen tot 120 procent van het sociaal minimum krijgen ook in 2027 een tegemoetkoming."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "NS schrapt korting voor dalurenreizigers per 1 januari",
+   "url": "https://www.nu.nl/economie/6373250/ns-schrapt-korting-voor-dalurenreizigers-per-1-januari.html",
+   "summary": "Reizigersorganisatie Rover noemt het besluit 'een klap voor ouderen en studenten'."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nrc",
+   "title": "Gratis kinderopvang schuift opnieuw op, kabinet zoekt geld",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/gratis-kinderopvang-schuift-opnieuw-op-kabinet-zoekt-geld-a4912895",
+   "summary": "De invoering van vrijwel gratis opvang voor werkende ouders wordt een jaar uitgesteld tot 2029."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Germany extends discounted 'Deutschlandticket' at higher price",
+   "url": "https://www.reuters.com/world/europe/germany-extends-discounted-deutschlandticket-higher-price-2026-11-11/",
+   "summary": "The nationwide public transport pass will cost 69 euros a month from next year."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Kortingscode-fraude: politie pakt bende op die webwinkels oplichtte",
+   "url": "https://tweakers.net/nieuws/241570/kortingscode-fraude-politie-pakt-bende-op-die-webwinkels-oplichtte.html",
+   "summary": "De verdachten zouden met gestolen kortingscodes voor ruim een miljoen euro aan elektronica hebben besteld."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Spotify stopt met exclusieve podcasts en zet alles weer open",
+   "url": "https://nos.nl/artikel/2643160-spotify-stopt-met-exclusieve-podcasts-en-zet-alles-weer-open",
+   "summary": "Ook de grootste Nederlandse titels zijn vanaf volgende maand op andere apps te beluisteren."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Podcastmaker Giel Beelen stopt na tien jaar met zijn ochtendshow",
+   "url": "https://www.nu.nl/media/6373260/podcastmaker-giel-beelen-stopt-na-tien-jaar-met-zijn-ochtendshow.html",
+   "summary": "De presentator wil zich richten op zijn bedrijf; zijn laatste uitzending is op 19 december."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "The Vergecast hosts are leaving Vox Media to start their own podcast company",
+   "url": "https://www.theverge.com/podcast/812260/vergecast-hosts-leaving-vox-media-new-podcast-company",
+   "summary": "Nilay Patel and David Pierce say the show will continue under a new name in January."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "YouTube now has more podcast listeners than Spotify, Edison Research finds",
+   "url": "https://www.theverge.com/news/812262/youtube-podcast-listeners-spotify-edison-research",
+   "summary": "One in three weekly podcast listeners in the US now uses YouTube as their main app."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nrc",
+   "title": "NPO schrapt talkshow Op1 na tegenvallende kijkcijfers",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/npo-schrapt-talkshow-op1-na-tegenvallende-kijkcijfers-a4912901",
+   "summary": "Vanaf januari is er op het tijdslot een nieuw actualiteitenprogramma van BNNVARA."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Dutch Podcast Awards: 'De Kantoorgrappen' wint hoofdprijs",
+   "url": "https://nos.nl/artikel/2643170-dutch-podcast-awards-de-kantoorgrappen-wint-hoofdprijs",
+   "summary": "De jury prees de reeks om de manier waarop ze een onderzoek naar pesten op de werkvloer vertelde."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Netflix to stream live NFL games in Europe from next season",
+   "url": "https://www.reuters.com/business/media-telecom/netflix-stream-live-nfl-games-europe-next-season-2026-11-11/",
+   "summary": "The streaming giant has signed a three-year deal worth an estimated $1.2 billion."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Ophef over aflevering van Boer zoekt Vrouw: KRO-NCRV biedt excuses aan",
+   "url": "https://www.nu.nl/media/6373270/ophef-over-aflevering-van-boer-zoekt-vrouw-kro-ncrv-biedt-excuses-aan.html",
+   "summary": "De omroep erkent dat een deelnemer zonder toestemming in beeld is gebracht."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "Apple TV Plus price goes up to $14.99 a month",
+   "url": "https://www.theverge.com/news/812270/apple-tv-plus-price-increase-1499",
+   "summary": "The second price increase in two years takes effect for new subscribers today."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Livestream van rechtszaak tegen Marengo-advocaat trekt recordaantal kijkers",
+   "url": "https://nos.nl/artikel/2643180-livestream-van-rechtszaak-tegen-marengo-advocaat-trekt-recordaantal-kijkers",
+   "summary": "Ruim 400.000 mensen volgden de eerste zittingsdag via de site van de rechtspraak."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "Twitch streamer arrested after livestreaming break-in",
+   "url": "https://www.theverge.com/news/812275/twitch-streamer-arrested-livestream-break-in",
+   "summary": "Police in Ohio say the streamer broadcast himself entering a closed shopping mall at night."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Kijkcijfers: 3,1 miljoen mensen zagen de livestream van de Troonrede",
+   "url": "https://www.nu.nl/media/6373280/kijkcijfers-31-miljoen-mensen-zagen-de-livestream-van-de-troonrede.html",
+   "summary": "Het is het hoogste aantal sinds de NOS de toespraak ook online uitzendt."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Live video shows lava flows reaching Icelandic town of Grindavik",
+   "url": "https://www.reuters.com/world/europe/live-video-shows-lava-flows-reaching-icelandic-town-grindavik-2026-11-11/",
+   "summary": "Authorities evacuated the town overnight as a new fissure opened north of the protective barriers."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Controleer je rookmelder: brandweer ziet piek in woningbranden",
+   "url": "https://nos.nl/artikel/2643190-controleer-je-rookmelder-brandweer-ziet-piek-in-woningbranden",
+   "summary": "Het aantal dodelijke woningbranden lag dit jaar al hoger dan in heel 2025."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Update je iPhone nu: Apple dicht actief misbruikt lek",
+   "url": "https://www.nu.nl/tech/6373290/update-je-iphone-nu-apple-dicht-actief-misbruikt-lek.html",
+   "summary": "Het lek in WebKit werd volgens Apple al gebruikt bij gerichte aanvallen."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Koop geen slimme deurbel van dit merk, waarschuwt Agentschap Telecom",
+   "url": "https://tweakers.net/nieuws/241580/koop-geen-slimme-deurbel-van-dit-merk-waarschuwt-agentschap-telecom.html",
+   "summary": "De deurbellen sturen beelden onversleuteld door en zijn op afstand over te nemen."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "Don't buy a smart TV this Black Friday without checking this setting",
+   "url": "https://www.theverge.com/news/812280/smart-tv-acr-tracking-setting-black-friday",
+   "summary": "Automatic content recognition tracks what you watch; a new study shows most brands enable it by default."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nrc",
+   "title": "Kijk niet weg van Soedan, zegt VN-chef in noodoproep",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/kijk-niet-weg-van-soedan-zegt-vn-chef-in-noodoproep-a4912910",
+   "summary": "Guterres vraagt landen om 4 miljard dollar voor hulp aan 25 miljoen mensen die honger lijden."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Luister naar de slachtoffers, zegt Hoge Raad in uitspraak over Groningen",
+   "url": "https://nos.nl/artikel/2643195-luister-naar-de-slachtoffers-zegt-hoge-raad-in-uitspraak-over-groningen",
+   "summary": "De hoogste rechter oordeelt dat de NAM ook immateriële schade moet vergoeden."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Nvidia shares fall after record sales miss sky-high expectations",
+   "url": "https://www.reuters.com/technology/nvidia-shares-fall-after-record-sales-miss-sky-high-expectations-2026-11-11/",
+   "summary": "Quarterly revenue rose 60% to $71 billion but investors had priced in more."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Brexit-deal voor Noord-Ierland opnieuw ter discussie",
+   "url": "https://nos.nl/artikel/2643200-brexit-deal-voor-noord-ierland-opnieuw-ter-discussie",
+   "summary": "De DUP wil dat Londen de afspraken over douanecontroles heronderhandelt."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Coalitie sluit deal over vermogensbelasting met oppositie",
+   "url": "https://www.nu.nl/politiek/6373300/coalitie-sluit-deal-over-vermogensbelasting-met-oppositie.html",
+   "summary": "In ruil voor steun aan het belastingplan komt er een hogere heffing op vermogens boven een miljoen euro."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "tweakers",
+   "title": "Garage sale van Philips: bedrijf verkoopt laatste consumentendivisie",
+   "url": "https://tweakers.net/nieuws/241590/garage-sale-van-philips-bedrijf-verkoopt-laatste-consumentendivisie.html",
+   "summary": "De verkoop van de divisie persoonlijke verzorging moet 3 miljard euro opleveren."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "Sony's PlayStation sales fell 20% this quarter as prices rose",
+   "url": "https://www.theverge.com/news/812290/sony-playstation-sales-fall-price-increase-earnings",
+   "summary": "Sony sold 3.2 million consoles in the quarter, down from 4 million a year ago."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nrc",
+   "title": "Gratis openbaar vervoer in Tallinn blijkt na tien jaar geen succes",
+   "url": "https://www.nrc.nl/nieuws/2026/11/11/gratis-openbaar-vervoer-in-tallinn-blijkt-na-tien-jaar-geen-succes-a4912915",
+   "summary": "Het autogebruik in de Estse hoofdstad is niet gedaald, blijkt uit een evaluatie."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Podcast over vermiste Tanja Groen leidt tot nieuwe tip bij politie",
+   "url": "https://nos.nl/artikel/2643210-podcast-over-vermiste-tanja-groen-leidt-tot-nieuwe-tip-bij-politie",
+   "summary": "Een luisteraar meldde zich met informatie over een auto die in 1993 bij Maastricht werd gezien."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "theverge",
+   "title": "Amazon will stop selling Kindle ebooks at a discount in the EU",
+   "url": "https://www.theverge.com/news/812295/amazon-kindle-ebook-discount-eu-price-rules",
+   "summary": "New fixed-price rules for ebooks in several member states force the change."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nu",
+   "title": "Video van aanhouding in Rotterdam leidt tot onderzoek naar politiegeweld",
+   "url": "https://www.nu.nl/binnenland/6373310/video-van-aanhouding-in-rotterdam-leidt-tot-onderzoek-naar-politiegeweld.html",
+   "summary": "De Rijksrecherche onderzoekt de beelden waarop een agent een geboeide man slaat."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "reuters",
+   "title": "Retail sales unexpectedly fall in October as shoppers wait for Black Friday",
+   "url": "https://www.reuters.com/markets/us/retail-sales-unexpectedly-fall-october-shoppers-wait-black-friday-2026-11-11/",
+   "summary": "Economists said consumers appeared to delay purchases ahead of holiday discounts."
+  },
+  {
+   "set": "ai-k2",
+   "label": "N",
+   "source": "nos",
+   "title": "Video: zo ging het mis bij de brug in Zwolle",
+   "url": "https://nos.nl/video/2643220-video-zo-ging-het-mis-bij-de-brug-in-zwolle",
+   "summary": "Een vrachtschip raakte dinsdagavond de Mastenbroekerbrug, die daarna urenlang dicht moest. Rijkswaterstaat onderzoekt de schade."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "theverge",
+   "title": "The AirPods Pro 3 are $179 at Amazon right now",
+   "url": "https://www.theverge.com/deals/812300/apple-airpods-pro-3-deal-sale-amazon",
+   "summary": "Apple's latest earbuds are matching their lowest price ahead of Black Friday."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "theverge",
+   "title": "The best early Black Friday deals on TVs, laptops, and headphones",
+   "url": "https://www.theverge.com/deals/812301/best-early-black-friday-deals-2026",
+   "summary": "We've rounded up the best discounts we've found so far."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "tweakers",
+   "title": "Aanbieding: Samsung Galaxy S26 voor 649 euro bij Coolblue",
+   "url": "https://tweakers.net/aanbiedingen/241600/samsung-galaxy-s26-voor-649-euro-bij-coolblue.html",
+   "summary": "De smartphone is vandaag 150 euro goedkoper."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nu",
+   "title": "De beste Black Friday-deals op een rij: hier scoor je de grootste korting",
+   "url": "https://www.nu.nl/black-friday/6373320/de-beste-black-friday-deals-op-een-rij-hier-scoor-je-de-grootste-korting.html",
+   "summary": "Van airfryers tot laptops: wij zochten de echte koopjes voor je uit."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "theverge",
+   "title": "Save $200 on the Sonos Arc Ultra during this early holiday sale",
+   "url": "https://www.theverge.com/news/812305/sonos-arc-ultra-deal-holiday-sale",
+   "summary": "The soundbar is down to $799 at Best Buy and Amazon."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "theverge",
+   "title": "Grab a Nintendo Switch 2 bundle with Mario Kart for $449",
+   "url": "https://www.theverge.com/news/812306/nintendo-switch-2-mario-kart-bundle-deal",
+   "summary": "Walmart is selling the bundle for $50 off through Sunday."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "tweakers",
+   "title": "Pricewatch-deal: 2TB Samsung 990 Pro nu voor 129 euro",
+   "url": "https://tweakers.net/nieuws/241610/pricewatch-deal-2tb-samsung-990-pro-nu-voor-129-euro.html",
+   "summary": "Het is de laagste prijs ooit in de Pricewatch."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nu",
+   "title": "Kortingscodes van november: zo bespaar je op je boodschappen",
+   "url": "https://www.nu.nl/geldzaken/6373330/kortingscodes-van-november-zo-bespaar-je-op-je-boodschappen.html",
+   "summary": "Een overzicht van alle acties bij supermarkten deze maand."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nu",
+   "title": "Podcast | Wat de val van het kabinet betekent voor je portemonnee",
+   "url": "https://www.nu.nl/podcast/6373340/podcast-wat-de-val-van-het-kabinet-betekent-voor-je-portemonnee.html",
+   "summary": ""
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "theverge",
+   "title": "Listen: the Vergecast on the Pixel 11 and the AI phone wars",
+   "url": "https://www.theverge.com/podcast/812310/vergecast-pixel-11-ai-phone-wars",
+   "summary": ""
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nrc",
+   "title": "Luister: NRC Vandaag over de stikstofcrisis",
+   "url": "https://www.nrc.nl/podcast/nrc-vandaag/2026/11/11/luister-nrc-vandaag-over-de-stikstofcrisis",
+   "summary": ""
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nos",
+   "title": "De Dag: waarom Groningers de NAM nog steeds wantrouwen",
+   "url": "https://nos.nl/podcast/2643230-de-dag-waarom-groningers-de-nam-nog-steeds-wantrouwen",
+   "summary": "In deze aflevering van De Dag: verslaggever Jan Kroeze over Groningen.",
+   "mediaType": "audio/mpeg",
+   "podcastEpisode": "1412"
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "reuters",
+   "title": "Reuters World News podcast: Election day in Chile",
+   "url": "https://www.reuters.com/podcasts/world-news/reuters-world-news-election-day-chile-2026-11-11/",
+   "summary": "",
+   "mediaType": "audio/mpeg"
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "theverge",
+   "title": "How to watch Apple's November event live",
+   "url": "https://www.theverge.com/news/812320/how-to-watch-apple-november-event-livestream",
+   "summary": "The event starts at 10AM PT; here is where you can stream it."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nos",
+   "title": "Kijk live: persconferentie van premier na ministerraad",
+   "url": "https://nos.nl/livestream/2643240-kijk-live-persconferentie-van-premier-na-ministerraad",
+   "summary": ""
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nu",
+   "title": "Kijk: de mooiste beelden van de zonsondergang boven de Waddenzee",
+   "url": "https://www.nu.nl/video/6373350/kijk-de-mooiste-beelden-van-de-zonsondergang-boven-de-waddenzee.html",
+   "summary": "",
+   "borrowedFrom": "ANP"
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "theverge",
+   "title": "Watch: The Verge reviews the Galaxy Z Fold 8 in 60 seconds",
+   "url": "https://www.theverge.com/video/812330/samsung-galaxy-z-fold-8-review-video",
+   "summary": "",
+   "mediaType": "video/mp4"
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nrc",
+   "title": "In deze aflevering van Haagse Zaken: de week van de formatie",
+   "url": "https://www.nrc.nl/podcast/haagse-zaken/2026/11/11/de-week-van-de-formatie",
+   "summary": "Elke vrijdag bespreken politiek verslaggevers het Haagse nieuws van de week.",
+   "feedMark": "podcast"
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "nos",
+   "title": "Vanavond in Nieuwsuur: de minister over de asielwet",
+   "url": "https://nos.nl/nieuwsuur/2643250-vanavond-in-nieuwsuur-de-minister-over-de-asielwet",
+   "summary": "Kijk vanavond om 21.30 uur op NPO 2."
+  },
+  {
+   "set": "ai-k2",
+   "label": "W",
+   "source": "tweakers",
+   "title": "Tweakers Podcast #412: De Pixel 11, Black Friday en Windows 12",
+   "url": "https://tweakers.net/podcast/241620/tweakers-podcast-412-de-pixel-11-black-friday-en-windows-12.html",
+   "summary": "Deze week bespreken we de Pixel 11, Black Friday en Windows 12.",
+   "mediaType": "audio/mpeg"
+  },
+  {
+   "set": "ai-k2-rand",
+   "label": "N",
+   "source": "mergermarket",
+   "title": "Private equity firms line up for Dutch telecom tower deal",
+   "url": "https://www.mergermarket.com/deals/dutch-telecom-tower-private-equity-bids-2026",
+   "summary": "Three bidders are in the final round for the portfolio, which could fetch 2 billion euros."
+  },
+  {
+   "set": "ai-k2-rand",
+   "label": "N",
+   "source": "nos",
+   "title": "Luister: noodoproep piloot vlak voor noodlanding op Schiphol",
+   "url": "https://nos.nl/audio/2643260-luister-noodoproep-piloot-vlak-voor-noodlanding-op-schiphol",
+   "summary": ""
+  },
+  {
+   "set": "ai-k2-rand",
+   "label": "N",
+   "source": "theverge",
+   "title": "Podcast: Spotify's CEO on why video is the future of audio",
+   "url": "https://www.theverge.com/news/812340/podcast-spotify-ceo-video-future-audio-interview",
+   "summary": "An interview with Spotify's chief executive about the company's push into video podcasts and what it means for creators."
+  },
+  {
+   "set": "ai-k2-rand",
+   "label": "N",
+   "source": "nos",
+   "title": "Tanja Groen-podcast wint Zilveren Nipkowschijf",
+   "url": "https://nos.nl/podcast/2643270-tanja-groen-podcast-wint-zilveren-nipkowschijf",
+   "summary": ""
+  }
+ ]
+}

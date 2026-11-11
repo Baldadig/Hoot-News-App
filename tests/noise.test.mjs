@@ -6,15 +6,17 @@ import { ogImageFrom } from '../netlify/lib/og.mjs'
 
 const it = (title, link = 'https://example.org/a') => ({ title, link })
 
-test('kleine updates en aanbiedingen horen niet in de Stroom', () => {
+test('kleine updates in een downloadrubriek en eigen acties horen niet in de Stroom; aanbiedingen wel (Redacteur · ruis)', () => {
   assert.equal(isNoise(it('Software-update - Camtasia 2026.2.3', 'https://tweakers.net/downloads/78736/camtasia-202623.html')), true)
-  assert.equal(isNoise(it('Driver-update - AMD Ryzen Chipset Driver 8.09.28.1124')), true)
-  assert.equal(isNoise(it('Firmware-update - QNAP QTS 5.2.10.3568')), true)
-  assert.equal(isNoise(it('.Actie - Thuisladen kan geld opleveren', 'https://tweakers.net/plan/4860/thuisladen.html')), true)
-  assert.equal(isNoise(it('De beste aanbiedingen van deze week')), true)
-  assert.equal(isNoise(it('Black Friday-deals bij Coolblue en Bol')), true)
-  assert.equal(isNoise(it('Kortingscode voor Zalando')), true)
-  assert.equal(isNoise(it('Iets'), ['Software']), true) // Tweakers-categorie
+  assert.equal(isNoise(it('Driver-update - AMD Ryzen Chipset Driver 8.09.28.1124', 'https://tweakers.net/downloads/78740/amd-ryzen-chipset.html')), true)
+  assert.equal(isNoise(it('Firmware-update - QNAP QTS 5.2.10.3568', 'https://tweakers.net/downloads/78741/qnap-qts.html')), true)
+  assert.equal(isNoise(it('.Actie - Thuisladen kan geld opleveren', 'https://tweakers.net/plan/4860/thuisladen.html'), ['.Actie']), true)
+  // Geen woord in de kop meer (11 november 2026): een deal mag in de Stroom staan; uit de Editie houden A en de AI hem.
+  assert.equal(isNoise(it('De beste aanbiedingen van deze week')), false)
+  assert.equal(isNoise(it('Black Friday-deals bij Coolblue en Bol')), false)
+  assert.equal(isNoise(it('Kortingscode voor Zalando')), false)
+  assert.equal(isNoise(it('Driver-update - AMD Ryzen Chipset Driver 8.09.28.1124')), false) // zonder rubriek: geen harde aanwijzing
+  assert.equal(isNoise(it('Iets'), ['Software']), false) // een onderwerp (Politico zet het bij een stuk over AI)
   // Nieuws blijft: ook een deal of update die nieuws is.
   assert.equal(isNoise(it('Trump en China sluiten deal over chips')), false)
   assert.equal(isNoise(it('Brexit-deal na lang onderhandelen rond')), false)
@@ -44,9 +46,11 @@ test('beeld van het artikel: voor elke bron zonder beeld (ook betaald, build 46)
   assert.equal(ogImageFrom('<head><meta property="og:image" content="https://www.rollingstone.com/a.jpg?crop=0px&#038;resize=1200"></head>'), 'https://www.rollingstone.com/a.jpg?crop=0px&resize=1200')
 })
 
-test('reclame voor een nieuwsbrief is geen bericht', async () => {
+test('een aanmeldoproep voor een nieuwsbrief (feedcategorie) is geen bericht; een aflevering van een nieuwsbrief wel', async () => {
   const { isNoise } = await import('../netlify/lib/rss.mjs')
-  assert.equal(isNoise({ title: 'Middle East Dispatch newsletter: Election day in Israel' }), true)
+  assert.equal(isNoise({ title: 'Sign up for the Spin newsletter: our free cricket email', link: 'https://www.theguardian.com/sport/2016/aug/18/sign-up-to-the-spin' }, ['Cricket', 'Newsletter sign-up']), true)
+  // The Economist zet zijn nieuwsbrieven als artikel online: eigen journalistiek (Redacteur · ruis).
+  assert.equal(isNoise({ title: 'Middle East Dispatch newsletter: Election day in Israel', link: 'https://www.economist.com/middle-east-and-africa/2026/10/27/middle-east-dispatch-newsletter-election-day-in-israel' }), false)
   assert.equal(isNoise({ title: 'Why newsletters are booming again' }), false)
 })
 

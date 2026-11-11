@@ -2,9 +2,10 @@
 // Besluit Alex, 11 november 2026: "streng en zeker + AI". Vier keuringen lieten zien dat regels op woorden en
 // kopvormen steeds nieuws weren (ACM-toezicht op Black Friday, 'Top 10 M&A deals', de prijsval van zonnepanelen,
 // nieuws over een podcast). Daarom weert dit deel (A) alleen bij een HARDE aanwijzing, en geen woord of kopvorm:
-//   1. de feed zelf markeert het: de eerste (hoofd)categorie Podcast/Video (`feedMark`, rss.mjs; een
-//      dealcategorie haalt rss.mjs/isNoise er al bij het ophalen uit), een audio- of video-enclosure
-//      (`mediaType`) of iTunes-afleveringsvelden (`podcastEpisode`);
+//   1. de feed zelf markeert het: de eerste (hoofd)categorie Podcast/Video (`feedMark`, rss.mjs), een audio- of
+//      video-enclosure (`mediaType`) of iTunes-afleveringsvelden (`podcastEpisode`). (De ophaalfilter isNoise in rss.mjs
+//      weert sinds Redacteur · ruis alleen nog reclame en geen-berichten op een harde aanwijzing, geen deals op woorden:
+//      een deal die de uitgever niet als reclame markeert, komt hier en bij de AI langs);
 //   2. de link staat in een rubriek van de uitgever: een dealrubriek als eerste padsegment (/deals/, /aanbiedingen/;
 //      dus niet /markets/deals/ of /business/deals/), of een podcast-/videorubriek in een segment vóór de slug
 //      (/podcast/, /video/, /luister/, /kijk/). De slug zelf telt nooit;
