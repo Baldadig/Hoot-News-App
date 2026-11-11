@@ -1,18 +1,19 @@
 import { cleanIntro } from '../../shared/edition-display.mjs'
 import { wholeSentences, introMax, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { EDITOR_REVISION, EDITION_REBUILD_SLOT, editionCacheKey, editionRevisionKey } from '../../shared/editor-version.mjs'
-import { previousEdition, carriedEdition } from './edition-history.mjs'
+import { previousEdition, carriedEdition, findEdition } from './edition-history.mjs'
+import { scoreEdition, shownItems, editionItemIds, ARCHIVE_KEY, ARCHIVE_FEED_KEY, SCORECARD_KEY } from './scorekaart.mjs'
 // De feed samenstellen: alles ophalen, de Stroom vullen, bundelen tot verhalen en de editie
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
 import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
-import { profileOf } from '../../shared/editor.mjs'
+import { profileOf, FAMILY_OF } from '../../shared/editor.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { isOpinie } from '../../shared/opinie.mjs'
 import { VL_HOME } from './desks.mjs'
-import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
+import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
@@ -133,6 +134,8 @@ export async function buildFeed({ now = Date.now() } = {}) {
     related: [...storyItems, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id) || !i.storyId)],
     stories: [...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))],
     edition: edition.public,
+    // Niet voor de app: refresh.mjs haalt dit eruit en bewaart er de feed van dit dagdeel mee (frisse ogen · 2).
+    archive: edition.archive,
     meta: {
       updatedAt: new Date(now).toISOString(),
       storage: storageMode(),
@@ -737,14 +740,14 @@ const compact = (o) => {
 // buiten INT_MAX (ronde 2, shared/edition-policy.mjs: openWorld). Daarna opent plek 01 met
 // nieuws (openWithNews). Geen waarom, geen trends: alleen de plekken, in de vorm van de vastgelegde Editie.
 // `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
-export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null } = {}) {
+export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null, audit = null } = {}) {
   const prof = profileOf({ followed: mainIds, sources })
   // Voor de Nederlandse plekken (dutchPlace) tellen alle stukken van een verhaal, ook die buiten de nieuwspool (ronde 4 · 2).
   const allById = new Map(pool.map((i) => [i.id, i]))
   const fullStory = new Map(stories.map((st) => [st.id, st]))
   const allOf = (id) => (fullStory.get(id)?.itemIds || []).map((x) => allById.get(x)).filter(Boolean)
   const storyItems = new Map(newsStories.map((st) => [st.id, allOf(st.id)]))
-  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems } })
+  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems }, audit })
   const byId = new Map(newsPool.map((i) => [i.id, i]))
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
   const entries = sel.map((e) => ({ ...(e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }), ...(e.held ? { held: true } : {}) }))
@@ -796,6 +799,116 @@ export function dutchFloor(entries, { itemsOf, byId, storyOf = () => null, sourc
   return entries
 }
 
+// ---------- Buiten je bubbel (frisse ogen · 1, besluit van Alex 11 november) ----------
+const isFreeSource = (id) => SOURCE.has(id) && !SOURCE.get(id).paid
+const isSportItem = (i) => SOURCE.get(i?.source)?.cat === 'sport' || (i?.topics || []).some((t) => SPORT_TOPICS.has(t)) || keywordTopics(`${i?.title || ''} ${i?.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
+// De bubbelplek van de algemene Editie. Eerst een trend (gratis, jonger dan een etmaal, geen liveblog of sport, geen naam
+// die al in een kop van de Editie staat, niet al eerder vandaag getoond); anders Naast je bubbel (een breed verhaal met een
+// gratis kop) onder dezelfde eisen; anders blijft de plek leeg. Puur: ook de scorekaart (scripts/scorekaart.mjs) rekent
+// ermee. `entries`: de plekken; `heads`: hun koppen; `byId`: alle stukken (pool plus de vastgelegde); `earlier`: de
+// stukken die vandaag al in een Editie stonden (met `storyId` als ze een verhaal droegen).
+// Uit: { entries, bubble (de andere kandidaten voor de persoonlijke Editie), keuze: 'trend' | 'naast' | 'leeg', afval, item, story }.
+export function pickBubble({ entries = [], heads = [], storyById = new Map(), pool = [], byId = new Map(pool.map((i) => [i.id, i])), stories = [], trends = [], earlier = [], now = Date.now() } = {}) {
+  const regular = entries.filter((e) => e.desk !== 'bubbel')
+  const excludeStoryIds = new Set(regular.filter((e) => e.kind === 'story').map((e) => e.id))
+  const excludeItemIds = new Set([...regular.filter((e) => e.kind === 'item').map((e) => e.id), ...regular.map((e) => e.leadId).filter(Boolean), ...[...excludeStoryIds].flatMap((id) => storyById.get(id)?.itemIds || [])])
+  // Ook geen bericht over een gebeurtenis die al in de editie staat (een liveblog hoort bij
+  // geen verhaal, en "Serbia" staat niet in de Nederlandse kop "Serviërs vieren …").
+  const earlierArts = earlier.filter((i) => i?.title).map((a, k) => ({ ...a, id: `eerder:${k}`, from: a.id }))
+  const sig = signatures(pool.filter((i) => i.kind === 'article'), earlierArts)
+  const shown = [...excludeItemIds].map((id) => sig.get(id)).filter(Boolean)
+  const fresh = pool.filter((a) => !excludeItemIds.has(a.id) && !(a.storyId && excludeStoryIds.has(a.storyId)) && (!sig.has(a.id) || !shown.some((s) => sameEvent(sig.get(a.id), s))))
+  const earlierIds = new Set(earlier.flatMap((i) => [i?.id, i?.storyId]).filter(Boolean))
+  const earlierSigs = earlierArts.map((a) => sig.get(a.id)).filter(Boolean)
+  const shownToday = (a) => earlierIds.has(a.id) || (!!a.storyId && earlierIds.has(a.storyId)) || (sig.has(a.id) && earlierSigs.some((s) => sameEvent(sig.get(a.id), s)))
+  const words = headWords(heads)
+  const opts0 = { isFree: isFreeSource, isSport: isSportItem, isLive, now, heads: words, shownToday }
+  const reject = (a, terms = []) => bubbleRejection(a, { ...opts0, terms })
+  const afval = []
+  const note = (a, reden, extra = {}) => afval.push({ id: a?.id || null, bron: a?.sourceName || a?.source || null, kop: a?.title || null, reden, ...extra })
+  // 1. Een trend. Nederlandstalig waar dat kan, daarna de rest; naast het stuk in de editie zes kandidaten, hooguit twee per
+  // gebied: de persoonlijke Editie kiest daaruit wat buiten jouw profiel valt (een sportlezer krijgt geen voetbal).
+  const opts = { coveredTitles: heads, max: Infinity, now }
+  const ok = fresh.filter((a) => !reject(a))
+  for (const m of matchTrending(trends, fresh, opts)) {
+    const a = byId.get(m.id)
+    const reden = reject(a, m.terms)
+    if (reden) note(a, reden, { termen: m.terms.map((t) => t.term) })
+  }
+  const okIds = new Set(ok.map((a) => a.id))
+  const passing = (list) => list.filter((m) => okIds.has(m.id) && !reject(byId.get(m.id), m.terms))
+  const areaOf = (p) => areasOf(byId.get(p.id), SOURCE.get(byId.get(p.id)?.source)?.cat)
+  const picks = bubbleCandidates([passing(matchTrending(trends, ok.filter((a) => dutch(a.source)), opts)), passing(matchTrending(trends, ok, opts))], { areaOf })
+  if (picks.length) return { entries: insertBubble(entries, picks[0]), bubble: picks.slice(1), keuze: 'trend', afval, item: byId.get(picks[0].id) || null, story: null }
+  // 2. Naast je bubbel: een breed gedekt verhaal (≥ 3 bronnen) met een gratis kop, onder dezelfde eisen.
+  for (const w of nearStories(stories, byId, { isFree: isFreeSource, isDutch: dutch, isSport: isSportItem, isLive, now })) {
+    const st = storyById.get(w.storyId) || stories.find((x) => x.id === w.storyId)
+    const ids = st?.itemIds || [w.item.id]
+    const reden = excludeStoryIds.has(w.storyId) || ids.some((id) => excludeItemIds.has(id)) ? 'al-in-de-Editie' : sig.has(w.item.id) && shown.some((s) => sameEvent(sig.get(w.item.id), s)) ? 'zelfde-gebeurtenis-als-de-Editie' : reject(w.item) || (ids.some((id) => earlierIds.has(id)) || earlierIds.has(w.storyId) ? 'eerder-vandaag-getoond' : null)
+    if (reden) { note(w.item, reden, { naast: true }); continue }
+    const near = areasOf(w.item)[0] || w.topics.map((t) => FAMILY_OF[t]).find(Boolean) || null
+    if (!near) { note(w.item, 'zonder-gebied', { naast: true }); continue }
+    const regularOnly = entries.filter((e) => e.desk !== 'bubbel').slice(0, 10)
+    return { entries: [...regularOnly, { kind: 'story', id: w.storyId, leadId: w.item.id, desk: 'bubbel', near }], bubble: [], keuze: 'naast', afval, item: w.item, story: st || null }
+  }
+  // 3. Leeg: liever geen plek dan een plek die het einde bederft.
+  return { entries: entries.filter((e) => e.desk !== 'bubbel'), bubble: [], keuze: 'leeg', afval, item: null, story: null }
+}
+
+// ---------- Archief en scorekaart (frisse ogen · 2) ----------
+// Per dagdeel bewaard: de plekken, de kandidaten met hun afvalreden, de bubbelplek met haar afval en de scorekaart
+// (netlify/lib/scorekaart.mjs); per dag de scorekaarten van de drie dagdelen, zodat elke dag naast de vorige staat
+// (GET /api/scorekaart). De feed zelf bewaart refresh.mjs (archief-feed-<dagdeel>), voor scripts/scorekaart.mjs.
+export { ARCHIVE_KEY, ARCHIVE_FEED_KEY, SCORECARD_KEY }
+// De dagdelen die vandaag al waren (geen nachtrand: de vroege-avond-Editie van gisteren is niet van vandaag).
+export const earlierSlotIds = (slot) => ['ochtend', 'middag', 'avond'].slice(0, ['ochtend', 'middag', 'avond'].indexOf(slot.slot)).map((s) => `${slot.date}-${s}`)
+// De stukken die vandaag al in een Editie stonden, welke revisie ook.
+async function earlierToday(slot) {
+  const out = []
+  for (const id of earlierSlotIds(slot)) {
+    const hit = await findEdition(kvGet, id).catch(() => null)
+    if (hit?.snapshot) out.push(...shownItems(hit.snapshot))
+  }
+  return out
+}
+// Wat er van de kandidaten afviel en waarom (selectForReader, `audit`), kort: alleen verhalen en eigen stukken die echt
+// meededen, zwaarste eerst. Ruis (een stuk dat via zijn verhaal meedoet, een bron die niet mag) blijft weg.
+const AUDIT_NOISE = new Set(['via-verhaal', 'vorm-of-bron-niet-toegelaten', 'te-oud-of-geen-intro-en-beeld', 'ouder-dan-verhaalvenster', 'zonder-titel', 'geen-bekend-artikel'])
+export const AUDIT_MAX = 120
+export function auditRows(audit = [], { stories = [], byId = new Map() } = {}) {
+  const storyById = new Map(stories.map((st) => [st.id, st]))
+  const seen = new Set()
+  const rows = []
+  for (const a of audit) {
+    if (AUDIT_NOISE.has(a.reason) || seen.has(a.kind + a.id)) continue
+    seen.add(a.kind + a.id)
+    const st = a.kind === 'story' ? storyById.get(a.id) : null
+    const lead = byId.get(st?.leadId || a.id) || (a.itemIds || []).map((id) => byId.get(id)).find(Boolean)
+    rows.push({ kind: a.kind, id: a.id, reden: a.reason, uitgevers: st ? st.publisherCount ?? st.sourceCount ?? null : 1, bron: lead?.sourceName || lead?.source || null, kop: lead?.title || null })
+  }
+  return rows.sort((x, y) => (y.uitgevers || 0) - (x.uitgevers || 0) || (x.id < y.id ? -1 : 1)).slice(0, AUDIT_MAX)
+}
+// Legt het archief van dit dagdeel vast (samengevoegd met wat er al lag) en zet de scorekaart in die van de dag.
+async function archiveEdition(slot, stored, partial, { byId, stories, storyById }) {
+  const all = new Map([...byId, ...stored.items.map((i) => [i.id, i])])
+  const prev = await previousEdition(kvGet, previousSlotId(slot)).catch(() => null)
+  const previousIds = prev ? editionItemIds(prev, new Map((prev.stories || []).map((st) => [st.id, st]))) : new Set()
+  const row = scoreEdition({ edition: stored, byId: all, storyById, stories, earlier: await earlierToday(slot), previousIds })
+  let n = 0
+  const plekken = stored.entries.map((e) => {
+    const it = all.get(e.leadId || e.id)
+    const st = e.kind === 'story' ? storyById.get(e.id) : null
+    return { plek: e.desk === 'bubbel' ? 'bubbel' : String(++n).padStart(2, '0'), kind: e.kind, id: e.id, leadId: e.leadId || null, desk: e.desk ?? null, ...(e.held ? { held: true } : {}), ...(e.near ? { near: e.near } : {}), bron: it?.sourceName || it?.source || null, kop: it?.title || null, betaald: !!SOURCE.get(it?.source)?.paid, taal: it?.lang || SOURCE.get(it?.source)?.lang || null, uitgevers: st ? st.publisherCount ?? st.sourceCount ?? null : 1 }
+  })
+  const before = (await kvGet(ARCHIVE_KEY(slot.id)).catch(() => null)) || {}
+  const record = { ...before, ...partial, id: slot.id, revision: stored.revision || EDITOR_REVISION, builtAt: stored.builtAt, plekken, scorekaart: row }
+  await kvSet(ARCHIVE_KEY(slot.id), record)
+  const day = (await kvGet(SCORECARD_KEY(slot.date)).catch(() => null)) || { dag: slot.date, rijen: {} }
+  day.rijen = { ...(day.rijen || {}), [slot.slot]: row }
+  await kvSet(SCORECARD_KEY(slot.date), day)
+  return record
+}
+
 // Per dagdeel één keer samengesteld en daarna vast: selectie en volgorde veranderen niet meer;
 // een verhaal dat nog loopt toont wel zijn nieuwe publicaties. Daarbij (één keer, dan vast):
 // "Buiten je bubbel" en het AI-overzicht.
@@ -808,6 +921,9 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   let stored = await kvGet(key)
   let changed = false
+  // Het archief van dit dagdeel (frisse ogen · 2): de plekken, de kandidaten met hun afvalreden, de bubbelplek en de
+  // scorekaart. Alleen wat deze ronde besliste; archiveEdition voegt het samen met wat er al lag.
+  let archive = null
   if (!stored?.entries?.length) {
     stored = await carriedEdition(kvGet, slot.id, { rebuild: EDITION_REBUILD_SLOT }).catch(() => null)
     changed = !!stored
@@ -819,39 +935,33 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
     // Wat in de vorige editie stond, komt alleen terug als het zich echt ontwikkelde.
     const previous = previousOf(await previousEdition(kvGet, previousSlotId(slot)))
-    const entries = generalEdition({ stories, newsStories, pool, newsPool, now, mainIds: MAIN_IDS, sources: SOURCES, previous })
+    const audit = []
+    const entries = generalEdition({ stories, newsStories, pool, newsPool, now, mainIds: MAIN_IDS, sources: SOURCES, previous, audit })
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
     stored = { id: slot.id, revision: EDITOR_REVISION, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => byId.get(id)).filter(Boolean) }
     changed = entries.length > 0
     if (changed) await kvSet(editionRevisionKey(slot.id), EDITOR_REVISION).catch(() => {})
+    if (changed) archive = { vorige: previousSlotId(slot), kandidaten: auditRows(audit, { stories, byId }) }
   }
   const storyById = new Map([...stories, ...stored.stories].map((st) => [st.id, st]))
   const rows = () => briefRows(stored.entries, storyById, new Map([...byId, ...stored.items.map((i) => [i.id, i])]))
 
-  // Buiten je bubbel: de trends halen we pas op als deze editie ze nog nodig heeft.
+  // Buiten je bubbel: de trends halen we pas op als deze editie ze nog nodig heeft. Harde eisen (pickBubble), anders
+  // Naast je bubbel, anders leeg. De berichten van vandaag (eerdere dagdelen) tellen als al getoond.
   if (!Array.isArray(stored.bubble)) {
     const trends = await loadTrends().catch(() => [])
     if (trends.length) {
-      const excludeStoryIds = new Set(stored.entries.filter((e) => e.kind === 'story').map((e) => e.id))
-      const excludeItemIds = new Set([...stored.entries.filter((e) => e.kind === 'item').map((e) => e.id), ...[...excludeStoryIds].flatMap((id) => storyById.get(id)?.itemIds || [])])
-      // Ook geen bericht over een gebeurtenis die al in de editie staat (een liveblog hoort bij
-      // geen verhaal, en "Serbia" staat niet in de Nederlandse kop "Serviërs vieren …").
-      const sig = signatures(pool.filter((i) => i.kind === 'article'))
-      const shown = [...excludeItemIds].map((id) => sig.get(id)).filter(Boolean)
-      const fresh = pool.filter((a) => !sig.has(a.id) || !shown.some((s) => sameEvent(sig.get(a.id), s)))
-      // Nederlandstalig waar dat kan (Hoot is voor Nederlandse lezers, en wie met de gratis
-      // Nederlandse startset begint, krijgt geen Engels stuk midden in de editie); daarna de rest.
-      // Naast het stuk in de editie zes kandidaten, hooguit twee per gebied: de persoonlijke Editie
-      // kiest daaruit wat buiten jouw profiel valt (een sportlezer krijgt geen voetbal).
-      const opts = { excludeItemIds, excludeStoryIds, coveredTitles: rows().map((r) => r.title), max: Infinity, now }
-      const areaOf = (p) => areasOf(byId.get(p.id), SOURCE.get(byId.get(p.id)?.source)?.cat)
-      const picks = bubbleCandidates([matchTrending(trends, fresh.filter((a) => dutch(a.source)), opts), matchTrending(trends, fresh, opts)], { areaOf })
-      // Het sterkste signaal krijgt een plek in de editie zelf; de rest staat in het blok eronder.
-      stored.entries = insertBubble(stored.entries, picks[0])
-      stored.bubble = picks.slice(1)
+      const earlier = await earlierToday(slot)
+      const allById = new Map([...byId, ...stored.items.map((i) => [i.id, i])])
+      const b = pickBubble({ entries: stored.entries, heads: rows().filter((r) => r.entry.desk !== 'bubbel').map((r) => r.title), storyById, pool, byId: allById, stories, trends, earlier, now })
+      stored.entries = b.entries
+      stored.bubble = b.bubble
+      stored.bubbleChoice = b.keuze
       // De gekozen berichten bewaren bij de editie, zodat ze blijven als de feed ze loslaat.
-      for (const b of picks) if (!stored.items.some((i) => i.id === b.id) && byId.has(b.id)) stored.items.push(byId.get(b.id))
+      for (const it of [b.item, ...b.bubble.map((x) => byId.get(x.id))]) if (it && !stored.items.some((i) => i.id === it.id)) stored.items.push(it)
+      if (b.story && !stored.stories.some((st) => st.id === b.story.id)) stored.stories.push(b.story)
+      archive = { ...archive, bubbel: { keuze: b.keuze, plek: b.item ? { id: b.item.id, bron: b.item.sourceName, kop: b.item.title } : null, kandidaten: b.bubble.map((x) => ({ id: x.id, kop: byId.get(x.id)?.title || null })), afval: b.afval.slice(0, 40) } }
       changed = true
     }
   }
@@ -870,6 +980,9 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     }
   }
   if (changed && stored.entries.length) await kvSet(key, stored)
+  if (archive && stored.entries.length) {
+    archive = await archiveEdition(slot, stored, archive, { byId, stories, storyById }).catch((e) => (console.error('archief', String(e?.message || e)), null))
+  }
 
   const isFree = (id) => SOURCE.has(id) && !SOURCE.get(id).paid
   const isSport = (i) => SOURCE.get(i.source)?.cat === 'sport' || (i.topics || []).some((t) => SPORT_TOPICS.has(t))
@@ -881,6 +994,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   const shown = [...stored.entries.map((e) => e.leadId || e.id), ...(stored.bubble || []).map((b) => b.id)]
   return {
     snapshot: stored,
+    archive,
     public: {
       id: slot.id,
       slot: slot.slot,

@@ -55,10 +55,10 @@ export function termMatches(words, textSet) {
 // Kiest hooguit `max` berichten die bij de signalen passen en niet in de editie zitten.
 // Eén per verhaal; meerdere signalen wegen zwaarder, dan recentheid.
 export function matchTrending(rawTerms, articles, { excludeItemIds = new Set(), excludeStoryIds = new Set(), coveredTitles = [], max = 3, now = Date.now() } = {}) {
-  // Signalen die de editie zelf al dekt (de naam staat in een kop van de editie) tellen niet:
-  // "buiten je bubbel" moet iets anders zijn dan wat je al krijgt.
+  // Signalen die de editie zelf al dekt tellen niet: "buiten je bubbel" moet iets anders zijn dan wat je al krijgt.
+  // Per woord getoetst (frisse ogen · 1): "Pete Hegseth" is gedekt zodra "Hegseth" in een kop van de Editie staat.
   const covered = textWords({ title: coveredTitles.join(' ') })
-  const terms = cleanTerms(rawTerms).filter((t) => !termMatches(t.words, covered))
+  const terms = cleanTerms(rawTerms).filter((t) => !termCovered(t.words, covered))
   if (!terms.length) return []
   const scored = []
   for (const a of articles) {
@@ -84,6 +84,43 @@ export function matchTrending(rawTerms, articles, { excludeItemIds = new Set(), 
     if (out.length >= max) break
   }
   return out
+}
+
+// ---------- Harde eisen (frisse ogen · 1, besluit van Alex 11 november) ----------
+// Het laatste stuk bepaalt het gevoel bij het loslaten. Buiten je bubbel is daarom: gratis, jonger dan een etmaal, geen
+// liveblog, geen sport, geen naam die al in een kop van de Editie staat (per woord) en niet al eerder vandaag getoond.
+// Lukt dat niet, dan Naast je bubbel onder dezelfde eisen, anders blijft de plek leeg.
+export const BUBBLE_HOURS = 24
+// Een term is gedekt als één van zijn woorden in een kop van de Editie staat.
+export const termCovered = (words, covered) => words.some((w) => covered.has(w))
+// De woorden van koppen, elk woord los ("defensieminister Hegseth" → defensieminister, hegseth).
+export const headWords = (titles = []) => textWords({ title: titles.filter(Boolean).join(' ') })
+// Lidwoorden, voorzetsels en werkwoorden die in een Engelse kop een hoofdletter krijgen: geen naam.
+const NOT_NAME = new Set([...STOP, ...'after amid also back been before being both does down every from have here into just more most much must next only over says said than that their them then there these they this those very what when where which while will with would your about after again against also another because before could first former good great just like little long made make many might never other same should some still such take than then time under well were what years zegt zeggen wil willen moet kunnen gaat komt maakt heeft hebben worden werd waren niet meer veel weer toch maar want omdat zoals tegen tussen onder door nieuwe nieuw grote groot eerste laatste deze hier daar wordt waar wat hoe wie waarom wanneer'.split(' ')])
+// De namen in een kop: woorden met een hoofdletter (niet het eerste woord), minstens drie letters, klein geschreven.
+export function namesIn(title = '') {
+  const words = String(title).replace(/[’'`]s\b/g, '').split(/[^\p{L}\p{N}-]+/u).filter(Boolean)
+  const out = []
+  for (let k = 1; k < words.length; k++) {
+    for (const part of words[k].split('-')) {
+      if (part.length >= 3 && /^\p{Lu}/u.test(part) && !NOT_NAME.has(part.toLowerCase())) out.push(part.toLowerCase())
+    }
+  }
+  return [...new Set(out)]
+}
+// Waarom een stuk niet op de bubbelplek mag, of null. `heads`: de woorden van de koppen van de Editie (headWords);
+// `terms`: de signalen waarop het stuk gekozen werd; `shownToday(a)`: stond het (of zijn gebeurtenis) vandaag al in een Editie.
+export function bubbleRejection(a, { isFree = () => false, isSport = () => false, isLive = () => false, now = Date.now(), heads = new Set(), terms = [], shownToday = () => false, hours = BUBBLE_HOURS } = {}) {
+  if (!a || a.kind && a.kind !== 'article') return 'geen-artikel'
+  if (!isFree(a.source)) return 'betaald'
+  const t = Date.parse(a.publishedAt)
+  if (!Number.isFinite(t) || now - t >= hours * 36e5) return 'ouder-dan-24-uur'
+  if (isLive(a)) return 'liveblog'
+  if (isSport(a)) return 'sport'
+  if (shownToday(a)) return 'eerder-vandaag-getoond'
+  const name = [...namesIn(a.title), ...terms.flatMap((x) => termWords(x.term || x))].find((w) => heads.has(w))
+  if (name) return `naam-al-in-kop:${name}`
+  return null
 }
 
 // ---------- Kandidaten voor de persoonlijke Editie ----------

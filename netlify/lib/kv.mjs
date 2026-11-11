@@ -1,5 +1,6 @@
 // Opslag in Netlify Blobs, met een terugval op geheugen (lokaal, of als Blobs ontbreekt).
 import { getStore } from '@netlify/blobs'
+import { gzipSync, gunzipSync } from 'node:zlib'
 
 const mem = new Map()
 let mode = 'memory'
@@ -136,6 +137,16 @@ export async function writeDoc(key, doc) {
     fellBack('schrijven', key, e)
     mem.set(key, doc)
   }
+}
+
+// Het archief (frisse ogen · 2): een groot JSON-document gecomprimeerd bewaard (gzip, als base64-tekst).
+export async function writeArchive(key, value, meta = {}) {
+  await writeDoc(key, { body: gzipSync(JSON.stringify(value)).toString('base64'), encoding: 'gzip-base64', ...meta })
+}
+export async function readArchive(key) {
+  const d = await readDoc(key)
+  if (!d?.body) return null
+  return JSON.parse(gunzipSync(Buffer.from(d.body, 'base64')).toString('utf8'))
 }
 
 export const KEYS = {
