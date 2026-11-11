@@ -151,6 +151,60 @@ test('een rij van een ander dagdeel of met een andere afdruk wordt vervangen; de
   assert.deepEqual(r.json.edition.history.map((h) => h.id), ['2026-10-30-middag'])
 })
 
+// Keuring server 1, §5: het startbestand uit Blobs loopt tot een minuut achter. Rond de overgang naar een nieuw
+// dagdeel rekent de server dan met het vorige, terwijl app 1.2 de Editie van het nieuwe dagdeel al vastlegde.
+const later = () => {
+  const t = Date.parse(snap.edition.builtAt) + 6 * 3600e3
+  return { id: 'later-dagdeel', builtAt: new Date(t).toISOString(), owner: UID, basis, entries: snap.edition.entries.slice(0, 2), items: snap.edition.items, history: [] }
+}
+
+test('keuring 1 §5: een Editie van een later dagdeel in je account wordt nooit overschreven (oude kern op de server)', async () => {
+  const ahead = later()
+  const pg = fakePostgrest([{ user_id: UID, edition: ahead }])
+  const d = deps({ pg })
+  const r = await ask(d, v2(), 'goed')
+  assert.equal(r.status, 200)
+  assert.equal(r.json.source, 'account')
+  assert.equal(JSON.stringify(r.json.edition), JSON.stringify(ahead), 'die Editie terug, ongewijzigd')
+  assert.equal(pg.patches().length, 0, 'geen schrijfaanvraag')
+  assert.equal(d.composes, 0, 'niet gerekend')
+  assert.equal(JSON.stringify(pg.table[0].edition), JSON.stringify(ahead), 'de rij staat er nog')
+  // Het web bewaart haar als 'ahead' en toont haar zodra de kern bij is (serverFirst, hieronder getoetst).
+})
+
+test('keuring 1 §5: schrijft een ander toestel tussen lezen en vastleggen een later dagdeel, dan blijft dat staan', async () => {
+  const old = { id: '2026-10-30-middag', builtAt: '2026-10-30T11:00:00.000Z', owner: UID, basis, entries: snap.edition.entries.slice(0, 3), items: snap.edition.items, history: [] }
+  const ahead = later()
+  const pg = fakePostgrest([{ user_id: UID, edition: old }])
+  const d = deps({ pg })
+  const items = d.items
+  d.items = async (...a) => {
+    pg.table[0].edition = ahead // app 1.2 legt net de Editie van het nieuwe dagdeel vast
+    return items(...a)
+  }
+  const r = await ask(d, v2(), 'goed')
+  assert.equal(r.json.source, 'account')
+  assert.equal(JSON.stringify(r.json.edition), JSON.stringify(ahead))
+  assert.equal(pg.writes().length, 0, 'de PATCH was niet raak')
+  assert.equal(JSON.stringify(pg.table[0].edition), JSON.stringify(ahead))
+})
+
+test('tussen lezen en vastleggen schrijft een ander toestel dit dagdeel: dat wint, voor iedereen dezelfde', async () => {
+  const pg = fakePostgrest([{ user_id: UID, edition: null }])
+  const first = deps({ pg })
+  const theirs = (await ask(first, v2(), 'goed')).json.edition
+  pg.table[0].edition = null
+  const d = deps({ pg })
+  const items = d.items
+  d.items = async (...a) => {
+    pg.table[0].edition = theirs
+    return items(...a)
+  }
+  const r = await ask(d, v2({ readIds: [snap.items[0].id] }), 'goed')
+  assert.equal(r.json.source, 'account')
+  assert.equal(canon(r.json.edition), canon(theirs))
+})
+
 test('zonder account: dezelfde vraag rekent één keer (bewaard per profiel-afdruk en dagdeel), nooit in een account', async () => {
   const pg = fakePostgrest([{ user_id: UID, edition: null }])
   const d = deps({ pg })
@@ -284,4 +338,19 @@ test('het web vraagt server-first: geen settleEdition, claimEdition of affinity 
   assert.doesNotMatch(hook, /settleEdition|claimEdition|adoptEdition|fallbackEdition/)
   assert.match(hook, /affinity: null/)
   assert.ok(fitsEdition({ id: 'a', basis: 'b' }, { id: 'a', basis: 'b' }))
+})
+
+test('privacy: bij een storing van Blobs komt de quota-sleutel (afdruk van je account) niet in de log', async () => {
+  const { fellBack } = await import('../netlify/lib/kv.mjs')
+  const lines = []
+  const orig = console.error
+  console.error = (...a) => lines.push(a.join(' '))
+  try {
+    fellBack('take', `pe-quota:${'a'.repeat(64)}:dagdeel`, new Error('storing'))
+  } finally {
+    console.error = orig
+  }
+  assert.equal(lines.length, 1)
+  assert.doesNotMatch(lines[0], /a{16}/)
+  assert.match(lines[0], /pe-quota:…/)
 })

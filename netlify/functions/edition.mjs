@@ -7,7 +7,8 @@
 //    enige waarheid. Past die bij dit dagdeel en je bronnen en interesses (fitsEdition), dan gaat zij
 //    ongewijzigd terug (`account`), ook als app 1.2 haar schreef. Anders stelt de server samen, met wat er
 //    in je vorige Edities stond (de Editie en haar `history` uit je account), en legt haar vast met jouw
-//    token: de eerste schrijver wint (claimFilter, zoals het web en app 1.2). Wint de server: `claimed`;
+//    token: de eerste schrijver wint (claimFilter, zoals het web en app 1.2), en alleen over de rij die hij las
+//    (claimOver): nooit over een Editie van een later dagdeel heen (accountAhead). Wint de server: `claimed`;
 //    was een ander toestel net eerder: die Editie (`account`). Web en iPhone krijgen zo dezelfde Editie.
 //  - Zonder account: samengesteld uit de body (met `earlier`: de history-regels van je vorige Edities op
 //    dit toestel) en bewaard per profiel-afdruk en dagdeel (`cache`), zodat dezelfde vraag één keer rekent.
@@ -38,7 +39,7 @@ import { readDoc, KEYS, kvGet, kvSet, kvTake } from '../lib/kv.mjs'
 import { refresh } from '../lib/refresh.mjs'
 import { previousOf, historyOf, recentEditions, HISTORY_MAX } from '../lib/stories.mjs'
 import { composePersonal, withoutDebug, editionBasis, earlierEditions } from '../../src/lib/personal.js'
-import { fitsEdition, claimEdition, TABLE } from '../../src/lib/editionSync.js'
+import { fitsEdition, accountAhead, claimFilter, readAccountEdition, TABLE } from '../../src/lib/editionSync.js'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 
@@ -226,6 +227,21 @@ async function accountEdition(client, uid) {
   return data?.edition && typeof data.edition === 'object' ? data.edition : null
 }
 
+// Vastleggen zoals het web en app 1.2 (claimFilter: de eerste schrijver wint), maar alleen over de rij die we net
+// lazen (`seen`: zelfde id, afdruk en builtAt, of nog geen Editie). Schreef een ander toestel tussen ons lezen en
+// schrijven door (bijvoorbeeld de Editie van een later dagdeel), dan is de PATCH niet raak en lezen we die rij:
+// zo schrijft de server nooit over een nieuwere Editie heen (keuring server 1). Uitkomst als claimEdition.
+const sameAs = (q, col, v) => (v == null ? q.is(col, null) : q.eq(col, String(v)))
+export async function claimOver(client, uid, stamped, seen) {
+  let q = client.from(TABLE).update({ edition: stamped }).eq('user_id', uid).or(claimFilter(stamped))
+  if (!seen) q = q.is('edition', null)
+  else for (const k of ['id', 'basis', 'builtAt']) q = sameAs(q, `edition->>${k}`, seen[k])
+  const { data, error } = await q.select('edition').then((r) => r, (e) => ({ data: null, error: e || true }))
+  if (error) return { won: false, theirs: null, error }
+  if (Array.isArray(data) && data.length) return { won: true, theirs: null }
+  return { won: false, theirs: await readAccountEdition(client, uid) }
+}
+
 async function loadStart() {
   let doc = await readDoc(KEYS.start)
   if (!doc) {
@@ -272,16 +288,22 @@ export async function editionV2(req, body, deps = {}) {
     }
     // Al vastgelegd voor dit dagdeel en deze afdruk (door de server, het web of app 1.2): ongewijzigd terug.
     if (fitsEdition(row, { id, basis })) return ok(row, 'account')
+    // Staat er al een Editie van een later dagdeel (ons startbestand uit Blobs loopt tot een minuut achter, en
+    // een ander toestel had de kern van nu al): nooit daaroverheen schrijven (accountAhead, keuring P0 ronde 2
+    // §4; keuring server 1). Die Editie gaat terug; het web bewaart haar als 'ahead', iOS toont tot de kern
+    // bij is het vangnet.
+    if (accountAhead(row, global)) return ok(row, 'account')
     if ((await kv.take(`pe-quota:${sha(uid)}:${id}`, MEMBER_PER_SLOT)) == null) return fail2(429, 'Even te veel tegelijk.', { 'Retry-After': String(TIMEOUT_HINT_S) })
     const earlier = earlierEditions({ local: null, account: row, id, owner: uid })
     const mine = composeFor(start, await itemsOf(start, p.followed), p, { owner: uid, earlier })
     if (!mine) return fail2(503, 'Er is nog geen editie.')
-    const r = await claimEdition(client, uid, mine)
+    const r = await claimOver(client, uid, mine, row)
     if (r.error) return fail2(503, 'Je account is nu niet bereikbaar.')
     if (r.won) return ok(mine, 'claimed')
     // Een ander toestel (of een gelijktijdige aanvraag) was net eerder: die Editie, voor iedereen dezelfde.
     if (fitsEdition(r.theirs, { id, basis })) return ok(r.theirs, 'account')
-    return ok(mine, 'composed') // geen rij in user_state: niets om in vast te leggen
+    if (accountAhead(r.theirs, global)) return ok(r.theirs, 'account')
+    return ok(mine, 'composed') // geen rij in user_state, of net een andere afdruk: niets om in vast te leggen
   }
 
   const earlier = cleanEarlier(body.earlier)
