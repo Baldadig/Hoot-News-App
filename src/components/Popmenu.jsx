@@ -48,6 +48,7 @@ export function Popmenu({ anchor, id, label, onClose, view, children }) {
   }, [anchor, onClose])
 
   const key = (e) => {
+    e.stopPropagation() // React-portals mogen de Enter van het menu niet aan de verhaalkaart doorgeven.
     const list = itemsIn(ref.current)
     const at = list.indexOf(document.activeElement)
     const go = (i) => { e.preventDefault(); list[(i + list.length) % list.length]?.focus() }
@@ -60,7 +61,7 @@ export function Popmenu({ anchor, id, label, onClose, view, children }) {
   }
 
   return createPortal(
-    <div ref={ref} id={id} className="popmenu" role="menu" aria-label={label} onKeyDown={key}>
+    <div ref={ref} id={id} className="popmenu" role="menu" aria-label={label} onKeyDown={key} onClick={(e) => e.stopPropagation()}>
       {children}
     </div>,
     host,

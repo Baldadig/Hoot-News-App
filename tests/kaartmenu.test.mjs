@@ -108,3 +108,5 @@ test('een nieuwe pointeractie heft een oude klikbewaking op',()=>{
 })
 
 test('de pointer kan de opener focussen zonder het verhaal tijdens de klik te verschuiven',()=>{assert.match(taste,/onPointerDown=\{\(\) => moreRef.current\?\.focus\(\{ preventScroll: true \}\)\}/)})
+
+test('menuacties blijven binnen de portal en activeren de verhaalkaart niet',()=>{assert.match(pop,/const key = \(e\) => \{\s*e.stopPropagation\(\)/);assert.match(pop,/onClick=\{\(e\) => e.stopPropagation\(\)\}/)})
