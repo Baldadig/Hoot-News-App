@@ -1721,6 +1721,51 @@ export function sourceCap(entries, { itemsOf, mainIds = new Set(), now = null, s
   return dropped
 }
 
+// Bij hetzelfde feit de gratis kop (frisse ogen · ronde 3, punt 5; besluit van Alex, 11 november: in de algemene Editie
+// bij hetzelfde feit altijd de gratis NOS-, NU.nl- of RTL-kop). Voor elke plek met een betaalde Nederlandse kop: heeft het
+// verhaal een gratis Nederlandse kop (FREE_HEAD) over hetzelfde feit, dan wordt dat de kop. Nederlands tegen Nederlands
+// binnen één verhaal: een Engelse kop blijft staan (ronde 10 · B), die regelt de taalregel voor de top 3. Hetzelfde feit:
+// de koppen zelf melden dezelfde gebeurtenis (sameHeadEvent), of zijn bijna gelijk; kop en intro samen zijn niet genoeg
+// (de Bulgaarse exitpolls naast de uitslag), en een ander stuk uit hetzelfde verhaal ook niet. Verder dezelfde eisen als dutchHeads en sourceCap: uit
+// de kern, vers, van na de vorige Editie, geen opinie, liveblog, galerij, video, vraag, portret, beschouwing of ingehaalde
+// vooruitblik. Hooguit SOURCE_PLACES_MAX plekken per bron; bij meer kandidaten eerst de bron met de minste plekken, dan de
+// volgorde van leadCandidates. Wijzigt `entries` (de plek met een nieuwe kop is een kopie); geeft de gewijzigde plekken.
+export const FREE_HEAD = new Set(['nos', 'nos-economie', 'nu', 'rtl'])
+export function freeHeads(entries, { itemsOf, mainIds = new Set(), now = null, since = 0, max = SOURCE_PLACES_MAX, sources = SOURCES }) {
+  const paid = (id) => !!(sources === SOURCES ? SOURCE_BY_ID.get(id) : sources.find((x) => x.id === id))?.paid
+  const leadOf = (e) => itemsOf(e).find((i) => i && i.id === (e.leadId || e.id)) || null
+  const count = new Map()
+  for (const e of entries) if (e.desk !== 'bubbel') { const s = publisherOf(leadOf(e)?.source); count.set(s, (count.get(s) || 0) + 1) }
+  const changed = []
+  entries.forEach((e, k) => {
+    if (e.kind !== 'story' || e.desk === 'bubbel') return
+    const lead = leadOf(e)
+    if (!lead || !paid(lead.source) || dutchTier(lead) !== 0) return
+    const items = itemsOf(e).filter(Boolean)
+    const fit = items.filter((i) => FREE_HEAD.has(i.source) && (count.get(publisherOf(i.source)) || 0) < max && dutchTier(i) === 0 && titled(i) && !isOpinion(i) && i.type !== 'opinie' && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !VIDEO_HEAD.test(i.title) && !/\?/.test(i.title) && !weakHead(i) && timeOf(i) > since && !staleOutlook(i, items))
+    if (!fit.length) return
+    const core = new Set(centralItems(items))
+    const inCore = fit.filter((i) => core.has(i))
+    if (!inCore.length) return
+    const heads = [lead, ...inCore].map((i) => ({ ...i, id: `kop:${i.id}`, summary: '', text: '' }))
+    const sig = signatures(items, heads, { extended: true })
+    const h = (i) => sig.get(`kop:${i.id}`)
+    // Of bijna dezelfde kop: minstens drie kernwoorden gemeen en de helft van de kortste kop (zonder namen: "Kind van
+    // gehuwd stel krijgt niet meer automatisch naam van vader" en "… achternaam van vader").
+    const lw = sigWords(lead.title)
+    const nearly = (i) => { const w = sigWords(i.title); const n = sharedCount(lw, w); return n >= 3 && n * 2 >= Math.min(lw.size, w.size) }
+    const same = inCore.filter((i) => sameHeadEvent(h(lead), h(i)) || nearly(i))
+    if (!same.length) return
+    const order = leadCandidates(freshest(same), mainIds, null, now, { role: k < DUTCH_HEAD_TOP ? 'front' : 'neutral' })
+    const next = [...order].sort((a, b) => (count.get(publisherOf(a.source)) || 0) - (count.get(publisherOf(b.source)) || 0))[0]
+    entries[k] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
+    count.set(publisherOf(lead.source), count.get(publisherOf(lead.source)) - 1)
+    count.set(publisherOf(next.source), (count.get(publisherOf(next.source)) || 0) + 1)
+    changed.push(entries[k])
+  })
+  return changed
+}
+
 // Curiosa nooit in de top 3 (Redacteur 3b · 5, besluit van Alex; keuring 6 november: "veel uitgevers bij een
 // kuriositeit (Oval Office) mag geen top 3 opleveren", liefst plek 6–10). Generiek herkend (ronde 2: geen woorden die
 // bij één dag horen, zoals "Oval Office" of "komiek"):
@@ -1760,6 +1805,42 @@ export function curiosaDown(entries, { itemsOf, storyOf = () => ({}), top = 3, t
 
 // Een verhaal dat zonder nieuwe ontwikkeling één Editie langer blijft (`held`, ronde 7 · 3c), zakt: uit de top `top` naar
 // direct daaronder, in zijn eigen volgorde. Wijzigt `entries`.
+// Een rustige laatste noot (frisse ogen · ronde 3, punt 9). Een licht maar waardig verhaal sluit de Editie af, zoals de
+// achterkant van een krant: de Booker Prize stond op 10 november op 08, met daarachter nog twee keer harde politiek. Alleen
+// schuiven, nooit erbij kiezen: staat er onder de top 5 zo'n verhaal, dan gaat het dichtstbijzijnde naar de laatste plek
+// (de rest schuift één op). Staat er al zo'n verhaal op de laatste plek, of is er geen, dan blijft alles staan. De top 5
+// blijft zoals hij is, dus ook de Nederlandse ondergrens en curiosaDown (plek 6) blijven gelden; een curiosum dat op 6
+// stond, kan zo één plek opschuiven.
+// Licht maar waardig: een verhaal van minstens twee uitgevers over cultuur (lightStory) of met een prijs of ontdekking in
+// de kop; geen opinie, geen ernstig nieuws (rechtszaak, geweld, de dood), geen overlijdensbericht, geen curiosum (goud,
+// beroemdheid, opmerkelijk) en geen games of consumententech.
+const PRIZE_HEAD = /\b(prize|prizes|awards?|bekroond|bekroning|onderscheiding|nobelprijs|booker|pulitzer|oscars?|grammys?|emmys?|edisons?|libris)\b|\b\w+prijs (gaat )?(naar|voor)\b|\bwint (de )?\w+prijs\b/
+const DISCOVERY_HEAD = /\b(ontdek\w*|onderzoekers|wetenschappers|sterrenkundig\w*|astronom\w*|telescoop|telescope|fossiel\w*|fossil\w*|archeolog\w*|discover\w*|researchers|scientists)\b/
+const PASSING = /\b(overleden|overlijdt|overlijden|sterft|gestorven|dies|died|obituary|in memoriam)\b|\(\d{4}\s*[-–]\s*\d{4}\)/
+export function quietNote(story = {}, items = [], lead = null) {
+  if (!lead || items.length < 2 || isOpinion(lead) || lead.type === 'opinie') return false
+  const title = norm(lead.title || '')
+  if (SERIOUS.test(title) || PASSING.test(title) || curioPiece(lead)) return false
+  const kind = lightStory(story, items)
+  if (kind === 'games' || kind === 'consument') return false
+  return kind === 'cultuur' || PRIZE_HEAD.test(title) || DISCOVERY_HEAD.test(title)
+}
+export function quietEnd(entries, { itemsOf, storyOf = () => ({}), top = 5 } = {}) {
+  const regular = entries.filter((e) => e.desk !== 'bubbel')
+  const last = regular.length - 1
+  if (last < top) return entries
+  const ok = (e) => e.kind === 'story' && quietNote(storyOf(e) || {}, itemsOf(e).filter(Boolean), itemsOf(e).find((i) => i && i.id === e.leadId))
+  if (ok(regular[last])) return entries
+  let k = last - 1
+  while (k >= top && !ok(regular[k])) k--
+  if (k < top) return entries
+  const [quiet] = regular.splice(k, 1)
+  regular.push(quiet)
+  const bubble = entries.filter((e) => e.desk === 'bubbel')
+  entries.splice(0, entries.length, ...regular, ...bubble)
+  return entries
+}
+
 export function heldDown(entries, { top = 5 } = {}) {
   const down = entries.slice(0, top).filter((e) => e.held)
   if (!down.length) return entries

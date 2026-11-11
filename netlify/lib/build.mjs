@@ -7,8 +7,9 @@ import { scoreEdition, shownItems, editionItemIds, ARCHIVE_KEY, ARCHIVE_FEED_KEY
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, dutchTop, sourceCap, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, dutchTop, sourceCap, freeHeads, quietEnd, EDITION_SIZE, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
+import { SLOT_START, OCHTEND_VROEG, amsterdamClock, hhmm } from '../../shared/slot-times.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { isOpinie } from '../../shared/opinie.mjs'
@@ -16,7 +17,9 @@ import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { crossLanguagePairs } from './taalgrens.mjs'
-import { freeDutchFill } from './aanvulling.mjs'
+import { freeDutchFill, morningTopUp, OCHTEND_AANVULLING } from './aanvulling.mjs'
+import { haagsDossier } from './dossiers.mjs'
+import { placeDesks } from './rubriek.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
@@ -781,7 +784,9 @@ function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, so
   const sel = freeDutchFill(picked, { stories, newsStories, newsPool, mainIds, now, previous, prof, audit })
   const byId = new Map(newsPool.map((i) => [i.id, i]))
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
-  const entries = sel.map((e) => ({ ...(e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }), ...(e.held ? { held: true } : {}) }))
+  const chosen = sel.map((e) => ({ ...(e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }), ...(e.held ? { held: true } : {}) }))
+  // Haagse dossiers tellen als één verhaal (frisse ogen · ronde 3, punt 7): automatisch gebundeld op gedeelde namen.
+  const entries = haagsDossier(chosen, { newsPool, stories, previous, now, mainIds, audit }).entries
   const itemsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [e.id]).map((id) => byId.get(id)).filter(Boolean)
   // Curiosa nooit in de top 3 (3b · 5), nieuwsbelang boven sensatie (ronde 6 · 2), dan plek 01 met nieuws, dan de
   // Nederlandse ondergrens (3b · 3) en bovenaan Nederlandse koppen (ronde 6 · 1).
@@ -804,8 +809,14 @@ function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, so
   dutchHeads(entries, { itemsOf, mainIds, now, since })
   // De taalregel voor de top 3 (besluit 3) en een vers Nederlands verhaal op 01 (besluit 2).
   dutchTop(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources })
+  // Bij hetzelfde feit de gratis Nederlandse kop (frisse ogen · ronde 3, punt 5): NOS, NU.nl of RTL in plaats van betaald.
+  freeHeads(entries, { itemsOf, mainIds, now, since, sources })
   // Hooguit drie plekken van één bron (besluit 5): de laagste krijgt de kop van een andere bron uit hetzelfde verhaal.
   for (const e of sourceCap(entries, { itemsOf, mainIds, now, since, isFree: isFreeSource })) audit?.push({ kind: e.kind, id: e.id, itemIds: [e.id], reason: 'bron-al-drie-plekken' })
+  // Een rustige laatste noot (frisse ogen · ronde 3, punt 9): een licht maar waardig verhaal schuift naar de laatste plek.
+  quietEnd(entries, { itemsOf: allItemsOf, storyOf: (e) => storyById.get(e.id) })
+  // Geen plek zonder rubriek; de rubriek volgt het land van het onderwerp (frisse ogen · ronde 3, punt 10).
+  placeDesks(entries, { itemsOf: allItemsOf })
   return entries
 }
 
@@ -945,8 +956,19 @@ async function archiveEdition(slot, stored, partial, { byId, stories, storyById 
 // Een nieuwe Redacteur-revisie geldt vanaf het volgende dagdeel (ronde 10 · A, netlify/lib/edition-history.mjs): staat de
 // Editie van dit dagdeel al onder een eerdere revisie vast, dan blijft die staan (onder de nieuwe sleutel bewaard, met
 // zijn eigen revisie in `version`); de vorige Editie komt uit het vorige dagdeel, welke revisie ook.
+// De uitrol van de latere ochtend (frisse ogen · ronde 3, punt 8): tussen de oude start (OCHTEND_VROEG) en de nieuwe
+// is het volgens editionSlot nog nacht. Ligt de Ochtendeditie van vandaag al vast (onder de vorige code, om 05:30), dan
+// blijft die staan: lezers gaan niet terug naar de Editie van gisteravond. Daarna (of zonder zo'n Editie) verandert niets.
+export function earlyMorningSlot(now = Date.now()) {
+  const { year, month, day, minutes } = amsterdamClock(new Date(now))
+  if (minutes < OCHTEND_VROEG || minutes >= SLOT_START.ochtend) return null
+  const date = `${year}-${month}-${day}`
+  return { id: `${date}-ochtend`, slot: 'ochtend', date, next: hhmm(SLOT_START.middag) }
+}
 async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
-  const slot = editionSlot(new Date(now))
+  let slot = editionSlot(new Date(now))
+  const early = earlyMorningSlot(now)
+  if (early && (await findEdition(kvGet, early.id).catch(() => null))) slot = early
   const key = editionCacheKey(slot.id)
   const byId = new Map(pool.map((i) => [i.id, i]))
   let stored = await kvGet(key)
@@ -954,11 +976,13 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   // Het archief van dit dagdeel (frisse ogen · 2): de plekken, de kandidaten met hun afvalreden, de bubbelplek en de
   // scorekaart. Alleen wat deze ronde besliste; archiveEdition voegt het samen met wat er al lag.
   let archive = null
+  let composed = false
   if (!stored?.entries?.length) {
     stored = await carriedEdition(kvGet, slot.id, { rebuild: EDITION_REBUILD_SLOT }).catch(() => null)
     changed = !!stored
   }
   if (!stored?.entries?.length) {
+    composed = true
     // Muziek hoort in de Stroom, niet in de editie van het nieuws.
     const newsPool = articlePool
     const newsIds = new Set(newsPool.map((a) => a.id))
@@ -973,6 +997,25 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     changed = entries.length > 0
     if (changed) await kvSet(editionRevisionKey(slot.id), EDITOR_REVISION).catch(() => {})
     if (changed) archive = { vorige: previousSlotId(slot), kandidaten: auditRows(audit, { stories, byId }) }
+  }
+  // De ochtend licht aanvullen (frisse ogen · ronde 3, punt 8): niet in de ronde die vastlegt, alleen onder deze revisie.
+  let aangevuld = null
+  const done = (stored.aanvulling || []).length
+  if (!composed && slot.slot === 'ochtend' && stored.revision === EDITOR_REVISION && done < OCHTEND_AANVULLING && stored.entries.filter((e) => e.desk !== 'bubbel').length < EDITION_SIZE) {
+    const newsIds = new Set(articlePool.map((a) => a.id))
+    const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
+    const previous = previousOf(await previousEdition(kvGet, previousSlotId(slot)).catch(() => null))
+    const add = morningTopUp(stored.entries, { stories, newsStories, newsPool: articlePool, mainIds: MAIN_IDS, now, previous, prof: profileOf({ followed: MAIN_IDS, sources: SOURCES }), size: EDITION_SIZE, done })
+    if (add.length) {
+      const fresh = add.map((e) => ({ kind: 'item', id: e.id, desk: e.desk ?? null }))
+      placeDesks(fresh, { itemsOf: (e) => [byId.get(e.id)] })
+      const at = stored.entries.findIndex((e) => e.desk === 'bubbel')
+      stored.entries.splice(at < 0 ? stored.entries.length : at, 0, ...fresh)
+      for (const e of fresh) if (byId.has(e.id) && !stored.items.some((i) => i.id === e.id)) stored.items.push(byId.get(e.id))
+      stored.aanvulling = [...(stored.aanvulling || []), ...fresh.map((e) => ({ id: e.id, at: new Date(now).toISOString() }))]
+      aangevuld = stored.aanvulling
+      changed = true
+    }
   }
   const storyById = new Map([...stories, ...stored.stories].map((st) => [st.id, st]))
   const rows = () => briefRows(stored.entries, storyById, new Map([...byId, ...stored.items.map((i) => [i.id, i])]))
@@ -1012,6 +1055,9 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   if (changed && stored.entries.length) await kvSet(key, stored)
   if (archive && stored.entries.length) {
     archive = await archiveEdition(slot, stored, archive, { byId, stories, storyById }).catch((e) => (console.error('archief', String(e?.message || e)), null))
+  } else if (aangevuld) {
+    // Alleen het archief van het dagdeel bijwerken, niet de feed van het vastleggen (refresh.mjs schrijft die bij `archive`).
+    await archiveEdition(slot, stored, { aanvulling: aangevuld }, { byId, stories, storyById }).catch((e) => console.error('archief', String(e?.message || e)))
   }
 
   const isFree = (id) => SOURCE.has(id) && !SOURCE.get(id).paid

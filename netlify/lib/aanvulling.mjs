@@ -107,3 +107,22 @@ export function freeDutchFill(sel, { stories = [], newsStories = stories, newsPo
   const out = [...keep, ...chosen]
   return Object.assign(out, { deskOrder: sel.deskOrder, abroad: sel.abroad, counted: sel.counted })
 }
+
+// De ochtend licht aanvullen (frisse ogen · ronde 3, punt 8; besluit van Alex, 11 november: de Ochtendeditie op een vast
+// moment vastleggen en de ochtend licht aanvullen). De Ochtendeditie ligt vast vanaf de start van de ochtend. Is ze dan
+// korter dan tien plekken (dun: er was nog te weinig), dan mag de server in de rest van de ochtend hooguit
+// OCHTEND_AANVULLING plekken aan het eind toevoegen, met gratis Nederlands nieuws dat sindsdien verscheen (NOS, NU.nl,
+// RTL), met precies dezelfde eisen als freeDutchFill (stap 2). Wat er staat, verandert nooit: geen andere kop, geen
+// andere volgorde, niets eruit; de bubbelplek blijft de laatste. `entries`: de vastgelegde plekken; `done`: hoeveel er al
+// bij kwamen. Geeft de nieuwe plekken (hooguit zoveel als er ruimte is).
+export const OCHTEND_AANVULLING = 2
+export function morningTopUp(entries = [], { stories = [], newsStories = stories, newsPool = [], mainIds = new Set(), now = Date.now(), previous = null, prof = profileOf(), size = 10, done = 0, max = OCHTEND_AANVULLING } = {}) {
+  const regular = entries.filter((e) => e.desk !== 'bubbel')
+  const bubble = entries.filter((e) => e.desk === 'bubbel')
+  const room = Math.min(size - regular.length, max - done)
+  if (room <= 0) return []
+  const have = new Set([...regular, ...bubble].flatMap((e) => [e.id, e.leadId]).filter(Boolean))
+  const bubbleStories = new Set(bubble.map((e) => newsPool.find((i) => i.id === (e.leadId || e.id))?.storyId).filter(Boolean))
+  const out = freeDutchFill(regular.map((e) => ({ ...e })), { stories, newsStories, newsPool, mainIds, now, previous, prof, size })
+  return out.filter((e) => e.aanvulling === 'gratis-nl' && !have.has(e.id) && !bubbleStories.has(newsPool.find((i) => i.id === e.id)?.storyId)).slice(0, room)
+}

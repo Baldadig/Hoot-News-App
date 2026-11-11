@@ -24,22 +24,22 @@ final class SlotTimesTests: XCTestCase {
     @MainActor
     func testAlertsStartWithTheServer() throws {
         let web = try Self.web()
-        XCTAssertEqual(web, ["ochtend": 330, "middag": 720, "avond": 1020])
+        XCTAssertEqual(web, ["ochtend": 390, "middag": 720, "avond": 1020])
         for s in EditionAlerts.slots {
             XCTAssertEqual(s.hour * 60 + s.minute, web[s.id], s.id)
         }
     }
 
-    // 05:30 Amsterdamse tijd het hele jaar; het seintje drie minuten later.
+    // 06:30 Amsterdamse tijd het hele jaar; het seintje drie minuten later.
     @MainActor
     func testMorningAlertAllYear() throws {
         let ochtend = try XCTUnwrap(EditionAlerts.slots.first { $0.id == "ochtend" })
         let iso = ISO8601DateFormatter()
         let cases = [
-            ("2026-12-01T12:00:00Z", "2026-12-01T04:33:00Z"), // wintertijd, UTC+1
-            ("2026-07-01T12:00:00Z", "2026-07-01T03:33:00Z"), // zomertijd, UTC+2
-            ("2026-10-25T12:00:00Z", "2026-10-25T04:33:00Z"), // nacht van de wintertijd
-            ("2026-03-29T12:00:00Z", "2026-03-29T03:33:00Z"), // nacht van de zomertijd
+            ("2026-12-01T12:00:00Z", "2026-12-01T05:33:00Z"), // wintertijd, UTC+1
+            ("2026-07-01T12:00:00Z", "2026-07-01T04:33:00Z"), // zomertijd, UTC+2
+            ("2026-10-25T12:00:00Z", "2026-10-25T05:33:00Z"), // nacht van de wintertijd
+            ("2026-03-29T12:00:00Z", "2026-03-29T04:33:00Z"), // nacht van de zomertijd
         ]
         for (day, expected) in cases {
             let at = try XCTUnwrap(EditionAlerts.moment(ochtend, on: iso.date(from: day)!))
