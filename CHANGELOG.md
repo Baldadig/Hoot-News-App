@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Web, hoofdverhaal op desktop**: kreeg 01 een placeholder- of te klein beeld terwijl de meting een staand beeld meldde, dan viel de kaart uiteen (lege linkerhelft, bronregel los). Nu alleen de staande vorm als het staande beeld er echt staat.
+
 - **De Redacteur op de server**: ook jouw persoonlijke Editie wordt nu op de server samengesteld, altijd met verse berichten. Web en app krijgen voor jouw account en dagdeel precies dezelfde Editie, en een verbetering aan De Redacteur vraagt geen app-update meer (de app stapt over met 1.2.1; 1.1.1 en 1.2 blijven werken). Alleen offline stelt het toestel zelf samen, legt dan niets vast en neemt de server-Editie over zodra er weer verbinding is. Opinie wordt ook in de Editie beter herkend (nooit op 01); het soortfilter Opinie in de Stroom is weg (er is nu een tab). Privacypagina bijgewerkt.
 
 - **Opinie in de Stroom** (web; app volgt in 1.2.1): een eigen tab Opinie na Sport, vóór Buiten je bubbel. Opiniestukken blijven ook in hun rubriek en in Alles. De server herkent opinie beter (columnrubrieken, opiniemappen in de link, een kop die met de naam van de columnist opent) en zet dat per bericht in de feed.
