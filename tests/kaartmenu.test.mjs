@@ -74,6 +74,7 @@ for (const pointerType of ['mouse','touch','pen']) test(`buiten sluiten verbruik
   const doc = new EventTarget()
   let clear
   swallowDismissClick({ pointerId: 7, pointerType }, doc, { setTimeout(fn) { clear = fn; return 1 }, clearTimeout() {} })
+  const up = new Event('pointerup');Object.assign(up,{pointerId:7});doc.dispatchEvent(up)
   const click = new Event('click', { cancelable: true })
   Object.assign(click, { detail: 1, pointerId: 7 })
   doc.dispatchEvent(click)
@@ -85,7 +86,7 @@ for (const pointerType of ['mouse','touch','pen']) test(`buiten sluiten verbruik
 test('een gesloten menu houdt een volgende klik niet tegen wanneer de sleep geen klik gaf', () => {
   const doc = new EventTarget();let timeout
   swallowDismissClick({},doc,{setTimeout(fn){timeout=fn;return 1},clearTimeout(){}})
-  timeout();const click=new Event('click',{cancelable:true});Object.assign(click,{detail:1});doc.dispatchEvent(click);assert.equal(click.defaultPrevented,false)
+  doc.dispatchEvent(new Event('pointerup'));timeout();const click=new Event('click',{cancelable:true});Object.assign(click,{detail:1});doc.dispatchEvent(click);assert.equal(click.defaultPrevented,false)
 })
 test('op 390 staat het menu ook bij y 540–560 boven de vaste tabbalk met de token-goot', () => {
   for (const y of [540,550,560]) {
@@ -110,3 +111,12 @@ test('een nieuwe pointeractie heft een oude klikbewaking op',()=>{
 test('de pointer kan de opener focussen zonder het verhaal tijdens de klik te verschuiven',()=>{assert.match(taste,/onPointerDown=\{\(\) => moreRef.current\?\.focus\(\{ preventScroll: true \}\)\}/)})
 
 test('menuacties blijven binnen de portal en activeren de verhaalkaart niet',()=>{assert.match(pop,/const key = \(e\) => \{\s*e.stopPropagation\(\)/);assert.match(pop,/onClick=\{\(e\) => e.stopPropagation\(\)\}/)})
+
+// De wachttijd begint niet bij indrukken: een lang vastgehouden muis of pen mag geen verhaal openen.
+test('een lang vastgehouden pointer behoudt zijn sluitklik tot na loslaten',()=>{
+ const doc=new EventTarget();let timeout
+ swallowDismissClick({pointerId:7},doc,{setTimeout(fn){timeout=fn;return 1},clearTimeout(){}})
+ assert.equal(timeout,undefined)
+ const up=new Event('pointerup');Object.assign(up,{pointerId:7});doc.dispatchEvent(up);assert.equal(typeof timeout,'function')
+ const click=new Event('click',{cancelable:true});Object.assign(click,{detail:1,pointerId:7});doc.dispatchEvent(click);assert.equal(click.defaultPrevented,true)
+})
