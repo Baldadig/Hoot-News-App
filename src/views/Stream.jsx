@@ -24,8 +24,8 @@ const PAGE = 60 // zoveel berichten tegelijk tekenen; ouder dan je vorige bezoek
 const KINDS = [
   { id: '', label: 'Alles' },
   { id: 'artikelen', label: 'Artikelen' },
-  { id: 'opinie', label: 'Opinie' },
 ]
+// Opinie staat niet meer in het filterblad (besluit Alex, 11 november 2026): dat is de tab Opinie op de lijn.
 
 // Het filterblad: de soort (een Dialog: focus blijft binnen, Esc sluit). Rubriek en bron
 // kies je op de lijn in de kop; "Wis alle filters" zet ook die terug, en zegt dat dus.
@@ -41,7 +41,6 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
           </button>
         ))}
       </div>
-      <p className="sheet__note">Opinie: zoals de bron het noemt.</p>
 
       <div className="sheet__foot">
         <button type="button" className="btn btn--quiet" onClick={clear}>
@@ -79,7 +78,6 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
       if (picked.size && !picked.has(i.source)) return false
       if (selection.onderwerp && !(i.topics || []).includes(selection.onderwerp)) return false
       if (!inRubriek(i, selection.rubriek, sourcesById.get(i.source))) return false
-      if (selection.soort === 'opinie' && !opinieInStroom(i)) return false
       if (selection.soort === 'artikelen' && (i.kind === 'post' || opinieInStroom(i))) return false
       return true
     }))

@@ -306,6 +306,11 @@ struct Edition: Codable, Hashable {
     var owner: String?
     var fallback: Bool?
     var history: [EditionHistory]?
+    // De Redacteur op de server (1.2.1): door de server samengesteld en vastgelegd (`server`, `revision`), of
+    // het vangnet van dit toestel (`provisional`).
+    var server: Bool? = nil
+    var revision: String? = nil
+    var provisional: Bool? = nil
 }
 
 struct FeedMeta: Codable, Hashable {
@@ -402,7 +407,7 @@ extension FeedStart {
 }
 
 extension Edition {
-    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal, version, wide, near, basedOn, basis, owner, fallback, history }
+    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal, version, wide, near, basedOn, basis, owner, fallback, history, server, revision, provisional }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(String.self, forKey: .id)
@@ -421,6 +426,9 @@ extension Edition {
         owner = try? c.decodeIfPresent(String.self, forKey: .owner)
         fallback = try? c.decodeIfPresent(Bool.self, forKey: .fallback)
         history = c.lossy([EditionHistory].self, forKey: .history)
+        server = try? c.decodeIfPresent(Bool.self, forKey: .server)
+        revision = try? c.decodeIfPresent(String.self, forKey: .revision)
+        provisional = try? c.decodeIfPresent(Bool.self, forKey: .provisional)
     }
 }
 

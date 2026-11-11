@@ -63,7 +63,9 @@ export default function Privacy({ onBack, backLabel }) {
           log je in, dan gaan ze mee met je account (zie hierboven). Ook wat Hoot leert van
           wat je leest (welke onderwerpen en bronnen je vaak opent) blijft op je toestel. Wat je zelf aangeeft met ‘meer
           hiervan’ of ‘minder hiervan’ bij een verhaal is een instelling: met een account gaat die mee, en je wist hem
-          in Instellingen › Editie › Wat Hoot leerde.
+          in Instellingen › Editie › Wat Hoot leerde. Om je Editie samen te stellen stuurt de app je bronnen, je
+          onderwerpen en welke stukken je al las naar onze server; de server gebruikt dat alleen om je Editie te
+          maken en bewaart je leesgeschiedenis niet.
         </p>
         <ul>
           <li>

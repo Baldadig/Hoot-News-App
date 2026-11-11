@@ -536,6 +536,24 @@ final class Account {
         return (false, try await fetchEdition())
     }
 
+    // Het token voor POST /api/edition (De Redacteur op de server, 1.2.1): de server leest en schrijft jouw Editie
+    // als jijzelf. `renew`: na een 401 één keer vernieuwen. Nooit gelogd of bewaard buiten de Keychain.
+    func editionToken(renew: Bool = false) async -> String? {
+        guard !Self.localBeta, let s = session else { return nil }
+        if renew {
+            let version = generation
+            if let refreshing { _ = try? await refreshing.value } else {
+                let task = Task { try await refresh(s, version: version) }
+                refreshing = task
+                _ = try? await task.value
+                if current(version, s.uid) { refreshing = nil }
+            }
+        } else {
+            try? await refreshIfNeeded()
+        }
+        return session?.access
+    }
+
     // ---- Supabase ----
     private enum Failure: Error { case signedOut, login, http(Int) }
     private static let log = Logger(subsystem: "nl.hootnews.Hoot", category: "account") // nooit tokens of codes

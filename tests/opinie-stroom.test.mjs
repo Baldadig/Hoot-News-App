@@ -119,3 +119,18 @@ test('een opiniestuk staat ook in zijn rubriek en in Alles; nieuws niet onder Op
   assert.equal(stroom.filter((i) => inRubriek(i, OPINIE)).length, corpus.opinie.length)
   assert.equal(stroom.filter((i) => inRubriek(i, '')).length, stroom.length)
 })
+
+// Soortfilter "Opinie" weg (besluit Alex, 11 november 2026): een dubbele weg naast de tab Opinie.
+test('het filterblad kent geen soort Opinie meer; een oude link ?soort=opinie wordt de tab Opinie', async () => {
+  const { readFileSync } = await import('node:fs')
+  const { alsRubriek } = await import('../src/lib/streamline.js')
+  const src = readFileSync(new URL('../src/views/Stream.jsx', import.meta.url), 'utf8')
+  const kinds = src.slice(src.indexOf('const KINDS = ['), src.indexOf(']', src.indexOf('const KINDS = [')))
+  assert.doesNotMatch(kinds, /opinie/i)
+  assert.doesNotMatch(src, /zoals de bron het noemt/)
+  assert.doesNotMatch(src, /soort === 'opinie'/)
+  assert.deepEqual(alsRubriek({ bron: 'nrc', onderwerp: '', rubriek: '', soort: 'opinie' }), { bron: 'nrc', onderwerp: '', rubriek: OPINIE, soort: '' })
+  assert.deepEqual(alsRubriek({ bron: '', onderwerp: '', rubriek: '', soort: 'artikelen' }), { bron: '', onderwerp: '', rubriek: '', soort: 'artikelen' })
+  assert.equal(legeRegel({ soort: 'opinie' }), 'Nog niets vandaag.')
+  assert.equal(legeRegel({ soort: 'artikelen' }), 'Nog geen artikelen vandaag.')
+})
