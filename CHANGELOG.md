@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Leesprofiel mee naar de server**: een samenvatting van wat je vaak leest (onderwerpen en bronnen, afgerond, geen artikelen) gaat mee, zodat de Editie van de server even persoonlijk is als voorheen. Pas vanaf 8 keer lezen; de server bewaart alleen de Editie zelf. Privacypagina en App Store-beschrijving bijgewerkt.
+
 - **Web, hoofdverhaal op desktop**: kreeg 01 een placeholder- of te klein beeld terwijl de meting een staand beeld meldde, dan viel de kaart uiteen (lege linkerhelft, bronregel los). Nu alleen de staande vorm als het staande beeld er echt staat.
 
 - **De Redacteur op de server**: ook jouw persoonlijke Editie wordt nu op de server samengesteld, altijd met verse berichten. Web en app krijgen voor jouw account en dagdeel precies dezelfde Editie, en een verbetering aan De Redacteur vraagt geen app-update meer (de app stapt over met 1.2.1; 1.1.1 en 1.2 blijven werken). Alleen offline stelt het toestel zelf samen, legt dan niets vast en neemt de server-Editie over zodra er weer verbinding is. Opinie wordt ook in de Editie beter herkend (nooit op 01); het soortfilter Opinie in de Stroom is weg (er is nu een tab). Privacypagina bijgewerkt.
