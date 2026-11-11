@@ -180,14 +180,6 @@ struct ScreenTitle: View {
     }
 }
 
-extension View {
-    // Een hoofdscherm met de titel in de scroll: de balk inline en zonder eigen titel, zodat die niet
-    // dubbel staat. De navigationTitle blijft voor VoiceOver, de terugknop en het tabblad.
-    func hootScreenTitle() -> some View {
-        navigationBarTitleDisplayMode(.inline).toolbar(removing: .title)
-    }
-}
-
 // Haarlijn tussen berichten: `rule`, één pixel, decoratief.
 struct Rule: View {
     var body: some View { Rectangle().fill(Theme.rule).frame(height: 1).accessibilityHidden(true) }
@@ -221,18 +213,19 @@ private struct WordmarkBody: View {
     }
 }
 
-// De kopregel van Editie, Stroom en Selectie (bovenbalk A, 1.1.0): "hoot." links, het tandwiel (en in
-// de Stroom de bronnen) rechts, als gewone regel in de scroll. Hij scrolt mee; er hangt geen balk
-// meer over de koppen en foto's. Het eerste en het laatste teken staan optisch op de kolomlijn: het
-// icoon is 24 in een raakvlak van 44, dus de rij schuift (44 − 24) / 2 de goot in, zoals --tap-inset
-// op het web. Gelijk aan de kop op het web (.edbrand en .vh__row).
+// De kopregel van elk hoofdscherm, Editie, Stroom, Selectie, Bewaard en Zoeken (bovenbalk A, 1.1.0;
+// accountknop 1.2.1): "hoot." links, je account (en in de Stroom de bronnen) rechts, als gewone regel in
+// de scroll. Hij scrolt mee, zoals het fotootje naast de grote titel in Podcasts en App Store; er hangt
+// geen balk over de koppen en foto's. Het eerste en het laatste teken staan optisch op de kolomlijn: het
+// rondje is 32 in een raakvlak van 44, dus de rij schuift (44 − 32) / 2 de goot in, zoals --tap-inset op
+// het web. Gelijk aan de kop op het web (.vh__row met de avatar rechts).
 //
-// Staat de systeembalk opzij (iPhone Duo dicht, en open liggend: iOS 27.1), dan gaan het tandwiel en de
+// Staat de systeembalk opzij (iPhone Duo dicht, en open liggend: iOS 27.1), dan gaan de accountknop en de
 // bronnen naar die balk (`hootKopScreen`), en blijft hier alleen het woordmerk: de bediening op één plek.
 struct HootKop<Extra: View>: View {
     @Environment(\.openSettings) private var openSettings
     @Environment(\.balkOpzij) private var balkOpzij
-    var gearX: ((CGFloat) -> Void)? = nil // waar het tandwiel staat (de stapel van de Stroom eindigt eronder)
+    var knopX: ((CGFloat) -> Void)? = nil // waar de accountknop staat (de stapel van de Stroom eindigt eronder)
     @ViewBuilder var extra: () -> Extra
 
     var body: some View {
@@ -241,18 +234,13 @@ struct HootKop<Extra: View>: View {
             Spacer(minLength: Space.s3)
             if !balkOpzij {
                 extra()
-                Button { openSettings() } label: {
-                    Image(systemName: "gearshape").font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Theme.ink3) // bediening is stil: grijs, zonder glazen rondje
-                .accessibilityLabel("Instellingen")
-                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
-                .padding(.trailing, -HootKop.inset)
+                AccountKnop { openSettings() }
+                    .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { knopX?($0) }
+                    .padding(.trailing, -AccountKnop.inset)
             }
         }
-        // Even begrensd als het woordmerk: bij heel grote tekst blijven tandwiel en bronnen 24 in hun
-        // raakvlak van 44, en wordt de kopregel geen tweede titel.
+        // Even begrensd als het woordmerk: bij heel grote tekst blijven de accountknop (32) en de bronnen
+        // (24) in hun raakvlak van 44, en wordt de kopregel geen tweede titel.
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .frame(minHeight: Space.tap)
     }
@@ -261,10 +249,10 @@ struct HootKop<Extra: View>: View {
 }
 
 extension HootKop where Extra == EmptyView {
-    init(gearX: ((CGFloat) -> Void)? = nil) { self.init(gearX: gearX) { EmptyView() } }
+    init(knopX: ((CGFloat) -> Void)? = nil) { self.init(knopX: knopX) { EmptyView() } }
 }
 
-// Een knop in de kopregel naast het tandwiel (de bronnen in de Stroom): 24 in een raakvlak van 44.
+// Een knop in de kopregel naast de accountknop (de bronnen in de Stroom): 24 in een raakvlak van 44.
 struct HootKopButton: View {
     let label: String
     let systemImage: String
@@ -284,7 +272,7 @@ extension View {
     // vlakke strook papier precies zo hoog als die balk (geen vervaging, geen verloop), zodat de
     // statusbalk ook boven een foto leesbaar blijft. In Nacht is het papier zwart.
     //
-    // Staat de systeembalk opzij (iPhone Duo, iOS 27.1), dan blijft de navigatiebalk en staan het tandwiel
+    // Staat de systeembalk opzij (iPhone Duo, iOS 27.1), dan blijft de navigatiebalk en staan de accountknop
     // en (in de Stroom) de bronnen erin, met symbool én titel: alleen zo gaan ze mee in de verticale balk
     // (ONDERZOEK §2.4). De kopregel houdt dan alleen het woordmerk. Eén structuur voor beide: vouwen
     // wisselt de balk, en de scroll (je plek) mag daarbij niet opnieuw beginnen.
@@ -306,18 +294,88 @@ private struct HootKopScherm: ViewModifier {
             .navigationBarTitleDisplayMode(opzij ? .inline : .automatic)
             .toolbar {
                 if opzij {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("Instellingen", systemImage: "gearshape") { openSettings() }.tint(Theme.ink3)
-                    }
+                    // Bronnen eerst, dan je account: dezelfde volgorde als in de kopregel.
                     if let bronnen {
                         ToolbarItem(placement: .primaryAction) {
                             Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { bronnen() }.tint(Theme.ink3)
                         }
                     }
+                    ToolbarItem(placement: .primaryAction) {
+                        // Symbool én titel: alleen zo gaat hij mee in de verticale balk. Het symbool is je
+                        // foto of monogram, niet ingelogd het silhouet; de titel blijft Instellingen.
+                        Button { openSettings() } label: {
+                            Label { Text("Instellingen") } icon: { AccountKnopBeeld(maat: 28) }
+                        }
+                        .tint(Theme.ink3)
+                    }
                 }
             }
             .overlay(alignment: .top) { if !opzij { StatusStrip() } }
     }
+}
+
+// Zoeken op de iPhone: dezelfde kop als de andere hoofdschermen, maar in de navigatiebalk, want het zoekveld
+// van het systeem (`.searchable`) hangt aan die balk; zonder balk verdwijnt het veld. "hoot." links, je account
+// rechts, zonder glas. De knop schuift (44 − 32) / 2 naar de rand, zodat zijn rondje op dezelfde x staat
+// als in de kopregel van Editie, Stroom, Selectie en Bewaard. Staat de balk opzij (Duo), dan symbool en
+// titel, zoals daar.
+extension View {
+    func zoekKop() -> some View { modifier(ZoekKop()).modifier(BalkOpzijLezer()) }
+}
+
+private struct ZoekKop: ViewModifier {
+    @Environment(\.balkOpzij) private var opzij
+    @Environment(\.openSettings) private var openSettings
+    @Environment(\.horizontalSizeClass) private var breedte
+    @State private var scherm: CGRect = .zero // het scherm zelf, in het venster
+    @State private var woord: CGFloat = 0 // waar de balk het woordmerk zet (linkerrand)
+    @State private var knop: CGFloat = 0 // en de knop (rechterrand)
+    // De kolomlijn van de lijst (ReadableList): leesbreedte, gecentreerd, met s4 marge.
+    private var lijnLinks: CGFloat { scherm.minX + max(0, (scherm.width - Layout.readable) / 2) + Space.s4 }
+    private var lijnRechts: CGFloat { scherm.maxX - max(0, (scherm.width - Layout.readable) / 2) - Space.s4 }
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { scherm = $0 }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar(removing: .title)
+            .toolbar {
+                if opzij {
+                    ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) } // zoals voorheen: het woordmerk blijft
+                        .sharedBackgroundVisibility(.hidden)
+                    ToolbarItem(placement: .primaryAction) {
+                        Button { openSettings() } label: {
+                            Label { Text("Instellingen") } icon: { AccountKnopBeeld(maat: 28) }
+                        }
+                        .tint(Theme.ink3)
+                    }
+                } else if breedte != .regular {
+                    // iPad (regulier): de balk deelt zijn rij met de tabbalk en houdt alleen het zoekveld; de
+                    // kopregel staat in de lijst (SearchView, ZoekKopIPad), net als op Bewaard.
+                    // De balk heeft zijn eigen marge (20 op de grote iPhones); schuif op de kolomlijn, zodat
+                    // woordmerk en rondje op dezelfde x staan als in de kopregel van de andere schermen.
+                    ToolbarItem(placement: .topBarLeading) {
+                        Wordmark(handoff: true)
+                            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minX } action: { woord = $0 }
+                            .offset(x: woord > 0 && scherm.width > 0 ? lijnLinks - woord : 0)
+                    }
+                    .sharedBackgroundVisibility(.hidden)
+                    ToolbarItem(placement: .topBarTrailing) {
+                        AccountKnop { openSettings() }
+                            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { knop = $0 }
+                            .offset(x: knop > 0 && scherm.width > 0 ? lijnRechts + AccountKnop.inset - knop : 0)
+                    }
+                    .sharedBackgroundVisibility(.hidden)
+                }
+            }
+    }
+}
+
+// Zoeken op de iPad: de navigatiebalk blijft voor het zoekveld (zonder balk verdwijnt het), en dan begint de
+// lijst 10 pt hoger dan op de schermen zonder balk. Zoveel ruimte extra boven de kopregel zet "hoot." en de
+// accountknop op dezelfde hoogte als op Editie, Stroom, Selectie en Bewaard. Gemeten op iPad Pro 13" (M5),
+// iOS 27.2, staand: 92,5 tegen 102,5 pt.
+enum ZoekKopIPad {
+    static let balk: CGFloat = Space.s2 + Space.s0
 }
 
 // "Klaar" rechtsboven in een blad, met symbool én titel. Op iPhone en iPad tekst in inkt (een bevestigingsknop
@@ -393,16 +451,6 @@ struct StatusStrip: View {
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         let window = scenes.flatMap(\.windows).first { $0.isKeyWindow } ?? scenes.first?.windows.first
         return window?.safeAreaInsets.top ?? 0
-    }
-}
-
-// Dezelfde merkkop op de overige schermen (Bewaard, Zoeken): in de balk, zonder glazen achtergrond.
-extension View {
-    func hootBrandHeader() -> some View {
-        toolbar {
-            ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) }
-                .sharedBackgroundVisibility(.hidden)
-        }
     }
 }
 
@@ -897,6 +945,9 @@ struct ShareItemLink: View {
         return value
     }
     var body: some View {
+        deelLink.simultaneousGesture(TapGesture().onEnded { store.tel(.delen) }) // gemeten: het delen opent (Telling.swift)
+    }
+    @ViewBuilder private var deelLink: some View {
         if item.isPost {
             if let image = ImageURL.url(item.image, .thumb) ?? item.avatar.flatMap(URL.init(string:)) {
                 let preview = SharePreviewImage(url: image)
@@ -905,7 +956,9 @@ struct ShareItemLink: View {
                 ShareLink(item: link, subject: Text(item.shareTitle), preview: SharePreview(item.shareTitle)) { label }
             }
         } else {
+            // Kaart én link: de link naar het artikel gaat als bericht mee (Berichten, WhatsApp, Mail).
             ShareLink(item: DeelKaartExport(item: cardItem), subject: Text(item.shareTitle),
+                      message: Text(DeelKaartExport(item: cardItem).link.absoluteString),
                       preview: SharePreview(item.shareTitle, image: DeelKaartExport(item: cardItem, format: .link))) { label }
         }
     }

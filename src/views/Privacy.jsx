@@ -8,7 +8,13 @@ export default function Privacy({ onBack, backLabel }) {
       <div className="col col--read prose">
         <ViewHeader title="Privacy" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
-        <p>Hoot heeft geen advertenties, geen trackers en geen analytics. Er worden geen cookies gezet. Hoot volgt je niet.</p>
+        <p>Hoot heeft geen advertenties, geen trackers en geen analytics van anderen. Er worden geen cookies gezet. Hoot volgt je niet.</p>
+
+        <h2 className="label label--section sect">Wat Hoot telt</h2>
+        <p>
+          Hoot telt alleen totalen: hoeveel Edities er vandaag zijn geopend en uitgelezen, en hoe vaak de Stroom, de Selectie, een vergelijking, een verhaal of het delen is gebruikt. Zonder te weten wie. Er gaat geen
+          account of id mee en er wordt niets per persoon bewaard: geen IP-adres, alleen een getal per dag. Je toestel onthoudt zelf alleen dat het een dagdeel al heeft geteld. Staat Do Not Track of Global Privacy Control aan, dan telt de website niets.
+        </p>
 
         <h2 className="label label--section sect">Op je toestel</h2>
         <p>Zonder account bewaart Hoot alles op je toestel, in de opslag van je browser:</p>
@@ -54,7 +60,7 @@ export default function Privacy({ onBack, backLabel }) {
           </li>
           <li>
             <strong>Je Editie</strong> stelt de Hoot-server samen, zodat je op de website en in de app dezelfde Editie ziet. Daarvoor gaan mee: je bronnen en interesses, welke berichten je al
-            las en een samenvatting van wat je vaak leest. De server gebruikt dat alleen om je Editie te maken en bewaart daarvan alleen de Editie zelf: een dagdeel lang, en met een account in je account.
+            las en een samenvatting van wat je vaak leest. De server gebruikt dat alleen om je Editie te maken en bewaart daarvan alleen de Editie zelf: hooguit een dag lang, en met een account in je account.
           </li>
           <li>
             <strong>De Editie in één minuut</strong> (alleen met een account): de koppen en intro's van de Editie gaan naar Anthropic (Claude) om de samenvatting te schrijven. Daar zit niets van jou in.
@@ -64,13 +70,13 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="label label--section sect">De app voor iPhone en iPad</h2>
         <p>
-          De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
+          De app werkt zonder account en gebruikt geen analytics van anderen, advertenties of tracking. Ook de app telt alleen totalen (zie Wat Hoot telt). Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
           log je in, dan gaan ze mee met je account (zie hierboven). Wat Hoot leert van
           wat je leest (welke onderwerpen en bronnen je vaak opent) bewaart Hoot alleen op je toestel. Wat je zelf aangeeft met ‘meer
           hiervan’ of ‘minder hiervan’ bij een verhaal is een instelling: met een account gaat die mee, en je wist hem
           in Instellingen › Editie › Wat Hoot leerde. Om je Editie samen te stellen stuurt de app je bronnen, je
           onderwerpen, welke stukken je al las en een samenvatting van wat je vaak leest naar onze server; de server
-          gebruikt dat alleen om je Editie te maken en bewaart het niet.
+          gebruikt dat alleen om je Editie te maken en bewaart daarvan alleen de Editie zelf: hooguit een dag lang, en met een account in je account.
         </p>
         <ul>
           <li>
@@ -79,7 +85,7 @@ export default function Privacy({ onBack, backLabel }) {
           <li>
             <strong>Je eigen Editie</strong> stelt Hoot samen op de Hoot-server, net als op de website. Daarvoor gaan mee: je bronnen, interesses en Selectie-onderwerpen, wat je aangaf met ‘meer hiervan’
             en ‘minder hiervan’, welke berichten je al las en een samenvatting van wat je vaak leest (per onderwerp en bron een getal). Zonder account ook de koppen en intro's van je vorige drie Edities, zonder
-            je naam en zonder een vast kenmerk van je toestel. De server stuurt de Editie terug en bewaart niets van wat je stuurde. Zonder verbinding stelt de app hem voorlopig zelf samen.
+            je naam en zonder een vast kenmerk van je toestel. De server stuurt de Editie terug en bewaart daarvan alleen de Editie zelf: hooguit een dag lang, en met een account in je account. Zonder verbinding stelt de app hem voorlopig zelf samen.
           </li>
           <li>
             <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via de Hoot-server. Log je in de

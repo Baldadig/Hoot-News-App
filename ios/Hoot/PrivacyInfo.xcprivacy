@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Hoot volgt niemand: geen analytics, geen advertenties. Alleen wie inlogt (vrijwillig) heeft een
+	<!-- Hoot volgt niemand: geen analytics van derden, geen advertenties; wel anonieme totalen per dag (Telling.swift). Alleen wie inlogt (vrijwillig) heeft een
 	     account: naam, e-mailadres, profielfoto (bij Google), gebruikers-id en wat er synchroniseert,
 	     alleen voor de app zelf. -->
 	<key>NSPrivacyTracking</key>
@@ -71,6 +71,9 @@
 			<key>NSPrivacyCollectedDataTypePurposes</key>
 			<array>
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+				<!-- Meten zonder volgen (Telling.swift): alleen totalen per dag, zonder id; zie APP-PRIVACY.md. Het manifest kent
+				     één regel per gegevenstype, dus "gekoppeld" blijft hier waar (de gesynchroniseerde leesgeschiedenis). -->
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
 			</array>
 		</dict>
 	</array>

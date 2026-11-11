@@ -1,4 +1,5 @@
 import { recordCorrection } from './lib/corrections.mjs'
+import { tel } from './lib/tel.js'
 import { selectionOwnerReady } from './lib/selection-fold.js'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
@@ -46,6 +47,7 @@ import { shareItem, shareNotice } from './lib/share.js'
 import Splash from './components/Splash.jsx'
 import { startSysteemTekst, setSchaal } from './lib/systeemtekst.js'
 import { textSizeOf } from './lib/tekstgrootte.js'
+import { stroomTabsUit } from '../shared/stroom-tabs.mjs'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
@@ -178,6 +180,10 @@ export default function App() {
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
   const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, readIds: read, affinity, sync: { status: syncStatus, pulled: syncPulled }, stuck: feedStuck })
+  // Meten zonder volgen (src/lib/tel.js): het dagdeel van de Editie die je ziet. Alleen totalen, geen personen.
+  const dagdeel = myEdition?.date && myEdition?.slot ? `${myEdition.date}-${myEdition.slot}` : null
+  const dagdeelRef = useRef(dagdeel)
+  dagdeelRef.current = dagdeel
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   // Wie vroeger een vast Bluesky-account van Hoot volgde (Aaron Rupar e.a.), volgt dat nu als eigen account:
@@ -198,6 +204,8 @@ export default function App() {
   const itemsById = useMemo(() => new Map([...(data?.related || []), ...(data?.items || []), ...social.items].map((i) => [i.id, i])), [data, social.items])
   // Ook vindbaar op een eerdere id (als twee bundels zijn samengegaan): bladwijzers en links blijven werken.
   const storiesById = useMemo(() => indexStories(data?.stories), [data])
+  // De Stroom-tabs van de server (shared/stroom-tabs.mjs); een feed zonder de lijst: Opinie.
+  const stroomTabs = useMemo(() => stroomTabsUit(data), [data])
 
   // "Buiten je bubbel": de berichten bij de signalen van deze editie (als ze er zijn).
   // Zoals gepubliceerd (vast), en juist ook uit bronnen die je niet volgt: daar is dit blok voor.
@@ -210,6 +218,7 @@ export default function App() {
   // ---- Handelingen ----
   const markRead = useCallback(
     (id) => {
+      tel('artikel-open', dagdeelRef.current)
       // Het artikel opent in hetzelfde tabblad: meteen opslaan, niet pas na de volgende weergave.
       if (!readIds.includes(id)) writeJSON('hoot:read', [...readIds, id].slice(-1500))
       setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500)))
@@ -265,6 +274,7 @@ export default function App() {
     return () => clearTimeout(t)
   }, [notice])
   const share = useCallback(async (item) => {
+    tel('delen', dagdeelRef.current)
     const said = shareNotice(await shareItem(item))
     if (said) setNotice(said)
   }, [])
@@ -304,6 +314,7 @@ export default function App() {
         else delete next[id]
         return next
       })
+      tel('vergelijk-open', dagdeelRef.current)
       route.go(route.path, { ...route.params, verhaal: id })
       // Wie vergelijkt, kent de meer-kanten-tip (Edition.jsx, kanten-tip.js): die hoeft niet meer.
       setPrefs((p) => (p.kantenTip ? p : { ...p, kantenTip: true }))
@@ -379,6 +390,15 @@ export default function App() {
   // leesbaar, ook voor wie Hoot nog nooit opende (anders zie je eerst het welkomstscherm).
   const showWelcome = path === 'welkom' || (!prefs.onboarded && !['over', 'privacy'].includes(path))
   const page = PAGES.includes(path) && path !== 'welkom' ? path : null
+  // Gemeten: de Editie opent (één keer per dagdeel op dit toestel; tel.js), de Stroom en de Selectie openen.
+  useEffect(() => {
+    if (!showWelcome && path === 'editie') tel('editie-open', dagdeel)
+  }, [path, showWelcome, dagdeel])
+  useEffect(() => {
+    if (showWelcome) return
+    if (path === 'stroom') tel('stroom-open', dagdeelRef.current)
+    else if (path === 'digest') tel('selectie-open', dagdeelRef.current)
+  }, [path, showWelcome, dagdeel != null])
   // Waar je vandaan kwam (de laatste hoofdbestemming): daar brengt "terug" je heen vanuit
   // Instellingen of Zoeken, ook als je er via een gewone link kwam.
   const cameFrom = useRef('editie')
@@ -663,6 +683,7 @@ export default function App() {
               bubble={bubble}
               preview={prefs.preview}
               stream={stream}
+              stroomTabs={stroomTabs}
               params={path === 'stroom' ? route.params : navMem.stroom || {}}
               go={route.go}
               sources={sources}

@@ -52,6 +52,15 @@
 
 - Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
 
+## [1.2.1] — 2026-11-11 — Je account rechtsboven, Opinie in de Stroom, de Editie van de server (build 52)
+
+- **Je account rechtsboven**: in plaats van het tandwiel staat je account rechtsboven.
+- **Opinie in de Stroom**: een eigen tab Opinie na Sport, vóór Buiten je bubbel. De tabs van de Stroom komen van de server.
+- **Duo**: het tafelblad staat weer aan wanneer je de Duo liggend houdt, ook op de echte Duo.
+- **De Editie van de server**: de app vraagt jouw Editie aan de server en stuurt een samenvatting van je leesprofiel mee. Alleen offline stelt het toestel zelf samen.
+- **Het seintje voor de Ochtendeditie** volgt het ochtendmoment van de server.
+- **Delen: kaart én link**: bij een gedeeld verhaal gaan de Hoot-kaart en de link naar het artikel bij de uitgever samen mee, in Berichten, WhatsApp en Mail.
+
 ## [1.2] — 2026-11-08 — De krant vouwt mee (build 51)
 
 - iPhone Duo: de Editie als krant. Dicht de dichte voorpagina, open staand de tabloid in twee kolommen. Open liggend één krantenpagina: het tafelblad staat in 1.2 uit (`KrantIndeling.tafelblad = false`) en komt in 1.2.1, met de fix voor de echte Duo (branch `duo`: cd44535, 08ab0fb).

@@ -10,6 +10,7 @@ import SwiftUI
 // Het web heeft dezelfde bladen en labels (src/views/Settings.jsx).
 struct SettingsView: View {
     @Environment(HootStore.self) private var store
+    @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
     @Environment(EditionAlerts.self) private var alerts
     @State private var path: [String] = SettingsMap.debugPath(DebugLaunch.screen)
@@ -24,7 +25,13 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack(path: $path) {
             Form {
-                Section { SettingsAccountCard() }.hootRows()
+                Section {
+                    SettingsAccountCard()
+                } footer: {
+                    // Eerlijk vooraf (keuze r5-apple-web): het web kent nog alleen Google.
+                    if SettingsAccountCard.inloggen(account.status) { Text(AccountView.webNote).foregroundStyle(Theme.ink3) }
+                }
+                .hootRows()
 
                 Section {
                     NavigationLink(value: "interesses") {
@@ -67,7 +74,10 @@ struct SettingsView: View {
             .navigationDestination(for: String.self) { page in
                 SettingsDestination(page: page, onReset: reset)
             }
-            .klaarKnop { dismiss() } // tekst in inkt; op een verticale balk het vinkje (klaarKnop)
+            // De sluitknop van het systeem (iOS 26): Apple tekent hem zelf, in Liquid Glass, ook in een verticale balk.
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { Button(role: .close) { dismiss() } }
+            }
         }
     }
 
@@ -122,21 +132,38 @@ struct SettingsAccountCard: View {
         return "\(i) · \(sources == 1 ? "1 bron" : "\(sources) bronnen")"
     }
 
+    // Niet ingelogd (1.2.1): geen rij naar een volgend blad, maar Inloggen met de knoppen er meteen onder,
+    // zoals Apple bovenaan zijn eigen Instellingen. Ook tijdens het inloggen (.loading), zodat de knop van
+    // Apple blijft staan tot hij klaar is.
+    static func inloggen(_ status: Account.Status, localBeta: Bool = Account.localBeta) -> Bool {
+        !localBeta && (status == .out || status == .loading)
+    }
+
     var body: some View {
-        NavigationLink(value: "account") {
-            // Bij de toegankelijkheidsmaten de foto boven de tekst: dan krijgt de tekst de hele breedte.
-            let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Space.s2)) : AnyLayout(HStackLayout(spacing: Space.s3))
-            layout {
-                AccountBadge(size: 48)
-                VStack(alignment: .leading, spacing: Space.s0) {
-                    Text(title).font(.ui(.headline)).foregroundStyle(Theme.ink)
-                    Text(status).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
-                }
-                .fixedSize(horizontal: false, vertical: true)
+        if Self.inloggen(account.status) {
+            VStack(alignment: .leading, spacing: Space.s3) {
+                kaart(title: "Inloggen", status: "Hoot op al je toestellen")
+                InlogKnoppen()
             }
             .padding(.vertical, Space.s1)
-            .accessibilityElement(children: .combine)
+        } else {
+            NavigationLink(value: "account") { kaart(title: title, status: status) }
         }
+    }
+
+    private func kaart(title: String, status: String) -> some View {
+        // Bij de toegankelijkheidsmaten de foto boven de tekst: dan krijgt de tekst de hele breedte.
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Space.s2)) : AnyLayout(HStackLayout(spacing: Space.s3))
+        return layout {
+            AccountBadge(size: 48)
+            VStack(alignment: .leading, spacing: Space.s0) {
+                Text(title).font(.ui(.headline)).foregroundStyle(Theme.ink)
+                Text(status).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, Space.s1)
+        .accessibilityElement(children: .combine)
     }
     private var title: String {
         if Account.localBeta { return "Lokale beta" }
@@ -479,20 +506,6 @@ struct DigestFieldsList: View {
     }
 }
 
-// De knop rechtsboven op Bewaard; opent de instellingen. Op Editie, Stroom en Selectie staat het
-// tandwiel in de kopregel (HootKop) en opent het via `openSettings`.
-struct AccountButton: ToolbarContent {
-    @Binding var open: Bool
-    var body: some ToolbarContent {
-        // Rustig: grijs en zonder glazen rondje; de inhoud gaat voor.
-        ToolbarItem(placement: .topBarTrailing) {
-            Button("Instellingen", systemImage: "gearshape") { open = true }
-                .tint(Theme.ink3)
-        }
-        .sharedBackgroundVisibility(.hidden)
-    }
-}
-
 // Instellingen openen vanuit de kopregel.
 struct OpenSettingsKey: EnvironmentKey { static let defaultValue: @MainActor () -> Void = {} }
 extension EnvironmentValues {
@@ -503,18 +516,15 @@ extension EnvironmentValues {
 }
 
 extension View {
-    // Het instellingenblad, te openen met `openSettings` (het tandwiel in de kopregel). `toolbar`:
-    // ook een tandwiel in de navigatiebalk (Bewaard, dat geen kopregel heeft).
-    func settingsButton(toolbar: Bool = false) -> some View { modifier(SettingsButton(toolbar: toolbar)) }
+    // Het instellingenblad, te openen met `openSettings` (de accountknop in de kopregel, AccountKnop).
+    func settingsButton() -> some View { modifier(SettingsButton()) }
 }
 
 private struct SettingsButton: ViewModifier {
-    let toolbar: Bool
     @State private var open = false
     func body(content: Content) -> some View {
         content
             .environment(\.openSettings) { open = true }
-            .toolbar { if toolbar { AccountButton(open: $open) } }
             .sheet(isPresented: $open) { SettingsView().debugAppearance().modifier(HootWeergave()) }
             .onAppear { if DebugLaunch.screen?.hasPrefix("instellingen") == true { open = true } }
     }

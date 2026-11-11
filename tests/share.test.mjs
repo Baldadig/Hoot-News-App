@@ -72,10 +72,11 @@ test('A3: artikel deelt PNG met Hoot-link; zonder bestandsdeling of bij netwerkf
   const nav = { share: async data => calls.push(data), canShare: () => true, clipboard: { writeText: async url => copied.push(url) } }
   const fetcher = async () => new Response(new Uint8Array([137, 80, 78, 71]), { headers: { 'content-type': 'image/png' } })
   assert.equal(await shareItem(item, nav, { fetcher }), 'gedeeld')
-  assert.equal(calls[0].url, 'https://gethoot.app/deel/abc?bron=https%3A%2F%2Fnos.nl%2Fa')
+  assert.equal(calls[0].text, 'https://nos.nl/a', 'kaart én link naar het artikel zelf')
+  assert.equal(calls[0].files.length, 1)
   assert.equal(calls[0].files[0].type, 'image/png')
   assert.equal(await shareItem(item, { ...nav, canShare: () => false }, { fetcher }), 'gekopieerd')
   assert.equal(await shareItem(item, nav, { fetcher: async () => { throw new Error('offline') } }), 'gekopieerd')
-  assert.deepEqual(copied, ['https://gethoot.app/deel/abc?bron=https%3A%2F%2Fnos.nl%2Fa', 'https://gethoot.app/deel/abc?bron=https%3A%2F%2Fnos.nl%2Fa'])
+  assert.deepEqual(copied, ['https://nos.nl/a', 'https://nos.nl/a'])
   assert.equal(shareLink({ ...item, kind: 'post' }), item.url)
 })

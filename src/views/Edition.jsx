@@ -20,6 +20,8 @@ import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { eindzin } from '../../shared/eindzin.mjs'
+import { tel } from '../lib/tel.js'
+import { watch } from '../lib/inview.js'
 import { resolveEditionEntry, heroFirst, numberRows, countOf, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { SLOTS } from '../../shared/slots.mjs'
 import { fitsHero } from '../lib/img.js'
@@ -192,6 +194,14 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
+  // Gemeten (src/lib/tel.js): het einde ("Je bent bij.") komt in beeld, één keer per dagdeel op dit toestel.
+  const endRef = useRef(null)
+  const dagdeel = edition?.date && edition?.slot ? `${edition.date}-${edition.slot}` : null
+  useEffect(() => {
+    if (!active || !dagdeel || !hasMinimum || !ready) return undefined
+    return watch(endRef.current, { threshold: 0.5 }, (e) => e.isIntersecting && tel('editie-einde', dagdeel))
+  }, [active, dagdeel, hasMinimum, ready])
+
   // Eerste laden: de laadstrepen. Klaar: het bovenste vel wordt de kopstreep, de andere drie de
   // onderlijnen van de kop van het hoofdverhaal (src/lib/load-lines.js); dan geen tweede "druk".
   const hostRef = useRef(null)
@@ -467,7 +477,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               ) : null}
               {/* Het enige merkmoment tijdens het lezen: de zon komt één keer op (plan 01/05). */}
               <EindeSun className="endcap__sun" />
-              <h2 className="head-5 endcap__title">{eindzin(edition.date, edition.slot)}</h2>
+              <h2 className="head-5 endcap__title" ref={endRef}>{eindzin(edition.date, edition.slot)}</h2>
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>

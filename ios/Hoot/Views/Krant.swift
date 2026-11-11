@@ -55,15 +55,18 @@ enum KrantIndeling: Equatable {
     /// boven kijken, onder bedienen). Vlak liggend is er geen dwarse vouw: dan ligt de grens op `tafelOnder` van onder.
     case tafel(boven: CGRect, onder: CGRect)
 
-    /// SCHAKELAAR TAFELBLAD (besluit Alex, 8 november): in 1.2 staat de tafelblad-Editie uit. Open liggend (en half
-    /// gevouwen als laptop) toont de Duo dan wat hij zonder tafelblad doet: op de echte Duo liggend één rustige
-    /// krantenpagina (`enkel`), nooit een leeg blad. 1.2.1 zet hem weer aan (`true`), samen met de fix voor de
-    /// echte Duo (branch `duo`: cd44535, 08ab0fb). Getoetst in TafelUitTests.
-    static let tafelblad = false
+    /// SCHAKELAAR TAFELBLAD (besluit Alex, 8 november): in 1.2 stond de tafelblad-Editie uit. 1.2.1 zet hem weer aan,
+    /// met de fix voor de echte Duo (vouw 40 breed, balk opzij), een rij die vóór de balk stopt en op hele plekken
+    /// staat, en een blad dat wijkt zodra de krant open ligt (`BladWijkt`): nooit een leeg blad. Getoetst in
+    /// TafelTests en TafelUitTests.
+    static let tafelblad = true
 
     /// Een bladzijde moet minstens zo breed zijn: zo smal als de kleinste iPhone (375) min wat lucht.
-    /// Een verticale systeembalk opzij (iOS 27.1, binnen liggend) mag een bladzijde smaller maken.
-    static let minPagina: CGFloat = 360
+    /// Een verticale systeembalk opzij (iOS 27.1, binnen liggend) mag een bladzijde smaller maken. Gemeten op de
+    /// echte Duo-simulator (iOS 27.2), binnen liggend en vlak: het vlak is 867 breed (balk 84), de vouw is ook vlak
+    /// 40 breed met 20 marge aan elke kant (niet 0 breed, zoals eerst aangenomen). Dan is de rechterbladzijde 351,5:
+    /// dat moet nog twee bladzijden zijn (en het tafelblad), geen enkele krantenpagina.
+    static let minPagina: CGFloat = 340
     /// Een bladzijde boven of onder de rug moet minstens zo hoog zijn.
     static let minHoogte: CGFloat = 280
     /// Eén bladzijde op een breed vlak met een vouw (open, staand): de breedte van een krantenpagina.
@@ -118,7 +121,7 @@ enum KrantIndeling: Equatable {
     ///   - tafelOnder: de hoogte van de inhoudsopgave vlak liggend (meegroeiend met de tekstgrootte).
     static func kies(size: CGSize, horizontal: UserInterfaceSizeClass?, rug: Rug?, krant: Bool = false, rechtsVrij: Bool = true,
                      tafel: Bool = false, tafelOnder: CGFloat = KrantIndeling.tafelOnder) -> KrantIndeling {
-        let tafel = tafel && tafelblad // 1.2: het tafelblad uit (zie `tafelblad`)
+        let tafel = tafel && tafelblad // de schakelaar (zie `tafelblad`)
         // Compact (dicht, iPhone, smal venster): de iPhone-app.
         guard horizontal == .regular, size.width > 0, size.height > 0 else { return .enkel(pagina: nil) }
         // Geen vouw: iPad, Mac, een iPhone zonder rug. Daar blijft alles zoals het was.
@@ -127,16 +130,18 @@ enum KrantIndeling: Equatable {
         if rug.staand {
             let lijst = CGRect(x: 0, y: 0, width: max(0, vrij.minX), height: size.height)
             let verhaal = CGRect(x: vrij.maxX, y: 0, width: max(0, size.width - vrij.maxX), height: size.height)
-            if lijst.width >= minPagina && verhaal.width >= minPagina {
-                // Open liggend en vlak: de tafelblad-Editie (besluit Alex, 6 november). Boven lezen, onder de rij.
-                // Half gevouwen als boek niet: dan zou de leeskolom boven over de vouw lopen (ONDERZOEK §6.4).
-                if tafel && !rug.actief {
-                    let onder = min(max(0, tafelOnder), size.height - minHoogte)
-                    if onder > 0 {
-                        return .tafel(boven: CGRect(x: 0, y: 0, width: size.width, height: size.height - onder),
-                                      onder: CGRect(x: 0, y: size.height - onder, width: size.width, height: onder))
-                    }
+            // Open liggend en vlak: de tafelblad-Editie (besluit Alex, 6 november). Boven lezen, onder de rij.
+            // Half gevouwen als boek niet: dan zou de leeskolom boven over de vouw lopen (ONDERZOEK §6.4).
+            // Het tafelblad loopt over de hele breedte: het hangt niet af van hoe breed elke bladzijde naast de vouw is,
+            // alleen van of het vlak breed genoeg is voor twee bladzijden.
+            if tafel && !rug.actief && size.width >= 2 * minPagina {
+                let onder = min(max(0, tafelOnder), size.height - minHoogte)
+                if onder > 0 {
+                    return .tafel(boven: CGRect(x: 0, y: 0, width: size.width, height: size.height - onder),
+                                  onder: CGRect(x: 0, y: size.height - onder, width: size.width, height: onder))
                 }
+            }
+            if lijst.width >= minPagina && verhaal.width >= minPagina {
                 // Een opengeslagen boek: zolang rechts niets open ligt, loopt de Editie over beide bladzijden.
                 return krant && rechtsVrij ? .tabloid(boek: true) : .naast(lijst: lijst, verhaal: verhaal)
             }
@@ -243,6 +248,12 @@ final class KrantStaat {
     var verhaal: [RootView.Destination: Story] = [:]
     /// De krant ligt open (twee bladzijden): de lezer staat op de rechterbladzijde, niet als blad.
     var spread = false
+    /// Er is een vouw gemeten (de Duo open). Op de Duo geeft iOS de zone pas even na de start door.
+    var vouw = false
+
+    /// Het artikel als blad: alleen als de krant niet open ligt. Ligt hij open, dan staat de lezer op de bladzijde of
+    /// boven op het tafelblad, en is er geen blad (ook geen leeg).
+    static func blad(_ item: Item?, spread: Bool) -> Item? { spread ? nil : item }
     /// De Editie ligt als tabloid open staand: de lezer is een blad met een ruimere marge (Leesmaat).
     var tabloid = false
 }
@@ -408,6 +419,11 @@ struct KrantSpread<Lijst: View>: View {
             var t = Transaction(); t.disablesAnimations = true
             withTransaction(t) { staat.spread = open }
         }
+        .onChange(of: rug != nil, initial: true) { _, gemeten in
+            // Alleen de Editie meldt de vouw (elk tabblad meet dezelfde zone).
+            guard let staat, tab == .editie, staat.vouw != gemeten else { return }
+            staat.vouw = gemeten
+        }
         .onChange(of: indeling == .tabloid(boek: false), initial: true) { _, staand in
             // Alleen het zichtbare tabblad zet de marge van de lezer (de lezer is één per venster).
             guard let staat, tab == .editie, staat.tabloid != staand else { return }
@@ -460,6 +476,28 @@ struct KrantPagina: View {
             }
         }
         .background(Theme.paper)
+    }
+}
+
+/// Het blad (de lezer dicht, of open staand) wijkt zodra de krant open ligt: dan verhuist de lezer naar de bladzijde
+/// of boven op het tafelblad (`Reader.item` blijft, dus hetzelfde artikel op dezelfde alinea). De binding van het blad
+/// zegt dat al (`KrantStaat.blad`), maar een sluiten dat binnenkomt terwijl het blad nog opkomt, laat SwiftUI liggen:
+/// dan bleef er een leeg blad staan met alleen de balk. Daarom sluit het blad zichzelf, zonder animatie, tot het weg is.
+struct BladWijkt: ViewModifier {
+    let krant: KrantStaat
+    @Environment(\.dismiss) private var dismiss
+    static let pogingen = 20
+    static let tussen: Duration = .milliseconds(250)
+    func body(content: Content) -> some View {
+        content.task(id: krant.spread) {
+            guard krant.spread else { return }
+            var t = Transaction(); t.disablesAnimations = true
+            for _ in 0..<Self.pogingen {
+                withTransaction(t) { dismiss() }
+                try? await Task.sleep(for: Self.tussen)
+                if Task.isCancelled || !krant.spread { return } // weg (de taak stopt met het blad), of weer dicht
+            }
+        }
     }
 }
 

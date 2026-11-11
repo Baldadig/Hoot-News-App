@@ -124,6 +124,8 @@ final class HootStore {
     private(set) var coreFailed = false
     // De Stroom, gesorteerd: één keer per laadactie of bronwijziging, niet bij elke weergave.
     private(set) var stream: [Item] = []
+    // De Stroom-tabs van de server tussen Sport en Buiten je bubbel (StroomTab); een feed zonder de lijst: Opinie.
+    private(set) var stroomTabs: [StroomTab] = StroomTab.terugval
     // Tot waar je de Stroom zag (het nieuwste bericht toen je hem verliet), en de grens voor dit
     // bezoek: die schuift niet mee terwijl je leest, pas als je de Stroom opnieuw opent.
     private var streamSeen: Date? { didSet { save("hoot.streamSeen", streamSeen) } }
@@ -689,6 +691,7 @@ final class HootStore {
             edition = start.edition
             updatedAt = start.meta.updatedAt.flatMap(HootDate.parse)
             relatedVersion = start.meta.related
+            stroomTabs = StroomTab.uit(start.stroomTabs)
             parts = start.meta.parts ?? [:]
             stale = false // een mislukt deel zet hem hieronder weer aan
             coreFailed = fromCache
@@ -1231,7 +1234,10 @@ final class HootStore {
     func removeSaved(at offsets: IndexSet) { saved.remove(atOffsets: offsets) }
     // "Ongedaan maken" na verwijderen: terug op zijn oude plek.
     func restoreSaved(_ item: Item, at index: Int) { if !isSaved(item) { saved.insert(item, at: min(index, saved.count)) } }
+    /// Meten zonder volgen (Telling.swift): één gebeurtenis, met het dagdeel van de Editie die je ziet.
+    func tel(_ event: Telling.Event) { Telling.stuur(event, dagdeel: Telling.dagdeel(date: edition?.date, slot: edition?.slot)) }
     func markRead(_ item: Item) {
+        tel(.artikelOpen)
         guard !readSet.contains(item.id) else { return }
         affinity.learn(item, weight: 1)
         readSet.insert(item.id)

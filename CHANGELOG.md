@@ -4,6 +4,16 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Meten zonder volgen** (web; app in de volgende build): Hoot telt alleen totalen per dag, zoals hoeveel Edities er geopend en uitgelezen zijn. Zonder account, id, cookie of IP-adres; Do Not Track en Global Privacy Control worden gerespecteerd. Uitlezen via /api/tel (met TEL_SLEUTEL) of scripts/tel.mjs. Privacybeleid bijgewerkt.
+
+- **Meten zonder volgen** (server, web; app in de volgende build): Hoot telt alleen totalen per dag (Edities geopend en uitgelezen per dagdeel, artikelen, Stroom, Selectie, vergelijken, delen), zonder te weten wie. `POST /api/tel`, uitlezen met `GET /api/tel?dagen=14` of `node scripts/tel.mjs`. Geen id, IP, cookie of tijdstempel per gebeurtenis; Do Not Track en Global Privacy Control worden gerespecteerd. Privacybeleid bijgewerkt.
+
+- **Privacy: opruimen** (server): een persoonlijke Editie zonder account en de tellers per lid worden na hooguit een dag opgeruimd. Het privacybeleid zegt nu precies dat.
+
+- **iOS 1.2.1 (build 52)** is de app-kant van onderstaande punten: account rechtsboven, Opinie-tab, de Editie van de server, het seintje op het ochtendmoment van de server, het Duo-tafelblad liggend en delen met link.
+
+- **Delen: kaart én link** (web; app in 1.2.1): een gedeeld verhaal gaat nu als Hoot-kaart mét de link naar het artikel bij de uitgever. Voorheen kwam vaak alleen de afbeelding aan, of een link naar een Hoot-tussenpagina.
+
 - **De Editie met frisse ogen** (server; web en app krijgen hem vanzelf): nieuws staat bovenaan en een bekend persoon zakt onder de top 3 als er groter nieuws is. Eén gebeurtenis krijgt één plek, ook als er Engelse en Nederlandse stukken over zijn. Bovenaan alleen Nederlands, en in de top 3 alleen wat je kunt lezen. Bij een betaalde Nederlandse kop staat waar het kan de gratis kop van NOS, NU.nl of RTL over hetzelfde feit. Een dunne Editie wordt eerst aangevuld met gratis Nederlands. Buiten je bubbel krijgt harde eisen en blijft liever leeg dan een zwakke keuze. De Ochtendeditie ligt vanaf half zeven klaar (het seintje in de app verschuift mee in 1.2.1). Elk dagdeel wordt bewaard met een scorekaart; Haagse dossiers draaien eerst een week in schaduw.
 
 - **Leesprofiel mee naar de server**: een samenvatting van wat je vaak leest (onderwerpen en bronnen, afgerond, geen artikelen) gaat mee, zodat de Editie van de server even persoonlijk is als voorheen. Pas vanaf 8 keer lezen; de server bewaart alleen de Editie zelf. Privacypagina en App Store-beschrijving bijgewerkt.

@@ -617,7 +617,9 @@ struct EditionView: View {
                 // Alleen x en breedte: verticaal scrollen meet hier niets (anders bij elke scrollstap een nieuwe staat).
                 .onGeometryChange(for: CGRect.self) { let f = $0.frame(in: .global); return CGRect(x: f.minX, y: 0, width: f.width, height: 0) } action: { inhoudKader = $0 }
                 .padding(.horizontal)
-                .column(grid == .tabloid || grid == .boek ? .infinity : grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + hang : Layout.readable)
+                // Eén kolom met de Stroom en de Selectie (1.2.1): de nummers hangen binnen de leesbreedte, zodat
+                // "hoot." en de accountknop op elk tabblad op dezelfde x staan. Alleen het raster A (paren) is breder.
+                .column(grid == .tabloid || grid == .boek ? .infinity : grid == .paren ? Layout.wide : Layout.readable)
                 .offset(y: rising ? 8 : 0)
                 .environment(\.placeholderPlan, placeholderPlan)
             }
@@ -636,6 +638,7 @@ struct EditionView: View {
             }
             // Het einde van de eerste Editie in beeld: één keer de vraag om een seintje, los van de eindkaart.
             .onChange(of: endVisible) { _, visible in
+                if visible { store.tel(.editieEinde) } // gemeten: één keer per dagdeel (Telling.swift)
                 guard visible, !alertAsk, EditionAlerts.offerAfterEdition(permission: alerts.permission, notify: store.notify, offered: alertOffered, browsing: store.browsing) else { return }
                 alertOffered = true // gesteld zodra de kaart in beeld komt: wie niet antwoordt, ziet hem niet weer
                 withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
@@ -757,6 +760,7 @@ struct StoryView: View {
             }
         }
         .task { items = await store.storyItems(story) }
+        .onAppear { store.tel(.vergelijkOpen) }
         .onAppear { UserDefaults.standard.set(true, forKey: KantenTip.key) } // wie vergelijkt, kent het: geen tip meer
     }
 

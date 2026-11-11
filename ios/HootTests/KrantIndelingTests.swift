@@ -11,6 +11,19 @@ import SwiftUI
     static let boekHalf = Rug(frame: CGRect(x: 465.5, y: 0, width: 20, height: 669), actief: true, marge: EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
     static let staandVlak = Rug(frame: CGRect(x: 0, y: 475.5, width: 669, height: 0), actief: false)
     static let tafel = Rug(frame: CGRect(x: 0, y: 465.5, width: 669, height: 20), actief: true, marge: EdgeInsets(top: 12, leading: 0, bottom: 12, trailing: 0))
+    // Gemeten op de echte Duo-simulator (iOS 27.2), binnen liggend en vlak: het vlak is 867 × 635 (balk opzij 84,
+    // thuisbalk 34) en de vouw is ook vlak 40 breed, met 20 marge aan elke kant.
+    static let echtLiggend = CGSize(width: 867, height: 635)
+    static let echtVlak = Rug(frame: CGRect(x: 455.5, y: 0, width: 40, height: 669), actief: false, marge: EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+
+    func testEchteDuoLiggendTweeBladzijdenOokMetBalkEnBredeVouw() {
+        // Was: rechts 351,5 < 360, dus één krantenpagina van 560 (de Stroom zonder bladzijde ernaast).
+        let indeling = KrantIndeling.kies(size: Self.echtLiggend, horizontal: .regular, rug: Self.echtVlak)
+        guard case let .naast(lijst, verhaal) = indeling else { return XCTFail("verwacht naast, kreeg \(indeling)") }
+        XCTAssertLessThanOrEqual(lijst.maxX, Self.echtVlak.vrij.minX)
+        XCTAssertGreaterThanOrEqual(verhaal.minX, Self.echtVlak.vrij.maxX)
+        XCTAssertEqual(verhaal.maxX, 867, accuracy: 0.01)
+    }
 
     func testDichtIsDeIPhone() {
         // Buiten staand en liggend: compact, ook al zou er een vouw gemeld worden.

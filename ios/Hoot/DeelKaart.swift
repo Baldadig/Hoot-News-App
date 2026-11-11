@@ -185,19 +185,10 @@ struct DeelKaartExport: Transferable {
         ProxyRepresentation { export in export.link }
     }
 
-    // Deellink op gethoot.app/deel/ (oude hootnews.nl/deel/-links van builds 38 t/m 45 verwijzen hierheen door),
-    // met de uitgeverslink erbij: is het verhaal niet meer bewaard, dan stuurt /deel/ daarheen.
+    // De link wijst naar het artikel zelf bij de uitgever (besluit Alex 11-11, gelijk aan het web);
+    // Hoot staat al op de kaart. Zonder geldige uitgeverslink: gethoot.app.
     var link: URL {
-        var parts = URLComponents()
-        parts.scheme = "https"
-        parts.host = "gethoot.app"
-        parts.path = "/deel/" + item.id
-        // Zelf coderen: URLQueryItem laat & en = in de waarde staan (zoals encodeURIComponent op het web).
-        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
-        if let source = item.link, source.scheme == "https" || source.scheme == "http",
-           let value = source.absoluteString.addingPercentEncoding(withAllowedCharacters: allowed) {
-            parts.percentEncodedQuery = "bron=" + value
-        }
-        return parts.url ?? item.link ?? URL(string: "https://gethoot.app")!
+        if let source = item.link, source.scheme == "https" || source.scheme == "http" { return source }
+        return URL(string: "https://gethoot.app")!
     }
 }

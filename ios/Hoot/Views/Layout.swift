@@ -4,7 +4,10 @@ import SwiftUI
 // iPhone Duo en iPad. Wisselt het venster van breedte (vouwen, Split View, Stage Manager), dan
 // past de opmaak zich live aan zonder dat je je plek kwijtraakt.
 enum Layout {
-    static let readable: CGFloat = 680 // leesbreedte van iOS (norm v2.2: iOS 680, web --measure 720); de regellengte is op beide ± 58ch
+    // Leesbreedte van iOS (norm v2.2: iOS 680, web --measure 720); de regellengte is op beide ± 58ch.
+    // Sinds 1.2.1 ook de gedeelde kolom van Editie, Stroom en Selectie (zoals readableContentGuide): de
+    // kopregel hangt eraan, dus "hoot." en de accountknop staan op elk tabblad op dezelfde plek.
+    static let readable: CGFloat = 680
     static let wide: CGFloat = 1000 // brede pagina (editie, digest) op iPad en opengevouwen
     // Miniatuur in de krant-indeling: 3:2 op een vaste breedte, 96 × 64; bij grotere tekst 108 × 72
     // (beide op de 4-pt-schaal). Op het web is dat --thumb-size.
@@ -69,7 +72,10 @@ struct ReadableList: ViewModifier {
             if verticalClass == .regular && width > Layout.readable {
                 content.contentMargins(.horizontal, Space.s4, for: .scrollContent).column()
             } else {
-                content
+                // Ook op de iPhone de marge van de Stroom (s4): de kopregel met "hoot." en de accountknop
+                // staat dan op dezelfde x als op Editie, Stroom en Selectie (1.2.1). De lijst gaf 20 op de
+                // grote iPhones, en dan schoof alles 4 pt.
+                content.contentMargins(.horizontal, Space.s4, for: .scrollContent)
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
