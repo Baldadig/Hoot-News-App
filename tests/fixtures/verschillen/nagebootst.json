@@ -1,5 +1,5 @@
 {
-  "uitleg": "Nagebootste modelantwoorden voor de drie verhalen uit feed-fragment-2026-11-11.json (er was geen ANTHROPIC_API_KEY). 'schrijver' heeft de vorm van het structured-output-antwoord van claude-sonnet-5-5; 'controle' zegt per zin (op een stukje tekst) wat claude-haiku-5-5 zou oordelen; zinnen die er niet in staan zijn gedragen en echt. Er zitten met opzet zwakke zinnen in (vals contrast, twee telwoorden, een Engels citaat, 'zeker' dat de bron niet zegt) om de keuringen te laten zien. Herstelronde (keuring 1): de nagebootste controle oordeelt nu ook over de twee vals-contrastzinnen die de keuring vond. 'Het woord verschilt' (Het Parool zegt zelf ook 'miljonairsbelasting') valt al in de codecontrole; 'Al Jazeera brengt het anders' (The Independent staat aan beide kanten, DW en De Standaard ontbreken, en de twee kanten sluiten elkaar niet uit) valt in de controle. Daardoor krijgt Hegseth geen blok: liever niets.",
+  "uitleg": "Nagebootste modelantwoorden voor de drie verhalen uit feed-fragment-2026-11-11.json (er was geen ANTHROPIC_API_KEY). 'schrijver' heeft de vorm van het structured-output-antwoord van claude-sonnet-5-5; 'controle' zegt per zin (op een stukje tekst) wat claude-haiku-5-5 zou oordelen; zinnen die er niet in staan zijn gedragen en echt. Er zitten met opzet zwakke zinnen in (vals contrast, twee telwoorden, een Engels citaat, 'zeker' dat de bron niet zegt) om de keuringen te laten zien. Herstelronde (keuring 1): de nagebootste controle oordeelt nu ook over de twee vals-contrastzinnen die de keuring vond. 'Het woord verschilt' (Het Parool zegt zelf ook 'miljonairsbelasting') valt al in de codecontrole; 'Al Jazeera brengt het anders' (The Independent staat aan beide kanten, DW en De Standaard ontbreken, en de twee kanten sluiten elkaar niet uit) valt in de controle. Daardoor krijgt Hegseth geen blok: liever niets. Ronde verschillen-2 (keuring 2): elke verschil-zin geeft nu zijn twee kanten (bronnen en een letterlijk kenmerk). 'De toon ook: …' heeft maar één kant en verwijst met 'ook' naar een andere zin: weg in code. Taal volgt bronkeuze: het blok krijgt alleen Nederlandstalige regels; voor Hegseth zijn dat er drie (De Morgen, NRC, De Standaard), met een eigen nagebootst antwoord.",
   "verhalen": {
     "sts2z5a": {
       "naam": "Belastingplan",
@@ -59,7 +59,8 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           },
           {
             "soort": "verschil",
@@ -99,7 +100,24 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": [
+              {
+                "bronnen": [
+                  6,
+                  8,
+                  3,
+                  4
+                ],
+                "kenmerk": "miljonairsbelasting"
+              },
+              {
+                "bronnen": [
+                  9
+                ],
+                "kenmerk": "miljonairstaks"
+              }
+            ]
           },
           {
             "soort": "verschil",
@@ -121,7 +139,8 @@
             "uniek": [
               "reactie VVD"
             ],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           },
           {
             "soort": "verschil",
@@ -146,7 +165,17 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": [
+              {
+                "bronnen": [
+                  12,
+                  7,
+                  3
+                ],
+                "kenmerk": "coalitie"
+              }
+            ]
           },
           {
             "soort": "onbekend",
@@ -171,7 +200,8 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           }
         ]
       },
@@ -252,7 +282,8 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           },
           {
             "soort": "verschil",
@@ -292,7 +323,8 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           },
           {
             "soort": "verschil",
@@ -317,7 +349,22 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": [
+              {
+                "bronnen": [
+                  1,
+                  2
+                ],
+                "kenmerk": "6.000"
+              },
+              {
+                "bronnen": [
+                  3
+                ],
+                "kenmerk": "6.300"
+              }
+            ]
           },
           {
             "soort": "verschil",
@@ -342,7 +389,17 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": [
+              {
+                "bronnen": [
+                  10,
+                  11,
+                  8
+                ],
+                "kenmerk": "driehonderd"
+              }
+            ]
           },
           {
             "soort": "onbekend",
@@ -362,7 +419,8 @@
               "dader",
               "verdachte",
               "opgeëist"
-            ]
+            ],
+            "kanten": []
           }
         ]
       },
@@ -382,17 +440,11 @@
         "zinnen": [
           {
             "soort": "gedeeld",
-            "tekst": "Negen bronnen melden dat het Huis van Afgevaardigden een poging om defensieminister Pete Hegseth af te zetten tegenhield.",
+            "tekst": "Drie bronnen melden dat Hegseth een poging tot afzetting voorlopig overleeft.",
             "bronnen": [
               1,
-              6,
-              3,
-              4,
-              5,
-              9,
-              10,
-              11,
-              12
+              2,
+              3
             ],
             "fragmenten": [
               {
@@ -400,145 +452,60 @@
                 "tekst": "Eerste poging tot afzetting tegen Pete"
               },
               {
-                "bron": 6,
-                "tekst": "Pete Hegseth’s impeachment stymied"
+                "bron": 2,
+                "tekst": "Hegseth overleeft voorlopig een poging"
               },
               {
                 "bron": 3,
-                "tekst": "spared from the House’s impeachment effort"
-              },
-              {
-                "bron": 4,
-                "tekst": "US House blocks bid to impeach"
-              },
-              {
-                "bron": 5,
-                "tekst": "narrowly shelves House impeachment vote"
-              },
-              {
-                "bron": 9,
-                "tekst": "derail push to impeach"
-              },
-              {
-                "bron": 10,
-                "tekst": "Hegseth survives impeachment attempt"
-              },
-              {
-                "bron": 11,
-                "tekst": "overleeft voorlopig een poging"
-              },
-              {
-                "bron": 12,
                 "tekst": "Republikeinen blokkeren afzettingsprocedure"
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           },
           {
             "soort": "verschil",
-            "tekst": "Wie hem redde, brengen ze anders: volgens DW en De Standaard blokkeerden de Republikeinen het, Al Jazeera vraagt of de Democraten hem redden.",
+            "tekst": "Wie het tegenhield, verschilt: De Standaard kopt dat de Republikeinen de afzetting blokkeren, De Morgen dat de eerste poging mislukt.",
             "bronnen": [
-              9,
-              12,
-              5
-            ],
-            "fragmenten": [
-              {
-                "bron": 9,
-                "tekst": "US Republicans derail push"
-              },
-              {
-                "bron": 12,
-                "tekst": "Republikeinen blokkeren afzettingsprocedure"
-              },
-              {
-                "bron": 5,
-                "tekst": "Did Democrats save Pete Hegseth"
-              }
-            ],
-            "uniek": [],
-            "afwezig": []
-          },
-          {
-            "soort": "verschil",
-            "tekst": "Al Jazeera brengt het anders: volgens de zender waren elf Democraten afwezig bij de nipte stemming; NPR en The Independent schrijven dat de Republikeinen de afzetting tegenhielden.",
-            "bronnen": [
-              5,
-              7,
-              6
-            ],
-            "fragmenten": [
-              {
-                "bron": 5,
-                "tekst": "Eleven Democrats are absent from procedural vote that narrowly shelves"
-              },
-              {
-                "bron": 7,
-                "tekst": "Republicans block Hegseth impeachment"
-              },
-              {
-                "bron": 6,
-                "tekst": "Republicans unite to save his defense secretary"
-              }
-            ],
-            "uniek": [],
-            "afwezig": []
-          },
-          {
-            "soort": "verschil",
-            "tekst": "The Independent noemt het een ‘much-needed victory’ voor Trump.",
-            "bronnen": [
-              6
-            ],
-            "fragmenten": [
-              {
-                "bron": 6,
-                "tekst": "Trump gets a much-needed victory"
-              }
-            ],
-            "uniek": [],
-            "afwezig": []
-          },
-          {
-            "soort": "onbekend",
-            "tekst": "Of het klaar is, staat open: NRC en NPR houden het op voorlopig, en volgens de BBC kunnen de Democraten het volgend jaar opnieuw proberen.",
-            "bronnen": [
-              11,
               3,
-              4
+              1
             ],
             "fragmenten": [
               {
-                "bron": 11,
-                "tekst": "overleeft voorlopig"
-              },
-              {
                 "bron": 3,
-                "tekst": "at least for now"
+                "tekst": "Republikeinen blokkeren afzettingsprocedure"
               },
               {
-                "bron": 4,
-                "tekst": "Democrats can try again next year"
+                "bron": 1,
+                "tekst": "Eerste poging tot afzetting tegen Pete"
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": [
+              {
+                "bronnen": [
+                  3
+                ],
+                "kenmerk": "Republikeinen blokkeren"
+              },
+              {
+                "bronnen": [
+                  1
+                ],
+                "kenmerk": "mislukt"
+              }
+            ]
           }
         ]
       },
       "controle": [
         {
-          "zin": "Wie hem redde",
+          "zin": "Wie het tegenhield",
           "gedragen": true,
           "echt_verschil": false,
-          "reden": "Ook NPR ('Republicans block') en The Independent ('Republicans unite to save') geven de Republikeinen de eer; alleen Al Jazeera wijkt af."
-        },
-        {
-          "zin": "Al Jazeera brengt het anders",
-          "gedragen": true,
-          "echt_verschil": false,
-          "reden": "The Independent kopt zelf over afwezige Democraten (no-show colleagues), DW en De Standaard zeggen ook dat de Republikeinen het blokkeerden maar staan niet in de groep, en 'Democraten afwezig' en 'Republikeinen blokkeerden' sluiten elkaar niet uit."
+          "reden": "vals contrast: \"Republikeinen blokkeren\" en \"poging mislukt\" sluiten elkaar niet uit; De Morgen zegt niet wie het tegenhield."
         }
       ]
     }

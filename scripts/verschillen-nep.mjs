@@ -9,6 +9,8 @@ const ID_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.id]))
 export const metBronIds = (items) => items.map((i) => (i.source ? i : { ...i, source: ID_BY_NAME.get(i.sourceName) || i.sourceName }))
 
 export function nepClient({ schrijver, controle = [] }, { vertraging = 0, calls = [] } = {}) {
+  // Het schema vraagt per zin ook "kanten"; een oud of kort antwoord zonder dat veld krijgt een lege lijst.
+  if (schrijver?.zinnen) schrijver = { ...schrijver, zinnen: schrijver.zinnen.map((z) => ({ kanten: [], ...z })) }
   const wacht = (signal) =>
     new Promise((resolve, reject) => {
       if (!vertraging) return resolve()
@@ -32,7 +34,7 @@ export function nepClient({ schrijver, controle = [] }, { vertraging = 0, calls 
             .filter(Boolean)
             .map(([, n, tekst]) => {
               const o = controle.find((c) => tekst.includes(c.zin))
-              return { zin: Number(n), gedragen: o ? o.gedragen : true, echt_verschil: o ? o.echt_verschil : true, reden: o?.reden || 'staat in de aangehaalde regels' }
+              return { zin: Number(n), gedragen: o?.gedragen ?? true, echt_verschil: o?.echt_verschil ?? true, beschrijft: o?.beschrijft ?? true, los: o?.los ?? true, reden: o?.reden || 'staat in de aangehaalde regels' }
             })
           return { model: VERSCHILLEN_CONTROLE, stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ zinnen }) }] }
         }
