@@ -1004,12 +1004,12 @@ final class HootStore {
     }
 
     // POST /api/edition (v2) met je token. 401: één keer vernieuwen en opnieuw. Zonder account de
-    // history-regels van je vorige Edities van de server (`earlier`); nooit `affinity`.
+    // history-regels van je vorige Edities van de server (`earlier`). Je leesprofiel alleen als samenvatting
+    // (`reading`, uit de rekenkern: precies wat het web stuurt); nooit het ruwe profiel.
     private func askServer(global: Edition, owner: String) async -> [String: Any]? {
-        var body: [String: Any] = [
-            "v": 2, "followed": followed.map(\.id), "interests": interests, "topics": topics, "favorites": favorites,
-            "taste": taste.isEmpty ? NSNull() : Self.encoded(taste), "readIds": Array(readIds.suffix(1500)),
-        ]
+        let reading = await Self.readingSummary(of: affinity)
+        var body = Self.serverBody(followed: followed.map(\.id), interests: interests, topics: topics, favorites: favorites,
+                                   taste: taste, readIds: readIds, reading: reading)
         var token: String?
         if owner == "anon" {
             let mine = personalServerTask.hasSuffix("|anon|\(personal?.basis ?? "")") && personalRaw?["owner"] as? String == "anon" ? personalRaw : nil
@@ -1030,6 +1030,24 @@ final class HootStore {
         return Self.acceptServer(r.data, status: r.status, id: global.id, owner: owner)
     }
 
+    // De vraag van v2 zoals het web hem stelt (serverRequest in src/lib/editionSync.js): dezelfde velden, en
+    // `reading` alleen als lezen al meetelt.
+    static func serverBody(followed: [String], interests: [String], topics: [String], favorites: [String], taste: Taste, readIds: [String], reading: [String: Any]?) -> [String: Any] {
+        var body: [String: Any] = [
+            "v": 2, "followed": followed, "interests": interests, "topics": topics, "favorites": favorites,
+            "taste": taste.isEmpty ? NSNull() : Self.encoded(taste), "readIds": Array(readIds.suffix(1500)),
+        ]
+        if let reading { body["reading"] = reading }
+        return body
+    }
+
+    // Je leesprofiel samengevat voor de server (besluit Alex 11 november 2026: "Leesprofiel meesturen"):
+    // readingSummary uit de rekenkern, dezelfde functie als op het web. Nil zolang lezen nog niet meetelt.
+    static func readingSummary(of profile: Affinity) async -> [String: Any]? {
+        guard profile.n > 0, let text = try? await EditionEngine.shared.readingSummary(json(encoded(profile))) else { return nil }
+        return (try? JSONSerialization.jsonObject(with: Data(text.utf8))) as? [String: Any]
+    }
+
     // Het antwoord van de server, als het van dit dagdeel en deze lezer is: de Editie zoals hij hem gaf.
     static func acceptServer(_ data: Data?, status: Int, id: String, owner: String) -> [String: Any]? {
         guard status == 200, let data, let o = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
@@ -1045,7 +1063,7 @@ final class HootStore {
         personalProvisional = nil
     }
 
-    // Het vangnet: zelf samenstellen met de rekenkern, zonder leesprofiel (zoals de server), als de berichten
+    // Het vangnet: zelf samenstellen met de rekenkern, met dezelfde samenvatting van je leesprofiel als de server, als de berichten
     // van dit dagdeel er zijn. Voorlopig: alleen in het geheugen, nooit in edition.json, je account of je
     // geschiedenis. De volgende ronde (weer online, terug in de app) vraagt opnieuw de server.
     private func provisional(global: Edition, owner: String, basis: String?, force: Bool) async {
@@ -1055,7 +1073,7 @@ final class HootStore {
             let mine = personalServerTask.hasPrefix("\(personal?.id ?? "-")|\(owner)|") ? personalRaw : nil
             let prior = Self.rows(try await EditionEngine.shared.earlier(local: Self.json(mine), account: "null", id: global.id, owner: owner))
             forced.insert(global.id)
-            let input = try composeInput(global: global, owner: owner, previous: prior, affinity: false)
+            let input = try composeInput(global: global, owner: owner, previous: prior, reading: true)
             let out = try await EditionEngine.shared.compose(input: input)
             guard var raw = try JSONSerialization.jsonObject(with: out) as? [String: Any], raw["id"] as? String == global.id else { throw EditionEngine.Failure.noResult }
             guard followed.map(\.id) == followedIds, ownerNow == owner else { return }
@@ -1099,7 +1117,8 @@ final class HootStore {
     // server zoals HootAPI ze bewaarde, want dat is precies wat de website krijgt, ook velden die de
     // app zelf niet kent (wide, near). Ontbreekt een bestand, dan wat de app in het geheugen heeft.
     // Geen `now` of `builtAt`: de rekenkern neemt global.builtAt, net als de website.
-    private func composeInput(global: Edition, owner: String, previous: [[String: Any]], affinity useAffinity: Bool = true) throws -> Data {
+    // `reading`: het leesprofiel als samenvatting (readingSummary in de rekenkern), zoals de server het krijgt.
+    private func composeInput(global: Edition, owner: String, previous: [[String: Any]], reading: Bool = false) throws -> Data {
         let start = HootAPI.cached("api/feed", ["deel": "start"]).flatMap { (try? JSONSerialization.jsonObject(with: $0)) as? [String: Any] }
         var globalRaw = start?["edition"] as? [String: Any]
         if globalRaw?["id"] as? String != global.id { globalRaw = Self.encoded(global) as? [String: Any] }
@@ -1116,12 +1135,13 @@ final class HootStore {
                 items += list
             }
         }
-        let input: [String: Any] = [
+        var input: [String: Any] = [
             "global": globalRaw, "stories": stories, "items": items, "sources": sourcesRaw,
             "followed": followed.map(\.id), "interests": interests, "topics": topics, "favorites": favorites,
-            "affinity": useAffinity && affinity.n > 0 ? Self.encoded(affinity) : NSNull(), "taste": taste.isEmpty ? NSNull() : Self.encoded(taste),
+            "affinity": affinity.n > 0 ? Self.encoded(affinity) : NSNull(), "taste": taste.isEmpty ? NSNull() : Self.encoded(taste),
             "readIds": Array(readIds.suffix(1500)), "previous": previous, "owner": owner,
         ]
+        if reading { input["reading"] = input["affinity"]; input["affinity"] = NSNull() }
         return try JSONSerialization.data(withJSONObject: input)
     }
 

@@ -175,6 +175,12 @@ final class EditionEngine: @unchecked Sendable {
         try await call("previousJSON", [listJSON])
     }
 
+    // De samenvatting van je leesprofiel die mee gaat naar de server (readingSummary in src/lib/affinity.js),
+    // als JSON: precies wat het web stuurt. "null" zolang lezen nog niet meetelt.
+    func readingSummary(_ affinityJSON: String) async throws -> String {
+        try await call("readingSummaryJSON", [affinityJSON])
+    }
+
     // Wat Hoot van je leerde (profileSummary, bouwspec §8): hetzelfde profiel als De Redacteur gebruikt,
     // uit dezelfde bundel, zodat Instellingen op web en app hetzelfde zeggen. Invoer als JSON (interests,
     // topics, affinity, taste, favorites, followed, sources, items).
