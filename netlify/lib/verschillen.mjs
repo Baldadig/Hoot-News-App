@@ -23,7 +23,7 @@ export const VERSCHILLEN_CONTROLE = 'claude-haiku-5-5'
 // Versie van de regels: hoort bij de cachesleutel, zodat betere regels opnieuw schrijven.
 export const VERSCHILLEN_VERSIE = 1
 export const MIN_UITGEVERS = 3
-export const MAX_WOORDEN = 80 // hard plafond in code; de opdracht vraagt hooguit 70
+export const MAX_WOORDEN = 75 // hard plafond in code; de schrijver krijgt hooguit 70 mee
 export const MAX_ZINNEN = { gedeeld: 1, verschil: 2, onbekend: 1 }
 const MAX_RIJEN = 20
 const OUDER = 48 * 36e5 // een stuk van twee dagen vóór het nieuwste is achtergrond, geen melding

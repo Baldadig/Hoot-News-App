@@ -8,7 +8,7 @@
         "zinnen": [
           {
             "soort": "gedeeld",
-            "tekst": "Alle negen bronnen melden een deal van D66 en CDA met Pro en Volt over het belastingplan.",
+            "tekst": "Alle negen bronnen melden een deal van D66 en CDA met Pro en Volt.",
             "bronnen": [1, 2, 3, 6, 7, 8, 9, 10, 11],
             "fragmenten": [
               { "bron": 1, "tekst": "PRO en Volt een deal hebben gesloten met D66 en het CDA" },
@@ -195,7 +195,7 @@
           },
           {
             "soort": "verschil",
-            "tekst": "Al Jazeera brengt het anders: elf Democraten waren afwezig bij de nipte stemming, terwijl NPR en The Independent de Republikeinen hem laten redden.",
+            "tekst": "Al Jazeera brengt het anders: volgens de zender waren elf Democraten afwezig bij de nipte stemming; NPR en The Independent schrijven dat de Republikeinen de afzetting tegenhielden.",
             "bronnen": [5, 7, 6],
             "fragmenten": [
               { "bron": 5, "tekst": "Eleven Democrats are absent from procedural vote that narrowly shelves" },
