@@ -25,7 +25,7 @@ md.push(`Gemaakt met \`node scripts/verschillen-proef.mjs\` op branch \`verschil
 md.push(
   echt
     ? '**Modellen: echt** (ANTHROPIC_API_KEY stond in de omgeving).'
-    : '**Modellen: nagebootst.** Er stond geen ANTHROPIC_API_KEY in de omgeving, dus geen echte aanroepen. De antwoorden van schrijver en controle komen uit `tests/fixtures/verschillen/nagebootst.json`: met de hand opgesteld in de vorm van het structured-output-antwoord, met opzet met een paar zwakke zinnen (vals contrast, twee telwoorden in een zin, een Engels citaat, "zeker" dat de bron niet zegt) om de keuringen te laten zien. **De codecontrole, het samenstellen en het weigeren zijn echt**: dat is de code die op de server draait. Wat dit níet laat zien: hoe goed Sonnet 5.5 zelf schrijft. Dat vraagt een proef met sleutel (zie open punten in VERSLAG.md).',
+    : '**Modellen: nagebootst.** Er stond geen ANTHROPIC_API_KEY in de omgeving, dus geen echte aanroepen. De antwoorden van schrijver en controle komen uit `tests/fixtures/verschillen/nagebootst.json`: met de hand opgesteld in de vorm van het structured-output-antwoord, met opzet met een paar zwakke zinnen (vals contrast, twee telwoorden in een zin, een Engels citaat, "zeker" dat de bron niet zegt) om de keuringen te laten zien. **De codecontrole, het samenstellen en het weigeren zijn echt**: dat is de code die op de server draait. **De oordelen van de controle (Haiku) zijn met de hand ingevuld**: ze laten zien wat er gebeurt als de controle een zin afkeurt, niet óf Haiku 5.5 dat echt doet. Ook hoe goed Sonnet 5.5 zelf schrijft, laat dit niet zien. Dat vraagt een proef met sleutel (zie open punten in VERSLAG.md).',
   '',
 )
 
@@ -58,6 +58,10 @@ for (const v of feed.verhalen) {
 }
 
 const kernPad = opt('--kern')
+// Zonder sleutel: voor een paar verhalen van de live Editie een nagebootste schrijver (tests/fixtures/verschillen/
+// nagebootst-live.json), zodat de echte codecontrole ook op de feed van nu draait.
+const live = kernPad ? JSON.parse(readFileSync(new URL('tests/fixtures/verschillen/nagebootst-live.json', root))).verhalen : {}
+const liveVerslag = []
 if (kernPad) {
   const kern = JSON.parse(readFileSync(kernPad))
   const items = new Map((kern.related || []).map((i) => [i.id, i]))
@@ -69,6 +73,13 @@ if (kernPad) {
   for (const st of lijst) {
     const { rows, alle } = verschillenRows(st, items)
     let blok = 'niet geschreven: geen sleutel'
+    const nep = !echt && live[st.id]
+    if (nep) {
+      const r = await maakVerschillen(nepClient(nep), { rows, alle, storyNames: st.sourceNames || [] }, { now: Date.parse(kern.meta?.updatedAt || 0) || Date.now() })
+      if (r.resultaat) blokken[st.id] = r.resultaat
+      blok = `nagebootst: ${r.resultaat ? r.resultaat.delen.map((d) => d.tekst).join(' / ') : `geen blok (${r.verslag.waarom})`}`
+      liveVerslag.push({ st, naam: nep.naam, rows, ...r })
+    }
     if (echt) {
       try {
         const r = await maakVerschillen(echt, { rows, alle, storyNames: st.sourceNames || [] })
@@ -86,6 +97,27 @@ if (kernPad) {
   if (!echt && lijst[0]) {
     const { rows } = verschillenRows(lijst[0], items)
     md.push(`Zo ziet de invoer voor de schrijver eruit (eerste verhaal, \`${lijst[0].id}\`, ingekort tot vijf regels):`, '', '```', ...rowsInput(rows).split('\n').slice(0, 5), '```', '')
+  }
+}
+
+if (liveVerslag.length) {
+  md.push('### Live verhalen met een nagebootste schrijver', '', 'De codecontrole en het samenstellen zijn echt; de schrijver is met de hand nagebootst (`nagebootst-live.json`), de controle keurt alles goed.', '')
+  for (const v of liveVerslag) {
+    md.push(`#### ${v.naam} (\`${v.st.id}\`, ${v.st.sourceNames?.length} bronnen, ${v.rows.length} stukken in de invoer)`, '')
+    if (v.resultaat) {
+      md.push(`**Blok** (${v.resultaat.woorden} woorden):`, '')
+      for (const d of v.resultaat.delen) md.push(`> ${d.tekst}`, '>')
+      md.pop()
+      md.push('', '**Bewijs per zin:**', '')
+      for (const z of v.verslag.zinnen) {
+        md.push(`- *${z.soort}* · ${z.tekst}`)
+        for (const b of z.bewijs) md.push(`  - ${b.bron}: "${b.fragment}"`)
+      }
+    } else md.push(`**Geen blok.** Reden: ${v.verslag.waarom}. `)
+    md.push('', `**Weggevallen zinnen** (${v.verslag.weg.length}):`, '')
+    if (!v.verslag.weg.length) md.push('- geen')
+    for (const w of v.verslag.weg) md.push(`- [${w.stap}] ${w.tekst}`, `  - reden: ${w.reden.join('; ')}`)
+    md.push('')
   }
 }
 

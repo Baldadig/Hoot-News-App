@@ -36,6 +36,8 @@ import SwiftUI
 //   -HootDuoNaam <naam>   -HootDuoWacht <s>   (de opname in Documents/duo-<naam>….png)
 //   -HootVerschillen <pad>   (Waar media verschillen: een JSON-bestand verhaal-id → blok, zoals de server het
 //                            meegeeft, voor verhalen waar de feed er (nog) geen heeft; alleen voor schermen)
+//   -HootVerhaalVast <pad>   (een JSON-bestand verhaal-id → stukken: Vergelijken toont precies die stukken, zoals
+//                            het blok ze zag; alleen voor schermen)
 //   -HootVerhaal <verhaal-id>   (met -HootScreen verhaal: dit verhaal openen in plaats van dat met de meeste bronnen)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
@@ -83,8 +85,15 @@ enum DebugLaunch {
         guard let pad = defaults.string(forKey: "HootVerschillen"), let data = FileManager.default.contents(atPath: pad) else { return nil }
         return (try? JSONDecoder().decode([String: StoryVerschillen].self, from: data))?[storyId]
     }
+    // De stukken van een verhaal zoals het blok ze zag (een opgeslagen feed), zodat telwoorden in het blok
+    // kloppen met wat eronder staat, ook als de live feed intussen verder is.
+    static func vasteStukken(_ storyId: String) -> [Item]? {
+        guard let pad = defaults.string(forKey: "HootVerhaalVast"), let data = FileManager.default.contents(atPath: pad) else { return nil }
+        return (try? JSONDecoder().decode([String: [Item]].self, from: data))?[storyId]
+    }
     #else
     static func verschillen(_ storyId: String) -> StoryVerschillen? { nil }
+    static func vasteStukken(_ storyId: String) -> [Item]? { nil }
     static let verhaal: String? = nil
     static let screen: String? = nil
     static let engine = false

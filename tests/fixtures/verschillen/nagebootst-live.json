@@ -1,0 +1,122 @@
+{
+  "uitleg": "Nagebootste schrijversantwoorden voor twee verhalen uit de live Editie van 11 november, avond (GET /api/feed?deel=kern, opgehaald 17.40 UTC; bewaard als Hoot-design/media-verschillen/feed-kern-2026-11-11-avond.json). Er was geen ANTHROPIC_API_KEY. Met de hand opgesteld in de vorm van het structured-output-antwoord van claude-sonnet-5-5, om de echte codecontrole en het samenstellen op de feed van nu te laten draaien en om de schermen een blok te geven dat bij de bronnen van dat verhaal hoort. De controle (Haiku) keurt hier alles goed (nagebootst).",
+  "verhalen": {
+    "sts2z5a": {
+      "naam": "Belastingplan (live, 11 uitgevers)",
+      "schrijver": {
+        "oordeel": "verschil",
+        "zinnen": [
+          {
+            "soort": "gedeeld",
+            "tekst": "Tien bronnen melden een deal van D66 en CDA met Pro en Volt over het belastingplan.",
+            "bronnen": [
+              19,
+              2,
+              3,
+              18,
+              8,
+              17,
+              15,
+              14,
+              16,
+              13
+            ],
+            "fragmenten": [
+              {
+                "tekst": "D66 en CDA sluiten akkoord met links over belastingplan",
+                "bron": 19
+              },
+              {
+                "bron": 2,
+                "tekst": "een deal hebben gesloten met de linkse oppositie"
+              },
+              {
+                "tekst": "D66 en CDA een akkoord gesloten met oppositiepartijen PRO en Volt",
+                "bron": 3
+              },
+              {
+                "tekst": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan",
+                "bron": 18
+              },
+              {
+                "bron": 8,
+                "tekst": "D66 en CDA een deal hebben gesloten met PRO en Volt"
+              },
+              {
+                "tekst": "D66 en CDA sluiten deal ‘over links’ met PRO en Volt",
+                "bron": 17
+              },
+              {
+                "bron": 15,
+                "tekst": "D66 en CDA sluiten deal met Pro en Volt over Belastingplan"
+              },
+              {
+                "bron": 14,
+                "tekst": "een deal gesloten met Pro en Volt"
+              },
+              {
+                "bron": 16,
+                "tekst": "akkoord gesloten met D66 en CDA over steun aan het belastingplan"
+              },
+              {
+                "bron": 13,
+                "tekst": "Hun deal over een miljonairsbelasting"
+              }
+            ],
+            "uniek": [],
+            "afwezig": []
+          },
+          {
+            "soort": "verschil",
+            "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+            "bronnen": [
+              1,
+              2,
+              5
+            ],
+            "fragmenten": [
+              {
+                "bron": 1,
+                "tekst": "kabinetscrisis dreigt"
+              },
+              {
+                "bron": 2,
+                "tekst": "Paternotte: geen crisis in coalitie"
+              },
+              {
+                "bron": 5,
+                "tekst": "Paternotte ziet geen crisis"
+              }
+            ],
+            "uniek": [],
+            "afwezig": []
+          },
+          {
+            "soort": "onbekend",
+            "tekst": "Nog open is wat de VVD doet; volgens NRC is haar positie nog onduidelijk.",
+            "bronnen": [
+              15
+            ],
+            "fragmenten": [
+              {
+                "bron": 15,
+                "tekst": "positie VVD is nog onduidelijk"
+              }
+            ],
+            "uniek": [],
+            "afwezig": []
+          }
+        ]
+      },
+      "controle": []
+    },
+    "s19f28ob": {
+      "naam": "Twee zaken in één verhaal (live)",
+      "schrijver": {
+        "oordeel": "geen",
+        "zinnen": []
+      },
+      "controle": []
+    }
+  }
+}

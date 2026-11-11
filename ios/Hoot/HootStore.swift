@@ -925,6 +925,7 @@ final class HootStore {
     // Buiten je bronnen: de bron staat niet bij wat je volgt (zelfde regel als de Editie).
     func isOutside(_ item: Item) -> Bool { !isOn(source(item.source) ?? Source(id: item.source, name: "")) }
     func storyItems(_ story: Story) async -> [Item] {
+        if let vast = DebugLaunch.vasteStukken(story.id) { return vast.sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") } }
         await ensureRelated()
         let list = related[story.id] ?? story.itemIds.compactMap { itemsById[$0] }
         return list.sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
