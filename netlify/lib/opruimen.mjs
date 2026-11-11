@@ -1,4 +1,4 @@
-// Opruimen: wat het privacybeleid belooft, de server bewaart je persoonlijke Editie een dagdeel lang.
+// Opruimen: wat het privacybeleid belooft, de server bewaart je persoonlijke Editie (zonder account) hooguit een dag.
 // Drie voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
 //   pe:<revisie>:<dagdeel-id>:<sha256>        de persoonlijke Editie zonder account (netlify/functions/edition.mjs, anonKey)
 //   pe-quota:<sha256 user-id>:<dagdeel-id>    de teller per lid en dagdeel (edition.mjs)

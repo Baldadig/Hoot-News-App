@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Privacy: opruimen** (server): een persoonlijke Editie zonder account en de tellers per lid worden na hooguit een dag opgeruimd. Het privacybeleid zegt nu precies dat.
+
 - **iOS 1.2.1 (build 52)** is de app-kant van onderstaande punten: account rechtsboven, Opinie-tab, de Editie van de server, het seintje op het ochtendmoment van de server, het Duo-tafelblad liggend en delen met link.
 
 - **Delen: kaart én link** (web; app in 1.2.1): een gedeeld verhaal gaat nu als Hoot-kaart mét de link naar het artikel bij de uitgever. Voorheen kwam vaak alleen de afbeelding aan, of een link naar een Hoot-tussenpagina.
