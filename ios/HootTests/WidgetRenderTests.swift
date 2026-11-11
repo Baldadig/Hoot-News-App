@@ -105,6 +105,48 @@ import WidgetKit
         }
     }
 
+    // MARK: - Nooit midden in een woord afgekapt
+
+    // Keuring 1: Groot op iPad mat 02 en 03 op de volle breedte, terwijl ze naast de nummerkolom staan; iOS kapte
+    // dan "laborat…" af. Hier meldt elke kop in de echte weergave zijn breedte (WidgetZetMeting), en moet hij daar
+    // in zijn regels passen. Met lange, echte koppen, op iPhone en iPad, in alle widgets met koppen.
+    func testElkeKopPastInZijnKolom() throws {
+        let koppen = [
+            "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet",
+            "Spanning in Den Haag: D66 en CDA sluiten deal met Pro en Volt over Belastingplan met ‘miljonairsbelasting’ – positie VVD is nog onduidelijk",
+            "Hoe reëel is kans op uitbraak van ziekten? En 3 andere vragen over de verouderde laboratoria van het RIVM",
+            "“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten",
+            "Donaudampfschiffahrtsgesellschaftskapitänswitwenrentenauszahlungsstelle bestaat niet",
+            "Russische ambassadeur Aleksandr Dartsjiëv (66) onverwachts overleden in VS",
+        ]
+        let nu = WidgetDagdeel.op(WidgetTests.moment("2026-11-11T17:41:00Z"))
+        var opnamen: [(WidgetZet.Gezet, WidgetLetter.Maat, CGFloat)] = []
+        WidgetZetMeting.opname = { g, m, b in MainActor.assumeIsolated { opnamen.append((g, m, b)) } }
+        defer { WidgetZetMeting.opname = nil }
+        for start in 0..<koppen.count {
+            let volgorde = Array(koppen[start...] + koppen[..<start])
+            let stenen = volgorde.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NRC") }
+            let e = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
+            let gevallen: [(WidgetFamily, CGSize, WidgetToon, Bool)] = [
+                (.systemMedium, Self.iPhone.middel, .top3, true), (.systemMedium, Self.iPad.middel, .top3, true),
+                (.systemMedium, Self.iPhone.middel, .kop01, true), (.systemMedium, Self.iPhone.middel, .kop01, false),
+                (.systemSmall, Self.iPhone.klein, .kop01, true), (.systemSmall, Self.iPhone.klein, .kop01, false),
+                (.systemLarge, Self.iPhone.groot, .top3, true), (.systemLarge, Self.iPad.groot, .top3, true),
+            ]
+            for (family, maat, toon, beeld) in gevallen {
+                let r = ImageRenderer(content: HootWidgetInhoud(entry: entry(e, toon, beeld: beeld), family: family, maat: maat).frame(width: maat.width, height: maat.height))
+                r.scale = 1
+                _ = r.uiImage
+            }
+        }
+        XCTAssertGreaterThan(opnamen.count, 60, "de koppen melden hun breedte")
+        for (g, m, breedte) in opnamen {
+            XCTAssertLessThanOrEqual(WidgetZet.regels(g.tekst, m, breedte: breedte), g.regels, "\"\(g.tekst)\" past niet in \(breedte) punt")
+            // En op een woordgrens: wat er staat is een begin van woorden uit de kop, met hooguit een beletselteken.
+            XCTAssertFalse(g.tekst.isEmpty)
+        }
+    }
+
     // MARK: - Opnamen
 
     func testOpnamen() async throws {

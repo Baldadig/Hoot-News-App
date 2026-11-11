@@ -59,21 +59,23 @@ func toon(_ keuze: ToonKeuze, in family: WidgetFamily) -> WidgetToon {
 enum HootTijdlijn {
     static let laatstePoging = "widget.laatstePoging"
 
-    // De Editie uit de App Group; bij een nieuw dagdeel eerst zelf proberen de nieuwe te halen.
-    static func editie(nu: Date) async -> WidgetEditie? {
+    // De Editie uit de App Group; bij een nieuw dagdeel eerst zelf proberen de nieuwe te halen. `wacht`: er is
+    // een nieuw dagdeel maar (nog) geen nieuwe Editie, dus gauw opnieuw vragen (WidgetTijdlijn.volgende).
+    static func editie(nu: Date) async -> (editie: WidgetEditie?, wacht: Bool) {
         let oud = WidgetBron.laad()
-        guard WidgetOphalen.moetOphalen(oud, nu: nu), let oud else { return oud }
+        guard WidgetOphalen.moetOphalen(oud, nu: nu), let oud else { return (oud, false) }
         let defaults = UserDefaults(suiteName: WidgetGroep.id)
-        guard WidgetTijdlijn.magProberen(laatste: defaults?.object(forKey: laatstePoging) as? Date, nu: nu) else { return oud }
+        guard WidgetTijdlijn.magProberen(laatste: defaults?.object(forKey: laatstePoging) as? Date, nu: nu) else { return (oud, true) }
         defaults?.set(nu, forKey: laatstePoging)
-        guard let nieuw = await WidgetOphalen.haal(na: oud, nu: nu) else { return oud }
-        WidgetBron.bewaar(nieuw)
-        return nieuw
+        guard let nieuw = await WidgetOphalen.haal(na: oud, nu: nu) else { return (oud, true) }
+        // Gelukt: ook de andere Hoot-widgets (die misschien net de oude kregen) opnieuw laten vragen.
+        if WidgetBron.bewaar(nieuw) { WidgetCenter.shared.reloadAllTimelines() }
+        return (nieuw, false)
     }
 
-    static func entries(_ editie: WidgetEditie?, nu: Date, toon: WidgetToon, metBeeld: Bool) -> Timeline<HootWidgetEntry> {
-        let entries = WidgetTijdlijn.momenten(nu: nu).map { HootWidgetEntry(date: $0, editie: editie, toon: toon, metBeeld: metBeeld) }
-        return Timeline(entries: entries, policy: .after(WidgetTijdlijn.volgende(nu: nu)))
+    static func entries(_ uitkomst: (editie: WidgetEditie?, wacht: Bool), nu: Date, toon: WidgetToon, metBeeld: Bool) -> Timeline<HootWidgetEntry> {
+        let entries = WidgetTijdlijn.momenten(nu: nu).map { HootWidgetEntry(date: $0, editie: uitkomst.editie, toon: toon, metBeeld: metBeeld) }
+        return Timeline(entries: entries, policy: .after(WidgetTijdlijn.volgende(nu: nu, wachtOpNieuwe: uitkomst.wacht)))
     }
 
     static var voorbeeld: WidgetEditie { WidgetBron.laad() ?? WidgetEditie.voorbeeld }

@@ -66,7 +66,7 @@ struct ServerEditie: Decodable, Sendable {
             let lead = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             guard let s = stukken[lead], let kop = s.title ?? e.title else { return nil }
             return .init(plek: e.id, desk: e.desk, itemId: s.id, oudeIds: s.formerIds ?? [], kop: kop, kortKop: e.kortKop,
-                         bron: s.sourceName ?? s.source ?? "", beeldURL: s.image.flatMap { URL(string: $0.replacingOccurrences(of: "http://", with: "https://")) })
+                         bron: s.sourceName ?? s.source ?? "", beeldURL: ImageURL.url(s.image, .large)) // zoals de app: het grote beeld
         }
     }
 

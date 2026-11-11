@@ -107,6 +107,15 @@ private struct WKop: View {
             .multilineTextAlignment(.leading)
             .foregroundStyle(gelezen ? WidgetKleur.ink3 : WidgetKleur.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                // Alleen in toetsen: de breedte die deze kop echt kreeg (WidgetRenderTests).
+                if let opname = WidgetZetMeting.opname {
+                    GeometryReader { p in
+                        let _ = opname(gezet, m, p.size.width)
+                        Color.clear
+                    }
+                }
+            }
     }
 }
 
@@ -172,11 +181,18 @@ struct MiddelTop3: View {
     static let nummerKolom: CGFloat = 24
     static let tussen = WidgetRuimte.s2 + WidgetRuimte.s1 // 12: lucht tussen twee koppen
 
+    // De koppen van 01–03 gezet: in de kolom naast de nummers, binnen de hoogte onder de kopregel, min een
+    // beetje extra lucht onderaan (s1, boven de marge). Ook gebruikt door WidgetTests.
+    static func zet(_ editie: WidgetEditie, maat: CGSize, marge: CGFloat) -> (gezet: [WidgetZet.Gezet], breedte: CGFloat, hoogte: CGFloat) {
+        let breedte = maat.width - 2 * marge - nummerKolom - WidgetRuimte.s2
+        let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s3 - WidgetRuimte.s1
+        let gezet = WidgetZet.rijen(Array(editie.verhalen.prefix(3)), WidgetLetter.widgetKop, breedte: breedte, hoogte: hoogte, tussen: tussen, eersteVoorrang: true)
+        return (gezet, breedte, hoogte)
+    }
+
     var body: some View {
-        let breedte = maat.width - 2 * marge - Self.nummerKolom - WidgetRuimte.s2
-        let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s3 // min de kopregel en de ruimte eronder
         let drie = Array(editie.verhalen.prefix(3))
-        let gezet = WidgetZet.rijen(drie, WidgetLetter.widgetKop, breedte: breedte, hoogte: hoogte, tussen: Self.tussen)
+        let gezet = Self.zet(editie, maat: maat, marge: marge).gezet
         let gelezen = editie.leesSet
         // De kopregel bovenaan, de koppen verdeeld over wat overblijft: de lucht valt tussen de koppen, niet
         // onderaan.
@@ -202,6 +218,7 @@ struct MiddelTop3: View {
                 .accessibilityLabel("Verhaal \(v.nummer) van \(editie.verhalen.count): \(v.kop)")
             }
         }
+        .padding(.bottom, WidgetRuimte.s1)
         .padding(marge)
         .frame(width: maat.width, height: maat.height, alignment: .topLeading)
     }
@@ -349,15 +366,18 @@ struct GrootEditie: View {
 
     var body: some View {
         let breedte = maat.width - 2 * marge
+        // De koppen staan naast de nummerkolom: meten op de breedte die ze echt krijgen (keuring 1: anders kapt
+        // iOS midden in een woord af).
+        let kolom = breedte - MiddelTop3.nummerKolom - WidgetRuimte.s2
         let gelezen = editie.leesSet
         let eerste = editie.verhalen[0]
         let rest = Array(editie.verhalen.dropFirst().prefix(2))
-        let g1 = WidgetZet.pas(eerste.kop, kort: eerste.kortKop, WidgetLetter.item, breedte: breedte, max: 2)
+        let g1 = WidgetZet.pas(eerste.kop, kort: eerste.kortKop, WidgetLetter.item, breedte: kolom, max: 2)
         // Wat er na 01 nog over is voor 02 en 03 (elk met een bronregel en een haarlijn ervoor).
-        let bovenaan = 16 + WidgetRuimte.s3 + Self.beeldHoogte + WidgetRuimte.s3 + 16 + WidgetRuimte.s1 + CGFloat(g1.regels) * WidgetLetter.item.regel + WidgetRuimte.s1 + 16
+        let bovenaan = 16 + WidgetRuimte.s3 + Self.beeldHoogte + WidgetRuimte.s3 + CGFloat(g1.regels) * WidgetLetter.item.regel + WidgetRuimte.s1 + 16
         let over = maat.height - 2 * marge - bovenaan
         let rij = 2 * WidgetRuimte.s2 + 1 + WidgetRuimte.s1 + 16 // haarlijn met lucht, ruimte en bronregel per rij
-        let gezet = WidgetZet.rijen(rest, WidgetLetter.widgetKop, breedte: breedte, hoogte: over, tussen: 0, extra: rij)
+        let gezet = WidgetZet.rijen(rest, WidgetLetter.widgetKop, breedte: kolom, hoogte: over, tussen: 0, extra: rij)
         VStack(alignment: .leading, spacing: 0) {
             Link(destination: HootLink.editie) {
                 HStack(alignment: .firstTextBaseline) {
@@ -373,9 +393,12 @@ struct GrootEditie: View {
                         .frame(width: breedte, height: Self.beeldHoogte)
                         .clipShape(RoundedRectangle(cornerRadius: WidgetRuimte.hoek, style: .continuous))
                         .padding(.bottom, WidgetRuimte.s3 - WidgetRuimte.s1)
-                    WNummer(nummer: 1, gelezen: eerste.gelezen(in: gelezen)).frame(height: 16)
-                    WKop(gezet: g1, m: WidgetLetter.item, gelezen: eerste.gelezen(in: gelezen))
-                    WBron(naam: eerste.bron)
+                    // 01 naast de kop, net als 02 en 03: geen eigen regel, meer lucht voor de rest.
+                    HStack(alignment: .firstTextBaseline, spacing: WidgetRuimte.s2) {
+                        WNummer(nummer: 1, gelezen: eerste.gelezen(in: gelezen)).frame(width: MiddelTop3.nummerKolom, alignment: .leading)
+                        WKop(gezet: g1, m: WidgetLetter.item, gelezen: eerste.gelezen(in: gelezen))
+                    }
+                    WBron(naam: eerste.bron).padding(.leading, MiddelTop3.nummerKolom + WidgetRuimte.s2)
                 }
             }
             .padding(.top, WidgetRuimte.s3)

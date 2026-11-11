@@ -105,6 +105,39 @@ import WidgetKit
         XCTAssertTrue(WidgetTijdlijn.magProberen(laatste: nu.addingTimeInterval(3600), nu: nu)) // klok terug: gewoon proberen
     }
 
+    // Keuring 1: wacht de widget op de nieuwe Editie (ophalen mislukte, of een andere widget haalt al), dan
+    // over twintig minuten opnieuw, niet pas bij het volgende dagdeel; en dat hooguit de eerste twee uur.
+    func testWachtOpDeNieuweEditieKortOpnieuw() {
+        let start = Self.moment("2026-11-11T16:03:00Z") // 17:03, de Avondeditie
+        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start, wachtOpNieuwe: true), start.addingTimeInterval(20 * 60))
+        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start.addingTimeInterval(90 * 60), wachtOpNieuwe: true), start.addingTimeInterval(110 * 60))
+        // Na twee uur: pas weer bij het volgende dagdeel (budget van WidgetKit).
+        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start.addingTimeInterval(130 * 60), wachtOpNieuwe: true), Self.moment("2026-11-12T05:33:00Z"))
+        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start, wachtOpNieuwe: false), Self.moment("2026-11-12T05:33:00Z"))
+        // Nooit later dan het volgende dagdeel.
+        let laat = Self.moment("2026-11-11T10:55:00Z") // 11:55: binnen twee uur na de ochtend? nee, maar het dagdeel wisselt om 12:03
+        XCTAssertLessThanOrEqual(WidgetTijdlijn.volgende(nu: laat, wachtOpNieuwe: true), Self.moment("2026-11-11T11:03:00Z"))
+    }
+
+    // Keuring 1: na zelf ophalen krijgt 01 hetzelfde (grote) beeld als in de app, niet de kleine uitsnede uit de feed.
+    func testBeeldNaZelfOphalenZoalsDeApp() throws {
+        let json = """
+        {"id":"2026-11-11-avond","slot":"avond","entries":[{"kind":"item","id":"a"}],
+         "items":[{"id":"a","title":"Kop","sourceName":"NYT","image":"https://static01.nyt.com/images/2026/11/11/foto-mediumSquareAt3X.jpg"}]}
+        """
+        let server = try JSONDecoder().decode(ServerEditie.self, from: Data(json.utf8))
+        XCTAssertEqual(server.stenen.first?.beeldURL, ImageURL.url("https://static01.nyt.com/images/2026/11/11/foto-mediumSquareAt3X.jpg", .large))
+        XCTAssertEqual(server.stenen.first?.beeldURL?.absoluteString.contains("threeByTwoMediumAt2X"), true)
+    }
+
+    // Keuring 1: toetsen schrijven nooit in de echte App Group van het toestel.
+    func testToetsenRakenDeEchteAppGroupNietAan() {
+        XCTAssertTrue(WidgetGroep.inToets)
+        if let echt = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: WidgetGroep.id) {
+            XCTAssertNotEqual(WidgetGroep.map.standardizedFileURL, echt.standardizedFileURL)
+        }
+    }
+
     // MARK: Welke Editie, welke stand
 
     func testServerEditieWordtTienGenummerdeVerhalenZonderBubbel() throws {
@@ -231,10 +264,7 @@ import WidgetKit
     func testTop3PastMetLucht() throws {
         let e = try Self.editie()
         for maat in [CGSize(width: 364, height: 170), CGSize(width: 338, height: 158), CGSize(width: 329, height: 155)] {
-            let marge = WidgetRuimte.s4
-            let breedte = maat.width - 2 * marge - MiddelTop3.nummerKolom - WidgetRuimte.s2
-            let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s3
-            let gezet = WidgetZet.rijen(Array(e.verhalen.prefix(3)), WidgetLetter.widgetKop, breedte: breedte, hoogte: hoogte, tussen: MiddelTop3.tussen)
+            let (gezet, breedte, hoogte) = MiddelTop3.zet(e, maat: maat, marge: WidgetRuimte.s4)
             XCTAssertGreaterThanOrEqual(gezet.count, 2, "\(maat)")
             let totaal = gezet.reduce(0) { $0 + CGFloat($1.regels) * WidgetLetter.widgetKop.regel } + MiddelTop3.tussen * CGFloat(gezet.count - 1)
             XCTAssertLessThanOrEqual(totaal, hoogte, "\(maat)")
@@ -244,6 +274,26 @@ import WidgetKit
                 XCTAssertFalse(g.tekst.hasSuffix(" …"))
             }
         }
+    }
+
+    // Keuring 1: moet een kop een regel inleveren, dan de kop die daarbij het minst verliest. 01 levert pas in als
+    // een andere kop anders bijna alles kwijtraakt ("Sluiting dreigt…").
+    func testWieEenRegelInlevertVerliestHetMinst() {
+        let nu = WidgetDagdeel.op(Self.moment("2026-11-11T17:41:00Z"))
+        let koppen = ["D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD",
+                      "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
+                      "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet"]
+        let stenen = koppen.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
+        let e = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
+        let gezet = MiddelTop3.zet(e, maat: CGSize(width: 364, height: 170), marge: WidgetRuimte.s4).gezet
+        XCTAssertEqual(gezet.count, 3)
+        XCTAssertNotEqual(gezet[2].tekst, "Sluiting dreigt…", "niet de kop die bijna alles kwijtraakt")
+        XCTAssertTrue(gezet.allSatisfy { !$0.tekst.hasSuffix("verouderde…") })
+        // Verliezen 02 en 03 weinig, dan houdt 01 zijn twee regels.
+        let kort = [koppen[0], "Honderden scholen in Europa krijgen een bommelding per e-mail", "RIVM sluit oude laboratoria pas als het nieuwe gebouw er staat"]
+        let k2 = kort.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
+        let e2 = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: k2, gelezen: [], vraag: .algemeen)
+        XCTAssertEqual(MiddelTop3.zet(e2, maat: CGSize(width: 364, height: 170), marge: WidgetRuimte.s4).gezet.first?.regels, 2)
     }
 
     func testEenKopDieNietPastWordtKorterOpEenWoordgrens() {

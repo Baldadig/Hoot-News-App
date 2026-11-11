@@ -85,18 +85,28 @@ enum WidgetZet {
     }
 
     // Middel · Top 3 en de rijen van Groot: hoeveel regels elke kop krijgt binnen `hoogte`. Eerst elke kop tot
-    // `max` regels; past dat niet (met lucht `tussen` ertussen), dan krijgt de onderste kop met twee regels er één,
-    // en zo verder omhoog. Past het dan nog niet, dan valt de onderste weg: liever minder tekst dan krap.
-    static func rijen(_ verhalen: [WidgetVerhaal], _ m: WidgetLetter.Maat, breedte: CGFloat, hoogte: CGFloat, tussen: CGFloat, max: Int = 2, extra: CGFloat = 0) -> [Gezet] {
-        var plafond = Array(repeating: max, count: verhalen.count)
-        var gezet = zip(verhalen, plafond).map { pas($0.kop, kort: $0.kortKop, m, breedte: breedte, max: $1) }
+    // `max` regels; past dat niet (met lucht `tussen` ertussen), dan krijgt een kop met twee regels er één: de kop
+    // die daarbij het minst verliest (keuring 1: liever "Honderden scholen in Europa doelwit…" op één regel dan
+    // "Sluiting dreigt…"). Met `eersteVoorrang` houdt 01 zijn twee regels, tenzij een andere kop anders minder
+    // dan `eersteGrens` van zijn tekst overhoudt.
+    // Past het dan nog niet, dan valt de onderste weg: liever minder tekst dan krap.
+    static let eersteGrens = 0.45
+    static func rijen(_ verhalen: [WidgetVerhaal], _ m: WidgetLetter.Maat, breedte: CGFloat, hoogte: CGFloat, tussen: CGFloat, max: Int = 2, extra: CGFloat = 0, eersteVoorrang: Bool = false) -> [Gezet] {
+        var gezet = verhalen.map { pas($0.kop, kort: $0.kortKop, m, breedte: breedte, max: max) }
         func totaal(_ g: [Gezet]) -> CGFloat {
             g.isEmpty ? 0 : g.reduce(0) { $0 + CGFloat($1.regels) * m.regel + extra } + tussen * CGFloat(g.count - 1)
         }
         while totaal(gezet) > hoogte {
-            if let i = gezet.indices.last(where: { gezet[$0].regels > 1 }) {
-                plafond[i] = gezet[i].regels - 1
-                gezet[i] = pas(verhalen[i].kop, kort: verhalen[i].kortKop, m, breedte: breedte, max: plafond[i])
+            let kandidaten = gezet.indices.filter { gezet[$0].regels > 1 }
+            // Per kandidaat: de kop met een regel minder, en welk deel van zijn tekst er blijft staan.
+            let opties = kandidaten.map { i -> (i: Int, g: Gezet, blijft: Double) in
+                let g = pas(verhalen[i].kop, kort: verhalen[i].kortKop, m, breedte: breedte, max: gezet[i].regels - 1)
+                let blijft = Double(g.tekst.utf16.count) / Double(Swift.max(1, gezet[i].tekst.utf16.count))
+                return (i, g, eersteVoorrang && i == 0 ? Swift.min(blijft, eersteGrens) : blijft)
+            }
+            // Het meeste over; bij gelijk de onderste.
+            if let beste = opties.max(by: { $0.blijft < $1.blijft || ($0.blijft == $1.blijft && $0.i < $1.i) }) {
+                gezet[beste.i] = beste.g
             } else if gezet.count > 1 {
                 gezet.removeLast()
             } else {
@@ -119,4 +129,10 @@ extension Text {
     func widgetKicker() -> some View {
         self.font(WidgetLetter.kicker).tracking(12 * 0.06).textCase(.uppercase).lineLimit(1)
     }
+}
+
+// Alleen voor toetsen: elke kop meldt de breedte die hij in de weergave echt kreeg, zodat een toets kan nagaan
+// dat hij daar in zijn regels past (en iOS dus nergens midden in een woord afkapt). In de app en de extensie nil.
+enum WidgetZetMeting {
+    nonisolated(unsafe) static var opname: ((WidgetZet.Gezet, WidgetLetter.Maat, CGFloat) -> Void)?
 }

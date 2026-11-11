@@ -51,6 +51,7 @@
 				"Resources/Fonts/SchibstedGrotesk-400.ttf",
 				"Resources/Fonts/SchibstedGrotesk-600.ttf",
 				"Resources/Fonts/SchibstedGrotesk-800.ttf",
+				BeeldOpMaat.swift,
 				Views/PlaceholderBeelden.swift,
 				Views/PlaceholderVormen.swift,
 			);

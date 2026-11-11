@@ -13,15 +13,17 @@ enum WidgetGroep {
     static let vraagBestand = "widget-vraag.json" // de vraag van jouw Editie aan de server (zonder token)
     static let beelden = "widget-beelden"
 
-    // De gedeelde map; in tests (zonder App Group) een tijdelijke map.
+    // De gedeelde map; in tests een tijdelijke map, zodat toetsen (en de app als testgastheer) de echte App
+    // Group van het toestel niet aanraken (keuring 1).
     static var map: URL {
         if let override = mapOverride { return override }
-        if let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: id) { return url }
+        if !inToets, let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: id) { return url }
         let tmp = FileManager.default.temporaryDirectory.appending(path: "hoot-widget", directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: tmp, withIntermediateDirectories: true)
         return tmp
     }
     nonisolated(unsafe) static var mapOverride: URL? // alleen tests
+    static let inToets = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 }
 
 struct WidgetVerhaal: Codable, Hashable, Identifiable, Sendable {
@@ -253,6 +255,19 @@ enum WidgetTijdlijn {
     // Wanneer WidgetKit weer moet vragen: bij het eerstvolgende dagdeel.
     static func volgende(nu: Date) -> Date {
         WidgetDagdeel.momenten(na: nu, uren: 24).first ?? nu.addingTimeInterval(6 * 3600)
+    }
+
+    // Wacht de widget nog op de Editie van dit dagdeel (zelf ophalen lukte niet, of een andere Hoot-widget is al
+    // bezig), dan vraagt hij over twintig minuten opnieuw, niet pas bij het volgende dagdeel. Dat hooguit de
+    // eerste twee uur van een dagdeel, zodat een toestel zonder netwerk het budget van WidgetKit niet opmaakt.
+    static let opnieuw: TimeInterval = 20 * 60
+    static let opnieuwHooguit: TimeInterval = 2 * 3600
+    static func volgende(nu: Date, wachtOpNieuwe: Bool) -> Date {
+        let gewoon = volgende(nu: nu)
+        guard wachtOpNieuwe,
+              let begin = WidgetDagdeel.momenten(na: nu.addingTimeInterval(-24 * 3600), uren: 24).last(where: { $0 <= nu }),
+              nu.timeIntervalSince(begin) < opnieuwHooguit else { return gewoon }
+        return min(gewoon, nu.addingTimeInterval(opnieuw))
     }
 
     // Probeert de widget nu zelf de nieuwe Editie te halen? Niet vaker dan eens per vijf minuten, ook niet als

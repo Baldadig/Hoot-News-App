@@ -7,14 +7,7 @@ import Foundation
 // geslaagd antwoord staat ook als bestand op de iPhone, want de URL-cache geeft antwoorden
 // met `must-revalidate` (zoals de editie) zonder netwerk niet terug.
 enum HootAPI {
-    static let base: URL = {
-        #if DEBUG
-        if let value = UserDefaults.standard.string(forKey: "HootAPIBase"), let url = URL(string: value), url.scheme == "https" { return url }
-        #endif
-        // Sinds build 46 draait de app volledig op gethoot.app (zelfde Netlify-site, /api/* zonder
-        // redirect). Builds 38 t/m 45 praten nog met hootnews.nl; dat blijft zolang die in omloop zijn.
-        return URL(string: "https://gethoot.app")!
-    }()
+    static let base: URL = HootBasis.url // gedeeld met de widget (BeeldOpMaat.swift)
 
     // De echte appversie (Bundle short version) en het adres, zodat de serverlogs oude en nieuwe builds scheiden.
     static func userAgent(version: String? = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) -> String {
