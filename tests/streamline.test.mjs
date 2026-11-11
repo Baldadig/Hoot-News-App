@@ -92,7 +92,7 @@ test('plek: dicht in de stapel (stap 16, met de muis 20), de rest erachter', () 
 test('een lege lijst: één regel met wie, waar en welke soort', () => {
   assert.equal(legeRegel({ namen: ['NOS'], rubriek: 'Wereld' }), 'Nog niets van NOS in Wereld.')
   assert.equal(legeRegel({ namen: ['NOS', 'NRC', 'de Volkskrant'] }), 'Nog niets van NOS, NRC en de Volkskrant vandaag.')
-  assert.equal(legeRegel({ namen: ['NOS'], soort: 'opinie' }), 'Nog geen opinie van NOS vandaag.')
+  assert.equal(legeRegel({ namen: ['NOS'], rubriek: 'Opinie' }), 'Nog geen opinie van NOS vandaag.') // de soort Opinie is de tab Opinie (11 november)
   assert.equal(legeRegel({ rubriek: 'Tech', soort: 'artikelen' }), 'Nog geen artikelen in Tech.')
   assert.equal(legeRegel({ rubriek: 'Buiten je bubbel' }), 'Nog niets buiten je bubbel.')
   assert.equal(legeRegel({}), 'Nog niets vandaag.')

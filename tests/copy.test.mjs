@@ -119,7 +119,7 @@ test('Aanhalen met ‘ ’: geen rechte aanhalingstekens om gebruikerstekst in d
     const quoted = text.match(/(?:^|[\s(>])"(?=\p{L})[^"<>{}=\n]*(?:\n[^"<>{}=\n]*)?[\p{L}.!?…]"(?=[\s,.:;)!?<…]|$)/mu)
     assert.equal(quoted, null, `${f.slice(root.length)}: ${quoted?.[0].trim()}`)
   }
-  assert.match(read('views/Stream.jsx'), /Opinie: zoals de bron het noemt/)
+  assert.doesNotMatch(read('views/Stream.jsx'), /Opinie: zoals de bron het noemt/) // soortfilter Opinie weg (11 november)
   assert.match(read('views/Privacy.jsx'), /‘meer\s+hiervan’ of ‘minder hiervan’/)
   assert.match(read('views/Search.jsx'), /Niets gevonden voor ‘\$\{q\.trim\(\)\}’/)
 })

@@ -171,3 +171,86 @@ export async function fallbackEdition({ client = null, uid = null, owner = 'anon
   }
   return { edition: { ...global, brief: null, fallback: true, owner }, source: 'global' }
 }
+
+// ---- De Redacteur op de server (besluit Alex, 9 november 2026; Hoot-design/redacteur-server/PLAN.md) ----
+// De server stelt jouw Editie samen en legt haar zelf vast in je account (POST /api/edition, v2). Dit toestel
+// rekent niet meer en claimt niets: het slaat het antwoord van de server letterlijk op (`hoot:my-edition`) en
+// toont het. Zelf samenstellen gebeurt alleen nog als vangnet (offline, een fout, 429): die Editie heet
+// voorlopig (`provisional: true`), staat onder een eigen sleutel, gaat nooit naar je account en nooit in
+// `earlier`/`history`, en wordt vervangen zodra de server antwoordt.
+export const SERVER_KEY = 'hoot:my-edition-server' // de taak (dagdeel|lezer|afdruk) waarvoor `hoot:my-edition` van de server kwam
+export const PROVISIONAL_KEY = 'hoot:my-edition-provisional'
+export const ASK_TIMEOUT_MS = 8000
+
+// Mag het vangnet samenstellen? De berichten moeten bij de kern op dit toestel en je bronnen horen (itemsCurrent),
+// ook offline met een kern uit de cache: wat het vangnet maakt, wordt toch nooit vastgelegd. Lid of niet maakt niet uit.
+export function provisionalReady({ status, global, items = 0, itemsFor = null, followed = null }) {
+  return status === 'ready' && !!global && items > 0 && itemsCurrent(itemsFor, global, followed)
+}
+
+// De vraag aan de server (v2): het profiel, wat je las, en zonder account de history-regels van je vorige
+// Edities op dit toestel (`earlier`). Nooit `affinity`, nooit `previous`.
+export function serverRequest({ followed = [], interests = [], topics = [], favorites = [], taste = null, readIds = [], earlier = [] }) {
+  return { v: 2, followed: [...followed], interests: [...interests], topics: [...topics], favorites: [...favorites], taste: taste || null, readIds: [...readIds].slice(-1500), ...(earlier.length ? { earlier } : {}) }
+}
+
+// POST /api/edition met het token van het lid (als dat er is). 401: één keer het token vernieuwen en opnieuw.
+// Uitkomst { status, edition, source }; status 0 = geen verbinding of te traag (ASK_TIMEOUT_MS).
+export async function askServer(body, { fetchImpl = fetch, token = null, refresh = null, timeout = ASK_TIMEOUT_MS } = {}) {
+  const go = async (t) => {
+    const ctl = typeof AbortController === 'function' ? new AbortController() : null
+    const timer = ctl ? setTimeout(() => ctl.abort(), timeout) : null
+    try {
+      const headers = { 'Content-Type': 'application/json', ...(t ? { Authorization: `Bearer ${t}` } : {}) }
+      return await fetchImpl('/api/edition', { method: 'POST', headers, body: JSON.stringify(body), ...(ctl ? { signal: ctl.signal } : {}) })
+    } catch {
+      return null
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
+  }
+  let res = await go(token)
+  if (res?.status === 401 && token && refresh) {
+    const fresh = await Promise.resolve(refresh()).catch(() => null)
+    if (fresh) res = await go(fresh)
+  }
+  if (!res) return { status: 0, edition: null, source: null }
+  if (!res.ok) return { status: res.status, edition: null, source: null }
+  const json = await res.json().catch(() => null)
+  return { status: res.status, edition: json?.edition && typeof json.edition === 'object' ? json.edition : null, source: json?.source || null }
+}
+
+// De volgorde van het web en (1.2.1) de app:
+//   1. 'local'        hier ligt al een Editie van de server voor dit dagdeel, deze lezer en deze afdruk;
+//   2. 'server'       de server antwoordt (als lid pas na het ophalen van je account, `mayAsk`): letterlijk bewaren;
+//   3. 'provisional'  geen antwoord (offline, fout, 429) en de berichten zijn er: zelf samenstellen, voorlopig;
+//   4. 'global'       ook dat niet, maar de berichten komen niet (`stuck`): de algemene Editie;
+//      null           nog even wachten (de berichten of je account komen nog).
+// `ask(body)` geeft { status, edition } (askServer); `compose({ previous, now })` de Editie van composePersonal.
+// Uitkomst { edition, source, keep }: `keep` = bewaren als Editie van de server (alleen bij 1 en 2).
+// Een antwoord van een later dagdeel dan de kern op dit toestel (de kern loopt achter) heet 'ahead': bewaren,
+// en tonen zodra de kern bij is; tot dan het vangnet.
+export async function serverFirst({ global, owner, basis, local = null, localFromServer = false, online = true, mayAsk = true, ask, request, compose = null, ready = false, stuck = false }) {
+  if (!global) return null
+  const id = global.id
+  const fits = (e) => fitsEdition(e, { id, basis }) && e.owner === owner
+  if (fits(local) && localFromServer) return { edition: local, source: 'local', keep: false }
+  let ahead = null
+  if (online && mayAsk && ask) {
+    const r = await ask(request).catch(() => null)
+    const e = r?.edition
+    if (e && e.owner === owner && e.id === id && Array.isArray(e.entries)) return { edition: e, source: 'server', keep: true }
+    if (e && e.owner === owner && Array.isArray(e.entries) && Date.parse(e.builtAt) > Date.parse(global.builtAt)) ahead = e
+  }
+  const out = (x) => (ahead ? { ...x, ahead } : x)
+  if (ready && compose) {
+    const earlier = earlierEditions({ local: localFromServer ? local : null, account: null, id, owner })
+    const mine = compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
+    if (mine) return out({ edition: { ...withoutDebug(mine), owner, basis, provisional: true }, source: 'provisional', keep: false })
+  }
+  if (stuck) return out({ edition: { ...global, brief: null, fallback: true, owner }, source: 'global', keep: false })
+  return ahead ? { edition: null, source: 'ahead', keep: false, ahead } : null
+}
+
+// Zonder account: de history-regels van je vorige Edities van de server op dit toestel (nooit het vangnet).
+export const earlierForServer = (local, { id, owner }) => earlierEditions({ local, account: null, id, owner }).map(historyOf).filter(Boolean)

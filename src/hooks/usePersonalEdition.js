@@ -1,125 +1,131 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
-import { editionReady, fitsEdition, settleEdition, writeBrief, fallbackEdition } from '../lib/editionSync.js'
+import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
 import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
 
 const KEY = 'hoot:my-edition'
 
-// Jouw editie van dit dagdeel (zie src/lib/personal.js). Volgorde van waarheid (src/lib/editionSync.js):
-// 1. al vastgelegd op dit toestel, voor dit dagdeel, deze lezer en deze bronnen en interesses;
-// 2. als lid: al vastgelegd in je account (een ander toestel was eerder) — dan die, als hij uit
-//    dezelfde bronnen en interesses komt;
-// 3. anders nu samenstellen, en vastleggen (op het toestel en, als lid, in je account: de eerste
-//    schrijver wint; verliest dit toestel, dan neemt het de Editie van het andere toestel over).
-// Veranderen je bronnen of interesses (of laadt je account ze pas net), dan stellen we opnieuw samen.
-// Als lid stellen we pas samen als je account één keer is opgehaald (`sync.pulled`, P8-2): anders rekent
-// een vers toestel met de standaardinstellingen. Lukt dat ophalen niet (offline), dan toch, maar dan
-// alleen op dit toestel; zonder account altijd alleen op dit toestel.
-// Samenstellen gebeurt op de start van het dagdeel (global.builtAt), niet op de klok: zo maakt elk
-// toestel met dezelfde invoer dezelfde Editie. Wat je las (`readIds`) komt niet terug, tenzij er
-// genoeg nieuws bij kwam. Je leesprofiel (`affinity`) blijft op het toestel; alleen de Editie met
-// het waarom per plek gaat naar je account.
-// Wat in je vorige Edities stond komt alleen terug als het zich ontwikkelde (bouwspec-aanvulling H3,
-// H5): `previous` is de vereniging van de laatste drie vastgelegde Edities, van dit toestel én uit je
-// account. Daarvoor draagt elke vastgelegde Editie haar `history` (de samenvattingen van de drie
-// Edities ervóór, historyOf) mee in `user_state.edition`; ook een overgenomen Editie van het andere
-// toestel wordt hier met die history vastgelegd, zodat beide toestellen hetzelfde `previous` hebben
-// voor het volgende dagdeel.
+// Jouw Editie van dit dagdeel komt van de server (De Redacteur op de server, besluit Alex 9 november 2026;
+// src/lib/editionSync.js serverFirst, Hoot-design/redacteur-server/PLAN.md):
+// 1. ligt hier al een Editie van de server voor dit dagdeel, deze lezer en deze bronnen en interesses: die;
+// 2. anders POST /api/edition (v2): de server stelt samen en legt als lid zelf vast in je account (de eerste
+//    schrijver wint). Wat hij teruggeeft, bewaren we letterlijk; dit toestel schrijft niets naar je account.
+//    Als lid pas na het ophalen van je account (`sync.pulled`): anders vraagt een vers toestel met de
+//    standaardinstellingen, en zet de server een Editie met de verkeerde afdruk in je account;
+// 3. geen antwoord (offline, een fout, 429) en de berichten zijn er: zelf samenstellen als vangnet, voorlopig.
+//    Die gaat nooit naar je account en nooit in je geschiedenis; zodra de server antwoordt (weer online,
+//    terug in de app, een volgende feedronde) vervangt zijn Editie het vangnet;
+// 4. komen ook de berichten niet (`stuck`): de algemene Editie.
+// Je leesprofiel (`affinity`) blijft op dit toestel en doet niet mee: web en iPhone hebben elk een eigen
+// leesprofiel, en zo geven ze dezelfde Editie. Het vangnet rekent ook zonder, zodat het lijkt op wat komt.
 // Leden krijgen er een eigen "editie in één minuut" bij (POST /api/brief). Zonder account geen
 // samenvatting: die van de algemene editie hoort niet bij jouw verhalen.
-// Komen de berichten van dit dagdeel niet binnen, ook niet na één extra ronde (`stuck`, useFeed), dan
-// stellen we niet samen met wat er nog is (berichten van een vorige kern) en wachten we ook niet eindeloos:
-// fallbackEdition (editionSync.js) geeft de Editie uit je account, die van de server of de algemene Editie.
-// Komen de berichten later alsnog, dan stelt dit toestel gewoon zelf samen en legt het vast. Weigert het
-// vangnet (staleInput) de berichten die er zijn, dan dezelfde terugval.
-export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null, readIds = null, sync = null, stuck = false }) {
+export function usePersonalEdition({ data, status, prefs, muted, account, readIds = null, sync = null, stuck = false }) {
   const global = data?.edition || null
   const uid = syncedUid(account)
   const owner = uid || 'anon'
   const pulled = !!sync?.pulled
   const followed = useMemo(() => (data?.sources || []).filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id), [data?.sources, muted])
-  // Pas als de berichten bij de Editie van nu en je bronnen van nu horen (data.itemsFor, useFeed).
-  // En alleen op een kern die in deze sessie van het netwerk kwam (data.coreFresh): nooit de Editie van een
-  // vorig dagdeel uit de cache samenstellen en in je account zetten.
-  const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status, itemsFor: data?.itemsFor, followed, coreFresh: data?.coreFresh })
+  // Het vangnet mag rekenen als de berichten bij de kern op dit toestel en je bronnen van nu horen (itemsCurrent).
+  const ready = provisionalReady({ status, global, items: data?.items?.length || 0, itemsFor: data?.itemsFor, followed })
   const basis = editionBasis(followed, prefs.interests || [], prefs.topics || [], prefs.favorites || [])
+  const task = `${global?.id}|${owner}|${basis}`
   // Zonder bronnenlijst (nog aan het laden) kunnen we de afdruk niet controleren: dan niet weigeren.
   const fits = (e) => fitsEdition(e, { id: global?.id, basis: followed.length ? basis : null }) && e.owner === owner
+  const fromServer = () => readJSON(SERVER_KEY, '') === task
   const [edition, setEdition] = useState(() => {
     const e = readJSON(KEY, null)
+    return fits(e) && fromServer() ? e : null
+  })
+  const [provisional, setProvisional] = useState(() => {
+    const e = readJSON(PROVISIONAL_KEY, null)
     return fits(e) ? e : null
   })
+  // Opnieuw vragen bij weer online en terug in de app, zolang er geen Editie van de server is.
+  const [nonce, setNonce] = useState(0)
   const pending = useRef('')
-  const [fallback, setFallback] = useState(null)
-  const [refused, setRefused] = useState('') // de taak waarvoor samenstellen niets gaf (het vangnet, staleInput)
-  const fallbackTask = useRef('')
-  const settled = useRef('') // de taak (dagdeel, lezer, afdruk) die met je account is afgestemd
 
-  const keep = (e) => {
+  const keep = (e, t = task) => {
     setEdition(e)
     writeJSON(KEY, e)
+    writeJSON(SERVER_KEY, t)
+    setProvisional(null)
+    writeJSON(PROVISIONAL_KEY, null)
   }
 
-  // Vastleggen of ophalen, één keer per dagdeel per lezer.
   useEffect(() => {
-    if (!global || !ready) return
-    const current = readJSON(KEY, null)
-    const task = `${global.id}|${owner}|${basis}`
-    // Al vastgelegd op dit toestel: klaar — tenzij je lid bent en deze Editie nog niet met je account is
-    // afgestemd (na een herstart, of omdat het ophalen pas nu lukte): dan alsnog, zonder opnieuw te rekenen.
-    if (fits(current) && (!uid || !pulled || settled.current === task)) {
-      if (current !== edition) setEdition(current)
+    if (typeof window === 'undefined') return
+    const again = () => setNonce((n) => n + 1)
+    const visible = () => document.visibilityState === 'visible' && again()
+    window.addEventListener('online', again)
+    document.addEventListener('visibilitychange', visible)
+    return () => {
+      window.removeEventListener('online', again)
+      document.removeEventListener('visibilitychange', visible)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!global || !followed.length) return
+    const local = readJSON(KEY, null)
+    const localFromServer = fromServer()
+    if (fits(local) && localFromServer) {
+      if (local !== edition) setEdition(local)
       return
     }
-    if (pending.current === task) return
-    pending.current = task
-    settleEdition({
-      client: account.client,
-      uid,
-      owner,
+    const run = `${task}|${pulled}|${ready}|${stuck}|${nonce}`
+    if (pending.current === run) return
+    pending.current = run
+    const online = typeof navigator === 'undefined' || navigator.onLine !== false
+    const request = serverRequest({
+      followed,
+      interests: prefs.interests || [],
+      topics: prefs.topics || [],
+      favorites: prefs.favorites || [],
+      taste: prefs.taste || null,
+      readIds: [...(readIds || [])],
+      earlier: uid ? [] : earlierForServer(localFromServer ? local : null, { id: global.id, owner }),
+    })
+    const ask = async (body) => {
+      let token = null
+      if (uid && account.client) {
+        const { data: s } = await account.client.auth.getSession()
+        token = s?.session?.access_token || null
+        if (!token) return { status: 0, edition: null }
+      }
+      const refresh = uid && account.client ? async () => (await account.client.auth.refreshSession())?.data?.session?.access_token || null : null
+      return askServer(body, { token, refresh })
+    }
+    serverFirst({
       global,
+      owner,
       basis,
-      local: current,
-      pulled,
-      compose: ({ previous, now }) => composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
+      local,
+      localFromServer,
+      online,
+      mayAsk: !uid || pulled,
+      ask,
+      request,
+      ready,
+      stuck,
+      compose: ({ previous, now }) => composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: null, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
     })
       .then((r) => {
-        // Het vangnet weigerde (berichten achterhaald): niet eindeloos laden, maar de terugval.
-        if (!r) return setRefused(task)
-        // Je account heeft al een later dagdeel: dit toestel loopt achter; niets schrijven, maar ook niet
-        // blijven laden: de terugval toont de Editie tot de kern van nu er is (keuring P0 ronde 3).
-        if (!r.edition) return setRefused(task)
-        keep(r.edition)
-        if (r.source !== 'unsynced') settled.current = task
+        if (!r || pending.current !== run) return
+        // Een Editie van een later dagdeel (de kern hier loopt achter): bewaren, tonen zodra de kern bij is.
+        if (r.ahead) {
+          writeJSON(KEY, r.ahead)
+          writeJSON(SERVER_KEY, `${r.ahead.id}|${owner}|${r.ahead.basis}`)
+        }
+        if (r.keep) return keep(r.edition)
+        if (r.edition) {
+          setProvisional(r.edition)
+          if (r.source === 'provisional') writeJSON(PROVISIONAL_KEY, r.edition)
+        }
       })
       .catch(() => {}) // lukt het nu niet, dan de volgende keer (geen onafgehandelde fout)
-      .finally(() => {
-        if (pending.current === task) pending.current = ''
-      })
-  }, [global?.id, ready, owner, basis, pulled]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // De terugval: alleen als de berichten niet komen en er op dit toestel niets voor dit dagdeel vastligt.
-  useEffect(() => {
-    const task0 = `${global?.id}|${owner}|${basis}`
-    if (!global || !((!ready && stuck) || refused === task0) || fits(readJSON(KEY, null))) return
-    const task = `${global.id}|${owner}|${basis}|${pulled}`
-    if (fallbackTask.current === task) return
-    fallbackTask.current = task
-    const request = { followed, interests: prefs.interests || [], topics: prefs.topics || [], favorites: prefs.favorites || [], taste: prefs.taste || null, readIds: [...(readIds || [])].slice(-1500) }
-    const server = async (body) => {
-      const res = await fetch('/api/edition', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      return res.ok ? (await res.json()).edition : null
-    }
-    fallbackEdition({ client: account.client, uid, owner, global, basis, local: readJSON(KEY, null), pulled, server, request })
-      .then((r) => {
-        if (!r) return
-        // Uit je account: die is van jou, en ligt dan ook hier vast.
-        if (r.source === 'account') keep(r.edition)
-        else setFallback(r.edition)
-      })
-      .catch(() => {})
-  }, [global?.id, ready, stuck, refused, owner, basis, pulled]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [global?.id, owner, basis, pulled, ready, stuck, nonce, followed.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Leden: een eigen samenvatting, één keer per editie (de server bewaakt het maximum).
   const asked = useRef('')
@@ -142,7 +148,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       const current = readJSON(KEY, null)
       if (!brief || current?.version !== edition.version || current?.basis !== edition.basis) return
       const next = { ...current, brief } // met de history van de vastgelegde Editie
-      keep(next)
+      keep(next, readJSON(SERVER_KEY, task))
       // Alleen bij de Editie die in je account staat (zelfde dagdeel en afdruk), en pas na het ophalen.
       if (pulled) await writeBrief(account.client, uid, next)
     })().catch(() => {}) // geen sessie of geen JSON: dan zonder samenvatting
@@ -150,7 +156,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
 
   // Uitloggen of een andere lezer: niet de editie van een ander tonen.
   const mine = (e) => e && e.owner === owner && e.id === global?.id
-  const shown = mine(edition) ? edition : mine(fallback) ? fallback : null
+  const shown = mine(edition) ? edition : mine(provisional) ? provisional : null
   const briefNote = shown && !shown.brief && briefFull === `${shown.version}|${shown.basis}` ? BRIEF_FULL_TEXT : null
   return { edition: shown, member: !!uid, briefNote }
 }

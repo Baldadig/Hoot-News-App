@@ -1,0 +1,487 @@
+{
+ "uid": "00000000-0000-4000-8000-0000000000aa",
+ "global": {
+  "id": "2026-10-30-avond",
+  "builtAt": "2026-10-30T16:00:20.397Z"
+ },
+ "request": {
+  "v": 2,
+  "followed": [
+   "nos",
+   "nu",
+   "nrc",
+   "volkskrant"
+  ],
+  "interests": [],
+  "topics": [],
+  "favorites": [],
+  "taste": {
+   "topics": {},
+   "sources": {}
+  },
+  "readIds": []
+ },
+ "status": 200,
+ "response": {
+  "edition": {
+   "id": "2026-10-30-avond",
+   "slot": "avond",
+   "date": "2026-10-30",
+   "next": "06:00",
+   "personal": true,
+   "builtAt": "2026-10-30T16:00:20.397Z",
+   "version": "2026-10-30-avond@mine@2026-10-30T16:00:20.397Z",
+   "basedOn": "2026-10-30-avond@2026-10-30T16:00:20.397Z",
+   "entries": [
+    {
+     "kind": "story",
+     "id": "s19u85n2",
+     "leadId": "1mg305i",
+     "itemIds": [
+      "1mg305i",
+      "17npg3c",
+      "xhht3v",
+      "1q9dlr3",
+      "h9gma0",
+      "a707b1",
+      "f3q7ha",
+      "9fi5ia",
+      "16kvxop",
+      "1qvyyn3",
+      "1os3clc",
+      "mo0l6j"
+     ],
+     "title": "Laatste onafhankelijke Russische krant stopt onder druk van het Kremlin: ‘We werden gedood’",
+     "desk": "buitenland",
+     "sourceCount": 12,
+     "why": {
+      "code": "groot",
+      "text": "Groot nieuws · 12 bronnen"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "srjbii3",
+     "leadId": "1f34jte",
+     "itemIds": [
+      "1o2tc0r",
+      "hevpy8",
+      "1r0emmx",
+      "rxn37a",
+      "158h8xz",
+      "1a5m57y",
+      "6exier",
+      "ov4vek",
+      "1f34jte",
+      "h8r35j"
+     ],
+     "title": "Christa Pike na mislukte executie: 'Voortdurend pijn, zowel fysiek als mentaal'",
+     "desk": "vs",
+     "sourceCount": 10,
+     "why": {
+      "code": "groot",
+      "text": "Groot nieuws · 10 bronnen"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "sd4ef4",
+     "leadId": "1r0emuz",
+     "itemIds": [
+      "8bppqs",
+      "1h5amg7",
+      "1s3275b",
+      "1aiiivx",
+      "1r0emuz",
+      "e0nr8x",
+      "16wfgec",
+      "mwm3qb"
+     ],
+     "title": "Man rent op koning af bij werkbezoek in Ursem, beveiligers grijpen in",
+     "desk": "binnenland",
+     "sourceCount": 6,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Binnenland"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "sebv3k1",
+     "leadId": "olr72n",
+     "itemIds": [
+      "olr72n",
+      "svw8cm",
+      "3gj8em",
+      "pckc4n",
+      "f3q2ng",
+      "t4r1ks",
+      "1s393i9"
+     ],
+     "title": "Paus Leo brengt als eerste paus ooit zijn stem uit bij Amerikaanse verkiezingen",
+     "desk": "vs",
+     "sourceCount": 7,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek VS"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "srpiq4s",
+     "leadId": "1v9ma0m",
+     "itemIds": [
+      "1v9ma0m",
+      "1k7aemi",
+      "ynlaqb",
+      "1wbrnuj",
+      "h73xql"
+     ],
+     "title": "Nooit was de wereldeconomie zo afhankelijk van Wall Street als nu. Hoe de ‘midterms’ ook de beurzen in hun ban houden",
+     "desk": "vs",
+     "sourceCount": 5,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek VS"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "s1bck9xo",
+     "leadId": "u5wxml",
+     "itemIds": [
+      "15lwqre",
+      "183rssj",
+      "s4v2i7",
+      "1ac9hp4",
+      "1xin4tc",
+      "u5wxml",
+      "q4shmy",
+      "ogxzb8",
+      "1l4l2sk",
+      "17ipchj",
+      "3yn5zq",
+      "x0jhky",
+      "1kupm00",
+      "atkbg0"
+     ],
+     "title": "Met zijn norse bariton en striemende blik zette acteur Patrick Stewart (1940-2026) Star Trek naar zijn hand",
+     "desk": null,
+     "sourceCount": 11,
+     "why": {
+      "code": "groot",
+      "text": "Groot nieuws · 11 bronnen"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "sueo7zt",
+     "leadId": "1ko7y4i",
+     "itemIds": [
+      "1ko7y4i",
+      "iyux46",
+      "zytzt5",
+      "1r0emuw"
+     ],
+     "title": "DNA-match leidt tot aanhouding in ruim dertig jaar oude verkrachtingszaak",
+     "desk": "binnenland",
+     "sourceCount": 4,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Binnenland"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "s1r56e3b",
+     "leadId": "1r0emmz",
+     "itemIds": [
+      "kp24x7",
+      "xdulbp",
+      "1r0emmz",
+      "kbwavq",
+      "23qgwr"
+     ],
+     "title": "Wat leren we van de grootste cryptoroof ooit? 'Hou je mond over wat je bezit'",
+     "desk": "buitenland",
+     "sourceCount": 5,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Buitenland"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "s1hnhlkl",
+     "leadId": "4kssn2",
+     "itemIds": [
+      "4kssn2",
+      "12ht4of"
+     ],
+     "title": "D66-raadslid uit Boxtel – verdacht van onder meer corruptie en verkiezingsfraude – blijft veertien dagen langer in hechtenis",
+     "desk": "binnenland",
+     "sourceCount": 2,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Binnenland"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "s1ho7acb",
+     "leadId": "b25qsi",
+     "itemIds": [
+      "17tixks",
+      "1p1g1es",
+      "b25qsi"
+     ],
+     "title": "Rechts blok somber na 'stevig' gesprek met kabinet: 'Ligt niet zoals we willen'",
+     "desk": "binnenland",
+     "sourceCount": 3,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Binnenland"
+     }
+    }
+   ],
+   "items": [
+    {
+     "id": "1mg305i",
+     "kind": "article",
+     "source": "volkskrant",
+     "sourceName": "de Volkskrant",
+     "handle": "volkskrant.nl",
+     "domain": "volkskrant.nl",
+     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:ass4aukj7qniiiswynzx24xa/bafkreihfgvaeavbcwjgjhfis4mrvwffes7pk2qm73fu7hluy2qesrwdjim",
+     "brandColor": "#1481C4",
+     "section": "Buitenland",
+     "storyId": "s19u85n2",
+     "firstSeenAt": "2026-10-30T18:10:21.150Z",
+     "title": "Laatste onafhankelijke Russische krant stopt onder druk van het Kremlin: ‘We werden gedood’",
+     "summary": "Novaja Gazeta was de krant van de vermoorde journaliste Anna Politkovskaja en voormalig hoofdredacteur Dmitri Moeratov, die in 2021 de Nobelprijs voor de Vrede ontving.",
+     "topics": [
+      "oekraine"
+     ],
+     "url": "https://www.volkskrant.nl/buitenland/laatste-onafhankelijke-russische-krant-stopt-onder-druk-van-het-kremlin-we-werden-gedood~b944dae10/",
+     "image": "https://image.volkskrant.nl/279690534/feature-crop/320/320/afbeelding",
+     "publishedAt": "2026-10-30T18:02:00.000Z"
+    },
+    {
+     "id": "1f34jte",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "handle": "nu.nl",
+     "domain": "nu.nl",
+     "avatar": "https://www.google.com/s2/favicons?domain=nu.nl&sz=128",
+     "avatarContain": true,
+     "brandColor": "#0B4E8C",
+     "storyId": "srjbii3",
+     "firstSeenAt": "2026-10-30T14:30:21.129Z",
+     "title": "Christa Pike na mislukte executie: 'Voortdurend pijn, zowel fysiek als mentaal'",
+     "summary": "De Amerikaanse Christa Pike, die eind september een executiepoging overleefde, lijdt sinds de mislukte executie voortdurend pijn, zegt ze in een eerste reactie.",
+     "topics": [],
+     "url": "https://www.nu.nl/buitenland/6414953/christa-pike-na-mislukte-executie-voortdurend-pijn-zowel-fysiek-als-mentaal.html",
+     "image": "https://images.nu.nl/m/0qmx3a9arjge_sqr256/501/0/1632/1632/christa-pike-na-mislukte-executie-voortdurend-pijn-zowel-fysiek-als-mentaal.jpg",
+     "publishedAt": "2026-10-30T13:58:05.000Z"
+    },
+    {
+     "id": "1r0emuz",
+     "kind": "article",
+     "source": "nos",
+     "sourceName": "NOS",
+     "handle": "nos.nl",
+     "domain": "nos.nl",
+     "avatar": "https://unavatar.io/x/nos",
+     "brandColor": "#B5121B",
+     "storyId": "sd4ef4",
+     "firstSeenAt": "2026-10-30T17:40:18.847Z",
+     "title": "Man rent op koning af bij werkbezoek in Ursem, beveiligers grijpen in",
+     "summary": "Bij een werkbezoek aan het Noord-Hollandse dorp Ursem is koning Willem-Alexander vanmiddag aangesproken door een mogelijk verwarde man.",
+     "readMin": 1,
+     "topics": [],
+     "url": "https://nos.nl/l/2637344",
+     "image": "https://images.cdn.nos.nl/6/t/K/7/L/U/QMNB21J5oEP1NJFnT2cmPjuo28ot5bDzNcqrkf/4x320x2928x1647-1024x576.webp",
+     "publishedAt": "2026-10-30T17:32:28.000Z"
+    },
+    {
+     "id": "olr72n",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "handle": "nu.nl",
+     "domain": "nu.nl",
+     "avatar": "https://www.google.com/s2/favicons?domain=nu.nl&sz=128",
+     "avatarContain": true,
+     "brandColor": "#0B4E8C",
+     "storyId": "sebv3k1",
+     "firstSeenAt": "2026-10-30T18:00:23.610Z",
+     "title": "Paus Leo brengt als eerste paus ooit zijn stem uit bij Amerikaanse verkiezingen",
+     "summary": "Paus Leo XIV heeft per post zijn stem uitgebracht bij de tussentijdse verkiezingen in de Verenigde Staten.",
+     "topics": [
+      "vs-politiek",
+      "verkiezingen"
+     ],
+     "url": "https://www.nu.nl/buitenland/6414984/paus-leo-brengt-als-eerste-paus-ooit-zijn-stem-uit-bij-amerikaanse-verkiezingen.html",
+     "image": "https://images.nu.nl/m/lfcx474a17v3_sqr256/1313/255/3231/3231/paus-leo-brengt-als-eerste-paus-ooit-zijn-stem-uit-bij-amerikaanse-verkiezingen.jpg",
+     "publishedAt": "2026-10-30T17:51:50.000Z"
+    },
+    {
+     "id": "1v9ma0m",
+     "kind": "article",
+     "source": "nrc",
+     "sourceName": "NRC",
+     "handle": "nrc.nl",
+     "domain": "nrc.nl",
+     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:bvkk4kkuavnhqrwapc34wtfp/bafkreieemx772stvjftotey4yiolatuo3zud74hfc633fdqy4lzvu2tbou",
+     "brandColor": "#C20E1A",
+     "storyId": "srpiq4s",
+     "firstSeenAt": "2026-10-30T16:40:22.625Z",
+     "title": "Nooit was de wereldeconomie zo afhankelijk van Wall Street als nu. Hoe de ‘midterms’ ook de beurzen in hun ban houden",
+     "summary": "Peilingen beloven winst voor de Democraten in het Amerikaanse Congres. Een groot deel van het bedrijfsleven maakte Trump het hof.",
+     "topics": [
+      "vs-politiek",
+      "verkiezingen",
+      "economie",
+      "bedrijven"
+     ],
+     "url": "https://www.nrc.nl/nieuws/2026/10/30/nooit-was-de-wereldeconomie-zo-afhankelijk-van-wall-street-als-nu-hoe-de-midterms-ook-de-beurzen-in-hun-ban-houden-a4939842",
+     "image": "https://images.nrc.nl/_-Qs7rL8rxvpm19Bki1hIbxA3TE=/1280x/filters:no_upscale()/s3/static.nrc.nl/wp-content/uploads/2026/10/30150851/301026ECO_2037834646_stock02.jpg",
+     "publishedAt": "2026-10-30T16:30:00.000Z"
+    },
+    {
+     "id": "u5wxml",
+     "kind": "article",
+     "source": "volkskrant",
+     "sourceName": "de Volkskrant",
+     "handle": "volkskrant.nl",
+     "domain": "volkskrant.nl",
+     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:ass4aukj7qniiiswynzx24xa/bafkreihfgvaeavbcwjgjhfis4mrvwffes7pk2qm73fu7hluy2qesrwdjim",
+     "brandColor": "#1481C4",
+     "section": "Cultuur & media",
+     "storyId": "s1bck9xo",
+     "firstSeenAt": "2026-10-30T16:40:22.625Z",
+     "title": "Met zijn norse bariton en striemende blik zette acteur Patrick Stewart (1940-2026) Star Trek naar zijn hand",
+     "summary": "In Engeland kenden ze Patrick Stewart vooral als een klassieke Shakespeare-acteur, maar voor Amerikanen was hij kapitein Jean-Luc Picard uit Star Trek: The Next Generation.",
+     "topics": [],
+     "url": "https://www.volkskrant.nl/cultuur-media/met-zijn-norse-bariton-en-striemende-blik-zette-acteur-patrick-stewart-1940-2026-star-trek-naar-zijn-hand~b2feedf3/",
+     "image": "https://image.volkskrant.nl/279689185/feature-crop/320/320/afbeelding",
+     "publishedAt": "2026-10-30T12:07:00.000Z"
+    },
+    {
+     "id": "1ko7y4i",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "handle": "nu.nl",
+     "domain": "nu.nl",
+     "avatar": "https://www.google.com/s2/favicons?domain=nu.nl&sz=128",
+     "avatarContain": true,
+     "brandColor": "#0B4E8C",
+     "storyId": "sueo7zt",
+     "firstSeenAt": "2026-10-30T18:20:17.146Z",
+     "title": "DNA-match leidt tot aanhouding in ruim dertig jaar oude verkrachtingszaak",
+     "summary": "Een 57-jarige man uit Helmond is aangehouden in een verkrachtingszaak uit 1994.",
+     "topics": [
+      "misdaad"
+     ],
+     "url": "https://www.nu.nl/binnenland/6414969/dna-match-leidt-tot-aanhouding-in-ruim-dertig-jaar-oude-verkrachtingszaak.html",
+     "image": "https://images.nu.nl/m/b0yxacuauytx_sqr256/171/1/785/785/dna-match-leidt-tot-aanhouding-in-ruim-dertig-jaar-oude-verkrachtingszaak.jpg",
+     "publishedAt": "2026-10-30T18:15:11.000Z"
+    },
+    {
+     "id": "1r0emmz",
+     "kind": "article",
+     "source": "nos",
+     "sourceName": "NOS",
+     "handle": "nos.nl",
+     "domain": "nos.nl",
+     "avatar": "https://unavatar.io/x/nos",
+     "brandColor": "#B5121B",
+     "storyId": "s1r56e3b",
+     "firstSeenAt": "2026-10-30T16:40:22.625Z",
+     "title": "Wat leren we van de grootste cryptoroof ooit? 'Hou je mond over wat je bezit'",
+     "summary": "Een paar transacties van in totaal zo'n 18.000 bitcoin, van het grootste cryptoplatform ter wereld, Binance, naar een anonieme digitale portemonnee die pas bestond.",
+     "readMin": 3,
+     "topics": [
+      "geld"
+     ],
+     "url": "https://nos.nl/l/2637333",
+     "image": "https://images.cdn.nos.nl/8/H/8/m/1/Q/w66Mf4VFSE63N7akaSHoQU35s8qGdGCBWj2dw4K/8x211x3984x2241-1024x576.webp",
+     "publishedAt": "2026-10-30T16:32:57.000Z"
+    },
+    {
+     "id": "4kssn2",
+     "kind": "article",
+     "source": "nrc",
+     "sourceName": "NRC",
+     "handle": "nrc.nl",
+     "domain": "nrc.nl",
+     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:bvkk4kkuavnhqrwapc34wtfp/bafkreieemx772stvjftotey4yiolatuo3zud74hfc633fdqy4lzvu2tbou",
+     "brandColor": "#C20E1A",
+     "storyId": "s1hnhlkl",
+     "firstSeenAt": "2026-10-30T16:20:16.493Z",
+     "title": "D66-raadslid uit Boxtel – verdacht van onder meer corruptie en verkiezingsfraude – blijft veertien dagen langer in hechtenis",
+     "summary": "Het Boxtelse raadslid Sohib H., werkzaam bij het OM, blijft langer vastzitten.",
+     "topics": [
+      "nederland"
+     ],
+     "url": "https://www.nrc.nl/nieuws/2026/10/30/d66-raadslid-uit-boxtel-verdacht-van-onder-meer-corruptie-en-verkiezingsfraude-blijft-veertien-dagen-langer-in-hechtenis-a4940170",
+     "image": "https://images.nrc.nl/VeL1BbTBlxxvfLOTnJ8Y0ZT5XM4=/1280x/filters:no_upscale()/s3/static.nrc.nl/wp-content/uploads/2026/10/30165008/301026BIN_2038021268_boxtel.jpg",
+     "publishedAt": "2026-10-30T16:15:23.000Z"
+    },
+    {
+     "id": "b25qsi",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "handle": "nu.nl",
+     "domain": "nu.nl",
+     "avatar": "https://www.google.com/s2/favicons?domain=nu.nl&sz=128",
+     "avatarContain": true,
+     "brandColor": "#0B4E8C",
+     "storyId": "s1ho7acb",
+     "firstSeenAt": "2026-10-30T11:10:16.713Z",
+     "title": "Rechts blok somber na 'stevig' gesprek met kabinet: 'Ligt niet zoals we willen'",
+     "summary": "Het gesprek met het kabinet is niet verlopen zoals JA21, BBB en SGP hadden gehoopt. De drie partijleiders kwamen vrijdagochtend somber naar buiten.",
+     "topics": [
+      "nederland"
+     ],
+     "url": "https://www.nu.nl/politiek/6414925/rechts-blok-somber-na-stevig-gesprek-met-kabinet-ligt-niet-zoals-we-willen.html",
+     "image": "https://images.nu.nl/m/m9qxlzdax3xx_sqr256/977/5/4199/4199/rechts-blok-somber-na-stevig-gesprek-met-kabinet-ligt-niet-zoals-we-willen.jpg",
+     "publishedAt": "2026-10-30T11:03:38.000Z"
+    }
+   ],
+   "bubble": [
+    {
+     "id": "1yfw6i4",
+     "storyId": "s1kh4qoe",
+     "terms": [
+      {
+       "term": "ajax az",
+       "via": "google"
+      }
+     ]
+    },
+    {
+     "id": "ydyikw",
+     "storyId": "s1ksijcv",
+     "terms": [
+      {
+       "term": "ajax az",
+       "via": "google"
+      }
+     ]
+    }
+   ],
+   "brief": null,
+   "owner": "00000000-0000-4000-8000-0000000000aa",
+   "basis": "1ey1p7v",
+   "history": [],
+   "revision": "redacteur-2026-11-11-opinie",
+   "server": true
+  },
+  "source": "claimed",
+  "revision": "redacteur-2026-11-11-opinie"
+ }
+}
