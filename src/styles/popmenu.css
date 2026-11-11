@@ -1,0 +1,93 @@
+/* ---------- Kaartmenu: ⋯ bij de bronregel (Alex 8-11) ----------
+   Het menu klapte open ín de bronregel: de keuzes namen de plek van ⋯ in, de bron werd samengeperst
+   ("de Vol ks kra nt") of de knoppen stonden als losse pillen onder elkaar. Nu zweeft het, zoals het
+   contextmenu van de app: een vlak (--elev-1, schaduw --shadow-float, in donker een haarlijn) met de
+   hoek van een kaart, rechts op de kolomlijn en --s2 onder het icoon (Popmenu.jsx). De bronregel
+   verandert niet. Rijen van 44 (raakvlak), met een muis 36; tekst 15/20 in inkt, op --s3 + --s1 van
+   de rand. Scheidingen in --rule, zoals de secties in het menu van de app. */
+.popmenu {
+  position: fixed;
+  z-index: var(--z-overlay);
+  box-sizing: border-box;
+  min-width: 13rem;
+  max-width: min(18rem, calc(100vw - 2 * var(--gutter)));
+  padding: var(--s1);
+  border-radius: var(--radius-card);
+  background: var(--elev-1);
+  box-shadow: 0 0 0 1px var(--elev-edge), var(--shadow-float);
+  color: var(--ink);
+  animation: popmenu-in var(--dur-1) var(--ease);
+  transform-origin: top right;
+}
+.popmenu[data-side='boven'] {
+  transform-origin: bottom right;
+}
+@keyframes popmenu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .popmenu {
+    animation: none;
+  }
+}
+.popmenu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s2) var(--s3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--t2);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-2);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .popmenu__item {
+    min-height: var(--control-sm);
+  }
+  .popmenu__item:hover {
+    background-color: var(--state-hover);
+  }
+}
+.popmenu__item:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px; /* binnen het vlak: de ring botst niet met de rand van het menu */
+}
+.popmenu__item:active {
+  background-color: var(--state-press);
+}
+.popmenu__item > svg {
+  flex: none;
+  color: var(--ink-3);
+}
+/* Terug uit de redenen: het pijltje vooraan, de vraag als kop van het lijstje. */
+.popmenu__back {
+  justify-content: flex-start;
+  gap: var(--s2);
+  font-weight: var(--fw-ui);
+}
+.popmenu__sep {
+  height: 1px;
+  margin: var(--s1) var(--s3);
+  background: var(--rule);
+}
+/* ⋯ zelf: zolang het menu open is blijft hij zichtbaar (ook zonder hover), in inkt in plaats van stil
+   grijs. Geen vlak: de knop steekt --tap-inset de goot in en een vlak zou daar afgesneden worden. */
+:is(.meta, .kmeta) > .iconbtn.is-open {
+  opacity: 1;
+  color: var(--ink);
+  background-color: transparent;
+}

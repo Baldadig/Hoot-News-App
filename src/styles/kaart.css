@@ -139,11 +139,6 @@
 .kmeta[data-stack] > .kmeta__src {
   flex-basis: 100%;
 }
-.kmeta > :is(.taste, .taste__said) {
-  order: 9;
-  flex: 0 0 100%;
-  justify-content: flex-start;
-}
 
 /* ---------- Hoofdverhaal (01): beeld tot de rand 3:2, kop 30/36, intro 20/30, het nummer in het
    enige rood, en een sterke inktlijn eronder als begin van de lijst. ---------- */
