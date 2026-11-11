@@ -17,6 +17,7 @@ import { composePersonal, withoutDebug, editionBasis, earlierEditions } from './
 import { previousOf, historyOf, recentEditions, HISTORY_MAX } from '../../netlify/lib/stories.mjs'
 import { profileOf, supplyOf, profileSummary } from '../../shared/editor.mjs'
 import { forEdition } from '../../shared/stroom.mjs'
+import { readingSummary } from './affinity.js'
 
 export const CORE_VERSION = 1
 export const HISTORY_SIZE = HISTORY_MAX // zoveel Edities diep kijkt `previous` (aanvulling H3)
@@ -64,7 +65,9 @@ function inputOf(input) {
     interests: input.interests || [],
     topics: input.topics || [],
     favorites: input.favorites || [],
-    affinity: input.affinity || null,
+    // `reading`: je leesprofiel zoals het naar de server gaat (readingSummary); het vangnet van de app rekent
+    // daarmee, net als het web. Zonder `reading` het ruwe `affinity` (de pariteitstests, app 1.2).
+    affinity: 'reading' in input ? readingSummary(input.reading) : input.affinity || null,
     taste: input.taste || null,
     readIds,
     previous: previousFrom(input.previous),
@@ -155,6 +158,13 @@ export function profileSummaryJSON(jsonIn) {
 }
 
 export { editionBasis, profileSummary }
+
+// De samenvatting van je leesprofiel die mee gaat naar de server (src/lib/affinity.js readingSummary), met
+// tekst heen en terug: zo stuurt de app precies wat het web stuurt. "null" zolang lezen nog niet meetelt.
+export { readingSummary }
+export function readingSummaryJSON(affinityJSON) {
+  return JSON.stringify(readingSummary(typeof affinityJSON === 'string' ? JSON.parse(affinityJSON) : affinityJSON))
+}
 
 // Het voorstel bovenaan de bronnenstap van het welkom (1.1.1): dezelfde regels op web en app (shared/voorstel.mjs).
 export { voorstelJSON } from '../../shared/voorstel.mjs'

@@ -13,8 +13,13 @@
 //  - Zonder account: samengesteld uit de body (met `earlier`: de history-regels van je vorige Edities op
 //    dit toestel) en bewaard per profiel-afdruk en dagdeel (`cache`), zodat dezelfde vraag één keer rekent.
 //  - Het toestel slaat het antwoord letterlijk op en rekent zelf alleen nog als offline-vangnet.
-// Je leesprofiel (`affinity`) wordt niet aangenomen: het blijft op je toestel, en web en iPhone hebben elk
-// een eigen leesprofiel (dezelfde Editie kan alleen zonder). We loggen niets van body, account, IP of token.
+// Je leesprofiel gaat mee als samenvatting (`reading`, besluit Alex 11 november 2026: "Leesprofiel meesturen"):
+// alleen de gewichten per onderwerp en bron die De Redacteur gebruikt (readingSummary in src/lib/affinity.js).
+// Zo is de Editie van de server weer die van de lokale samenstelling met hetzelfde profiel. Het ruwe
+// `affinity` wordt nog steeds niet aangenomen. Web en iPhone hebben elk een eigen leesprofiel; als lid wint de
+// eerste schrijver, dus beide tonen dezelfde Editie. De samenvatting telt mee in de afdruk van de cache zonder
+// account (als hash), niet in `basis`: anders zou je Editie bij elk gelezen stuk wisselen, en zou een rij van
+// app 1.2 nooit meer passen. We loggen niets van body, account, IP of token, en bewaren de samenvatting niet.
 // Rate limiting: per IP via Netlify (config.rateLimit) en per lid een plafond per dagdeel (kvTake).
 //
 // Versie 1 (geen `v`; app 1.1.1 en 1.2 als terugval) blijft zoals het was:
@@ -28,7 +33,8 @@
 //         taste: { topics, sources } (meer of minder hiervan, ook negatief),
 //         previous: { storyIds: [], itemIds: [], leadIds: [], leadStoryId, leadStoryIds: [], at, atOf: { [verhaal-id]: ms },
 //                     titles: [], shown: [{ title, summary, publishedAt }], keysOf: { [verhaal-id]: [kenmerk] } } }
-// Body v2: { v: 2, followed, interests, topics, favorites, taste, readIds, earlier: [history-regel] (alleen zonder account) }
+// Body v2: { v: 2, followed, interests, topics, favorites, taste, readIds, reading: { n, topics, sources } | weg,
+//          earlier: [history-regel] (alleen zonder account) }
 // `previous` mag drie Edities omvatten (bouwspec-aanvulling H3/H4, previousOf over een lijst): vandaar
 // de ruime grenzen (90 verhalen, 4500 stukken) en `atOf` (per verhaal de builtAt van de laatste Editie
 // waarin het stond) naast `at`. `keysOf` zijn de kenmerken van toen per verhaal (de `keys` van de
@@ -41,6 +47,7 @@ import { previousOf, historyOf, recentEditions, HISTORY_MAX } from '../lib/stori
 import { composePersonal, withoutDebug, editionBasis, earlierEditions } from '../../src/lib/personal.js'
 import { fitsEdition, accountAhead, claimFilter, readAccountEdition, TABLE } from '../../src/lib/editionSync.js'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
+import { readingSummary } from '../../src/lib/affinity.js'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 
 const fail = (status, error, headers = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
@@ -137,7 +144,8 @@ export const MEMBER_PER_SLOT = 20 // samenstellingen per lid per dagdeel; een tr
 export const TIMEOUT_HINT_S = 60 // Retry-After bij 429: het toestel toont zolang het vangnet
 const sha = (s) => createHash('sha256').update(s).digest('hex')
 
-// Het profiel uit de body, schoon en begrensd. `affinity` en `previous` doen in v2 niet mee.
+// Het profiel uit de body, schoon en begrensd. `reading`: de samenvatting van je leesprofiel, opnieuw door
+// readingSummary (een geldige samenvatting komt er ongewijzigd uit). `affinity` en `previous` doen in v2 niet mee.
 export function profileOf(start, body) {
   const followed = followedOf(start, body)
   const t = body.taste && typeof body.taste === 'object' ? body.taste : null
@@ -148,6 +156,7 @@ export function profileOf(start, body) {
     favorites: ids(body.favorites, 50),
     taste: t ? { topics: signed(t.topics), sources: signed(t.sources) } : null,
     readIds: ids(body.readIds, READ_MAX),
+    reading: readingSummary(body.reading),
   }
 }
 
@@ -174,7 +183,7 @@ export function cleanEarlier(list) {
 // De afdruk van een vraag zonder account: alles wat de Editie bepaalt, in een vaste volgorde.
 export function anonKey(globalId, p, earlier) {
   const sorted = (xs) => [...xs].sort()
-  const norm = JSON.stringify([sorted(p.followed), sorted(p.interests), sorted(p.topics), sorted(p.favorites), p.taste, sorted(p.readIds), earlier])
+  const norm = JSON.stringify([sorted(p.followed), sorted(p.interests), sorted(p.topics), sorted(p.favorites), p.taste, sorted(p.readIds), earlier, p.reading ?? null])
   return `pe:${EDITOR_REVISION}:${globalId}:${sha(norm)}`
 }
 
@@ -192,7 +201,7 @@ export function composeFor(start, items, p, { owner, earlier = [] }) {
     topics: p.topics,
     favorites: p.favorites,
     now: Date.parse(global?.builtAt) || Date.now(),
-    affinity: null, // blijft op het toestel (zie boven)
+    affinity: p.reading ?? null, // de samenvatting van je leesprofiel (zie boven)
     taste: p.taste,
     previous: previousOf(earlier),
     readIds: new Set(p.readIds),
