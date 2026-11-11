@@ -70,13 +70,30 @@ const NOISE_CATEGORY = new Set([
   'newsletter sign-up', 'newsletter signup', 'newsletter sign up', 'press release', 'press releases', 'persbericht', '.actie', '.plan',
 ])
 const AD_LABEL = /^[\s"'‘“([]*(advertentie|advertorial|gesponsord|sponsored(?: content)?|partner ?content|partnerbijdrage|paid (?:post|content)|branded content|promoted)\s*[:|\]–—]/i
-export function noiseReason(it = {}, cats = []) {
+// Per bron (Redacteur · wired-deals, 11 november 2026): een bron kan in sources.mjs een eigen aanbodrubriek opgeven
+// (`dealsCategory`, nu alleen Wired: "Gear / Deals"). Een algemene regel "… / Deals" kan bij een andere bron een
+// overnamerubriek zijn ("Business / Deals"), daarom geldt dit alleen voor de bron die het opgeeft. En ook dan alleen als de
+// feed het stuk uitsluitend als aanbod indeelt: de rubriek zelf en hoogstens haar bovenrubriek ("Gear"), niets anders.
+// Wired zet "Gear / Deals" namelijk ook op journalistiek over koopjes en prijzen ("$1,200 Off the iPhone Duo? Here's How
+// Carrier Deals Actually Work", "The New M6 MacBook Pro Has a Serious Price Problem"); die hebben er een productrubriek bij
+// ("Gear / Products / Phones") en blijven dus staan. Een woord in de kop of de link telt nooit; bij twijfel blijft het staan.
+export function sourceDeal(src = {}, cats = []) {
+  const mark = String(src?.dealsCategory || '').trim().toLowerCase()
+  if (!mark) return false
+  const own = cats.map((c) => String(c).trim().toLowerCase()).filter(Boolean)
+  if (!own.includes(mark)) return false
+  const parts = mark.split(/\s*\/\s*/)
+  const parents = new Set(parts.slice(0, -1).map((_, i) => parts.slice(0, i + 1).join(' / ')))
+  return own.every((c) => c === mark || parents.has(c.split(/\s*\/\s*/).join(' / ')))
+}
+export function noiseReason(it = {}, cats = [], src = null) {
   if (cats.some((c) => NOISE_CATEGORY.has(String(c).trim().toLowerCase()))) return 'categorie'
   if (AD_LABEL.test(toText(String(it.title || '')).trim())) return 'label'
   if (rubricSegments(it.link || it.guid || '').some((s) => NOISE_RUBRIC.has(s))) return 'rubriek'
+  if (src && sourceDeal(src, cats)) return 'bron-aanbod'
   return null
 }
-export const isNoise = (it, cats = []) => noiseReason(it, cats) != null
+export const isNoise = (it, cats = [], src = null) => noiseReason(it, cats, src) != null
 // De intro uit de feed: de samenvatting, of anders de artikeltekst (content:encoded), zonder
 // een vaste aanhef als "Nature, Published online: …; doi:…". Herhaalt hij alleen de kop, dan
 // is er geen intro.
@@ -169,7 +186,7 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
       const fetchedAt = Date.now()
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
-      const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats) && (!src.keep || String(it.link || '').includes(src.keep)))
+      const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats, src) && (!src.keep || String(it.link || '').includes(src.keep)))
       const seen = new Set()
       const mapped = fresh.map(([it, cats]) => {
         const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
