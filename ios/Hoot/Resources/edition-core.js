@@ -3423,6 +3423,7 @@ var HootCore = (() => {
   // shared/kort-kop.mjs
   var KORT_MAX = 60;
   var KERN_MIN2 = 24;
+  var KORT_TOEVOEGING = 4;
   var LOSSE_EINDES = /* @__PURE__ */ new Set([
     "de",
     "het",
@@ -3485,6 +3486,58 @@ var HootCore = (() => {
     "via",
     "per",
     "sinds",
+    "rond",
+    "rondom",
+    "langs",
+    "binnen",
+    "buiten",
+    "nabij",
+    "jegens",
+    "achter",
+    "boven",
+    "naast",
+    "vanaf",
+    "volgens",
+    "tijdens",
+    "wegens",
+    "vanwege",
+    "zoals",
+    "dan",
+    "hoe",
+    "waar",
+    "waarom",
+    "wanneer",
+    "nadat",
+    "terwijl",
+    "doordat",
+    "zodat",
+    "opdat",
+    "hoewel",
+    "indien",
+    "waarna",
+    "waardoor",
+    "zich",
+    "hun",
+    "ze",
+    "zij",
+    "hij",
+    "we",
+    "wij",
+    "je",
+    "jij",
+    "ik",
+    "mijn",
+    "onze",
+    "ons",
+    "jouw",
+    "uw",
+    "meer",
+    "minder",
+    "vol",
+    "wel",
+    "heel",
+    "zeer",
+    "zelfs",
     "the",
     "a",
     "an",
@@ -3517,15 +3570,94 @@ var HootCore = (() => {
     "their",
     "into",
     "after",
-    "over"
+    "over",
+    "about",
+    "amid",
+    "against",
+    "than",
+    "who",
+    "which",
+    "how",
+    "why",
+    "when",
+    "where",
+    "not",
+    "more",
+    "our",
+    "your",
+    "my",
+    "could",
+    "would",
+    "should",
+    "may",
+    "might",
+    "must",
+    "does",
+    "do",
+    "did",
+    "had",
+    "been",
+    "being",
+    "if",
+    "he",
+    "she",
+    "they",
+    "you",
+    "it",
+    "there",
+    "i"
   ]);
+  var OPEN_CITAAT = /^[‘’“'"„«‚]/u;
+  var SLUIT_CITAAT = /[’”'"»]$/u;
   var woorden = (s) => s.split(" ").filter(Boolean).length;
   var schoon = (s) => String(s ?? "").replace(/\s+/g, " ").trim();
   var staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, "");
   var kern = (s, min) => s.length >= KERN_MIN2 && woorden(s) >= min;
+  var hoofdletter = (s) => /^\p{Ll}\p{Ll}/u.test(s) ? s[0].toLocaleUpperCase("nl") + s.slice(1) : s;
+  var letters = (w) => w.toLowerCase().replace(/[^\p{L}]/gu, "");
+  function zonderLosEinde(delen, set = LOSSE_EINDES) {
+    const d = [...delen];
+    while (d.length > 1 && /\p{L}$/u.test(d[d.length - 1]) && set.has(letters(d[d.length - 1]))) d.pop();
+    return d;
+  }
+  var VOEGWOORDEN = /* @__PURE__ */ new Set(["en", "of", "maar", "want", "dus", "and", "or", "but"]);
+  function afkappen(t, max) {
+    const ruimte = max - 1;
+    const alle = t.split(" ");
+    let delen = t.slice(0, ruimte).split(" ");
+    if (t[ruimte] !== " ") delen.pop();
+    delen = zonderLosEinde(delen);
+    for (; ; ) {
+      const laatste = delen[delen.length - 1] || "";
+      const volgende = alle[delen.length] || "";
+      if (delen.length <= 2 || !/^\p{Ll}[\p{L}-]{2,}e$/u.test(laatste) || !/^[(‘’“'"]?\p{L}/u.test(volgende) || LOSSE_EINDES.has(letters(volgende))) break;
+      const korter = zonderLosEinde(delen.slice(0, -1));
+      if (korter.join(" ").length < ruimte / 3) break;
+      delen = korter;
+    }
+    let uit = staart(delen.join(" "));
+    if (!uit) uit = t.slice(0, ruimte);
+    return `${uit}…`;
+  }
+  var isCitaat = (s) => OPEN_CITAAT.test(s) && SLUIT_CITAAT.test(s) && woorden(s) >= 2;
+  var benoemd = (s) => /\d/u.test(s) || s.split(" ").slice(1).some((w) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(w));
   function kortKop(title, max = KORT_MAX) {
     const t = schoon(title);
     if (t.length <= max) return t;
+    const zin = t.match(/^(.+?(?:[?!]|\p{Ll}{3}\.))\s+\S/u);
+    if (zin && zin[1].length <= max && kern(zin[1], 4)) return zin[1];
+    const punt = t.match(/^([^:]+):\s(.+)$/u) || t.match(/^([‘“'"„«‚][^’”'"»]+[’”'"»])\s(\p{Lu}.+)$/u);
+    if (punt) {
+      const a = staart(zonderLosEinde(punt[1].split(" "), VOEGWOORDEN).join(" "));
+      const b = punt[2].trim();
+      const toevoegingB = woorden(b) <= KORT_TOEVOEGING || OPEN_CITAAT.test(b) || b.endsWith("?");
+      if (isCitaat(a)) {
+        if (kern(b, 4)) return kortKop(hoofdletter(b), max);
+      } else if (kern(a, 4)) {
+        const kiesB = !toevoegingB && kern(b, 4) && (/^\p{Lu}/u.test(b) || !benoemd(a));
+        return kiesB ? kortKop(hoofdletter(b), max) : kortKop(a, max);
+      }
+    }
     const streep = t.match(/^(.+?)\s[–—-]\s.+$/u);
     if (streep) {
       const voor = staart(streep[1]);
@@ -3536,18 +3668,15 @@ var HootCore = (() => {
       const voor = staart(haakjes[1]);
       if (voor.length <= max && kern(voor, 3)) return voor;
     }
-    const punt = t.match(/^([^:]+):\s.+$/u);
-    if (punt) {
-      const voor = staart(punt[1]);
-      if (voor.length <= max && kern(voor, 4)) return voor;
+    const zonderHaakjes = t.replace(/\s+\([^()]*\)(?=\s|$)/gu, "");
+    if (zonderHaakjes !== t && zonderHaakjes.length <= max && kern(zonderHaakjes, 3)) return zonderHaakjes;
+    const basis = zonderHaakjes !== t && kern(zonderHaakjes, 3) ? zonderHaakjes : t;
+    const komma = basis.slice(0, max - 1).lastIndexOf(", ");
+    if (komma > 0) {
+      const voor = staart(zonderLosEinde(basis.slice(0, komma).split(" ")).join(" "));
+      if (kern(voor, 4) && voor.length >= (max - 1) / 2 && !isCitaat(voor)) return `${voor}…`;
     }
-    const ruimte = max - 1;
-    const delen = t.slice(0, ruimte).split(" ");
-    if (t[ruimte] !== " ") delen.pop();
-    while (delen.length > 1 && LOSSE_EINDES.has(delen[delen.length - 1].toLowerCase().replace(/[^\p{L}]/gu, ""))) delen.pop();
-    let uit = staart(delen.join(" "));
-    if (!uit) uit = t.slice(0, ruimte);
-    return `${uit}…`;
+    return afkappen(basis, max);
   }
   function metKorteKoppen(edition) {
     if (!edition || !Array.isArray(edition.entries)) return edition;

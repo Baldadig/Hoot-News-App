@@ -58,3 +58,28 @@ test('metKorteKoppen: per plek de kop van het hoofdstuk ingekort, de rest ongemo
   assert.equal(ed.entries[0].kortKop, undefined) // het origineel blijft zoals het was
   assert.equal(metKorteKoppen(null), null)
 })
+
+// Keuring 1: echte koppen uit de feed waar de korte kop het nieuws kwijtraakte.
+test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt, vraag, bijvoeglijk naamwoord)', () => {
+  // a. Citaat vooraan: wat erna komt heeft spreker en onderwerp.
+  assert.equal(kortKop('“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten'), 'Advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi…')
+  assert.equal(kortKop('‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe techwet tegen manipulatieve trucs van big tech').startsWith('Brussel presenteert'), true)
+  // Een bijnaam is geen citaat.
+  assert.ok(kortKop('‘Romanticus’ Emma Heesters gaat op zoek naar de liefde in nieuw seizoen De Bachelorette').startsWith('‘Romanticus’ Emma Heesters'))
+  // d. Een uitwerking met een eigen, benoemd onderwerp valt niet weg.
+  assert.equal(kortKop('Meteen twee seizoenen tegelijk besteld: Netflix blaast vampierensaga ‘Twilight’ nieuw leven in'), 'Netflix blaast vampierensaga ‘Twilight’ nieuw leven in')
+  assert.equal(kortKop('Winterjas aan en paraplu blijft thuis: zo wordt het weer tijdens de intocht'), 'Zo wordt het weer tijdens de intocht')
+  // Maar is het deel ervoor het nieuws (met een naam of getal), dan blijft dat.
+  assert.equal(kortKop('Geen bezorgverbod voor Uber Eats in Amsterdam: onvoldoende nagedacht over gevolgen, oordeelt Raad van State'), 'Geen bezorgverbod voor Uber Eats in Amsterdam')
+  assert.equal(kortKop('Amsterdamse ict-blunder kost zeker 30 miljoen euro: ambtenaren komen weg met ’stevig gesprek’'), 'Amsterdamse ict-blunder kost zeker 30 miljoen euro')
+  // c. Afkappen op een zinsgrens.
+  assert.equal(kortKop('Wat wil jij weten van de klimaattop in Turkije? Stel je vragen aan onze verslaggever'), 'Wat wil jij weten van de klimaattop in Turkije?')
+  // d. Geen los voorzetsel of bijvoeglijk naamwoord aan het eind; een zelfstandig naamwoord op -e blijft.
+  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet'), 'Sluiting dreigt voor verouderde laboratoria RIVM…')
+  assert.equal(kortKop('Manon Bakker ploetert in crossweer naar eerste grote zege in 3 jaar, Lucinda Brand misstapt zich en valt uit in Niel'), 'Manon Bakker ploetert in crossweer naar eerste grote zege…')
+  assert.equal(kortKop('Topfavoriete Lucinda Brand stapt uit met blessure in Superprestige Niel'), 'Topfavoriete Lucinda Brand stapt uit met blessure…')
+  for (const kop of fx.gevallen.map((c) => kortKop(c.kop))) {
+    const laatste = kop.replace(/…$/, '').split(' ').pop().toLowerCase()
+    assert.ok(!['rond', 'langs', 'binnen', 'rondom', 'nabij', 'jegens', 'wegens', 'nadat'].includes(laatste), kop)
+  }
+})
