@@ -11,10 +11,11 @@ export default function Privacy({ onBack, backLabel }) {
         <p>Hoot heeft geen advertenties, geen trackers en geen analytics. Er worden geen cookies gezet. Hoot volgt je niet.</p>
 
         <h2 className="label label--section sect">Op je toestel</h2>
-        <p>Zonder account blijft alles op je toestel, in de opslag van je browser:</p>
+        <p>Zonder account bewaart Hoot alles op je toestel, in de opslag van je browser:</p>
         <ul>
           <li>je instellingen, bronnen en interesses;</li>
           <li>wat je bewaarde, wat je al las en welke verhalen je zag;</li>
+          <li>wat Hoot leert van wat je leest: welke onderwerpen en bronnen je vaak opent;</li>
           <li>de laatst geladen nieuwsfeed (voor een snelle start) en het weer van vandaag;</li>
           <li>waar je in een lijst was, en de laatst gebruikte inlogstap.</li>
         </ul>
@@ -24,7 +25,7 @@ export default function Privacy({ onBack, backLabel }) {
         <p>
           Een account is voor iedereen en altijd een keuze: Hoot werkt ook zonder. Inloggen gaat met Apple of Google. Hoot krijgt daarbij je naam en e-mailadres (bij Google ook je profielfoto; bij Apple kun je je e-mailadres
           verbergen). Je account staat bij Supabase, in de EU. Daar bewaren we, alleen voor jou leesbaar: je instellingen,
-          wat je bewaarde, wat je las en welke verhalen je zag. Zo gaan ze mee naar je andere toestellen.
+          wat je bewaarde, wat je las, welke verhalen je zag en je Editie. Zo gaan ze mee naar je andere toestellen.
         </p>
         <p>
           Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Je account verwijder je zelf, in de app of op de website
@@ -52,6 +53,10 @@ export default function Privacy({ onBack, backLabel }) {
             <strong>Bluesky</strong> (als je dat aanzet): de openbare Bluesky-API, voor accounts die je zelf toevoegt.
           </li>
           <li>
+            <strong>Je Editie</strong> stelt de Hoot-server samen, zodat je op de website en in de app dezelfde Editie ziet. Daarvoor gaan mee: je bronnen en interesses, welke berichten je al
+            las en een samenvatting van wat je vaak leest. De server gebruikt dat alleen om je Editie te maken en bewaart het niet. Met een account legt hij alleen de Editie zelf vast in je account.
+          </li>
+          <li>
             <strong>De Editie in één minuut</strong> (alleen met een account): de koppen en intro's van de Editie gaan naar Anthropic (Claude) om de samenvatting te schrijven. Daar zit niets van jou in.
           </li>
         </ul>
@@ -60,21 +65,21 @@ export default function Privacy({ onBack, backLabel }) {
         <h2 className="label label--section sect">De app voor iPhone en iPad</h2>
         <p>
           De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
-          log je in, dan gaan ze mee met je account (zie hierboven). Ook wat Hoot leert van
-          wat je leest (welke onderwerpen en bronnen je vaak opent) blijft op je toestel. Wat je zelf aangeeft met ‘meer
+          log je in, dan gaan ze mee met je account (zie hierboven). Wat Hoot leert van
+          wat je leest (welke onderwerpen en bronnen je vaak opent) bewaart Hoot alleen op je toestel. Wat je zelf aangeeft met ‘meer
           hiervan’ of ‘minder hiervan’ bij een verhaal is een instelling: met een account gaat die mee, en je wist hem
           in Instellingen › Editie › Wat Hoot leerde. Om je Editie samen te stellen stuurt de app je bronnen, je
-          onderwerpen en welke stukken je al las naar onze server; de server gebruikt dat alleen om je Editie te
-          maken en bewaart je leesgeschiedenis niet.
+          onderwerpen, welke stukken je al las en een samenvatting van wat je vaak leest naar onze server; de server
+          gebruikt dat alleen om je Editie te maken en bewaart het niet.
         </p>
         <ul>
           <li>
             <strong>Het nieuws</strong> haalt de app op bij de Hoot-server, net als de website.
           </li>
           <li>
-            <strong>Je eigen Editie</strong> stelt Hoot samen, op je toestel. Je bronnen, interesses en wat je las verlaten het toestel daarvoor niet; er is geen leesprofiel op een server. Alleen als dat op je toestel
-            niet lukt, is de server de terugval. Dan gaan naar de Hoot-server: je bronnen, interesses en Selectie-onderwerpen, wat je aangaf met ‘meer hiervan’ en ‘minder hiervan’, welke berichten
-            je al las en de koppen en intro's van je vorige drie Edities. Zonder je naam en zonder een vast kenmerk van je toestel. De server stelt de Editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
+            <strong>Je eigen Editie</strong> stelt Hoot samen op de Hoot-server, net als op de website. Daarvoor gaan mee: je bronnen, interesses en Selectie-onderwerpen, wat je aangaf met ‘meer hiervan’
+            en ‘minder hiervan’, welke berichten je al las en een samenvatting van wat je vaak leest (per onderwerp en bron een getal). Zonder account ook de koppen en intro's van je vorige drie Edities, zonder
+            je naam en zonder een vast kenmerk van je toestel. De server stuurt de Editie terug en bewaart niets van wat je stuurde. Zonder verbinding stelt de app hem voorlopig zelf samen.
           </li>
           <li>
             <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via de Hoot-server. Log je in de
@@ -100,7 +105,7 @@ export default function Privacy({ onBack, backLabel }) {
         <p>
           Vragen over je gegevens? Mail naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>.
         </p>
-        <p>Bijgewerkt op 5 november 2026.</p>
+        <p>Bijgewerkt op 11 november 2026.</p>
       </div>
     </section>
   )

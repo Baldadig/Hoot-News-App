@@ -232,7 +232,7 @@ test('KISS-teksten (kiss-teksten.json): geen rij zonder bediening, geen oude uit
     assert.match(s, /info@gethoot\.app/, `${f}: contact`)
   }
   // Keuze r5-namen (5 november): "Hoot kiest", geen "De Redacteur" in lezerstekst.
-  assert.match(read('views/Privacy.jsx'), /stelt Hoot samen, op je toestel/)
+  assert.match(read('views/Privacy.jsx'), /stelt Hoot samen/) // sinds 11 november op de server (leesprofiel meesturen)
   assert.doesNotMatch(read('views/Privacy.jsx'), /De Redacteur/)
   assert.match(read('views/Stream.jsx'), /Je bent bij\./)
 })

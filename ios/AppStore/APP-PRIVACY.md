@@ -47,3 +47,17 @@ Besluit: Hoot toont je Google-profielfoto in Instellingen › Account (en in de 
 - **App Store Connect**: Contactgegevens › Naam en Gebruikersinhoud › Foto's of video's staan al zo (gekoppeld, geen tracking, App-functionaliteit). Niets meer te doen.
 - **Privacybeleid** (gethoot.app/privacy, 4 november): noemt de profielfoto bij Google al. Klopt.
 - Keuze 2 hierboven (de foto niet meer bewaren) is daarmee vervallen.
+
+## 1.2.1 (11 november): De Redacteur op de server, met een samenvatting van je leesprofiel
+
+Besluit Alex (11 november): "Leesprofiel meesturen". De Editie wordt op de server samengesteld (POST /api/edition v2). Daarvoor stuurt de app mee: bronnen, interesses en onderwerpen, meer/minder hiervan, de id's van gelezen berichten (tot 1500), met account het inlogtoken, en nu ook een **samenvatting van het leesprofiel**: per onderwerp en per bron een gewicht (afgerond op twee decimalen, hooguit 40 onderwerpen en 30 bronnen) en een teller tot 30. Geen artikelen, tijden, naam of toestel-id.
+
+- **Bewaard?** Nee. De server rekent ermee en gooit het weg; niets van de body komt in een log (er staat geen `console.*` in de functie). Zonder account komt alleen een sha256-afdruk van de vraag in de cachesleutel, en in de cache alleen de Editie. Met account legt de server alleen de Editie zelf vast in `user_state.edition` (dat deed 1.2 ook al).
+- **Labels in ASC:** Apple telt gegevens die alleen voor het verzoek zelf worden gebruikt en niet bewaard, niet als "verzameld". Daarom geen nieuw label nodig. De bestaande labels (E-mailadres, Naam, Foto's, Gebruikers-ID, Productinteractie: gekoppeld, geen tracking, App-functionaliteit) dekken de opgeslagen Editie en de gesynchroniseerde leesgeschiedenis. `PrivacyInfo.xcprivacy` blijft gelijk.
+- **Tekst die niet meer klopte, aangepast in de repo:** `metadata/nl-NL/description.txt` zei "Wat de app leert van je leesgedrag, blijft op je toestel." Nu: "…, bewaart Hoot alleen op je toestel." Het privacybeleid (`src/views/Privacy.jsx`, gethoot.app/privacy) noemt de samenvatting nu.
+
+**Na te lopen door Alex in App Store Connect (bij het indienen van 1.2.1):**
+1. Beschrijving (nl-NL): de zin over het leesgedrag vervangen door die uit `description.txt`. De beschrijving kan alleen mee met een nieuwe versie.
+2. App Privacy: niets wijzigen, wel nalezen dat er geen label "Gebruiksgegevens › Andere gebruiksgegevens" of "Browsegeschiedenis" nodig is volgens de uitleg hierboven (alleen voor het verzoek, niet bewaard).
+3. Privacybeleid-URL: pas na de deploy van de website klopt gethoot.app/privacy met 1.2.1. Eerst de website deployen, dan indienen.
+4. Release notes van 1.2.1: als je het noemt, kort en eerlijk ("je Editie is op iPhone en web dezelfde").
