@@ -115,3 +115,21 @@ test('ruis: wat de oude woordfilter als deal weerde, gaat nu naar de Editie-rout
   // En voor de live koppen die de oude filter weerde (11 november, 20:00): allemaal een zwak signaal.
   for (const title of ['The 22 Best Early Black Friday Deals: Our Ultimate Picks (2026)', 'Home Depot Promo Codes: 30% Off in November 2026', 'Sharge’s eye-catching MacBook charger is over 25 percent off', 'Best Gifts for Hikers, Backpackers, Outdoorsy People (2026)', 'Kitchen Gear From Our Place Is Steeply Discounted', 'Visible Promo Codes and Coupons for November 2026']) assert.ok(weakSignal({ title }), title)
 })
+
+test('ruis: een waarschijnlijk aanbod telt niet mee voor de vensters (Stroom 60, Editie de eerste 30) en wordt nooit geweerd', async () => {
+  const { firstOf, recentOf, offerHint } = await import('../netlify/lib/stream.mjs')
+  const NOW = Date.parse('2026-11-27T10:00:00Z')
+  const nieuwsItem = (k) => ({ id: `n${k}`, title: `Gewoon nieuws ${k}`, publishedAt: new Date(NOW - k * 60e3).toISOString() })
+  const deal = (k) => ({ id: `d${k}`, title: `Best Early Black Friday Deals ${k} (2026)`, cats: 'Gear Gear / Deals', publishedAt: new Date(NOW - k * 60e3 - 30e3).toISOString() })
+  // Een dealrijke feed: om en om een deal en een nieuwsbericht.
+  const feed = Array.from({ length: 40 }, (_, k) => [nieuwsItem(k), deal(k)]).flat()
+  const venster = firstOf(feed, 30)
+  assert.equal(venster.filter((i) => i.id.startsWith('n')).length, 30) // het nieuws houdt al zijn plekken
+  assert.ok(venster.some((i) => i.id.startsWith('d'))) // de deals binnen de grens blijven staan
+  const stroom = recentOf(Array.from({ length: 70 }, (_, k) => [nieuwsItem(k), deal(k)]).flat(), { now: NOW })
+  assert.equal(stroom.filter((i) => i.id.startsWith('n')).length, 60)
+  // Alleen tellen: nieuws met zo'n woord blijft staan en telt dan ook niet mee (één plek extra voor het nieuws erna).
+  assert.equal(offerHint({ title: 'Techbeurs Nasdaq veert weer op na massale uitverkoop' }), true)
+  assert.deepEqual(firstOf([{ id: 'a', title: 'Nasdaq na massale uitverkoop' }, { id: 'b', title: 'Kabinet valt' }], 1).map((i) => i.id), ['a', 'b'])
+  assert.equal(offerHint({ title: 'Kabinet valt over stikstof', cats: 'Politiek' }), false)
+})
