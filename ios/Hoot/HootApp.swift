@@ -234,6 +234,16 @@ struct RootView: View {
         .environment(\.openTab) { tab = $0 }
         .background { if reader.item == nil { shortcuts } } // niet achter de open lezer
         .tabBarMinimizeBehavior(.onScrollDown)
+        // Meten zonder volgen (Telling.swift): welk tabblad opent. De Editie telt één keer per dagdeel, ook als hij pas laadt.
+        .onChange(of: tab, initial: true) { _, t in
+            switch t {
+            case .editie: store.tel(.editieOpen)
+            case .stroom: store.tel(.stroomOpen)
+            case .digest: store.tel(.selectieOpen)
+            default: break
+            }
+        }
+        .onChange(of: store.edition?.id) { if tab == .editie { store.tel(.editieOpen) } }
         .task { await store.load() }
         #if DEBUG
         .onAppear {

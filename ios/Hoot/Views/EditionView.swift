@@ -638,6 +638,7 @@ struct EditionView: View {
             }
             // Het einde van de eerste Editie in beeld: één keer de vraag om een seintje, los van de eindkaart.
             .onChange(of: endVisible) { _, visible in
+                if visible { store.tel(.editieEinde) } // gemeten: één keer per dagdeel (Telling.swift)
                 guard visible, !alertAsk, EditionAlerts.offerAfterEdition(permission: alerts.permission, notify: store.notify, offered: alertOffered, browsing: store.browsing) else { return }
                 alertOffered = true // gesteld zodra de kaart in beeld komt: wie niet antwoordt, ziet hem niet weer
                 withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
@@ -759,6 +760,7 @@ struct StoryView: View {
             }
         }
         .task { items = await store.storyItems(story) }
+        .onAppear { store.tel(.vergelijkOpen) }
         .onAppear { UserDefaults.standard.set(true, forKey: KantenTip.key) } // wie vergelijkt, kent het: geen tip meer
     }
 

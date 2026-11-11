@@ -76,6 +76,44 @@ export async function kvTake(key, limit, { tries = 8 } = {}) {
   return null
 }
 
+// Een JSON-document atomair bijwerken: `fn(huidig | null)` geeft de nieuwe waarde (of undefined: niets doen).
+// Voorwaardelijk schrijven op de ETag met nieuwe pogingen, zoals kvTake: twee gelijktijdige updates verliezen
+// nooit een van beide. `fn` moet zuiver zijn (hij kan opnieuw lopen). Geeft de nieuwe waarde, of null als het
+// bij drukte niet lukte. `store` is er voor de toetsen. Zonder Blobs in het geheugen, zonder await tussen
+// lezen en schrijven.
+// Bij een botsing wacht een poging een willekeurige, groeiende tijd (`wait` ms als basis, 0 = niet wachten),
+// zodat een golf gelijktijdige tellingen zich uitspreidt in plaats van steeds samen opnieuw te botsen.
+export async function kvUpdate(key, fn, { tries = 8, store: given, wait = 0, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
+  let s
+  try {
+    s = given || strongStore()
+  } catch (e) {
+    fellBack('bijwerken', key, e)
+    return memUpdate(key, fn)
+  }
+  for (let i = 0; i < tries; i++) {
+    try {
+      const cur = await s.getWithMetadata(key, { type: 'json' })
+      const next = fn(cur?.data ?? null)
+      if (next === undefined) return cur?.data ?? null
+      const r = await s.setJSON(key, next, cur ? { onlyIfMatch: cur.etag } : { onlyIfNew: true })
+      mode = 'blobs'
+      if (r?.modified !== false) return next
+    } catch (e) {
+      fellBack('bijwerken', key, e)
+      return memUpdate(key, fn)
+    }
+    if (wait > 0 && i < tries - 1) await sleep(Math.random() * Math.min(40 * wait, wait * 2 ** i))
+  }
+  return null
+}
+function memUpdate(key, fn) {
+  const next = fn(mem.get(key) ?? null)
+  if (next === undefined) return mem.get(key) ?? null
+  mem.set(key, next)
+  return next
+}
+
 // Het omgekeerde (een mislukte samenvatting telt niet mee): atomair één omlaag, nooit onder nul.
 export async function kvGive(key, { tries = 8 } = {}) {
   let s

@@ -43,7 +43,7 @@ test('andere voorvoegsels blijven staan en worden niet eens opgevraagd', async (
   const gevraagd = []
   const list = async (p) => { gevraagd.push(p); return n.list(p) }
   await opruimen({ now: NOW, list, remove: n.remove, log: n.log })
-  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'brief-quota-'])
+  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'brief-quota-', 'tel:'])
   for (const k of andere) assert.ok(n.s.has(k), k)
   assert.equal(n.s.size, andere.length)
 })
@@ -98,4 +98,15 @@ test('slotNumber en expired: ongeldige data en dagdelen geven null', () => {
   assert.equal(slotNumber('2026-11-01', 'nacht'), null)
   assert.equal(slotNumber('2026-11-02', 'ochtend') - slotNumber('2026-11-01', 'avond'), 1)
   assert.equal(expired('pe:', 'pe:x', { slotNow: 1, dayNow: 1 }), null)
+})
+
+test('tel: dagtellers blijven 400 dagen, daarna weg; een vreemde tel-sleutel blijft staan', async () => {
+  const oud = ['tel:2025-10-01'] // > 400 dagen voor 11 nov 2026
+  const houd = ['tel:2025-10-12', 'tel:2026-11-11', 'tel:2026-01-01', 'tel:kapot']
+  const n = nepStore([...oud, ...houd])
+  const r = await opruimen({ now: NOW, list: n.list, remove: n.remove, log: n.log })
+  for (const k of oud) assert.ok(!n.s.has(k), k)
+  for (const k of houd) assert.ok(n.s.has(k), k)
+  assert.equal(r.perVoorvoegsel['tel:'].verwijderd, 1)
+  assert.equal(r.perVoorvoegsel['tel:'].overgeslagen, 1)
 })

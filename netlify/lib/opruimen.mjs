@@ -1,7 +1,8 @@
 // Opruimen: wat het privacybeleid belooft, de server bewaart je persoonlijke Editie (zonder account) hooguit een dag.
-// Drie voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
+// Vier voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
 //   pe:<revisie>:<dagdeel-id>:<sha256>        de persoonlijke Editie zonder account (netlify/functions/edition.mjs, anonKey)
 //   pe-quota:<sha256 user-id>:<dagdeel-id>    de teller per lid en dagdeel (edition.mjs)
+//   tel:<dag>                                 de dagtellers van /api/tel (meten zonder volgen): hooguit 400 dagen
 //   brief-quota-<uid>|all-<dag>               de tellers van /api/brief (netlify/functions/brief.mjs), dag = UTC-datum
 // Een dagdeel-id is `<jjjj-mm-dd>-<ochtend|middag|avond>` (editionSlot in netlify/lib/stories.mjs).
 // We houden het lopende dagdeel en het vorige (marge voor de overgang), en bij de briefteller vandaag en gisteren
@@ -9,12 +10,14 @@
 // Logt nooit sleutelinhoud: van `pe…`-sleutels hooguit het voorvoegsel, verder alleen aantallen.
 import { kvListKeys, kvDelete } from './kv.mjs'
 import { editionSlot } from './stories.mjs'
+import { KEEP_DAYS } from '../../shared/tel.mjs'
 
 const SLOT_INDEX = { ochtend: 0, middag: 1, avond: 2 }
 const DAY_MS = 864e5
 const SLOT_ID = '(\\d{4}-\\d{2}-\\d{2})-(ochtend|middag|avond)'
 const PE = new RegExp(`^pe:[A-Za-z0-9._-]+:${SLOT_ID}:[0-9a-f]{64}$`)
 const PE_QUOTA = new RegExp(`^pe-quota:[0-9a-f]{64}:${SLOT_ID}$`)
+const TEL_DAY = /^tel:(\d{4}-\d{2}-\d{2})$/
 const BRIEF_DAY = /^brief-quota-.+-(\d{4}-\d{2}-\d{2})$/
 
 // Het volgnummer van een dagdeel: oplopend in de tijd (3 per dag). null als de datum niet bestaat.
@@ -35,12 +38,17 @@ export function expired(prefix, key, { slotNow, dayNow }) {
     const n = m ? slotNumber(m[1], m[2]) : null
     return n == null ? null : n < slotNow - 1 // lopend en vorig dagdeel blijven; ook een dagdeel in de toekomst blijft
   }
+  if (prefix === 'tel:') {
+    const t = TEL_DAY.exec(key)
+    const n = t ? dayNumber(t[1]) : null
+    return n == null ? null : n < dayNow - KEEP_DAYS
+  }
   const d = BRIEF_DAY.exec(key)
   const n = d ? dayNumber(d[1]) : null
   return n == null ? null : n < dayNow - 1 // vandaag en gisteren blijven
 }
 
-const PREFIXES = ['pe:', 'pe-quota:', 'brief-quota-']
+const PREFIXES = ['pe:', 'pe-quota:', 'brief-quota-', 'tel:']
 
 export async function opruimen({ now = Date.now(), list = kvListKeys, remove = kvDelete, log = console } = {}) {
   const cur = editionSlot(new Date(now))

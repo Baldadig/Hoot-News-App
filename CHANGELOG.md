@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Meten zonder volgen** (server, web; app in de volgende build): Hoot telt alleen totalen per dag (Edities geopend en uitgelezen per dagdeel, artikelen, Stroom, Selectie, vergelijken, delen), zonder te weten wie. `POST /api/tel`, uitlezen met `GET /api/tel?dagen=14` of `node scripts/tel.mjs`. Geen id, IP, cookie of tijdstempel per gebeurtenis; Do Not Track en Global Privacy Control worden gerespecteerd. Privacybeleid bijgewerkt.
+
 - **Privacy: opruimen** (server): een persoonlijke Editie zonder account en de tellers per lid worden na hooguit een dag opgeruimd. Het privacybeleid zegt nu precies dat.
 
 - **iOS 1.2.1 (build 52)** is de app-kant van onderstaande punten: account rechtsboven, Opinie-tab, de Editie van de server, het seintje op het ochtendmoment van de server, het Duo-tafelblad liggend en delen met link.

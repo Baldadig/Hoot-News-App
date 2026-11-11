@@ -1234,7 +1234,10 @@ final class HootStore {
     func removeSaved(at offsets: IndexSet) { saved.remove(atOffsets: offsets) }
     // "Ongedaan maken" na verwijderen: terug op zijn oude plek.
     func restoreSaved(_ item: Item, at index: Int) { if !isSaved(item) { saved.insert(item, at: min(index, saved.count)) } }
+    /// Meten zonder volgen (Telling.swift): één gebeurtenis, met het dagdeel van de Editie die je ziet.
+    func tel(_ event: Telling.Event) { Telling.stuur(event, dagdeel: Telling.dagdeel(date: edition?.date, slot: edition?.slot)) }
     func markRead(_ item: Item) {
+        tel(.artikelOpen)
         guard !readSet.contains(item.id) else { return }
         affinity.learn(item, weight: 1)
         readSet.insert(item.id)
