@@ -24,6 +24,7 @@ import { wholeSentences, INTRO_LINES, KAART_LINES } from '../../shared/zinnen.mj
 import { useIntroMax } from '../lib/intro.js'
 import { EditionNumber } from './EditionNumber.jsx'
 import { useVouw } from '../lib/vouw.js'
+import { opinieInStroom } from '../../shared/opinie.mjs'
 
 // Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
 // ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
@@ -100,7 +101,7 @@ function Kicker({ item, extra, followed, n = null }) {
   const bits = []
   if (n) bits.push(<EditionNumber key="n" n={n} />)
   if (extra) bits.push(<span key="x">{extra}</span>)
-  if (item.type === 'opinie') bits.push(<span key="t" className="kicker__type">Opinie</span>)
+  if (opinieInStroom(item)) bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
   if (followed) bits.push(<span key="f" className="label--meta front__followed">{followed}</span>) // stil: een staat, geen rubriek
   return bits.length ? <p className="label label--kicker kicker">{bits}</p> : null
