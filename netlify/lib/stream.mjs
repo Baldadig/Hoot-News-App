@@ -12,12 +12,23 @@ export const STORE_KEY = 'stream-v1'
 const HOUR = 36e5
 const SOURCE = new Map(SOURCES.map((s) => [s.id, s]))
 
+// Wat waarschijnlijk een aanbod is, telt niet mee voor de vensters hieronder (Redacteur · ruis, 11 november 2026). De
+// ophaalfilter (isNoise, rss.mjs) gooit deals niet meer op woorden weg; zonder dit zouden ze in een dealrijke feed (Wired,
+// IGN rond Black Friday) de plekken van het nieuws innemen: in de Stroom (hooguit 60 per bron) en in het Editie-venster
+// (de eerste 30). Dit WEERT NIETS: zo'n stuk blijft binnen de grens staan, net als een stuk in een andere taal; het telt
+// alleen niet mee. De woorden zijn die van de oude ophaalfilter, zodat het nieuws precies dezelfde plekken houdt.
+const OFFER_HINT = /\b(prime day|black friday|cyber monday|singles day|promo codes?|coupon codes?|gift guides?|best gifts?|gifts? for (him|her|men|women|kids|dads?|moms?))\b|\bbest\b.*\bdeals\b|\bdeals\b.*(\bsave\b|\$\d|\bunder \$)|\d+ ?(%|percent) off\b|\b(aanbiedingen?|in de aanbieding|kortingscodes?|dagdeals?|prijsfouten?|uitverkoop|koopjes|tijdelijk (goedkoper|in prijs verlaagd)|nu \d+ ?% korting)\b|\b\w+-deals\b|^[^:]{0,60}\bnewsletter:/i
+const OFFER_CATEGORY = /\b(deals|coupons?|shopping)\b|\baanbieding/i
+export const offerHint = (it = {}) => OFFER_HINT.test(String(it.title || '')) || OFFER_CATEGORY.test(String(it.cats || ''))
+// Telt een bericht mee voor een venster? Niet als het in een andere taal is (`offLang`) of waarschijnlijk een aanbod.
+const counts = (it) => !it.offLang && !offerHint(it)
+
 // De eerste `limit` berichten in feedvolgorde. De grens telt alleen berichten in de taal van de bron:
 // anders drukken de Engelstalige Parool-stukken (een derde van de feed) de Nederlandse eruit.
-// Afwijkende berichten binnen die grens blijven, gemarkeerd.
+// Afwijkende berichten (en een waarschijnlijk aanbod, offerHint) binnen die grens blijven, gemarkeerd.
 export function firstOf(items = [], limit = Infinity) {
   let kept = 0
-  return items.filter((i) => (i.offLang ? kept < limit : kept < limit && ++kept))
+  return items.filter((i) => (!counts(i) ? kept < limit : kept < limit && ++kept))
 }
 
 // Leeftijd volgens de publicatietijd; zonder tijd telt wanneer de feed het bericht het laatst
@@ -31,7 +42,7 @@ export function recentOf(list = [], { now = Date.now(), hours = STREAM_HOURS, ma
   const since = now - hours * HOUR
   const sorted = list.filter((it) => timeOf(it) >= since).sort((a, b) => timeOf(b) - timeOf(a))
   let kept = 0
-  return sorted.filter((it) => (it.offLang ? kept < max : kept < max && ++kept))
+  return sorted.filter((it) => (!counts(it) ? kept < max : kept < max && ++kept))
 }
 
 // Eén bron: wat de feed nu geeft (`fresh`) plus wat we bewaarden (`stored`).

@@ -2,7 +2,7 @@
 // geen netwerk, geen sleutel. Alleen "aanbieding"/"aankondiging" met zeker = true weert; elke fout = niets weren.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { aiExclusions, aiEnabled, echoMatches, MAX_SHARE, SWITCH, candidates, weakSignal, readVerdicts, promptOf, judge, excludes, cacheKeyOf, dayKey, loadCache, saveCache, SYSTEM, SCHEMA, MODEL, MAX_BATCH, MAX_CANDIDATES, PREFIX } from '../netlify/lib/editie-ai.mjs'
+import { aiExclusions, aiEnabled, codeOf, codesFor, controlsOf, VERIFY_SHARE, HARD_MIN, HARD_SHARE, MAX_TRIES, SWITCH, candidates, weakSignal, readVerdicts, promptOf, judge, excludes, cacheKeyOf, dayKey, loadCache, saveCache, SYSTEM, SCHEMA, MODEL, MAX_BATCH, MAX_CANDIDATES, PREFIX } from '../netlify/lib/editie-ai.mjs'
 
 const NOW = Date.parse('2026-11-27T10:00:00Z')
 const iso = (ms) => new Date(ms).toISOString()
@@ -25,10 +25,11 @@ function nepModel(answer, { stop = 'end_turn', delay = 0, fail = null, raw = nul
         if (delay) await new Promise((r) => setTimeout(r, delay))
         if (fail) throw fail
         const n = (params.messages[0].content.match(/^\d+\. bron:/gm) || []).length
-        // Het nep-model geeft per oordeel de kop terug (de echo), tenzij het antwoord er zelf een heeft.
+        // Het nep-model geeft per oordeel de code van dat nummer terug, tenzij het antwoord er zelf een heeft.
+        const codes = [...params.messages[0].content.matchAll(/^ {3}code: (.*)$/gm)].map((m) => m[1])
         const kops = [...params.messages[0].content.matchAll(/^ {3}kop: (.*)$/gm)].map((m) => m[1])
-        const withEcho = (o) => (o && typeof o === 'object' && !('kop' in o) && Number.isInteger(o.nr) ? { kop: kops[o.nr - 1] || '', ...o } : o)
-        const text = raw ?? JSON.stringify({ oordelen: answer(n).map(withEcho) })
+        const withEcho = (o) => (o && typeof o === 'object' && !('code' in o) && Number.isInteger(o.nr) ? { code: codes[o.nr - 1] || '', ...o } : o)
+        const text = raw ?? JSON.stringify({ oordelen: answer(n, kops).map(withEcho) })
         return { stop_reason: stop, content: [{ type: 'text', text }], usage: { input_tokens: 1000 + 120 * n, output_tokens: 40 * n } }
       },
     },
@@ -89,7 +90,9 @@ test('B: een fout van het model = niets weren', async () => {
   const { weg, stats } = await aiExclusions({ pool, now: NOW, client: nepModel(byTitle(pool), { fail: new Error('overloaded') }), kv, log: quiet, enabled: true })
   assert.equal(weg.size, 0)
   assert.ok(stats.fout)
-  assert.equal(kv.m.size, 0)
+  // Geen oordeel bewaard; alleen de poging telt (herstel AI-keuring 2: begrensd per stuk per dag).
+  assert.deepEqual(kv.m.get(dayKey(NOW)).o, {})
+  assert.equal(Object.keys(kv.m.get(dayKey(NOW)).p).length, 4)
 })
 
 test('B: een time-out = niets weren, en de stap wacht niet langer dan zijn grens', async () => {
@@ -254,49 +257,134 @@ test('B herstel: eigen uitknop: zonder HOOT_EDITIE_AI=aan vraagt, leest en weert
   if (!aiEnabled()) assert.equal((await aiExclusions({ pool, now: NOW, client, kv, log: quiet })).weg.size, 0)
 })
 
-test('B herstel: elk oordeel herhaalt de kop; een verschoven nummer weert geen nieuws', async () => {
-  assert.ok(SCHEMA.properties.oordelen.items.required.includes('kop'))
-  assert.ok(SYSTEM.includes('eerste vijf woorden van de kop'))
-  assert.equal(echoMatches('The Sonos Era 100 is', 'The Sonos Era 100 is $70 off right now'), true)
-  assert.equal(echoMatches('the sonos era', 'The Sonos Era 100 is $70 off right now'), true)
-  assert.equal(echoMatches('Sonos Era 100', 'The Sonos Era 100 is $70 off right now'), false)
-  assert.equal(echoMatches('', 'Kop'), false)
-  assert.equal(echoMatches('Deal', 'Deal'), true)
-  assert.equal(echoMatches('Black', 'Black Friday trekt minder kopers'), false) // te kort: minstens drie woorden als de kop die heeft
-  assert.equal(echoMatches('Één kop: één', 'Eén kop: één woord'), true) // accenten en leestekens tellen niet
-  // Het model nummert één plek verschoven, maar herhaalt de kop van het stuk dat het écht bedoelt: dat oordeel valt weg.
-  const xs = [it('nieuws', 'ACM beboet webwinkel voor nepkortingen', { publishedAt: iso(NOW - 60e3) }), it('deal', 'Grab the Xbox Series X for $399')] // nieuws is nr 1, de deal nr 2
-  const shifted = nepModel(() => [
-    { nr: 1, kop: 'Grab the Xbox Series', soort: 'aanbieding', zeker: true, reden: 'x' },
-    { nr: 2, kop: 'ACM beboet webwinkel voor', soort: 'nieuws', zeker: true, reden: 'x' },
-  ])
+test('B herstel 2: elk oordeel geeft nummer + code terug; verwisseling bij gelijk begin weert geen nieuws', async () => {
+  assert.ok(SCHEMA.properties.oordelen.items.required.includes('code'))
+  assert.ok(!('kop' in SCHEMA.properties.oordelen.items.properties))
+  assert.ok(SYSTEM.includes('de code van dat stuk letterlijk overgenomen'))
+  // De code hangt aan id én kop; twee koppen met hetzelfde begin krijgen elk een eigen code.
+  const a = it('bf-nieuws', 'Black Friday-deals: ACM waarschuwt voor nepkortingen bij vijf webwinkels', { publishedAt: iso(NOW - 60e3) })
+  const b = it('bf-deal', 'Black Friday-deals: AirPods Pro voor 179 euro bij Coolblue')
+  assert.notEqual(codeOf(a), codeOf(b))
+  assert.equal(codeOf(a), codeOf({ ...a })) // vast: dezelfde invoer, dezelfde code
+  assert.notEqual(codeOf(a), codeOf({ ...a, title: a.title + '!' }))
+  assert.equal(new Set(codesFor([a, a, a])).size, 3) // uniek binnen één aanroep
+  const p = promptOf([a, b])
+  assert.match(p, new RegExp(`1\\. bron: The Verge\n {3}kop: Black Friday-deals: ACM[^\n]*\n {3}intro: \\(geen\\)\n {3}link: [^\n]*\n {3}code: ${codeOf(a)}`))
+  // Het verwisselende model: het oordeel over de deal komt op nummer 1 (het nieuws) met de code van de deal, en omgekeerd.
+  const swap = nepModel((n, kops) => {
+    const nrNieuws = kops.findIndex((k) => k.includes('ACM')) + 1, nrDeal = kops.findIndex((k) => k.includes('AirPods')) + 1
+    return [
+      { nr: nrNieuws, code: codeOf(b), soort: 'aanbieding', zeker: true, reden: 'x' },
+      { nr: nrDeal, code: codeOf(a), soort: 'nieuws', zeker: true, reden: 'x' },
+    ]
+  })
   const kv = nepKv()
-  const r = await aiExclusions({ pool: xs, now: NOW, client: shifted, kv, log: quiet, enabled: true })
+  const r = await aiExclusions({ pool: [a, b], now: NOW, client: swap, kv, log: quiet, enabled: true })
   assert.equal(r.weg.size, 0)
   assert.equal(r.stats.beoordeeld, 0)
-  assert.equal(kv.m.size, 0) // een niet-passend oordeel wordt ook niet bewaard
-  // Zonder kop (of met een verkeerde) telt een oordeel niet.
-  const v = readVerdicts(JSON.stringify({ oordelen: [{ nr: 1, soort: 'aanbieding', zeker: true, reden: 'x' }, { nr: 2, kop: 'Iets anders helemaal', soort: 'aanbieding', zeker: true, reden: 'x' }] }), 2, ['Grab the Xbox Series X', 'Grab a Switch 2'])
+  // Ook alleen het nummer verwisseld (code klopt bij het bedoelde stuk, nummer niet): telt niet.
+  const shifted = nepModel((n, kops) => [{ nr: kops.findIndex((k) => k.includes('ACM')) + 1, code: codeOf(b), soort: 'aanbieding', zeker: true, reden: 'x' }])
+  assert.equal((await aiExclusions({ pool: [a, b], now: NOW, client: shifted, kv: nepKv(), log: quiet, enabled: true })).weg.size, 0)
+  // Zonder code, met een lege of verzonnen code: geen oordeel.
+  const v = readVerdicts(JSON.stringify({ oordelen: [{ nr: 1, soort: 'aanbieding', zeker: true, reden: 'x' }, { nr: 2, code: 'zzzzz', soort: 'aanbieding', zeker: true, reden: 'x' }, { nr: 3, code: '', soort: 'aanbieding', zeker: true, reden: 'x' }] }), 3, ['aaaaa', 'bbbbb', 'ccccc'])
   assert.equal(v.size, 0)
+  // Hoofdletters en spaties rond de code tellen niet.
+  assert.equal(readVerdicts(JSON.stringify({ oordelen: [{ nr: 1, code: ' AB12C ', soort: 'nieuws', zeker: true, reden: 'x' }] }), 1, ['ab12c']).size, 1)
+  // Het goede oordeel (juiste nummer + code) telt wel.
+  const good = nepModel((n, kops) => [{ nr: kops.findIndex((k) => k.includes('AirPods')) + 1, soort: 'aanbieding', zeker: true, reden: 'x' }, { nr: kops.findIndex((k) => k.includes('ACM')) + 1, soort: 'nieuws', zeker: true, reden: 'x' }])
+  assert.deepEqual([...(await aiExclusions({ pool: [a, b], now: NOW, client: good, kv: nepKv(), log: quiet, enabled: true })).weg], ['bf-deal'])
 })
 
-test('B herstel: plausibiliteitsgrens: wil het model meer dan de helft zeker weren, dan telt de batch niet en wordt niets bewaard', async () => {
-  assert.equal(MAX_SHARE, 0.5)
+test('B herstel 2: één echte deal wordt na een controle gewoon geweerd (geen stilstand bij een kleine batch)', async () => {
+  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
+  const gewoon = [it('c1', 'Kabinet valt over stikstof', { source: 'nos' }), it('c2', 'Aardbeving treft kust van Japan', { source: 'nos' })]
+  const client = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: /Sonos/.test(k) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
+  const kv = nepKv()
+  const r = await aiExclusions({ pool: [deal, ...gewoon], now: NOW, client, kv, log: quiet, enabled: true })
+  assert.deepEqual([...r.weg], ['deal1'])
+  assert.equal(client.calls.length, 2) // de batch (1 stuk) en de controle (het stuk + de gewone stukken)
+  const second = client.calls[1].params.messages[0].content
+  assert.match(second, /Kabinet valt over stikstof/)
+  assert.equal(r.stats.gecontroleerd, 1)
+  assert.equal(kv.m.get(dayKey(NOW)).n, 1)
+  // Bewaard: de volgende ronde vraagt niets meer.
+  const again = nepModel(() => { throw new Error('mag niet') })
+  assert.deepEqual([...(await aiExclusions({ pool: [deal, ...gewoon], now: NOW + 600e3, client: again, kv, log: quiet, enabled: true })).weg], ['deal1'])
+  assert.equal(again.calls.length, 0)
+})
+
+test('B herstel 2: een dealrijke batch (Black Friday) wordt gecontroleerd en geweerd; nieuws blijft', async () => {
+  const deals = Array.from({ length: 30 }, (_, k) => it(`bf${k}`, `Black Friday deal ${k}: koptelefoon nu $${50 + k} off`, { publishedAt: iso(NOW - k * 60e3) }))
+  const nieuws = Array.from({ length: 10 }, (_, k) => it(`nw${k}`, `ACM onderzoekt Black Friday-korting nummer ${k}`, { publishedAt: iso(NOW - (40 + k) * 60e3) }))
+  const gewoon = [it('c1', 'Kabinet valt over stikstof', { source: 'nos' }), it('c2', 'Aardbeving treft kust van Japan', { source: 'nos' }), it('c3', 'Formatie loopt vast', { source: 'nos' })]
+  const honest = (n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: /deal \d+:/.test(k) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))
+  const client = nepModel(honest)
+  const r = await aiExclusions({ pool: [...deals, ...nieuws, ...gewoon], now: NOW, client, kv: nepKv(), log: quiet, enabled: true })
+  assert.equal(r.weg.size, 30)
+  assert.ok(nieuws.every((i) => !r.weg.has(i.id)))
+  assert.equal(client.calls.length, 2)
+  assert.equal(r.stats.fout, null)
+})
+
+test('B herstel 2: een ontspoord model (alles zeker weg) weert niets: de controlestukken verraden het', async () => {
   const xs = Array.from({ length: 40 }, (_, k) => it(`y${k}`, `Kabinet ${k} bespreekt prijs van energie`))
+  const gewoon = [it('c1', 'Kabinet valt over stikstof', { source: 'nos' }), it('c2', 'Aardbeving treft kust van Japan', { source: 'nos' })]
   const gek = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: 'aanbieding', zeker: true, reden: 'x' })))
   const kv = nepKv()
   const lines = []
-  const r = await aiExclusions({ pool: xs, now: NOW, client: gek, kv, log: { log: (s) => lines.push(s) }, enabled: true })
+  const r = await aiExclusions({ pool: [...xs, ...gewoon], now: NOW, client: gek, kv, log: { log: (s) => lines.push(s) }, enabled: true })
   assert.equal(r.weg.size, 0)
   assert.equal(r.stats.fout, 'ontspoord')
-  assert.equal(kv.m.size, 0)
-  assert.match(lines[0], /fout ontspoord$/)
-  // Precies de helft mag nog (2 van 4 in de gewone proef), één meer niet.
-  const four = [it('a1', 'Deal een op tv'), it('a2', 'Deal twee op tv'), it('a3', 'Deal drie op tv'), it('a4', 'Deal vier op tv')]
-  const three = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: k < 3 ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
-  assert.equal((await aiExclusions({ pool: four, now: NOW, client: three, kv: nepKv(), log: quiet, enabled: true })).weg.size, 0)
-  const two = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: k < 2 ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
-  assert.equal((await aiExclusions({ pool: four, now: NOW, client: two, kv: nepKv(), log: quiet, enabled: true })).weg.size, 2)
+  assert.equal(Object.keys(kv.m.get(dayKey(NOW)).o).length, 0) // geen oordeel bewaard, alleen pogingen
+  assert.match(lines[0], /gecontroleerd, fout ontspoord$/)
+  // Zonder controlestukken in de pool: de harde grens (vanaf 8 stukken, meer dan 70% zeker weg).
+  assert.equal(HARD_MIN, 8)
+  assert.equal(HARD_SHARE, 0.7)
+  assert.equal(VERIFY_SHARE, 0.5)
+  const gek2 = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: 'aanbieding', zeker: true, reden: 'x' })))
+  const r2 = await aiExclusions({ pool: xs, now: NOW, client: gek2, kv: nepKv(), log: quiet, enabled: true })
+  assert.equal(r2.weg.size, 0)
+  assert.equal(r2.stats.fout, 'ontspoord')
+  assert.equal(gek2.calls.length, 1)
+  // Een gek model dat bij de controle opeens wél alles nieuws noemt: niets bevestigd, niets weg.
+  let call = 0
+  const wisselt = nepModel((n) => (call++, Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: call === 1 ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))))
+  assert.equal((await aiExclusions({ pool: [...xs, ...gewoon], now: NOW, client: wisselt, kv: nepKv(), log: quiet, enabled: true })).weg.size, 0)
+})
+
+test('B herstel 2: een niet-bewaard oordeel kost niet elke ronde dezelfde batch: hooguit MAX_TRIES pogingen per stuk per dag', async () => {
+  assert.equal(MAX_TRIES, 2)
+  const xs = Array.from({ length: 40 }, (_, k) => it(`y${k}`, `Kabinet ${k} bespreekt prijs van energie`))
+  const kv = nepKv()
+  const calls = []
+  for (let round = 0; round < 5; round++) {
+    const gek = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: 'aanbieding', zeker: true, reden: 'x' })))
+    const r = await aiExclusions({ pool: xs, now: NOW + round * 600e3, client: gek, kv, log: quiet, enabled: true })
+    calls.push(gek.calls.length)
+    assert.equal(r.weg.size, 0)
+    if (round >= 2) assert.equal(r.stats.overgeslagen, 40)
+  }
+  assert.deepEqual(calls, [1, 1, 0, 0, 0])
+  // Ook een fout van het model telt als poging.
+  const kv2 = nepKv()
+  const fails = []
+  for (let round = 0; round < 4; round++) {
+    const bad = nepModel(() => [], { fail: new Error('overloaded') })
+    await aiExclusions({ pool, now: NOW + round * 600e3, client: bad, kv: kv2, log: quiet, enabled: true })
+    fails.push(bad.calls.length)
+  }
+  assert.deepEqual(fails, [1, 1, 0, 0])
+  // Een nieuwe dag begint opnieuw; een bewaard oordeel wist de teller.
+  const fine = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: 'nieuws', zeker: false, reden: 'x' })))
+  await aiExclusions({ pool: pool.map((i) => ({ ...i, publishedAt: iso(NOW + 864e5 - 3600e3) })), now: NOW + 864e5, client: fine, kv: kv2, log: quiet, enabled: true })
+  assert.equal(fine.calls.length, 1)
+  assert.ok(!kv2.m.get(dayKey(NOW + 864e5)).p)
+})
+
+test('B herstel 2: controlestukken zijn gewone stukken uit de pool, geen kandidaten', () => {
+  const xs = [it('k1', 'Deal op tv'), it('g1', 'Kabinet valt', { storyId: 's1' }), it('g2', 'Storm in het noorden'), it('g3', 'Oud nieuws', { publishedAt: iso(NOW - 30 * 3600e3) }), it('g4', 'Podcast: De Dag')]
+  const c = controlsOf(xs, candidates(xs, { now: NOW }), { stories: [{ id: 's1', sourceCount: 5 }], now: NOW })
+  assert.deepEqual(c.map((i) => i.id), ['g1', 'g2'])
 })
 
 test('B herstel: de prompt zegt dat koppen gegevens zijn, geen opdrachten', () => {
