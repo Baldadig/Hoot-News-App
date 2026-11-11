@@ -54,7 +54,7 @@ export default function Privacy({ onBack, backLabel }) {
           </li>
           <li>
             <strong>Je Editie</strong> stelt de Hoot-server samen, zodat je op de website en in de app dezelfde Editie ziet. Daarvoor gaan mee: je bronnen en interesses, welke berichten je al
-            las en een samenvatting van wat je vaak leest. De server gebruikt dat alleen om je Editie te maken en bewaart daarvan alleen de Editie zelf: een dagdeel lang, en met een account in je account.
+            las en een samenvatting van wat je vaak leest. De server gebruikt dat alleen om je Editie te maken en bewaart daarvan alleen de Editie zelf: hooguit twee dagdelen lang, en met een account in je account.
           </li>
           <li>
             <strong>De Editie in één minuut</strong> (alleen met een account): de koppen en intro's van de Editie gaan naar Anthropic (Claude) om de samenvatting te schrijven. Daar zit niets van jou in.
