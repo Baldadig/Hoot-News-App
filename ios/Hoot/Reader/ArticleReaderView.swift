@@ -132,7 +132,13 @@ struct ArticleReaderView: View {
         }
         .task {
             // Na vouwen of draaien: hetzelfde artikel meteen, zonder opnieuw te laden.
-            if let artikel = reader?.artikel(voor: item.id) { loader.toon(artikel, url: item.link) } else if let url = item.link { loader.load(url) }
+            if let artikel = reader?.artikel(voor: item.id) { loader.toon(artikel, url: item.link) } else if let url = item.link {
+                #if DEBUG
+                // `-HootLezerTraag <s>`: de lezer blijft s seconden in de laadstand (opnamen van de laadstand).
+                if DebugLaunch.lezerTraag > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.lezerTraag)) }
+                #endif
+                loader.load(url)
+            }
         }
         .onChange(of: loader.state) { _, state in if case let .ready(a) = state { reader?.bewaar(a, voor: item.id) } }
         .task {
@@ -530,20 +536,31 @@ struct ReaderLoadingView: View {
     let sourceName: String
     let waiting: ReaderWaitingState
     var body: some View {
+        // De kop staat altijd boven, op de plek van de kop na het laden, ook als de ruimte klein is (de lezer boven op
+        // het tafelblad van de Duo): wat niet past valt onder weg, nooit boven. De laadstrepen alleen als ze er heel
+        // onder passen: geen halve stapel aan de rand.
+        ViewThatFits(in: .vertical) {
+            inhoud(strepen: true)
+            inhoud(strepen: false)
+        }
+        .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .top) // minHeight 0: de ruimte die er is, ook als de inhoud hoger is
+    }
+
+    private func inhoud(strepen: Bool) -> some View {
         VStack(alignment: .leading, spacing: Space.s4) {
             // Zoals de lezer zelf: de kop, met de bron in de regel eronder (L3).
             VStack(alignment: .leading, spacing: Space.s2) {
                 Kop(title, .title).fixedSize(horizontal: false, vertical: true)
                 Text(sourceName).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             }
-            if waiting.visible, let started = waiting.startedAt {
+            if strepen, waiting.visible, let started = waiting.startedAt {
                 ReaderLoadLines(started: started)
             }
             Spacer()
         }
         .padding()
         .frame(maxWidth: Layout.readable)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .top) // past zelfs de kop niet: onder weg, niet boven
     }
 }
 

@@ -54,6 +54,13 @@ enum TafelEditie {
         return max(0, min(gekozen - (zichtbaar - 1) / 2, totaal - zichtbaar))
     }
 
+    /// Waar de rij naartoe gaat als het verhaal boven wisselt. Staat het nieuwe verhaal in de rij, dan in beeld (zoals
+    /// `eerste`). Staat het er niet in (een stuk uit de Stroom), dan blijft de rij staan waar je hem liet: geen sprong
+    /// terug naar 01.
+    static func naar(gekozen: Int?, totaal: Int, zichtbaar: Int) -> Int? {
+        gekozen.map { eerste(gekozen: $0, totaal: totaal, zichtbaar: zichtbaar) }
+    }
+
     /// De cel in de rij die gemarkeerd is: het verhaal boven, als het in de Editie staat (een stuk uit de Stroom niet).
     static func gemarkeerd(open: Item?, rij: [EditionRowModel]) -> EditionRowModel.ID? {
         guard let item = gekozen(open: open, rij: rij) else { return nil }
@@ -170,7 +177,10 @@ struct TafelOnder: View {
                 .onAppear { proxy.scrollTo(vooraan(gemarkeerd), anchor: .leading) }
                 .onChange(of: plekken.aantal) { proxy.scrollTo(vooraan(gemarkeerd), anchor: .leading) }
                 .onChange(of: gemarkeerd) { _, nieuw in
-                    withAnimation(.snappy) { proxy.scrollTo(vooraan(nieuw), anchor: .leading) }
+                    // Een stuk dat niet in de Editie staat (nil): de rij blijft staan.
+                    let k = nieuw.flatMap { g in rij.firstIndex { $0.id == g } }
+                    guard let plek = TafelEditie.naar(gekozen: k, totaal: ids.count, zichtbaar: plekken.aantal) else { return }
+                    withAnimation(.snappy) { proxy.scrollTo(ids[plek], anchor: .leading) }
                 }
             }
             if !ruim { Spacer(minLength: 0) }

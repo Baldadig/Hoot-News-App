@@ -233,6 +233,16 @@ import SwiftUI
         }
     }
 
+    func testEenStukBuitenDeEditieLaatDeRijStaan() throws {
+        // Boven een stuk uit de Stroom (niet in de rij): de rij blijft waar je hem liet, ook als je naar 07 veegde.
+        XCTAssertNil(TafelEditie.naar(gekozen: nil, totaal: 11, zichtbaar: 3), "geen sprong terug naar 01")
+        for k in 0..<11 {
+            XCTAssertEqual(TafelEditie.naar(gekozen: k, totaal: 11, zichtbaar: 3), TafelEditie.eerste(gekozen: k, totaal: 11, zichtbaar: 3))
+        }
+        let bron = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/Views/Tafel.swift"), encoding: .utf8)
+        XCTAssertTrue(bron.contains("guard let plek = TafelEditie.naar(gekozen: k, totaal: ids.count, zichtbaar: plekken.aantal) else { return }"), "bij nil blijft de rij staan")
+    }
+
     func testDeRijStoptVoorDeBalkEnSnaptOpPlekken() throws {
         let bron = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/Views/Tafel.swift"), encoding: .utf8)
         XCTAssertTrue(bron.contains(".contentMargins(.horizontal, TafelEditie.rijMarge, for: .scrollContent)"), "marges in de scroll: elke plek snapt op de lijn van de kop")
@@ -260,6 +270,41 @@ import SwiftUI
                     XCTAssertNotNil(renderer.uiImage, "\(size) \(scheme)")
                 }
             }
+        }
+    }
+
+    @MainActor
+    func testDeKopInDeLaadstandStaatBovenOokAlsDeRuimteKleinIs() async throws {
+        // Boven op het tafelblad is de ruimte klein (vlak liggend ± 160 tot 360 hoog). De laadstand (kop, bron,
+        // laadstrepen) is dan hoger dan de ruimte. Vroeger centreerde SwiftUI hem: de kop viel boven half buiten
+        // beeld. Nu staat de kop op dezelfde plek als in een grote ruimte (bovenaan); wat niet past valt onder weg.
+        let waiting = ReaderWaitingState()
+        await waiting.wait() // de laadstrepen in beeld (na 400 ms)
+        XCTAssertTrue(waiting.visible)
+        let titel = "Voorlopig geen afzettingsprocedure tegen Amerikaanse defensieminister Hegseth"
+        func render(_ hoogte: CGFloat) throws -> CGImage {
+            let view = ReaderLoadingView(title: titel, sourceName: "NOS", waiting: waiting)
+                .frame(width: 680, height: hoogte).clipped().background(Color.white)
+                .environment(\.colorScheme, .light)
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 1
+            return try XCTUnwrap(renderer.cgImage)
+        }
+        func kopBoven(_ beeld: CGImage) throws -> Int {
+            // De eerste pixelrij met inkt: de bovenkant van de kop.
+            let w = beeld.width, h = beeld.height
+            var pixels = [UInt8](repeating: 0, count: w * h * 4)
+            let ctx = try XCTUnwrap(CGContext(data: &pixels, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                              space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            ctx.draw(beeld, in: CGRect(x: 0, y: 0, width: w, height: h))
+            for y in 0..<h where (0..<w).contains(where: { pixels[(y * w + $0) * 4] < 128 && pixels[(y * w + $0) * 4 + 3] > 128 }) { return y }
+            return -1
+        }
+        let groot = try kopBoven(render(800)) // past ruim: de kop staat bovenaan
+        XCTAssertGreaterThan(groot, 0, "de kop is getekend")
+        XCTAssertLessThan(groot, 40, "de kop staat bovenaan")
+        for hoogte: CGFloat in [120, 160, 220, 300] {
+            XCTAssertEqual(try kopBoven(render(hoogte)), groot, "op \(Int(hoogte)) hoog staat de kop op dezelfde plek als in een grote ruimte")
         }
     }
 

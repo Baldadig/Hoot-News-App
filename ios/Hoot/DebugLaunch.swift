@@ -19,6 +19,7 @@ import SwiftUI
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
 //   -HootRefreshDelay <s>   (trek-om-te-verversen: houd het laden s seconden vast, om de lader te zien)
 //   -HootLoadDelay <s>   (eerste laden: houd de laadstrepen s seconden in beeld, voor opnamen)
+//   -HootLezerTraag <s>   (de lezer blijft s seconden in de laadstand: de kop en de laadstrepen, voor opnamen)
 //   -HootTien YES   (speel "Tien en de bubbel" bij de start, alsof je net het welkom afrondde; met
 //                   -HootLoadDelay zie je Traag)
 //   -HootEngine YES   (jouw Editie altijd opnieuw samenstellen met de rekenkern, ook als er al een
@@ -43,6 +44,7 @@ enum DebugLaunch {
     static var venster: CGFloat? { defaults.object(forKey: "HootVenster") != nil ? CGFloat(defaults.double(forKey: "HootVenster")) : nil }
     static var refreshDelay: Double { max(0, min(30, defaults.double(forKey: "HootRefreshDelay"))) }
     static var loadDelay: Double { max(0, min(60, defaults.double(forKey: "HootLoadDelay"))) }
+    static var lezerTraag: Double { max(0, min(60, defaults.double(forKey: "HootLezerTraag"))) }
     static var tien: Bool { defaults.bool(forKey: "HootTien") }
     static var query: String? { defaults.string(forKey: "HootQuery") }
     static var dark: Bool { defaults.bool(forKey: "HootDark") }
@@ -80,6 +82,7 @@ enum DebugLaunch {
     static let venster: CGFloat? = nil
     static let refreshDelay = 0.0
     static let loadDelay = 0.0
+    static let lezerTraag = 0.0
     static let tien = false
     static let query: String? = nil
     static let dark = false
@@ -153,6 +156,7 @@ extension View {
 /// `-HootScreen lezer`: wanneer de lezer open mag. Compact (iPhone, de Duo dicht): meteen, het wordt een blad.
 /// Breed: pas als de vouw gemeten is (de Duo open: de bladzijde of het tafelblad), of na het plafond (iPad: daar komt
 /// nooit een vouw). Geen vaste wachttijd: op een drukke Mac komt de vouw soms veel later, en dan wijkt het blad zelf.
+#if DEBUG
 enum DebugLezerWacht {
     static let plafond: Duration = .seconds(6)
     static let stap: Duration = .milliseconds(100)
@@ -160,6 +164,7 @@ enum DebugLezerWacht {
         compact || vouw || verstreken >= plafond
     }
 }
+#endif
 
 #if DEBUG
 // De iPhone Duo nabootsen zolang er geen iOS 27.1-simulator is. Het venster krijgt de maat van een houding

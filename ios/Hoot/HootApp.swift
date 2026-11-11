@@ -252,11 +252,13 @@ struct RootView: View {
                 // Eerst de vouw: op de Duo geeft iOS de gereserveerde zone pas even na de start door. Wacht tot die
                 // er is (de krant weet dan of hij open ligt), hooguit `DebugLezerWacht.plafond`. Komt de vouw later
                 // toch nog, dan wijkt het blad zelf (BladWijkt): de lezer verhuist naar boven op het tafelblad.
+                #if DEBUG
                 let start = ContinuousClock.now
                 while !DebugLezerWacht.klaar(vouw: krant.vouw, compact: horizontal == .compact, verstreken: start.duration(to: .now)) {
                     try? await Task.sleep(for: DebugLezerWacht.stap)
                     if Task.isCancelled { return }
                 }
+                #endif
                 guard !Task.isCancelled, reader.item == nil else { return }
                 let all = store.editionRows.flatMap { row in [row.item] + (row.story?.itemIds.compactMap { store.itemsById[$0] } ?? []) }
                 let free = { (i: Item) in store.source(i.source).map { $0.paid != true } ?? false }

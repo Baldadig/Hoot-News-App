@@ -64,11 +64,18 @@ import SwiftUI
 
     // MARK: -HootScreen lezer wacht op de vouw
 
+    #if DEBUG // DebugLezerWacht hoort bij de debugcode: niet in Release
     func testDeLezerWachtOpDeVouwNietOpEenVasteTijd() {
         XCTAssertTrue(DebugLezerWacht.klaar(vouw: false, compact: true, verstreken: .zero), "iPhone en de Duo dicht: meteen")
         XCTAssertTrue(DebugLezerWacht.klaar(vouw: true, compact: false, verstreken: .milliseconds(300)), "de vouw is er: meteen")
         XCTAssertFalse(DebugLezerWacht.klaar(vouw: false, compact: false, verstreken: .seconds(2.5)), "de oude 2,5 s is niet genoeg")
         XCTAssertFalse(DebugLezerWacht.klaar(vouw: false, compact: false, verstreken: DebugLezerWacht.plafond - .milliseconds(1)))
         XCTAssertTrue(DebugLezerWacht.klaar(vouw: false, compact: false, verstreken: DebugLezerWacht.plafond), "iPad: na het plafond toch")
+    }
+    #endif
+
+    func testDeWachtOpDeVouwZitNietInRelease() throws {
+        let debug = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/DebugLaunch.swift"), encoding: .utf8)
+        XCTAssertTrue(debug.contains("#if DEBUG\nenum DebugLezerWacht"), "DebugLezerWacht staat onder #if DEBUG")
     }
 }
