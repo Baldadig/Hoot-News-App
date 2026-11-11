@@ -1731,7 +1731,7 @@ export function sourceCap(entries, { itemsOf, mainIds = new Set(), now = null, s
 // vooruitblik. Hooguit SOURCE_PLACES_MAX plekken per bron; bij meer kandidaten eerst de bron met de minste plekken, dan de
 // volgorde van leadCandidates. Wijzigt `entries` (de plek met een nieuwe kop is een kopie); geeft de gewijzigde plekken.
 export const FREE_HEAD = new Set(['nos', 'nos-economie', 'nu', 'rtl'])
-export function freeHeads(entries, { itemsOf, mainIds = new Set(), now = null, since = 0, max = SOURCE_PLACES_MAX, sources = SOURCES }) {
+export function freeHeads(entries, { itemsOf, mainIds = new Set(), now = null, since = 0, max = SOURCE_PLACES_MAX, sources = SOURCES, previous = null }) {
   const paid = (id) => !!(sources === SOURCES ? SOURCE_BY_ID.get(id) : sources.find((x) => x.id === id))?.paid
   const leadOf = (e) => itemsOf(e).find((i) => i && i.id === (e.leadId || e.id)) || null
   const count = new Map()
@@ -1754,7 +1754,21 @@ export function freeHeads(entries, { itemsOf, mainIds = new Set(), now = null, s
     // gehuwd stel krijgt niet meer automatisch naam van vader" en "… achternaam van vader").
     const lw = sigWords(lead.title)
     const nearly = (i) => { const w = sigWords(i.title); const n = sharedCount(lw, w); return n >= 3 && n * 2 >= Math.min(lw.size, w.size) }
-    const same = inCore.filter((i) => sameHeadEvent(h(lead), h(i)) || nearly(i))
+    // Actueel gaat voor herhaald (keuring ronde 3-1: op 4 november middag verving "mokerslag voor Trump", de uitslag die
+    // de Ochtendeditie al op 01 had, "Trump legt zich neer bij uitslag"). Gaat de gratis kop over een onderwerp uit de
+    // vorige Editie (sameSubject met de getoonde koppen, zoals freeDutchFill), dan:
+    // - niet als de betaalde kop dat niet doet;
+    // - en anders alleen als de gratis kop ook de nieuwe ontwikkeling van de betaalde kop meldt: minstens twee van de
+    //   kernwoorden die de betaalde kop niet met die vorige koppen deelt (bij de midterms deelt "mokerslag voor Trump"
+    //   alleen de naam met "Trump legt zich neer bij uitslag"; namen en onderwerp maken geen gedeeld feit).
+    const vorige = previous ? previousHeads(sig, previous, now) : []
+    const shownTitles = previous ? (previous.shown?.length ? previous.shown.map((a) => a.title) : [...(previous.titles || [])]) : []
+    const hits = (x) => (x ? vorige.map((v, n) => (sameSubject(x, v) ? n : -1)).filter((n) => n >= 0) : [])
+    const leadHits = hits(h(lead))
+    const seen = new Set(leadHits.flatMap((n) => [...sigWords(shownTitles[n] || '')]))
+    const novel = new Set([...lw].filter((w) => !seen.has(w)))
+    const fresh = (i) => !hits(h(i)).length || (leadHits.length > 0 && sharedCount(novel, sigWords(i.title)) >= Math.min(2, novel.size))
+    const same = inCore.filter((i) => (sameHeadEvent(h(lead), h(i)) || nearly(i)) && fresh(i))
     if (!same.length) return
     const order = leadCandidates(freshest(same), mainIds, null, now, { role: k < DUTCH_HEAD_TOP ? 'front' : 'neutral' })
     const next = [...order].sort((a, b) => (count.get(publisherOf(a.source)) || 0) - (count.get(publisherOf(b.source)) || 0))[0]

@@ -745,7 +745,8 @@ const compact = (o) => {
 // buiten INT_MAX (ronde 2, shared/edition-policy.mjs: openWorld). Daarna opent plek 01 met
 // nieuws (openWithNews). Geen waarom, geen trends: alleen de plekken, in de vorm van de vastgelegde Editie.
 // `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
-export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null, audit = null } = {}) {
+// `shadow`: een leeg object; krijgt wat in schaduw draait (het Haagse dossier, `shadow.dossier`), zonder de plekken te wijzigen.
+export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null, audit = null, shadow = null } = {}) {
   // Eén gebeurtenis, één plek, ook over de taalgrens (frisse ogen · ronde 2, punt 6): melden twee plekken in twee talen
   // dezelfde gebeurtenis (crossLanguagePairs), dan valt de lagere weg en stelt de Redacteur de Editie opnieuw samen
   // zonder dat verhaal, zodat de plek wordt aangevuld. Alleen als er zo'n paar is; hooguit twee keer opnieuw.
@@ -758,7 +759,7 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
     const ns = skip.size ? newsStories.filter((st) => !skip.has(st.id)) : newsStories
     const np = skip.size ? newsPool.filter((i) => !gone.has(i.id) && !skip.has(i.id)) : newsPool
     if (audit) audit.length = start
-    entries = composeGeneral({ stories, newsStories: ns, pool, newsPool: np, now, mainIds, sources, previous, audit })
+    entries = composeGeneral({ stories, newsStories: ns, pool, newsPool: np, now, mainIds, sources, previous, audit, shadow })
     const byId = new Map(np.map((i) => [i.id, i]))
     const pairs = crossLanguagePairs(entries, { leadOf: (e) => byId.get(e.leadId || e.id) || null })
     if (!pairs.length) break
@@ -772,7 +773,7 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   if (audit) audit.push(...skipped)
   return entries
 }
-function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, sources, previous, audit }) {
+function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, sources, previous, audit, shadow = null }) {
   const prof = profileOf({ followed: mainIds, sources })
   // Voor de Nederlandse plekken (dutchPlace) tellen alle stukken van een verhaal, ook die buiten de nieuwspool (ronde 4 · 2).
   const allById = new Map(pool.map((i) => [i.id, i]))
@@ -785,8 +786,12 @@ function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, so
   const byId = new Map(newsPool.map((i) => [i.id, i]))
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
   const chosen = sel.map((e) => ({ ...(e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }), ...(e.held ? { held: true } : {}) }))
-  // Haagse dossiers tellen als één verhaal (frisse ogen · ronde 3, punt 7): automatisch gebundeld op gedeelde namen.
-  const entries = haagsDossier(chosen, { newsPool, stories, previous, now, mainIds, audit }).entries
+  // Haagse dossiers (frisse ogen · ronde 3, punt 7): automatisch gebundeld op gedeelde namen, eerst in SCHADUW (rapport
+  // van 11 november; keuring ronde 3-1: vier losse feiten die alleen "Jetten" delen werden een dossier op 02). De Redacteur
+  // rekent het dossier en legt het vast in het archief van het dagdeel (`dossierSchaduw`), maar de plekken veranderen
+  // niet. Pas als Alex een week aan echte dossiers heeft gezien, gaat het aan.
+  const entries = chosen
+  if (shadow) shadow.dossier = haagsDossier(chosen, { newsPool, stories, previous, now, mainIds }).dossier
   const itemsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [e.id]).map((id) => byId.get(id)).filter(Boolean)
   // Curiosa nooit in de top 3 (3b · 5), nieuwsbelang boven sensatie (ronde 6 · 2), dan plek 01 met nieuws, dan de
   // Nederlandse ondergrens (3b · 3) en bovenaan Nederlandse koppen (ronde 6 · 1).
@@ -810,7 +815,7 @@ function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, so
   // De taalregel voor de top 3 (besluit 3) en een vers Nederlands verhaal op 01 (besluit 2).
   dutchTop(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources })
   // Bij hetzelfde feit de gratis Nederlandse kop (frisse ogen · ronde 3, punt 5): NOS, NU.nl of RTL in plaats van betaald.
-  freeHeads(entries, { itemsOf, mainIds, now, since, sources })
+  freeHeads(entries, { itemsOf, mainIds, now, since, sources, previous })
   // Hooguit drie plekken van één bron (besluit 5): de laagste krijgt de kop van een andere bron uit hetzelfde verhaal.
   for (const e of sourceCap(entries, { itemsOf, mainIds, now, since, isFree: isFreeSource })) audit?.push({ kind: e.kind, id: e.id, itemIds: [e.id], reason: 'bron-al-drie-plekken' })
   // Een rustige laatste noot (frisse ogen · ronde 3, punt 9): een licht maar waardig verhaal schuift naar de laatste plek.
@@ -990,13 +995,14 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     // Wat in de vorige editie stond, komt alleen terug als het zich echt ontwikkelde.
     const previous = previousOf(await previousEdition(kvGet, previousSlotId(slot)))
     const audit = []
-    const entries = generalEdition({ stories, newsStories, pool, newsPool, now, mainIds: MAIN_IDS, sources: SOURCES, previous, audit })
+    const shadow = {}
+    const entries = generalEdition({ stories, newsStories, pool, newsPool, now, mainIds: MAIN_IDS, sources: SOURCES, previous, audit, shadow })
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
     stored = { id: slot.id, revision: EDITOR_REVISION, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => byId.get(id)).filter(Boolean) }
     changed = entries.length > 0
     if (changed) await kvSet(editionRevisionKey(slot.id), EDITOR_REVISION).catch(() => {})
-    if (changed) archive = { vorige: previousSlotId(slot), kandidaten: auditRows(audit, { stories, byId }) }
+    if (changed) archive = { vorige: previousSlotId(slot), kandidaten: auditRows(audit, { stories, byId }), dossierSchaduw: shadow.dossier || null }
   }
   // De ochtend licht aanvullen (frisse ogen · ronde 3, punt 8): niet in de ronde die vastlegt, alleen onder deze revisie.
   let aangevuld = null

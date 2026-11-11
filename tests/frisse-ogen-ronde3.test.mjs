@@ -1,17 +1,17 @@
 // Frisse ogen · ronde 3 (rapport van 11 november, besluiten van Alex van 11 november), de algemene Editie op de server:
 // - punt 5: bij hetzelfde feit de gratis kop van NOS, NU.nl of RTL (freeHeads);
-// - punt 7: Haagse dossiers tellen als één verhaal, automatisch op gedeelde namen (netlify/lib/dossiers.mjs);
+// - punt 7: Haagse dossiers, automatisch op gedeelde namen (netlify/lib/dossiers.mjs), eerst in schaduw (alleen het archief);
 // - punt 8: de Ochtendeditie op een vast, later moment, en de ochtend licht aanvullen (shared/slot-times.mjs,
 //   morningTopUp, earlyMorningSlot);
 // - punt 9: een rustige laatste noot (quietEnd);
 // - punt 10: geen plek zonder rubriek, en de rubriek volgt het land van het onderwerp (netlify/lib/rubriek.mjs).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { freeHeads, quietEnd, quietNote, editionSlot, SOURCE_PLACES_MAX } from '../netlify/lib/stories.mjs'
+import { freeHeads, quietEnd, quietNote, editionSlot, SOURCE_PLACES_MAX, buildStories } from '../netlify/lib/stories.mjs'
 import { haagsDossier, haagsPiece, dossierNames, DOSSIER_MIN } from '../netlify/lib/dossiers.mjs'
 import { placeDesks, deskFor } from '../netlify/lib/rubriek.mjs'
 import { morningTopUp, OCHTEND_AANVULLING } from '../netlify/lib/aanvulling.mjs'
-import { earlyMorningSlot } from '../netlify/lib/build.mjs'
+import { earlyMorningSlot, generalEdition } from '../netlify/lib/build.mjs'
 import { SLOT_START, OCHTEND_VROEG } from '../shared/slot-times.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 
@@ -76,6 +76,26 @@ test('de gratis kop: hooguit drie plekken per bron, geen opinie, video of kop va
   assert.equal(e2[0].leadId, tg.id, 'geen video, en geen kop van vóór de vorige Editie')
 })
 
+test('de gratis kop: actueel gaat voor herhaald (keuring ronde 3-1, de midterms van 4 november middag)', () => {
+  // De Ochtendeditie had de uitslag al op 01. De betaalde kop meldt de nieuwe ontwikkeling; de gratis kop herhaalt de
+  // uitslag en deelt met de betaalde kop alleen de naam en het onderwerp.
+  const previous = { at: T - 6 * 36e5, itemIds: new Set(), storyIds: new Set(), shown: [{ title: 'Enorme winst Democraten in midterms, Republikeinen verliezen meerderheid Senaat', summary: 'President Trump is keihard afgestraft bij de tussentijdse verkiezingen in de Verenigde Staten.', publishedAt: at(7) }] }
+  const vk = art('volkskrant', 'Trump zegt zich neer te leggen bij uitslag midterms: ‘Democraten hebben het goed gedaan’', 3)
+  const nu = art('nu', 'Verbluffende zege van Democraten in midterms is mokerslag voor Trump', 1)
+  const e = [{ kind: 'story', id: 's-mid', leadId: vk.id }]
+  freeHeads(e, { itemsOf: () => [vk, nu], mainIds: MAIN_IDS, now: T, since: previous.at, previous })
+  assert.equal(e[0].leadId, vk.id, 'geen herhaling van de vorige Editie in plaats van de nieuwe ontwikkeling')
+  // Meldt de gratis kop dezelfde ontwikkeling, dan wel de gratis kop.
+  const nos = art('nos', 'Trump legt zich neer bij uitslag midterms, Democraten winnen Senaat', 1)
+  const e2 = [{ kind: 'story', id: 's-mid', leadId: vk.id }]
+  freeHeads(e2, { itemsOf: () => [vk, nos], mainIds: MAIN_IDS, now: T, since: previous.at, previous })
+  assert.equal(e2[0].leadId, nos.id)
+  // Zonder vorige Editie over dit onderwerp blijft de gewone regel.
+  const e3 = [{ kind: 'story', id: 's-mid', leadId: vk.id }]
+  freeHeads(e3, { itemsOf: () => [vk, nos], mainIds: MAIN_IDS, now: T })
+  assert.equal(e3[0].leadId, nos.id)
+})
+
 // ---------- punt 7 ----------
 test('Haagse stukken en hun namen: automatisch, zonder lijst van dossiers', () => {
   assert.ok(haagsPiece(art('nrc', 'Kabinet neemt het risico en stuurt Belastingplan zonder garantie naar de Kamer')))
@@ -117,6 +137,31 @@ test('een Haags dossier van vier uitgevers krijgt één plek, met de gratis kop'
   assert.equal(haagsDossier(entries, { newsPool: [...pieces.slice(1), ...other], stories, now: T }).dossier, null)
   // Actueel gaat voor herhaald: alles van vóór de vorige Editie telt niet.
   assert.equal(haagsDossier(entries, { newsPool, stories, now: T, previous: { at: T - 1 * 36e5, itemIds: new Set(), storyIds: new Set() } }).entries, entries)
+})
+
+test('Haagse dossiers draaien in schaduw: de Jetten-proef (keuring ronde 3-1) verandert de Editie niet', () => {
+  // Vier Haagse koppen van vier uitgevers over vier verschillende feiten, die alleen de naam van de premier delen.
+  const jetten = [
+    art('nos', 'Premier Jetten op werkbezoek in Groningen: excuses voor gaswinning herhaald', 2),
+    art('nu', 'Kabinet-Jetten wil zondagsrust in winkels terug', 3),
+    art('nrc', 'Jetten en Bontenbal botsen in debat over defensie', 4),
+    art('trouw', 'Minister: Jetten belde koning over staatsbezoek', 5),
+  ]
+  // haagsDossier zelf bundelt ze nog (dat is wat de schaduw vastlegt) ...
+  const filler = Array.from({ length: 8 }, (_, k) => ({ kind: 'item', id: `fill-${k}`, desk: 'buitenland' }))
+  const r = haagsDossier(filler, { newsPool: jetten, stories: [], now: T, mainIds: MAIN_IDS })
+  assert.equal(r.dossier?.naam, 'jetten')
+  assert.equal(r.dossier.koppen.length, 4, 'de schaduw bewaart de koppen onder de naam, voor Alex')
+  // ... maar de algemene Editie neemt het niet over: zelfde plekken met en zonder de schaduw.
+  const world = ['Lima', 'Quito', 'Bogota', 'Caracas', 'Santiago', 'Havana', 'Managua', 'Panama', 'La Paz', 'Asuncion', 'Brasilia', 'Montevideo']
+    .flatMap((p, k) => ['nos', 'nrc', 'bbc', 'nyt', 'guardian', 'lemonde'].map((src) => art(src, `Regering in ${p} valt na massaal protest`, 1 + k / 10)))
+  const pool = [...world, ...jetten]
+  const stories = buildStories(pool, {}, { mainIds: MAIN_IDS, keys: true, extended: true })
+  const shadow = {}
+  const withShadow = generalEdition({ stories, pool, now: T, shadow })
+  const without = generalEdition({ stories, pool, now: T })
+  assert.deepEqual(withShadow, without)
+  if (shadow.dossier && shadow.dossier.plek !== 'al') assert.ok(!withShadow.some((e) => e.id === shadow.dossier.leadId || e.leadId === shadow.dossier.leadId), 'het dossier krijgt geen plek')
 })
 
 // ---------- punt 8 ----------
@@ -175,5 +220,7 @@ test('geen plek zonder rubriek, en de rubriek volgt het land van het onderwerp',
   const members = new Map(entries.map((e, k) => [e.id, sets[k]]))
   placeDesks(entries, { itemsOf: (e) => members.get(e.id) })
   assert.deepEqual(entries.map((e) => e.desk), ['buitenland', 'vs', 'buitenland', 'economie'])
-  assert.equal(deskFor([art('telegraaf', 'Fan hoopt op comeback van de zanger', 1), art('rtl', 'Zanger zet eerste stappen richting comeback', 2)]), 'binnenland', 'zonder land: het land van de uitgevers')
+  assert.equal(deskFor([art('telegraaf', 'Fan hoopt op comeback van de zanger', 1, { url: 'https://example.com/nieuws/binnenland/1' }), art('rtl', 'Zanger zet eerste stappen richting comeback', 2)]), 'binnenland', 'zonder land: het land van de uitgevers, met de eigen rubriek van de uitgever als anker')
+  // Keuring ronde 3-1: zonder Nederlands anker geen Binnenland (Matthew Perry in twee Nederlandse kranten).
+  assert.equal(deskFor([art('nrc', 'Matthew Perry: zo grappig, zo sociaal, zo zelfdestructief', 1, { summary: 'De aan een overdosis overleden acteur Matthew Perry vertelde veel zelf al.' }), art('parool', 'In de docuserie zien we hoe hij verslaafd raakte', 2, { url: 'https://example.com/kunst-media/2' })]), 'buitenland')
 })

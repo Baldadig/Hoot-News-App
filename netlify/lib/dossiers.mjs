@@ -115,6 +115,7 @@ export function haagsDossier(entries, { newsPool = [], stories = [], previous = 
   const pubsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.publisherCount ?? coverageOf(idsOf(e).map((id) => byId.get(id)).filter(Boolean)).publisherCount : 1)
   const entry = st ? { kind: 'story', id: st.id, leadId: lead.id, desk: 'binnenland' } : { kind: 'item', id: lead.id, desk: 'binnenland' }
   const out = [...entries]
+  let weg = null
   if (regular.length >= size) {
     // Vol: de laagste plek met minder uitgevers valt weg, eerst een eenbronsplek.
     const lower = (e) => e.desk !== 'bubbel' && pubsOf(e) < d.uitgevers
@@ -123,6 +124,7 @@ export function haagsDossier(entries, { newsPool = [], stories = [], previous = 
     if (k <= 0) return { entries, dossier: null }
     const [gone] = out.splice(k, 1)
     audit?.push({ kind: gone.kind, id: gone.id, itemIds: idsOf(gone), reason: 'plaats-voor-haags-dossier' })
+    weg = { kind: gone.kind, id: gone.id, kop: byId.get(gone.leadId || gone.id)?.title || null }
   }
   // Achter de verhalen met meer uitgevers, nooit op 01, vóór de bubbelplek.
   const end = out.findIndex((e) => e.desk === 'bubbel')
@@ -130,5 +132,7 @@ export function haagsDossier(entries, { newsPool = [], stories = [], previous = 
   let at = out.findIndex((e, k) => k >= 1 && k < last && pubsOf(e) < d.uitgevers)
   if (at < 0) at = last
   out.splice(at, 0, entry)
-  return { entries: out, dossier: { naam: d.naam, uitgevers: d.uitgevers, plek: at + 1 } }
+  // Wat de lezer zou zien en waarom: de kop, de stukken onder de naam en de plek die zou wijken (voor de schaduw).
+  const koppen = d.items.slice(0, 12).map((i) => ({ bron: i.source, kop: i.title }))
+  return { entries: out, dossier: { naam: d.naam, uitgevers: d.uitgevers, plek: at + 1, kop: lead.title, bron: lead.source, leadId: lead.id, koppen, weg } }
 }
