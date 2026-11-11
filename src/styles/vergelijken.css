@@ -18,3 +18,36 @@
 .story__eyebrow {
   min-width: 0;
 }
+
+/* Waar media verschillen (src/components/Verschillen.jsx): geen kaart, tussen twee lijnen onder de
+   bronregel. Label als kicker, de tekst in de leesstijl (intro 17/24), een stille voetregel (t1, ink-3).
+   Gelijk aan VerschillenSectie op iOS. Alleen bestaande tokens. */
+.mv {
+  margin-top: var(--s3);
+  padding-block: var(--s4) var(--s3);
+  border-block: 1px solid var(--rule);
+}
+.mv__label {
+  margin-bottom: var(--s2);
+}
+.mv__p {
+  max-inline-size: var(--measure-prose);
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--lees);
+  font-weight: var(--lees-wght);
+  font-variation-settings: var(--lees-vs);
+  font-size: var(--t3);
+  line-height: var(--lh-2-read);
+}
+.mv__p + .mv__p {
+  margin-top: var(--s3);
+}
+.mv__voet {
+  margin: var(--s4) 0 0;
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-2);
+}

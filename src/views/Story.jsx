@@ -9,6 +9,7 @@ import { withLead } from '../lib/saved.js'
 import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { ownIntro } from '../../shared/kaart-intro.mjs'
 import { useIntroMax } from '../lib/intro.js'
+import { Verschillen } from '../components/Verschillen.jsx'
 
 // Esc sluit het vaste zijpaneel (breed scherm), zoals het de dialoog sluit op een smal scherm. Alleen als
 // de toets niet al iets anders deed (een dialoog, het wissen van een zoekveld) en niet in een invoerveld.
@@ -157,6 +158,8 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
             <SourceMeta item={lead} />
           </div>
         ) : null}
+        {/* Waar media verschillen: alleen als de server een gekeurd blok meegaf (anders niets). */}
+        <Verschillen story={story} />
         <Disclosure className="how" summaryClassName="linkbtn linkbtn--plain" summary="Hoe zijn deze bronnen gekoppeld?">
           <p>
             {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}.
