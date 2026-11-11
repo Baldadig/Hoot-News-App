@@ -8,7 +8,13 @@ export default function Privacy({ onBack, backLabel }) {
       <div className="col col--read prose">
         <ViewHeader title="Privacy" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
-        <p>Hoot heeft geen advertenties, geen trackers en geen analytics. Er worden geen cookies gezet. Hoot volgt je niet.</p>
+        <p>Hoot heeft geen advertenties, geen trackers en geen analytics van anderen. Er worden geen cookies gezet. Hoot volgt je niet.</p>
+
+        <h2 className="label label--section sect">Wat Hoot telt</h2>
+        <p>
+          Hoot telt alleen totalen: hoeveel Edities er vandaag zijn geopend en uitgelezen, en hoe vaak de Stroom, de Selectie, een vergelijking, een verhaal of het delen is gebruikt. Zonder te weten wie. Er gaat geen
+          account, id of IP-adres mee en er wordt niets per persoon bewaard: alleen een getal per dag. Je toestel onthoudt zelf alleen dat het een dagdeel al heeft geteld. Staat Do Not Track of Global Privacy Control aan, dan telt de website niets.
+        </p>
 
         <h2 className="label label--section sect">Op je toestel</h2>
         <p>Zonder account bewaart Hoot alles op je toestel, in de opslag van je browser:</p>
@@ -64,7 +70,7 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="label label--section sect">De app voor iPhone en iPad</h2>
         <p>
-          De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
+          De app werkt zonder account en gebruikt geen analytics van anderen, advertenties of tracking. Ook de app telt alleen totalen (zie Wat Hoot telt). Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
           log je in, dan gaan ze mee met je account (zie hierboven). Wat Hoot leert van
           wat je leest (welke onderwerpen en bronnen je vaak opent) bewaart Hoot alleen op je toestel. Wat je zelf aangeeft met ‘meer
           hiervan’ of ‘minder hiervan’ bij een verhaal is een instelling: met een account gaat die mee, en je wist hem
