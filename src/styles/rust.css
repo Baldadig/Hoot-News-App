@@ -230,3 +230,14 @@
   margin: 0;
   border-radius: var(--radius-control);
 }
+
+/* ---------- Hoofdverhaal staand: alleen met het staande beeld erin ----------
+   .lead__link--portrait (styles.css) zet het staande beeld links en de tekst rechts. Toont 01 toch het
+   placeholderbeeld, omdat het beeld pas bij het laden mislukt (Beeld.jsx), dan valt de link terug op de
+   gewone vorm: beeld boven, tekst eronder, over de hele kolom. LeadStory zet de klasse al niet als het
+   beeld te klein of onscherp is; dit vangt de rest. */
+@media (min-width: 720px) {
+  .lead__link--portrait:not(:has(> .media--portrait)) {
+    display: flex;
+  }
+}
