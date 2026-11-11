@@ -66,14 +66,16 @@ export function freeDutchFill(sel, { stories = [], newsStories = stories, newsPo
     const storyOfItem = new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st])))
     const inEdition = new Set([...keep, ...single].flatMap((e) => [e.id, e.leadId, ...itemsOf(e).map((i) => i.id)]).filter(Boolean))
     const cands = newsPool
-      .filter((it) => free(it.source) && it.kind === 'article' && titled(it) && !isOpinion(it) && it.type !== 'opinie' && !isLive(it) && !isGallery(it) && !/\?/.test(it.title) && (it.summary || it.image))
-      .filter((it) => !inEdition.has(it.id) && now - timeOf(it) < TEMPO_MIN_H * H && timeOf(it) <= now && timeOf(it) > since && !previous?.itemIds?.has(it.id))
+      // Eerst de goedkope voorwaarden (bron, tijd), dan de rest.
+      .filter((it) => free(it.source) && it.kind === 'article' && !inEdition.has(it.id) && now - timeOf(it) < TEMPO_MIN_H * H && timeOf(it) <= now && timeOf(it) > since && !previous?.itemIds?.has(it.id))
+      .filter((it) => titled(it) && !isOpinion(it) && it.type !== 'opinie' && !isLive(it) && !isGallery(it) && !/\?/.test(it.title) && (it.summary || it.image))
       .filter((it) => { const st = storyOfItem.get(it.id); return !st || (st.publisherCount ?? coverageOf((st.itemIds || []).map((id) => byId.get(id)).filter(Boolean)).publisherCount) < 2 })
       .sort((a, b) => timeOf(b) - timeOf(a) || (a.id < b.id ? -1 : 1))
     if (cands.length) {
       const prevShown = previous?.shown?.length ? previous.shown : [...(previous?.titles || [])].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }))
       const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }))
-      const sig = signatures(newsPool, prevArts)
+      // De kenmerken van selectForReader (zelfde pool, zelfde vorige koppen); alleen zonder die opnieuw rekenen.
+      const sig = sel.sig || signatures(newsPool, prevArts)
       const vorige = prevArts.map((a) => sig.get(a.id)).filter(Boolean)
       const placedSigs = () => [...keep, ...chosen].flatMap((e) => itemsOf(e).map((i) => sig.get(i.id))).filter(Boolean)
       const counted = new Set(sel.counted || [])

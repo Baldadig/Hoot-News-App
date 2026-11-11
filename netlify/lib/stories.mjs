@@ -1813,17 +1813,36 @@ export function crimeStory(story = {}, items = [], sources = SOURCES) {
   return crime.length * CRIME_SHARE >= items.length
 }
 // Frisse ogen · ronde 2 (punt 4; regelboek ⑤): met `heads` = 3 geldt dit voor de hele top 3, niet alleen plek 01 (Markle
-// stond op 11 november op 03). Op plek 02 en 03 alleen voor een bekend persoon, en al voor een verhaal van de helft van
-// zijn omvang; een misdaadzaak wijkt alleen op 01.
+// stond op 11 november op 03). Op 01 blijft het zoals het was: een groter verhaal over politiek of economie komt ervoor.
+// Op 02 en 03 zakt de bekende persoon zelf onder de top 3, en haalt de Redacteur er geen kleiner verhaal boven (keuring
+// ronde 2-1, 6 november vroege avond: TikTok van 6 uitgevers kwam boven Markle van 12, Markle bleef in de top 3 en Kenia
+// van 11 zakte eruit). De plek in de top 3 gaat naar het eerste nieuwsverhaal onder de top 3 (tot `top`) van minstens de
+// helft van zijn omvang: geen opinie, geen bekend persoon, geen curiosum. Is er zo'n verhaal niet, dan blijft alles staan.
+// Een misdaadzaak wijkt alleen op 01.
 export function newsBeforePeople(entries, { itemsOf, storyOf = () => ({}), allItemsOf = itemsOf, top = 5, sources = SOURCES, heads = 1 }) {
   const pubs = (e) => (e.kind === 'story' ? storyOf(e)?.publisherCount ?? coverageOf(allItemsOf(e).filter(Boolean)).publisherCount : 1)
+  // Eén keer per plek uitrekenen: dezelfde plek komt in de lus vaak terug.
+  const memo = new Map()
+  const people = (e) => {
+    if (!e || e.kind !== 'story' || e.desk === 'bubbel') return false
+    if (!memo.has(e)) memo.set(e, peopleStory(allItemsOf(e).filter(Boolean), sources))
+    return memo.get(e)
+  }
   for (let at = 0; at < Math.min(heads, entries.length); at++) {
     const first = entries[at]
     if (!first || first.kind !== 'story' || first.desk === 'bubbel') continue
     const own = allItemsOf(first).filter(Boolean)
-    // Een bekend persoon wijkt al voor drie kwart van zijn omvang (op 02 en 03 voor de helft: daar is het geen opening
-    // meer, maar staat het nog steeds bovenaan), een misdaadzaak voor gelijke of grotere omvang.
-    const ratio = peopleStory(own, sources) ? (at === 0 ? 3 / 4 : 1 / 2) : at === 0 && crimeStory(storyOf(first) || {}, own, sources) ? 1 : 0
+    if (at > 0) {
+      if (!people(first)) continue
+      // Het eerste nieuwsverhaal onder de top 3 dat de plek kan innemen; de bekende persoon komt er direct achter.
+      const k = entries.findIndex((e, j) => j >= heads && j < top && e.kind === 'story' && e.desk !== 'bubbel' && !e.held && pubs(e) * 2 >= pubs(first) && itemsOf(e).some((i) => i && !isOpinion(i)) && !people(e) && !curioStory(storyOf(e) || {}, allItemsOf(e).filter(Boolean)))
+      if (k < 0) continue
+      entries.splice(k, 0, entries.splice(at, 1)[0])
+      at--
+      continue
+    }
+    // Plek 01: een bekend persoon wijkt al voor drie kwart van zijn omvang, een misdaadzaak voor gelijke of grotere omvang.
+    const ratio = people(first) ? 3 / 4 : crimeStory(storyOf(first) || {}, own, sources) ? 1 : 0
     if (!ratio) continue
     const k = entries.slice(at + 1, top).findIndex((e) => e.kind === 'story' && e.desk !== 'bubbel' && pubs(e) >= pubs(first) * ratio && itemsOf(e).some((i) => i && !isOpinion(i)) && weightyStory(storyOf(e) || {}, allItemsOf(e).filter(Boolean), sources))
     if (k >= 0) entries.splice(at, 0, ...entries.splice(at + 1 + k, 1))
@@ -2411,6 +2430,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const reason = used.has(c) ? 'gekozen-in-route' : c.parts.seen ? 'verhaal-al-gelezen' : clashes(c) ? 'zelfde-onderwerp-gekozen-of-eerder' : !allowedNews(prof, c.st || {sourceCount:1}, c.items, c.desk) ? newsRejection(prof,c.st || {sourceCount:1},c.items,c.desk) : capped(c) ? 'internationaal-plafond' : entries.length >= size ? 'route-vol' : 'onverklaard'
     reject(c.kind, c.id, c.ids, reason)
   }
+  // De kenmerken (met de woordenschat van deze pool en de koppen van de vorige Editie) gaan niet-opsombaar mee, zodat wie
+  // na de selectie nog plekken kiest (freeDutchFill) ze niet opnieuw over de hele pool hoeft te rekenen (keuring ronde 2-1:
+  // dat was een derde van de rekentijd van de algemene Editie).
+  Object.defineProperty(entries, 'sig', { value: sig, enumerable: false })
   return Object.assign(entries, { deskOrder, abroad: abroadIds, counted })
 }
 

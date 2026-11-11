@@ -154,13 +154,13 @@ const langOf = (item) => {
 
 // Zijn de koppen van `a` en `b` (stukken met title, source, lang) dezelfde gebeurtenis in twee talen? Geeft de gedeelde
 // begrippen terug (voor het archief en de toetsen), of null.
-export function crossLanguageEvent(a, b) {
+export function crossLanguageEvent(a, b, terms = eventTerms) {
   const la = langOf(a)
   const lb = langOf(b)
   if (!la || !lb || la === lb) return null
   const [nl, xx] = la === 'nl' ? [a, b] : [b, a]
-  const tn = eventTerms(nl.title)
-  const tx = eventTerms(xx.title)
+  const tn = terms(nl.title)
+  const tx = terms(xx.title)
   const concepts = [...tn.concepts].filter((c) => tx.concepts.has(c))
   // Een naam uit de Nederlandse kop die letterlijk in de andere kop staat (Hegseth, Huang, Fairford).
   const names = [...tn.names].filter((n) => tx.words.has(n))
@@ -176,11 +176,14 @@ export function crossLanguageEvent(a, b) {
 // (indexen) die dezelfde gebeurtenis zijn; de bubbelplek doet niet mee.
 export function crossLanguagePairs(entries, { leadOf }) {
   const out = []
+  // Elke kop één keer ontleden, niet per paar.
+  const memo = new Map()
+  const terms = (title) => { let t = memo.get(title); if (!t) memo.set(title, (t = eventTerms(title))); return t }
   for (let a = 0; a < entries.length; a++) {
     if (entries[a].desk === 'bubbel') continue
     for (let b = a + 1; b < entries.length; b++) {
       if (entries[b].desk === 'bubbel') continue
-      const hit = crossLanguageEvent(leadOf(entries[a]), leadOf(entries[b]))
+      const hit = crossLanguageEvent(leadOf(entries[a]), leadOf(entries[b]), terms)
       if (hit) out.push({ hoger: a, lager: b, ...hit })
     }
   }

@@ -103,6 +103,14 @@ test('een bekend persoon op 02 of 03 wijkt voor groot nieuws over politiek of ec
   const order = (es, heads) => newsBeforePeople(es.map((e) => ({ ...e })), { itemsOf, storyOf, heads }).map((e) => e.id)
   assert.deepEqual(order([open, second, people, money], 3), ['open', 'second', 'money', 'people'])
   assert.deepEqual(order([open, second, people, money], 1), ['open', 'second', 'people', 'money'], 'zonder heads alleen 01, zoals vroeger')
+  // Keuring ronde 2-1 (6 november vroege avond): op 02 zakt de bekende persoon zelf onder de top 3; een groter nieuwsverhaal
+  // op 03 (ook een misdaadzaak) blijft in de top 3 en er komt geen kleiner verhaal boven hem.
+  const crime = story('crime', [p('nos', 'Sekteleider in Kenia schuldig aan dood honderden volgelingen'), p('nrc', 'Sekteleider Kenia veroordeeld'), p('bbc', 'Kenyan cult leader convicted'), p('ad', 'Keniaanse sekteleider schuldig')])
+  const small = story('small', [p('nos', 'Inflatie stijgt naar 4 procent, energie duurder'), p('fd', 'Inflatie hoger door energie')])
+  assert.deepEqual(order([open, people, crime, small], 3), ['open', 'crime', 'small', 'people'])
+  // Geen nieuwsverhaal van minstens de helft onder de top 3: dan blijft alles staan.
+  const tiny = story('tiny', [p('nos', 'Inflatie stijgt naar 4 procent, energie duurder')])
+  assert.deepEqual(order([open, people, crime, tiny], 3), ['open', 'people', 'crime', 'tiny'])
 })
 
 // ---------- besluit 1, 2, 3 ----------
