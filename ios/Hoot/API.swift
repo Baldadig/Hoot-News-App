@@ -106,6 +106,23 @@ enum HootAPI {
 
     static func personal(_ body: PersonalRequest) async throws -> Edition { (try await post("api/edition", body) as PersonalResponse).edition }
 
+    // POST /api/edition, versie 2 (De Redacteur op de server, 1.2.1): de server stelt jouw Editie samen en legt
+    // haar als lid zelf vast. Met je token als je lid bent. Uitkomst: de status (0 = geen verbinding of te
+    // traag) en het antwoord, dat de app letterlijk bewaart. Nooit uit een cache: het kan van je account zijn.
+    nonisolated(unsafe) static var editionTransport: URLSession = session // alleen tests zetten hem (EditionServerTests)
+    static func serverEdition(_ payload: Data, token: String?) async -> (status: Int, data: Data?) {
+        guard !DebugLaunch.offline else { return (0, nil) }
+        var request = URLRequest(url: base.appendingPathComponent("api/edition"))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+        request.httpBody = payload
+        request.timeoutInterval = 8
+        guard let (data, response) = try? await editionTransport.data(for: request) else { return (0, nil) }
+        return ((response as? HTTPURLResponse)?.statusCode ?? 0, data)
+    }
+
     static func start() async throws -> (value: FeedStart, fromCache: Bool) { try await fetch("api/feed", ["deel": "start"]) }
     static func part(_ id: String, version: String) async throws -> FeedPart { try await get("api/feed", ["bron": id, "v": version]) }
     static func related(version: String) async throws -> FeedRelated { try await get("api/feed", ["deel": "verhalen", "v": version]) }

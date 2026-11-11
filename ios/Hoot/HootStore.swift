@@ -86,6 +86,9 @@ final class HootStore {
     // ook bewaart, zoals `history`) — die gaat ongewijzigd naar je account.
     private(set) var personal: Edition?
     private var personalRaw: [String: Any]?
+    // Het vangnet (De Redacteur op de server, 1.2.1): zelf samengesteld omdat de server niet antwoordde.
+    // Alleen in het geheugen; nooit in edition.json, je account of je geschiedenis.
+    private(set) var personalProvisional: Edition?
     // Je account (Account.swift), voor de eigenaar van je Editie en user_state.edition.
     weak var account: Account?
     // Bluesky als eigen tabblad, met de vaste accounts van Hoot en wie je zelf toevoegt.
@@ -927,7 +930,7 @@ final class HootStore {
     // ---- Jouw Editie ----
     // Toon alleen jouw samengestelde Editie. De algemene feed kent jouw interesses niet en mag
     // tijdens het laden niet kort langs de buitenland-/sportgrens of Nederlandse opening gaan.
-    var shownEdition: Edition? { Self.visiblePersonal(personal, id: edition?.id, owner: ownerNow) }
+    var shownEdition: Edition? { Self.visiblePersonal(personal, id: edition?.id, owner: ownerNow) ?? Self.visiblePersonal(personalProvisional, id: edition?.id, owner: ownerNow) }
     static func visiblePersonal(_ candidate: Edition?, id: String?, owner: String) -> Edition? {
         guard let candidate, let id, candidate.id == id, candidate.owner == owner else { return nil }
         return candidate
@@ -946,13 +949,13 @@ final class HootStore {
     }
     private static let log = Logger(subsystem: "nl.hootnews.Hoot", category: "editie")
 
-    // Jouw Editie, één keer per dagdeel per lezer, in de volgorde van waarheid van de website
-    // (bouwspec-aanvulling P8-1): (a) al vastgelegd op dit toestel, (b) al vastgelegd in je account
-    // (een ander toestel was eerder), (c) anders nu zelf samenstellen met de rekenkern (EditionEngine,
-    // dezelfde code als de website) en vastleggen, waarbij de eerste schrijver wint (P8-3). Faalt de
-    // rekenkern, dan de server (P8-6; die Editie gaat nooit naar je account). Als lid pas na de
-    // eerste sync-pull (P8-2): anders rekent een vers toestel met instellingen die je account nog
-    // niet gaf. De afdruk (`basis`) komt uit de rekenkern, dezelfde djb2 als editionBasis op het web.
+    // Jouw Editie komt van de server (De Redacteur op de server, 1.2.1; zoals het web, src/lib/editionSync.js
+    // serverFirst): (1) ligt hier al een Editie van de server voor dit dagdeel, deze lezer en deze afdruk,
+    // dan die; (2) anders POST /api/edition v2: de server stelt samen en legt als lid zelf vast in je account
+    // (de eerste schrijver wint). Wat hij teruggeeft, bewaren we letterlijk in edition.json; de app claimt
+    // niets meer. Als lid pas na de eerste sync-pull (P8-2). (3) Geen antwoord (offline, fout, 429): het
+    // vangnet met de rekenkern (EditionEngine), voorlopig en alleen in het geheugen. De afdruk (`basis`)
+    // komt uit de rekenkern, dezelfde djb2 als editionBasis op het web.
     private var personalPending = ""
     // Past deze vastgelegde Editie bij dit dagdeel, deze lezer en deze bronnen en interesses (P8-1)?
     static func fits(_ e: Edition?, id: String, owner: String, basis: String) -> Bool {
@@ -966,80 +969,108 @@ final class HootStore {
         return true
     }
     func loadPersonal() async {
-        guard let global = edition, !sources.isEmpty, !itemsById.isEmpty else { return }
-        guard Self.itemsCurrent(itemsEdition: itemsEdition, loading: partsLoading, edition: global.id) else { return }
-        if let a = account, !Self.mayCompose(status: a.status, uid: a.uid, pulled: a.pulled, sync: a.sync) { return }
+        guard let global = edition, !sources.isEmpty else { return }
+        if account?.status == .loading { return } // je account laadt nog: dan weten we nog niet van wie de Editie is
         let owner = ownerNow
         let followedIds = followed.map(\.id)
-        let basis: String
-        do {
-            basis = try await EditionEngine.shared.basis(followed: followedIds, interests: interests, topics: topics, favorites: favorites)
-        } catch {
-            Self.log.error("rekenkern faalt bij de afdruk: \(error.localizedDescription, privacy: .public)")
-            await fallbackPersonal(global, owner: owner, basis: nil)
-            return
-        }
-        let fits = { (e: Edition?) in Self.fits(e, id: global.id, owner: owner, basis: basis) }
+        // De afdruk uit de rekenkern (dezelfde djb2 als het web); faalt die, dan vragen we de server toch.
+        let basis = try? await EditionEngine.shared.basis(followed: followedIds, interests: interests, topics: topics, favorites: favorites)
+        let task = "\(global.id)|\(owner)|\(basis ?? "")"
         // `-HootEngine YES` (Debug): altijd zelf samenstellen, voor het keuren van de rekenkern.
         let force = DebugLaunch.engine && !forced.contains(global.id)
-        if fits(personal), !force { return } // (a)
-        let task = "\(global.id)|\(owner)|\(basis)"
+        if let basis, Self.fits(personal, id: global.id, owner: owner, basis: basis), personalServerTask == task, !force { return } // (1)
         if personalPending == task { return }
         personalPending = task
         defer { if personalPending == task { personalPending = "" } }
 
-        var theirs: [String: Any]?
-        if account?.uid != nil, let a = account {
-            // Een verse lezing; lukt die niet (kolom ontbreekt nog, geen verbinding), dan wat de pull gaf.
-            theirs = (try? await a.fetchEdition()) ?? a.remoteEdition
-            if let theirs, fits(Self.decodeEdition(theirs)), !force { await adopt(theirs, owner: owner); return } // (b)
-        }
-        do {
-            // (c) De Edities van vóór deze (H3/H5), precies als earlierEditions op het web: wat dit toestel
-            // vastlegde (als het van deze lezer is) en wat in je account staat, elk met haar `history`, en
-            // de Editie zelf voluit als zij van een ander dagdeel is — ook die uit je account, want dit
-            // toestel kan een dagdeel overgeslagen hebben dat het web wél vastlegde (P8-1). Samen de
-            // laatste drie dagdelen; de rekenkern voegt ze samen tot `previous` en vat ze samen tot de
-            // nieuwe `history` (nextHistory): de Edities ervóór, nooit deze zelf, zoals het web schrijft.
-            let prior = Self.rows(try await EditionEngine.shared.earlier(local: Self.json(personalRaw), account: Self.json(theirs), id: global.id, owner: owner))
-            forced.insert(global.id)
-            let input = try composeInput(global: global, owner: owner, previous: prior)
-            let out = try await EditionEngine.shared.compose(input: input)
-            guard var mine = try JSONSerialization.jsonObject(with: out) as? [String: Any], mine["id"] as? String == global.id else { throw EditionEngine.Failure.noResult }
+        // (2) De server stelt samen en legt als lid zelf vast; als lid pas na de eerste pull (anders vraagt
+        // een vers toestel met instellingen die je account nog niet gaf, en zet de server die in je account).
+        let mayAsk = !force && (account?.uid == nil || account?.pulled == true)
+        if mayAsk, let raw = await askServer(global: global, owner: owner) {
             // Veranderde er intussen iets (bron gedempt, uitgelogd)? Dan komt er zo een nieuwe ronde.
             guard followed.map(\.id) == followedIds, ownerNow == owner else { return }
-            mine["history"] = Self.rows(try await EditionEngine.shared.nextHistory(prior: Self.json(prior), edition: String(decoding: out, as: UTF8.self)))
-            keep(mine)
-            if DebugLaunch.engine { return } // gedwongen samengesteld: niet naar je account
-            // Niet naar je account met een kern uit de bewaarde kopie, of over een later dagdeel heen (mayClaim).
-            guard Self.mayClaim(coreFresh: coreFresh, theirs: theirs, id: global.id, builtAt: global.builtAt) else { return }
-            if account?.uid != nil, let a = account, let claim = try? await a.claimEdition(mine, id: global.id), !claim.won {
-                // Een ander toestel was eerder: dan die Editie, ook hier, zodat beide hetzelfde `previous` hebben (P8-5).
-                if let w = claim.edition, fits(Self.decodeEdition(w)) { await adopt(w, owner: owner) }
+            keepServer(raw, task: task)
+            return
+        }
+        // (3) Geen antwoord (offline, een fout, 429): het vangnet, voorlopig.
+        await provisional(global: global, owner: owner, basis: basis, force: force)
+    }
+
+    // Voor welke taak (dagdeel|lezer|afdruk) edition.json van de server kwam. Een Editie die dit toestel vroeger
+    // zelf samenstelde (1.2) past misschien ook, maar de server heeft het laatste woord: die vragen we één keer.
+    private var personalServerTask: String {
+        get { UserDefaults.standard.string(forKey: "hoot.editionServerTask") ?? "" }
+        set { UserDefaults.standard.set(newValue, forKey: "hoot.editionServerTask") }
+    }
+
+    // POST /api/edition (v2) met je token. 401: één keer vernieuwen en opnieuw. Zonder account de
+    // history-regels van je vorige Edities van de server (`earlier`); nooit `affinity`.
+    private func askServer(global: Edition, owner: String) async -> [String: Any]? {
+        var body: [String: Any] = [
+            "v": 2, "followed": followed.map(\.id), "interests": interests, "topics": topics, "favorites": favorites,
+            "taste": taste.isEmpty ? NSNull() : Self.encoded(taste), "readIds": Array(readIds.suffix(1500)),
+        ]
+        var token: String?
+        if owner == "anon" {
+            let mine = personalServerTask.hasSuffix("|anon|\(personal?.basis ?? "")") && personalRaw?["owner"] as? String == "anon" ? personalRaw : nil
+            if let prior = try? await EditionEngine.shared.earlier(local: Self.json(mine), account: "null", id: global.id, owner: owner),
+               let rows = try? await EditionEngine.shared.nextHistory(prior: prior, edition: Self.json(["id": global.id])) {
+                let earlier = Self.rows(rows)
+                if !earlier.isEmpty { body["earlier"] = earlier }
             }
+        } else {
+            guard let t = await account?.editionToken() else { return nil }
+            token = t
+        }
+        guard JSONSerialization.isValidJSONObject(body), let payload = try? JSONSerialization.data(withJSONObject: body) else { return nil }
+        var r = await HootAPI.serverEdition(payload, token: token)
+        if r.status == 401, token != nil, let fresh = await account?.editionToken(renew: true) {
+            r = await HootAPI.serverEdition(payload, token: fresh)
+        }
+        return Self.acceptServer(r.data, status: r.status, id: global.id, owner: owner)
+    }
+
+    // Het antwoord van de server, als het van dit dagdeel en deze lezer is: de Editie zoals hij hem gaf.
+    static func acceptServer(_ data: Data?, status: Int, id: String, owner: String) -> [String: Any]? {
+        guard status == 200, let data, let o = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let e = o["edition"] as? [String: Any], e["id"] as? String == id, e["owner"] as? String == owner,
+              e["entries"] is [Any] else { return nil }
+        return e
+    }
+
+    // Letterlijk bewaren wat de server gaf (edition.json), en het vangnet vervangen.
+    func keepServer(_ raw: [String: Any], task: String) {
+        keep(raw)
+        personalServerTask = task
+        personalProvisional = nil
+    }
+
+    // Het vangnet: zelf samenstellen met de rekenkern, zonder leesprofiel (zoals de server), als de berichten
+    // van dit dagdeel er zijn. Voorlopig: alleen in het geheugen, nooit in edition.json, je account of je
+    // geschiedenis. De volgende ronde (weer online, terug in de app) vraagt opnieuw de server.
+    private func provisional(global: Edition, owner: String, basis: String?, force: Bool) async {
+        guard let basis, !itemsById.isEmpty, Self.itemsCurrent(itemsEdition: itemsEdition, loading: partsLoading, edition: global.id) else { return }
+        let followedIds = followed.map(\.id)
+        do {
+            let mine = personalServerTask.hasPrefix("\(personal?.id ?? "-")|\(owner)|") ? personalRaw : nil
+            let prior = Self.rows(try await EditionEngine.shared.earlier(local: Self.json(mine), account: "null", id: global.id, owner: owner))
+            forced.insert(global.id)
+            let input = try composeInput(global: global, owner: owner, previous: prior, affinity: false)
+            let out = try await EditionEngine.shared.compose(input: input)
+            guard var raw = try JSONSerialization.jsonObject(with: out) as? [String: Any], raw["id"] as? String == global.id else { throw EditionEngine.Failure.noResult }
+            guard followed.map(\.id) == followedIds, ownerNow == owner else { return }
+            raw["owner"] = owner
+            raw["basis"] = basis
+            raw["provisional"] = true
+            if force { keep(raw); return } // gedwongen samengesteld (Debug): tonen, niet naar je account
+            personalProvisional = Self.decodeEdition(raw)
         } catch {
             Self.log.error("rekenkern faalt: \(error.localizedDescription, privacy: .public)")
-            await fallbackPersonal(global, owner: owner, basis: basis)
         }
     }
 
     // Welke dagdelen al gedwongen zijn samengesteld (`-HootEngine`): daarna gewoon weer (a).
     private var forced: Set<String> = []
-
-    // De Editie van een ander toestel overnemen, en vastleggen alsof hij hier gemaakt is: dan is hij
-    // ook hier het `previous` van het volgende dagdeel (P8-5). Haar `history` wordt die van het web bij
-    // overnemen: de Edities van toen van beide toestellen (zijn geschiedenis plus wat dit toestel van
-    // deze lezer vastlegde), samengevat, nieuwste eerst, zonder haarzelf. Heeft dit toestel niets nieuws,
-    // dan komt een door het web geschreven geschiedenis ongewijzigd terug.
-    private func adopt(_ raw: [String: Any], owner: String) async {
-        var e = raw
-        e["owner"] = owner
-        if let id = e["id"] as? String, let prior = try? await EditionEngine.shared.earlier(local: Self.json(personalRaw), account: Self.json(raw), id: id, owner: owner),
-           let h = try? await EditionEngine.shared.nextHistory(prior: prior, edition: Self.json(e)) {
-            e["history"] = Self.rows(h)
-        }
-        keep(e)
-    }
 
     // Een JSON-lijst van objecten (regels, Edities) terug naar Swift.
     private static func rows(_ json: String) -> [[String: Any]] {
@@ -1068,7 +1099,7 @@ final class HootStore {
     // server zoals HootAPI ze bewaarde, want dat is precies wat de website krijgt, ook velden die de
     // app zelf niet kent (wide, near). Ontbreekt een bestand, dan wat de app in het geheugen heeft.
     // Geen `now` of `builtAt`: de rekenkern neemt global.builtAt, net als de website.
-    private func composeInput(global: Edition, owner: String, previous: [[String: Any]]) throws -> Data {
+    private func composeInput(global: Edition, owner: String, previous: [[String: Any]], affinity useAffinity: Bool = true) throws -> Data {
         let start = HootAPI.cached("api/feed", ["deel": "start"]).flatMap { (try? JSONSerialization.jsonObject(with: $0)) as? [String: Any] }
         var globalRaw = start?["edition"] as? [String: Any]
         if globalRaw?["id"] as? String != global.id { globalRaw = Self.encoded(global) as? [String: Any] }
@@ -1088,48 +1119,10 @@ final class HootStore {
         let input: [String: Any] = [
             "global": globalRaw, "stories": stories, "items": items, "sources": sourcesRaw,
             "followed": followed.map(\.id), "interests": interests, "topics": topics, "favorites": favorites,
-            "affinity": affinity.n > 0 ? Self.encoded(affinity) : NSNull(), "taste": taste.isEmpty ? NSNull() : Self.encoded(taste),
+            "affinity": useAffinity && affinity.n > 0 ? Self.encoded(affinity) : NSNull(), "taste": taste.isEmpty ? NSNull() : Self.encoded(taste),
             "readIds": Array(readIds.suffix(1500)), "previous": previous, "owner": owner,
         ]
         return try JSONSerialization.data(withJSONObject: input)
-    }
-
-    // De terugval (P8-6): de server stelt samen, zonder affinity (die blijft op het toestel) maar met
-    // wat je las en wat er in je vorige Edities stond. Het antwoord draagt `fallback: true` en gaat
-    // nooit naar je account.
-    private func fallbackPersonal(_ global: Edition, owner: String, basis: String?) async {
-        let body = PersonalRequest(followed: followed.map(\.id), interests: interests, topics: topics, favorites: favorites, taste: taste.isEmpty ? nil : taste, readIds: Array(readIds.suffix(1500)), previous: previousForServer(global, owner: owner))
-        guard let data = try? await HootAPI.postData("api/edition", body),
-              var mine = ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any])?["edition"] as? [String: Any],
-              mine["id"] as? String == global.id else { return }
-        mine["personal"] = true
-        mine["fallback"] = true
-        mine["owner"] = owner
-        if mine["basis"] == nil, let basis { mine["basis"] = basis }
-        keep(mine)
-    }
-
-    // `previous` voor de server: de vereniging van wat dit toestel vastlegde (de vorige Editie en de
-    // geschiedenis), in de platte vorm die POST /api/edition leest. Alleen wat van deze lezer is: na
-    // uitloggen rekent "anon" niet met de geschiedenis van het lid (zoals earlierEditions op het web).
-    private func previousForServer(_ global: Edition, owner: String) -> PreviousEdition? {
-        guard personalRaw?["owner"] as? String == owner else { return nil }
-        var rows = personalRaw?["history"] as? [[String: Any]] ?? []
-        if let p = personal, p.id != global.id, let lead = p.entries.first {
-            let stories = p.entries.filter { $0.kind == "story" }
-            let byId = Dictionary((p.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
-            rows.insert([
-                "id": p.id, "builtAt": p.builtAt ?? "",
-                "storyIds": stories.flatMap { [$0.id, $0.formerId].compactMap { $0 } },
-                "itemIds": p.entries.map { $0.leadId ?? $0.id } + stories.flatMap { $0.itemIds ?? [] },
-                "leadIds": [lead.leadId ?? lead.id],
-                "titles": p.entries.compactMap { $0.title ?? byId[$0.leadId ?? $0.id]?.title },
-            ], at: 0)
-        }
-        guard !rows.isEmpty else { return nil }
-        let strings = { (k: String) in Array(Set(rows.flatMap { $0[k] as? [String] ?? [] })).sorted() }
-        let at = rows.compactMap { ($0["builtAt"] as? String).flatMap(HootDate.parse)?.timeIntervalSince1970 }.max() ?? 0
-        return PreviousEdition(storyIds: strings("storyIds"), itemIds: strings("itemIds"), leadIds: strings("leadIds"), leadStoryId: nil, at: at * 1000, titles: strings("titles"))
     }
 
     // ---- Digest ----
