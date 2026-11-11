@@ -109,6 +109,33 @@ function memStep(key, d, limit = Infinity) {
   return next
 }
 
+// ---- Opruimen (netlify/lib/opruimen.mjs): sleutels met een voorvoegsel opsommen en één sleutel verwijderen ----
+// Nooit zonder voorvoegsel: een lege prefix zou de hele opslag (feed, archief, docs) opsommen.
+export async function kvListKeys(prefix) {
+  if (typeof prefix !== 'string' || prefix.length < 2) throw new Error('kvListKeys: een expliciet voorvoegsel is verplicht')
+  try {
+    const keys = []
+    for await (const page of store().list({ prefix, paginate: true })) for (const b of page.blobs || []) keys.push(b.key)
+    mode = 'blobs'
+    return keys
+  } catch (e) {
+    fellBack('opsommen', prefix, e)
+    return [...mem.keys()].filter((k) => k.startsWith(prefix))
+  }
+}
+
+// Eén sleutel weg, uit Blobs en uit het geheugen. Gooit bij een fout in Blobs (de aanroeper telt die).
+export async function kvDelete(key) {
+  mem.delete(key)
+  try {
+    await store().delete(key)
+    mode = 'blobs'
+  } catch (e) {
+    if (e?.name === 'MissingBlobsEnvironmentError') return
+    throw e
+  }
+}
+
 // Onthoudt een duur antwoord `maxAge` ms. Een leeg antwoord (alles mislukt) bewaren we niet.
 export async function remember(key, maxAge, compute, { now = Date.now(), valid = (v) => v != null } = {}) {
   const hit = await kvGet(key)
