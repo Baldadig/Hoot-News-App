@@ -86,3 +86,25 @@ test('selectEdition: een verhaal van alleen opinie opent de Editie niet, en een 
   assert.equal(entries[0].id, 'SN')
   assert.ok(!['n1'].includes(entries[0].leadId), entries[0].leadId)
 })
+
+// Redacteur op de server (besluit Alex, 11 november 2026): de Editie rekent met dezelfde opinieherkenning als de tab
+// Opinie (shared/opinie.mjs), plus de twee aanbevelingen van de keurder. Analyse is geen opinie.
+test('Editie en tab Opinie: één herkenning', async () => {
+  const { isOpinie } = await import('../shared/opinie.mjs')
+  const corpus = JSON.parse((await import('node:fs')).readFileSync(new URL('./fixtures/opinie-corpus.json', import.meta.url), 'utf8'))
+  for (const i of [...corpus.opinie, ...corpus.geen]) assert.equal(isOpinion(i), isOpinie(i), `${i.source} | ${i.title}`)
+  assert.ok(isOpinion({ opinion: true, title: 'x', url: 'https://example.org/x' }), 'het veld van de server telt')
+})
+
+test('analyse is geen opinie, ook niet in de Editie (Al Jazeera /news-analysis/)', () => {
+  assert.ok(!isOpinion({ title: 'Fake polls expose vulnerabilities in US elections ahead of midterms', url: 'https://www.aljazeera.com/news-analysis/2026/10/31/fake-polls-expose-vulnerabilities' }))
+})
+
+test('ingezonden brieven in /wat-u-zegt/ en de auteur achter de laatste "|" zijn opinie', () => {
+  assert.ok(isOpinion({ title: 'Lezers: ’Peek & Cloppenburg zoveelste icoon dat uit binnenstad verdwijnt’', url: 'https://www.telegraaf.nl/wat-u-zegt/lezers-peek-cloppenburg/163880075.html' }))
+  assert.ok(isOpinion({ title: 'How can playing for Manchester City fit into Marc Guéhi’s moral universe? | Barney Ronay', author: 'Barney Ronay', url: 'https://www.theguardian.com/football/2026/oct/30/x' }))
+  // Niet de auteur, of maar één woord: geen signaal (een rubrieknaam of een citaat achter de streep).
+  assert.ok(!isOpinion({ title: 'LIVE Formule 1 | Uitstekende start voor Ferrari', author: 'Redactie Sport', url: 'https://example.org/a' }))
+  assert.ok(!isOpinion({ title: 'Iets gebeurd | Barney Ronay', author: 'Sean Ingle', url: 'https://example.org/b' }))
+  assert.ok(!isOpinion({ title: 'Iets gebeurd | Ronay', author: 'Ronay', url: 'https://example.org/c' }))
+})

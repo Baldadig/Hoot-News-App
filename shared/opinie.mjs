@@ -12,14 +12,17 @@
 //    Driessen): zo tekent een columnist, een verslaggever zet zijn eigen naam niet boven het nieuws;
 //  - een paar rubrieken die alleen bij één uitgever mening zijn (The Atlantic /ideas/, The Economist
 //    /leaders/ en /by-invitation/, The Independent /voices/).
+//  - de naam van de schrijver áchter de laatste "|" van de kop ("Het kabinet moet kiezen | Jan de Vries",
+//    de Guardian-vorm; keuring opinie-tab, aanbeveling 1), weer precies de auteur;
+//  - ingezonden brieven van De Telegraaf in de map /wat-u-zegt/ (keuring opinie-tab, aanbeveling 2).
 // Geen opinie: analyse, achtergrond, uitleg, recensie, review, nieuwsbrief, liveblog. Ook Al Jazeera's
-// /news-analysis/ niet (isOpinion in article-signals.mjs telt die wel mee, voor de Editie). En een woord in
-// de slug ("…-keeps-opinion-…", "…-comments", "The Durutti Column") is geen map en dus geen signaal.
+// /news-analysis/ niet. En een woord in de slug ("…-keeps-opinion-…", "…-comments", "The Durutti Column")
+// is geen map en dus geen signaal.
 //
-// Los van shared/article-signals.mjs gehouden: isOpinion daar rekent mee in de Editie (ook op de iPhone,
-// via edition-core.js); deze herkenning is alleen voor de Stroom en verandert de Editie niet.
+// Sinds 11 november (besluit Alex) rekent ook de Editie hiermee: isOpinion in shared/article-signals.mjs
+// ("nooit opinie op 01") gebruikt deze herkenning, op de server, het web en de iPhone (edition-core.js).
 
-const DIR = /^(opinie[a-z-]*|opinies|opinion|opinions|[a-z]+-opinion|meningen|mening|columns?|columns-[a-z-]+|columnisten|commentaar|commentisfree|[a-z]+-commentary|opinion-and-essays)$/i
+const DIR = /^(opinie[a-z-]*|opinies|opinion|opinions|[a-z]+-opinion|meningen|mening|columns?|columns-[a-z-]+|columnisten|commentaar|commentisfree|[a-z]+-commentary|opinion-and-essays|wat-u-zegt)$/i
 const HOST_DIR = [
   [/(^|\.)theatlantic\.com$/i, /^ideas$/i],
   [/(^|\.)economist\.com$/i, /^(leaders|by-invitation)$/i],
@@ -59,13 +62,22 @@ function signedBySelf(item) {
   return !!m && plain(m[1]) === author
 }
 
+// Het spiegelbeeld: de naam van de schrijver áchter de laatste "|" van de kop ("… | Jan de Vries").
+function signedAtEnd(item) {
+  const author = plain(item.author)
+  if (!author || !author.includes(' ')) return false
+  const title = String(item.title || '')
+  const at = title.lastIndexOf('|')
+  return at > 0 && plain(title.slice(at + 1)) === author
+}
+
 export function isOpinie(item = {}) {
   if (!item || item.kind === 'post') return false
   if (item.type === 'opinie') return true
   if (urlSignal(item.url)) return true
   if (LABEL.test(String(item.section || '').trim())) return true
   const title = String(item.title || '')
-  return TITLE.test(title) || TITLE_CAPS.test(title) || signedBySelf(item)
+  return TITLE.test(title) || TITLE_CAPS.test(title) || signedBySelf(item) || signedAtEnd(item)
 }
 
 // Voor de website: een bericht uit een feed van vóór dit veld draagt alleen `type`.

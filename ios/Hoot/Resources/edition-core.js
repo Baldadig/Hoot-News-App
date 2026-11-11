@@ -189,6 +189,55 @@ var HootCore = (() => {
   // src/lib/affinity.js
   var MIN_EVENTS = 8;
 
+  // shared/opinie.mjs
+  var DIR = /^(opinie[a-z-]*|opinies|opinion|opinions|[a-z]+-opinion|meningen|mening|columns?|columns-[a-z-]+|columnisten|commentaar|commentisfree|[a-z]+-commentary|opinion-and-essays|wat-u-zegt)$/i;
+  var HOST_DIR = [
+    [/(^|\.)theatlantic\.com$/i, /^ideas$/i],
+    [/(^|\.)economist\.com$/i, /^(leaders|by-invitation)$/i],
+    [/(^|\.)independent\.co\.uk$/i, /^voices$/i]
+  ];
+  var SLUG = /^columns?-[a-z]/i;
+  var LABEL = /^(opinie|opinies|opinion|column|columns|columnisten|commentaar|commentary|ingezonden|ingezonden brief|meningen|hoofdredactioneel)$/i;
+  var TITLE = /^\W*(?:(?:opinie|opinion|column|commentaar|ingezonden(?: brief)?|hoofdredactioneel(?: commentaar)?)\s*[:|]|column\s+[^:|.!?]{2,40}\s\|)/i;
+  var TITLE_CAPS = /^\W*(OPINIE|COLUMN|COMMENTAAR)\.\s/;
+  var plain = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+  function urlSignal(raw) {
+    let u;
+    try {
+      u = new URL(String(raw || ""));
+    } catch {
+      return false;
+    }
+    const parts = u.pathname.split("/").filter(Boolean);
+    if (!parts.length) return false;
+    const dirs = parts.slice(0, -1);
+    if (dirs.some((d) => DIR.test(d))) return true;
+    const host = u.hostname;
+    if (HOST_DIR.some(([h, d]) => h.test(host) && dirs.some((x) => d.test(x)))) return true;
+    return SLUG.test(parts[parts.length - 1]);
+  }
+  function signedBySelf(item) {
+    const author = plain(item.author);
+    if (!author || !author.includes(" ")) return false;
+    const m = /^([^:|]{3,60}):\s/.exec(String(item.title || ""));
+    return !!m && plain(m[1]) === author;
+  }
+  function signedAtEnd(item) {
+    const author = plain(item.author);
+    if (!author || !author.includes(" ")) return false;
+    const title = String(item.title || "");
+    const at = title.lastIndexOf("|");
+    return at > 0 && plain(title.slice(at + 1)) === author;
+  }
+  function isOpinie(item = {}) {
+    if (!item || item.kind === "post") return false;
+    if (item.type === "opinie") return true;
+    if (urlSignal(item.url)) return true;
+    if (LABEL.test(String(item.section || "").trim())) return true;
+    const title = String(item.title || "");
+    return TITLE.test(title) || TITLE_CAPS.test(title) || signedBySelf(item) || signedAtEnd(item);
+  }
+
   // shared/article-signals.mjs
   var words = (pattern) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, "iu");
   var COUNTRIES = [
@@ -254,16 +303,7 @@ var HootCore = (() => {
     if (a.countries.length && b.countries.length && !a.countries.some((c) => b.countries.includes(c))) return true;
     return a.cities.length > 0 && b.cities.length > 0 && !a.cities.some((c) => b.cities.includes(c));
   }
-  var OPINION_PATH = /\/(opinie|opinies|opinion|opinions|columns?[a-z-]*|columnisten|commentaar|commentisfree|opinion-and-essays|news-analysis)\//i;
-  var OPINION_LABEL = /^(opinie|opinion|column|columns|columnisten|commentaar|commentary|ingezonden)$/i;
-  var OPINION_TITLE = /^\W*(opinie|opinion|column|commentaar|ingezonden)\s*[:|]/i;
-  function isOpinion(item = {}) {
-    if (!item) return false;
-    if (item.type === "opinie") return true;
-    const url = String(item.url || "");
-    if (OPINION_PATH.test(url) || /theatlantic\.com\/ideas\//i.test(url)) return true;
-    return OPINION_LABEL.test(String(item.section || "").trim()) || OPINION_TITLE.test(item.title || "");
-  }
+  var isOpinion = (item = {}) => !!item && (item.opinion === true || isOpinie(item));
   var verdictTitle = (item = {}) => /[.!?]\s+["“‘]?\p{Lu}[^.!?]*[.!]["”’]?$/u.test(String(item?.title || "").trim());
 
   // netlify/lib/topics.mjs
@@ -1941,7 +1981,7 @@ var HootCore = (() => {
   var allowedNews = (prof, story, items, desk = null, opts = {}) => newsRejection(prof, story, items, desk, opts) === null;
 
   // shared/editor-version.mjs
-  var EDITOR_REVISION = "redacteur-2026-11-07-taalregel";
+  var BASIS_REVISION = "redacteur-2026-11-07-taalregel";
 
   // shared/lang.mjs
   var NL = new Set(
@@ -2980,9 +3020,9 @@ var HootCore = (() => {
     const lead = items.find((i) => i.id === e.leadId);
     if (!lead || !isOpinion(lead) && !verdictTitle(lead)) return entries;
     const fresh = items.filter((i) => !isOpinion(i));
-    const plain = fresh.filter((i) => !verdictTitle(i));
-    if (!isOpinion(lead) && !plain.length) return entries;
-    const next = pick(plain.length ? plain : fresh, items);
+    const plain2 = fresh.filter((i) => !verdictTitle(i));
+    if (!isOpinion(lead) && !plain2.length) return entries;
+    const next = pick(plain2.length ? plain2 : fresh, items);
     if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} };
     return entries;
   }
@@ -3814,7 +3854,7 @@ var HootCore = (() => {
   function editionBasis(followed = [], interests = [], topics = [], favorites = []) {
     const parts = [[...followed].sort().join(","), [...interests].sort().join(","), [...topics].sort().join(",")];
     if (favorites.length) parts.push([...favorites].sort().join(","));
-    const text = [EDITOR_REVISION, ...parts].join("|");
+    const text = [BASIS_REVISION, ...parts].join("|");
     let h = 5381;
     for (let i = 0; i < text.length; i++) h = (h * 33 ^ text.charCodeAt(i)) >>> 0;
     return h.toString(36);

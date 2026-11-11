@@ -1,6 +1,6 @@
 import { withCleanIntro } from '../../shared/edition-display.mjs'
 import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, exceptionalDutchSport, coverageOf, majorGeneralNews } from '../../shared/edition-policy.mjs'
-import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
+import { BASIS_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
 // Per dagdeel (ochtend, middag en vroege avond, gelijk met de algemene editie) stelt De Redacteur
@@ -673,7 +673,7 @@ export function earlierEditions({ local = null, account = null, id = null, owner
 export function editionBasis(followed = [], interests = [], topics = [], favorites = []) {
   const parts = [[...followed].sort().join(','), [...interests].sort().join(','), [...topics].sort().join(',')]
   if (favorites.length) parts.push([...favorites].sort().join(',')) // zonder voorkeuren: dezelfde afdruk als vroeger
-  const text = [EDITOR_REVISION, ...parts].join('|')
+  const text = [BASIS_REVISION, ...parts].join('|') // vast, niet de revisie (shared/editor-version.mjs)
   let h = 5381
   for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0
   return h.toString(36)
