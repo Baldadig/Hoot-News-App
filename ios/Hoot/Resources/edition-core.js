@@ -2040,7 +2040,8 @@ var HootCore = (() => {
   }
 
   // shared/slot-times.mjs
-  var SLOT_START = { ochtend: 5 * 60 + 30, middag: 12 * 60, avond: 17 * 60 };
+  var SLOT_START = { ochtend: 6 * 60 + 30, middag: 12 * 60, avond: 17 * 60 };
+  var OCHTEND_VROEG = 5 * 60 + 30;
 
   // netlify/lib/stories.mjs
   var timeOf = (a) => Date.parse(a.publishedAt) || 0;
@@ -3411,6 +3412,7 @@ var HootCore = (() => {
       const reason = used.has(c) ? "gekozen-in-route" : c.parts.seen ? "verhaal-al-gelezen" : clashes(c) ? "zelfde-onderwerp-gekozen-of-eerder" : !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk) ? newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk) : capped(c) ? "internationaal-plafond" : entries.length >= size ? "route-vol" : "onverklaard";
       reject(c.kind, c.id, c.ids, reason);
     }
+    Object.defineProperty(entries, "sig", { value: sig, enumerable: false });
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 

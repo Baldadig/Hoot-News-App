@@ -20,7 +20,7 @@ import os
 final class EditionAlerts {
     static let shared = EditionAlerts()
 
-    // Gelijk aan SLOT_START in shared/slot-times.mjs (05:30, 12:00 en 17:00 in Amsterdam; getoetst in
+    // Gelijk aan SLOT_START in shared/slot-times.mjs (06:30, 12:00 en 17:00 in Amsterdam; getoetst in
     // SlotTimesTests). `hour` en `minute` zijn alleen om te plannen: in teksten staan geen kloktijden.
     struct Slot: Identifiable {
         let id: String // ochtend | middag | avond, zoals `Edition.slot`
@@ -34,7 +34,7 @@ final class EditionAlerts {
     }
     // De naam komt uit dezelfde tabel als de Editie zelf (Slots, spiegel van shared/slots.mjs).
     static let slots = [
-        Slot(id: "ochtend", hour: 5, minute: 30, name: Slots.naam("ochtend"), short: "Ochtend", icon: "sunrise", title: "Je \(Slots.naam("ochtend")) ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
+        Slot(id: "ochtend", hour: 6, minute: 30, name: Slots.naam("ochtend"), short: "Ochtend", icon: "sunrise", title: "Je \(Slots.naam("ochtend")) ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
         Slot(id: "middag", hour: 12, minute: 0, name: Slots.naam("middag"), short: "Middag", icon: "sun.max", title: "Je \(Slots.naam("middag")) ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
         Slot(id: "avond", hour: 17, minute: 0, name: Slots.naam("avond"), short: "Avond", icon: "sunset", title: "Je \(Slots.naam("avond")) ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
     ]

@@ -1,7 +1,8 @@
 // De feed opnieuw samenstellen en bewaren als kant-en-klare antwoorden: een kern, per bron een
 // deel, en de oude vorm voor apps die nog niet zijn bijgewerkt.
 import { buildFeed } from './build.mjs'
-import { readDoc, writeDoc, KEYS } from './kv.mjs'
+import { ARCHIVE_FEED_KEY } from './scorekaart.mjs'
+import { readDoc, writeDoc, writeArchive, KEYS } from './kv.mjs'
 import { MAIN_IDS, MUSIC_IDS } from './sources.mjs'
 import { hash } from '../../shared/util.mjs'
 import { withoutCopies } from '../../shared/dedupe.mjs'
@@ -14,7 +15,7 @@ export function refresh() {
     try {
       const now = Date.now()
       const builtAt = new Date(now).toISOString()
-      const { parts, items, ...rest } = await buildFeed({ now })
+      const { parts, items, archive, ...rest } = await buildFeed({ now })
       const before = JSON.parse((await readDoc(KEYS.core))?.body || '{}').meta?.parts || {}
 
       // Per bron een deel, met al zijn eigen berichten (ook wat een zusterkrant ook bracht; de app
@@ -48,6 +49,9 @@ export function refresh() {
         writeDoc(KEYS.legacy, { body: legacy, builtAt, etag: hash(legacy) }),
         writeDoc(KEYS.voorpagina, { body: voorpagina, builtAt, etag: hash(voorpagina) }),
       ])
+      // Het archief (frisse ogen · 2): legde deze ronde de Editie van een dagdeel vast (of zijn bubbelplek), dan ook de
+      // feed van dit moment, in de vorm van /api/feed met alle berichten. Daarop draait scripts/scorekaart.mjs.
+      if (archive) await writeArchive(ARCHIVE_FEED_KEY(rest.edition.id), { ...rest, items }, { builtAt }).catch((e) => console.error('archief-feed', String(e?.message || e)))
       return coreDoc
     } finally {
       running = null
