@@ -81,7 +81,9 @@ export async function kvTake(key, limit, { tries = 8 } = {}) {
 // nooit een van beide. `fn` moet zuiver zijn (hij kan opnieuw lopen). Geeft de nieuwe waarde, of null als het
 // bij drukte niet lukte. `store` is er voor de toetsen. Zonder Blobs in het geheugen, zonder await tussen
 // lezen en schrijven.
-export async function kvUpdate(key, fn, { tries = 8, store: given } = {}) {
+// Bij een botsing wacht een poging een willekeurige, groeiende tijd (`wait` ms als basis, 0 = niet wachten),
+// zodat een golf gelijktijdige tellingen zich uitspreidt in plaats van steeds samen opnieuw te botsen.
+export async function kvUpdate(key, fn, { tries = 8, store: given, wait = 0, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
   let s
   try {
     s = given || strongStore()
@@ -101,6 +103,7 @@ export async function kvUpdate(key, fn, { tries = 8, store: given } = {}) {
       fellBack('bijwerken', key, e)
       return memUpdate(key, fn)
     }
+    if (wait > 0 && i < tries - 1) await sleep(Math.random() * Math.min(40 * wait, wait * 2 ** i))
   }
   return null
 }

@@ -13,7 +13,7 @@ export default function Privacy({ onBack, backLabel }) {
         <h2 className="label label--section sect">Wat Hoot telt</h2>
         <p>
           Hoot telt alleen totalen: hoeveel Edities er vandaag zijn geopend en uitgelezen, en hoe vaak de Stroom, de Selectie, een vergelijking, een verhaal of het delen is gebruikt. Zonder te weten wie. Er gaat geen
-          account, id of IP-adres mee en er wordt niets per persoon bewaard: alleen een getal per dag. Je toestel onthoudt zelf alleen dat het een dagdeel al heeft geteld. Staat Do Not Track of Global Privacy Control aan, dan telt de website niets.
+          account of id mee en er wordt niets per persoon bewaard: geen IP-adres, alleen een getal per dag. Je toestel onthoudt zelf alleen dat het een dagdeel al heeft geteld. Staat Do Not Track of Global Privacy Control aan, dan telt de website niets.
         </p>
 
         <h2 className="label label--section sect">Op je toestel</h2>

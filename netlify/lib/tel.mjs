@@ -3,7 +3,7 @@
 // `v` telt alleen editie-open per appversie. Geen id, geen IP, geen toestel, geen tijdstempel per gebeurtenis;
 // de dag is de dag van het dagdeel. Een gelijktijdige telling gaat atomair (kvUpdate: voorwaardelijk schrijven).
 import { kvUpdate, kvGet } from './kv.mjs'
-import { EVENTS, PLATFORMS, SLOT_NAMES, VERSIONS_MAX, KEEP_DAYS, counterKey, versionKey, docKey, dayNumber, dayOf } from '../../shared/tel.mjs'
+import { EVENTS, PLATFORMS, SLOT_NAMES, VERSIONS_MAX, READ_MAX, counterKey, versionKey, docKey, dayNumber, dayOf } from '../../shared/tel.mjs'
 
 const MAX = 1e9
 
@@ -22,7 +22,7 @@ export async function record(parsed, update = kvUpdate) {
       }
       return next
     },
-    { tries: 12 },
+    { tries: 14, wait: 10 },
   )
 }
 
@@ -60,7 +60,7 @@ export async function readDay(date, get = kvGet) {
 // De laatste `dagen` dagen tot en met `tot`, oudste eerst.
 export async function readRange(tot, dagen, get = kvGet) {
   const end = dayNumber(tot)
-  const n = Math.max(1, Math.min(KEEP_DAYS, Math.floor(dagen) || 1))
+  const n = Math.max(1, Math.min(READ_MAX, Math.floor(dagen) || 1))
   const dates = Array.from({ length: n }, (_, i) => dayOf(end - (n - 1) + i))
   const days = await Promise.all(dates.map((d) => readDay(d, get)))
   return { van: dates[0], tot, dagen: days }

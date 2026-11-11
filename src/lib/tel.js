@@ -66,7 +66,7 @@ export function tel(e, dagdeel, opts = {}) {
     const version = opts.version ?? (typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : null)
     const body = plan(e, dagdeel, { storage: opts.storage ?? localStore(), n: opts.n, version })
     if (!body) return false
-    // Een Blob van text/plain: geen preflight, geen cookies (sendBeacon gaat same-origin met de gewone referer; die bewaren we niet).
+    // Een Blob van text/plain: geen preflight, sendBeacon stuurt same-origin wel de gewone cookies en referer mee; Hoot zet geen cookies, de server leest en bewaart ze niet.
     return nav.sendBeacon(opts.url || URL_TEL, new Blob([JSON.stringify(body)], { type: 'text/plain' }))
   } catch {
     return false

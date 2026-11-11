@@ -14,6 +14,7 @@ export const N_MAX = 20
 export const VERSIONS_MAX = 12 // verschillende appversies per dag (tegen een stortvloed aan verzonnen versies)
 export const BODY_MAX = 400 // bytes
 export const KEEP_DAYS = 400
+export const READ_MAX = 60 // zoveel dagen leest één verzoek hooguit (elke dag is een Blobs-lezing)
 export const KEYS = ['e', 'd', 'p', 'v', 'n']
 
 const SLOT_ID = /^(\d{4}-\d{2}-\d{2})-(ochtend|middag|avond)$/
@@ -36,8 +37,7 @@ export function majorMinor(v) {
   return m ? `${m[1]}.${m[2]}` : null
 }
 
-// Strikt: een object met alleen e, d, p (v, n mogen), een bekend vocabulaire, een dagdeel van gisteren, vandaag
-// of morgen. Alles anders is null en wordt genegeerd (de server antwoordt toch 204). Geeft de gewone vorm terug.
+// Strikt: een object met alleen e, d, p (v, n mogen), een bekend vocabulaire, een dagdeel van eergisteren tot morgen. Alles anders is null en wordt genegeerd (de server antwoordt toch 204). Geeft de gewone vorm terug.
 export function parseTel(body, now = new Date()) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   if (Object.keys(body).some((k) => !KEYS.includes(k))) return null

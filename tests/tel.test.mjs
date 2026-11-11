@@ -71,6 +71,38 @@ test('record: gelijktijdige tellingen via Blobs-semantiek tellen exact op', asyn
   assert.equal(doc.c[counterKey('artikel-open', 'ios', 'ochtend')], 45)
   assert.deepEqual(doc.v, { 'web|1.2': 25 })
 })
+// Met de productie-instellingen (record zelf: 14 pogingen met wachttijd) en een winkel met echte vertraging
+// (5 tot 20 ms per lezen en schrijven) gaat een golf gelijktijdige tellingen niet verloren.
+function trageBlobs() {
+  const m = new Map()
+  let etag = 0
+  const tick = () => new Promise((r) => setTimeout(r, 5 + Math.random() * 15))
+  return {
+    m,
+    async getWithMetadata(k) { await tick(); const c = m.get(k); return c ? { data: structuredClone(c.v), etag: c.etag } : null },
+    async setJSON(k, v, o = {}) {
+      await tick()
+      const c = m.get(k)
+      if (o.onlyIfNew && c) return { modified: false }
+      if (o.onlyIfMatch && c?.etag !== o.onlyIfMatch) return { modified: false }
+      m.set(k, { v: structuredClone(v), etag: String(++etag) })
+      return { modified: true }
+    },
+  }
+}
+for (const aantal of [20, 40]) {
+  test(`record met de productie-instelling: ${aantal} gelijktijdige tellingen gaan niet verloren`, async () => {
+    const store = trageBlobs()
+    const up = (key, fn, o) => kvUpdate(key, fn, { ...o, store })
+    const p = parseTel(ok(), NOW)
+    await Promise.all(Array.from({ length: aantal }, () => record(p, up)))
+    assert.equal(store.m.get(docKey('2026-11-11')).v.c[counterKey('editie-open', 'web', 'ochtend')], aantal)
+  })
+}
+test('readRange begrenst het aantal dagen (elke dag is een lezing)', async () => {
+  const r = await readRange('2026-11-11', 400, async () => null)
+  assert.equal(r.dagen.length, 60)
+})
 test('record in het geheugen (zonder Blobs): gelijktijdig en atomair', async () => {
   const p = parseTel(ok({ d: '2026-11-10-avond', e: 'delen', p: 'ios' }), NOW)
   await Promise.all(Array.from({ length: 60 }, () => record(p)))
