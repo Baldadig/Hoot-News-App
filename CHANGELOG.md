@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Kaartmenu** (web): ⋯ op een kaart opent een rustig zwevend menu (delen, meer of minder hiervan, fout melden); de bronregel blijft heel. Een tik naast het menu sluit alleen het menu, het menu blijft boven de tabbalk, en na "Minder hiervan" blijft de focus op zijn plek.
+
 - **Meten zonder volgen** (web; app in de volgende build): Hoot telt alleen totalen per dag, zoals hoeveel Edities er geopend en uitgelezen zijn. Zonder account, id, cookie of IP-adres; Do Not Track en Global Privacy Control worden gerespecteerd. Uitlezen via /api/tel (met TEL_SLEUTEL) of scripts/tel.mjs. Privacybeleid bijgewerkt.
 
 - **Meten zonder volgen** (server, web; app in de volgende build): Hoot telt alleen totalen per dag (Edities geopend en uitgelezen per dagdeel, artikelen, Stroom, Selectie, vergelijken, delen), zonder te weten wie. `POST /api/tel`, uitlezen met `GET /api/tel?dagen=14` of `node scripts/tel.mjs`. Geen id, IP, cookie of tijdstempel per gebeurtenis; Do Not Track en Global Privacy Control worden gerespecteerd. Privacybeleid bijgewerkt.
