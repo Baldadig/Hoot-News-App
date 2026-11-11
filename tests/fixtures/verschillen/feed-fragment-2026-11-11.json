@@ -1,0 +1,357 @@
+{
+ "opgehaald": "2026-11-11, GET https://gethoot.app/api/feed?deel=kern",
+ "editie": "2026-11-11-middag",
+ "verhalen": [
+  {
+   "id": "sts2z5a",
+   "sourceCount": 9,
+   "sourceNames": [
+    "Nederlands Dagblad",
+    "De Telegraaf",
+    "AD",
+    "NRC",
+    "Het Financieele Dagblad",
+    "RTL Nieuws",
+    "Het Parool",
+    "NOS",
+    "NU.nl"
+   ],
+   "items": [
+    {
+     "id": "vd7sf3",
+     "sourceName": "Nederlands Dagblad",
+     "publishedAt": "2026-11-11T15:05:40.000Z",
+     "title": "Kamer debatteert donderdag toch verder over belastingplan",
+     "summary": "De Tweede Kamer debatteert donderdagochtend toch nog verder met premier Rob Jetten over het belastingplan, nadat PRO en Volt een deal hebben gesloten met D66 en het CDA over steun.",
+     "url": "https://www.nd.nl/varia/varia/1338382/kamer-debatteert-donderdag-toch-verder-over-belastingplan"
+    },
+    {
+     "id": "kcay21",
+     "sourceName": "De Telegraaf",
+     "publishedAt": "2026-11-11T14:57:00.000Z",
+     "title": "Kamer debatteert donderdag over linkse deal zonder VVD, Jetten zegt Europees overleg af",
+     "summary": "De Tweede Kamer gaat donderdagochtend in debat met premier Rob Jetten over de bom die D66 en CDA woensdag onder de coalitie hebben gegooid.",
+     "url": "https://www.telegraaf.nl/politiek/kamer-debatteert-donderdag-over-linkse-deal-zonder-vvd-jetten-zegt-europees-overleg-af/164410259.html"
+    },
+    {
+     "id": "1guhjf8",
+     "sourceName": "AD",
+     "publishedAt": "2026-11-11T14:45:00.000Z",
+     "title": "CDA en D66 hebben een deal, de VVD spoorloos: dreigt er een kabinetscrisis?",
+     "summary": "Hoogspanning in Den Haag: CDA en D66 hebben een deal gesloten met PRO en Volt over een miljonairsbelasting. Maar kan de VVD daarmee leven?",
+     "url": "https://www.ad.nl/politiek/cda-en-d66-hebben-een-deal-de-vvd-spoorloos-dreigt-er-een-kabinetscrisis~a0b39e52/"
+    },
+    {
+     "id": "128r3y5",
+     "sourceName": "Nederlands Dagblad",
+     "publishedAt": "2026-11-11T14:37:00.000Z",
+     "title": "D66 en CDA sluiten een deal met Pro, meerderheid voor belastingplan is nog steeds ongewis",
+     "summary": "Pro en Volt zijn euforisch, omdat zij een deal hebben gesloten met coalitiepartijen D66 en het CDA over een ‘miljonairsbelasting’ en een verlaging van de inkomstenbelasting.",
+     "url": "https://www.nd.nl/nieuws/politiek/1338373/d66-en-cda-sluiten-een-deal-met-pro-meerderheid-voor-belastin"
+    },
+    {
+     "id": "1ticguz",
+     "sourceName": "Nederlands Dagblad",
+     "publishedAt": "2026-11-11T14:18:33.000Z",
+     "title": "D66 en CDA akkoord met afgezwakt belastingvoorstel PRO en Volt",
+     "summary": "Regeringspartijen D66 en CDA gaan akkoord met een afgezwakt voorstel van PRO en Volt om het belastingplan voor 1 miljard euro te vertimmeren.",
+     "url": "https://www.nd.nl/varia/varia/1338372/d66-en-cda-akkoord-met-afgezwakt-belastingvoorstel-pro-en-volt"
+    },
+    {
+     "id": "bv6ulq",
+     "sourceName": "NRC",
+     "publishedAt": "2026-11-11T13:26:03.000Z",
+     "title": "D66 en CDA sluiten akkoord met Pro en Volt over Belastingplan met ‘miljonairsbelasting’ – positie VVD onduidelijk",
+     "summary": "Het is nog onduidelijk wat de positie is van coalitiepartij VVD. Deze partij gaf eerder aan weinig voor een ‘miljonairsbelasting’ te voelen.",
+     "url": "https://www.nrc.nl/nieuws/2026/11/11/d66-en-cda-sluiten-akkoord-met-pro-en-volt-over-belastingplan-met-miljonairsbelasting-positie-vvd-onduidelijk-a4941106"
+    },
+    {
+     "id": "1tk1ju6",
+     "sourceName": "Het Financieele Dagblad",
+     "publishedAt": "2026-11-11T13:22:02.000Z",
+     "title": "Spanning in coalitie na deal links met D66 en CDA over belastingplan",
+     "summary": "De linkse oppositiepartijen Pro en Volt zeggen een akkoord te hebben gesloten met D66 en CDA over steun aan het belastingplan.",
+     "url": "https://fd.nl/politiek/1618894/pro-sluit-deal-met-deel-van-coalitie-lasten-op-vermogen-omhoog"
+    },
+    {
+     "id": "1xoo5ym",
+     "sourceName": "RTL Nieuws",
+     "publishedAt": "2026-11-11T13:17:43.000Z",
+     "title": "Deal D66 en CDA met PRO en Volt over miljonairsbelasting, maar nog geen akkoord belastingplan",
+     "summary": "De fractievoorzitters van D66 en CDA hebben een akkoord gesloten met oppositiepartijen PRO en Volt over een aanpassing van het belastingplan van het minderheidskabinet.",
+     "url": "https://www.rtl.nl/nieuws/politiek/artikel/5664472/belastingplan-minderheidskabinet-eelco-heinen-rob-jetten-jesse"
+    },
+    {
+     "id": "h4ltpr",
+     "sourceName": "Het Parool",
+     "publishedAt": "2026-11-11T13:17:00.000Z",
+     "title": "D66 en CDA sluiten deal ‘over links’ met PRO en Volt, maar vraag is of VVD miljonairstaks gaat pruimen",
+     "summary": "Coalitiepartijen D66 en CDA gaan voor steun voor de belastingplannen ‘over links’. Dat betekent ook dat er een miljonairsbelasting komt.",
+     "url": "https://www.parool.nl/nederland/d66-en-cda-sluiten-deal-over-links-met-pro-en-volt-maar-vraag-is-of-vvd-miljonairstaks-gaat-pruimen~b9f9d70c/"
+    },
+    {
+     "id": "1r0cz5j",
+     "sourceName": "NOS",
+     "publishedAt": "2026-11-11T13:15:18.000Z",
+     "title": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD",
+     "summary": "Coalitiepartijen D66 en CDA hebben een deal gesloten met oppositiepartijen Pro en Volt over een belastingverhoging voor vermogenden en een belastingverlaging op loon.",
+     "url": "https://nos.nl/l/2639001"
+    },
+    {
+     "id": "1shclhk",
+     "sourceName": "NU.nl",
+     "publishedAt": "2026-11-11T13:14:28.000Z",
+     "title": "D66 en CDA sluiten akkoord met links over belastingplan, geen reactie VVD",
+     "summary": "PRO en Volt hebben een akkoord gesloten met coalitiepartijen D66 en CDA over hun voorstel voor een verhoging van de belasting op vermogen.",
+     "url": "https://www.nu.nl/politiek/6416216/d66-en-cda-sluiten-akkoord-met-links-over-belastingplan-geen-reactie-vvd.html"
+    },
+    {
+     "id": "t2anln",
+     "sourceName": "De Telegraaf",
+     "publishedAt": "2026-11-11T13:12:00.000Z",
+     "title": "Bom in coalitie: D66 en CDA sluiten zonder VVD deal met Pro en Volt over vermogenstaks",
+     "summary": "D66 en CDA hebben los van de VVD een deal gesloten met Pro en Volt over een plan om vermogens voor 1 miljard euro zwaarder te belasten in ruil voor steun aan het belastingplan.",
+     "url": "https://www.telegraaf.nl/politiek/bom-in-coalitie-d66-en-cda-sluiten-zonder-vvd-deal-met-pro-en-volt-over-vermogenstaks/164390331.html"
+    }
+   ]
+  },
+  {
+   "id": "s11wahg9",
+   "sourceCount": 11,
+   "sourceNames": [
+    "Het Nieuwsblad",
+    "Het Laatste Nieuws",
+    "VRT NWS",
+    "De Tijd",
+    "Nederlands Dagblad",
+    "de Volkskrant",
+    "NRC",
+    "RTL Nieuws",
+    "NOS",
+    "Trouw",
+    "AD"
+   ],
+   "items": [
+    {
+     "id": "mz7dyx",
+     "sourceName": "Het Nieuwsblad",
+     "publishedAt": "2026-11-11T14:34:47.000Z",
+     "title": "Bommeldingen bij 6.000 Italiaanse scholen, ook honderden scholen in Noord-Ierland en Schotland kregen bommeldingen per e-mail",
+     "summary": "In Italië hebben zowat 6.000 scholen een bommelding gekregen. Dat heeft het Italiaanse ministerie van Onderwijs bekendgemaakt.",
+     "url": "https://www.nieuwsblad.be/buitenland/bommeldingen-bij-6.000-italiaanse-scholen-ook-honderden-scholen-in-noord-ierland-en-schotland-kregen-bommeldingen-per-e-mail/164394791.html"
+    },
+    {
+     "id": "1i4svbb",
+     "sourceName": "Het Laatste Nieuws",
+     "publishedAt": "2026-11-11T14:24:00.000Z",
+     "title": "Bommeldingen bij 6.000 Italiaanse scholen, ook honderden e-mails naar scholen in VK en Ierland",
+     "summary": "In Italië hebben zowat 6.000 scholen een bommelding gekregen.",
+     "url": "https://www.hln.be/buitenland/bommeldingen-bij-6-000-italiaanse-scholen-ook-honderden-e-mails-naar-scholen-in-vk-en-ierland~a1aa6a9c/"
+    },
+    {
+     "id": "1y6d2tu",
+     "sourceName": "VRT NWS",
+     "publishedAt": "2026-11-11T14:14:53.000Z",
+     "title": "6.300 scholen in Italië krijgen valse bommelding, ook e-mails naar scholen in VK en Ierland",
+     "summary": "In Italië hebben ongeveer 6.300 scholen via een anonieme e-mail een valse bommelding gekregen.",
+     "url": "https://vrtnws.be/p.BlYeD7AOG"
+    },
+    {
+     "id": "2ds2pu",
+     "sourceName": "De Tijd",
+     "publishedAt": "2026-11-11T13:49:55.000Z",
+     "title": "Honderden bommeldingen op scholen in Italië, Ierland en Schotland",
+     "summary": "Honderden scholen in Italië, Schotland, Ierland en Noord-Ierland zijn woensdag tijdelijk ontruimd na bommeldingen.",
+     "url": "https://www.tijd.be/r/t/1/id/10699392"
+    },
+    {
+     "id": "1yihrrp",
+     "sourceName": "Nederlands Dagblad",
+     "publishedAt": "2026-11-11T13:29:19.000Z",
+     "title": "Ook honderden Britse en Ierse scholen ontvangen bommeldingen",
+     "summary": "Ook honderden scholen in Ierland en Schotland hebben bommeldingen ontvangen.",
+     "url": "https://www.nd.nl/varia/varia/1338364/ook-honderden-britse-en-ierse-scholen-ontvangen-bommeldingen"
+    },
+    {
+     "id": "dywo23",
+     "sourceName": "de Volkskrant",
+     "publishedAt": "2026-11-11T12:39:00.000Z",
+     "title": "Honderden Italiaanse scholen ontruimd na valse bommeldingen, ook dreigberichten aan scholen in VK en Ierland",
+     "summary": "In verschillende Europese landen zijn deze maand bommeldingen binnengekomen bij scholen en luchthavens.",
+     "url": "https://www.volkskrant.nl/buitenland/honderden-italiaanse-scholen-ontruimd-na-valse-bommeldingen-ook-dreigberichten-aan-scholen-in-vk-en-ierland~b02e57a0/"
+    },
+    {
+     "id": "1kwpmfa",
+     "sourceName": "NRC",
+     "publishedAt": "2026-11-11T12:33:29.000Z",
+     "title": "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
+     "summary": "Honderden scholen in Italië, het Verenigd Koninkrijk en Ierland kregen per mail een bommelding. Volgens de politie zijn de berichten nep, maar ontwrichtend is het wel.",
+     "url": "https://www.nrc.nl/nieuws/2026/11/11/honderden-scholen-in-europa-doelwit-van-bommeldingen-volgens-de-politie-gaat-het-om-nepberichten-a4941097"
+    },
+    {
+     "id": "1islwdu",
+     "sourceName": "RTL Nieuws",
+     "publishedAt": "2026-11-11T12:26:57.000Z",
+     "title": "Honderden scholen in Europa krijgen bommeldingen, duizenden leerlingen geëvacueerd",
+     "summary": "Honderden scholen in Italië, Schotland, Ierland en Noord-Ierland hebben bommeldingen gekregen. In Italië zijn zeker driehonderd scholen geëvacueerd.",
+     "url": "https://www.rtl.nl/nieuws/buitenland/artikel/5664513/honderden-scholen-europa-krijgen-bommeldingen-duizenden"
+    },
+    {
+     "id": "1r0cgcz",
+     "sourceName": "NOS",
+     "publishedAt": "2026-11-11T11:08:27.000Z",
+     "title": "Scholen in Italië, Schotland en Noord-Ierland ontruimd om bommeldingen",
+     "summary": "In Italië, Noord-Ierland en Schotland zijn scholen ontruimd vanwege een bommelding. Talloze onderwijsinstellingen zijn per e-mail bedreigd.",
+     "url": "https://nos.nl/l/2638985"
+    },
+    {
+     "id": "fuqka7",
+     "sourceName": "Trouw",
+     "publishedAt": "2026-11-11T11:06:00.000Z",
+     "title": "300 Italiaanse scholen geëvacueerd na ontvangen bommelding, ook meldingen in Ierland en Schotland",
+     "summary": "Driehonderd Italiaanse scholen zijn geëvacueerd nadat zij een bommelding hebben ontvangen. Ook honderden scholen in Ierland en Schotland hebben bommeldingen ontvangen.",
+     "url": "https://www.trouw.nl/buitenland/300-italiaanse-scholen-geevacueerd-na-ontvangen-bommelding-ook-meldingen-in-ierland-en-schotland~b17fdf90/"
+    },
+    {
+     "id": "a2mqme",
+     "sourceName": "AD",
+     "publishedAt": "2026-11-11T11:00:00.000Z",
+     "title": "Dreigende mails naar honderden scholen in Italië, Schotland en Noord-Ierland verstuurd, onderzoek wijst al snel op hoax",
+     "summary": "In Italië zijn woensdag ten minste driehonderd scholen ontruimd nadat zij hetzelfde bericht met een bommelding hadden ontvangen.",
+     "url": "https://www.ad.nl/buitenland/dreigende-mails-naar-honderden-scholen-in-italie-schotland-en-noord-ierland-verstuurd-onderzoek-wijst-al-snel-op-hoax~a6641aed6/"
+    }
+   ]
+  },
+  {
+   "id": "s1rwx2k0",
+   "sourceCount": 11,
+   "sourceNames": [
+    "De Morgen",
+    "The Independent",
+    "NPR",
+    "BBC",
+    "Al Jazeera",
+    "Deutsche Welle",
+    "Le Monde in English",
+    "NRC",
+    "De Standaard",
+    "The Atlantic",
+    "Foreign Policy"
+   ],
+   "items": [
+    {
+     "id": "1606hsb",
+     "sourceName": "De Morgen",
+     "publishedAt": "2026-11-11T14:20:00.000Z",
+     "title": "Eerste poging tot afzetting tegen Pete ‘geen vetzakken’ Hegseth mislukt, maar hij heeft nog veel vijanden",
+     "summary": "De Amerikaanse minister van Defensie Pete Hegseth verzet zich met hand en tand tegen een mogelijke afzetting, maar twijfels over zijn functioneren zijn er al heel lang, ook in eigen kring.",
+     "url": "https://www.demorgen.be/nieuws/eerste-poging-tot-afzetting-tegen-pete-geen-vetzakken-hegseth-mislukt-maar-hij-heeft-nog-veel-vijanden~ba374e15/"
+    },
+    {
+     "id": "eoaig9",
+     "sourceName": "The Independent",
+     "publishedAt": "2026-11-11T12:31:46.000Z",
+     "title": "Democrats lash out at no-show colleagues after Hegseth survives impeachment push",
+     "summary": "‘People should have gotten their raggedy selves up these steps to vote,’ said California Rep.",
+     "url": "https://www.independent.co.uk/news/world/americas/us-politics/pete-hegseth-impeachment-vote-democrats-b3083064.html"
+    },
+    {
+     "id": "t5nv0g",
+     "sourceName": "NPR",
+     "publishedAt": "2026-11-11T12:21:59.000Z",
+     "title": "House effectively ends Hegseth impeachment. And, 3 men accused of plotting U.K. attacks",
+     "summary": "Defense Secretary Pete Hegseth has been spared from the House’s impeachment effort, at least for now.",
+     "url": "https://www.npr.org/2026/11/11/g-s1-152949/up-first-newsletter-pete-hegseth-jim-jordan-iran-backed-trio-us-bases"
+    },
+    {
+     "id": "1fhy4ga",
+     "sourceName": "BBC",
+     "publishedAt": "2026-11-11T11:47:22.000Z",
+     "title": "US House blocks bid to impeach Defence Secretary Pete Hegseth",
+     "summary": "Trump welcomes the outcome, praising Hegseth as a ‘Great American Patriot’, but Democrats can try again next year.",
+     "url": "https://www.bbc.co.uk/news/articles/cxly4y5jzl0qo?at_medium=RSS&at_campaign=rss"
+    },
+    {
+     "id": "1bp8hcw",
+     "sourceName": "Al Jazeera",
+     "publishedAt": "2026-11-11T10:32:03.000Z",
+     "title": "Did Democrats save Pete Hegseth from impeachment?",
+     "summary": "Eleven Democrats are absent from procedural vote that narrowly shelves House impeachment vote against defence secretary.",
+     "url": "https://www.aljazeera.com/news/2026/11/11/did-democrats-save-pete-hegseth-from-impeachment?traffic_source=rss"
+    },
+    {
+     "id": "irolg9",
+     "sourceName": "The Independent",
+     "publishedAt": "2026-11-11T10:10:27.000Z",
+     "title": "Trump gets a much-needed victory with Pete Hegseth’s impeachment stymied",
+     "summary": "Beleagured president receives welcome shot in the arm as Republicans unite to save his defense secretary one week on from disastrous midterms wipewout, writes Joe…",
+     "url": "https://www.independent.co.uk/news/world/americas/us-politics/trump-pete-hegseth-house-impeachment-vote-b3082981.html"
+    },
+    {
+     "id": "ilxxlb",
+     "sourceName": "NPR",
+     "publishedAt": "2026-11-11T10:02:44.000Z",
+     "title": "Morning News Brief: Hegseth impeachment, new House GOP leader, UK probes base plot",
+     "summary": "Republicans block Hegseth impeachment, Trump ally picked to lead House GOP minority, UK investigates alleged Iran-backed plot.",
+     "url": "https://www.npr.org/2026/11/11/nx-s1-6035568/morning-news-brief-hegseth-impeachment-new-house-gop-leader-uk-probes-base-plot"
+    },
+    {
+     "id": "up0bqz",
+     "sourceName": "The Independent",
+     "publishedAt": "2026-11-11T02:21:29.000Z",
+     "title": "Trump takes victory lap after House GOP shelves Pete Hegseth impeachment articles",
+     "summary": "The Pentagon chief was accused of unlawfully waging a war with Iran, among other illegal wartime actions",
+     "url": "https://www.independent.co.uk/news/world/americas/us-politics/hegseth-impeachment-vote-news-house-b3082802.html"
+    },
+    {
+     "id": "1gldhsr",
+     "sourceName": "Deutsche Welle",
+     "publishedAt": "2026-11-11T02:04:00.000Z",
+     "title": "US Republicans derail push to impeach Defense Secretary Pete Hegseth",
+     "summary": "Pentagon chief Pete Hegseth seems set to survive the impeachment bid launched by maverick Republican lawmaker Thomas Massie, with President Donald Trump praising the outcome of the vote.",
+     "url": "https://www.dw.com/en/us-republicans-derail-push-to-impeach-defense-secretary-pete-hegseth/a-79913761?maca=en-rss-en-all-1573-rdf"
+    },
+    {
+     "id": "fgqu50",
+     "sourceName": "Le Monde in English",
+     "publishedAt": "2026-11-11T01:34:31.000Z",
+     "title": "Defiant and combative Hegseth survives impeachment attempt",
+     "summary": "The US Secretary of Defense was the target of eight articles of impeachment submitted by Republican Thomas Massie, including the war in Iran and extrajudicial executions in the Caribbean.",
+     "url": "https://www.lemonde.fr/en/international/article/2026/11/11/pete-hegseth-defiant-and-combative-survives-impeachment-attempt_6777256_4.html"
+    },
+    {
+     "id": "1fkdvyt",
+     "sourceName": "NRC",
+     "publishedAt": "2026-11-11T00:20:45.000Z",
+     "title": "Minister van Defensie Pete Hegseth overleeft voorlopig een poging tot het starten van een afzettingsprocedure",
+     "summary": "De Amerikaanse minister van Defensie Pete Hegseth stapt niet op, nu er een afzettingsprocedure tegen hem is gestart in het Huis van Afgevaardigden.",
+     "url": "https://www.nrc.nl/nieuws/2026/11/11/minister-van-defensie-pete-hegseth-is-niet-van-plan-op-te-stappen-na-begin-van-afzettingsprocedure-a4941026"
+    },
+    {
+     "id": "z6uhlf",
+     "sourceName": "De Standaard",
+     "publishedAt": "2026-11-10T23:29:55.000Z",
+     "title": "Republikeinen blokkeren afzettingsprocedure tegen defensieminister Hegseth",
+     "summary": "De Amerikaanse tussentijdse verkiezingen zijn uitgedraaid op een duidelijke zege voor de Democraten.",
+     "url": "https://www.standaard.be/buitenland/republikeinen-blokkeren-afzettingsprocedure-tegen-defensieminister-hegseth/35131945.html"
+    },
+    {
+     "id": "1tf8hev",
+     "sourceName": "The Atlantic",
+     "publishedAt": "2026-11-10T17:42:29.000Z",
+     "title": "Why Pete Hegseth Faces Impeachment",
+     "summary": "A Republican lawmaker is forcing a vote on impeaching the defense secretary based on these eight charges.",
+     "url": "https://www.theatlantic.com/national-security/2026/11/pete-hegseth-thomas-massie-impeachment/689353/"
+    },
+    {
+     "id": "1uduvem",
+     "sourceName": "Foreign Policy",
+     "publishedAt": "2026-11-09T21:32:11.000Z",
+     "title": "Hegseth’s Leadership Has Damaged the Pentagon",
+     "summary": "The defense secretary’s impeachment charges come after he cost his department years of experience and poisoned relationships with Congress.",
+     "url": "https://foreignpolicy.com/2026/11/09/hegseth-impeachment-charges-massie-defense-pentagon-damage/"
+    }
+   ]
+  }
+ ]
+}

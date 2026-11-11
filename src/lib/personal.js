@@ -14,8 +14,9 @@ import { BASIS_REVISION } from '../../shared/editor-version.mjs'
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale } from '../../netlify/lib/stories.mjs'
+import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
+import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
@@ -166,13 +167,36 @@ export function staleInput({ global, items = [], followed = new Set() }) {
   return theirs > 0 && own > 0 && theirs - own > STALE_INPUT_MS
 }
 
-export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set(), _langRule = true }) {
+export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set(), weg = null, _langRule = true, _memoSignatures = true }) {
   if (!global?.entries?.length) return null
   if (staleInput({ global, items, followed })) return null
   // Wat alleen in de Stroom hoort (streamOnly) telt niet mee: De Redacteur rekent met het oude venster
   // per bron, ook op het toestel (shared/stroom.mjs).
-  items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics)
-  global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => (w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w)) }
+  // Geen aanbieding of kijk-/luisteraanbod (Redacteur · filters-ai): A (shared/editie-filter.mjs) overal, en op de server ook
+  // `weg`, de id's die de AI zeker als aanbieding of aankondiging zag (editionFilter in de kern). Het toestel geeft geen
+  // `weg` mee en rekent als vangnet met A alleen. Ook een oude serverkop, de brede/verwante aanvulling en de bubbel.
+  const gone = new Set()
+  const readItem = (i) => {
+    if (!excludedFromEdition(i, weg)) return true
+    gone.add(i.id)
+    return false
+  }
+  items = items.filter((i) => forEdition(i) && readItem(i)).map(withCleanIntro).map(withTrustedTopics)
+  const readGlobalItems = (global.items || []).filter(readItem).map(withCleanIntro).map(withTrustedTopics)
+  const globalWide = (global.wide || []).filter((w) => !w?.item || readItem(w.item)).map((w) => (w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w))
+  const globalNear = (global.near || []).filter((w) => !w?.item || readItem(w.item))
+  const readEntry = (e) => !gone.has(e.leadId || e.id) && !excludedFromEdition(e, weg)
+  const known = new Map([...items, ...readGlobalItems].map((i) => [i.id, i]))
+  const globalEntries = (global.entries || []).map((e) => {
+    if (readEntry(e)) return e
+    if (e.kind !== 'story') return null
+    // Een serververhaal kan nog een bruikbaar leesstuk bevatten: vervang dan alleen de kop; de taalregel hieronder kiest
+    // zo nodig opnieuw binnen dezelfde plek.
+    const ids = e.itemIds || stories.find((st) => st.id === e.id)?.itemIds || []
+    const lead = leadCandidates(ids.map((id) => known.get(id)).filter(Boolean), followed, new Set(favorites), now)[0]
+    return lead ? { ...e, leadId: lead.id, ...('title' in e ? { title: lead.title } : {}) } : null
+  }).filter(Boolean)
+  global = { ...global, items: readGlobalItems, wide: globalWide, near: globalNear, entries: globalEntries, bubble: (global.bubble || []).filter(readEntry) }
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   const kindOf = kindOfWith(catOf)
   const pool = items.filter((i) => i.kind === 'article' && followed.has(i.source))
@@ -189,6 +213,20 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // `own`: al je eigen berichten, zodat de punten van een verhaal ook tellen wat je ervan leest in
   // sport of cultuur (de dood van Patrick Stewart is Film voor wie Cultuur koos).
   const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])) }
+  // Rekentijd: binnen deze samenstelling (dezelfde onveranderlijke pool en vorige Editie) dezelfde kenmerken en kern hergebruiken.
+  if (_memoSignatures) {
+    const memo = new WeakMap()
+    const coreMemo = new WeakMap()
+    ctx.signaturesFor = (xs, extra) => {
+      if (!memo.has(xs)) memo.set(xs, signatures(xs, extra))
+      return memo.get(xs)
+    }
+    ctx.centralItemsFor = (xs, total) => {
+      let saved = coreMemo.get(xs)
+      if (!saved || saved.total !== total) coreMemo.set(xs, (saved = { total, items: centralItems(xs, total) }))
+      return saved.items
+    }
+  }
   const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`
 
   // 2. Het extra blok: sport en cultuur als dat gebied sterk genoeg in je profiel zit (ook uit

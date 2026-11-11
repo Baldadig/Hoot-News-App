@@ -3017,11 +3017,11 @@ var HootCore = (() => {
     const ys = xs.filter(f);
     return ys.length ? ys : xs;
   };
-  function leadPool(cands, items, now, own = null, total = items.length) {
+  function leadPool(cands, items, now, own = null, total = items.length, coreItems = centralItems) {
     let xs = prefer(cands, (i) => !isStale(i, now));
     if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
     if (own) xs = prefer(xs, own);
-    const core = new Set(centralItems(items, total));
+    const core = new Set(coreItems(items, total));
     xs = prefer(xs, (i) => core.has(i));
     xs = prefer(xs, (i) => !/\?/.test(i.title || ""));
     return dutchFirst(freshest(xs));
@@ -3082,7 +3082,7 @@ var HootCore = (() => {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
     const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
     const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }));
-    const sig = signatures(pool, prevArts);
+    const sig = ctx.signaturesFor ? ctx.signaturesFor(pool, prevArts) : signatures(pool, prevArts);
     const vorige = prevArts.map((a) => sig.get(a.id));
     const sigKnown = ctx.sigKnown || sig;
     const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1e3;
@@ -3115,10 +3115,11 @@ var HootCore = (() => {
       }
     };
     const leadFrom = (items, total, role) => {
-      if (items.some(titled)) items = items.filter(titled);
+      const titledItems = items.filter(titled);
+      if (titledItems.length && titledItems.length !== items.length) items = titledItems;
       const all = leadCandidates(items, mainIds, preferred, now, { role });
       const cands2 = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all;
-      return leadPool(cands2, items, now, (i) => mainIds.has(i.source), total);
+      return leadPool(cands2, items, now, (i) => mainIds.has(i.source), total, ctx.centralItemsFor || centralItems);
     };
     const chooseLead = (from) => from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0];
     const pickLead = (items, total = items.length) => chooseLead(leadFrom(items, total, entries.length < 3 ? "front" : "neutral"));
@@ -3415,6 +3416,53 @@ var HootCore = (() => {
     Object.defineProperty(entries, "sig", { value: sig, enumerable: false });
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
+
+  // shared/editie-filter.mjs
+  var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
+  var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
+  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
+  var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  function rubricSegments(url) {
+    const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
+    if (!m) return [];
+    const path = m[1];
+    const segs = path.split("/").filter(Boolean).map((s) => {
+      try {
+        return decodeURIComponent(s).toLowerCase();
+      } catch {
+        return s.toLowerCase();
+      }
+    });
+    const before = segs.slice(0, -1);
+    const cut = before.findIndex((x) => /^\d+$/.test(x));
+    return cut === -1 ? before : before.slice(0, cut);
+  }
+  var norm2 = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  function ownIntro(item = {}) {
+    if (item.borrowedFrom) return false;
+    const s = String(item.summary || item.text || "").trim();
+    const t = norm2(item.title);
+    const n = norm2(s);
+    if (n.split(" ").filter(Boolean).length < 4) return false;
+    if (n === t || t && n.startsWith(t) && n.length - t.length < 12) return false;
+    if (/appeared first on\b|\blead image\b/i.test(s) && s.length < 200) return false;
+    return true;
+  }
+  function hardMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    const segs = rubricSegments(item.url);
+    const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
+    if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
+    const media = String(item.mediaType || "");
+    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
+    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
+    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
+    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
+    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
+    return null;
+  }
+  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null);
 
   // shared/stroom.mjs
   var forEdition = (it) => !it?.streamOnly;
@@ -3775,11 +3823,29 @@ var HootCore = (() => {
     const own = newest(items);
     return theirs > 0 && own > 0 && theirs - own > STALE_INPUT_MS;
   }
-  function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set(), _langRule = true }) {
+  function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set(), weg = null, _langRule = true, _memoSignatures = true }) {
     if (!global?.entries?.length) return null;
     if (staleInput({ global, items, followed })) return null;
-    items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics);
-    global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w) };
+    const gone = /* @__PURE__ */ new Set();
+    const readItem = (i) => {
+      if (!excludedFromEdition(i, weg)) return true;
+      gone.add(i.id);
+      return false;
+    };
+    items = items.filter((i) => forEdition(i) && readItem(i)).map(withCleanIntro).map(withTrustedTopics);
+    const readGlobalItems = (global.items || []).filter(readItem).map(withCleanIntro).map(withTrustedTopics);
+    const globalWide = (global.wide || []).filter((w) => !w?.item || readItem(w.item)).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w);
+    const globalNear = (global.near || []).filter((w) => !w?.item || readItem(w.item));
+    const readEntry = (e) => !gone.has(e.leadId || e.id) && !excludedFromEdition(e, weg);
+    const known = new Map([...items, ...readGlobalItems].map((i) => [i.id, i]));
+    const globalEntries = (global.entries || []).map((e) => {
+      if (readEntry(e)) return e;
+      if (e.kind !== "story") return null;
+      const ids = e.itemIds || stories.find((st) => st.id === e.id)?.itemIds || [];
+      const lead = leadCandidates(ids.map((id) => known.get(id)).filter(Boolean), followed, new Set(favorites), now)[0];
+      return lead ? { ...e, leadId: lead.id, ..."title" in e ? { title: lead.title } : {} } : null;
+    }).filter(Boolean);
+    global = { ...global, items: readGlobalItems, wide: globalWide, near: globalNear, entries: globalEntries, bubble: (global.bubble || []).filter(readEntry) };
     const catOf = new Map(sources.map((s) => [s.id, s.cat]));
     const kindOf = kindOfWith(catOf);
     const pool = items.filter((i) => i.kind === "article" && followed.has(i.source));
@@ -3790,6 +3856,19 @@ var HootCore = (() => {
     const itemAny = new Map([...items, ...global.items || [], ...[...global.wide || [], ...global.near || []].map((w) => w?.item).filter(Boolean)].map((i) => [i.id, i]));
     const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== "post"));
     const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])) };
+    if (_memoSignatures) {
+      const memo2 = /* @__PURE__ */ new WeakMap();
+      const coreMemo = /* @__PURE__ */ new WeakMap();
+      ctx.signaturesFor = (xs, extra2) => {
+        if (!memo2.has(xs)) memo2.set(xs, signatures(xs, extra2));
+        return memo2.get(xs);
+      };
+      ctx.centralItemsFor = (xs, total) => {
+        let saved = coreMemo.get(xs);
+        if (!saved || saved.total !== total) coreMemo.set(xs, saved = { total, items: centralItems(xs, total) });
+        return saved.items;
+      };
+    }
     const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`;
     const tech = INTERESTS.find((f) => f.id === "tech")?.topics || [];
     const gamesSharp = interests.includes("tech") && topics.includes("games") && !tech.every((t) => topics.includes(t));

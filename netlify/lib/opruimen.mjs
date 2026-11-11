@@ -1,9 +1,11 @@
 // Opruimen: wat het privacybeleid belooft, de server bewaart je persoonlijke Editie (zonder account) hooguit een dag.
-// Vier voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
+// Vijf voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
 //   pe:<revisie>:<dagdeel-id>:<sha256>        de persoonlijke Editie zonder account (netlify/functions/edition.mjs, anonKey)
 //   pe-quota:<sha256 user-id>:<dagdeel-id>    de teller per lid en dagdeel (edition.mjs)
 //   tel:<dag>                                 de dagtellers van /api/tel (meten zonder volgen): hooguit 400 dagen
 //   brief-quota-<uid>|all-<dag>               de tellers van /api/brief (netlify/functions/brief.mjs), dag = UTC-datum
+//   filter-ai:<jjjj-mm-dd>                    de oordelen van de Editiefilter-AI per UTC-dag (netlify/lib/editie-ai.mjs):
+//                                             alleen bericht-id's, een kop-hash en het oordeel; hooguit 7 dagen
 // Een dagdeel-id is `<jjjj-mm-dd>-<ochtend|middag|avond>` (editionSlot in netlify/lib/stories.mjs).
 // We houden het lopende dagdeel en het vorige (marge voor de overgang), en bij de briefteller vandaag en gisteren
 // (UTC, i.v.m. tijdzones). Een sleutel die we niet kunnen lezen laten we staan en tellen we als 'overgeslagen'.
@@ -19,6 +21,8 @@ const PE = new RegExp(`^pe:[A-Za-z0-9._-]+:${SLOT_ID}:[0-9a-f]{64}$`)
 const PE_QUOTA = new RegExp(`^pe-quota:[0-9a-f]{64}:${SLOT_ID}$`)
 const TEL_DAY = /^tel:(\d{4}-\d{2}-\d{2})$/
 const BRIEF_DAY = /^brief-quota-.+-(\d{4}-\d{2}-\d{2})$/
+const FILTER_AI_DAY = /^filter-ai:(\d{4}-\d{2}-\d{2})$/
+export const FILTER_AI_KEEP_DAYS = 7
 
 // Het volgnummer van een dagdeel: oplopend in de tijd (3 per dag). null als de datum niet bestaat.
 export function slotNumber(date, slot) {
@@ -43,12 +47,17 @@ export function expired(prefix, key, { slotNow, dayNow }) {
     const n = t ? dayNumber(t[1]) : null
     return n == null ? null : n < dayNow - KEEP_DAYS
   }
+  if (prefix === 'filter-ai:') {
+    const f = FILTER_AI_DAY.exec(key)
+    const n = f ? dayNumber(f[1]) : null
+    return n == null ? null : n < dayNow - FILTER_AI_KEEP_DAYS // de laatste 7 dagen (en vandaag) blijven
+  }
   const d = BRIEF_DAY.exec(key)
   const n = d ? dayNumber(d[1]) : null
   return n == null ? null : n < dayNow - 1 // vandaag en gisteren blijven
 }
 
-const PREFIXES = ['pe:', 'pe-quota:', 'brief-quota-', 'tel:']
+const PREFIXES = ['pe:', 'pe-quota:', 'brief-quota-', 'tel:', 'filter-ai:']
 
 export async function opruimen({ now = Date.now(), list = kvListKeys, remove = kvDelete, log = console } = {}) {
   const cur = editionSlot(new Date(now))

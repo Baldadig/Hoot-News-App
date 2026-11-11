@@ -45,6 +45,17 @@ final class StroomTabsTests: XCTestCase {
         XCTAssertFalse(try item(["opinion": true]).inTab("podcasts"))
     }
 
+    // Een bericht met opinie/tabs én de media-aanwijzingen van de Editiefilter moet in één keer decoderen.
+    func testOpinieTabsEnMediaVeldenSamen() throws {
+        let it = try item(["opinion": true, "tabs": ["opinie"], "mediaType": "audio/mpeg", "podcastEpisode": "12", "feedMark": "podcast"])
+        XCTAssertEqual(it.opinion, true)
+        XCTAssertEqual(it.tabs, ["opinie"])
+        XCTAssertEqual(it.mediaType, "audio/mpeg")
+        XCTAssertEqual(it.podcastEpisode, "12")
+        XCTAssertEqual(it.feedMark, "podcast")
+        XCTAssertTrue(it.inTab("opinie"))
+    }
+
     func testNieuweServerTabZonderAppUpdate() throws {
         let tabs = StroomTab.uit(try start(#","stroomTabs":[{"id":"opinie","label":"Opinie"},{"id":"podcasts","label":"Podcasts"}]"#).stroomTabs)
         XCTAssertEqual(tabs.map(\.id), ["opinie", "podcasts"])

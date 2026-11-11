@@ -4,6 +4,12 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Geen nieuws meer weg bij het ophalen** (server): de ophaalfilter kijkt niet meer naar woorden in de kop. Nieuws over Black Friday, kortingen, een beursuitverkoop of een nieuwsbrief-aflevering staat weer in de Stroom en kan in de Editie. Alleen wat de uitgever zelf als reclame of geen bericht markeert (gesponsord, advertorial, partnercontent, aanmelden voor een nieuwsbrief, persberichten, puzzels, software-updates, eigen acties) en lege of dubbele items blijven weg. Een deal mag in de Stroom staan, maar neemt daar en in de Editie geen plek van het nieuws in. De AI-beoordeling (nog uit) is robuuster en klaar om te meten.
+
+- **Geen aanbiedingen of podcast/video-aankondigingen in de Editie** (server; web en app): alleen bij een harde aanwijzing (de feed markeert het, een deals-/podcast-/videorubriek in de link, of een label als "Video |" of "Podcast:" vooraan). Nieuws over kortingen, Black Friday of een podcast blijft staan. De Stroom verandert niet. Een AI-beoordeling van twijfelgevallen is gebouwd maar staat nog uit (HOOT_EDITIE_AI).
+
+- **Kaartmenu** (web): ⋯ op een kaart opent een rustig zwevend menu (delen, meer of minder hiervan, fout melden); de bronregel blijft heel. Een tik naast het menu sluit alleen het menu, het menu blijft boven de tabbalk, en na "Minder hiervan" blijft de focus op zijn plek.
+
 - **Meten zonder volgen** (web; app in de volgende build): Hoot telt alleen totalen per dag, zoals hoeveel Edities er geopend en uitgelezen zijn. Zonder account, id, cookie of IP-adres; Do Not Track en Global Privacy Control worden gerespecteerd. Uitlezen via /api/tel (met TEL_SLEUTEL) of scripts/tel.mjs. Privacybeleid bijgewerkt.
 
 - **Meten zonder volgen** (server, web; app in de volgende build): Hoot telt alleen totalen per dag (Edities geopend en uitgelezen per dagdeel, artikelen, Stroom, Selectie, vergelijken, delen), zonder te weten wie. `POST /api/tel`, uitlezen met `GET /api/tel?dagen=14` of `node scripts/tel.mjs`. Geen id, IP, cookie of tijdstempel per gebeurtenis; Do Not Track en Global Privacy Control worden gerespecteerd. Privacybeleid bijgewerkt.

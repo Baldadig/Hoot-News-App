@@ -698,7 +698,7 @@ struct EditionView: View {
             }
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
-                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { if let openStory { openStory(story) } else { path.append(story) } }
+                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = DebugLaunch.verhaal.flatMap({ store.storiesById[$0] }) ?? store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { if let openStory { openStory(story) } else { path.append(story) } }
             }
         }
     }
@@ -739,6 +739,15 @@ struct StoryView: View {
             .listRowBackground(Color.clear)
             .contentShape(Rectangle())
             .opensArticle(lead)
+            // Waar media verschillen: een eigen sectie boven de stukken, alleen met een gekeurd blok van de server.
+            if !items.isEmpty, let delen = (store.storiesById[story.id]?.verschillen ?? story.verschillen ?? DebugLaunch.verschillen(story.id))?.getoond {
+                Section {
+                    VerschillenSectie(delen: delen)
+                        .listRowBackground(Theme.surface)
+                } header: {
+                    Kicker(text: StoryVerschillen.label).textCase(nil).accessibilityAddTraits(.isHeader)
+                }
+            }
             // Het hoofdbericht staat al bovenaan (tik op de kop): niet nog eens in de lijst.
             ForEach(items.filter { $0.id != lead?.id }) { item in
                 // In een lijst maakt een link in de rij de hele rij tot link: hier geen bronlink.
@@ -770,6 +779,30 @@ struct StoryView: View {
         let outside = store.isOn(store.source(item.source) ?? Source(id: item.source, name: "")) ? nil : "Buiten je bronnen"
         let parts = [first, outside].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+}
+
+// Waar media verschillen (gelijk aan src/components/Verschillen.jsx): de alinea's in de leesstijl, dan na een
+// lijn de voetregel. Geen knop, geen uitklap, geen animatie; Dynamische tekst schaalt mee.
+struct VerschillenSectie: View {
+    let delen: [StoryVerschillen.Deel]
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.s3) {
+            ForEach(delen, id: \.soort) { d in
+                Text(d.tekst)
+                    .leestekst()
+                    .foregroundStyle(Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, Space.s1).accessibilityHidden(true)
+            Text(StoryVerschillen.voet)
+                .font(.ui(.footnote))
+                .foregroundStyle(Theme.ink3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, Space.s2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
     }
 }
 

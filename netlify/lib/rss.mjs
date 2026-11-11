@@ -7,6 +7,7 @@ import { BRAND, UA, editionWindowOf } from './sources.mjs'
 import { firstOf } from './stream.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime, withoutPromo, PROMO_OWN } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
+import { rubricSegments } from '../../shared/editie-filter.mjs'
 
 const parser = new Parser({
   timeout: 9000,
@@ -21,29 +22,61 @@ const parser = new Parser({
   },
 })
 
+// Een audio- of video-enclosure, iTunes-afleveringsvelden (aflevering, of duur bij audio) en de hoofdcategorie (de eerste) als die
+// Podcast of Video is. Een latere categorie is een onderwerp ("Podcasts" bij een stuk óver podcasts), geen soort.
+export function mediaFields(it = {}, cats = []) {
+  const out = {}
+  const type = String(it.enclosure?.type || '')
+  if (/^(audio|video)\//i.test(type)) out.mediaType = type.toLowerCase()
+  // Alleen een echt afleveringsnummer, of een duur bij een audio-enclosure (herstel AI-keuring 1: een nieuwsvideo met
+  // itunes:duration is geen aflevering).
+  const ep = it.itunes?.episode ?? (/^audio\//i.test(type) ? it.itunes?.duration : null)
+  if (ep != null && String(ep).trim()) out.podcastEpisode = String(ep).trim().slice(0, 20)
+  const first = String(cats[0] || '').trim().toLowerCase()
+  if (/^podcasts?$/.test(first)) out.feedMark = 'podcast'
+  else if (/^(videos?|video's)$/.test(first)) out.feedMark = 'video'
+  return out
+}
+
 function categoriesOf(it) {
   return (it.categories || []).map((c) => (typeof c === 'string' ? c : c?._ || c?.$?.term || '')).filter(Boolean)
 }
-// Geen nieuws: koopjesgidsen/affiliate-lijstjes, aanbiedingen, kleine software-updates en
-// puzzels horen niet in een nieuws-tijdlijn (bij Wired is dat rond acties tot 70% van de feed;
-// bij Tweakers is een kwart "Software-update - Camtasia 2026.2.3").
-const NOISE_TITLE = /\b(prime day|black friday|cyber monday|singles day|promo codes?|coupon codes?|gift guides?|best gifts?|gifts? for (him|her|men|women|kids|dads?|moms?))\b|\bbest\b.*\bdeals\b|\bdeals\b.*(\bsave\b|\$\d|\bunder \$)|\d+ ?(%|percent) off\b/i
-// Nederlands: aanbiedingen en kortingen ("deal" los niet: een handelsdeal is nieuws).
-const NOISE_TITLE_NL = /\b(aanbiedingen?|in de aanbieding|kortingscodes?|dagdeals?|prijsfouten?|uitverkoop|koopjes|tijdelijk (goedkoper|in prijs verlaagd)|nu \d+ ?% korting)\b|\b\w+-deals\b/i
-// Kleine updates: een nieuwe versie van een programma, driver of firmware (Tweakers zet ze
-// onder /downloads/, en zijn eigen acties en evenementen onder /plan/).
-const UPDATE_TITLE = /^(software|driver|firmware|bios|game)-update\s*[-–:]/i
-// Reclame voor een eigen nieuwsbrief ("Middle East Dispatch newsletter: …", "Meld je aan voor …").
-const NEWSLETTER_TITLE = /^[^:]{0,60}\bnewsletter:|\bsign up (for|to) (our|the)\b.*\bnewsletter\b|^meld je aan voor\b/i
-// Ook geen persberichten van de uitgever zelf ("Election Night at The Atlantic", onder
-// /press-releases/) en geen betaalde of partnerinhoud.
-const NOISE_LINK = /\/puzzels?\/|\/press-releases?\/|\/persberichten?\/|\/sponsored\/|\/partner(-content)?\/|^https:\/\/tweakers\.net\/(downloads|plan|aanbiedingen|pricewatch)\//
-export function isNoise(it, cats = []) {
-  if (cats.some((c) => /\bdeals\b|\bcoupons?\b|\bshopping\b|\baanbieding|^(software|driver|firmware)$|^\.(plan|actie)$/i.test(c.trim()))) return true
-  const title = it.title || ''
-  if (NOISE_TITLE.test(title) || NOISE_TITLE_NL.test(title) || UPDATE_TITLE.test(title) || NEWSLETTER_TITLE.test(title)) return true
-  return NOISE_LINK.test(it.link || '')
+// Ophaalfilter (Redacteur · ruis, 11 november 2026). Bij het ophalen valt alleen weg wat ZEKER geen nieuws is, op een
+// harde aanwijzing van de uitgever zelf, en nooit op een los woord in de kop (de oude woordfilter op "Black Friday",
+// "N% off", kortingscode, uitverkoop en "… newsletter:" gooide nieuws weg vóór de Stroom én de Editie: ACM- en
+// FTC-toezicht op Black Friday, "Bitcoin 30% off", de beurs "na massale uitverkoop"; de categorie "Software" weerde een
+// Politico-stuk over AI). Wat nu nog wegvalt:
+//   1. reclame: de feed markeert het (categorie "Sponsored", "Advertorial", "Partner content", "Newsletter sign-up" …),
+//      de link staat in een reclame- of commercerubriek (/advertorial/, /sponsored/, /partner/, /commerce/,
+//      /product-recommendations/ …), of de kop begint met een reclamelabel ("Advertentie:", "Sponsored |");
+//   2. wat de uitgever zelf als geen-bericht indeelt: een persbericht (/press-releases/), puzzels (/puzzels/), een
+//      versie-overzicht (/downloads/) en een eigen actie of winactie (feedcategorie ".Actie" of ".Plan");
+//   3. lege of kapotte items (geen kop of geen http(s)-link) en dubbele items (dezelfde link): in loadSource.
+// Een aanbieding of kijk-/luisteraanbod dat de uitgever niet zo markeert, staat gewoon in de Stroom (een deal mag daar
+// staan). Uit de Editie houden A (harde aanwijzing, shared/editie-filter.mjs) en B (de AI, netlify/lib/editie-ai.mjs) het.
+// Alleen een rubriek telt (een segment vóór de slug, rubricSegments), nooit de slug: "/show/ex-partner-van-zanger" blijft.
+const NOISE_RUBRIC = new Set([
+  // reclame en commerce
+  'advertorial', 'advertorials', 'advertentie', 'advertenties', 'sponsored', 'sponsored-content', 'gesponsord', 'partner', 'partner-content',
+  'partnercontent', 'partnerbijdrage', 'brandpartner', 'brand-partner', 'branded-content', 'brand-studio', 'paid-content', 'paid-post', 'paidpost',
+  'commerce', 'pricewatch',
+  // eigen huisvlijt, geen bericht
+  'press-release', 'press-releases', 'persbericht', 'persberichten', 'puzzel', 'puzzels', 'puzzle', 'puzzles', 'downloads',
+])
+// Een feedcategorie telt alleen als ze in haar geheel zo heet (dus niet "Advertising" of "Software": dat zijn onderwerpen).
+const NOISE_CATEGORY = new Set([
+  'sponsored', 'sponsored content', 'sponsored post', 'gesponsord', 'gesponsorde inhoud', 'advertorial', 'advertentie', 'partner content',
+  'partnercontent', 'partnerbijdrage', 'paid content', 'paid post', 'branded content', 'promoted', 'promoted content',
+  'newsletter sign-up', 'newsletter signup', 'newsletter sign up', 'press release', 'press releases', 'persbericht', '.actie', '.plan',
+])
+const AD_LABEL = /^[\s"'‘“([]*(advertentie|advertorial|gesponsord|sponsored(?: content)?|partner ?content|partnerbijdrage|paid (?:post|content)|branded content|promoted)\s*[:|\]–—]/i
+export function noiseReason(it = {}, cats = []) {
+  if (cats.some((c) => NOISE_CATEGORY.has(String(c).trim().toLowerCase()))) return 'categorie'
+  if (AD_LABEL.test(toText(String(it.title || '')).trim())) return 'label'
+  if (rubricSegments(it.link || it.guid || '').some((s) => NOISE_RUBRIC.has(s))) return 'rubriek'
+  return null
 }
+export const isNoise = (it, cats = []) => noiseReason(it, cats) != null
 // De intro uit de feed: de samenvatting, of anders de artikeltekst (content:encoded), zonder
 // een vaste aanhef als "Nature, Published online: …; doi:…". Herhaalt hij alleen de kop, dan
 // is er geen intro.
@@ -137,6 +170,7 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats) && (!src.keep || String(it.link || '').includes(src.keep)))
+      const seen = new Set()
       const mapped = fresh.map(([it, cats]) => {
         const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
         const domain = hostname(link)
@@ -172,6 +206,8 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
           brandColor: BRAND[src.id] || '#21468b',
           author: authorOf(it),
           type: typeOf(link, cats),
+          // Harde media-aanwijzingen uit de feed zelf, voor de Editietoets (shared/editie-filter.mjs); de Stroom kijkt er niet naar.
+          ...mediaFields(it, cats),
           section: sectionOf(src.id, link),
           title,
           summary,
@@ -186,7 +222,10 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
           offLang,
           publishedAt: plausibleTime(it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null), fetchedAt),
         }
-      }).filter((i) => i.url && i.title) // zonder geldige (http/https) link of zonder kop niet tonen
+      })
+      // Zonder geldige (http/https) link of zonder kop niet tonen, en elk stuk één keer (dezelfde link = hetzelfde id;
+      // BBC Sport zet soms een stuk twee keer in de feed).
+      .filter((i) => i.url && i.title && !seen.has(i.id) && seen.add(i.id))
       const items = firstOf(mapped, limit) // de grens telt alleen berichten in de brontaal
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
     } catch (e) {
