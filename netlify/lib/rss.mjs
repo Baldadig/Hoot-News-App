@@ -21,6 +21,22 @@ const parser = new Parser({
   },
 })
 
+// Een audio- of video-enclosure, iTunes-afleveringsvelden (aflevering, of duur bij audio) en de hoofdcategorie (de eerste) als die
+// Podcast of Video is. Een latere categorie is een onderwerp ("Podcasts" bij een stuk óver podcasts), geen soort.
+export function mediaFields(it = {}, cats = []) {
+  const out = {}
+  const type = String(it.enclosure?.type || '')
+  if (/^(audio|video)\//i.test(type)) out.mediaType = type.toLowerCase()
+  // Alleen een echt afleveringsnummer, of een duur bij een audio-enclosure (herstel AI-keuring 1: een nieuwsvideo met
+  // itunes:duration is geen aflevering).
+  const ep = it.itunes?.episode ?? (/^audio\//i.test(type) ? it.itunes?.duration : null)
+  if (ep != null && String(ep).trim()) out.podcastEpisode = String(ep).trim().slice(0, 20)
+  const first = String(cats[0] || '').trim().toLowerCase()
+  if (/^podcasts?$/.test(first)) out.feedMark = 'podcast'
+  else if (/^(videos?|video's)$/.test(first)) out.feedMark = 'video'
+  return out
+}
+
 function categoriesOf(it) {
   return (it.categories || []).map((c) => (typeof c === 'string' ? c : c?._ || c?.$?.term || '')).filter(Boolean)
 }
@@ -172,6 +188,8 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
           brandColor: BRAND[src.id] || '#21468b',
           author: authorOf(it),
           type: typeOf(link, cats),
+          // Harde media-aanwijzingen uit de feed zelf, voor de Editietoets (shared/editie-filter.mjs); de Stroom kijkt er niet naar.
+          ...mediaFields(it, cats),
           section: sectionOf(src.id, link),
           title,
           summary,

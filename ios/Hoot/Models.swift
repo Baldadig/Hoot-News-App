@@ -52,6 +52,10 @@ struct Item: Codable, Identifiable, Hashable {
     var section: String?
     var opinion: Bool? // de uitgever brengt het als mening (server, shared/opinie.mjs); terugval voor de tab Opinie
     var tabs: [String]? // de Stroom-tabs van de server die dit bericht draagt (shared/stroom-tabs.mjs), zoals ["opinie"]
+    // Harde media-aanwijzingen uit de feed (rss.mjs), voor dezelfde Editietoets als op het web (shared/editie-filter.mjs).
+    var mediaType: String?
+    var podcastEpisode: String?
+    var feedMark: String?
     // Alleen bij Bluesky-posts
     var handle: String?
     var linkTitle: String? // titel van een gedeelde link
@@ -138,7 +142,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, introAlt, introAltFrom, introLoose, url, image, publishedAt, author, readMin, type, section, opinion, tabs, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, introAlt, introAltFrom, introLoose, url, image, publishedAt, author, readMin, type, section, opinion, tabs, mediaType, podcastEpisode, feedMark, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -167,6 +171,9 @@ extension Item {
         type = try? c.decodeIfPresent(String.self, forKey: .type)
         opinion = try? c.decodeIfPresent(Bool.self, forKey: .opinion)
         tabs = try? c.decodeIfPresent([String].self, forKey: .tabs)
+        mediaType = try? c.decodeIfPresent(String.self, forKey: .mediaType)
+        podcastEpisode = try? c.decodeIfPresent(String.self, forKey: .podcastEpisode)
+        feedMark = try? c.decodeIfPresent(String.self, forKey: .feedMark)
         handle = try? c.decodeIfPresent(String.self, forKey: .handle)
         linkTitle = try? c.decodeIfPresent(String.self, forKey: .linkTitle)
         imageMeta = try? c.decodeIfPresent(ImageMeasure.self, forKey: .imageMeta)

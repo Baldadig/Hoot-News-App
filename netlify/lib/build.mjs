@@ -1,4 +1,6 @@
 import { cleanIntro } from '../../shared/edition-display.mjs'
+import { excludedFromEdition } from '../../shared/editie-filter.mjs'
+import { aiExclusions } from './editie-ai.mjs'
 import { wholeSentences, introMax, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { EDITOR_REVISION, EDITION_REBUILD_SLOT, editionCacheKey, editionRevisionKey } from '../../shared/editor-version.mjs'
 import { previousEdition, carriedEdition, findEdition } from './edition-history.mjs'
@@ -7,7 +9,7 @@ import { scoreEdition, shownItems, editionItemIds, ARCHIVE_KEY, ARCHIVE_FEED_KEY
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, dutchTop, sourceCap, freeHeads, quietEnd, EDITION_SIZE, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { centralItems, byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, dutchTop, sourceCap, freeHeads, quietEnd, EDITION_SIZE, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
 import { SLOT_START, OCHTEND_VROEG, amsterdamClock, hhmm } from '../../shared/slot-times.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
@@ -33,7 +35,7 @@ import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
 import { isBlog, introShown } from '../../shared/aanhef.mjs'
 export { withoutPromo } from './text.mjs'
-import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
+import { kvGet, kvSet, kvUpdate, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { withoutCopies, titleKey } from '../../shared/dedupe.mjs'
@@ -49,7 +51,7 @@ const inStories = (it) => it.kind === 'article' && SOURCE.get(it.source)?.cat !=
 // De editie is nieuws: geen sport- of muziekbronnen, en ook geen sportbericht uit een gewone
 // nieuwsbron (een grote voetbalavond kwam anders via de Volkskrant toch bovenaan).
 const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
-const inEdition = (it) => EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source) && !keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
+const inEdition = (it) => !excludedFromEdition(it) && EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source) && !keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
 
 export async function buildFeed({ now = Date.now() } = {}) {
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -112,7 +114,13 @@ export async function buildFeed({ now = Date.now() } = {}) {
 
   // 7. De editie van dit dagdeel (één keer samengesteld, daarna vast). Ook daar telt elk stuk
   // één keer, al brengen vijf zusterkranten het.
-  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: editionPool(out.filter(forEdition), articlePool), anthropic })
+  // Aanbiedingen en kijk-/luisteraanbod (Redacteur · filters-ai): A (harde aanwijzing) zit in inEdition en editionPool;
+  // B (de AI, alleen bij twijfel en alleen zeker) geeft de id's die daarnaast weg moeten. Bij elke fout: niets extra.
+  // B draait alleen met HOOT_EDITIE_AI=aan (standaard uit; eerst meten met scripts/meet-filters-ai.mjs).
+  const editionOut = editionPool(out.filter(forEdition), articlePool)
+  const ai = await aiExclusions({ pool: editionOut, stories, now, client: anthropic, kv: { get: kvGet, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }) } })
+  const kept = (i) => !ai.weg.has(i.id)
+  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition).filter(kept), pool: editionOut.filter(kept), anthropic })
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
   // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
   const outById = new Map(out.map(i => [i.id, i]))
@@ -144,6 +152,9 @@ export async function buildFeed({ now = Date.now() } = {}) {
     archive: edition.archive,
     // De Stroom-tabs tussen Sport en Buiten je bubbel (shared/stroom-tabs.mjs): web en app lezen dezelfde lijst.
     stroomTabs: stroomTabsFeed(),
+    // De id's die de AI zeker als aanbieding of aankondiging zag (netlify/lib/editie-ai.mjs): /api/edition rekent er
+    // de persoonlijke Edities mee, zodat algemeen en persoonlijk dezelfde oordelen volgen. Het toestel negeert dit.
+    editionFilter: { weg: [...ai.weg].sort() },
     meta: {
       updatedAt: new Date(now).toISOString(),
       storage: storageMode(),
@@ -191,7 +202,7 @@ export function storyPool(items) {
 // uit een verhaal gaat voor, zodat elk verhaal al zijn berichten terugvindt.
 export function editionPool(out, articlePool) {
   const keep = new Set(withoutCopies([...articlePool, ...out]).map((i) => i.id))
-  return out.filter((i) => keep.has(i.id))
+  return out.filter((i) => keep.has(i.id) && !excludedFromEdition(i))
 }
 
 // ---------- 3. Gaten vullen uit de zoekindex ----------
@@ -704,6 +715,10 @@ export function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     brandColor: it.brandColor,
     author: it.author,
     type: it.type,
+    // Harde media-aanwijzingen uit de feed (rss.mjs, mediaFields), voor dezelfde Editietoets op web, server en toestel.
+    mediaType: it.mediaType,
+    podcastEpisode: it.podcastEpisode,
+    feedMark: it.feedMark,
     section: it.section,
     // Opinie voor de Stroom (shared/opinie.mjs): de tab Opinie, en het label "Opinie" boven de kop.
     // Alleen `true` gaat mee (compact laat false weg); een oudere app negeert het veld.
@@ -751,7 +766,7 @@ const compact = (o) => {
 // nieuws (openWithNews). Geen waarom, geen trends: alleen de plekken, in de vorm van de vastgelegde Editie.
 // `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
 // `shadow`: een leeg object; krijgt wat in schaduw draait (het Haagse dossier, `shadow.dossier`), zonder de plekken te wijzigen.
-export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null, audit = null, shadow = null } = {}) {
+export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null, audit = null, shadow = null, weg = null, _memoSelection = true } = {}) {
   // Eén gebeurtenis, één plek, ook over de taalgrens (frisse ogen · ronde 2, punt 6): melden twee plekken in twee talen
   // dezelfde gebeurtenis (crossLanguagePairs), dan valt de lagere weg en stelt de Redacteur de Editie opnieuw samen
   // zonder dat verhaal, zodat de plek wordt aangevuld. Alleen als er zo'n paar is; hooguit twee keer opnieuw.
@@ -764,7 +779,7 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
     const ns = skip.size ? newsStories.filter((st) => !skip.has(st.id)) : newsStories
     const np = skip.size ? newsPool.filter((i) => !gone.has(i.id) && !skip.has(i.id)) : newsPool
     if (audit) audit.length = start
-    entries = composeGeneral({ stories, newsStories: ns, pool, newsPool: np, now, mainIds, sources, previous, audit, shadow })
+    entries = composeGeneral({ stories, newsStories: ns, pool, newsPool: np, now, mainIds, sources, previous, audit, shadow, weg, _memoSelection })
     const byId = new Map(np.map((i) => [i.id, i]))
     const pairs = crossLanguagePairs(entries, { leadOf: (e) => byId.get(e.leadId || e.id) || null })
     if (!pairs.length) break
@@ -778,14 +793,33 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   if (audit) audit.push(...skipped)
   return entries
 }
-function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, sources, previous, audit, shadow = null }) {
+function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, sources, previous, audit, shadow = null, weg = null, _memoSelection = true }) {
   const prof = profileOf({ followed: mainIds, sources })
+  // Geen aanbieding of kijk-/luisteraanbod (shared/editie-filter.mjs, en `weg` van de AI). Alleen de kandidaten en de werkelijk
+  // gebruikte verhaalcontext worden getoetst, elk object één keer.
+  const checked = new WeakMap()
+  const allowed = (i) => {
+    if (!checked.has(i)) checked.set(i, !excludedFromEdition(i, weg))
+    return checked.get(i)
+  }
+  newsPool = newsPool.filter(allowed)
   // Voor de Nederlandse plekken (dutchPlace) tellen alle stukken van een verhaal, ook die buiten de nieuwspool (ronde 4 · 2).
-  const allById = new Map(pool.map((i) => [i.id, i]))
   const fullStory = new Map(stories.map((st) => [st.id, st]))
+  const needed = new Set(newsStories.flatMap((st) => fullStory.get(st.id)?.itemIds || []))
+  const allById = new Map(pool.filter((i) => needed.has(i.id) && allowed(i)).map((i) => [i.id, i]))
   const allOf = (id) => (fullStory.get(id)?.itemIds || []).map((x) => allById.get(x)).filter(Boolean)
   const storyItems = new Map(newsStories.map((st) => [st.id, allOf(st.id)]))
-  const picked = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems }, audit })
+  const ctx = { storyItems }
+  // Rekentijd: dezelfde lijst stukken deelt zijn berekende kern tussen de koprollen (alleen binnen deze samenstelling).
+  if (_memoSelection) {
+    const memo = new WeakMap()
+    ctx.centralItemsFor = (xs, total) => {
+      let saved = memo.get(xs)
+      if (!saved || saved.total !== total) memo.set(xs, (saved = { total, items: centralItems(xs, total) }))
+      return saved.items
+    }
+  }
+  const picked = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx, audit })
   // Dun is aanvullen met gratis Nederlands nieuws, pas daarna korter (frisse ogen · ronde 2, besluit 5).
   const sel = freeDutchFill(picked, { stories, newsStories, newsPool, mainIds, now, previous, prof, audit })
   const byId = new Map(newsPool.map((i) => [i.id, i]))

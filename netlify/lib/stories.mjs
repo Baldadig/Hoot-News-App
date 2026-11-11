@@ -1578,11 +1578,11 @@ const prefer = (xs, f) => {
 }
 // Een sportbron is nooit de kop van een verhaal dat geen sport is (toets 4 november 2026: "ESPN: NYC Marathon
 // runner dies" werd de kop van een bundel over mazelen en een marathon, in een Editie zonder sportkeuze).
-export function leadPool(cands, items, now, own = null, total = items.length) {
+export function leadPool(cands, items, now, own = null, total = items.length, coreItems = centralItems) {
   let xs = prefer(cands, (i) => !isStale(i, now))
   if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source))
   if (own) xs = prefer(xs, own)
-  const core = new Set(centralItems(items, total))
+  const core = new Set(coreItems(items, total))
   xs = prefer(xs, (i) => core.has(i))
   xs = prefer(xs, (i) => !/\?/.test(i.title || ''))
   return dutchFirst(freshest(xs))
@@ -2142,7 +2142,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // een kenmerk met de woordenschat van de pool van nu.
   const prevShown = previous?.shown?.length ? previous.shown : [...(previous?.titles || [])].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }))
   const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }))
-  const sig = signatures(pool, prevArts)
+  const sig = ctx.signaturesFor ? ctx.signaturesFor(pool, prevArts) : signatures(pool, prevArts)
   const vorige = prevArts.map((a) => sig.get(a.id))
   const sigKnown = ctx.sigKnown || sig // alles wat het toestel kent (composePersonal), voor "van toen"
   const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
@@ -2180,12 +2180,14 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   }
   // De kandidaten voor de kop, in volgorde; hangt alleen af van de stukken en de rol (de eerste drie plekken: voorpagina).
   const leadFrom = (items, total, role) => {
-    if (items.some(titled)) items = items.filter(titled)
+    const titledItems = items.filter(titled)
+    // Dezelfde volledige lijst kan zijn berekende kern tussen koprollen delen (rekentijd, ctx.centralItemsFor).
+    if (titledItems.length && titledItems.length !== items.length) items = titledItems
     const all = leadCandidates(items, mainIds, preferred, now, { role })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     // Eigen bronnen eerst; daarbinnen een samenvattende kop, geen vraag, de verste stukken, in het
     // Nederlands als het kan (H7: leadPool).
-    return leadPool(cands, items, now, (i) => mainIds.has(i.source), total)
+    return leadPool(cands, items, now, (i) => mainIds.has(i.source), total, ctx.centralItemsFor || centralItems)
   }
   // Dan de kop: niet dezelfde bron als de vorige kop, en hooguit MAX_LEADS_PER_SOURCE koppen per bron.
   const chooseLead = (from) => from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]

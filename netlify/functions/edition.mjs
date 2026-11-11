@@ -132,12 +132,17 @@ export function editionFor(start, items, body) {
     taste,
     previous,
     readIds: new Set(ids(body.readIds, READ_MAX)),
+    weg: wegOf(start),
   })
   if (!edition) return null
   // Zonder de velden ter inzage (`_parts`, `_plan`): geen punten naar het toestel. Met de afdruk, en
   // als terugval gemerkt: van geen toestel, en nooit voor je account.
   return { ...withoutDebug(edition), basis: editionBasis(followed, interests, topics, favorites), owner: null, fallback: true }
 }
+
+// De id's die de AI op de server zeker als aanbieding of aankondiging zag (netlify/lib/editie-ai.mjs, `editionFilter` in de
+// kern): dezelfde oordelen als de algemene Editie. Ontbreekt het (een oudere kern), dan alleen A.
+export const wegOf = (start) => new Set(Array.isArray(start?.editionFilter?.weg) ? start.editionFilter.weg.filter((x) => typeof x === 'string' && ID.test(x)).slice(0, 2000) : [])
 
 // ---- Versie 2 ----
 export const MEMBER_PER_SLOT = 20 // samenstellingen per lid per dagdeel; een treffer in je account telt niet mee
@@ -205,6 +210,7 @@ export function composeFor(start, items, p, { owner, earlier = [] }) {
     taste: p.taste,
     previous: previousOf(earlier),
     readIds: new Set(p.readIds),
+    weg: wegOf(start),
   })
   if (!edition) return null
   return {

@@ -38,12 +38,12 @@ test('het vorige dagdeel over de dagwisseling heen blijft (avond van gisteren om
 })
 
 test('andere voorvoegsels blijven staan en worden niet eens opgevraagd', async () => {
-  const andere = ['feed-start-v1', 'feed-part-nos', 'vak-pool-v1', 'archief-2026-11-01-ochtend', 'edition-2026-11-01-ochtend', 'pensioen:x', 'pe', 'brief-mine-abc']
+  const andere = ['filter-ai-x', 'filterai:2026-01-01', 'feed-start-v1', 'feed-part-nos', 'vak-pool-v1', 'archief-2026-11-01-ochtend', 'edition-2026-11-01-ochtend', 'pensioen:x', 'pe', 'brief-mine-abc']
   const n = nepStore([...andere, `pe:${rev}:2026-11-01-ochtend:${H('a')}`])
   const gevraagd = []
   const list = async (p) => { gevraagd.push(p); return n.list(p) }
   await opruimen({ now: NOW, list, remove: n.remove, log: n.log })
-  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'brief-quota-', 'tel:'])
+  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'brief-quota-', 'tel:', 'filter-ai:'])
   for (const k of andere) assert.ok(n.s.has(k), k)
   assert.equal(n.s.size, andere.length)
 })
@@ -109,4 +109,18 @@ test('tel: dagtellers blijven 400 dagen, daarna weg; een vreemde tel-sleutel bli
   for (const k of houd) assert.ok(n.s.has(k), k)
   assert.equal(r.perVoorvoegsel['tel:'].verwijderd, 1)
   assert.equal(r.perVoorvoegsel['tel:'].overgeslagen, 1)
+})
+
+test('filter-ai: oordelen van de Editiefilter-AI blijven 7 dagen, daarna weg; een vreemde sleutel blijft staan', async () => {
+  const oud = ['filter-ai:2026-11-03', 'filter-ai:2026-10-01']
+  const houd = ['filter-ai:2026-11-04', 'filter-ai:2026-11-10', 'filter-ai:2026-11-11', 'filter-ai:kapot', 'filter-ai:2026-11-04:x']
+  const n = nepStore([...oud, ...houd])
+  const r = await opruimen({ now: NOW, list: n.list, remove: n.remove, log: n.log })
+  for (const k of oud) assert.ok(!n.s.has(k), k)
+  for (const k of houd) assert.ok(n.s.has(k), k)
+  assert.equal(r.perVoorvoegsel['filter-ai:'].verwijderd, 2)
+  assert.equal(r.perVoorvoegsel['filter-ai:'].bewaard, 3)
+  assert.equal(r.perVoorvoegsel['filter-ai:'].overgeslagen, 2)
+  // Geen ander voorvoegsel raakt een filter-ai-sleutel, en filter-ai raakt geen pe-sleutel.
+  assert.equal(expired('filter-ai:', `pe:${rev}:2026-11-01-ochtend:${H('a')}`, { slotNow: 1e9, dayNow: 1e9 }), null)
 })
