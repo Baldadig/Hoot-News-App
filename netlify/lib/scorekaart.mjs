@@ -7,7 +7,8 @@
 // 1. Eén gebeurtenis, één plek: geen twee plekken over hetzelfde feit, ook over de taalgrens.
 // 2. Bovenaan staat nieuws: in de top 3 geen opinie, beschouwende kop, portret, bekend persoon of curiosum.
 // 3. Gratis waar het kan: geen betaalde kop als hetzelfde verhaal een gratis Nederlandse kop had.
-// 4. Een rustig einde: Buiten je bubbel is gratis, < 24 uur, geen liveblog of sport, nieuw onderwerp; of leeg.
+// 4. Een rustig einde: Buiten je bubbel is gratis, < 24 uur, geen liveblog of sport, nieuw onderwerp; of leeg. Een
+//    Naast je bubbel in de algemene Editie telt als fout (besluit van Alex, 11 november: zonder goede kandidaat leeg).
 // 5. Wat er speelt, ook in NL: van de vijf grootste NOS/NU.nl-verhalen staan er ≥ 3 in de Editie; en is er een Haags
 //    dossier van ≥ 4 uitgevers, dan staat er ≥ 1 Haags verhaal in (grof: herkend aan woorden).
 import { signatures, sameEvent, sameHeadEvent, curioStory, peopleStory, isLive } from './stories.mjs'
@@ -99,7 +100,7 @@ const NL_CATS = new Set(['nl', 'economie'])
 
 // Eén scorerij. `edition`: { id, builtAt, entries, items? }; `byId`: alle bekende stukken (pool, vastgelegde stukken);
 // `storyById`: de verhalen (snapshot of actueel); `stories`: alle verhalen van dat moment (voor KPI 5);
-// `earlier`: de stukken die vandaag al in een Editie stonden (KPI 4); `previousIds`: de stukken van de vorige Editie (KPI 5).
+// `earlier`: de stukken die vandaag of in de vorige Editie al stonden (KPI 4); `previousIds`: de stukken van de vorige Editie (KPI 5).
 export function scoreEdition({ edition, byId = new Map(), storyById = new Map(), stories = [], earlier = [], previousIds = new Set(), sources = SOURCES } = {}) {
   const src = new Map(sources.map((s) => [s.id, s]))
   const now = Date.parse(edition.builtAt)
@@ -158,7 +159,8 @@ export function scoreEdition({ edition, byId = new Map(), storyById = new Map(),
     const shownToday = (a) => ids.has(a.id) || (!!a.storyId && ids.has(a.storyId)) || (bubble.kind === 'story' && ids.has(bubble.id)) || (esig.has(a.id) && earlierArts.some((x) => sameEvent(esig.get(a.id), esig.get(x.id))))
     const isSport = (i) => src.get(i.source)?.cat === 'sport' || (i.topics || []).some((t) => SPORT_TOPICS.has(t)) || keywordTopics(`${i.title || ''} ${i.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
     const reden = it ? bubbleRejection(it, { isFree: (id) => src.has(id) && !src.get(id).paid, isSport, isLive, now, heads: headWords(leads.map((l) => l?.title)), terms: bubble.terms || [], shownToday }) : 'onbekend-stuk'
-    einde = { ok: !reden, keuze: bubble.near ? 'naast' : 'trend', reden, bron: it?.sourceName || it?.source || null, kop: it?.title || null }
+    const naast = !!bubble.near
+    einde = { ok: !naast && !reden, keuze: naast ? 'naast' : 'trend', reden: naast ? 'naast-in-plaats-van-leeg' + (reden ? `, ${reden}` : '') : reden, bron: it?.sourceName || it?.source || null, kop: it?.title || null }
   }
 
   // 5. Wat er speelt, ook in NL.

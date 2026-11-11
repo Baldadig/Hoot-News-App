@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { scoreEdition, crossLanguageSame, weakTop, shownItems, editionItemIds, summarize, scoreLine, SCORECARD_KEY, ARCHIVE_KEY, ARCHIVE_FEED_KEY } from '../netlify/lib/scorekaart.mjs'
-import { auditRows, earlierSlotIds, generalEdition } from '../netlify/lib/build.mjs'
+import { auditRows, earlierSlotIds, shownSlotIds, generalEdition } from '../netlify/lib/build.mjs'
 import { scorecard, asText } from '../netlify/functions/scorekaart.mjs'
 import { writeArchive, readArchive } from '../netlify/lib/kv.mjs'
 
@@ -46,6 +46,18 @@ test('een lege bubbelplek is een rustig einde', () => {
   assert.deepEqual([r.einde.ok, r.einde.keuze], [true, 'leeg'])
 })
 
+test('Naast je bubbel in de algemene Editie is geen rustig einde: die plek had leeg moeten blijven (besluit 11 november)', () => {
+  const feed = load('live-feed-2026-11-11-ochtend.json.gz')
+  const regular = feed.edition.entries.filter((e) => e.desk !== 'bubbel')
+  const lead = feed.items.find((i) => i.source === 'nos' && i.kind === 'article')
+  const edition = { ...feed.edition, entries: [...regular, { kind: 'item', id: lead.id, desk: 'bubbel', near: 'wereld' }], items: [...feed.edition.items, { ...lead, publishedAt: feed.edition.builtAt }] }
+  const r = rowOf({ ...feed, edition })
+  assert.equal(r.einde.keuze, 'naast')
+  assert.equal(r.einde.ok, false)
+  assert.match(r.einde.reden, /^naast-in-plaats-van-leeg/)
+  assert.equal(summarize([r]).naast, 1)
+})
+
 test('samenvatting in de vorm van het rapport', () => {
   const r = rowOf(load('live-feed-2026-11-11-ochtend.json.gz'))
   const s = summarize([r, r])
@@ -58,6 +70,10 @@ test('getoond vandaag: de plekken van een Editie met hun verhaal; de dagdelen va
   assert.deepEqual([...editionItemIds(ed, new Map([['s1', { itemIds: ['a', 'c'] }]]))].sort(), ['a', 'b', 'c'])
   assert.deepEqual(earlierSlotIds({ slot: 'ochtend', date: '2026-11-11' }), [])
   assert.deepEqual(earlierSlotIds({ slot: 'avond', date: '2026-11-11' }), ['2026-11-11-ochtend', '2026-11-11-middag'])
+  // Al eerder getoond (Buiten je bubbel): ook de vorige Editie, voor de ochtend die van gisteravond.
+  assert.deepEqual(shownSlotIds({ slot: 'ochtend', date: '2026-11-11' }), ['2026-11-10-avond'])
+  assert.deepEqual(shownSlotIds({ slot: 'middag', date: '2026-11-11' }), ['2026-11-11-ochtend'])
+  assert.deepEqual(shownSlotIds({ slot: 'avond', date: '2026-11-11' }), ['2026-11-11-ochtend', '2026-11-11-middag'])
 })
 
 test('archief: de kandidaten met hun afvalreden, zonder ruis, zwaarste eerst', () => {

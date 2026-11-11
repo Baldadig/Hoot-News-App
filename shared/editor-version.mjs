@@ -3,7 +3,7 @@
 // Een nieuwe revisie geldt vanaf het volgende dagdeel: een Editie die al vaststaat, blijft staan (netlify/lib/edition-history.mjs).
 // 11 november 2026: opinie in de Editie met de herkenning van de tab Opinie (shared/opinie.mjs); analyse is geen opinie.
 // 11 november 2026, frisse ogen · 1: Buiten je bubbel met harde eisen (gratis, vers, geen liveblog of sport, nieuw
-// onderwerp, niet eerder vandaag), anders Naast je bubbel, anders leeg.
+// onderwerp, niet eerder getoond: vandaag of in de vorige Editie), anders blijft de plek leeg.
 export const EDITOR_REVISION = 'redacteur-2026-11-11-bubbel'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

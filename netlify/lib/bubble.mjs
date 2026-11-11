@@ -88,8 +88,8 @@ export function matchTrending(rawTerms, articles, { excludeItemIds = new Set(), 
 
 // ---------- Harde eisen (frisse ogen · 1, besluit van Alex 11 november) ----------
 // Het laatste stuk bepaalt het gevoel bij het loslaten. Buiten je bubbel is daarom: gratis, jonger dan een etmaal, geen
-// liveblog, geen sport, geen naam die al in een kop van de Editie staat (per woord) en niet al eerder vandaag getoond.
-// Lukt dat niet, dan Naast je bubbel onder dezelfde eisen, anders blijft de plek leeg.
+// liveblog, geen sport, geen naam die al in een kop van de Editie staat (per woord) en niet al eerder getoond (vandaag of
+// in de vorige Editie). Lukt dat niet, dan blijft de plek in de algemene Editie leeg.
 export const BUBBLE_HOURS = 24
 // Een term is gedekt als één van zijn woorden in een kop van de Editie staat.
 export const termCovered = (words, covered) => words.some((w) => covered.has(w))
@@ -109,7 +109,8 @@ export function namesIn(title = '') {
   return [...new Set(out)]
 }
 // Waarom een stuk niet op de bubbelplek mag, of null. `heads`: de woorden van de koppen van de Editie (headWords);
-// `terms`: de signalen waarop het stuk gekozen werd; `shownToday(a)`: stond het (of zijn gebeurtenis) vandaag al in een Editie.
+// `terms`: de signalen waarop het stuk gekozen werd; `shownToday(a)`: stond het (of zijn gebeurtenis) vandaag of in de
+// vorige Editie al.
 export function bubbleRejection(a, { isFree = () => false, isSport = () => false, isLive = () => false, now = Date.now(), heads = new Set(), terms = [], shownToday = () => false, hours = BUBBLE_HOURS } = {}) {
   if (!a || a.kind && a.kind !== 'article') return 'geen-artikel'
   if (!isFree(a.source)) return 'betaald'
@@ -117,7 +118,7 @@ export function bubbleRejection(a, { isFree = () => false, isSport = () => false
   if (!Number.isFinite(t) || now - t >= hours * 36e5) return 'ouder-dan-24-uur'
   if (isLive(a)) return 'liveblog'
   if (isSport(a)) return 'sport'
-  if (shownToday(a)) return 'eerder-vandaag-getoond'
+  if (shownToday(a)) return 'eerder-getoond'
   const name = [...namesIn(a.title), ...terms.flatMap((x) => termWords(x.term || x))].find((w) => heads.has(w))
   if (name) return `naam-al-in-kop:${name}`
   return null

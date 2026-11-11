@@ -1,6 +1,6 @@
 // Frisse ogen · 1 (besluit van Alex, 11 november): Buiten je bubbel krijgt harde eisen. Gratis, jonger dan een etmaal,
-// geen liveblog, geen sport, geen naam die al in een kop van de Editie staat (per woord), niet al eerder vandaag getoond;
-// anders Naast je bubbel onder dezelfde eisen; anders blijft de plek leeg.
+// geen liveblog, geen sport, geen naam die al in een kop van de Editie staat (per woord), niet al eerder getoond (vandaag
+// of in de vorige Editie); anders blijft de plek leeg. Geen Naast je bubbel als vervanger (keuze A van het rapport).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -36,7 +36,7 @@ test('de harde eisen, elk met een eigen afvalreden', () => {
   assert.equal(bubbleRejection(art('d', 'Iets', { publishedAt: null }), opts), 'ouder-dan-24-uur')
   assert.equal(bubbleRejection(art('e', 'Iets', { url: 'https://x/liveblog/1' }), opts), 'liveblog')
   assert.equal(bubbleRejection(art('f', 'Ajax wint', { topics: ['voetbal'] }), opts), 'sport')
-  assert.equal(bubbleRejection(art('g', 'Iets'), { ...opts, shownToday: (a) => a.id === 'g' }), 'eerder-vandaag-getoond')
+  assert.equal(bubbleRejection(art('g', 'Iets'), { ...opts, shownToday: (a) => a.id === 'g' }), 'eerder-getoond')
   assert.equal(bubbleRejection(art('h', 'Oppositie wil debat over Belastingplan'), opts), 'naam-al-in-kop:belastingplan')
   assert.equal(bubbleRejection(art('i', 'Iets nieuws'), { ...opts, terms: [{ term: 'kabinet crisis' }] }), 'naam-al-in-kop:kabinet')
   assert.equal(bubbleRejection({ ...art('j', 'Post'), kind: 'post' }, opts), 'geen-artikel')
@@ -64,32 +64,37 @@ test('pickBubble: de trend die aan alle eisen voldoet; de betaalde en de oude va
   assert.deepEqual(Object.fromEntries(b.afval.map((x) => [x.id, x.reden])), { 't-betaald': 'betaald', 't-oud': 'ouder-dan-24-uur' })
 })
 
-test('pickBubble: al eerder vandaag getoond telt, ook als hetzelfde stuk of hetzelfde verhaal', () => {
+test('pickBubble: al eerder getoond telt (vandaag of in de vorige Editie), ook als hetzelfde stuk of hetzelfde verhaal', () => {
   const w = world()
   const b = pickBubble({ ...w, earlier: [{ id: 't-ok', title: 'Zo nam De slimste mens afscheid van Paulien Cornelisse', publishedAt: ago(3) }], now: NOW })
   assert.notEqual(b.item?.id, 't-ok')
-  assert.ok(b.afval.some((x) => x.id === 't-ok' && x.reden === 'eerder-vandaag-getoond'))
+  assert.ok(b.afval.some((x) => x.id === 't-ok' && x.reden === 'eerder-getoond'))
 })
 
-test('pickBubble: geen trend die voldoet, dan Naast je bubbel onder dezelfde eisen, anders leeg', () => {
+test('pickBubble: geen trend die voldoet, dan blijft de plek leeg, ook als er een breed verhaal voor Naast je bubbel is', () => {
   const w = world()
   const trends = [{ term: 'Hegseth', via: 'google' }]
-  // Geen breed verhaal: leeg.
   const leeg = pickBubble({ ...w, trends, now: NOW })
   assert.equal(leeg.keuze, 'leeg')
   assert.deepEqual(leeg.entries, w.entries)
-  // Een breed verhaal (≥ 3 bronnen) met een gratis kop en een onderwerp: Naast je bubbel, met het gebied erbij.
+  // Een breed verhaal (≥ 3 bronnen) met een gratis kop: in de algemene Editie toch geen vervanger (besluit 11 november).
   const items = [art('n1', 'Eerste natuurijsbaan van het najaar open', { topics: ['klimaat'], storyId: 'st-ijs' }), art('n2', 'Natuurijs in Drenthe', { source: 'nrc', topics: ['klimaat'], storyId: 'st-ijs' })]
   const stories = [{ id: 'st-ijs', sourceCount: 3, latestAt: ago(1), itemIds: ['n1', 'n2'] }]
-  const naast = pickBubble({ ...w, pool: [...w.pool, ...items], stories, trends, now: NOW })
-  assert.equal(naast.keuze, 'naast')
-  assert.deepEqual(naast.entries.at(-1), { kind: 'story', id: 'st-ijs', leadId: 'n1', desk: 'bubbel', near: 'wetenschap' })
-  // Hetzelfde verhaal, maar al eerder vandaag getoond: leeg.
-  const again = pickBubble({ ...w, pool: [...w.pool, ...items], stories, trends, earlier: [{ id: 'n2', storyId: 'st-ijs', title: 'Natuurijs in Drenthe', publishedAt: ago(4) }], now: NOW })
-  assert.equal(again.keuze, 'leeg')
-  // Een breed verhaal met een kop van langer dan een etmaal geleden: ook niet.
-  const oud = pickBubble({ ...w, pool: [...w.pool, { ...items[0], publishedAt: ago(25) }, items[1]], stories: [{ ...stories[0], latestAt: ago(23) }], trends, now: NOW })
-  assert.equal(oud.keuze, 'leeg')
+  const b = pickBubble({ ...w, pool: [...w.pool, ...items], stories, trends, now: NOW })
+  assert.equal(b.keuze, 'leeg')
+  assert.equal(b.item, null)
+  assert.deepEqual(b.entries, w.entries)
+  assert.ok(!b.entries.some((e) => e.desk === 'bubbel'))
+  // Een oude bubbelplek in de invoer valt ook weg.
+  const stale = pickBubble({ ...w, entries: [...w.entries, { kind: 'item', id: 'x', desk: 'bubbel' }], trends, now: NOW })
+  assert.deepEqual(stale.entries, w.entries)
+})
+
+test('pickBubble: alleen kandidaten die vallen, dan leeg met hun afvalredenen', () => {
+  const w = world()
+  const b = pickBubble({ ...w, pool: w.pool.filter((a) => a.id !== 't-ok'), now: NOW })
+  assert.equal(b.keuze, 'leeg')
+  assert.deepEqual(Object.fromEntries(b.afval.map((x) => [x.id, x.reden])), { 't-betaald': 'betaald', 't-oud': 'ouder-dan-24-uur' })
 })
 
 test('regressie 11 november ochtend: niet het VRT-liveblog van 18 dagen over Hegseth (die al op 02 stond)', () => {

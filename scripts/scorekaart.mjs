@@ -82,6 +82,8 @@ function previousId(id) {
   return `${new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)}-avond`
 }
 const earlierIds = (id) => SLOTS.slice(0, SLOTS.indexOf(slotOf(id))).map((s) => `${dateOf(id)}-${s}`)
+// Al eerder getoond (KPI 4, Buiten je bubbel): vandaag en de vorige Editie (shownSlotIds op de server).
+const shownIds = (id) => [...new Set([...earlierIds(id), previousId(id)])]
 
 function allItems(feed) {
   return new Map([...(feed.related || []), ...feed.items, ...(feed.edition.items || [])].map((i) => [i.id, i]))
@@ -93,7 +95,7 @@ function liveRows(set, score) {
   return set.map(({ feed }) => {
     const byId = allItems(feed)
     const storyById = new Map(feed.stories.map((st) => [st.id, st]))
-    const earlier = earlierIds(feed.edition.id).flatMap((id) => (byEdition.has(id) ? score.shownItems(byEdition.get(id).edition, allItems(byEdition.get(id))) : []))
+    const earlier = shownIds(feed.edition.id).flatMap((id) => (byEdition.has(id) ? score.shownItems(byEdition.get(id).edition, allItems(byEdition.get(id))) : []))
     const pf = byEdition.get(previousId(feed.edition.id))
     const previousIds = pf ? score.editionItemIds(pf.edition, new Map(pf.stories.map((st) => [st.id, st]))) : new Set()
     return score.scoreEdition({ edition: feed.edition, byId, storyById, stories: feed.stories, earlier, previousIds, sources: feed.sources })
@@ -138,7 +140,7 @@ export async function rebuild(set, root) {
     const storyById = new Map(stories.map((st) => [st.id, st]))
     const heads = entries.map((e) => byId.get(e.leadId || e.id)?.title).filter(Boolean)
     const trends = trendsOf(ed)
-    const earlier = earlierIds(ed.id).flatMap((id) => rebuilt.get(id)?.shown || [])
+    const earlier = shownIds(ed.id).flatMap((id) => rebuilt.get(id)?.shown || [])
     let final = entries
     let bubble = []
     let keuze = 'leeg'
