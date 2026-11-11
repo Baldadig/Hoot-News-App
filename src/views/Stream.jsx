@@ -198,7 +198,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
       {pull}
       <div className={`col col--read col--stroom${lines.hostClass}`} ref={hostRef}>
         <LoadLinesLayer lines={lines} host={hostRef} />
-        <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} compare>
+        <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} sources compare>
           {/* De lijn: rubrieken links, je bronnen als stapel rechts. Wat je kiest staat in de URL
               (zoals altijd: een stap in de geschiedenis, met een eigen leespositie). */}
           <StreamLine

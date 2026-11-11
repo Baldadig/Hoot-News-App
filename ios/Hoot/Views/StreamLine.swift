@@ -416,13 +416,13 @@ struct StreamLine: View {
     private var keuze: String { picks.count == 1 ? chosen.first?.name ?? "1 bron" : "\(picks.count) bronnen" }
 
     // Open: hoeveel de rij naar links schuift zodat het vak van Alle bronnen niet voorbij de kolomrand
-    // (de inktlijn) komt. Dicht ligt het voorste logo onder het tandwiel, en daar blijft het.
+    // (de inktlijn) komt. Dicht ligt het voorste logo onder de accountknop, en daar blijft het.
     private var openRand: CGFloat { max(0, Self.edgeBasis - edge) }
 
     // Kolomrand tot het voorste logo, zodat het op de as van de knop rechtsboven ligt: 8 als de
     // werkbalk dezelfde marge heeft als de kolom (16). Die marge meten we, want hij verschilt per
     // toestel (20 op de grote iPhones: dan 12). Valt de knop buiten de kolom (iPad), dan gewoon 8.
-    // De dichte stapel eindigt op de kolomlijn, onder het tandwiel in de kopregel (Stroom-tabs A): het
+    // De dichte stapel eindigt op de kolomlijn, onder de accountknop in de kopregel (Stroom-tabs A): het
     // voorste logo staat onder het midden van die knop, maar nooit voorbij de lijn.
     private var edge: CGFloat {
         guard let knopAs, knopAs > 0, lineMaxX > 0 else { return Self.edgeBasis }

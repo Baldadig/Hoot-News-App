@@ -617,7 +617,9 @@ struct EditionView: View {
                 // Alleen x en breedte: verticaal scrollen meet hier niets (anders bij elke scrollstap een nieuwe staat).
                 .onGeometryChange(for: CGRect.self) { let f = $0.frame(in: .global); return CGRect(x: f.minX, y: 0, width: f.width, height: 0) } action: { inhoudKader = $0 }
                 .padding(.horizontal)
-                .column(grid == .tabloid || grid == .boek ? .infinity : grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + hang : Layout.readable)
+                // Eén kolom met de Stroom en de Selectie (1.2.1): de nummers hangen binnen de leesbreedte, zodat
+                // "hoot." en de accountknop op elk tabblad op dezelfde x staan. Alleen het raster A (paren) is breder.
+                .column(grid == .tabloid || grid == .boek ? .infinity : grid == .paren ? Layout.wide : Layout.readable)
                 .offset(y: rising ? 8 : 0)
                 .environment(\.placeholderPlan, placeholderPlan)
             }

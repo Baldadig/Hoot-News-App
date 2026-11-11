@@ -61,7 +61,7 @@ struct StreamView: View {
                     VStack(spacing: 0) {
                     // De kopregel en de schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
                     VStack(alignment: .leading, spacing: 0) {
-                        HootKop(gearX: { knopAs = $0 }) {
+                        HootKop(knopX: { knopAs = $0 }) {
                             HootKopButton(label: "Bronnen", systemImage: "dot.radiowaves.up.forward") {
                                 lijn.open = false // ook met VoiceOver, waar geen echte tik naast de lijn valt
                                 showSources = true
@@ -401,6 +401,7 @@ struct SavedView: View {
                     // de uitgever). De titel krijgt de kolombreedte, links uitgelijnd: zonder die maat stond hij
                     // half buiten beeld ("ewaard", review R1), net als het woordmerk.
                     VStack(alignment: .leading, spacing: 0) {
+                        HootKop()
                         ScreenTitle("Bewaard").frame(maxWidth: .infinity, alignment: .leading)
                         EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: SavedView.emptyText, action: (label: "Naar de Editie", systemImage: nil, run: { openTab(.editie) }))
                     }
@@ -418,8 +419,12 @@ struct SavedView: View {
                                 store.removeSaved(at: offsets)
                             }
                         } header: {
-                            // De schermtitel als kop van de lijst (C7), op de lijn van de rijen.
-                            ScreenTitle("Bewaard").textCase(nil).listRowInsets(EdgeInsets())
+                            // De kopregel en de schermtitel als kop van de lijst (C7), op de lijn van de rijen.
+                            VStack(alignment: .leading, spacing: 0) {
+                                HootKop()
+                                ScreenTitle("Bewaard")
+                            }
+                            .textCase(nil).listRowInsets(EdgeInsets())
                         }
                     }
                     .scrollContentBackground(.hidden)
@@ -454,9 +459,8 @@ struct SavedView: View {
             .animation(.easeOut(duration: 0.2), value: removed?.item.id)
             .background(Theme.paper)
             .navigationTitle("Bewaard")
-            .hootBrandHeader()
-            .hootScreenTitle()
-            .settingsButton(toolbar: true)
+            .hootKopScreen() // de kopregel met je account, zoals Editie, Stroom en Selectie
+            .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
@@ -467,6 +471,7 @@ struct SavedView: View {
 // Zoeken: in alles wat Hoot nu van je bronnen heeft, en in Bewaard.
 struct SearchView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.horizontalSizeClass) private var breedte
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var query = DebugLaunch.query ?? ""
     @State private var scope: SearchHits.Scope = .mijn // standaard Mijn bronnen, zoals op het web
@@ -491,7 +496,10 @@ struct SearchView: View {
                     // Titel en keuze op één linkerlijn (review A2). Bij heel grote tekst een menu in plaats van
                     // het segment: dat groeit niet mee en kapte "Mijn br…" af (review A18).
                     VStack(alignment: .leading, spacing: Space.s3) {
-                        ScreenTitle("Zoeken")
+                        VStack(alignment: .leading, spacing: 0) {
+                            if breedte == .regular { HootKop().padding(.top, ZoekKopIPad.balk) } // iPad: de kopregel in de lijst; iPhone: in de balk (zoekKop)
+                            ScreenTitle("Zoeken")
+                        }
                         let picker = Picker("Waar zoeken", selection: $scope) {
                             ForEach(SearchHits.Scope.allCases) { Text($0.rawValue).tag($0) }
                         }
@@ -515,8 +523,8 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Zoeken")
-            .hootBrandHeader()
-            .hootScreenTitle()
+            .zoekKop() // "hoot." en je account in de balk: het zoekveld heeft die balk nodig
+            .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }

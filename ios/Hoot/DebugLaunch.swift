@@ -2,7 +2,7 @@ import SwiftUI
 
 // Alleen in Debug, voor schermafbeeldingen en audits: de app opent meteen op een bepaald scherm,
 // zonder te tikken (zie ios/AppStore/tools/device-screens.sh). Startargumenten:
-//   -HootStartTab editie|stroom|digest|bewaard|zoek
+//   -HootStartTab editie|stroom|digest|bewaard|zoek   -HootTabReeks zoek,editie   (daarna om de 3 s een ander tabblad)
 //   -HootScreen verhaal|lezer|bronnen|stroom-bronnen|video|instellingen|instellingen-bronnen|instellingen-bluesky|instellingen-interesses|instellingen-vakken|instellingen-abonnementen|instellingen-wissen
 //   -HootRubriek wereld|bubbel|…   -HootPicks nos,nrc   (de Stroom op een rubriek, met gekozen bronnen;
 //                                             met -HootScreen stroom-bronnen staat de stapel open)

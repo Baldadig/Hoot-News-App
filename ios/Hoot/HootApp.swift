@@ -238,6 +238,10 @@ struct RootView: View {
         .onAppear {
             // Alleen in Debug, voor schermafbeeldingen: start op een tabblad met `-HootStartTab digest`.
             if let t = UserDefaults.standard.string(forKey: "HootStartTab"), let d = Destination(rawValue: t) { tab = d }
+            // `-HootTabReeks editie,zoek`: daarna om de 3 s naar het volgende tabblad (opnamen van een wissel).
+            if let reeks = UserDefaults.standard.string(forKey: "HootTabReeks") {
+                Task { for t in reeks.split(separator: ",") { try? await Task.sleep(for: .seconds(3)); if let d = Destination(rawValue: String(t)) { tab = d } } }
+            }
         }
         .task(id: store.editionRows.count) {
             // `-HootScreen lezer`: het eerste artikel van de editie in de lezer.

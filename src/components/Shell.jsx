@@ -6,7 +6,7 @@ import { TOP_EVENT } from '../hooks/useScrollMemory.js'
 import { timeAgo } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { BooksIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon, EditionArt } from './icons.jsx'
+import { BooksIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountLineIcon, EditionArt } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -17,8 +17,9 @@ export const DESTINATIONS = [
 ]
 
 // Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie altijd, zoals in de app (zonder onderwerpen met een lege staat die naar Kies onderwerpen leidt).
-// Telefoon, zoals de app: Editie, Stroom, Selectie, Bewaard, Zoeken. Bronnen staat dan onder
-// Instellingen (.nav__bronnen is er verborgen); in de zijbalk staat alles.
+// Telefoon, zoals de app: Editie, Stroom, Selectie, Bewaard, Zoeken. Bronnen staat dan als knop in de kop van
+// de Stroom (.nav__bronnen is er verborgen); in de zijbalk staat het als bestemming. Instellingen staat niet in de
+// zijbalk (1.2.1): je account rechtsboven is de enige ingang, zoals in de app.
 // `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
 // `sourceNote` is de korte tekst bij het stille statuspuntje op Bronnen.
 // Nog eens tikken op de tab waar je al bent scrolt dat scherm naar boven (zoals de tabbalk van iOS).
@@ -59,16 +60,6 @@ export function Nav({ path, hrefs = {}, sourceNote = '' }) {
           </a>
         </li>
       </ul>
-      {/* Breed scherm: Instellingen onderaan de zijbalk. Op de telefoon kom je er via de knop rechtsboven (ook Instellingen),
-          weergave, en daar staat Bronnen als rij. */}
-      <ul className="nav__foot">
-        <li>
-          <a className="nav__link" href="#/instellingen" aria-current={path === 'instellingen' ? 'page' : undefined}>
-            <SettingsIcon />
-            <span>Instellingen</span>
-          </a>
-        </li>
-      </ul>
     </nav>
   )
 }
@@ -87,19 +78,20 @@ export function BackButton({ label, onClick, ariaLabel, nav = false, className =
 }
 
 // Kop van elk scherm, één rij van 44 met vaste plekken. Van links naar rechts:
-//   [terug] titel ··· [gereedschap] [verversen] [zoeken, onder 960] [account]
+//   [terug] titel ··· [gereedschap] [verversen] [zoeken, onder 960] [bronnen, Stroom onder 960] [account]
 // Account staat er altijd (behalve op Instellingen zelf: daar staat hetzelfde op de pagina).
 // Het eerste en het laatste icoon staan optisch op de kolomlijn (--tap-inset).
 // `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
 // `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
-// `account`: de knop Instellingen (rechtsboven: account en weergave). `onBack` + `backLabel`: terug, vóór de titel
+// `account`: je account rechtsboven, de ingang naar Instellingen (foto, voorletter of lijnsilhouet).
+// `sources`: de knop Bronnen vóór je account (de Stroom, alleen onder 960). `onBack` + `backLabel`: terug, vóór de titel
 // in dezelfde rij; `backInNav`: dit scherm staat ook in de zijbalk, dus daar geen terugknop.
 // `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
 // `refreshDesktop`: de verversknop alleen op breed scherm (de Editie: op de telefoon trek je, zoals in de app).
 // `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt 20 min geleden", nooit een kloktijd) in plaats van een regel.
 // Onder de rij staat hooguit één metaregel (.vh__sub), over de volle breedte, zodat hij nooit tussen
 // titel en knoppen wordt samengeperst. Daarna volgt de inhoud op --after-header.
-export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, account = true, tools = null, refreshDesktop = false, onBack, backLabel = 'Terug', backInNav = false, children }) {
+export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, account = true, sources = false, tools = null, refreshDesktop = false, onBack, backLabel = 'Terug', backInNav = false, children }) {
   const hoot = useHoot()
   const panel = hoot?.panel
   const at = timeAgo(updatedAt)
@@ -128,6 +120,12 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
             <SearchIcon />
           </a>
         ) : null}
+        {sources ? (
+          // Telefoon (onder 960): Bronnen links van je account, zoals in de Stroom van de app. Breed staat het in de zijbalk.
+          <a className="iconbtn vh__bronnen" href="#/bronnen" aria-label="Bronnen" title="Bronnen">
+            <SourcesIcon />
+          </a>
+        ) : null}
         {account ? <AccountButton account={hoot?.account} onClick={hoot?.openDisplay} /> : null}
       </div>
       {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
@@ -136,16 +134,16 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
   )
 }
 
-// Rechtsboven op elk scherm: jouw account (met je foto of voorletter als je bent ingelogd) en
-// daarachter de weergave.
+// Rechtsboven op elk scherm: jij (je foto of voorletter als je bent ingelogd, anders het lijnsilhouet), en
+// daarachter je account en de instellingen. Zoals de accountknop in de app (AccountKnop): het label is gewoon
+// "Instellingen", daar zoek je op.
 function AccountButton({ account, onClick }) {
   const user = account?.status === 'in' ? account.user : null
   const photo = user?.user_metadata?.avatar_url
   const initial = (user?.user_metadata?.full_name || user?.email || '?').trim().charAt(0).toUpperCase()
-  const label = user ? `Instellingen (${user.email})` : 'Instellingen'
   return (
-    <button type="button" className={`iconbtn acct${user ? ' is-in' : ''}`} onClick={onClick} aria-haspopup="dialog" aria-label={label} title={label}>
-      {user ? photo ? <img src={photo} alt="" width="32" height="32" referrerPolicy="no-referrer" /> : <span aria-hidden="true">{initial}</span> : <AccountIcon />}
+    <button type="button" className={`iconbtn acct${user ? ' is-in' : ''}`} onClick={onClick} aria-haspopup="dialog" aria-label="Instellingen" title="Instellingen">
+      {user ? photo ? <img src={photo} alt="" width="32" height="32" referrerPolicy="no-referrer" /> : <span aria-hidden="true">{initial}</span> : <AccountLineIcon />}
     </button>
   )
 }
