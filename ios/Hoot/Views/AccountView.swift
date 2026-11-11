@@ -58,6 +58,45 @@ struct AccountBadge: View {
     }
 }
 
+// De knop rechtsboven op elk hoofdscherm (1.2.1, Instellingen-positie A): jij, in plaats van een tandwiel,
+// zoals het fotootje naast de titel in Podcasts, Muziek en App Store. Je foto of monogram op 32 met een
+// haarlijn, in een raakvlak van 44 en zonder glas; niet ingelogd het SF Symbol `person.crop.circle` in
+// ink3, zonder badge of stip. Het opent het blad Instellingen, met je account bovenaan. VoiceOver zegt
+// "Instellingen": daar zoek je op, en zo heet het blad.
+struct AccountKnop: View {
+    static let maat: CGFloat = 32
+    static let inset: CGFloat = (Space.tap - maat) / 2 // de rand van het rondje op de kolomlijn
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            AccountKnopBeeld()
+                .frame(width: Space.tap, height: Space.tap)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Instellingen")
+    }
+}
+
+// Alleen het rondje: ook voor de verticale balk (iPhone Duo).
+struct AccountKnopBeeld: View {
+    @Environment(Account.self) private var account: Account?
+    var maat: CGFloat = AccountKnop.maat
+    var body: some View {
+        if let account, account.session?.name ?? account.session?.email != nil {
+            AccountBadge(size: maat)
+        } else {
+            Image(systemName: "person.crop.circle")
+                .resizable()
+                .scaledToFit()
+                .fontWeight(.light)
+                .frame(width: maat, height: maat)
+                .foregroundStyle(Theme.ink3)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
 // De profielfoto: één keer laden, daarna uit het geheugen of de URLCache. Zonder cookies en zonder
 // Referer (URLSession stuurt die niet; de sessie deelt ook geen cookies).
 // De laadtaak hangt aan een vlak dat er altijd is (Color.clear). Aan een lege Group had .task geen view
@@ -116,9 +155,6 @@ extension Account {
 struct AccountView: View {
     @Environment(Account.self) private var account
     @Environment(HootStore.self) private var store
-    @Environment(\.webAuthenticationSession) private var webAuth
-    @Environment(\.nachtActief) private var nacht
-    @Environment(\.colorScheme) private var scheme
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var confirmDelete = false
     var onMember: (() -> Void)? = nil // in het welkom: verder zodra je lid bent
@@ -129,9 +165,6 @@ struct AccountView: View {
         let domain = email[email.index(after: at)...].replacingOccurrences(of: ".", with: "\u{200B}.")
         return String(email[...at]) + "\u{200B}" + domain
     }
-    private static let buttonHeight: CGFloat = 50
-    private static let buttonRadius: CGFloat = 10
-
     var body: some View {
         Group {
             if Account.localBeta {
@@ -200,34 +233,7 @@ struct AccountView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, Space.s3)
             Spacer()
-            VStack(spacing: Space.s3) {
-                // Elk in de eigen huisstijl, maar even groot: zelfde hoogte, afronding en letter.
-                // Apple (Human Interface Guidelines): zwart op licht, wit op donker; de tekst geeft iOS zelf.
-                SignInWithAppleButton(.signIn) { account.prepare($0) } onCompletion: { result in Task { await account.finishApple(result) } }
-                    .signInWithAppleButtonStyle(scheme == .dark && !nacht ? .white : .black)
-                    .colorMultiply(nacht ? Theme.ink : .white)
-                    .id("\(scheme)-\(nacht)") // de knop van Apple neemt een nieuwe stijl pas over als hij opnieuw wordt gemaakt
-                    .frame(height: Self.buttonHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: Self.buttonRadius))
-                // Google (branding guidelines "Sign in with Google"): licht thema wit met grijze rand,
-                // donker thema #131314; het gekleurde G-logo los, en hun eigen Nederlandse tekst.
-                if HootConfig.googleReady {
-                    Button { google() } label: {
-                        HStack(spacing: Space.s3) {
-                            Image("GoogleG").resizable().frame(width: 20, height: 20)
-                            Text("Inloggen met Google")
-                        }
-                        .font(.system(size: 19, weight: .medium))
-                        .frame(maxWidth: .infinity, minHeight: Self.buttonHeight)
-                        .foregroundStyle(Color(hex: scheme == .dark ? 0xE3E3E3 : 0x1F1F1F))
-                        .background(Color(hex: scheme == .dark ? 0x131314 : 0xFFFFFF), in: RoundedRectangle(cornerRadius: Self.buttonRadius))
-                        .overlay(RoundedRectangle(cornerRadius: Self.buttonRadius).strokeBorder(Color(hex: scheme == .dark ? 0x8E918F : 0x747775), lineWidth: 1))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .disabled(account.status == .loading)
-            .overlay { if account.status == .loading { WaitingMark(size: 16, text: false) } }
+            InlogKnoppen()
             // Eerlijk vooraf (keuze r5-apple-web, review D1): het web kent nog alleen Google. Wie hier met Apple
             // inlogt, komt op gethoot.app niet in hetzelfde account.
             Text(Self.webNote)
@@ -306,6 +312,49 @@ struct AccountView: View {
                     .foregroundStyle(Theme.accent)
             }
         }
+    }
+
+}
+
+// Log in met Apple, en Google eronder: op het blad Account en bovenaan Instellingen als je niet bent
+// ingelogd (1.2.1). Elk in de eigen huisstijl, maar even groot: zelfde hoogte, afronding en letter.
+struct InlogKnoppen: View {
+    @Environment(Account.self) private var account
+    @Environment(\.webAuthenticationSession) private var webAuth
+    @Environment(\.nachtActief) private var nacht
+    @Environment(\.colorScheme) private var scheme
+    private static let buttonHeight: CGFloat = 50
+    private static let buttonRadius: CGFloat = 10
+
+    var body: some View {
+        VStack(spacing: Space.s3) {
+            // Elk in de eigen huisstijl, maar even groot: zelfde hoogte, afronding en letter.
+            // Apple (Human Interface Guidelines): zwart op licht, wit op donker; de tekst geeft iOS zelf.
+            SignInWithAppleButton(.signIn) { account.prepare($0) } onCompletion: { result in Task { await account.finishApple(result) } }
+                .signInWithAppleButtonStyle(scheme == .dark && !nacht ? .white : .black)
+                .colorMultiply(nacht ? Theme.ink : .white)
+                .id("\(scheme)-\(nacht)") // de knop van Apple neemt een nieuwe stijl pas over als hij opnieuw wordt gemaakt
+                .frame(height: Self.buttonHeight)
+                .clipShape(RoundedRectangle(cornerRadius: Self.buttonRadius))
+            // Google (branding guidelines "Sign in with Google"): licht thema wit met grijze rand,
+            // donker thema #131314; het gekleurde G-logo los, en hun eigen Nederlandse tekst.
+            if HootConfig.googleReady {
+                Button { google() } label: {
+                    HStack(spacing: Space.s3) {
+                        Image("GoogleG").resizable().frame(width: 20, height: 20)
+                        Text("Inloggen met Google")
+                    }
+                    .font(.system(size: 19, weight: .medium))
+                    .frame(maxWidth: .infinity, minHeight: Self.buttonHeight)
+                    .foregroundStyle(Color(hex: scheme == .dark ? 0xE3E3E3 : 0x1F1F1F))
+                    .background(Color(hex: scheme == .dark ? 0x131314 : 0xFFFFFF), in: RoundedRectangle(cornerRadius: Self.buttonRadius))
+                    .overlay(RoundedRectangle(cornerRadius: Self.buttonRadius).strokeBorder(Color(hex: scheme == .dark ? 0x8E918F : 0x747775), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .disabled(account.status == .loading)
+        .overlay { if account.status == .loading { WaitingMark(size: 16, text: false) } }
     }
 
     private func google() {

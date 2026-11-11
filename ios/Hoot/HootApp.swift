@@ -199,6 +199,7 @@ struct RootView: View {
     @State private var krant = KrantStaat() // concept A: de krant open op de iPhone Duo (Krant.swift)
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
+    @Environment(\.horizontalSizeClass) private var horizontal // -HootScreen lezer: compact wacht niet op een vouw
     @Environment(EditionAlerts.self) private var alerts
     @Environment(\.brandHandoff) private var handoff
 
@@ -238,12 +239,27 @@ struct RootView: View {
         .onAppear {
             // Alleen in Debug, voor schermafbeeldingen: start op een tabblad met `-HootStartTab digest`.
             if let t = UserDefaults.standard.string(forKey: "HootStartTab"), let d = Destination(rawValue: t) { tab = d }
+            // `-HootTabReeks editie,zoek`: daarna om de 3 s naar het volgende tabblad (opnamen van een wissel).
+            if let reeks = UserDefaults.standard.string(forKey: "HootTabReeks") {
+                Task { for t in reeks.split(separator: ",") { try? await Task.sleep(for: .seconds(3)); if let d = Destination(rawValue: String(t)) { tab = d } } }
+            }
         }
         .task(id: store.editionRows.count) {
             // `-HootScreen lezer`: het eerste artikel van de editie in de lezer.
             // `-HootScreen lezer`: bij voorkeur een gratis, Nederlandstalig stuk (dan het hele artikel), ook
             // als dat niet het hoofdstuk van het verhaal is.
             if DebugLaunch.screen("lezer"), reader.item == nil, !store.editionRows.isEmpty {
+                // Eerst de vouw: op de Duo geeft iOS de gereserveerde zone pas even na de start door. Wacht tot die
+                // er is (de krant weet dan of hij open ligt), hooguit `DebugLezerWacht.plafond`. Komt de vouw later
+                // toch nog, dan wijkt het blad zelf (BladWijkt): de lezer verhuist naar boven op het tafelblad.
+                #if DEBUG
+                let start = ContinuousClock.now
+                while !DebugLezerWacht.klaar(vouw: krant.vouw, compact: horizontal == .compact, verstreken: start.duration(to: .now)) {
+                    try? await Task.sleep(for: DebugLezerWacht.stap)
+                    if Task.isCancelled { return }
+                }
+                #endif
+                guard !Task.isCancelled, reader.item == nil else { return }
                 let all = store.editionRows.flatMap { row in [row.item] + (row.story?.itemIds.compactMap { store.itemsById[$0] } ?? []) }
                 let free = { (i: Item) in store.source(i.source).map { $0.paid != true } ?? false }
                 // In de Stroom (de Duo open: de lezer naast de Stroom) een stuk uit de Stroom.
@@ -286,11 +302,12 @@ struct RootView: View {
         // (Reader bewaart het geladen artikel en de alinea waar je was). Een Bluesky-post zonder eigen
         // link heeft geen artikel: dan de post op bsky.app (LeesBlad).
         .fullScreenCover(item: Binding(
-            get: { krant.spread ? nil : reader.item },
+            get: { KrantStaat.blad(reader.item, spread: krant.spread) },
             set: { nieuw in if !krant.spread || nieuw != nil { reader.item = nieuw } } // het blad verdwijnt door het openen: het artikel blijft
         )) { item in
             // Het blad hangt buiten de omgeving hierboven: de lezer en de krant expliciet meegeven.
             LeesBlad(item: item).environment(reader).environment(krant)
+                .modifier(BladWijkt(krant: krant)) // ligt de krant open, dan wijkt het blad: nooit een leeg blad
         }
     }
 }

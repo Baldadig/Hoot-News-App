@@ -72,7 +72,7 @@ struct DigestView: View {
                 }
                 .loadLines(lines, loading: !store.digestFields.isEmpty && store.digest == nil && store.digestStatus != .failed, ok: store.digest != nil)
                 .padding(.horizontal)
-                .column(Layout.wide * 0.85)
+                .column() // de gedeelde leesbreedte van Editie en Stroom (1.2.1): kop en knop springen niet bij het wisselen
             }
             .debugJump(proxy, to: DebugLaunch.anchor == .bottom ? "einde" : overview.fields.isEmpty ? nil : overview.fields[overview.fields.count / 2].id, when: overview.fields.count)
             }

@@ -34,6 +34,22 @@ import SwiftUI
         XCTAssertTrue(KrantIndeling.kies(size: Self.liggend, horizontal: .regular, rug: T.boekVlak, krant: true, rechtsVrij: false, tafel: true).isTafel)
     }
 
+    func testEchteDuoLiggendVlakIsDeTafelbladEditie() throws {
+        try Self.tafelbladAan()
+        // De echte Duo (iOS 27.2): balk opzij en een vouw van 40 + 2 × 20. Was: één krantenpagina, en de lezer als blad
+        // over het hele scherm in plaats van boven op het tafelblad.
+        let indeling = KrantIndeling.kies(size: T.echtLiggend, horizontal: .regular, rug: T.echtVlak, krant: true, tafel: true)
+        guard case let .tafel(boven, onder) = indeling else { return XCTFail("verwacht tafel, kreeg \(indeling)") }
+        XCTAssertEqual(boven.width, 867, accuracy: 0.01)
+        XCTAssertEqual(onder.maxY, 635, accuracy: 0.01)
+        XCTAssertGreaterThanOrEqual(boven.height, KrantIndeling.minHoogte)
+        XCTAssertTrue(KrantIndeling.kies(size: T.echtLiggend, horizontal: .regular, rug: T.echtVlak, krant: true, rechtsVrij: false, tafel: true).isTafel,
+                      "met de lezer open blijft het tafelblad")
+        // Te smal voor twee bladzijden (Split View): geen tafelblad.
+        XCTAssertFalse(KrantIndeling.kies(size: CGSize(width: 600, height: 635), horizontal: .regular,
+                                          rug: Rug(frame: CGRect(x: 300, y: 0, width: 0, height: 635), actief: false), krant: true, tafel: true).isTafel)
+    }
+
     func testHalfGevouwenAlsLaptopDezelfdeOpmaakMetDeGrensOpDeVouw() throws {
         try Self.tafelbladAan()
         let indeling = KrantIndeling.kies(size: Self.staand, horizontal: .regular, rug: T.tafel, krant: true, tafel: true)
@@ -156,8 +172,9 @@ import SwiftUI
         // Punt 2: op 208 breed braken deze koppen af met "…" (4 regels in 3). Nu passen ze in drie regels, in de
         // gewone rij (264, .subheadline) en in de ruime rij (312, .headline).
         for kop in Self.koppen {
-            XCTAssertLessThanOrEqual(regels(kop, stijl: .subheadline, breedte: 264), TafelEditie.kopRegels, "gewoon: \(kop)")
-            XCTAssertLessThanOrEqual(regels(kop, stijl: .headline, breedte: 312), TafelEditie.kopRegels, "ruim: \(kop)")
+            // 1.2.1: de cel is minstens zo breed (de rij maakt hem breder tot de plekken precies passen).
+            XCTAssertLessThanOrEqual(regels(kop, stijl: .subheadline, breedte: TafelCel.minBreedte), TafelEditie.kopRegels, "gewoon: \(kop)")
+            XCTAssertLessThanOrEqual(regels(kop, stijl: .headline, breedte: TafelCel.minBreedteRuim), TafelEditie.kopRegels, "ruim: \(kop)")
         }
         XCTAssertGreaterThan(Self.koppen.map { regels($0, stijl: .subheadline, breedte: 208) }.max() ?? 0, 3, "de oude cel was te smal")
     }
@@ -173,6 +190,65 @@ import SwiftUI
         }
         XCTAssertEqual(h("Kort", ruim: nil), h(Self.koppen[1], ruim: nil), accuracy: 0.5)
         XCTAssertEqual(h("Kort", ruim: 280), 280 - Space.s3 + Space.s3, accuracy: 0.5, "de ruime cel is zo hoog als de rij")
+    }
+
+    // MARK: De rij op hele plekken (keuring lezer-liggend, punt 1)
+
+    func testDeRijStaatOpHelePlekkenOpDeEchteDuo() throws {
+        try Self.tafelbladAan()
+        // Vlak liggend op de echte Duo is het vlak 867 breed: de balk opzij hoort er niet bij. Precies drie plekken
+        // tussen de marges, geen half verhaal aan een rand, en de rij loopt niet onder de balk door.
+        let p = TafelEditie.plekken(breedte: T.echtLiggend.width, minCel: TafelCel.minBreedte, tussen: TafelEditie.celTussen, marge: TafelEditie.rijMarge)
+        XCTAssertEqual(p.aantal, 3)
+        XCTAssertGreaterThanOrEqual(p.cel, TafelCel.minBreedte)
+        XCTAssertEqual(2 * TafelEditie.rijMarge + CGFloat(p.aantal) * p.cel + CGFloat(p.aantal - 1) * TafelEditie.celTussen, T.echtLiggend.width, accuracy: 0.01,
+                       "de plekken vullen het zichtbare deel precies")
+    }
+
+    func testHelePlekkenInElkeHouding() {
+        // Liggend zonder balk, als laptop (ruim), smal (Split View) en heel grote tekst: altijd hele plekken.
+        for (breedte, minCel) in [(951.0, TafelCel.minBreedte), (669, TafelCel.minBreedteRuim), (669, TafelCel.minBreedte), (400, TafelCel.minBreedte), (867, 2.2 * TafelCel.minBreedte)] as [(CGFloat, CGFloat)] {
+            let p = TafelEditie.plekken(breedte: breedte, minCel: minCel, tussen: TafelEditie.celTussen, marge: TafelEditie.rijMarge)
+            XCTAssertGreaterThanOrEqual(p.aantal, 1)
+            XCTAssertEqual(2 * TafelEditie.rijMarge + CGFloat(p.aantal) * p.cel + CGFloat(p.aantal - 1) * TafelEditie.celTussen, breedte, accuracy: 0.01, "\(breedte) \(minCel)")
+            XCTAssertGreaterThanOrEqual(p.cel, min(minCel, breedte - 2 * TafelEditie.rijMarge), "\(breedte) \(minCel)")
+        }
+        XCTAssertEqual(TafelEditie.plekken(breedte: 669, minCel: TafelCel.minBreedteRuim, tussen: TafelEditie.celTussen, marge: TafelEditie.rijMarge).aantal, 2,
+                       "als laptop twee ruime plekken, niet één")
+        XCTAssertEqual(TafelEditie.plekken(breedte: 0, minCel: 248, tussen: 24, marge: 16).aantal, 1, "nog niet gemeten: één plek, geen deling door nul")
+    }
+
+    func testDeRijBegintVooraanOfBijHetGekozenVerhaal() {
+        // Elf plekken (01–10 en het einde), drie in beeld.
+        XCTAssertEqual(TafelEditie.eerste(gekozen: nil, totaal: 11, zichtbaar: 3), 0, "zonder keuze 01 vooraan")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 2, totaal: 11, zichtbaar: 3), 0, "03 staat al in beeld: 01 vooraan")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 5, totaal: 11, zichtbaar: 3), 4, "06 in het midden")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 9, totaal: 11, zichtbaar: 3), 8, "10: de rij eindigt op het einde, niet erna")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 10, totaal: 11, zichtbaar: 3), 8)
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 5, totaal: 3, zichtbaar: 3), 0, "alles past: nooit scrollen")
+        for k in 0..<11 {
+            let e = TafelEditie.eerste(gekozen: k, totaal: 11, zichtbaar: 3)
+            XCTAssertTrue((e..<(e + 3)).contains(k), "het gekozen verhaal staat in beeld (\(k))")
+            XCTAssertLessThanOrEqual(e + 3, 11)
+        }
+    }
+
+    func testEenStukBuitenDeEditieLaatDeRijStaan() throws {
+        // Boven een stuk uit de Stroom (niet in de rij): de rij blijft waar je hem liet, ook als je naar 07 veegde.
+        XCTAssertNil(TafelEditie.naar(gekozen: nil, totaal: 11, zichtbaar: 3), "geen sprong terug naar 01")
+        for k in 0..<11 {
+            XCTAssertEqual(TafelEditie.naar(gekozen: k, totaal: 11, zichtbaar: 3), TafelEditie.eerste(gekozen: k, totaal: 11, zichtbaar: 3))
+        }
+        let bron = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/Views/Tafel.swift"), encoding: .utf8)
+        XCTAssertTrue(bron.contains("guard let plek = TafelEditie.naar(gekozen: k, totaal: ids.count, zichtbaar: plekken.aantal) else { return }"), "bij nil blijft de rij staan")
+    }
+
+    func testDeRijStoptVoorDeBalkEnSnaptOpPlekken() throws {
+        let bron = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/Views/Tafel.swift"), encoding: .utf8)
+        XCTAssertTrue(bron.contains(".contentMargins(.horizontal, TafelEditie.rijMarge, for: .scrollContent)"), "marges in de scroll: elke plek snapt op de lijn van de kop")
+        XCTAssertTrue(bron.contains(".scrollTargetBehavior(.viewAligned)"))
+        XCTAssertTrue(bron.contains(".clipped()"), "niets loopt onder de balk opzij door")
+        XCTAssertFalse(bron.contains("anchor: .center"), "geen half verhaal aan een rand door centreren")
     }
 
     // MARK: Tekenen
@@ -194,6 +270,41 @@ import SwiftUI
                     XCTAssertNotNil(renderer.uiImage, "\(size) \(scheme)")
                 }
             }
+        }
+    }
+
+    @MainActor
+    func testDeKopInDeLaadstandStaatBovenOokAlsDeRuimteKleinIs() async throws {
+        // Boven op het tafelblad is de ruimte klein (vlak liggend ± 160 tot 360 hoog). De laadstand (kop, bron,
+        // laadstrepen) is dan hoger dan de ruimte. Vroeger centreerde SwiftUI hem: de kop viel boven half buiten
+        // beeld. Nu staat de kop op dezelfde plek als in een grote ruimte (bovenaan); wat niet past valt onder weg.
+        let waiting = ReaderWaitingState()
+        await waiting.wait() // de laadstrepen in beeld (na 400 ms)
+        XCTAssertTrue(waiting.visible)
+        let titel = "Voorlopig geen afzettingsprocedure tegen Amerikaanse defensieminister Hegseth"
+        func render(_ hoogte: CGFloat) throws -> CGImage {
+            let view = ReaderLoadingView(title: titel, sourceName: "NOS", waiting: waiting)
+                .frame(width: 680, height: hoogte).clipped().background(Color.white)
+                .environment(\.colorScheme, .light)
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 1
+            return try XCTUnwrap(renderer.cgImage)
+        }
+        func kopBoven(_ beeld: CGImage) throws -> Int {
+            // De eerste pixelrij met inkt: de bovenkant van de kop.
+            let w = beeld.width, h = beeld.height
+            var pixels = [UInt8](repeating: 0, count: w * h * 4)
+            let ctx = try XCTUnwrap(CGContext(data: &pixels, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                              space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            ctx.draw(beeld, in: CGRect(x: 0, y: 0, width: w, height: h))
+            for y in 0..<h where (0..<w).contains(where: { pixels[(y * w + $0) * 4] < 128 && pixels[(y * w + $0) * 4 + 3] > 128 }) { return y }
+            return -1
+        }
+        let groot = try kopBoven(render(800)) // past ruim: de kop staat bovenaan
+        XCTAssertGreaterThan(groot, 0, "de kop is getekend")
+        XCTAssertLessThan(groot, 40, "de kop staat bovenaan")
+        for hoogte: CGFloat in [120, 160, 220, 300] {
+            XCTAssertEqual(try kopBoven(render(hoogte)), groot, "op \(Int(hoogte)) hoog staat de kop op dezelfde plek als in een grote ruimte")
         }
     }
 

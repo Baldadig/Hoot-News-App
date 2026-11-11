@@ -95,10 +95,10 @@ test('Stroom-tabs A: schuiven met een zachte rand van 24 aan de kant waar meer s
   const line = read('src/components/StreamLine.jsx')
   assert.match(line, /ro\.observe\(scrollRef\.current\)/, 'een vak dat smaller wordt (de stapel komt binnen), zet de actieve rubriek opnieuw in beeld')
   assert.match(line, /const pad = cssPx\(rubRef\.current, '--cap'\) \+ cssPx\(rubRef\.current, '--fade'\)/)
-  // iOS: dezelfde rand, en de stapel eindigt op de kolomlijn onder het tandwiel.
+  // iOS: dezelfde rand, en de stapel eindigt op de kolomlijn onder de accountknop.
   const swift = read('ios/Hoot/Views/StreamLine.swift')
   assert.match(swift, /static let zacht = Space\.s5/)
   assert.match(swift, /let rand = Self\.zacht/)
   assert.match(swift, /max\(0, e\)/)
-  assert.match(read('ios/Hoot/Views/StreamView.swift'), /HootKop\(gearX: \{ knopAs = \$0 \}\)/)
+  assert.match(read('ios/Hoot/Views/StreamView.swift'), /HootKop\(knopX: \{ knopAs = \$0 \}\)/)
 })

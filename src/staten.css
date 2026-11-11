@@ -17,7 +17,8 @@
 }
 
 /* Tabbalk (telefoon), zoals de app: Editie, Stroom, Selectie, Bewaard, Zoeken. Zoeken is een tab,
-   Bronnen staat onder Instellingen. De zijbalk (breed) toont alles. */
+   Bronnen is een knop in de kop van de Stroom, links van je account (1.2.1). De zijbalk (breed) toont alles,
+   behalve Instellingen: daar is je account rechtsboven de ingang. */
 .nav__list > .nav__search {
   display: block;
 }
@@ -27,6 +28,19 @@
   }
   /* Zoeken is een tab: het zoekicoon in de schermkop is dan overbodig. */
   .vh__row > .vh__search {
+    display: none;
+  }
+}
+
+/* Je account rechtsboven (1.2.1): het rondje (--avatar, 32) staat met zijn rand op de kolomlijn, zoals de
+   accountknop in de app ((44 − 32) / 2 de goot in), niet de 22 van een icoon (--tap-inset). */
+.vh__row > .acct:last-child {
+  margin-inline-end: calc((var(--avatar) - var(--control-md)) / 2);
+}
+
+/* Bronnen in de kop van de Stroom: alleen op de telefoon; breed staat het in de zijbalk. */
+@media (min-width: 960px) {
+  .vh__row > .vh__bronnen {
     display: none;
   }
 }

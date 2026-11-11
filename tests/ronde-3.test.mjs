@@ -59,11 +59,14 @@ test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () =>
   assert.match(welkom, /"Elke maandag het beste over wat jou bezighoudt\."/)
   assert.match(welkom, /"Elke maandag het beste over je werk of hobby\."/)
   assert.doesNotMatch(welkom, /hooguit tien|[Ee]én keer per week|Button\("Inloggen"\)/)
-  // De accountkaart zonder account heet Account (de inlogpagina zelf blijft "Inloggen": daar doe je het).
+  // De accountrij zonder account heet Account. Bovenaan Instellingen staat sinds 1.2.1 "Inloggen" met de knoppen
+  // er meteen onder (advies instellingen-positie), want daar doe je het.
   assert.match(read('ios/Hoot/Views/AccountView.swift'), /case \.out:\n\s*Text\("Account"\)/)
   assert.match(read('ios/Hoot/Views/SettingsView.swift'), /case \.out: return "Account"/)
+  assert.match(read('ios/Hoot/Views/SettingsView.swift'), /kaart\(title: "Inloggen", status: "Hoot op al je toestellen"\)/)
   assert.match(read('ios/Hoot/Views/EditionView.swift'), /\.navigationTitle\("Vergelijken"\)/)
-  assert.match(read('ios/Hoot/Views/Components.swift'), /accessibilityLabel\("Instellingen"\)/)
+  // De accountknop rechtsboven heet voor VoiceOver gewoon Instellingen, net als op het web.
+  assert.match(read('ios/Hoot/Views/AccountView.swift'), /struct AccountKnop[\s\S]*?accessibilityLabel\("Instellingen"\)/)
   // Gelijk aan het web.
   const web = read('src/views/Welcome.jsx')
   for (const zin of ['Drie keer per dag tien verhalen. Dan ben je bij.', 'Elke maandag het beste over wat jou bezighoudt.', 'Elke maandag het beste over je werk of hobby.']) assert.ok(web.includes(zin), zin)

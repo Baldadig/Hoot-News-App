@@ -1,7 +1,8 @@
 import SwiftUI
 
 // Stroom: alles van je bronnen, nieuwste eerst. Bovenaan de lijn met rubrieken en de bronnenstapel
-// (StreamLine): Alles, je rubrieken en Buiten je bubbel. Bluesky staat bij Instellingen.
+// (StreamLine): Alles, je rubrieken, de tabs van de server (Opinie) en Buiten je bubbel. Bluesky staat bij
+// Instellingen.
 struct StreamView: View {
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(HootStore.self) private var store
@@ -20,16 +21,36 @@ struct StreamView: View {
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
     @State private var knopAs: CGFloat? // de knop rechtsboven: het voorste logo van de stapel ligt eronder
-    // De rubriek: "" is Alles; "bubbel" is een eigen lijst, de rest een van de gekozen rubrieken.
+    // De rubriek: "" is Alles; "bubbel" is een eigen lijst, de rest een van de gekozen rubrieken of een tab van
+    // de server (StroomTab, zoals "opinie").
     @SceneStorage("streamRubriek") private var rubriek = DebugLaunch.startRubriek ?? ""
     @State private var debugStart = true // Debug: het startargument voor de rubriek is nog niet gebruikt
 
-    // Koos je geen interesses, dan alle acht (rubriekRij op het web).
-    static func tabs(interests: [String], bubble: Bool) -> [(id: String, label: String)] {
+    // Koos je geen interesses, dan alle acht (rubriekRij op het web). Daarna de tabs van de server waar in de
+    // Stroom iets onder valt (`metBerichten`), in hun volgorde, en Buiten je bubbel als laatste.
+    static func tabs(interests: [String], bubble: Bool, server: [StroomTab] = [], metBerichten: Set<String> = []) -> [(id: String, label: String)] {
         let chosen = Rubriek.alle.filter { interests.contains($0.id) }
         return [("", "Alles")]
             + (chosen.isEmpty ? Rubriek.alle : chosen).map { (id: $0.id, label: $0.label) }
+            + server.filter { metBerichten.contains($0.id) }.map { (id: $0.id, label: $0.label) }
             + (bubble ? [("bubbel", "Buiten je bubbel")] : [])
+    }
+
+    // Hoort een bericht onder deze rubriek ("" = Alles)? Een hoofdrubriek kijkt naar onderwerpen en het vak van de
+    // bron, al het andere is een tab van de server (Item.inTab). Een column staat zo onder Opinie, onder zijn
+    // rubriek en onder Alles (inRubriek op het web).
+    static func past(_ item: Item, _ rub: String, cat: String?) -> Bool {
+        if rub.isEmpty { return true }
+        return Rubriek.byId[rub] != nil ? Rubriek.past(item, rub, cat: cat) : item.inTab(rub)
+    }
+
+    // De stille regel bij een lege lijst, gelijk aan legeRegel op het web: "Nog niets in Wereld.", "Nog geen
+    // opinie van NOS vandaag.", "Nog niets buiten je bubbel."
+    static func legeRegel(rub: String, label: String?, tab: Bool, names: String?) -> String {
+        let wat = tab ? "Nog geen \((label ?? rub).lowercased())" : "Nog niets"
+        let van = names.map { " van \($0)" } ?? ""
+        let waar = rub == "bubbel" ? " buiten je bubbel" : rub.isEmpty || tab ? " vandaag" : " in \(label ?? rub)"
+        return "\(wat)\(van)\(waar)."
     }
 
     var body: some View {
@@ -37,8 +58,9 @@ struct StreamView: View {
             let bubble = store.bubbleItems
             // De rij: alleen Alles en de hoofdrubrieken die je koos, in de vaste volgorde van Rubriek.alle
             // (Politiek, Binnenland, Wereld, Economie, Tech, Wetenschap, Cultuur, Sport), en Buiten je
-            // bubbel als laatste. Geen onderwerpen of andere tabs; gelijk aan het web.
-            let tabs = Self.tabs(interests: store.interests, bubble: !bubble.isEmpty)
+            // bubbel als laatste. Daartussen de tabs van de server (nu Opinie) waar iets onder valt. Geen
+            // onderwerpen; gelijk aan het web.
+            let tabs = Self.tabs(interests: store.interests, bubble: !bubble.isEmpty, server: store.stroomTabs, metBerichten: StroomTab.metBerichten(store.stream, tabs: store.stroomTabs))
             let lezen = Array(tabs.prefix(1)), rubrieken = Array(tabs.dropFirst())
             // Een rubriek die er niet (meer) is, valt terug op Alles: niet meer gekozen, of geen bubbel in deze editie.
             let rub = rubrieken.contains { $0.id == rubriek } ? rubriek : ""
@@ -47,7 +69,7 @@ struct StreamView: View {
             let cats = Dictionary(store.followed.map { ($0.id, $0.cat) }, uniquingKeysWith: { a, _ in a })
             // Hetzelfde stuk bij twee van je bronnen (zusterkranten) één keer; kies je één bron, dan alles van die bron.
             let items = rub == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
-                (picks.isEmpty || picks.contains(item.source)) && (rub.isEmpty || Rubriek.past(item, rub, cat: cats[item.source] ?? nil))
+                (picks.isEmpty || picks.contains(item.source)) && Self.past(item, rub, cat: cats[item.source] ?? nil)
             })
             // De lijst houdt op bij je vorige bezoek (of na een dag); ouder nieuws alleen met de knop.
             let eindGrens = rub == "bubbel" ? nil : grens
@@ -61,7 +83,7 @@ struct StreamView: View {
                     VStack(spacing: 0) {
                     // De kopregel en de schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
                     VStack(alignment: .leading, spacing: 0) {
-                        HootKop(gearX: { knopAs = $0 }) {
+                        HootKop(knopX: { knopAs = $0 }) {
                             HootKopButton(label: "Bronnen", systemImage: "dot.radiowaves.up.forward") {
                                 lijn.open = false // ook met VoiceOver, waar geen echte tik naast de lijn valt
                                 showSources = true
@@ -78,7 +100,7 @@ struct StreamView: View {
                             categoryTask?.cancel()
                             guard next != rub else { return }
                             let incoming = next == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
-                                (picks.isEmpty || picks.contains(item.source)) && (next.isEmpty || Rubriek.past(item, next, cat: cats[item.source] ?? nil))
+                                (picks.isEmpty || picks.contains(item.source)) && Self.past(item, next, cat: cats[item.source] ?? nil)
                             })
                             categoryTask = Task {
                                 if !still { await RubriekWissel.preload(RubriekWissel.images(incoming, enabled: store.images == "aan", kind: store.layout == "krant" ? .thumb : .large)) }
@@ -125,7 +147,7 @@ struct StreamView: View {
                         } else {
                             Group {
                             StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
-                            if items.isEmpty { quiet(rub, sources: sources) }
+                            if items.isEmpty { quiet(rub, label: tabs.first { $0.id == rub }?.label, sources: sources) }
                             // Waar je de vorige keer was (de grens): daaronder heb je alles al gezien. In de lijst
                             // staat de streep pas als je ouder nieuws opende; anders staat hij bij het einde.
                             let marker = older > 0 && eerder && bIdx < cap
@@ -208,11 +230,11 @@ struct StreamView: View {
     }
 
     // Een rubriek of bronnen zonder berichten: een stille regel, geen groot leeg scherm.
-    private func quiet(_ rub: String, sources: [Source]) -> some View {
+    private func quiet(_ rub: String, label: String?, sources: [Source]) -> some View {
         let names = StreamLine.opsomming(sources.filter { picks.contains($0.id) }.map(\.name))
-        let place = rub.isEmpty ? "vandaag" : "in \(Rubriek.byId[rub]?.label ?? rub)"
+        let tab = !rub.isEmpty && rub != "bubbel" && Rubriek.byId[rub] == nil
         return VStack(alignment: .leading, spacing: Space.s1) {
-            Text(picks.isEmpty || rub == "bubbel" ? "Nog niets \(place)." : "Nog niets van \(names) \(place).")
+            Text(Self.legeRegel(rub: rub, label: label, tab: tab, names: picks.isEmpty || rub == "bubbel" ? nil : names))
                 .foregroundStyle(Theme.ink2)
             if !picks.isEmpty && rub != "bubbel" {
                 Button {
@@ -401,6 +423,7 @@ struct SavedView: View {
                     // de uitgever). De titel krijgt de kolombreedte, links uitgelijnd: zonder die maat stond hij
                     // half buiten beeld ("ewaard", review R1), net als het woordmerk.
                     VStack(alignment: .leading, spacing: 0) {
+                        HootKop()
                         ScreenTitle("Bewaard").frame(maxWidth: .infinity, alignment: .leading)
                         EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: SavedView.emptyText, action: (label: "Naar de Editie", systemImage: nil, run: { openTab(.editie) }))
                     }
@@ -418,8 +441,12 @@ struct SavedView: View {
                                 store.removeSaved(at: offsets)
                             }
                         } header: {
-                            // De schermtitel als kop van de lijst (C7), op de lijn van de rijen.
-                            ScreenTitle("Bewaard").textCase(nil).listRowInsets(EdgeInsets())
+                            // De kopregel en de schermtitel als kop van de lijst (C7), op de lijn van de rijen.
+                            VStack(alignment: .leading, spacing: 0) {
+                                HootKop()
+                                ScreenTitle("Bewaard")
+                            }
+                            .textCase(nil).listRowInsets(EdgeInsets())
                         }
                     }
                     .scrollContentBackground(.hidden)
@@ -454,9 +481,8 @@ struct SavedView: View {
             .animation(.easeOut(duration: 0.2), value: removed?.item.id)
             .background(Theme.paper)
             .navigationTitle("Bewaard")
-            .hootBrandHeader()
-            .hootScreenTitle()
-            .settingsButton(toolbar: true)
+            .hootKopScreen() // de kopregel met je account, zoals Editie, Stroom en Selectie
+            .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
@@ -467,6 +493,7 @@ struct SavedView: View {
 // Zoeken: in alles wat Hoot nu van je bronnen heeft, en in Bewaard.
 struct SearchView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.horizontalSizeClass) private var breedte
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var query = DebugLaunch.query ?? ""
     @State private var scope: SearchHits.Scope = .mijn // standaard Mijn bronnen, zoals op het web
@@ -491,7 +518,10 @@ struct SearchView: View {
                     // Titel en keuze op één linkerlijn (review A2). Bij heel grote tekst een menu in plaats van
                     // het segment: dat groeit niet mee en kapte "Mijn br…" af (review A18).
                     VStack(alignment: .leading, spacing: Space.s3) {
-                        ScreenTitle("Zoeken")
+                        VStack(alignment: .leading, spacing: 0) {
+                            if breedte == .regular { HootKop().padding(.top, ZoekKopIPad.balk) } // iPad: de kopregel in de lijst; iPhone: in de balk (zoekKop)
+                            ScreenTitle("Zoeken")
+                        }
                         let picker = Picker("Waar zoeken", selection: $scope) {
                             ForEach(SearchHits.Scope.allCases) { Text($0.rawValue).tag($0) }
                         }
@@ -515,8 +545,8 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Zoeken")
-            .hootBrandHeader()
-            .hootScreenTitle()
+            .zoekKop() // "hoot." en je account in de balk: het zoekveld heeft die balk nodig
+            .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
