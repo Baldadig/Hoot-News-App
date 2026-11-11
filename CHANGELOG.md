@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **iOS 1.2.1 (build 52)** is de app-kant van onderstaande punten: account rechtsboven, Opinie-tab, de Editie van de server, het seintje op het ochtendmoment van de server, het Duo-tafelblad liggend en delen met link.
+
 - **Delen: kaart én link** (web; app in 1.2.1): een gedeeld verhaal gaat nu als Hoot-kaart mét de link naar het artikel bij de uitgever. Voorheen kwam vaak alleen de afbeelding aan, of een link naar een Hoot-tussenpagina.
 
 - **De Editie met frisse ogen** (server; web en app krijgen hem vanzelf): nieuws staat bovenaan en een bekend persoon zakt onder de top 3 als er groter nieuws is. Eén gebeurtenis krijgt één plek, ook als er Engelse en Nederlandse stukken over zijn. Bovenaan alleen Nederlands, en in de top 3 alleen wat je kunt lezen. Bij een betaalde Nederlandse kop staat waar het kan de gratis kop van NOS, NU.nl of RTL over hetzelfde feit. Een dunne Editie wordt eerst aangevuld met gratis Nederlands. Buiten je bubbel krijgt harde eisen en blijft liever leeg dan een zwakke keuze. De Ochtendeditie ligt vanaf half zeven klaar (het seintje in de app verschuift mee in 1.2.1). Elk dagdeel wordt bewaard met een scorekaart; Haagse dossiers draaien eerst een week in schaduw.
