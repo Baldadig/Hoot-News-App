@@ -210,11 +210,18 @@ struct RootView: View {
     // Het verhaal uit de widget openen in de lezer (of in Safari, zoals je ingesteld hebt); het telt als gelezen,
     // net als in de Editie. Ook als de Editie het stuk intussen onder een ander hoofdstuk heeft.
     private func openFromWidget(_ id: String) -> Bool {
-        let rows = store.editionRows
-        guard let row = rows.first(where: { $0.item.id == id || ($0.item.formerIds ?? []).contains(id) })
-            ?? rows.first(where: { $0.story?.itemIds.contains(id) == true }) else { return false }
+        guard let row = WidgetVerhaalWacht.rij(id, in: store.editionRows) else { return false }
         reader.open(row.item, store: store)
         return true
+    }
+    // Wacht een verhaal uit de widget, dan nu openen; of, na het laden, laten vervallen als het niet in de Editie staat.
+    private func widgetVerhaalStap(geladen: Bool) {
+        guard let id = widgetVerhaal else { return }
+        switch WidgetVerhaalWacht.stap(id, rows: store.editionRows, geladen: geladen) {
+        case .open: _ = openFromWidget(id); widgetVerhaal = nil
+        case .vervalt: widgetVerhaal = nil
+        case .wacht: break
+        }
     }
 
     // Met een toetsenbord (iPad): ⌘1–4 voor de tabbladen, ⌘F zoeken, ⌘R verversen.
@@ -329,12 +336,14 @@ struct RootView: View {
             case .editie:
                 Task { await store.load() }
             case let .verhaal(id):
-                if !openFromWidget(id) { widgetVerhaal = id; Task { await store.load() } }
+                if !openFromWidget(id) {
+                    widgetVerhaal = id
+                    Task { await store.load(); widgetVerhaalStap(geladen: true) }
+                }
             }
         }
-        .onChange(of: store.editionRows.count) {
-            if let id = widgetVerhaal, openFromWidget(id) { widgetVerhaal = nil }
-        }
+        // Op de Editie zelf letten (id en rijen), niet op het aantal rijen (keuring 2).
+        .onChange(of: WidgetVerhaalWacht.sleutel(store)) { widgetVerhaalStap(geladen: false) }
         .environment(reader)
         .environment(krant)
         // De lezer als blad. Ligt de krant open, dan staat hij op de rechterbladzijde (KrantPagina) en is

@@ -208,6 +208,102 @@ import WidgetKit
         XCTAssertTrue(types.contains { ($0["CFBundleURLSchemes"] as? [String])?.contains("hoot") == true })
     }
 
+    // Keuring 2: een verhaal uit de widget dat nog niet in de getoonde Editie staat, wacht op een andere Editie,
+    // niet op een ander aantal rijen. De widget had de nieuwe Editie al; de app had de vorige, ook met tien rijen.
+    func testDeepLinkWachtOpDeEditieNietOpHetAantal() {
+        func rij(_ id: String, story: Story? = nil) -> EditionRowModel {
+            EditionRowModel(id: id, item: Item(id: id, source: "nos", title: "Verhaal \(id)", url: "https://nos.nl/\(id)"), story: story, label: nil, desk: nil)
+        }
+        let vorige = (0..<10).map { rij("oud\($0)") }
+        let nieuwe = (0..<10).map { rij("nieuw\($0)", story: $0 == 3 ? Story(id: "s3", itemIds: ["nieuw3", "bundel"]) : nil) }
+        XCTAssertEqual(vorige.count, nieuwe.count, "hetzelfde aantal rijen")
+        XCTAssertNotEqual(WidgetVerhaalWacht.sleutel(editie: "2026-11-11-middag", rijen: vorige.map(\.id)),
+                          WidgetVerhaalWacht.sleutel(editie: "2026-11-11-avond", rijen: nieuwe.map(\.id)))
+        // Zelfde Editie, andere rijen (je eigen Editie na de voorlopige): ook een andere sleutel.
+        XCTAssertNotEqual(WidgetVerhaalWacht.sleutel(editie: "2026-11-11-avond", rijen: vorige.map(\.id)),
+                          WidgetVerhaalWacht.sleutel(editie: "2026-11-11-avond", rijen: nieuwe.map(\.id)))
+        // In de vorige Editie staat het verhaal niet: wachten. In de nieuwe wel: openen, ook vanuit de bundel.
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nieuw5", rows: vorige, geladen: false), .wacht)
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nieuw5", rows: nieuwe, geladen: false), .open("nieuw5"))
+        XCTAssertEqual(WidgetVerhaalWacht.stap("bundel", rows: nieuwe, geladen: true), .open("nieuw3"))
+        var eerder = nieuwe
+        var stuk = Item(id: "nieuw0", source: "nos", title: "Verhaal nieuw0", url: "https://nos.nl/nieuw0")
+        stuk.formerIds = ["vroeger"]
+        eerder[0] = EditionRowModel(id: "nieuw0", item: stuk, story: nil, label: nil, desk: nil)
+        XCTAssertEqual(WidgetVerhaalWacht.stap("vroeger", rows: eerder, geladen: false), .open("nieuw0"))
+        // Klaar met laden en het staat er niet in: de link vervalt, je blijft in de Editie.
+        XCTAssertEqual(WidgetVerhaalWacht.stap("nergens", rows: nieuwe, geladen: true), .vervalt)
+    }
+
+    // Keuring 2: zonder account nooit `lid`. Zonder bewaarde vraag haalt de widget de Editie voor iedereen.
+    func testZonderAccountNooitLid() {
+        XCTAssertEqual(WidgetSchrijver.vraag(eigen: true, account: false, vraagBewaard: false), .algemeen)
+        XCTAssertEqual(WidgetSchrijver.vraag(eigen: true, account: false, vraagBewaard: true), .eigen)
+        XCTAssertEqual(WidgetSchrijver.vraag(eigen: true, account: true, vraagBewaard: true), .lid)
+        XCTAssertEqual(WidgetSchrijver.vraag(eigen: false, account: true, vraagBewaard: false), .algemeen)
+        XCTAssertEqual(WidgetSchrijver.vraag(eigen: false, account: false, vraagBewaard: false), .algemeen)
+        for eigen in [true, false] { for vraag in [true, false] {
+            XCTAssertNotEqual(WidgetSchrijver.vraag(eigen: eigen, account: false, vraagBewaard: vraag), .lid)
+        } }
+        // En dan haalt de widget bij een nieuw dagdeel zelf.
+        var e = try! Self.editie()
+        e.vraag = WidgetSchrijver.vraag(eigen: true, account: false, vraagBewaard: false)
+        XCTAssertTrue(WidgetOphalen.moetOphalen(e, nu: Self.moment("2026-11-12T05:40:00Z")))
+    }
+
+    // Taal volgt bronkeuze: haalt de widget de Editie voor iedereen voor iemand met een eigen Editie, dan geen kop
+    // in een taal die hij niet koos. Een Nederlandse kop en een kop van een eigen bron blijven.
+    func testAlgemeneEditieVoorEenEigenLezerVolgtDeTaalregel() throws {
+        let json = """
+        {"id":"2026-11-12-ochtend","slot":"ochtend","entries":[{"kind":"item","id":"a"},{"kind":"item","id":"b"},{"kind":"item","id":"c"},{"kind":"item","id":"d"}],
+         "items":[{"id":"a","title":"Kabinet valt","source":"nos"},{"id":"b","title":"Cabinet falls","source":"bbc"},
+                  {"id":"c","title":"Game news","source":"ign"},{"id":"d","title":"English piece","source":"nrc","lang":"en"}]}
+        """
+        let server = try JSONDecoder().decode(ServerEditie.self, from: Data(json.utf8))
+        let bronnen = [ServerEditie.Bron(id: "nos", lang: "nl"), .init(id: "bbc", lang: "en"), .init(id: "ign", lang: "en"), .init(id: "nrc", lang: "nl")]
+        let nu = Self.moment("2026-11-12T05:40:00Z")
+        let eigen = try XCTUnwrap(server.widget(vraag: .algemeen, gelezen: [], eigenBronnen: ["nos", "ign"], bronnen: bronnen, nu: nu))
+        XCTAssertEqual(eigen.verhalen.map(\.itemId), ["a", "c"])
+        XCTAssertEqual(eigen.verhalen.map(\.nummer), [1, 2])
+        XCTAssertEqual(eigen.eigenBronnen, ["nos", "ign"], "blijft bewaard voor het volgende dagdeel")
+        // Zonder talen van de bronnen weet de widget het niet zeker: geen nieuwe Editie, de vorige blijft.
+        XCTAssertNil(server.widget(vraag: .algemeen, gelezen: [], eigenBronnen: ["nos"], bronnen: nil, nu: nu))
+        // Wie geen eigen Editie heeft, krijgt de Editie voor iedereen zoals de app hem toont.
+        XCTAssertEqual(try XCTUnwrap(server.widget(vraag: .algemeen, gelezen: [], nu: nu)).verhalen.count, 4)
+    }
+
+    // Keuring 2: geen netwerk bij een nieuw dagdeel. De vorige Editie blijft staan (met "Tik voor de …"), er wordt
+    // niets overschreven, en de widget vraagt over twintig minuten opnieuw.
+    func testGeenNetwerkDeVorigeEditieBlijftStaan() async throws {
+        let map = FileManager.default.temporaryDirectory.appending(path: "widget-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: map, withIntermediateDirectories: true)
+        WidgetGroep.mapOverride = map
+        defer { WidgetGroep.mapOverride = nil; try? FileManager.default.removeItem(at: map) }
+        let suite = "widget-toets-\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+
+        XCTAssertTrue(WidgetBron.bewaar(try Self.editie(gelezen: 4)))
+        let vorige = try XCTUnwrap(WidgetBron.laad())
+        let voor = try Data(contentsOf: WidgetBron.bestand)
+        let c = URLSessionConfiguration.ephemeral
+        c.protocolClasses = [GeenNetwerk.self]
+        let sessie = URLSession(configuration: c)
+        let nu = Self.moment("2026-11-12T05:40:00Z") // de Ochtendeditie is er, de widget heeft de Avondeditie
+
+        let uit = await WidgetVernieuwen.editie(nu: nu, suite: suite, sessie: sessie)
+        XCTAssertGreaterThanOrEqual(GeenNetwerk.gevraagd, 1, "de widget probeerde het echt")
+        XCTAssertEqual(uit.editie, vorige)
+        XCTAssertTrue(uit.wacht)
+        XCTAssertFalse(uit.bewaard)
+        XCTAssertEqual(try Data(contentsOf: WidgetBron.bestand), voor, "het bestand bleef zoals het was")
+        XCTAssertEqual(WidgetStand.van(try XCTUnwrap(uit.editie), op: nu).label, "Tik voor de Ochtendeditie")
+        XCTAssertEqual(WidgetTijdlijn.volgende(nu: nu, wachtOpNieuwe: uit.wacht), nu.addingTimeInterval(20 * 60))
+        // Meteen nog eens (een tweede widget): niet opnieuw het netwerk op, wel de vorige Editie.
+        let tweede = await WidgetVernieuwen.editie(nu: nu.addingTimeInterval(60), suite: suite, sessie: sessie)
+        XCTAssertEqual(tweede.editie, vorige)
+        XCTAssertTrue(tweede.wacht)
+    }
+
     // MARK: App Group
 
     func testBewarenEnLezenAlleenAlsErIetsVerandert() throws {
@@ -286,9 +382,20 @@ import WidgetKit
         let stenen = koppen.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
         let e = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
         let gezet = MiddelTop3.zet(e, maat: CGSize(width: 364, height: 170), marge: WidgetRuimte.s4).gezet
-        XCTAssertEqual(gezet.count, 3)
-        XCTAssertNotEqual(gezet[2].tekst, "Sluiting dreigt…", "niet de kop die bijna alles kwijtraakt")
+        // Keuring 2: 01 levert nooit als eerste in. Hier past 03 dan alleen nog als "Sluiting dreigt…": liever valt
+        // 03 weg, en houden 01 en 02 hun twee regels.
+        XCTAssertEqual(gezet[0].regels, 2, gezet[0].tekst)
+        XCTAssertFalse(gezet.contains { $0.tekst == "Sluiting dreigt…" }, "niet de kop die bijna alles kwijtraakt")
         XCTAssertTrue(gezet.allSatisfy { !$0.tekst.hasSuffix("verouderde…") })
+        XCTAssertEqual(gezet.count, 2)
+        XCTAssertEqual(gezet.map(\.regels), [2, 2])
+        // Kan 03 wel een regel missen zonder zijn betekenis te verliezen, dan levert 03 in, niet 01.
+        let k3 = [koppen[0], koppen[1], "RIVM-laboratoria in Bilthoven gaan dicht, het nieuwe gebouw is nog lang niet klaar"]
+        let s3 = k3.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
+        let e3 = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: s3, gelezen: [], vraag: .algemeen)
+        let g3 = MiddelTop3.zet(e3, maat: CGSize(width: 364, height: 170), marge: WidgetRuimte.s4).gezet
+        XCTAssertEqual(g3.first?.regels, 2, g3.map(\.tekst).joined(separator: " | "))
+        XCTAssertEqual(g3.count, 3, g3.map(\.tekst).joined(separator: " | "))
         // Verliezen 02 en 03 weinig, dan houdt 01 zijn twee regels.
         let kort = [koppen[0], "Honderden scholen in Europa krijgen een bommelding per e-mail", "RIVM sluit oude laboratoria pas als het nieuwe gebouw er staat"]
         let k2 = kort.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
@@ -305,4 +412,16 @@ import WidgetKit
         let drie = WidgetZet.pas(kop, kort: nil, WidgetLetter.widgetKop, breedte: 300, max: 3)
         XCTAssertEqual(drie.tekst, "Iraanse dreiging is zó groot dat Amerikaanse minister…")
     }
+}
+
+// Een sessie zonder netwerk: elk verzoek faalt zoals op een toestel zonder verbinding.
+final class GeenNetwerk: URLProtocol {
+    nonisolated(unsafe) static var gevraagd = 0
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        Self.gevraagd += 1
+        client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
+    }
+    override func stopLoading() {}
 }

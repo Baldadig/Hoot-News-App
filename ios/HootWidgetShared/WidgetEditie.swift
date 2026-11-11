@@ -52,6 +52,9 @@ struct WidgetEditie: Codable, Hashable, Sendable {
     var gelezen: [String] // de laatst gelezen berichten (ids), voor de telling en voor een volgende Editie
     var vraag: Vraag
     var geschreven: Date
+    // Alleen als je een eigen Editie hebt maar de widget de Editie voor iedereen haalt (zonder account, zonder
+    // bewaarde vraag): de bronnen die je volgt, voor de taalregel (ServerEditie.leesbaar). Anders nil.
+    var eigenBronnen: [String]? = nil
 
     var naam: String { WidgetDagdeel.naam(dagdeel) }
     var eindzin: String { WidgetDagdeel.eindzin(datum: datum, dagdeel: dagdeel) }

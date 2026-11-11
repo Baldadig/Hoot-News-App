@@ -14,8 +14,20 @@ enum WidgetSchrijver {
     }
 
     static func vraag(_ store: HootStore) -> WidgetEditie.Vraag {
-        guard let e = store.shownEdition, e.personal == true else { return .algemeen }
-        return store.ownerNow == "anon" && FileManager.default.fileExists(atPath: WidgetBron.vraagBestand.path) ? .eigen : .lid
+        vraag(eigen: store.shownEdition?.personal == true, account: store.ownerNow != "anon",
+              vraagBewaard: FileManager.default.fileExists(atPath: WidgetBron.vraagBestand.path))
+    }
+    // Lid alleen met een account (dan is je token nodig). Zonder account: jouw vraag als die er is, en anders
+    // de Editie voor iedereen, zodat de widget bij een nieuw dagdeel toch zelf iets nieuws heeft (keuring 2).
+    static func vraag(eigen: Bool, account: Bool, vraagBewaard: Bool) -> WidgetEditie.Vraag {
+        guard eigen else { return .algemeen }
+        if account { return .lid }
+        return vraagBewaard ? .eigen : .algemeen
+    }
+    // Haalt de widget de Editie voor iedereen terwijl jij een eigen Editie hebt, dan moet hij de taalregel kennen:
+    // de bronnen die je volgt (alleen op dit toestel, in de App Group).
+    static func eigenBronnen(_ store: HootStore, vraag: WidgetEditie.Vraag) -> [String]? {
+        vraag == .algemeen && store.shownEdition?.personal == true ? store.followed.map(\.id).sorted() : nil
     }
 
     // Zonder Editie (nog niet geladen) schrijft hij niets: dan blijft de vorige staan.
@@ -37,8 +49,9 @@ enum WidgetSchrijver {
         }
         // Gelezen: de laatst gelezen berichten, plus wat in deze Editie als gelezen telt (ook via een oudere id).
         let hier = rows.filter { store.isRead($0.item) }.map(\.item.id)
+        let v = vraag(store)
         var editie = WidgetEditie.bouw(id: edition.id, datum: datum, dagdeel: dagdeel, stenen: stenen,
-                                       gelezen: Array(store.readIds.suffix(600)) + hier, vraag: vraag(store))
+                                       gelezen: Array(store.readIds.suffix(600)) + hier, vraag: v, eigenBronnen: eigenBronnen(store, vraag: v))
         if let eerste = editie.verhalen.first {
             editie.verhalen[0].beeld = await WidgetBeelden.haal(stenen.first?.beeldURL, itemId: eerste.itemId)
         }
@@ -53,5 +66,30 @@ enum WidgetSchrijver {
         } else {
             try? FileManager.default.removeItem(at: WidgetBron.vraagBestand)
         }
+    }
+}
+
+// Een tik op een verhaal in de widget (hoot://verhaal/<id>) terwijl dat verhaal nog niet in de getoonde Editie
+// staat: de widget had de nieuwe Editie misschien al zelf gehaald, en de app heeft de vorige nog. Wachten op een
+// andere Editie, niet op een ander aantal rijen (een nieuwe Editie heeft vrijwel altijd weer tien): de sleutel
+// is de id van de Editie plus de ids van de rijen (keuring 2).
+enum WidgetVerhaalWacht {
+    static func sleutel(editie: String?, rijen: [String]) -> String { ([editie ?? ""] + rijen).joined(separator: "|") }
+    @MainActor static func sleutel(_ store: HootStore) -> String {
+        sleutel(editie: store.shownEdition?.id ?? store.edition?.id, rijen: store.editionRows.map(\.id))
+    }
+
+    // De rij met dit stuk: als hoofdstuk (ook onder een eerdere id), of ergens in de bundel van een verhaal.
+    static func rij(_ id: String, in rows: [EditionRowModel]) -> EditionRowModel? {
+        rows.first(where: { $0.item.id == id || ($0.item.formerIds ?? []).contains(id) })
+            ?? rows.first(where: { $0.story?.itemIds.contains(id) == true })
+    }
+
+    enum Stap: Equatable { case open(String), wacht, vervalt }
+    // `geladen`: het laden na de tik is klaar. Staat het verhaal dan nog niet in de Editie, dan vervalt de link
+    // en blijf je in de Editie (de nieuwe), in plaats van dat de app blijft wachten op een volgende.
+    static func stap(_ id: String, rows: [EditionRowModel], geladen: Bool) -> Stap {
+        if let r = rij(id, in: rows) { return .open(r.item.id) }
+        return geladen ? .vervalt : .wacht
     }
 }

@@ -23,14 +23,14 @@ extension WidgetEditie {
 
     // De genummerde verhalen (zonder Buiten je bubbel), in de volgorde van de Editie. `gelezen`: de laatst
     // gelezen berichten van deze lezer (hooguit 600 bewaard).
-    static func bouw(id: String, datum: String, dagdeel: String, stenen: [Bouwsteen], gelezen: [String], vraag: Vraag, nu: Date = .now) -> WidgetEditie {
+    static func bouw(id: String, datum: String, dagdeel: String, stenen: [Bouwsteen], gelezen: [String], vraag: Vraag, eigenBronnen: [String]? = nil, nu: Date = .now) -> WidgetEditie {
         var verhalen: [WidgetVerhaal] = []
         for s in stenen where s.desk != "bubbel" && !s.kop.isEmpty {
             guard verhalen.count < maxVerhalen else { break }
             verhalen.append(WidgetVerhaal(id: s.plek, itemId: s.itemId, oudeIds: s.oudeIds, nummer: verhalen.count + 1,
                                           kop: s.kop, kortKop: s.kortKop?.isEmpty == false ? s.kortKop! : KortKop.kort(s.kop), bron: s.bron))
         }
-        return WidgetEditie(id: id, datum: datum, dagdeel: dagdeel, verhalen: verhalen, gelezen: Array(gelezen.suffix(600)), vraag: vraag, geschreven: nu)
+        return WidgetEditie(id: id, datum: datum, dagdeel: dagdeel, verhalen: verhalen, gelezen: Array(gelezen.suffix(600)), vraag: vraag, geschreven: nu, eigenBronnen: eigenBronnen)
     }
 }
 
@@ -52,6 +52,12 @@ struct ServerEditie: Decodable, Sendable {
         var title: String?
         var image: String?
         var formerIds: [String]?
+        var lang: String? // alleen als het stuk een andere taal heeft dan zijn bron
+    }
+    // Een bron uit /api/feed?deel=start (sources): alleen de taal.
+    struct Bron: Decodable, Sendable {
+        let id: String
+        var lang: String?
     }
     let id: String
     var slot: String?
@@ -60,20 +66,42 @@ struct ServerEditie: Decodable, Sendable {
     var entries: [Plek]
     var items: [Stuk]?
 
-    var stenen: [WidgetEditie.Bouwsteen] {
+    var stenen: [WidgetEditie.Bouwsteen] { stenen(leesbaar: { _ in true }) }
+
+    // De taalregel voor de widget die de Editie voor iedereen haalt terwijl jij een eigen Editie hebt: een kop in
+    // een andere taal dan het Nederlands alleen van een bron die je volgt. Strenger dan de regel per rubriek in de
+    // app (languageRule in src/lib/personal.js), nooit ruimer: wie geen Engelse bron koos, ziet in de widget nooit
+    // een Engelse kop. Net als daar: een stuk zonder bekende taal blijft staan.
+    static func leesbaar(_ stuk: Stuk, bronTaal: [String: String], volgt: Set<String>) -> Bool {
+        if let bron = stuk.source, volgt.contains(bron) { return true }
+        let vanBron = stuk.source.flatMap { bronTaal[$0] }
+        let ok = { (taal: String?) in taal == nil || taal == "nl" }
+        return ok(stuk.lang ?? vanBron) && ok(vanBron)
+    }
+
+    func stenen(leesbaar: (Stuk) -> Bool) -> [WidgetEditie.Bouwsteen] {
         let stukken = Dictionary((items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         return entries.compactMap { e in
             let lead = e.kind == "story" ? (e.leadId ?? e.id) : e.id
-            guard let s = stukken[lead], let kop = s.title ?? e.title else { return nil }
+            guard let s = stukken[lead], leesbaar(s), let kop = s.title ?? e.title else { return nil }
             return .init(plek: e.id, desk: e.desk, itemId: s.id, oudeIds: s.formerIds ?? [], kop: kop, kortKop: e.kortKop,
                          bron: s.sourceName ?? s.source ?? "", beeldURL: ImageURL.url(s.image, .large)) // zoals de app: het grote beeld
         }
     }
 
-    func widget(vraag: WidgetEditie.Vraag, gelezen: [String], nu: Date = .now) -> WidgetEditie? {
+    // `eigenBronnen` (zie WidgetEditie.eigenBronnen): dan alleen leesbare koppen, met de talen van de bronnen.
+    // Zonder die talen weet de widget het niet zeker: dan geen Editie, en blijft de vorige staan.
+    func widget(vraag: WidgetEditie.Vraag, gelezen: [String], eigenBronnen: [String]? = nil, bronnen: [Bron]? = nil, nu: Date = .now) -> WidgetEditie? {
         let datum = date ?? String(id.prefix(10))
         guard let dagdeel = slot ?? id.split(separator: "-").last.map(String.init), WidgetDagdeel.start[dagdeel] != nil else { return nil }
-        return WidgetEditie.bouw(id: id, datum: datum, dagdeel: dagdeel, stenen: stenen, gelezen: gelezen, vraag: vraag, nu: nu)
+        var lijst = stenen
+        if let eigenBronnen {
+            let bronTaal = Dictionary((bronnen ?? []).compactMap { b in b.lang.map { (b.id, $0) } }, uniquingKeysWith: { a, _ in a })
+            guard !bronTaal.isEmpty else { return nil }
+            let volgt = Set(eigenBronnen)
+            lijst = stenen(leesbaar: { Self.leesbaar($0, bronTaal: bronTaal, volgt: volgt) })
+        }
+        return WidgetEditie.bouw(id: id, datum: datum, dagdeel: dagdeel, stenen: lijst, gelezen: gelezen, vraag: vraag, eigenBronnen: eigenBronnen, nu: nu)
     }
 }
 
@@ -136,15 +164,18 @@ enum WidgetOphalen {
     static func haal(na oud: WidgetEditie, nu: Date = .now, sessie: URLSession = sessie) async -> WidgetEditie? {
         let verwacht = WidgetDagdeel.op(nu).id
         var server: ServerEditie?
+        var bronnen: [ServerEditie.Bron]?
         switch oud.vraag {
         case .lid:
             return nil
         case .algemeen:
             var c = URLComponents(url: basis.appending(path: "api/feed"), resolvingAgainstBaseURL: false)!
             c.queryItems = [URLQueryItem(name: "deel", value: "start")]
-            struct Start: Decodable { var edition: ServerEditie? }
+            struct Start: Decodable { var edition: ServerEditie?; var sources: [ServerEditie.Bron]? }
             if let (data, r) = try? await sessie.data(from: c.url!), (r as? HTTPURLResponse)?.statusCode == 200 {
-                server = (try? JSONDecoder().decode(Start.self, from: data))?.edition
+                let start = try? JSONDecoder().decode(Start.self, from: data)
+                server = start?.edition
+                bronnen = start?.sources
             }
         case .eigen:
             guard let vraag = try? Data(contentsOf: WidgetBron.vraagBestand) else { return nil }
@@ -159,10 +190,31 @@ enum WidgetOphalen {
                 server = e?.owner == "anon" ? e : nil
             }
         }
-        guard let server, server.id == verwacht, var nieuw = server.widget(vraag: oud.vraag, gelezen: oud.gelezen, nu: nu), !nieuw.verhalen.isEmpty else { return nil }
+        guard let server, server.id == verwacht,
+              var nieuw = server.widget(vraag: oud.vraag, gelezen: oud.gelezen, eigenBronnen: oud.eigenBronnen, bronnen: bronnen, nu: nu),
+              !nieuw.verhalen.isEmpty else { return nil }
         if let eerste = server.stenen.first(where: { $0.itemId == nieuw.verhalen[0].itemId }) {
             nieuw.verhalen[0].beeld = await WidgetBeelden.haal(eerste.beeldURL, itemId: eerste.itemId, sessie: sessie)
         }
         return nieuw
+    }
+}
+
+// Wat de widget toont als WidgetKit om een tijdlijn vraagt: de Editie uit de App Group, en bij een nieuw dagdeel
+// eerst zelf proberen de nieuwe te halen. Lukt dat niet (geen netwerk, nog niet klaar), dan blijft de vorige
+// Editie staan en wacht de widget (`wacht`: gauw opnieuw vragen, WidgetTijdlijn.volgende). `bewaard`: er staat
+// een nieuwe Editie in de App Group. In de extensie (HootTijdlijn) en in de toetsen dezelfde route.
+enum WidgetVernieuwen {
+    static let laatstePoging = "widget.laatstePoging"
+
+    // `suite`: de UserDefaults waarin de laatste poging staat (de App Group; in toetsen een eigen suite).
+    static func editie(nu: Date, suite: String = WidgetGroep.id, sessie: URLSession = WidgetOphalen.sessie) async -> (editie: WidgetEditie?, wacht: Bool, bewaard: Bool) {
+        let defaults = UserDefaults(suiteName: suite)
+        let oud = WidgetBron.laad()
+        guard WidgetOphalen.moetOphalen(oud, nu: nu), let oud else { return (oud, false, false) }
+        guard WidgetTijdlijn.magProberen(laatste: defaults?.object(forKey: laatstePoging) as? Date, nu: nu) else { return (oud, true, false) }
+        defaults?.set(nu, forKey: laatstePoging)
+        guard let nieuw = await WidgetOphalen.haal(na: oud, nu: nu, sessie: sessie) else { return (oud, true, false) }
+        return (nieuw, false, WidgetBron.bewaar(nieuw))
     }
 }

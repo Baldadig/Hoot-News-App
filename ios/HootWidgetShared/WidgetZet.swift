@@ -87,33 +87,44 @@ enum WidgetZet {
     // Middel · Top 3 en de rijen van Groot: hoeveel regels elke kop krijgt binnen `hoogte`. Eerst elke kop tot
     // `max` regels; past dat niet (met lucht `tussen` ertussen), dan krijgt een kop met twee regels er één: de kop
     // die daarbij het minst verliest (keuring 1: liever "Honderden scholen in Europa doelwit…" op één regel dan
-    // "Sluiting dreigt…"). Met `eersteVoorrang` houdt 01 zijn twee regels, tenzij een andere kop anders minder
-    // dan `eersteGrens` van zijn tekst overhoudt.
-    // Past het dan nog niet, dan valt de onderste weg: liever minder tekst dan krap.
-    static let eersteGrens = 0.45
+    // "Sluiting dreigt…"). Past het dan nog niet, dan valt de onderste weg: liever minder tekst dan krap.
+    // Met `eersteVoorrang` (Top 3) levert 01 nooit als eerste in (keuring 2: 01 is het belangrijkste verhaal):
+    // eerst 03 en 02, de kop die het minst verliest (bij gelijk 03), en pas daarna 01. Zou een kop daarbij minder
+    // dan `stompGrens` van zijn tekst overhouden ("Sluiting dreigt…"), dan valt liever de onderste kop weg en
+    // krijgen de andere hun ruimte terug.
+    static let stompGrens = 0.45
     static func rijen(_ verhalen: [WidgetVerhaal], _ m: WidgetLetter.Maat, breedte: CGFloat, hoogte: CGFloat, tussen: CGFloat, max: Int = 2, extra: CGFloat = 0, eersteVoorrang: Bool = false) -> [Gezet] {
-        var gezet = verhalen.map { pas($0.kop, kort: $0.kortKop, m, breedte: breedte, max: max) }
         func totaal(_ g: [Gezet]) -> CGFloat {
             g.isEmpty ? 0 : g.reduce(0) { $0 + CGFloat($1.regels) * m.regel + extra } + tussen * CGFloat(g.count - 1)
         }
-        while totaal(gezet) > hoogte {
-            let kandidaten = gezet.indices.filter { gezet[$0].regels > 1 }
-            // Per kandidaat: de kop met een regel minder, en welk deel van zijn tekst er blijft staan.
-            let opties = kandidaten.map { i -> (i: Int, g: Gezet, blijft: Double) in
-                let g = pas(verhalen[i].kop, kort: verhalen[i].kortKop, m, breedte: breedte, max: gezet[i].regels - 1)
-                let blijft = Double(g.tekst.utf16.count) / Double(Swift.max(1, gezet[i].tekst.utf16.count))
-                return (i, g, eersteVoorrang && i == 0 ? Swift.min(blijft, eersteGrens) : blijft)
-            }
-            // Het meeste over; bij gelijk de onderste.
-            if let beste = opties.max(by: { $0.blijft < $1.blijft || ($0.blijft == $1.blijft && $0.i < $1.i) }) {
+        // Regels inleveren tot het past (of niets meer kan). `stomp`: een kop hield minder dan stompGrens over.
+        func inleveren(_ v: [WidgetVerhaal]) -> (gezet: [Gezet], stomp: Bool) {
+            let vol = v.map { pas($0.kop, kort: $0.kortKop, m, breedte: breedte, max: max) }
+            var gezet = vol
+            while totaal(gezet) > hoogte {
+                var kandidaten = gezet.indices.filter { gezet[$0].regels > 1 }
+                if eersteVoorrang, kandidaten.contains(where: { $0 > 0 }) { kandidaten.removeAll { $0 == 0 } }
+                // Per kandidaat: de kop met een regel minder, en welk deel van zijn tekst er blijft staan.
+                let opties = kandidaten.map { i -> (i: Int, g: Gezet, blijft: Double) in
+                    let g = pas(v[i].kop, kort: v[i].kortKop, m, breedte: breedte, max: gezet[i].regels - 1)
+                    return (i, g, Double(g.tekst.utf16.count) / Double(Swift.max(1, gezet[i].tekst.utf16.count)))
+                }
+                // Het meeste over; bij gelijk de onderste.
+                guard let beste = opties.max(by: { $0.blijft < $1.blijft || ($0.blijft == $1.blijft && $0.i < $1.i) }) else { break }
                 gezet[beste.i] = beste.g
-            } else if gezet.count > 1 {
-                gezet.removeLast()
-            } else {
-                break
             }
+            let stomp = zip(gezet, vol).contains { Double($0.tekst.utf16.count) / Double(Swift.max(1, $1.tekst.utf16.count)) < stompGrens }
+            return (gezet, stomp)
         }
-        return gezet
+        var n = verhalen.count
+        while n > 0 {
+            let (gezet, stomp) = inleveren(Array(verhalen.prefix(n)))
+            let past = totaal(gezet) <= hoogte
+            if past && (!eersteVoorrang || !stomp || n == 1) { return gezet }
+            if n == 1 { return gezet }
+            n -= 1
+        }
+        return []
     }
 }
 

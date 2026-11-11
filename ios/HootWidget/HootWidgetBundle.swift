@@ -57,20 +57,12 @@ func toon(_ keuze: ToonKeuze, in family: WidgetFamily) -> WidgetToon {
 // MARK: - Tijdlijn
 
 enum HootTijdlijn {
-    static let laatstePoging = "widget.laatstePoging"
-
-    // De Editie uit de App Group; bij een nieuw dagdeel eerst zelf proberen de nieuwe te halen. `wacht`: er is
-    // een nieuw dagdeel maar (nog) geen nieuwe Editie, dus gauw opnieuw vragen (WidgetTijdlijn.volgende).
+    // De Editie uit de App Group; bij een nieuw dagdeel eerst zelf proberen de nieuwe te halen (WidgetVernieuwen,
+    // gedeeld en getoetst). Gelukt: ook de andere Hoot-widgets (die misschien net de oude kregen) opnieuw laten vragen.
     static func editie(nu: Date) async -> (editie: WidgetEditie?, wacht: Bool) {
-        let oud = WidgetBron.laad()
-        guard WidgetOphalen.moetOphalen(oud, nu: nu), let oud else { return (oud, false) }
-        let defaults = UserDefaults(suiteName: WidgetGroep.id)
-        guard WidgetTijdlijn.magProberen(laatste: defaults?.object(forKey: laatstePoging) as? Date, nu: nu) else { return (oud, true) }
-        defaults?.set(nu, forKey: laatstePoging)
-        guard let nieuw = await WidgetOphalen.haal(na: oud, nu: nu) else { return (oud, true) }
-        // Gelukt: ook de andere Hoot-widgets (die misschien net de oude kregen) opnieuw laten vragen.
-        if WidgetBron.bewaar(nieuw) { WidgetCenter.shared.reloadAllTimelines() }
-        return (nieuw, false)
+        let uit = await WidgetVernieuwen.editie(nu: nu)
+        if uit.bewaard { WidgetCenter.shared.reloadAllTimelines() }
+        return (uit.editie, uit.wacht)
     }
 
     static func entries(_ uitkomst: (editie: WidgetEditie?, wacht: Bool), nu: Date, toon: WidgetToon, metBeeld: Bool) -> Timeline<HootWidgetEntry> {
