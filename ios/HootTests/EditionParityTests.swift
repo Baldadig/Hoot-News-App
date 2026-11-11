@@ -7,6 +7,19 @@ import XCTest
 // (tests/editionGolden.test.mjs, uit tests/fixtures/edition-golden.json). Plus de rekentijd: op de
 // simulator zonder JIT, als maat voor een iPhone (doel ≤ 1,5 s, indicatief).
 final class EditionParityTests: XCTestCase {
+    // Redacteur · filters-ai: de harde media-aanwijzingen gaan heel mee naar de rekenkern (shared/editie-filter.mjs).
+    func testMediaMetadataSurvivesItemRoundTrip() throws {
+        let raw = #"{"id":"media-proef","source":"nos","title":"Energie uitgelegd","url":"https://example.test/energie","mediaType":"audio/mpeg","podcastEpisode":"3","feedMark":"podcast"}"#
+        let item = try JSONDecoder().decode(Item.self, from: Data(raw.utf8))
+        XCTAssertEqual(item.mediaType, "audio/mpeg")
+        XCTAssertEqual(item.podcastEpisode, "3")
+        XCTAssertEqual(item.feedMark, "podcast")
+        let again = try JSONDecoder().decode(Item.self, from: JSONEncoder().encode(item))
+        XCTAssertEqual(again.mediaType, item.mediaType)
+        XCTAssertEqual(again.podcastEpisode, item.podcastEpisode)
+        XCTAssertEqual(again.feedMark, item.feedMark)
+    }
+
     struct Golden {
         let name: String
         let input: String // JSON zoals JavaScript hem schrijft
