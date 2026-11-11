@@ -108,7 +108,13 @@ test('een nieuwe pointeractie heft een oude klikbewaking op',()=>{
  doc.dispatchEvent(new Event('pointerdown'));const e=new Event('click',{cancelable:true});Object.assign(e,{detail:1,pointerId:1});doc.dispatchEvent(e);assert.equal(e.defaultPrevented,false)
 })
 
-test('de pointer kan de opener focussen zonder het verhaal tijdens de klik te verschuiven',()=>{assert.match(taste,/onPointerDown=\{\(\) => moreRef.current\?\.focus\(\{ preventScroll: true \}\)\}/)})
+test('openen met muis of vinger geeft geen focusring: de opener krijgt nooit focus vanuit een script bij de pointer', () => {
+  // Een focus uit een script op pointerdown laat Chrome de volgende focus (de eerste keuze) als :focus-visible tellen.
+  assert.doesNotMatch(taste, /onPointerDown|onMouseDown|onTouchStart/, 'geen pointer-handler op de opener')
+  assert.doesNotMatch(taste, /onClick=\{[^}]*\.focus\(/, 'de klik zelf zet geen focus')
+  // Het menu zet de eerste keuze zelf in focus (zonder scrollsprong); het toetsenbord opent dus met ring, de pointer zonder.
+  assert.match(pop, /focus\(\{ preventScroll: true \}\)/)
+})
 
 test('menuacties blijven binnen de portal en activeren de verhaalkaart niet',()=>{assert.match(pop,/const key = \(e\) => \{\s*e.stopPropagation\(\)/);assert.match(pop,/onClick=\{\(e\) => e.stopPropagation\(\)\}/)})
 
