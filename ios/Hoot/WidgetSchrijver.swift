@@ -23,6 +23,9 @@ enum WidgetSchrijver {
         #if DEBUG
         if DebugLaunch.screen != nil { return } // opnamen van de app: de widgets van dit toestel niet aanraken
         #endif
+        // De app als gastheer van de toetsen schrijft niets voor de widgets: geen beeld ophalen of iOS laten
+        // verversen terwijl andere toetsen (WebKit) op tijd moeten antwoorden.
+        if WidgetGroep.inToets { return }
         guard let edition = store.shownEdition, let datum = edition.date, let dagdeel = edition.slot else { return }
         let kort = Dictionary(edition.entries.map { ($0.id, $0.kortKop) }, uniquingKeysWith: { a, _ in a })
         let rows = EditionNumbering.rows(store.editionRows).filter { $0.number != nil }
@@ -44,6 +47,7 @@ enum WidgetSchrijver {
 
     // De vraag van jouw Editie zonder account, voor de widget; nil haalt hem weg (met account).
     nonisolated static func bewaarVraag(_ payload: Data?) {
+        if WidgetGroep.inToets { return }
         if let payload {
             try? payload.write(to: WidgetBron.vraagBestand, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
         } else {
