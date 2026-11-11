@@ -180,3 +180,8 @@ test('landing: huisregels in de FAQ (vroege avond, geen kloktijden)', () => {
   assert.match(SRC, /in de ochtend, de middag en de vroege avond/)
   assert.doesNotMatch(tekst(SRC), /middag en avond|\b\d{1,2}(:\d\d)? ?uur\b(?! geleden)/)
 })
+
+test('frisse ogen: de Stroom heeft een tab Opinie, dus de landing belooft geen nieuws "zonder de meningen eromheen"', () => {
+  assert.doesNotMatch(SRC, /zonder de meningen/)
+  assert.match(SRC, /in de Stroom\.<\/span><\/h3><p>Al het nieuws uit jouw bronnen, met opinie apart\.<\/p>/)
+})
