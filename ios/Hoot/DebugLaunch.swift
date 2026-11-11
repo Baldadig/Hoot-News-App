@@ -150,6 +150,17 @@ extension View {
     }
 }
 
+/// `-HootScreen lezer`: wanneer de lezer open mag. Compact (iPhone, de Duo dicht): meteen, het wordt een blad.
+/// Breed: pas als de vouw gemeten is (de Duo open: de bladzijde of het tafelblad), of na het plafond (iPad: daar komt
+/// nooit een vouw). Geen vaste wachttijd: op een drukke Mac komt de vouw soms veel later, en dan wijkt het blad zelf.
+enum DebugLezerWacht {
+    static let plafond: Duration = .seconds(6)
+    static let stap: Duration = .milliseconds(100)
+    static func klaar(vouw: Bool, compact: Bool, verstreken: Duration) -> Bool {
+        compact || vouw || verstreken >= plafond
+    }
+}
+
 #if DEBUG
 // De iPhone Duo nabootsen zolang er geen iOS 27.1-simulator is. Het venster krijgt de maat van een houding
 // (punten uit het Duo-profiel van Xcode 27.2: buiten 466 × 678, binnen 669 × 951) en de breedteklassen uit

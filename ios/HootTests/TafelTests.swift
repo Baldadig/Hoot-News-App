@@ -172,8 +172,9 @@ import SwiftUI
         // Punt 2: op 208 breed braken deze koppen af met "…" (4 regels in 3). Nu passen ze in drie regels, in de
         // gewone rij (264, .subheadline) en in de ruime rij (312, .headline).
         for kop in Self.koppen {
-            XCTAssertLessThanOrEqual(regels(kop, stijl: .subheadline, breedte: 264), TafelEditie.kopRegels, "gewoon: \(kop)")
-            XCTAssertLessThanOrEqual(regels(kop, stijl: .headline, breedte: 312), TafelEditie.kopRegels, "ruim: \(kop)")
+            // 1.2.1: de cel is minstens zo breed (de rij maakt hem breder tot de plekken precies passen).
+            XCTAssertLessThanOrEqual(regels(kop, stijl: .subheadline, breedte: TafelCel.minBreedte), TafelEditie.kopRegels, "gewoon: \(kop)")
+            XCTAssertLessThanOrEqual(regels(kop, stijl: .headline, breedte: TafelCel.minBreedteRuim), TafelEditie.kopRegels, "ruim: \(kop)")
         }
         XCTAssertGreaterThan(Self.koppen.map { regels($0, stijl: .subheadline, breedte: 208) }.max() ?? 0, 3, "de oude cel was te smal")
     }
@@ -189,6 +190,55 @@ import SwiftUI
         }
         XCTAssertEqual(h("Kort", ruim: nil), h(Self.koppen[1], ruim: nil), accuracy: 0.5)
         XCTAssertEqual(h("Kort", ruim: 280), 280 - Space.s3 + Space.s3, accuracy: 0.5, "de ruime cel is zo hoog als de rij")
+    }
+
+    // MARK: De rij op hele plekken (keuring lezer-liggend, punt 1)
+
+    func testDeRijStaatOpHelePlekkenOpDeEchteDuo() throws {
+        try Self.tafelbladAan()
+        // Vlak liggend op de echte Duo is het vlak 867 breed: de balk opzij hoort er niet bij. Precies drie plekken
+        // tussen de marges, geen half verhaal aan een rand, en de rij loopt niet onder de balk door.
+        let p = TafelEditie.plekken(breedte: T.echtLiggend.width, minCel: TafelCel.minBreedte, tussen: TafelEditie.celTussen, marge: TafelEditie.rijMarge)
+        XCTAssertEqual(p.aantal, 3)
+        XCTAssertGreaterThanOrEqual(p.cel, TafelCel.minBreedte)
+        XCTAssertEqual(2 * TafelEditie.rijMarge + CGFloat(p.aantal) * p.cel + CGFloat(p.aantal - 1) * TafelEditie.celTussen, T.echtLiggend.width, accuracy: 0.01,
+                       "de plekken vullen het zichtbare deel precies")
+    }
+
+    func testHelePlekkenInElkeHouding() {
+        // Liggend zonder balk, als laptop (ruim), smal (Split View) en heel grote tekst: altijd hele plekken.
+        for (breedte, minCel) in [(951.0, TafelCel.minBreedte), (669, TafelCel.minBreedteRuim), (669, TafelCel.minBreedte), (400, TafelCel.minBreedte), (867, 2.2 * TafelCel.minBreedte)] as [(CGFloat, CGFloat)] {
+            let p = TafelEditie.plekken(breedte: breedte, minCel: minCel, tussen: TafelEditie.celTussen, marge: TafelEditie.rijMarge)
+            XCTAssertGreaterThanOrEqual(p.aantal, 1)
+            XCTAssertEqual(2 * TafelEditie.rijMarge + CGFloat(p.aantal) * p.cel + CGFloat(p.aantal - 1) * TafelEditie.celTussen, breedte, accuracy: 0.01, "\(breedte) \(minCel)")
+            XCTAssertGreaterThanOrEqual(p.cel, min(minCel, breedte - 2 * TafelEditie.rijMarge), "\(breedte) \(minCel)")
+        }
+        XCTAssertEqual(TafelEditie.plekken(breedte: 669, minCel: TafelCel.minBreedteRuim, tussen: TafelEditie.celTussen, marge: TafelEditie.rijMarge).aantal, 2,
+                       "als laptop twee ruime plekken, niet één")
+        XCTAssertEqual(TafelEditie.plekken(breedte: 0, minCel: 248, tussen: 24, marge: 16).aantal, 1, "nog niet gemeten: één plek, geen deling door nul")
+    }
+
+    func testDeRijBegintVooraanOfBijHetGekozenVerhaal() {
+        // Elf plekken (01–10 en het einde), drie in beeld.
+        XCTAssertEqual(TafelEditie.eerste(gekozen: nil, totaal: 11, zichtbaar: 3), 0, "zonder keuze 01 vooraan")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 2, totaal: 11, zichtbaar: 3), 0, "03 staat al in beeld: 01 vooraan")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 5, totaal: 11, zichtbaar: 3), 4, "06 in het midden")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 9, totaal: 11, zichtbaar: 3), 8, "10: de rij eindigt op het einde, niet erna")
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 10, totaal: 11, zichtbaar: 3), 8)
+        XCTAssertEqual(TafelEditie.eerste(gekozen: 5, totaal: 3, zichtbaar: 3), 0, "alles past: nooit scrollen")
+        for k in 0..<11 {
+            let e = TafelEditie.eerste(gekozen: k, totaal: 11, zichtbaar: 3)
+            XCTAssertTrue((e..<(e + 3)).contains(k), "het gekozen verhaal staat in beeld (\(k))")
+            XCTAssertLessThanOrEqual(e + 3, 11)
+        }
+    }
+
+    func testDeRijStoptVoorDeBalkEnSnaptOpPlekken() throws {
+        let bron = try String(contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/Views/Tafel.swift"), encoding: .utf8)
+        XCTAssertTrue(bron.contains(".contentMargins(.horizontal, TafelEditie.rijMarge, for: .scrollContent)"), "marges in de scroll: elke plek snapt op de lijn van de kop")
+        XCTAssertTrue(bron.contains(".scrollTargetBehavior(.viewAligned)"))
+        XCTAssertTrue(bron.contains(".clipped()"), "niets loopt onder de balk opzij door")
+        XCTAssertFalse(bron.contains("anchor: .center"), "geen half verhaal aan een rand door centreren")
     }
 
     // MARK: Tekenen

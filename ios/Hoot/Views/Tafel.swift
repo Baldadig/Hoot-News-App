@@ -35,6 +35,25 @@ enum TafelEditie {
     /// Een kop in de rij heeft altijd drie regels ruimte (dezelfde hoogte in elke cel: gelijke ritmiek).
     static let kopRegels = 3
 
+    /// De rij staat op hele plekken (zoals de planken in de App Store): er passen precies `aantal` cellen naast elkaar
+    /// tussen de marges, elk minstens `minCel` breed, en de rij snapt per cel. Zo staat er nooit een half verhaal aan
+    /// een rand. `breedte` is het zichtbare deel van de rij (vóór de balk opzij), `marge` de marge aan elke kant.
+    static func plekken(breedte: CGFloat, minCel: CGFloat, tussen: CGFloat, marge: CGFloat) -> (aantal: Int, cel: CGFloat) {
+        let ruimte = breedte - 2 * marge
+        guard ruimte > minCel, minCel > 0 else { return (1, max(minCel, ruimte)) }
+        let aantal = max(1, Int(((ruimte + tussen) / (minCel + tussen)).rounded(.down)))
+        return (aantal, (ruimte - tussen * CGFloat(aantal - 1)) / CGFloat(aantal))
+    }
+    static let celTussen: CGFloat = Space.s5
+    static let rijMarge: CGFloat = Space.s4
+
+    /// Welke plek vooraan staat. Staat het gekozen verhaal in de eerste `zichtbaar`, dan 01 vooraan; anders zo dat het
+    /// gekozen verhaal in beeld staat, en nooit voorbij het einde (de laatste plekken vullen dan de rij).
+    static func eerste(gekozen: Int?, totaal: Int, zichtbaar: Int) -> Int {
+        guard let gekozen, zichtbaar > 0, totaal > zichtbaar, gekozen >= zichtbaar else { return 0 }
+        return max(0, min(gekozen - (zichtbaar - 1) / 2, totaal - zichtbaar))
+    }
+
     /// De cel in de rij die gemarkeerd is: het verhaal boven, als het in de Editie staat (een stuk uit de Stroom niet).
     static func gemarkeerd(open: Item?, rij: [EditionRowModel]) -> EditionRowModel.ID? {
         guard let item = gekozen(open: open, rij: rij) else { return nil }
@@ -88,6 +107,9 @@ struct TafelOnder: View {
     @ScaledMetric(relativeTo: .body) private var tafelOnder = KrantIndeling.tafelOnder
     @State private var hoogte: CGFloat = 0 // de hoogte van de onderste helft (binnen de veilige zone)
     @State private var rijHoogte: CGFloat = 0 // de ruime rij: zo hoog is elke cel
+    @State private var rijBreedte: CGFloat = 0 // het zichtbare deel van de rij: vóór de balk opzij
+    @ScaledMetric(relativeTo: .subheadline) private var minCel: CGFloat = TafelCel.minBreedte
+    @ScaledMetric(relativeTo: .subheadline) private var minCelRuim: CGFloat = TafelCel.minBreedteRuim
 
     private var ruim: Bool { TafelEditie.ruim(hoogte: hoogte, tafelOnder: tafelOnder) }
 
@@ -101,43 +123,58 @@ struct TafelOnder: View {
         let rij = TafelEditie.rij(store.editionRows)
         let boven = TafelEditie.gekozen(open: reader?.item, rij: rij)
         let gemarkeerd = TafelEditie.gemarkeerd(open: reader?.item, rij: rij)
+        let plekken = TafelEditie.plekken(breedte: rijBreedte, minCel: ruim ? minCelRuim : minCel,
+                                          tussen: TafelEditie.celTussen, marge: TafelEditie.rijMarge)
+        let ids: [AnyHashable] = rij.map { AnyHashable($0.id) } + [AnyHashable("einde")]
+        let vooraan = { (gekozen: EditionRowModel.ID?) -> AnyHashable in
+            let k = gekozen.flatMap { g in rij.firstIndex { $0.id == g } }
+            return ids[TafelEditie.eerste(gekozen: k, totaal: ids.count, zichtbaar: plekken.aantal)]
+        }
         VStack(alignment: .leading, spacing: 0) {
-            Rule().padding(.horizontal)
+            Rule().padding(.horizontal, TafelEditie.rijMarge)
             HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
                 Text(titel).font(.kop(.headline)).foregroundStyle(Theme.ink).accessibilityAddTraits(.isHeader)
                 if !datum.isEmpty { Text(datum).font(.ui(.footnote)).foregroundStyle(Theme.ink3) }
             }
             .lineLimit(1)
-            .padding(.horizontal)
+            .padding(.horizontal, TafelEditie.rijMarge)
             .padding(.top, Space.s3)
             ScrollViewReader { proxy in
                 ScrollView(.horizontal) {
-                    HStack(alignment: .top, spacing: Space.s5) {
+                    HStack(alignment: .top, spacing: TafelEditie.celTussen) {
                         ForEach(rij) { row in
-                            TafelCel(row: row, gekozen: row.id == gemarkeerd, hoogte: ruim ? rijHoogte : nil) { kies(row.item) }
+                            TafelCel(row: row, gekozen: row.id == gemarkeerd, hoogte: ruim ? rijHoogte : nil, breedte: plekken.cel) { kies(row.item) }
                                 .id(row.id)
                         }
+                        // Het einde neemt ook een hele plek: zo eindigt de rij op een rand, niet op een half verhaal.
                         TafelEinde(regel: EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), aantal: rij.count)
+                            .frame(width: plekken.cel, alignment: .leading)
                             .id("einde")
                     }
-                    .padding(.horizontal)
                     .padding(.vertical, Space.s3)
                     .scrollTargetLayout()
                 }
+                // De marges horen bij de scroll, niet bij de inhoud: dan snapt elke plek op dezelfde lijn als de kop.
+                .contentMargins(.horizontal, TafelEditie.rijMarge, for: .scrollContent)
                 .scrollIndicators(.hidden)
                 // De ruime rij vult de onderste helft: de cellen zijn zo hoog als de ruimte tussen de kop en de bediening.
                 .frame(maxHeight: ruim ? .infinity : nil, alignment: .top)
-                .onGeometryChange(for: CGFloat.self) { max(0, $0.size.height - 2 * Space.s3) } action: { rijHoogte = $0 }
+                .onGeometryChange(for: CGSize.self) { $0.size } action: {
+                    rijHoogte = max(0, $0.height - 2 * Space.s3)
+                    rijBreedte = $0.width
+                }
                 .scrollTargetBehavior(.viewAligned)
-                // Je plek in de rij: het verhaal boven staat in beeld, ook na draaien of vouwen.
-                .onAppear { if let gemarkeerd { proxy.scrollTo(gemarkeerd, anchor: .center) } }
+                // De rij stopt vóór de balk opzij, net als de lijn erboven: niets loopt eronder door.
+                .clipped()
+                // Je plek in de rij: het verhaal boven staat in beeld, op hele plekken, ook na draaien of vouwen.
+                .onAppear { proxy.scrollTo(vooraan(gemarkeerd), anchor: .leading) }
+                .onChange(of: plekken.aantal) { proxy.scrollTo(vooraan(gemarkeerd), anchor: .leading) }
                 .onChange(of: gemarkeerd) { _, nieuw in
-                    guard let nieuw else { return }
-                    withAnimation(.snappy) { proxy.scrollTo(nieuw, anchor: .center) }
+                    withAnimation(.snappy) { proxy.scrollTo(vooraan(nieuw), anchor: .leading) }
                 }
             }
             if !ruim { Spacer(minLength: 0) }
-            if let boven { TafelBediening(item: boven).padding(.horizontal).padding(.bottom, Space.s2) }
+            if let boven { TafelBediening(item: boven).padding(.horizontal, TafelEditie.rijMarge).padding(.bottom, Space.s2) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { hoogte = $0 }
@@ -161,11 +198,16 @@ struct TafelOnder: View {
 struct TafelCel: View {
     @Environment(HootStore.self) private var store
     @Environment(\.dynamicTypeSize) private var typeSize
-    @ScaledMetric(relativeTo: .subheadline) private var breedte: CGFloat = 264
-    @ScaledMetric(relativeTo: .subheadline) private var breedteRuim: CGFloat = 312
+    /// De kleinste breedte van een cel (meegeschaald met de tekstgrootte); de rij maakt ze breder tot ze precies passen.
+    static let minBreedte: CGFloat = 248
+    static let minBreedteRuim: CGFloat = 300
+    @ScaledMetric(relativeTo: .subheadline) private var breedteMin: CGFloat = TafelCel.minBreedte
+    @ScaledMetric(relativeTo: .subheadline) private var breedteRuimMin: CGFloat = TafelCel.minBreedteRuim
     let row: EditionRowModel
     let gekozen: Bool
     var hoogte: CGFloat? = nil
+    /// De breedte van de plek in de rij (TafelEditie.plekken); zonder rij de kleinste breedte.
+    var breedte: CGFloat? = nil
     let kies: () -> Void
     @State private var mislukt = false
 
@@ -208,7 +250,7 @@ struct TafelCel: View {
             }
             kop(.subheadline)
         }
-        .frame(width: breedte, alignment: .topLeading)
+        .frame(width: breedte ?? breedteMin, alignment: .topLeading)
     }
 
     private func ruim(_ hoogte: CGFloat) -> some View {
@@ -243,7 +285,7 @@ struct TafelCel: View {
             if !store.showsImage(lead: false) { Spacer(minLength: 0) } // zonder beelden: de tekst bovenaan
             bronregel
         }
-        .frame(width: breedteRuim, height: max(0, hoogte - Space.s3), alignment: .topLeading)
+        .frame(width: breedte ?? breedteRuimMin, height: max(0, hoogte - Space.s3), alignment: .topLeading)
     }
 
     /// Bron, tijd en het aantal bronnen, stil onderaan de ruime cel ("NOS · 3 uur geleden · 4 bronnen").

@@ -199,6 +199,7 @@ struct RootView: View {
     @State private var krant = KrantStaat() // concept A: de krant open op de iPhone Duo (Krant.swift)
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
+    @Environment(\.horizontalSizeClass) private var horizontal // -HootScreen lezer: compact wacht niet op een vouw
     @Environment(EditionAlerts.self) private var alerts
     @Environment(\.brandHandoff) private var handoff
 
@@ -248,10 +249,14 @@ struct RootView: View {
             // `-HootScreen lezer`: bij voorkeur een gratis, Nederlandstalig stuk (dan het hele artikel), ook
             // als dat niet het hoofdstuk van het verhaal is.
             if DebugLaunch.screen("lezer"), reader.item == nil, !store.editionRows.isEmpty {
-                // Eerst de vouw: op de Duo geeft iOS de gereserveerde zone pas ± 1,5 s na de start door. Ging de lezer
-                // eerder open, dan kwam hij als blad over het scherm (nog geen krant), en het blad dat daarna voor het
-                // tafelblad of de bladzijde moest wijken, bleef leeg staan.
-                try? await Task.sleep(for: .seconds(2.5))
+                // Eerst de vouw: op de Duo geeft iOS de gereserveerde zone pas even na de start door. Wacht tot die
+                // er is (de krant weet dan of hij open ligt), hooguit `DebugLezerWacht.plafond`. Komt de vouw later
+                // toch nog, dan wijkt het blad zelf (BladWijkt): de lezer verhuist naar boven op het tafelblad.
+                let start = ContinuousClock.now
+                while !DebugLezerWacht.klaar(vouw: krant.vouw, compact: horizontal == .compact, verstreken: start.duration(to: .now)) {
+                    try? await Task.sleep(for: DebugLezerWacht.stap)
+                    if Task.isCancelled { return }
+                }
                 guard !Task.isCancelled, reader.item == nil else { return }
                 let all = store.editionRows.flatMap { row in [row.item] + (row.story?.itemIds.compactMap { store.itemsById[$0] } ?? []) }
                 let free = { (i: Item) in store.source(i.source).map { $0.paid != true } ?? false }
@@ -295,11 +300,12 @@ struct RootView: View {
         // (Reader bewaart het geladen artikel en de alinea waar je was). Een Bluesky-post zonder eigen
         // link heeft geen artikel: dan de post op bsky.app (LeesBlad).
         .fullScreenCover(item: Binding(
-            get: { krant.spread ? nil : reader.item },
+            get: { KrantStaat.blad(reader.item, spread: krant.spread) },
             set: { nieuw in if !krant.spread || nieuw != nil { reader.item = nieuw } } // het blad verdwijnt door het openen: het artikel blijft
         )) { item in
             // Het blad hangt buiten de omgeving hierboven: de lezer en de krant expliciet meegeven.
             LeesBlad(item: item).environment(reader).environment(krant)
+                .modifier(BladWijkt(krant: krant)) // ligt de krant open, dan wijkt het blad: nooit een leeg blad
         }
     }
 }
