@@ -945,6 +945,9 @@ struct ShareItemLink: View {
         return value
     }
     var body: some View {
+        deelLink.simultaneousGesture(TapGesture().onEnded { store.tel(.delen) }) // gemeten: het delen opent (Telling.swift)
+    }
+    @ViewBuilder private var deelLink: some View {
         if item.isPost {
             if let image = ImageURL.url(item.image, .thumb) ?? item.avatar.flatMap(URL.init(string:)) {
                 let preview = SharePreviewImage(url: image)

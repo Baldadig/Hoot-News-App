@@ -61,3 +61,17 @@ Besluit Alex (11 november): "Leesprofiel meesturen". De Editie wordt op de serve
 2. App Privacy: niets wijzigen, wel nalezen dat er geen label "Gebruiksgegevens › Andere gebruiksgegevens" of "Browsegeschiedenis" nodig is volgens de uitleg hierboven (alleen voor het verzoek, niet bewaard).
 3. Privacybeleid-URL: pas na de deploy van de website klopt gethoot.app/privacy met 1.2.1. Eerst de website deployen, dan indienen.
 4. Release notes van 1.2.1: als je het noemt, kort en eerlijk ("je Editie is op iPhone en web dezelfde").
+
+## Meten zonder volgen (branch `meten`, vanaf de volgende app-build)
+
+De app stuurt een kleine POST naar `gethoot.app/api/tel` (alleen Release): gebeurtenis (Editie geopend, Editie uitgelezen, artikel geopend, Stroom, Selectie, vergelijking, delen), het dagdeel van de Editie, platform `ios`, major.minor van de app en een aantal. Geen account, geen token, geen toestel-id, geen tijdstempel, geen IP-opslag, geen cookie. De server telt op in één dagdocument; er blijft een getal per gebeurtenis, platform en dagdeel over. Op het toestel staat alleen "al geteld voor dagdeel X" (UserDefaults).
+
+**Is dit "verzamelen" volgens Apple?** Voorzichtig: ja. Apple telt gegevens als verzameld zodra ze het toestel verlaten en langer bewaard worden dan nodig is om het verzoek zelf af te handelen. De dagtellers worden bewaard (hooguit 400 dagen). Ze zijn wel anoniem en geaggregeerd: niet te herleiden tot een persoon of toestel, dus **niet gekoppeld** en **niet voor tracking**. Het gegevenstype is Gebruiksgegevens › Productinteractie, doel Analytics.
+
+**Wat Alex in App Store Connect aanpast (niet gedaan; bij het indienen van de eerstvolgende build):**
+1. App Privacy › Gegevens bewerken › Gebruiksgegevens › **Productinteractie** staat er al (gekoppeld, geen tracking, App-functionaliteit). Vink daar **Analytics** bij als doel.
+2. "Gekoppeld aan de gebruiker" blijft **Ja** voor dat gegevenstype: ASC kent die keuze één keer per gegevenstype, en de gesynchroniseerde leesgeschiedenis van ingelogde leden is wel gekoppeld. De tellers zelf zijn dat niet; dit is dus een voorzichtige (te ruime) opgave, geen onjuiste.
+3. Tracking: **Nee**. Er is geen koppeling met gegevens van anderen en geen id.
+4. Publiceren, en pas daarna de build met `Telling.swift` indienen (de labels moeten kloppen vóór de binary).
+
+`Hoot/PrivacyInfo.xcprivacy` is hierop aangepast: `NSPrivacyCollectedDataTypePurposeAnalytics` bij Productinteractie. Het privacybeleid (gethoot.app/privacy) noemt het in "Wat Hoot telt"; eerst de website deployen, dan indienen. "Geen gegevens verzameld" op de productpagina was al niet meer waar sinds het inloggen; dit verandert het label niet verder.
