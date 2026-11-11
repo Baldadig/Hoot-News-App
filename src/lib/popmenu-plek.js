@@ -5,21 +5,28 @@ const GAP = 8 // --s2
 const NUDGE = 4 // --s1
 
 export function placeMenu(menu, anchor, win = window, doc = document) {
+  const tokens = win.getComputedStyle?.(doc.documentElement)
+  const token = (name, fallback) => parseFloat(tokens?.getPropertyValue(name)) || fallback
+  const gutter = token('--gutter', GUTTER), gap = token('--s2', GAP), nudge = token('--s1', NUDGE)
   const b = anchor.getBoundingClientRect()
   const icon = anchor.querySelector('svg')?.getBoundingClientRect() || b
   const row = anchor.closest('.meta, .kmeta')
   const ink = row ? [...row.querySelectorAll(':scope > .iconbtn svg')].map((s) => s.getBoundingClientRect()).filter((r) => r.width).reduce((m, r) => Math.max(m, r.right), 0) : 0
   const right = ink || icon.right
-  const w = menu.offsetWidth, h = menu.offsetHeight
   const vw = doc.documentElement.clientWidth, vh = win.innerHeight
-  const left = Math.max(GUTTER, Math.min(right - w, vw - GUTTER - w))
+  const bars = [...(doc.querySelectorAll?.('.app__nav, .nav') || [])].map(el => el.getBoundingClientRect()).filter(r => r.width > r.height && r.top > 0 && r.bottom >= vh - 1)
+  const bottom = Math.min(vh, ...bars.map(r => r.top)) - gutter
+  menu.style.maxHeight = `${Math.max(0, bottom - gutter)}px`
+  menu.style.overflowY = 'auto'
+  const w = menu.offsetWidth, h = menu.offsetHeight
+  const left = Math.max(gutter, Math.min(right - w, vw - gutter - w))
   // Onder het icoon, maar nooit over de bronregel zelf (naam, tijd, "N bronnen" blijven leesbaar):
   // dus ook onder de regel. Erboven idem: boven de hele regel.
   const box = row?.getBoundingClientRect()
-  const below = Math.max(icon.bottom + GAP, box ? box.bottom + NUDGE : 0)
-  const above = Math.min(icon.top - GAP, box ? box.top - NUDGE : Infinity) - h
+  const below = Math.max(icon.bottom + gap, box ? box.bottom + nudge : 0)
+  const above = Math.min(icon.top - gap, box ? box.top - nudge : Infinity) - h
   let top = below
-  if (below + h > vh - GUTTER && above >= GUTTER) top = above
+  if (below + h > bottom) top = above >= gutter ? above : Math.max(gutter, bottom - h)
   menu.style.left = `${Math.round(left)}px`
   menu.style.top = `${Math.round(top)}px`
   menu.dataset.side = top === below ? 'onder' : 'boven'

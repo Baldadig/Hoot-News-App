@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { swallowDismissClick } from '../lib/popmenu-dismiss.js'
 import { placeMenu } from '../lib/popmenu-plek.js'
 
 // Een zwevend menu bij een knop (de ⋯ van de bronregel), zoals het contextmenu van de app: de bronregel
@@ -37,6 +38,9 @@ export function Popmenu({ anchor, id, label, onClose, view, children }) {
   useEffect(() => {
     const down = (e) => {
       if (ref.current?.contains(e.target) || anchor.current?.contains(e.target)) return
+      swallowDismissClick(e)
+      e.preventDefault()
+      e.stopPropagation()
       onClose(false)
     }
     document.addEventListener('pointerdown', down, true)

@@ -13,6 +13,7 @@ import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
 import { avatarUrl, fitsLarge, fitsHero, sharpHere } from '../lib/img.js'
 import { Beeld } from './Beeld.jsx'
+import { focusMenuNotice } from '../lib/popmenu-dismiss.js'
 import { Popmenu } from './Popmenu.jsx'
 import { TermHelp } from './Terms.jsx'
 import { Img, MeasuredImg } from './Img.jsx'
@@ -242,9 +243,10 @@ export function TasteButton({ entryKey, item, story, withShare = false }) {
     if (refocus) moreRef.current?.focus({ preventScroll: true })
   }, [])
   const pick = (dir) => {
-    close()
+    close(dir > 0)
     voteOn(entryKey, items, dir)
     notify?.(`Je voorkeur voor ${dir > 0 ? 'meer' : 'minder'} over ${aboutOf(items)} is bewaard.`)
+    if (dir < 0) requestAnimationFrame(() => focusMenuNotice())
   }
   const report = (reason) => {
     close()

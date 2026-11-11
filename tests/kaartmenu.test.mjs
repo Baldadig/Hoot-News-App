@@ -68,3 +68,41 @@ test('past het er niet onder, dan boven de regel; altijd binnen het venster', ()
   const smal = scene({ vw: 390, inkRight: 120 })
   assert.equal(smal.px('left'), 16, 'nooit buiten de goot van 16')
 })
+
+import { swallowDismissClick, focusMenuNotice } from '../src/lib/popmenu-dismiss.js'
+for (const pointerType of ['mouse','touch','pen']) test(`buiten sluiten verbruikt alleen de bijbehorende klik (${pointerType})`, () => {
+  const doc = new EventTarget()
+  let clear
+  swallowDismissClick({ pointerId: 7, pointerType }, doc, { setTimeout(fn) { clear = fn; return 1 }, clearTimeout() {} })
+  const click = new Event('click', { cancelable: true })
+  Object.assign(click, { detail: 1, pointerId: 7 })
+  doc.dispatchEvent(click)
+  assert.equal(click.defaultPrevented, true)
+  const next = new Event('click', { cancelable: true }); Object.assign(next, { detail: 1, pointerId: 7 });doc.dispatchEvent(next)
+  assert.equal(next.defaultPrevented, false)
+  clear()
+})
+test('een gesloten menu houdt een volgende klik niet tegen wanneer de sleep geen klik gaf', () => {
+  const doc = new EventTarget();let timeout
+  swallowDismissClick({},doc,{setTimeout(fn){timeout=fn;return 1},clearTimeout(){}})
+  timeout();const click=new Event('click',{cancelable:true});Object.assign(click,{detail:1});doc.dispatchEvent(click);assert.equal(click.defaultPrevented,false)
+})
+test('op 390 staat het menu ook bij y 540–560 boven de vaste tabbalk met de token-goot', () => {
+  for (const y of [540,550,560]) {
+    const row={getBoundingClientRect:()=>rect(16,y,358,44),querySelectorAll:()=>[]}
+    const anchor={getBoundingClientRect:()=>rect(300,y,44,44),querySelector:()=>null,closest:()=>row}
+    const menu={offsetWidth:208,offsetHeight:250,style:{},dataset:{}}
+    placeMenu(menu,anchor,{innerHeight:844,getComputedStyle:()=>({getPropertyValue:n=>({'--gutter':'16px','--s2':'8px','--s1':'4px'}[n])})},{documentElement:{clientWidth:390},querySelectorAll:()=>[{getBoundingClientRect:()=>rect(0,791,390,53)}]})
+    assert.ok(parseFloat(menu.style.top)+250<=791-16)
+  }
+})
+test('Minder hiervan kan de melding focussen zonder de verdwenen knop', () => {
+  let focused=false;const notice={focus(){focused=true}}
+  assert.equal(focusMenuNotice({querySelector:()=>notice}),true);assert.equal(notice.tabIndex,-1);assert.equal(focused,true)
+  assert.match(taste,/close\(dir > 0\)/);assert.match(taste,/requestAnimationFrame\(\(\) => focusMenuNotice/)
+})
+
+test('een nieuwe pointeractie heft een oude klikbewaking op',()=>{
+ const doc=new EventTarget();swallowDismissClick({pointerId:1},doc,{setTimeout(){return 1},clearTimeout(){}})
+ doc.dispatchEvent(new Event('pointerdown'));const e=new Event('click',{cancelable:true});Object.assign(e,{detail:1,pointerId:1});doc.dispatchEvent(e);assert.equal(e.defaultPrevented,false)
+})
