@@ -19,6 +19,7 @@ import { tabsVan, stroomTabsFeed } from '../../shared/stroom-tabs.mjs'
 import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
+import { verschillenAan, verschillenVoorEditie, metVerschillen } from './verschillen.mjs'
 import { crossLanguagePairs } from './taalgrens.mjs'
 import { freeDutchFill, morningTopUp, OCHTEND_AANVULLING } from './aanvulling.mjs'
 import { haagsDossier } from './dossiers.mjs'
@@ -121,6 +122,17 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const ai = await aiExclusions({ pool: editionOut, stories, now, client: anthropic, kv: { get: kvGet, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }) } })
   const kept = (i) => !ai.weg.has(i.id)
   const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition).filter(kept), pool: editionOut.filter(kept), anthropic })
+  // Waar media verschillen (achter HOOT_VERSCHILLEN=aan): loopt naast het meten van de beelden, met een
+  // eigen tijdsbudget; met de vlag uit raakt het niets aan en verandert de feed niet.
+  const verschillen = verschillenAan()
+    ? verschillenVoorEditie({
+        client: anthropic,
+        entries: edition.public.entries,
+        storyById: new Map([...edition.snapshot.stories, ...stories].map((st) => [st.id, st])),
+        itemsById: new Map([...edition.snapshot.items, ...articlePool].map((i) => [i.id, i])),
+        now,
+      })
+    : Promise.resolve(new Map())
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
   // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
   const outById = new Map(out.map(i => [i.id, i]))
@@ -141,12 +153,13 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const parts = {}
   for (const it of out) (parts[it.source] ||= []).push(it)
   const storyItems = out.filter((i) => i.storyId)
+  const blokken = await verschillen
   return {
     sources: sourceList({ mainGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
     items: out.filter(inStroom),
     parts,
     related: [...storyItems, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id) || !i.storyId)],
-    stories: [...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))],
+    stories: metVerschillen([...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))], blokken),
     edition: edition.public,
     // Niet voor de app: refresh.mjs haalt dit eruit en bewaart er de feed van dit dagdeel mee (frisse ogen · 2).
     archive: edition.archive,
