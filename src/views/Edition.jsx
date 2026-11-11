@@ -468,7 +468,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </span>
               </button>
             ) : null}
-            {hasMinimum ? (<div className="endcap" ref={endRef}>
+            {hasMinimum ? (<div className="endcap">
               {/* De telling rond: "10 van 10" boven het merk, stil op rood (bij een korte Editie "7 van 7"). */}
               {count ? (
                 <p className="endcap__count">
@@ -477,7 +477,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               ) : null}
               {/* Het enige merkmoment tijdens het lezen: de zon komt één keer op (plan 01/05). */}
               <EindeSun className="endcap__sun" />
-              <h2 className="head-5 endcap__title">{eindzin(edition.date, edition.slot)}</h2>
+              <h2 className="head-5 endcap__title" ref={endRef}>{eindzin(edition.date, edition.slot)}</h2>
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
