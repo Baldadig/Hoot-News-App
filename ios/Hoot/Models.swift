@@ -50,6 +50,8 @@ struct Item: Codable, Identifiable, Hashable {
     var readMin: Int?
     var type: String?
     var section: String?
+    var opinion: Bool? // de uitgever brengt het als mening (server, shared/opinie.mjs); terugval voor de tab Opinie
+    var tabs: [String]? // de Stroom-tabs van de server die dit bericht draagt (shared/stroom-tabs.mjs), zoals ["opinie"]
     // Alleen bij Bluesky-posts
     var handle: String?
     var linkTitle: String? // titel van een gedeelde link
@@ -119,6 +121,12 @@ struct Item: Codable, Identifiable, Hashable {
     }
     static func withVia(_ via: String?) -> (String) -> String { { intro in via.map { "\(intro) — via \($0)" } ?? intro } }
     var isPost: Bool { kind == "post" }
+    // Draagt dit bericht de Stroom-tab `id`? Met `tabs` van de server telt alleen die lijst; een bericht van
+    // vóór dat veld valt voor Opinie terug op `opinion`/`type` (inTab in shared/stroom-tabs.mjs).
+    func inTab(_ id: String) -> Bool {
+        if let tabs { return tabs.contains(id) }
+        return id == "opinie" && (opinion == true || type == "opinie")
+    }
     // Rechtstreeks van Bluesky's video-CDN (het gewone adres stuurt daar alleen naartoe, en dat
     // reageerde eind oktober urenlang niet), ook voor berichten van vóór die omzetting.
     var videoURL: URL? { video.flatMap(Self.direct).flatMap(URL.init(string:)) }
@@ -130,7 +138,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, introAlt, introAltFrom, introLoose, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, introAlt, introAltFrom, introLoose, url, image, publishedAt, author, readMin, type, section, opinion, tabs, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -157,6 +165,8 @@ extension Item {
         readMin = try? c.decodeIfPresent(Int.self, forKey: .readMin)
         section = try? c.decodeIfPresent(String.self, forKey: .section)
         type = try? c.decodeIfPresent(String.self, forKey: .type)
+        opinion = try? c.decodeIfPresent(Bool.self, forKey: .opinion)
+        tabs = try? c.decodeIfPresent([String].self, forKey: .tabs)
         handle = try? c.decodeIfPresent(String.self, forKey: .handle)
         linkTitle = try? c.decodeIfPresent(String.self, forKey: .linkTitle)
         imageMeta = try? c.decodeIfPresent(ImageMeasure.self, forKey: .imageMeta)
@@ -324,6 +334,41 @@ struct FeedStart: Codable {
     var stories: [Story]
     var edition: Edition?
     var meta: FeedMeta
+    // De Stroom-tabs tussen Sport en Buiten je bubbel (vanaf 1.2.1). nil: de feed heeft de lijst niet (of iets
+    // anders dan een lijst); een kapot element valt weg (Lossy), en StroomTab.uit controleert de rest.
+    var stroomTabs: [StroomTab]? = nil
+}
+
+// Een Stroom-tab van de server (shared/stroom-tabs.mjs): een filter op de Stroom tussen Sport en Buiten je
+// bubbel, zoals Opinie. Alles, de acht hoofdrubrieken en Buiten je bubbel blijven in de app (huisregel); zo
+// vraagt een volgende categorie geen app-update.
+struct StroomTab: Codable, Hashable {
+    let id: String
+    let label: String
+
+    // Een feed van vóór `stroomTabs`: alleen Opinie (zoals het web, TERUGVAL).
+    static let terugval = [StroomTab(id: "opinie", label: "Opinie")]
+    private static let vast: Set<String> = Set(["", "alles", "bubbel"] + Rubriek.alle.map(\.id))
+
+    // De lijst uit de feed, gecontroleerd (stroomTabsUit op het web): een korte id in kleine letters en een
+    // label, zonder dubbelen of vaste ids, hooguit vier. Geen lijst: de terugval.
+    static func uit(_ lijst: [StroomTab]?) -> [StroomTab] {
+        guard let lijst else { return terugval }
+        var seen = Set<String>(), out: [StroomTab] = []
+        for t in lijst {
+            let label = t.label.trimmingCharacters(in: .whitespaces)
+            guard t.id.wholeMatch(of: /[a-z][a-z0-9-]{0,23}/) != nil, !label.isEmpty, label.count <= 24,
+                  !vast.contains(t.id), seen.insert(t.id).inserted else { continue }
+            out.append(StroomTab(id: t.id, label: label))
+            if out.count == 4 { break }
+        }
+        return out
+    }
+
+    // Welke tabs er in de Stroom iets hebben (tabsMetBerichten op het web).
+    static func metBerichten(_ stream: [Item], tabs: [StroomTab]) -> Set<String> {
+        Set(tabs.filter { t in stream.contains { $0.inTab(t.id) } }.map(\.id))
+    }
 }
 
 struct FeedPart: Codable {
@@ -396,13 +441,14 @@ extension KeyedDecodingContainer {
 }
 
 extension FeedStart {
-    enum CodingKeys: String, CodingKey { case sources, stories, edition, meta }
+    enum CodingKeys: String, CodingKey { case sources, stories, edition, meta, stroomTabs }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         sources = c.lossy([Source].self, forKey: .sources)
         stories = c.lossy([Story].self, forKey: .stories)
         edition = try? c.decodeIfPresent(Edition.self, forKey: .edition)
         meta = (try? c.decodeIfPresent(FeedMeta.self, forKey: .meta)) ?? FeedMeta()
+        stroomTabs = (try? c.decodeIfPresent([Lossy<StroomTab>].self, forKey: .stroomTabs))?.map { $0.compactMap(\.value) }
     }
 }
 

@@ -124,6 +124,8 @@ final class HootStore {
     private(set) var coreFailed = false
     // De Stroom, gesorteerd: één keer per laadactie of bronwijziging, niet bij elke weergave.
     private(set) var stream: [Item] = []
+    // De Stroom-tabs van de server tussen Sport en Buiten je bubbel (StroomTab); een feed zonder de lijst: Opinie.
+    private(set) var stroomTabs: [StroomTab] = StroomTab.terugval
     // Tot waar je de Stroom zag (het nieuwste bericht toen je hem verliet), en de grens voor dit
     // bezoek: die schuift niet mee terwijl je leest, pas als je de Stroom opnieuw opent.
     private var streamSeen: Date? { didSet { save("hoot.streamSeen", streamSeen) } }
@@ -689,6 +691,7 @@ final class HootStore {
             edition = start.edition
             updatedAt = start.meta.updatedAt.flatMap(HootDate.parse)
             relatedVersion = start.meta.related
+            stroomTabs = StroomTab.uit(start.stroomTabs)
             parts = start.meta.parts ?? [:]
             stale = false // een mislukt deel zet hem hieronder weer aan
             coreFailed = fromCache
