@@ -10,6 +10,7 @@ import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace
 import { profileOf } from '../../shared/editor.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
+import { isOpinie } from '../../shared/opinie.mjs'
 import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
@@ -676,7 +677,7 @@ async function updateRegistry(registry, list, now) {
 
 // ---------- Wat de app van een bericht krijgt ----------
 // Lege velden laten we weg: dat scheelt een kwart van de omvang.
-function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
+export function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
   const src = SOURCE.get(it.source)
   const own = [...(src?.topics || []), ...(src?.music ? ['muziek'] : [])]
   const { topics, mainTopics } = articleTopics(it, own)
@@ -693,6 +694,9 @@ function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     author: it.author,
     type: it.type,
     section: it.section,
+    // Opinie voor de Stroom (shared/opinie.mjs): de tab Opinie, en het label "Opinie" boven de kop.
+    // Alleen `true` gaat mee (compact laat false weg); een oudere app negeert het veld.
+    opinion: isOpinie(it),
     // Alleen bij een afwijkende taal (de brontaal staat in de bronnenlijst): scheelt omvang.
     lang: it.offLang ? it.lang : null,
     offLang: it.offLang,
