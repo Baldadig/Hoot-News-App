@@ -1,5 +1,5 @@
 {
-  "uitleg": "Nagebootste schrijversantwoorden voor twee verhalen uit de live Editie van 11 november, avond (GET /api/feed?deel=kern, opgehaald 17.40 UTC; bewaard als Hoot-design/media-verschillen/feed-kern-2026-11-11-avond.json). Er was geen ANTHROPIC_API_KEY. Met de hand opgesteld in de vorm van het structured-output-antwoord van claude-sonnet-5-5, om de echte codecontrole en het samenstellen op de feed van nu te laten draaien en om de schermen een blok te geven dat bij de bronnen van dat verhaal hoort. De controle (Haiku) keurt hier alles goed (nagebootst).",
+  "uitleg": "Nagebootste schrijversantwoorden voor twee verhalen uit de live Editie van 11 november, avond (GET /api/feed?deel=kern, opgehaald 17.40 UTC; bewaard als Hoot-design/media-verschillen/feed-kern-2026-11-11-avond.json). Er was geen ANTHROPIC_API_KEY. Met de hand opgesteld in de vorm van het structured-output-antwoord van claude-sonnet-5-5, om de echte codecontrole en het samenstellen op de feed van nu te laten draaien en om de schermen een blok te geven dat bij de bronnen van dat verhaal hoort. De controle (Haiku) keurt hier alles goed (nagebootst). Ronde verschillen-2: het eerste verschil (NU.nl tegenover ND en RTL Nieuws, het randgeval uit keuring 2) keurt de nagebootste controle af als eenzijdig; het reserveverschil (wie aan het woord is: Paternotte tegenover De Winther) komt erdoor.",
   "verhalen": {
     "sts2z5a": {
       "naam": "Belastingplan (live, 11 uitgevers)",
@@ -64,7 +64,8 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           },
           {
             "soort": "verschil",
@@ -89,7 +90,62 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": [
+              {
+                "bronnen": [
+                  1
+                ],
+                "kenmerk": "kabinetscrisis dreigt"
+              },
+              {
+                "bronnen": [
+                  2,
+                  5
+                ],
+                "kenmerk": "geen crisis"
+              }
+            ]
+          },
+          {
+            "soort": "verschil",
+            "tekst": "Wie aan het woord is, verschilt: het ND en RTL Nieuws citeren Paternotte met ‘geen crisis’, De Telegraaf citeert De Winther met ‘duidelijke breuk’.",
+            "bronnen": [
+              2,
+              5,
+              14
+            ],
+            "fragmenten": [
+              {
+                "bron": 2,
+                "tekst": "Paternotte: geen crisis in coalitie"
+              },
+              {
+                "bron": 5,
+                "tekst": "Paternotte ziet geen crisis"
+              },
+              {
+                "bron": 14,
+                "tekst": "Dit is duidelijke breuk binnen de coalitie"
+              }
+            ],
+            "uniek": [],
+            "afwezig": [],
+            "kanten": [
+              {
+                "bronnen": [
+                  2,
+                  5
+                ],
+                "kenmerk": "geen crisis"
+              },
+              {
+                "bronnen": [
+                  14
+                ],
+                "kenmerk": "duidelijke breuk"
+              }
+            ]
           },
           {
             "soort": "onbekend",
@@ -104,11 +160,19 @@
               }
             ],
             "uniek": [],
-            "afwezig": []
+            "afwezig": [],
+            "kanten": []
           }
         ]
       },
-      "controle": []
+      "controle": [
+        {
+          "zin": "De koppen verschillen",
+          "gedragen": true,
+          "echt_verschil": false,
+          "reden": "eenzijdig: NOS en RTL Nieuws koppen ook over hoogspanning en De Telegraaf over een breuk, maar ze staan niet bij NU.nl; RTL Nieuws staat zo aan beide kanten."
+        }
+      ]
     },
     "s19f28ob": {
       "naam": "Twee zaken in één verhaal (live)",
