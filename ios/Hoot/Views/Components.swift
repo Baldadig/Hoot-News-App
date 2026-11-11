@@ -953,7 +953,9 @@ struct ShareItemLink: View {
                 ShareLink(item: link, subject: Text(item.shareTitle), preview: SharePreview(item.shareTitle)) { label }
             }
         } else {
+            // Kaart én link: de link naar het artikel gaat als bericht mee (Berichten, WhatsApp, Mail).
             ShareLink(item: DeelKaartExport(item: cardItem), subject: Text(item.shareTitle),
+                      message: Text(DeelKaartExport(item: cardItem).link.absoluteString),
                       preview: SharePreview(item.shareTitle, image: DeelKaartExport(item: cardItem, format: .link))) { label }
         }
     }

@@ -32,11 +32,11 @@ final class DeelKaartTests: XCTestCase {
         XCTAssertNotNil(UIFont(name: "Newsreader-ExtraBold", size: 48))
         XCTAssertNotNil(UIFont(name: "SchibstedGrotesk-SemiBold", size: 20)) // de deelkaart gebruikt Schibsted Grotesk 600, net als de server
     }
-    // Build 46: deellink op gethoot.app met de uitgeverslink erbij (zie netlify/functions/deel.mjs).
-    func testDeellinkOpGethootMetUitgeverslink() {
+    // 1.2.1: de deellink is het artikel zelf bij de uitgever (besluit Alex 11-11, gelijk aan het web).
+    func testDeellinkIsHetArtikel() {
         let item = Item(id: "abc:1", source: "nos", title: "Kop", url: "https://nos.nl/artikel/1?a=b&c=d")
         let link = DeelKaartExport(item: item).link.absoluteString
-        XCTAssertEqual(link, "https://gethoot.app/deel/abc:1?bron=https%3A%2F%2Fnos.nl%2Fartikel%2F1%3Fa%3Db%26c%3Dd")
+        XCTAssertEqual(link, "https://nos.nl/artikel/1?a=b&c=d")
         XCTAssertEqual(HootAPI.base.absoluteString, "https://gethoot.app")
         XCTAssertEqual(HootAPI.userAgent(version: "1.1.0"), "Hoot-iOS/1.1.0 (+https://gethoot.app)")
         let real = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String

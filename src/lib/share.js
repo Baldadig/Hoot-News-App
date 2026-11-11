@@ -1,4 +1,4 @@
-// Delen met een eigen Hoot-kaart voor artikelen; posts houden hun bronlink.
+// Delen: artikelen als Hoot-kaart met de link naar het artikel erbij; posts houden hun bronlink.
 import { safeHttpUrl } from '../../shared/util.mjs'
 
 export const SHARE_CUT = 100
@@ -18,13 +18,8 @@ export function shareTitle(item) {
   return (space > 0 ? cut.slice(0, space) : cut) + '…'
 }
 
-// Artikelen krijgen een Hoot-deelpagina; zonder geldige bronlink valt er niets te delen.
-export const shareLink = (item) => {
-  const source = safeHttpUrl(item?.url)
-  if (!source) return null
-  // De uitgeverslink gaat mee (?bron=…): is het verhaal niet meer bewaard, dan stuurt /deel/ daarheen.
-  return item?.id && item.kind !== 'post' ? `https://gethoot.app/deel/${encodeURIComponent(item.id)}?bron=${encodeURIComponent(source)}` : source
-}
+// De link wijst altijd naar het artikel zelf bij de uitgever (besluit Alex 11-11); Hoot staat al op de kaart.
+export const shareLink = (item) => safeHttpUrl(item?.url) || null
 
 // Wat er te delen valt, in de vorm van navigator.share: { title, url }, of null zonder link.
 export function shareData(item) {
@@ -52,7 +47,8 @@ export async function shareItem(item, nav = typeof navigator !== 'undefined' ? n
       const response = await fetcher(`/api/deelkaart?id=${encodeURIComponent(item.id)}&f=staand`, { signal: AbortSignal.timeout(5000) })
       if (response.ok && /image\/png/i.test(response.headers.get('content-type') || '')) {
         const file = new FileClass([await response.blob()], 'hoot-krantenkop.png', { type: 'image/png' })
-        const withFile = { ...data, files: [file] }
+        // Kaart én link: veel apps laten `url` vallen zodra er een bestand bij zit, `text` komt wel aan.
+        const withFile = { title: data.title, text: data.url, files: [file] }
         if (nav.canShare(withFile)) payload = withFile
       }
     } catch { /* Link kopiëren als de kaart niet beschikbaar is. */ }
