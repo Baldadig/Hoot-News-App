@@ -1646,17 +1646,31 @@ const OUTLOOK = /\b(naar de stembus|naar de stembussen|gaat stemmen|gaan stemmen
 export const outlookTitle = (i) => OUTLOOK.test(norm(i?.title || ''))
 // Een vooruitblik die al ingehaald is: het verhaal heeft een nieuwer stuk (met titel) dat geen vooruitblik is.
 export const staleOutlook = (i, items) => outlookTitle(i) && items.some((j) => j !== i && titled(j) && timeOf(j) > timeOf(i) && !outlookTitle(j))
+// Frisse ogen · ronde 2 (punt 4 van het rapport van 11 november: bovenaan staat nieuws, geen portret). Een portretkop
+// ("Nvidia-topman Jensen Huang zat midden in de American dream, totdat hij viel …", "… wie is Nvidia-topman Jensen
+// Huang?") stond twee dagen op plek 01 terwijl het verhaal nieuwskoppen had. Herkend aan vaste uitdrukkingen in de kop,
+// niet aan namen. Een zwakke kop: een portret of een beschouwende kop (verdictTitle).
+const PORTRAIT_HEAD = /\b(wie is|wie was|wie zijn|portret|het leven van|zo werd|totdat|wat drijft|who is|who was|profile of|the life of|the rise and fall|the making of|inside the mind)\b|\bhow .{3,40} became\b/
+export const portraitTitle = (i) => PORTRAIT_HEAD.test(norm(i?.title || ''))
+export const weakHead = (i) => verdictTitle(i) || portraitTitle(i)
 export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, top = DUTCH_HEAD_TOP, since = 0 }) {
   for (let k = 0; k < Math.min(top, entries.length); k++) {
     const e = entries[k]
     if (e.kind !== 'story' || e.desk === 'bubbel') continue
     const items = itemsOf(e).filter(Boolean)
     const lead = items.find((i) => i.id === e.leadId)
-    if (!lead || dutchTier(lead) === 0) continue
+    if (!lead) continue
+    // Ronde 2: ook een Nederlandse kop die een portret of beschouwing is, krijgt een Nederlandse nieuwskop als het verhaal
+    // er een heeft. Heeft het die niet, dan blijft de Nederlandse kop staan, ook naast een Engelse nieuwskop (besluit van
+    // Alex, 11 november: bovenaan gaat een Nederlandse portretkop voor een Engelse nieuwskop).
+    const dutchLead = dutchTier(lead) === 0
+    if (dutchLead && !weakHead(lead)) continue
     const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)) && timeOf(i) > since && !staleOutlook(i, items))
-    if (!fit.length) continue
+    const news = fit.filter((i) => !weakHead(i))
+    const pool = news.length ? news : dutchLead ? [] : fit
+    if (!pool.length) continue
     const core = new Set(centralItems(items))
-    const inCore = fit.filter((i) => core.has(i))
+    const inCore = pool.filter((i) => core.has(i))
     if (!inCore.length) continue
     // De kenmerken pas als er een kandidaat is, de uitgebreide alleen als sameSubject niets vindt (rekentijd).
     const near = linkedItems(items, inCore)
@@ -1667,6 +1681,44 @@ export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, 
     entries[k] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
   }
   return entries
+}
+
+// Hooguit SOURCE_PLACES_MAX plekken van één bron (frisse ogen · ronde 2, besluit 5 van Alex, 11 november; vijf van de
+// zestien bewaarde dagdelen hadden vier koppen van de NOS, NRC of de Volkskrant). Voor de algemene Editie, als laatste
+// stap: krijgt een bron meer koppen, dan krijgt de laagste plek van die bron de kop van een andere bron uit hetzelfde
+// verhaal, met hetzelfde bewijs als dutchHeads (uit de kern, verbonden met een ander stuk, vers, van na de vorige Editie,
+// geen opinie, vraag, video, portret, beschouwing of vooruitblik). De top 3 blijft zoals dutchHeads en dutchTop hem
+// maakten. Een Nederlandse kop blijft Nederlands; daarbinnen eerst een gratis bron. Lukt dat niet, dan blijft de kop
+// staan (juist gaat voor alles): een los stuk valt dan weg, een verhaal blijft. Alleen een gratis bron of een basisbron
+// neemt de kop over (geen betaalde kop van buiten de basis, zoals het ND). Wijzigt `entries`; geeft de weggevallen plekken terug.
+export const SOURCE_PLACES_MAX = 3
+const VIDEO_HEAD = /^\W*(video|kijk|foto'?s|podcast|live)\b/i
+export function sourceCap(entries, { itemsOf, mainIds = new Set(), now = null, since = 0, max = SOURCE_PLACES_MAX, isFree = () => false }) {
+  const leadOf = (e) => itemsOf(e).find((i) => i && i.id === (e.leadId || e.id)) || null
+  const count = new Map()
+  for (const e of entries) if (e.desk !== 'bubbel') { const s = publisherOf(leadOf(e)?.source); count.set(s, (count.get(s) || 0) + 1) }
+  const dropped = []
+  for (let k = entries.length - 1; k >= 0; k--) {
+    const e = entries[k]
+    const lead = leadOf(e)
+    const src = publisherOf(lead?.source)
+    if (!lead || e.desk === 'bubbel' || (count.get(src) || 0) <= max || k < DUTCH_HEAD_TOP) continue
+    if (e.kind !== 'story') { dropped.push(...entries.splice(k, 1)); count.set(src, count.get(src) - 1); continue }
+    const items = itemsOf(e).filter(Boolean)
+    const tier = dutchTier(lead)
+    const fit = items.filter((i) => publisherOf(i.source) !== src && (isFree(i.source) || mainIds.has(i.source)) && (count.get(publisherOf(i.source)) || 0) < max && dutchTier(i) <= tier && (tier !== 0 || dutchTier(i) === 0) && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !VIDEO_HEAD.test(i.title) && !/\?/.test(i.title) && !weakHead(i) && timeOf(i) > since && !staleOutlook(i, items))
+    if (!fit.length) continue
+    const core = new Set(centralItems(items))
+    const near = linkedItems(items, fit.filter((i) => core.has(i)))
+    if (!near.length) continue
+    const order = leadCandidates(freshest(near), mainIds, null, now, { role: k < DUTCH_HEAD_TOP ? 'front' : 'neutral' })
+    const best = Math.min(...order.map(dutchTier))
+    const next = order.find((i) => dutchTier(i) === best && isFree(i.source)) || order.find((i) => dutchTier(i) === best)
+    entries[k] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
+    count.set(src, count.get(src) - 1)
+    count.set(publisherOf(next.source), (count.get(publisherOf(next.source)) || 0) + 1)
+  }
+  return dropped
 }
 
 // Curiosa nooit in de top 3 (Redacteur 3b · 5, besluit van Alex; keuring 6 november: "veel uitgevers bij een
@@ -1760,16 +1812,58 @@ export function crimeStory(story = {}, items = [], sources = SOURCES) {
   const crime = items.filter((i) => i && keywordTopics(`${i.title || ''} ${i.summary || ''}`).includes('misdaad'))
   return crime.length * CRIME_SHARE >= items.length
 }
-export function newsBeforePeople(entries, { itemsOf, storyOf = () => ({}), allItemsOf = itemsOf, top = 5, sources = SOURCES }) {
-  const first = entries[0]
-  if (!first || first.kind !== 'story' || first.desk === 'bubbel') return entries
-  const own = allItemsOf(first).filter(Boolean)
-  // Een bekend persoon wijkt al voor drie kwart van zijn omvang, een misdaadzaak voor gelijke of grotere omvang.
-  const ratio = peopleStory(own, sources) ? 3 / 4 : crimeStory(storyOf(first) || {}, own, sources) ? 1 : 0
-  if (!ratio) return entries
+// Frisse ogen · ronde 2 (punt 4; regelboek ⑤): met `heads` = 3 geldt dit voor de hele top 3, niet alleen plek 01 (Markle
+// stond op 11 november op 03). Op plek 02 en 03 alleen voor een bekend persoon, en al voor een verhaal van de helft van
+// zijn omvang; een misdaadzaak wijkt alleen op 01.
+export function newsBeforePeople(entries, { itemsOf, storyOf = () => ({}), allItemsOf = itemsOf, top = 5, sources = SOURCES, heads = 1 }) {
   const pubs = (e) => (e.kind === 'story' ? storyOf(e)?.publisherCount ?? coverageOf(allItemsOf(e).filter(Boolean)).publisherCount : 1)
-  const k = entries.slice(1, top).findIndex((e) => e.kind === 'story' && e.desk !== 'bubbel' && pubs(e) >= pubs(first) * ratio && itemsOf(e).some((i) => i && !isOpinion(i)) && weightyStory(storyOf(e) || {}, allItemsOf(e).filter(Boolean), sources))
-  if (k >= 0) entries.unshift(...entries.splice(k + 1, 1))
+  for (let at = 0; at < Math.min(heads, entries.length); at++) {
+    const first = entries[at]
+    if (!first || first.kind !== 'story' || first.desk === 'bubbel') continue
+    const own = allItemsOf(first).filter(Boolean)
+    // Een bekend persoon wijkt al voor drie kwart van zijn omvang (op 02 en 03 voor de helft: daar is het geen opening
+    // meer, maar staat het nog steeds bovenaan), een misdaadzaak voor gelijke of grotere omvang.
+    const ratio = peopleStory(own, sources) ? (at === 0 ? 3 / 4 : 1 / 2) : at === 0 && crimeStory(storyOf(first) || {}, own, sources) ? 1 : 0
+    if (!ratio) continue
+    const k = entries.slice(at + 1, top).findIndex((e) => e.kind === 'story' && e.desk !== 'bubbel' && pubs(e) >= pubs(first) * ratio && itemsOf(e).some((i) => i && !isOpinion(i)) && weightyStory(storyOf(e) || {}, allItemsOf(e).filter(Boolean), sources))
+    if (k >= 0) entries.splice(at, 0, ...entries.splice(at + 1 + k, 1))
+  }
+  return entries
+}
+
+// Frisse ogen · ronde 2, besluiten van Alex (11 november) voor de top 3 van de algemene Editie, na dutchHeads:
+// - Taal (besluit 3): de taalregel geldt in de algemene Editie voor de top 3. Heeft plek 02 of 03 na dutchHeads geen
+//   Nederlandse kop (geen Nederlands stuk dat als kop kan), dan zakt die plek naar 04 en komt de eerste Nederlandse
+//   nieuwsplek van verder in de Editie ervoor in de plaats. Alleen Nederlands telt, niet Vlaams (besluit 1).
+// - Plek 01 (besluit 2): heeft het verhaal op 01 geen Nederlandse kop die kan (alle Nederlandse stukken zijn van vóór de
+//   vorige Editie, of er is er geen), dan opent een vers Nederlands verhaal van bijna gelijk gewicht: minstens
+//   DUTCH_OPEN_SHARE van de uitgevers van 01. Anders blijft de verse Engelse kop staan (actueel gaat voor herhaald).
+// Een Nederlandse nieuwsplek: een verhaal van minstens twee uitgevers, de kop Nederlands (geen Vlaams), geen opinie,
+// portret of beschouwing, geen curiosum, geen bekend persoon, geen blijver. Wijzigt `entries`.
+export const DUTCH_OPEN_SHARE = 0.9
+export function dutchTop(entries, { itemsOf, allItemsOf = itemsOf, storyOf = () => ({}), top = DUTCH_HEAD_TOP, sources = SOURCES }) {
+  const leadOf = (e) => itemsOf(e).find((i) => i && i.id === (e.leadId || e.id)) || null
+  const pubs = (e) => (e.kind === 'story' ? storyOf(e)?.publisherCount ?? coverageOf(allItemsOf(e).filter(Boolean)).publisherCount : 1)
+  const dutchHead = (e) => { const l = leadOf(e); return !!l && dutchTier(l) === 0 }
+  const dutchNews = (e) => {
+    if (e.kind !== 'story' || e.desk === 'bubbel' || e.held || !dutchHead(e) || pubs(e) < 2) return false
+    const l = leadOf(e)
+    const all = allItemsOf(e).filter(Boolean)
+    return !isOpinion(l) && !weakHead(l) && !curioStory(storyOf(e) || {}, all) && !peopleStory(all, sources)
+  }
+  const foreignHeaded = (e) => !!e && e.desk !== 'bubbel' && !!leadOf(e) && !dutchHead(e)
+  if (foreignHeaded(entries[0])) {
+    const k = entries.findIndex((e, j) => j > 0 && dutchNews(e) && pubs(e) >= pubs(entries[0]) * DUTCH_OPEN_SHARE)
+    if (k > 0) entries.unshift(...entries.splice(k, 1))
+  }
+  for (let at = 1; at < Math.min(top, entries.length); at++) {
+    if (!foreignHeaded(entries[at])) continue
+    const k = entries.findIndex((e, j) => j >= top && dutchNews(e))
+    if (k < 0) break
+    const up = entries.splice(k, 1)[0]
+    const down = entries.splice(at, 1, up)[0]
+    entries.splice(top, 0, down)
+  }
   return entries
 }
 

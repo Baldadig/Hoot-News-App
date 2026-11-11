@@ -7,7 +7,7 @@ import { scoreEdition, shownItems, editionItemIds, ARCHIVE_KEY, ARCHIVE_FEED_KEY
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, dutchTop, sourceCap, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
@@ -15,6 +15,8 @@ import { isOpinie } from '../../shared/opinie.mjs'
 import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
+import { crossLanguagePairs } from './taalgrens.mjs'
+import { freeDutchFill } from './aanvulling.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
@@ -741,13 +743,42 @@ const compact = (o) => {
 // nieuws (openWithNews). Geen waarom, geen trends: alleen de plekken, in de vorm van de vastgelegde Editie.
 // `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
 export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null, audit = null } = {}) {
+  // Eén gebeurtenis, één plek, ook over de taalgrens (frisse ogen · ronde 2, punt 6): melden twee plekken in twee talen
+  // dezelfde gebeurtenis (crossLanguagePairs), dan valt de lagere weg en stelt de Redacteur de Editie opnieuw samen
+  // zonder dat verhaal, zodat de plek wordt aangevuld. Alleen als er zo'n paar is; hooguit twee keer opnieuw.
+  const skip = new Set()
+  const start = audit ? audit.length : 0
+  const skipped = []
+  let entries = []
+  for (let round = 0; round < 3; round++) {
+    const gone = new Set(newsStories.filter((st) => skip.has(st.id)).flatMap((st) => st.itemIds))
+    const ns = skip.size ? newsStories.filter((st) => !skip.has(st.id)) : newsStories
+    const np = skip.size ? newsPool.filter((i) => !gone.has(i.id) && !skip.has(i.id)) : newsPool
+    if (audit) audit.length = start
+    entries = composeGeneral({ stories, newsStories: ns, pool, newsPool: np, now, mainIds, sources, previous, audit })
+    const byId = new Map(np.map((i) => [i.id, i]))
+    const pairs = crossLanguagePairs(entries, { leadOf: (e) => byId.get(e.leadId || e.id) || null })
+    if (!pairs.length) break
+    const lower = new Set(pairs.map((p) => p.lager))
+    for (const k of lower) {
+      skip.add(entries[k].id)
+      skipped.push({ kind: entries[k].kind, id: entries[k].id, itemIds: [], reason: 'zelfde-gebeurtenis-andere-taal' })
+    }
+    if (round === 2) entries = entries.filter((_, k) => !lower.has(k))
+  }
+  if (audit) audit.push(...skipped)
+  return entries
+}
+function composeGeneral({ stories, newsStories, pool, newsPool, now, mainIds, sources, previous, audit }) {
   const prof = profileOf({ followed: mainIds, sources })
   // Voor de Nederlandse plekken (dutchPlace) tellen alle stukken van een verhaal, ook die buiten de nieuwspool (ronde 4 · 2).
   const allById = new Map(pool.map((i) => [i.id, i]))
   const fullStory = new Map(stories.map((st) => [st.id, st]))
   const allOf = (id) => (fullStory.get(id)?.itemIds || []).map((x) => allById.get(x)).filter(Boolean)
   const storyItems = new Map(newsStories.map((st) => [st.id, allOf(st.id)]))
-  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems }, audit })
+  const picked = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof, general: true, ctx: { storyItems }, audit })
+  // Dun is aanvullen met gratis Nederlands nieuws, pas daarna korter (frisse ogen · ronde 2, besluit 5).
+  const sel = freeDutchFill(picked, { stories, newsStories, newsPool, mainIds, now, previous, prof, audit })
   const byId = new Map(newsPool.map((i) => [i.id, i]))
   const storyById = new Map(newsStories.map((st) => [st.id, st]))
   const entries = sel.map((e) => ({ ...(e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }), ...(e.held ? { held: true } : {}) }))
@@ -760,7 +791,8 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   const allItemsOf = (e) => (e.kind === 'story' ? storyItems.get(e.id) || itemsOf(e) : itemsOf(e))
   // Nieuwsbelang boven sensatie (ronde 6 · 2): een verhaal over een bekend persoon opent niet als er bovenaan een even
   // groot verhaal over economie, politiek of grote gevolgen staat; een misdaad- of rechtszaak ook niet (ronde 7 · 2).
-  newsBeforePeople(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources })
+  // Frisse ogen · ronde 2 (punt 4): een bekend persoon in de hele top 3, niet alleen op 01.
+  newsBeforePeople(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources, heads: 3 })
   // Actualiteit (ronde 7 · 3): met een vorige Editie komt elke kop uit de stukken van daarna.
   const since = previous?.at || 0
   const after = (xs) => xs.filter((i) => !(Date.parse(i.publishedAt) <= since))
@@ -768,7 +800,12 @@ export function generalEdition({ stories = [], newsStories = stories, pool = [],
   dutchFloor(entries, { itemsOf: allItemsOf, byId, storyOf: (e) => storyById.get(e.id), sources })
   // Bovenaan een Nederlandse kop als het verhaal er een heeft (ronde 6 · 1). Na de ondergrens: die telt de plekken met de
   // kop die de selectie koos, zodat een buitenlands verhaal met een Nederlandse kop geen Nederlandse plek verdringt.
+  // Frisse ogen · ronde 2 (punt 4): ook een Nederlandse portretkop of beschouwing krijgt een Nederlandse nieuwskop.
   dutchHeads(entries, { itemsOf, mainIds, now, since })
+  // De taalregel voor de top 3 (besluit 3) en een vers Nederlands verhaal op 01 (besluit 2).
+  dutchTop(entries, { itemsOf, allItemsOf, storyOf: (e) => storyById.get(e.id), sources })
+  // Hooguit drie plekken van één bron (besluit 5): de laagste krijgt de kop van een andere bron uit hetzelfde verhaal.
+  for (const e of sourceCap(entries, { itemsOf, mainIds, now, since, isFree: isFreeSource })) audit?.push({ kind: e.kind, id: e.id, itemIds: [e.id], reason: 'bron-al-drie-plekken' })
   return entries
 }
 
