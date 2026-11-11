@@ -51,3 +51,18 @@ test('web: geen Instellingen in de zijbalk; je account rechtsboven heet Instelli
   assert.match(read('src/views/Stream.jsx'), /tools=\{filterButton\} sources compare/)
   assert.match(read('src/staten.css'), /@media \(min-width: 960px\) \{\n  \.vh__row > \.vh__bronnen \{\n    display: none;/)
 })
+
+test('web: het silhouet als je niet bent ingelogd is dat van de app (person.crop.circle): cirkel als lijn, figuurtje gevuld', () => {
+  const icons = read('src/components/icons.jsx')
+  const m = icons.match(/export function AccountLineIcon[\s\S]*?\n\}\n/)
+  assert.ok(m, 'AccountLineIcon bestaat')
+  const svg = m[0]
+  assert.match(svg, /viewBox="0 0 32 32"/)
+  // De cirkel: alleen een lijn, geen vulling.
+  assert.match(svg, /<circle cx="16" cy="16" r="14\.97" fill="none" stroke="currentColor" strokeWidth="2\.06" \/>/)
+  // Hoofd en schouders: gevuld, zoals in de systeemtekening (niet de holle Phosphor UserCircle).
+  assert.match(svg, /<ellipse [^>]*fill="currentColor"/)
+  assert.match(svg, /<path fill="currentColor" d="M[^"]+A10\.8 5\.88 0 0 1 [^"]+A14\.3 14\.3 0 0 1 [^"]+Z" \/>/)
+  assert.doesNotMatch(svg, /88 88 0 1 1|UserCircle"? regular/)
+  assert.doesNotMatch(svg, /stroke="currentColor"[^/]*\/>\s*<(ellipse|path)[^>]*stroke=/)
+})

@@ -83,7 +83,7 @@ export function BackButton({ label, onClick, ariaLabel, nav = false, className =
 // Het eerste en het laatste icoon staan optisch op de kolomlijn (--tap-inset).
 // `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
 // `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
-// `account`: je account rechtsboven, de ingang naar Instellingen (foto, voorletter of lijnsilhouet).
+// `account`: je account rechtsboven, de ingang naar Instellingen (foto, voorletter of silhouet van person.crop.circle).
 // `sources`: de knop Bronnen vóór je account (de Stroom, alleen onder 960). `onBack` + `backLabel`: terug, vóór de titel
 // in dezelfde rij; `backInNav`: dit scherm staat ook in de zijbalk, dus daar geen terugknop.
 // `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
@@ -134,7 +134,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
   )
 }
 
-// Rechtsboven op elk scherm: jij (je foto of voorletter als je bent ingelogd, anders het lijnsilhouet), en
+// Rechtsboven op elk scherm: jij (je foto of voorletter als je bent ingelogd, anders het silhouet van person.crop.circle), en
 // daarachter je account en de instellingen. Zoals de accountknop in de app (AccountKnop): het label is gewoon
 // "Instellingen", daar zoek je op.
 function AccountButton({ account, onClick }) {
