@@ -110,7 +110,10 @@ test('rss: media-aanwijzingen uit enclosure, iTunes en alleen de eerste categori
   assert.deepEqual(mediaFields({}, ['Podcast']), { feedMark: 'podcast' })
   // Guardian: "Podcasts" als onderwerp, niet als soort.
   assert.deepEqual(mediaFields({}, ['Culture', 'Podcasting', 'Podcasts']), {})
-  assert.deepEqual(mediaFields({ itunes: { duration: '31:02' } }, []), { podcastEpisode: '31:02' })
+  // Een duur telt alleen bij een audio-enclosure (herstel AI-keuring 1): een nieuwsvideo met itunes:duration is geen aflevering.
+  assert.deepEqual(mediaFields({ itunes: { duration: '31:02' } }, []), {})
+  assert.deepEqual(mediaFields({ enclosure: { type: 'video/mp4' }, itunes: { duration: '00:01:30' } }, []), { mediaType: 'video/mp4' })
+  assert.deepEqual(mediaFields({ enclosure: { type: 'audio/mpeg' }, itunes: { duration: '31:02' } }, []), { mediaType: 'audio/mpeg', podcastEpisode: '31:02' })
   const c = toClient({ id: 'm', kind: 'article', source: 'nos', title: 'T', url: 'https://nos.nl/l/1', mediaType: 'audio/mpeg', podcastEpisode: '3', feedMark: 'podcast' })
   assert.equal(c.mediaType, 'audio/mpeg')
   assert.equal(c.podcastEpisode, '3')
@@ -172,4 +175,26 @@ test('Buiten je bubbel en Naast je bubbel: een aflevering of dealrubriek komt er
   const st = { id: 's', sourceCount: 6, latestAt: new Date(now).toISOString(), itemIds: ['p', 'd'] }
   const out = nearStories([st], new Map([...byId].map(([k, v]) => [k, { ...v, topics: ['misdaad'] }])), { isFree: () => true, isDutch: () => true, now })
   assert.ok(out.every((o) => !['p', 'd'].includes(o.item?.id)))
+})
+
+// Herstel AI-keuring 1: de zes ontworpen randgevallen van de keurder (ai-keuring-1-labels.json, "rand"). Vijf blijven nu
+// staan; het zesde (een overnamerubriek /deals/ als eerste segment op een site die dat zo noemt) is met een generieke regel
+// niet te onderscheiden van een dealrubriek en blijft een bekend, gedocumenteerd risico (geen Hoot-bron doet dit).
+test('A herstel: randgevallen van de keurder blijven staan', () => {
+  const viaFeed = (x, it = {}, cats = []) => art({ ...x, ...mediaFields(it, cats) })
+  const cases = [
+    viaFeed({ title: 'The Podcast Bubble Has Burst', url: 'https://www.theatlantic.com/ideas/archive/2026/11/podcasts/684400/', summary: '' }),
+    viaFeed({ title: 'Joe Rogan leaves Spotify', url: 'https://www.theguardian.com/media/2026/nov/11/joe-rogan-leaves-spotify', summary: 'The podcaster has signed with SiriusXM in a deal worth $250m.' }, {}, ['Podcasts', 'Spotify', 'Media']),
+    viaFeed({ title: 'Kabinet valt over asielwet', url: 'https://www.nrc.nl/nieuws/2026/11/11/kabinet-valt-a4913000', summary: 'Het kabinet is gevallen.' }, { enclosure: { type: 'audio/mpeg' } }),
+    viaFeed({ title: 'Brand in Rotterdamse haven', url: 'https://www.aljazeera.com/video/newsfeed/2026/11/11/fire-rotterdam-port', summary: 'Een grote brand in de haven.' }, { enclosure: { type: 'video/mp4' }, itunes: { duration: '00:01:30' } }),
+    viaFeed({ title: 'TV-zenders sluiten distributiedeal met Ziggo', url: 'https://www.example.nl/tv/deals/tv-zenders-sluiten-distributiedeal', summary: 'Een nieuw contract tussen zenders en Ziggo.' }),
+  ]
+  for (const c of cases) assert.equal(hardMark(c), null, c.title)
+  assert.deepEqual(rubricSegments('https://www.theatlantic.com/ideas/archive/2026/11/podcasts/684400/'), ['ideas', 'archive'])
+  assert.deepEqual(rubricSegments('https://www.theatlantic.com/podcasts/archive/2026/11/radio-atlantic-election/684300/'), ['podcasts', 'archive'])
+  // Een echte taal vooraan telt nog wel; een aflevering zonder eigen intro, of met een afleveringsnummer, gaat nog wel weg.
+  assert.equal(hardMark(art({ title: 'Laptop', url: 'https://www.example.test/nl/aanbiedingen/laptop' }))?.soort, 'aanbieding')
+  assert.equal(hardMark(art({ title: 'Aflevering 12', mediaType: 'audio/mpeg', summary: '' }))?.grond, 'enclosure')
+  assert.equal(hardMark(art({ title: 'Aflevering 12', mediaType: 'audio/mpeg', summary: 'In deze aflevering praten we over de formatie.', podcastEpisode: '12' }))?.grond, 'itunes')
+  assert.equal(hardMark(art({ title: 'TASTE #16', feedMark: 'podcast', summary: 'Een gesprek over eten en smaak met een chef.' })), null)
 })

@@ -17,7 +17,8 @@
 
 const DEAL_RUBRIC = new Set(['deals', 'aanbiedingen', 'aanbieding', 'koopjes', 'coupons', 'kortingscodes', 'dagdeals'])
 const AUDIO_RUBRIC = new Set(['podcast', 'podcasts', 'luister'])
-const LANG_SEGMENT = /^[a-z]{2}(?:-[a-z]{2})?$/i
+// Alleen echte taal-/landsegmenten (herstel AI-keuring 1: "tv" in /tv/deals/ is een rubriek, geen taal).
+const LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i
 const LABEL = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i
 
 // De padsegmenten vóór de slug (het laatste segment), in kleine letters.
@@ -33,7 +34,11 @@ export function rubricSegments(url) {
       return s.toLowerCase()
     }
   })
-  return segs.slice(0, -1)
+  // De slug is het laatste segment. Een datum (jjjj) of een numeriek id begint het artikeldeel: wat daarna komt is ook
+  // slug (herstel AI-keuring 1: …/2026/11/podcasts/684400/ is geen podcastrubriek).
+  const before = segs.slice(0, -1)
+  const cut = before.findIndex((x) => /^\d+$/.test(x))
+  return cut === -1 ? before : before.slice(0, cut)
 }
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim()
@@ -57,10 +62,12 @@ export function hardMark(item = {}) {
   if (first && DEAL_RUBRIC.has(first)) return { soort: 'aanbieding', grond: 'rubriek' }
   const media = String(item.mediaType || '')
   const label = LABEL.exec(String(item.title || ''))?.[1]?.toLowerCase()
-  // De feed zelf: een audio-enclosure, iTunes-afleveringsvelden of de hoofdcategorie Podcast. Dat is een aflevering.
-  if (/^audio\//i.test(media)) return { soort: 'aankondiging', grond: 'enclosure' }
+  // De feed zelf: een iTunes-afleveringsnummer is altijd een aflevering. Een audio-enclosure of de hoofdcategorie Podcast
+  // alleen zonder eigen intro (herstel AI-keuring 1: een nieuwsbericht met een voorleesversie, of een bericht óver podcasts
+  // in de rubriek Podcasts, heeft een eigen nieuwsintro en blijft; daarover oordeelt de AI).
   if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: 'aankondiging', grond: 'itunes' }
-  if (item.feedMark === 'podcast') return { soort: 'aankondiging', grond: 'feedcategorie' }
+  if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: 'aankondiging', grond: 'enclosure' }
+  if (item.feedMark === 'podcast' && !ownIntro(item)) return { soort: 'aankondiging', grond: 'feedcategorie' }
   if (label === 'podcast') return { soort: 'aankondiging', grond: 'label' }
   // Een podcastrubriek van de uitgever of een luisterlabel: alleen zonder eigen intro (nieuws over een podcastprijs staat
   // ook onder /podcast/).

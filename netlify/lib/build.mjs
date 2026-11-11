@@ -116,6 +116,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // één keer, al brengen vijf zusterkranten het.
   // Aanbiedingen en kijk-/luisteraanbod (Redacteur · filters-ai): A (harde aanwijzing) zit in inEdition en editionPool;
   // B (de AI, alleen bij twijfel en alleen zeker) geeft de id's die daarnaast weg moeten. Bij elke fout: niets extra.
+  // B draait alleen met HOOT_EDITIE_AI=aan (standaard uit; eerst meten met scripts/meet-filters-ai.mjs).
   const editionOut = editionPool(out.filter(forEdition), articlePool)
   const ai = await aiExclusions({ pool: editionOut, stories, now, client: anthropic, kv: { get: kvGet, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }) } })
   const kept = (i) => !ai.weg.has(i.id)

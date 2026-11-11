@@ -3420,7 +3420,7 @@ var HootCore = (() => {
   // shared/editie-filter.mjs
   var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
   var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
-  var LANG_SEGMENT = /^[a-z]{2}(?:-[a-z]{2})?$/i;
+  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
   var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
   function rubricSegments(url) {
     const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
@@ -3433,7 +3433,9 @@ var HootCore = (() => {
         return s.toLowerCase();
       }
     });
-    return segs.slice(0, -1);
+    const before = segs.slice(0, -1);
+    const cut = before.findIndex((x) => /^\d+$/.test(x));
+    return cut === -1 ? before : before.slice(0, cut);
   }
   var norm2 = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   function ownIntro(item = {}) {
@@ -3453,9 +3455,9 @@ var HootCore = (() => {
     if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
     const media = String(item.mediaType || "");
     const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
-    if (/^audio\//i.test(media)) return { soort: "aankondiging", grond: "enclosure" };
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
-    if (item.feedMark === "podcast") return { soort: "aankondiging", grond: "feedcategorie" };
+    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
+    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
     if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
     if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
     return null;
