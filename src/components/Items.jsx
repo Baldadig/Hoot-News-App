@@ -263,7 +263,7 @@ export function TasteButton({ entryKey, item, story, withShare = false }) {
   )
   return (
     <>
-      <button type="button" ref={moreRef} className={`iconbtn${open ? ' is-open' : ''}`} onClick={() => (open ? close() : setOpen(true))} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined} aria-label={canShare ? 'Verhaalopties: delen, meer, minder of een fout melden' : 'Verhaalopties: meer, minder of een fout melden'} title="Verhaalopties">
+      <button type="button" ref={moreRef} onPointerDown={() => moreRef.current?.focus({ preventScroll: true })} className={`iconbtn${open ? ' is-open' : ''}`} onClick={() => (open ? close() : setOpen(true))} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? menuId : undefined} aria-label={canShare ? 'Verhaalopties: delen, meer, minder of een fout melden' : 'Verhaalopties: meer, minder of een fout melden'} title="Verhaalopties">
         <MoreIcon />
       </button>
       {open ? (

@@ -106,3 +106,5 @@ test('een nieuwe pointeractie heft een oude klikbewaking op',()=>{
  const doc=new EventTarget();swallowDismissClick({pointerId:1},doc,{setTimeout(){return 1},clearTimeout(){}})
  doc.dispatchEvent(new Event('pointerdown'));const e=new Event('click',{cancelable:true});Object.assign(e,{detail:1,pointerId:1});doc.dispatchEvent(e);assert.equal(e.defaultPrevented,false)
 })
+
+test('de pointer kan de opener focussen zonder het verhaal tijdens de klik te verschuiven',()=>{assert.match(taste,/onPointerDown=\{\(\) => moreRef.current\?\.focus\(\{ preventScroll: true \}\)\}/)})
