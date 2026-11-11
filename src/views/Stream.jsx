@@ -6,8 +6,8 @@ import { PlaceholderList } from '../components/Beeld.jsx'
 import { StreamLine } from '../components/StreamLine.jsx'
 import { StreamArt, FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
-import { inInterest } from '../lib/topics.js'
-import { rubriekRij, alsRubriek, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel } from '../lib/streamline.js'
+import { rubriekRij, alsRubriek, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel, inRubriek } from '../lib/streamline.js'
+import { opinieInStroom } from '../../shared/opinie.mjs'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
 import { readJSON } from '../lib/store.js'
@@ -78,9 +78,9 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
     return selection.onderwerp === 'bubbel' ? bubble.map(b => b.item) : withoutRepeats(stream.filter(i => {
       if (picked.size && !picked.has(i.source)) return false
       if (selection.onderwerp && !(i.topics || []).includes(selection.onderwerp)) return false
-      if (selection.rubriek && !inInterest(i, selection.rubriek, sourcesById.get(i.source))) return false
-      if (selection.soort === 'opinie' && i.type !== 'opinie') return false
-      if (selection.soort === 'artikelen' && (i.kind === 'post' || i.type === 'opinie')) return false
+      if (!inRubriek(i, selection.rubriek, sourcesById.get(i.source))) return false
+      if (selection.soort === 'opinie' && !opinieInStroom(i)) return false
+      if (selection.soort === 'artikelen' && (i.kind === 'post' || opinieInStroom(i))) return false
       return true
     }))
   }
@@ -167,11 +167,12 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   // dan altijd dezelfde URL (en dus dezelfde leespositie).
   // Een bron kiezen zet de rubriek terug op Alles: je kijkt dan naar die bron, niet naar een onderwerp.
   const togglePick = (id) => apply({ ...filters, onderwerp: '', rubriek: '', bron: inRijVolgorde(picks.has(id) ? pickList.filter((p) => p !== id) : [...pickList, id], rij).join(',') })
-  // De rubrieken: Alles, je hoofdrubrieken in vaste volgorde, Buiten je bubbel als laatste.
+  // De rubrieken: Alles, je hoofdrubrieken in vaste volgorde, Opinie (als die er is), Buiten je bubbel als laatste.
   const interests = prefs?.interests || []
+  const hasOpinie = useMemo(() => stream.some(opinieInStroom), [stream])
   const rubrieken = useMemo(
-    () => rubriekRij({ interests, hasBubble: bubble.length > 0, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
-    [interests.join(','), bubble.length, filters.onderwerp, filters.rubriek], // eslint-disable-line react-hooks/exhaustive-deps
+    () => rubriekRij({ interests, hasBubble: bubble.length > 0, hasOpinie, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
+    [interests.join(','), bubble.length, hasOpinie, filters.onderwerp, filters.rubriek], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const actief = actieveRubriek(filters)
 
