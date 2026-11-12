@@ -4,29 +4,46 @@
 // alleen als "Gear" in, zodat de bronregel op "Gear / Deals" (rss.mjs, sourceDeal) ze niet vangt.
 //
 // Per bron (kortingscodes · 3), net als `dealsCategory`: alleen een bron die in sources.mjs `couponPages: true` zet doet
-// mee (nu alleen Wired). Twee keuringen lieten zien dat een generieke regel over alle bronnen nieuws blijft raken: een
-// nieuwskop opent vaak met precies dezelfde woorden ("Temu coupons: …", "Valse kortingscodes: 70 procent korting bij
-// nepwinkels"). Wired zet zijn eigen codepagina's altijd onder een vaste link: …/story/<naam>-promo-code/. Daarop leunt de
-// regel. Een stuk van zo'n bron valt weg als BEIDE gelden:
-//   1. het laatste padsegment van de link is "<1 tot 4 woorden>-<codewoord>", eventueel met een id-achtervoegsel
-//      (-2, -2026): nike-promo-code, nordvpn-coupon, airdoctor-coupon-code, hydrow-discount-code;
-//   2. de kop heeft het codewoord in het openingsdeel (tot de eerste dubbele punt, pijp of losse streep).
-// Sinds kortingscodes · 4 komen daar twee eisen bij (keuring 3 vond twee Wired-nieuwsstukken uit 2006 met zo'n slug):
-//   3. de link heeft /story/ in het pad: dat is de linkvorm van Wired's codepagina's (…/2006/08/<slug>/ is oud nieuws);
-//   4. de kop noemt een aanbod (een getal of percentage, Off, Save, Deals, Free Shipping of een maandnaam) OF de merknaam uit
-//      de slug (de woorden vóór het codewoord) staat vooraan in de kop, direct gevolgd door het codewoord en niets anders
-//      dan een opsomming van codewoorden ("NordVPN Coupons", "Design Within Reach Promo Codes").
-// Codewoord: promo code(s), coupon(s), coupon code(s), discount code(s). Nooit als het over obligaties gaat (zero coupon,
-// coupon rate, bond, obligatie): "coupon" is ook een obligatieterm. Bij twijfel blijft het staan.
+// mee (nu alleen Wired). Drie keuringen lieten zien dat een los kenmerk (een getal, "Off", "May") nieuws blijft raken: een
+// nieuwskop opent vaak met precies dezelfde woorden ("Temu coupons: …", "Honey Coupons: The PayPal Extension Accused of …").
+// Daarom is het sinds kortingscodes · 5 een gesloten woordenschat: een kop is een codepagina als hij, na normalisatie
+// (│ → |, $N → N, apostrofs weg, & → and, percent → %), woord voor woord bestaat uit:
+//   a. de merknaam uit de slug (de slugwoorden vóór het codewoord, aaneengeschreven vergeleken: "hr-block" = "H&R Block"),
+//      eventueel voorafgegaan door alleen een kortingsvorm ("25% Off Adidas Promo Code"), en geen vrij woord ervoor;
+//   b. direct daarna een codewoord (promo, coupon, discount, code, codes, …);
+//   c. en verder UITSLUITEND woorden uit de gesloten lijst LIST (codewoorden, opsommings- en aanbodwoorden), getallen,
+//      maandnamen en jaartallen, plus hooguit 3 productcategoriewoorden ná een kortingsvorm ("30% Off Rugs");
+//   d. en er staat minstens één kortingsvorm in (N%, N off, save up to N, free shipping, free trial, of maand + jaar).
+// Elk ander woord (een werkwoord, een zinsdeel) maakt het GEEN codepagina: bij twijfel blijft het stuk staan.
+// Daarnaast gelden twee eisen voor elke bron: de link heeft /story/ in het pad (de linkvorm van Wired's codepagina's;
+// …/2006/08/<slug>/ is oud nieuws) en de slug is "<1 tot 4 woorden>-<codewoord>", eventueel met id-achtervoegsel
+// (nike-promo-code, nordvpn-coupon, airdoctor-coupon-code, hydrow-discount-code). Het codewoord staat ook in het
+// openingsdeel van de kop (tot de eerste dubbele punt, pijp of losse streep). Nooit als het over obligaties gaat
+// (zero coupon, coupon rate, bond, obligatie): "coupon" is ook een obligatieterm.
 const HEAD = /\b(?:promo[- ]?codes?|coupon[- ]codes?|coupons?|discount[- ]codes?)\b/i
 const SLUG = /^(?:[a-z0-9]+-){1,4}(?:promo-codes?|coupon-codes?|coupons?|discount-codes?)(?:-\d+)?$/
-const BOND = /\b(?:zero[- ]?coupons?|coupon[- ]?rates?|coupon[- ]?payments?|bonds?|treasur(?:y|ies)|gilts?|yields?)\b|obligatie/i
+const BOND = /\b(?:zero[- ]?coupons?|coupon[- ]?rates?|coupon[- ]?payments?|bonds?|treasur(?:y|ies)|gilts?|yields?|debts?|auctions?)\b|obligatie/i
 
-const OFFER = /\d|%|\boff\b|\bsave[sd]?\b|\bdeals?\b|\bfree shipping\b|\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)\b/i
-const CODEWORD = new Set(['promo', 'coupon', 'coupons', 'discount', 'code', 'codes'])
-const EXTRA = new Set(['and', 'plus', 'amp', 'deals', 'deal', 'discounts', 'offers', 'savings', 'promos', 'promotions', 'vouchers', 'sales'])
-const words = (s) => String(s || '').toLowerCase().replace(/['’`]/g, '').split(/[^a-z0-9]+/).filter(Boolean)
-
+const CODEWORD = new Set(['promo', 'promos', 'coupon', 'coupons', 'discount', 'discounts', 'code', 'codes'])
+// Gesloten lijst: opsommings- en aanbodwoorden die na het codewoord mogen staan (naast CODEWORD, getallen, maanden, jaartallen).
+const LIST = new Set([...CODEWORD, 'and', 'plus', 'deals', 'deal', 'offers', 'savings', 'sale', 'sales', 'for', 'this', 'in', 'up', 'to', 'get',
+  'save', 'off', 'free', 'shipping', 'trial', 'month', 'months', 'sitewide', 'select', 'plans', 'exclusive', 'best', 'referral', 'membership',
+  'gift', 'card', 'cards', 'on'])
+const MONTH = /^(?:january|february|march|april|may|june|july|august|september|october|november|december)$/
+const MONTH_YEAR = /\b(?:january|february|march|april|may|june|july|august|september|october|november|december) (?:20\d\d)\b/
+const FORM = /\d+ ?%|\b\d+ off\b|\bsave up to \d|\bfree shipping\b|\bfree trial\b/
+const MAX_CAT = 3
+// Een productcategoriewoord is een zelfstandig naamwoord, nooit een voorzetsel, lidwoord of werkwoord ("at scam shops",
+// "with student ID", "Is Coming"): zo'n woord maakt de kop een zin, dus geen codepagina.
+const STOP = new Set(['at', 'with', 'by', 'from', 'as', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'of', 'the', 'a', 'an', 'it', 'its',
+  'their', 'they', 'that', 'which', 'who', 'whom', 'whose', 'when', 'while', 'where', 'why', 'how', 'what', 'not', 'no', 'but', 'or', 'if',
+  'than', 'then', 'so', 'we', 'you', 'your', 'our', 'us', 'has', 'have', 'had', 'will', 'would', 'can', 'could', 'might', 'must', 'do', 'does',
+  'did', 'into', 'over', 'under', 'about', 'after', 'before', 'during', 'amid', 'per', 'via', 'now', 'just', 'only', 'too', 'out'])
+// Normalisatie: │ → |, $N → N, apostrofs weg, & → and (of weg, voor "H&R"), "10 percent" → "10%".
+const norm = (s, amp) => String(s || '').toLowerCase().replace(/[│]/g, '|').replace(/['’`]/g, '').replace(/\$(?=\d)/g, '')
+  .replace(/(\d)\s*(?:%|percent)/g, '$1%').replace(/\bpercent\b/g, '%').replace(/(\w)\+/g, '$1 plus ').replace(/&/g, amp)
+const toks = (s, amp) => norm(s, amp).split(/[^a-z0-9%]+/).filter(Boolean)
+const isNum = (w) => /^\d+%?$/.test(w) || w === '%'
 // Het openingsdeel van de kop: tot de eerste dubbele punt, pijp of losse streep ("Factor Promo Code: 50% Off …",
 // "Hydrow Discount Code: Save Up to $150 | November 2026").
 export function openingOf(title = '') {
@@ -52,20 +69,45 @@ export const couponSlug = (url) => {
   const s = slugOf(url)
   return SLUG.test(s) && !BOND.test(s.replace(/-/g, ' '))
 }
-export const couponOffer = (title) => OFFER.test(String(title || ''))
-// De merknaam uit de slug (de woorden vóór het codewoord) staat vooraan in de kop, direct gevolgd door het codewoord en daarna
-// niets anders dan codewoorden ("Visible Promo Codes and Coupons"). Een zin erachter ("RHCP Promo Codes Finally Getting Out") telt niet.
-export const couponBrand = (title, url) => {
-  const brand = slugOf(url).replace(/(?:-\d+)?$/, '').split('-').filter((w) => w && !CODEWORD.has(w))
-  if (!brand.length) return false
-  const want = brand.join('')
-  const t = words(openingOf(title))
-  let got = ''
+// Een kortingsvorm vooraan ("25% Off", "Save Up to 20%", "Free Shipping") vóór de merknaam: alleen die woorden.
+const LEAD = new Set(['save', 'up', 'to', 'get', 'off', 'free', 'shipping', 'trial', 'exclusive'])
+function afterLead(t) {
   let i = 0
-  while (i < t.length && got.length < want.length) got += t[i++]
-  if (got !== want) return false
-  const rest = t.slice(i)
-  return rest.length > 0 && CODEWORD.has(rest[0]) && rest.every((w) => CODEWORD.has(w) || EXTRA.has(w))
+  let num = false
+  while (i < t.length && (isNum(t[i]) || LEAD.has(t[i]))) {
+    if (isNum(t[i])) num = true
+    i++
+  }
+  return num || (t[0] === 'free' && (t[1] === 'shipping' || t[1] === 'trial')) ? i : 0
+}
+// Past de kop woord voor woord in het gesloten patroon? `amp` bepaalt of & "and" wordt of wegvalt (H&R Block).
+function closedForm(title, brands, amp) {
+  const t = toks(title, amp)
+  const start = afterLead(t)
+  let i = start
+  while (i < t.length && !CODEWORD.has(t[i])) i++
+  if (i === start || i >= t.length || !brands.includes(t.slice(start, i).join(''))) return false
+  let cats = 0
+  let afterForm = start > 0 // een kortingsvorm vooraan geldt ook als aanloop voor categoriewoorden
+  for (const w of t.slice(i)) {
+    if (LIST.has(w) || isNum(w) || MONTH.test(w) || /^20\d\d$/.test(w)) {
+      if (w === 'off' || /%$/.test(w)) afterForm = true
+      continue
+    }
+    if (!afterForm || STOP.has(w) || ++cats > MAX_CAT) return false
+  }
+  const txt = norm(title, 'and')
+  return FORM.test(txt) || MONTH_YEAR.test(txt) || start > 0
+}
+// Het gesloten patroon (a tot en met d), zie het commentaar bovenaan.
+export const couponClosed = (title, url) => {
+  const w = slugOf(url).replace(/(?:-\d+)?$/, '').split('-').filter((x) => x && !CODEWORD.has(x))
+  // De merknaam uit de slug: de slugwoorden vóór het codewoord, of een aaneengesloten stuk ervan ("alo-yoga" → Alo,
+  // "the-motley-fool" → Motley Fool). Aaneengeschreven vergeleken, zodat "hr-block" en "H&R Block" matchen.
+  const brands = []
+  for (let a = 0; a < w.length; a++) for (let b = a + 1; b <= w.length; b++) brands.push(w.slice(a, b).join(''))
+  if (!brands.length) return false
+  return closedForm(title, brands, ' and ') || closedForm(title, brands, '')
 }
 export const couponPath = (url) => {
   const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || '').trim())
@@ -76,5 +118,5 @@ export const couponPage = (it = {}, src = null) => {
   if (src?.couponPages !== true) return false
   const url = it?.url || it?.link || it?.guid || ''
   if (!couponHead(it?.title) || !couponSlug(url) || !couponPath(url)) return false
-  return couponOffer(it?.title) || couponBrand(it?.title, url)
+  return couponClosed(it?.title, url)
 }

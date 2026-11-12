@@ -1,7 +1,7 @@
 // Redacteur · kortingscodes (12 november 2026). Besluit van Alex: kortingscode-pagina's uit de Stroom, en dus nooit in de
 // Editie. Per bron (kortingscodes · 3, netlify/lib/kortingscode.mjs), net als dealsCategory: alleen een bron met
 // `couponPages: true` in sources.mjs (nu alleen Wired) doet mee. Dan valt een stuk weg als de slug "<naam>-<codewoord>" is
-// (nike-promo-code) én de kop het codewoord in het openingsdeel heeft. Reden bij de telling: 'kortingscode'. Norm: er
+// (nike-promo-code) én de kop in de gesloten codepagina-vorm past (kortingscodes · 5, kortingscode.mjs). Reden bij de telling: 'kortingscode'. Norm: er
 // valt nooit nieuws weg; bij twijfel blijft het staan.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -311,7 +311,7 @@ test('kortingscodes: een kortingscode-pagina neemt geen plek in het venster in',
   assert.deepEqual(got.map((i) => i.title), news.map((x) => x.title))
 })
 
-// Kortingscodes · 4: alleen links met /story/ in het pad, en alleen met een aanbod in de kop of de merknaam uit de slug vooraan.
+// Kortingscodes · 4 en 5: alleen links met /story/ in het pad, en alleen een kop die in de gesloten codepagina-vorm past.
 test('kortingscodes: Wired-nieuws uit 2006 met een codewoord in de slug blijft; zonder /story/ valt niets weg', () => {
   const blijft = [
     { title: 'Google Adds Local Coupons', url: 'https://www.wired.com/2006/08/google-adds-local-coupons/' },
@@ -325,31 +325,90 @@ test('kortingscodes: Wired-nieuws uit 2006 met een codewoord in de slug blijft; 
   }
 })
 
-test('kortingscodes: onder /story/ vraagt de regel ook een aanbod of de merknaam vooraan in de kop', () => {
+test('kortingscodes: onder /story/ moet de kop een gesloten codepagina-vorm hebben (merk, codewoord, alleen lijstwoorden, kortingsvorm)', () => {
   const u = (slug) => `https://www.wired.com/story/${slug}/`
-  // aanbod: getal, percentage, Off, Save, Deals, Free Shipping of een maandnaam
-  assert.equal(couponPage({ title: 'Nike Promo Codes and Discounts: 30% for November 2026', url: u('nike-promo-code') }, wired), true)
-  assert.equal(couponPage({ title: 'NordVPN Coupons', url: u('nordvpn-coupon') }, wired), true) // merk vooraan
-  assert.equal(couponPage({ title: 'Squarespace Promo Codes in November', url: u('squarespace-promo-code') }, wired), true) // maandnaam
-  assert.equal(couponPage({ title: 'Vitamix Promo Codes and Deals', url: u('vitamix-promo-code') }, wired), true)
-  // een verzonnen nieuwskop zonder aanbod en zonder merk vooraan blijft
-  const nieuws = { title: 'Why Promo Codes Keep Fooling Shoppers Every Season', url: u('why-promo-codes-keep-fooling-shoppers-promo-code') }
-  assert.equal(couponPage(nieuws, wired), false)
-  assert.equal(couponPage({ title: 'Inside the Murky World of Coupons', url: u('murky-world-coupons') }, wired), false)
-  // de merknaam moet vooraan staan en het codewoord moet er direct achter volgen, zonder zin erachter
-  assert.equal(couponPage({ title: 'The Sneaky Business Behind Honey Coupons', url: u('honey-coupons') }, wired), false)
-  assert.equal(couponPage({ title: 'RHCP Promo Codes Finally Getting Out', url: u('rhcp-promo-code') }, wired), false)
+  const wel = [
+    ['Nike Promo Codes and Discounts: 30% for November 2026', 'nike-promo-code'],
+    ['Squarespace Promo Codes in November 2026', 'squarespace-promo-code'], // maand met jaar
+    ['Vitamix Promo Codes and Deals: $25 Off + Free Shipping', 'vitamix-promo-code'],
+    ['25% Off Adidas Promo Code | November 2026', 'adidas-promo-code'], // kortingsvorm vooraan
+    ['H&R Block Coupon: 25% Off', 'hr-block-coupon'], // merk aaneengeschreven vergeleken
+    ['T-Mobile Promo Codes: 25% Off | November 2026', 't-mobile-business-promo-code'],
+    ['Ruggable Discount Code: 30% Off Rugs | November 2026', 'ruggable-discount-code'], // categorieword na kortingsvorm
+    ['Factor Promo Code: 50% Off Off Meal Prep', 'factor-promo-code'],
+    ['Lowe\u2019s Promo Codes and Deals: Up to $300 Off Appliances', 'lowes-promo-code'],
+    ['Kohler Black Friday Promo Code (2025): 10 Percent Off Bathroom and Kitchen', 'kohler-black-friday-2025-promo-code-1'],
+    ['Paramount+ Coupon Codes: 20% Off', 'paramount-plus-coupon-code'],
+  ]
+  for (const [title, slug] of wel) assert.equal(couponPage({ title, url: u(slug) }, wired), true, title)
+  // Zonder kortingsvorm, met een vrij woord, een zin, te veel categoriewoorden of een vrij woord vooraan: blijft.
+  const blijft = [
+    ['NordVPN Coupons', 'nordvpn-coupon'], // geen kortingsvorm (d)
+    ['Why Promo Codes Keep Fooling Shoppers Every Season', 'why-promo-codes-keep-fooling-shoppers-promo-code'],
+    ['Inside the Murky World of Coupons', 'murky-world-coupons'],
+    ['The Sneaky Business Behind Honey Coupons', 'honey-coupons'], // vrij woord vooraan
+    ['RHCP Promo Codes Finally Getting Out', 'rhcp-promo-code'],
+    ['Honey Coupons: The PayPal Extension Accused of Stealing Creator Commissions', 'honey-coupons'],
+    ['Nike Promo Codes: 30% Off Is a Bad Deal for Everyone', 'nike-promo-code'], // zin
+    ['Nike Promo Codes: 30% Off Shoes Socks Shirts Shorts', 'nike-promo-code'], // 4 categoriewoorden
+    ['Nike Promo Codes: 30% Off at Scam Shops', 'nike-promo-code'], // voorzetsel
+    ['Nike Promo Codes: Shoes Shoes Shoes 5 Percent Off', 'nike-promo-code'], // categorie voor een kortingsvorm
+  ]
+  for (const [title, slug] of blijft) assert.equal(couponPage({ title, url: u(slug) }, wired), false, title)
   // bij andere bronnen nooit
   assert.equal(couponPage({ title: 'NordVPN Coupons: 75% Off', url: u('nordvpn-coupon') }, nos), false)
 })
 
-test('kortingscodes: alle 144 /story/-codepagina\'s van Wired (keuring 3) vallen nog weg; de andere 4 blijven zoals voorheen', () => {
+// Keuring 4 (12 november): 20 verzonnen Wired-nieuwskoppen onder /story/ met een codewoord-slug. Onder kortingscodes · 4
+// vielen er 13 weg (elk getal, "May", "Off", "Save", "Deal", "December" telde als aanbod). Nu geen een.
+const NIEUWS4 = [
+  ['Honey Coupons: The PayPal Extension Accused of Stealing Creator Commissions', 'honey-coupons'],
+  ['Temu Coupons Are a Data Trap, 5 Security Researchers Say', 'temu-coupons'],
+  ['The FTC Is Coming for Fake Promo Codes in 2027', 'ftc-fake-promo-codes'],
+  ['Promo Codes May Be the Next Big Phishing Lure', 'phishing-promo-codes'],
+  ['Coupons Kicked Off the Loyalty-App Surveillance Economy', 'surveillance-coupons'],
+  ['Why Discount Codes Never Save You as Much as You Think', 'why-discount-codes'],
+  ['Coupon Codes Are Dead. Here\u2019s What Killed Them', 'death-of-coupon-codes'],
+  ['Capital One Shopping Coupons Face a $2 Billion Lawsuit', 'capital-one-shopping-coupons'],
+  ['Inside Telegram\u2019s Black Market for Stolen Coupons', 'telegram-stolen-coupons'],
+  ['AI Agents Are Hoarding Discount Codes\u2014and Retailers Are Furious', 'ai-agents-discount-codes'],
+  ['Counterfeit Coupons Cost Retailers $32 Million, DOJ Says', 'counterfeit-coupons'],
+  ['Uber Eats Promo Codes Were Leaking Customer Data', 'uber-eats-promo-codes'],
+  ['Amazon Coupons Deal a Blow to Small Sellers', 'amazon-coupons'],
+  ['Apple Wallet Coupons Arrive With iOS 27', 'apple-wallet-coupons'],
+  ['Shein Discount Codes Fuel a TikTok Scam Wave', 'shein-discount-codes'],
+  ['Black Friday Promo Codes Are Mostly Fake, Study Finds', 'black-friday-promo-codes'],
+  ['Instacart Coupons Now Use Your Purchase History', 'instacart-coupons'],
+  ['Starbucks Coupons Vanish in December App Update', 'starbucks-coupons'],
+  ['Restaurant Coupons Went Digital During Covid-19. They Never Came Back', 'restaurant-coupons'],
+  ['Nordstrom Promo Codes Exposed in Breach Affecting 1.2M Customers', 'nordstrom-promo-codes'],
+]
+
+test('kortingscodes: 20 Wired-nieuwskoppen onder /story/ met een codewoord-slug blijven; ook elke aanvalskop met een bijpassende codewoord-slug', () => {
+  for (const [title, slug] of NIEUWS4) {
+    const url = `https://www.wired.com/story/${slug}/`
+    assert.equal(couponPage({ title, url }, wired), false, title)
+    assert.equal(noiseReason({ title, link: url }, [], wired), null, title)
+  }
+  // Strengst: elke aanvalskop (alle sets) met een slug die uit de kop zelf is afgeleid ("<woorden>-promo-code"), bij Wired.
+  for (const x of [...AANVAL, ...AANVAL2, ...VALKUILEN, ...BLIJFT]) {
+    const w = x.title.toLowerCase().replace(/['\u2019]/g, '').split(/[^a-z0-9]+/).filter(Boolean)
+    for (const n of [1, 2, 3]) for (const code of ['promo-code', 'coupon', 'coupons', 'discount-codes', 'coupon-code']) {
+      const url = `https://www.wired.com/story/${w.slice(0, n).join('-')}-${code}/`
+      assert.equal(couponPage({ title: x.title, url }, wired), false, `${x.title} | ${url}`)
+    }
+  }
+})
+
+test('kortingscodes: 132 van de 144 /story/-codepagina\'s van Wired (keuring 3) vallen weg; de andere 4 blijven zoals voorheen', () => {
   const f = new URL('./fixtures/kortingscodes-wired-story-titels.tsv', import.meta.url)
   const rows = readFileSync(f, 'utf8').trim().split('\n').map((l) => l.split('\t'))
   const story = rows.filter(([url]) => url.includes('/story/'))
   assert.equal(story.length, 148)
   const weg = story.filter(([url, title]) => couponPage({ title, url }, wired))
-  assert.equal(weg.length, 144)
+  assert.equal(weg.length, 132)
+  // De missers (gesloten woordenschat: een vrij woord of een zin in de kop) mogen: bij twijfel blijft het staan.
+  assert.ok(weg.length >= 130)
   // geen enkele link zonder /story/ valt weg
   assert.equal(rows.filter(([url]) => !url.includes('/story/')).filter(([url, title]) => couponPage({ title, url }, wired)).length, 0)
 })
