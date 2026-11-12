@@ -256,5 +256,29 @@ export async function serverFirst({ global, owner, basis, local = null, localFro
   return ahead ? { edition: null, source: 'ahead', keep: false, ahead } : null
 }
 
+// Eén vraag aan de server per ronde (`key`: dagdeel, lezer, afdruk, of je mag vragen, en de `nonce` van weer online of
+// terug in de app; Editie sneller C2). Loopt de vraag nog (`busy`), dan wacht een nieuwe stand (de berichten kwamen
+// binnen) op haar antwoord in plaats van het weg te gooien en opnieuw te vragen. Is ze beantwoord zonder Editie
+// (offline, fout, te traag), dan rekent een volgende stand alleen het vangnet (`start` geeft false).
+export function askGate() {
+  let asking = ''
+  let asked = ''
+  return {
+    busy: (key) => asking === key,
+    start(key, may) {
+      const now = !!may && asked !== key
+      if (now) asking = key
+      return now
+    },
+    done(key) {
+      if (asking === key) asking = ''
+      asked = key
+    },
+    fail(key) {
+      if (asking === key) asking = ''
+    },
+  }
+}
+
 // Zonder account: de history-regels van je vorige Edities van de server op dit toestel (nooit het vangnet).
 export const earlierForServer = (local, { id, owner }) => earlierEditions({ local, account: null, id, owner }).map(historyOf).filter(Boolean)

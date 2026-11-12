@@ -211,3 +211,47 @@ test('stopwatch: ook een mislukte stap telt, en de fout komt terug', async () =>
   await assert.rejects(w.time('delen', async () => { throw new Error('x') }))
   assert.equal(w.header(), 'kern;dur=10.0, delen;dur=10.0')
 })
+
+// C2 (het web): één vraag per ronde. Komen de berichten binnen terwijl de vraag loopt, dan telt haar antwoord;
+// vroeger ging er een tweede vraag uit en werd het eerste antwoord weggegooid (de server rekende twee keer).
+test('C2: askGate laat een lopende vraag afmaken en vraagt in dezelfde ronde niet nog eens', async () => {
+  const { askGate, serverFirst } = await import('../src/lib/editionSync.js')
+  const g = askGate()
+  assert.equal(g.start('t|true|0', true), true)
+  assert.equal(g.busy('t|true|0'), true, 'de berichten komen binnen: wachten op dit antwoord')
+  g.done('t|true|0')
+  assert.equal(g.busy('t|true|0'), false)
+  assert.equal(g.start('t|true|0', true), false, 'beantwoord zonder Editie: nu het vangnet, niet opnieuw vragen')
+  assert.equal(g.start('t|true|1', true), true, 'weer online of terug in de app: opnieuw')
+  g.fail('t|true|1')
+  assert.equal(g.start('t|true|1', true), true, 'een fout in de ronde zelf telt niet als antwoord')
+  assert.equal(askGate().start('t|false|0', false), false, 'als lid vóór het ophalen: niet vragen')
+
+  // Zoals de hook het gebruikt: de vraag duurt, intussen komen de berichten (ready). Eén vraag, en haar Editie.
+  const global = { id: 'e1', builtAt: '2026-11-12T16:00:00.000Z' }
+  let calls = 0
+  let answer
+  const ask = () => (calls++, new Promise((r) => (answer = r)))
+  const gate = askGate()
+  const runs = []
+  const effect = (ready) => {
+    const key = 'e1|anon|b|true|0'
+    if (gate.busy(key)) return
+    const now = gate.start(key, true)
+    runs.push(serverFirst({ global, owner: 'anon', basis: 'b', ask: now ? ask : null, request: {}, ready, compose: () => ({ entries: [] }) }).then((r) => (now && gate.done(key), r)))
+  }
+  effect(false)
+  effect(true) // de berichten kwamen binnen terwijl de vraag liep
+  assert.equal(calls, 1)
+  answer({ status: 200, edition: { id: 'e1', owner: 'anon', basis: 'b', entries: [] } })
+  const [r] = await Promise.all(runs)
+  assert.equal(r.source, 'server')
+  assert.equal(runs.length, 1)
+})
+
+test('C2: de hook gebruikt askGate en houdt `ready` uit de vraag-sleutel', () => {
+  const hook = readFileSync(new URL('../src/hooks/usePersonalEdition.js', import.meta.url), 'utf8')
+  assert.match(hook, /const askKey = `\$\{task\}\|\$\{mayAsk\}\|\$\{nonce\}`/)
+  assert.match(hook, /if \(gate\.current\.busy\(askKey\)\) return/)
+  assert.match(hook, /ask: askNow \? ask : null/)
+})
