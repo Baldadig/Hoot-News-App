@@ -1,13 +1,13 @@
 // Redacteur · kortingscodes (12 november 2026). Besluit van Alex: kortingscode-pagina's uit de Stroom, en dus nooit in de
-// Editie. Generiek en dubbel (netlify/lib/kortingscode.mjs): de kop opent met "<naam> <kortingscodewoord>" én de slug is
-// "<naam>-<kortingscodewoord>". Reden bij de telling: 'kortingscode'. Norm: er valt nooit nieuws weg; bij twijfel blijft het staan.
+// Editie. Generiek en drievoudig (netlify/lib/kortingscode.mjs): de kop opent met "<naam> <kortingscodewoord>", de slug is
+// "<naam>-<kortingscodewoord>" én na de dubbele punt staat een aanbod (korting, gratis verzending of een periode), geen zin. Reden bij de telling: 'kortingscode'. Norm: er valt nooit nieuws weg; bij twijfel blijft het staan.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { isNoise, noiseReason, loadSource } from '../netlify/lib/rss.mjs'
 import { mergeSource, withLatest } from '../netlify/lib/stream.mjs'
-import { couponPage, couponHead, couponSlug, openingOf, slugOf } from '../netlify/lib/kortingscode.mjs'
+import { couponPage, couponHead, couponSlug, openingOf, slugOf, tailOf } from '../netlify/lib/kortingscode.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 
 const dir = new URL('./fixtures/', import.meta.url)
@@ -72,6 +72,81 @@ const BLIJFT = [
   { title: 'Influencers coupons', url: 'https://www.example.test/news/eu-court-rules-on-what-influencers-may-say-about-coupons' },
 ]
 
+// Keuring 1 (12 november): 32 realistische nieuwskoppen over coupons, promocodes, vouchers en kortingscodes, in de stijl
+// van echte bronnen. Onder kortingscodes · 1 vielen er 14 weg ("Temu coupons: EU opens formal investigation",
+// …/temu-coupons). Alle 32 moeten blijven: na de dubbele punt staat een zin, geen aanbod.
+const AANVAL = [
+  ['Honey sued over coupon codes by YouTube creators', 'https://www.theverge.com/2026/1/2/honey-sued-coupon-codes-creators'],
+  ['Influencers en kortingscodes: rechter zet streep door verkapte reclame', 'https://nos.nl/artikel/2640008-influencers-kortingscodes'],
+  ['Temu coupons: EU opens formal investigation', 'https://www.reuters.com/technology/temu-coupons'],
+  ['Fake coupons: police warn shoppers before Black Friday', 'https://www.bbc.com/news/fake-coupons'],
+  ['Nepkortingscodes: Fraudehelpdesk krijgt honderden meldingen', 'https://www.nu.nl/economie/6312345/nepkortingscodes'],
+  ['Kortingscodes: ACM tikt webwinkels op de vingers', 'https://nos.nl/artikel/2641111-acm-kortingscodes'],
+  ["Coupon codes: how Honey's browser extension really worked", 'https://www.theverge.com/24300000/honey-coupon-codes'],
+  ['PayPal Honey coupon codes: class action expands', 'https://techcrunch.com/2026/01/05/paypal-honey-coupon-codes'],
+  ['Digital coupons: Kroger settles FTC lawsuit', 'https://apnews.com/article/kroger-digital-coupons'],
+  ['Grocery coupons and SNAP: what changes in 2026', 'https://www.npr.org/2026/11/01/grocery-coupons'],
+  ['Restaurant vouchers: government ends Eat Out scheme', 'https://www.theguardian.com/business/restaurant-vouchers'],
+  ['School vouchers: Supreme Court hears Oklahoma case', 'https://www.nytimes.com/2026/04/01/us/school-vouchers.html'],
+  ['Energy vouchers for November 2026: who qualifies', 'https://www.bbc.com/news/energy-vouchers'],
+  ['Housing vouchers', 'https://www.npr.org/2026/03/03/housing-vouchers'],
+  ['Section 8 housing vouchers: waitlists reopen', 'https://apnews.com/article/section-8-housing-vouchers'],
+  ['Travel vouchers and refunds: KLM loses court case', 'https://nos.nl/artikel/2639000-klm-vouchers'],
+  ['Corona-vouchers: reisbranche moet miljoenen terugbetalen', 'https://nos.nl/artikel/2638000-corona-vouchers'],
+  ['Kortingscode-fraude: politie pakt bende op', 'https://www.ad.nl/binnenland/kortingscode-fraude.html'],
+  ['Promo codes scam: Dutch police warn of fake WhatsApp discount codes', 'https://www.dutchnews.nl/2026/11/promo-codes-scam-dutch-police-warn-of-fake-whatsapp-discount-codes/'],
+  ['Discount codes for November 2026 flood TikTok, most are fake', 'https://www.wired.com/story/discount-codes-tiktok-fake'],
+  ['Amazon coupons and the FTC: the antitrust trial explained', 'https://www.vox.com/technology/amazon-coupons'],
+  ['Uber Eats vouchers: drivers protest', 'https://www.theguardian.com/technology/uber-eats-vouchers'],
+  ['Google kills Chrome coupon codes feature', 'https://www.theverge.com/news/google-chrome-coupon-codes'],
+  ['Capital One Shopping coupons: lawsuit says extension stole commissions', 'https://arstechnica.com/tech-policy/2026/02/capital-one-shopping-coupons'],
+  ['Influencer promo codes', 'https://www.nrc.nl/nieuws/2026/11/10/influencer-promo-codes-a4912345'],
+  ['Kortingscodes en influencers: wat zegt de wet?', 'https://www.volkskrant.nl/economie/kortingscodes-en-influencers~b1234abc/'],
+  ['Coupons', 'https://www.economist.com/finance/2026/11/12/coupons'],
+  ['Bond coupons rise as Treasury yields climb', 'https://www.ft.com/content/bond-coupons'],
+  ['Zero coupons: why Dutch pension funds buy them', 'https://fd.nl/financiele-markten/zero-coupons'],
+  ['Chinese consumption vouchers: Beijing tries to revive spending', 'https://www.economist.com/china/consumption-vouchers'],
+  ['Netflix promo codes in November 2026: the scam that steals your login', 'https://www.wired.com/story/netflix-promo-code'],
+  ['Shein coupons — EU fines retailer', 'https://nos.nl/artikel/2642000-shein-coupons'],
+].map(([title, url]) => ({ title, url }))
+
+// De 11 gelabelde valkuilen (label N in de sets): nieuws met het woord in kop én slug.
+const VALKUILEN = [
+  ['Kortingscode-site lekt gegevens van miljoenen klanten', 'https://tweakers.net/nieuws/254400/kortingscode-site-lekt-gegevens.html'],
+  ["PayPal's Honey accused of hiding better promo codes from shoppers", 'https://www.theverge.com/news/1031500/paypal-honey-promo-codes-lawsuit'],
+  ['Honey sued over coupon codes by YouTube creators', 'https://techcrunch.com/2026/11/12/honey-sued-coupon-codes-creators/'],
+  ['Rechtbank: kortingscodes van influencers zijn verkapte reclame', 'https://nos.nl/artikel/2640008-influencers-kortingscodes'],
+  ['Kortingscode-fraude: politie pakt bende op', 'https://www.nu.nl/binnenland/6418005/kortingscode-fraude.html'],
+  ['Fake coupon codes for Black Friday 2026 flood TikTok', 'https://www.theverge.com/news/700001/fake-coupon-codes-tiktok-scam'],
+  ['Europese Commissie onderzoekt kortingscodes van Temu', 'https://tweakers.net/nieuws/241118/europese-commissie-onderzoekt-kortingscodes-van-temu.html'],
+  ['Politie pakt bende op die nep-kortingscodes verkocht via Telegram', 'https://www.nu.nl/binnenland/6372201/politie-pakt-bende-op-die-nep-kortingscodes-verkocht-via-telegram.html'],
+  ['Kortingscode-fraude: politie pakt bende op die webwinkels oplichtte', 'https://tweakers.net/nieuws/241570/kortingscode-fraude-politie-pakt-bende-op-die-webwinkels-oplichtte.html'],
+  ['Promo codes scam: Dutch police warn of fake WhatsApp discount codes', 'https://nltimes.nl/2026/11/11/promo-codes-scam-dutch-police-warn-fake-whatsapp-discount-codes'],
+  ['Kortingscodes op TikTok blijken vaak nep, zegt Consumentenbond', 'https://nos.nl/artikel/2643560-kortingscodes-op-tiktok-blijken-vaak-nep-zegt-consumentenbond'],
+].map(([title, url]) => ({ title, url }))
+
+test('kortingscodes: de 32 aanvalskoppen uit keuring 1 en de 11 gelabelde valkuilen blijven, bij elke bron', async () => {
+  assert.equal(AANVAL.length, 32)
+  assert.equal(VALKUILEN.length, 11)
+  for (const x of [...AANVAL, ...VALKUILEN]) {
+    assert.equal(couponPage(x), false, x.title)
+    for (const src of [wired, nos, null]) assert.equal(noiseReason({ title: x.title, link: x.url }, [], src), null, `${src?.id}: ${x.title}`)
+  }
+  const uniek = new Map([...AANVAL, ...VALKUILEN].map((x) => [x.url, x]))
+  assert.equal((await viaFeed(nos, [...uniek.values()])).length, uniek.size)
+})
+
+test('kortingscodes: dezelfde onderwerpkop met een aanbod achter de dubbele punt valt wel weg (alle drie)', () => {
+  // Vorm 1 en 2 gelijk aan de aanvalskoppen; alleen de staart verschilt. Zo zie je dat de staart het verschil maakt.
+  assert.equal(couponPage({ title: 'Temu Coupons: 30% Off | November 2026', url: 'https://www.reuters.com/technology/temu-coupons' }), true)
+  assert.equal(couponPage({ title: 'Temu coupons: EU opens formal investigation', url: 'https://www.reuters.com/technology/temu-coupons' }), false)
+  assert.equal(couponPage({ title: 'Kortingscodes: 20 procent korting', url: 'https://nos.nl/artikel/2641111-acm-kortingscodes' }), true)
+  assert.equal(couponPage({ title: 'Kortingscodes: ACM tikt webwinkels op de vingers', url: 'https://nos.nl/artikel/2641111-acm-kortingscodes' }), false)
+  // Obligaties nooit, ook niet met een periode of percentage.
+  assert.equal(couponPage({ title: 'Zero Coupons: 4% in November 2026', url: 'https://fd.nl/x/zero-coupons' }), false)
+  assert.equal(couponPage({ title: 'Bond Coupons: 5% for 2026', url: 'https://www.ft.com/content/bond-coupons' }), false)
+})
+
 test('kortingscodes: de 12 live kortingscode-pagina\'s vallen weg, op reden kortingscode, bij elke bron', async () => {
   assert.deepEqual(live.map((x) => x.title).sort(), [...LIVE].sort())
   for (const x of live) {
@@ -90,7 +165,7 @@ test('kortingscodes: nieuws over kortingscodes en de tegenvoorbeelden blijven', 
   assert.equal((await viaFeed(nos, BLIJFT)).length, new Set(BLIJFT.map((x) => x.url)).size)
 })
 
-test('kortingscodes: beide moeten gelden; kop alleen of slug alleen weert niets', () => {
+test('kortingscodes: kop (met aanbod) en slug moeten allebei gelden; kop alleen of slug alleen weert niets', () => {
   const kop = 'Nike Promo Codes and Discounts: 30% for November 2026'
   assert.equal(couponHead(kop), true)
   assert.equal(couponSlug('https://www.wired.com/story/nike-promo-code/'), true)
@@ -106,10 +181,18 @@ test('kortingscodes: de kop opent met de naam en het woord, de slug eindigt erop
   // kop: het woord in het openingsdeel, hooguit 4 woorden ervoor, erna niets, een opsomming of een periode
   for (const t of ['Wayfair Coupons: Up to 80% Off', 'Design Within Reach Promo Codes: 30% Off', 'Kortingscode: 20 procent korting bij Zalando',
     'Visible Promo Codes and Coupons for November 2026', 'B&H Photo Promo Codes and Deals This November 2026', 'Hydrow Discount Code | Save $150',
-    'Bol Kortingscodes voor december', 'Acme Voucher Codes – 10% Off']) assert.equal(couponHead(t), true, t)
+    'Bol Kortingscodes voor december', 'Acme Voucher Codes – 10% Off', 'Vitamix Promo Codes and Deals: $25 Off + Free Shipping',
+    'NordVPN Coupons: 75% Off, Plus 3 Months Free in November 2026', 'Factor Promo Code: 50% Off Off Meal Prep', 'Acme Coupons: gratis verzending',
+    'Acme Coupons: November 2026', 'Hydrow Discount Code: Save Up to $150 | November 2026', "Sam's Club Promo Codes and Membership Deals for November 2026"]) assert.equal(couponHead(t), true, t)
   for (const t of ['Promo codes scam: police warn', 'Kortingscode-fraude: politie pakt bende op', 'Rechtbank: kortingscodes zijn reclame',
     'Honey sued over coupon codes by YouTube creators', 'Fake coupon codes for Black Friday flood TikTok', 'Kortingscodes op TikTok blijken nep',
-    'Why one two three four five coupons', 'Couponing Is Back', 'Lovehoney Coupon Offers: 70% Off', 'Nep-kortingscodes via Telegram', '']) assert.equal(couponHead(t), false, t)
+    'Why one two three four five coupons', 'Couponing Is Back', 'Lovehoney Coupon Offers: 70% Off', 'Nep-kortingscodes via Telegram', '',
+    // geen aanbod achter de dubbele punt, of helemaal geen staart en geen periode
+    'Coupons', 'Influencer promo codes', 'Temu coupons: EU opens formal investigation', 'Temu coupons: 90% off claims are fake, EU says',
+    'Amazon coupons: $2 billion settlement', 'Shein coupons — EU fines retailer', 'Netflix promo codes in November 2026: the scam that steals your login',
+    'Discount codes for November 2026 flood TikTok, most are fake', 'Grocery coupons and SNAP: what changes in 2026', 'Kortingscodes: ACM tikt webwinkels op de vingers',
+    // obligaties
+    'Zero coupons: 4% in 2026', 'Coupon rates: 5% in November 2026', 'Bond coupons for 2026']) assert.equal(couponHead(t), false, t)
   // slug: hooguit 4 woorden en dan het woord, als laatste
   for (const u of ['https://www.wired.com/story/nike-promo-code/', 'https://www.wired.com/story/nordvpn-coupon/', 'https://www.wired.com/story/valvoline-coupons/',
     'https://www.wired.com/story/airdoctor-coupon-code/', 'https://www.wired.com/story/t-mobile-business-promo-code/', 'https://www.ad.nl/koopjes/zalando-kortingscode~a1/',
@@ -118,6 +201,8 @@ test('kortingscodes: de kop opent met de naam en het woord, de slug eindigt erop
     'https://www.example.test/news/ftc-sues-company-over-fake-coupon-codes', 'https://www.nu.nl/binnenland/6418005/kortingscode-fraude.html',
     'https://www.example.test/coupon', 'https://www.example.test/', 'geen link', '']) assert.equal(couponSlug(u), u === 'https://www.example.test/coupon', u)
   assert.equal(openingOf('Factor Promo Code: 50% Off'), 'Factor Promo Code')
+  assert.equal(tailOf('Hydrow Discount Code: Save Up to $150 | November 2026'), 'Save Up to $150 | November 2026')
+  assert.equal(tailOf('Visible Promo Codes and Coupons for November 2026'), '')
   assert.equal(slugOf('https://www.ad.nl/koopjes/zalando-kortingscode~a1/'), 'zalando-kortingscode')
 })
 
