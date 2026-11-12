@@ -60,6 +60,24 @@ import WidgetKit
         XCTAssertEqual(KortKop.trap(geen, kort: nil), [geen])
     }
 
+    // Keuring 5: een verwijzende zin, voorwaarde of verwijzend citaat valt nooit weg met haar ontkenning, ook niet
+    // in de trap; een ontkenning met accent of op n't wordt herkend.
+    func testTrapLaatGeenVerwijzendeOntkenningWeg() {
+        let gevallen = [
+            ("Het kabinet is gevallen. Dat klopt helemaal niet, zegt premier Schoof", "Het kabinet is gevallen."),
+            ("Kabinet valt deze week, als het aan premier Schoof ligt in elk geval niet", "Kabinet valt deze week…"),
+            ("Kabinet gevallen na urenlang crisisberaad: ‘Dat is absoluut niet waar’", "Kabinet gevallen na urenlang crisisberaad"),
+            ("Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat", "Kabinet stemt in met nieuwe asielwet van minister Faber…"),
+            ("De VVD steunt het nieuwe plan voor de verkoop van zorgverzekeraars écht níét", "De VVD steunt het nieuwe plan voor de verkoop…"),
+        ]
+        for (kop, fout) in gevallen {
+            XCTAssertFalse(KortKop.veilig(kop, fout), kop)
+            XCTAssertFalse(KortKop.trap(kop, kort: fout).contains(fout), kop)
+            for t in KortKop.trap(kop, kort: nil) { XCTAssertTrue(KortKop.veilig(kop, t) || t == kop, t) }
+        }
+        for w in ["níét", "géén", "mustn’t", "needn't", "shan’t"] { XCTAssertTrue(KortKop.ontkenning(w), w) }
+    }
+
     // MARK: Dagdelen en tijdlijn
 
     func testDagdelenGelijkAanServerSeintjesEnNamen() throws {

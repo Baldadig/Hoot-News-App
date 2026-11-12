@@ -33,7 +33,9 @@ enum KortKop {
         "amper", "nauwelijks", "zonder",
         "not", "no", "never", "nothing", "none", "nobody", "nowhere", "neither", "nor", "cannot", "hardly", "barely", "scarcely",
         "without", "cant", "dont", "doesnt", "didnt", "wont", "isnt", "arent", "wasnt", "werent", "hasnt", "havent", "hadnt",
-        "shouldnt", "wouldnt", "couldnt", "aint",
+        "shouldnt", "wouldnt", "couldnt", "aint", "mustnt", "neednt", "shant", "mightnt", "oughtnt",
+        // Ontkennen zonder ontkenningswoord ("…; premier ontkent dat", "…; his office denies it").
+        "ontkent", "ontkennen", "ontkende", "ontkenden", "onwaar", "onjuist", "deny", "denies", "denied", "false",
     ]
     // Een deel dat met een voorzetsel of voegwoord begint, heeft geen eigen onderwerp vooraan.
     static let openers: Set<String> = [
@@ -44,6 +46,17 @@ enum KortKop {
         "to", "for", "on", "at", "by", "with", "from", "into", "after", "before", "about", "amid", "against",
         "as", "than", "through", "since", "until", "under", "between", "despite", "without", "during", "towards", "toward",
         "and", "or", "but", "if", "because", "while", "although", "though", "unless", "whether",
+    ]
+    // Verwijswoorden en persoonlijke voornaamwoorden: een zin die zo begint, zegt iets terug over wat ervoor staat.
+    static let verwijs: Set<String> = [
+        "dat", "dit", "die", "deze", "het", "er", "zo", "hij", "zij", "ze", "ik", "wij", "we", "jij", "je", "u",
+        "that", "this", "these", "those", "it", "which", "so", "he", "she", "they", "i", "you",
+    ]
+    // Een voorwaarde of tegenstelling zet iets bij het blijvende deel: nooit een losse zin.
+    static let voorwaarde: Set<String> = ["als", "tenzij", "indien", "mits", "zolang", "if", "unless", "yet", "provided"]
+    // Een B die zo begint, is geen kop op zichzelf ("it will not be the last", "that is not true"); "Dit is …" wel.
+    static let voornaamwoord: Set<String> = [
+        "it", "he", "she", "they", "we", "i", "that", "which", "so", "hij", "zij", "ze", "wij", "ik", "dat", "zo",
     ]
     // Woorden waarmee een nieuwe (bij)zin begint; geen "en", "of", "and" of "or".
     static let bijzin: Set<String> = [
@@ -89,8 +102,11 @@ enum KortKop {
         guard test("^\\p{Ll}\\p{Ll}", s), let eerste = s.first else { return s }
         return eerste.uppercased() + s.dropFirst()
     }
-    private static func letters(_ w: String) -> String { vervang("[^\\p{L}]", w.lowercased(), "") }
-    private static func ontkenning(_ w: String) -> Bool { ontkenningen.contains(letters(w)) }
+    // Accenten tellen niet ("níét" is "niet"): NFD, dan de tekens zonder eigen letter eruit, zoals het web.
+    private static func zonderAccent(_ w: String) -> String { vervang("\\p{M}", w.decomposedStringWithCanonicalMapping, "") }
+    private static func letters(_ w: String) -> String { vervang("[^\\p{L}]", zonderAccent(w.lowercased()), "") }
+    // Een woord uit ontkenningen, of een Engelse samentrekking op n't ("mustn't", "needn’t").
+    static func ontkenning(_ w: String) -> Bool { ontkenningen.contains(letters(w)) || test("\\p{L}n['’]t(?![\\p{L}])", w.lowercased()) }
     private static func heeftOntkenning(_ s: String) -> Bool { delen(s).contains { ontkenning($0) } }
     private static func opent(_ s: String) -> Bool { openers.contains(letters(delen(s).first ?? "")) }
     // Begint bij woord `i` een nieuwe zin of bijzin: na een leesteken, bij een gedachtestreep of een bijzinswoord.
@@ -99,7 +115,7 @@ enum KortKop {
     }
     // MARK: De bewaking (zie veilig in kort-kop.mjs)
 
-    private static func sleutel(_ w: String) -> String { vervang("[^\\p{L}\\p{N}]", w.lowercased(), "") }
+    private static func sleutel(_ w: String) -> String { vervang("[^\\p{L}\\p{N}]", zonderAccent(w.lowercased()), "") }
     private static func gelijk(_ a: String, _ b: String) -> Bool { ns(a).isEqual(to: b) }
     // Welke woorden van de kop (index in `alle`) staan in de korte kop, met zo weinig mogelijk weggevallen stukken?
     private static func gelegd(_ alle: [String], _ kort: String) -> Set<Int>? {
@@ -147,8 +163,19 @@ enum KortKop {
         while r < alle.count, !test(sluitCitaat, alle[r]) { r += 1 }
         if q < 1 || r >= alle.count || p - q < 2 || !test(":$", alle[q - 1]) { return false }
         let eerste = letters(alle[q])
-        if openers.contains(eerste) || ontkenningen.contains(eerste) { return false }
+        if openers.contains(eerste) || ontkenningen.contains(eerste) || verwijs.contains(eerste) { return false }
         return !(q ... r).contains { mee.contains($0) }
+    }
+    // Een losse (bij)zin die niets terugzegt over het blijvende deel: begint met een bijzinswoord of na . ? !, niet met
+    // een voorwaarde of verwijswoord (ook niet direct na het bijzinswoord), en met een benoemd onderwerp (naam of getal).
+    private static func losseZin(_ alle: [String], _ s: Int, _ p: Int) -> Bool {
+        let eerste = letters(alle[s])
+        let opBijzin = bijzin.contains(eerste)
+        if !opBijzin && !(s > 0 && test("[.?!]$", alle[s - 1])) { return false }
+        if voorwaarde.contains(eerste) || verwijs.contains(eerste) { return false }
+        if opBijzin && verwijs.contains(letters(s + 1 < alle.count ? alle[s + 1] : "")) { return false }
+        let acroniem = test("^[‘’“'\"„«‚(]?\\p{Lu}[\\p{Lu}\\d]+(?![\\p{L}\\p{N}])", alle[s])
+        return acroniem || (s + 1 < p && alle[(s + 1) ..< p].contains { test("^[‘’“'\"„«‚(]?(?:\\p{Lu}|\\d)", $0) })
     }
     // Valt er een ontkenning weg die het deel raakt dat blijft? Dan is deze korte kop niet veilig.
     static func veilig(_ kop: String, _ kort: String?) -> Bool {
@@ -161,8 +188,7 @@ enum KortKop {
             var e = p + 1
             while e < alle.count, !zinsbegin(alle, e) { e += 1 }
             let heelWeg = !(s ..< e).contains { mee.contains($0) }
-            let eigen = bijzin.contains(letters(alle[s])) || (s > 0 && test("[.?!]$", alle[s - 1]))
-            if s > 0, eigen, p - s >= 3, heelWeg { continue }
+            if s > 0, heelWeg, p - s >= 3, losseZin(alle, s, p) { continue }
             if citaatWeg(alle, p, mee) { continue }
             return false
         }
@@ -251,7 +277,7 @@ enum KortKop {
             let a = staart(zonderLosEinde(delen(p[1]), voegwoorden).joined(separator: " "))
             let b = vervang("^\\s+|\\s+$", p[2], "")
             let toevoegingB = woorden(b) <= kortToevoeging || test(openCitaat, b) || b.hasSuffix("?")
-            let bKop = kern(b, 4) && !opent(b)
+            let bKop = kern(b, 4) && !opent(b) && !voornaamwoord.contains(letters(delen(b).first ?? ""))
             let alsB = { bKop && !titleCase(b) ? kort(hoofdletter(b), max, kop) : nil }
             if isCitaat(a) {
                 if bKop, let k = kort(hoofdletter(b), max, kop) { return k }

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { kortKop, metKorteKoppen, veilig, KORT_MAX, ONTKENNINGEN } from '../shared/kort-kop.mjs'
+import { kortKop, metKorteKoppen, veilig, ontkenning, KORT_MAX } from '../shared/kort-kop.mjs'
 
 // tests/fixtures/kort-kop.json wordt ook door iOS gelezen (KortKopTests): dezelfde korte kop op beide.
 const fx = JSON.parse(readFileSync(new URL('./fixtures/kort-kop.json', import.meta.url), 'utf8'))
@@ -18,7 +18,7 @@ test('korte kop: een ontkenning valt nooit weg, via welke stap ook (keuring 4)',
   // Over de hele weggevallen rest, niet tot het eerste leesteken. Elke uitkomst gaat langs `veilig`; en los
   // daarvan: valt er een ontkenning weg, dan staat ze in een eigen (bij)zin of citaat die helemaal wegvalt, met
   // minstens drie woorden ervoor die ook wegvallen, en nooit direct na een komma, dubbele punt of gedachtestreep.
-  const sl = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+  const sl = (w) => w.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]/gu, '')
   for (const c of fx.gevallen) {
     const alle = schoonKop(c.kop).split(' ')
     for (const max of [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]) {
@@ -26,12 +26,12 @@ test('korte kop: een ontkenning valt nooit weg, via welke stap ook (keuring 4)',
       if (k === null) continue
       assert.ok(k.length <= max, k)
       assert.ok(veilig(c.kop, k), `${c.kop} (${max}) → ${k}`)
-      const tel = (ws) => ws.filter((w) => ONTKENNINGEN.has(sl(w))).length
+      const tel = (ws) => ws.filter(ontkenning).length
       if (tel(k.split(' ')) >= tel(alle)) continue
       const rest = new Map()
       for (const w of k.replace(/…$/u, '').split(' ').map(sl)) rest.set(w, (rest.get(w) || 0) + 1)
       for (let p = 0; p < alle.length; p++) {
-        if (!ONTKENNINGEN.has(sl(alle[p]))) continue
+        if (!ontkenning(alle[p])) continue
         if (rest.get(sl(alle[p]))) { rest.set(sl(alle[p]), rest.get(sl(alle[p])) - 1); continue }
         assert.ok(p >= 3 && !/[,:;]$/u.test(alle[p - 1]) && !/^[–—-]$/u.test(alle[p - 1]), `${c.kop} (${max}) → ${k}`)
         const kaal = k.replace(/…$/u, '')
@@ -59,8 +59,36 @@ test('korte kop: een ontkenning valt nooit weg, via welke stap ook (keuring 4)',
   // Ook bij een komma (stap 5) en tussen haakjes.
   assert.equal(kortKop('Tweede Kamer steunt het nieuwe belastingplan niet, coalitie in zwaar weer na lange nacht van onderhandelen'), 'Tweede Kamer steunt het nieuwe belastingplan niet…')
   assert.match(kortKop('Kabinet stemt (niet) in met plan voor nieuwe kerncentrales in Borssele en op de Maasvlakte'), /\(niet\)/u)
-  // Een eigen bijzin met een eigen onderwerp mag wel weg.
-  assert.equal(kortKop('Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough'), 'Russia, Ukraine agree on prisoner exchange…')
+  // Een eigen bijzin mag alleen weg met een eigen, benoemd onderwerp (keuring 5); zonder blijft de kop heel.
+  assert.equal(kortKop('Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough'), null)
+  assert.equal(kortKop('Kruis over de knock-outfase? Vrouwen kunnen ook tegen Køge niet winnen en lijken uitgeteld in de Champions League'), 'Kruis over de knock-outfase?')
+})
+
+test('korte kop: een verwijzende zin of voorwaarde valt nooit weg met haar ontkenning (keuring 5)', () => {
+  const nooit = [
+    ['Het kabinet is gevallen. Dat klopt helemaal niet, zegt premier Schoof', 'Het kabinet is gevallen.'],
+    ['The cabinet has collapsed. That is simply not true, says the prime minister', 'The cabinet has collapsed.'],
+    ['Biden will run again in 2028: that is simply not true, says his campaign', 'Biden will run again in 2028'],
+    ['Asielwet gaat per 1 januari in, maar dat gebeurt nu toch niet', 'Asielwet gaat per 1 januari in…'],
+    ['Kabinet valt deze week, als het aan premier Schoof ligt in elk geval niet', 'Kabinet valt deze week…'],
+    ['Kabinet gevallen na urenlang crisisberaad: ‘Dat is absoluut niet waar’', 'Kabinet gevallen na urenlang crisisberaad'],
+  ]
+  for (const [kop, fout] of nooit) {
+    assert.equal(veilig(kop, fout), false, `${kop} → ${fout}`)
+    for (const max of [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]) assert.notEqual(kortKop(kop, max), fout, `${kop} (${max})`)
+  }
+  // Een B die met een voornaamwoord of verwijswoord begint, is geen kop op zichzelf.
+  assert.ok(!/^It /u.test(kortKop('Netflix renews ‘Wednesday’ for a third season: it will not be the last, says star') ?? ''))
+  // Ontkennen zonder ontkenningswoord.
+  assert.equal(kortKop('Kabinet is gevallen na ruzie over asielwet, zegt oppositie; premier Schoof ontkent dat'), null)
+})
+
+test('korte kop: een ontkenning met accent of op n\'t wordt herkend (keuring 5)', () => {
+  for (const w of ['níét', 'géén', 'nóóit', 'mustn’t', "needn't", 'shan’t', "mightn't", 'oughtn’t', "won't"]) assert.ok(ontkenning(w), w)
+  assert.equal(veilig('Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat', 'Kabinet stemt in met nieuwe asielwet van minister Faber…'), false)
+  assert.match(kortKop('Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat'), /\(níét\)/u)
+  assert.equal(kortKop('De VVD steunt het nieuwe plan voor de verkoop van zorgverzekeraars écht níét'), null)
+  assert.equal(veilig('Government says British schools mustn’t reopen on Monday after the storm damage', 'Government says British schools…'), false)
 })
 
 test('korte kop: bij een dubbele punt blijft de naam vooraan (PSV)', () => {
@@ -127,7 +155,8 @@ test('metKorteKoppen: per plek de kop van het hoofdstuk ingekort, de rest ongemo
 // Keuring 1: echte koppen uit de feed waar de korte kop het nieuws kwijtraakte.
 test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt, vraag, bijvoeglijk naamwoord)', () => {
   // a. Citaat vooraan: wat erna komt heeft spreker en onderwerp.
-  assert.equal(kortKop('“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten'), 'Advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi…')
+  // (Op 60 valt "ontkennen" weg; dat telt sinds keuring 5 als ontkenning, dus pas op een ruimere maat.)
+  assert.equal(kortKop('“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten', 80), 'Advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten')
   assert.equal(kortKop('‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe techwet tegen manipulatieve trucs van big tech').startsWith('Brussel presenteert'), true)
   // Een bijnaam is geen citaat.
   assert.ok(kortKop('‘Romanticus’ Emma Heesters gaat op zoek naar de liefde in nieuw seizoen De Bachelorette').startsWith('‘Romanticus’ Emma Heesters'))
@@ -142,7 +171,9 @@ test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt,
   // c. Afkappen op een zinsgrens.
   assert.equal(kortKop('Wat wil jij weten van de klimaattop in Turkije? Stel je vragen aan onze verslaggever'), 'Wat wil jij weten van de klimaattop in Turkije?')
   // d. Geen los voorzetsel of bijvoeglijk naamwoord aan het eind; een zelfstandig naamwoord op -e blijft.
-  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet'), 'Sluiting dreigt voor verouderde laboratoria RIVM…')
+  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan pas over een paar jaar'), 'Sluiting dreigt voor verouderde laboratoria RIVM…')
+  // Met een ontkenning in de bijzin zonder eigen, benoemd onderwerp: geen korte kop (keuring 5).
+  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet'), null)
   assert.equal(kortKop('Manon Bakker ploetert in crossweer naar eerste grote zege in 3 jaar, Lucinda Brand misstapt zich en valt uit in Niel'), 'Manon Bakker ploetert in crossweer naar eerste grote zege…')
   assert.equal(kortKop('Topfavoriete Lucinda Brand stapt uit met blessure in Superprestige Niel'), 'Topfavoriete Lucinda Brand stapt uit met blessure…')
   for (const kop of fx.gevallen.map((c) => kortKop(c.kop, c.max ?? 60)).filter(Boolean)) {

@@ -56,7 +56,7 @@
     },
     {
       "kop": "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough",
-      "verwacht": "Russia, Ukraine agree on prisoner exchange…"
+      "verwacht": null
     },
     {
       "kop": "Podcast De Dag: Tarwekamp-slachtoffers en nabestaanden aan het woord",
@@ -92,7 +92,7 @@
     },
     {
       "kop": "“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten",
-      "verwacht": "Advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi…"
+      "verwacht": null
     },
     {
       "kop": "“Of het nu goed gaat of minder, je merkt niet veel aan Senne”: Mark van Bommel twijfelt niet aan Lammens en hoopt Lukaku zondag te recupereren",
@@ -112,7 +112,7 @@
     },
     {
       "kop": "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet",
-      "verwacht": "Sluiting dreigt voor verouderde laboratoria RIVM…"
+      "verwacht": null
     },
     {
       "kop": "RIVM dreigt laboratoria te moeten sluiten wegens uitbraakgevaar",
@@ -184,7 +184,7 @@
     },
     {
       "kop": "Parket start onderzoek naar ‘BruineMehdi’ nadat drie vrouwen klacht indienen: “Ik doe dit opdat niemand anders dit moet meemaken”",
-      "verwacht": "Parket start onderzoek naar ‘BruineMehdi’…"
+      "verwacht": null
     },
     {
       "kop": "Affaire van Nvidia-topman met ‘Chinese spion’ treft hele (AI-)wereld",
@@ -319,7 +319,7 @@
     },
     {
       "kop": "Russia and Ukraine agree to a prisoner exchange as talks end with no big breakthrough",
-      "verwacht": "Russia and Ukraine agree to a prisoner exchange…"
+      "verwacht": null
     },
     {
       "kop": "Of een patiënt behandeld wordt, mag niet afhangen van de kosten",
@@ -476,6 +476,348 @@
     {
       "kop": "Ukraine talks in Abu Dhabi bring progress on prisoners but not on peace",
       "verwacht": null
+    },
+    {
+      "kop": "Het kabinet is gevallen. Dat klopt helemaal niet, zegt premier Schoof",
+      "verwacht": "Het kabinet is gevallen. Dat klopt helemaal niet…"
+    },
+    {
+      "kop": "Het kabinet is gevallen. Dat klopt helemaal niet, zegt premier Schoof",
+      "verwacht": "Het kabinet is gevallen. Dat klopt helemaal niet…",
+      "max": 52
+    },
+    {
+      "kop": "Het kabinet is gevallen. Dat klopt helemaal niet, zegt premier Schoof",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Het kabinet is gevallen. Dat klopt helemaal niet, zegt premier Schoof",
+      "verwacht": null,
+      "max": 32
+    },
+    {
+      "kop": "The cabinet has collapsed. That is simply not true, says the prime minister",
+      "verwacht": "The cabinet has collapsed. That is simply not true…"
+    },
+    {
+      "kop": "The cabinet has collapsed. That is simply not true, says the prime minister",
+      "verwacht": "The cabinet has collapsed. That is simply not true…",
+      "max": 52
+    },
+    {
+      "kop": "The cabinet has collapsed. That is simply not true, says the prime minister",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "The cabinet has collapsed. That is simply not true, says the prime minister",
+      "verwacht": null,
+      "max": 28
+    },
+    {
+      "kop": "Schoof: kabinet valt over asiel. Dat zei hij gisteren in het debat in elk geval niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Schoof: kabinet valt over asiel. Dat zei hij gisteren in het debat in elk geval niet",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Schoof: kabinet valt over asiel. Dat zei hij gisteren in het debat in elk geval niet",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Rutte wordt de nieuwe secretaris-generaal van de NAVO: dat klopt dus niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Rutte wordt de nieuwe secretaris-generaal van de NAVO: dat klopt dus niet",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Rutte wordt de nieuwe secretaris-generaal van de NAVO: dat klopt dus niet",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Biden will run again in 2028: that is simply not true, says his campaign",
+      "verwacht": "Biden will run again in 2028: that is simply not true…"
+    },
+    {
+      "kop": "Biden will run again in 2028: that is simply not true, says his campaign",
+      "verwacht": "Biden will run again in 2028: that is simply not…",
+      "max": 52
+    },
+    {
+      "kop": "Biden will run again in 2028: that is simply not true, says his campaign",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Rutte wordt secretaris-generaal van de NAVO, dat gaat dus niet gebeuren",
+      "verwacht": null
+    },
+    {
+      "kop": "Rutte wordt secretaris-generaal van de NAVO, dat gaat dus niet gebeuren",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Rutte wordt secretaris-generaal van de NAVO, dat gaat dus niet gebeuren",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Asielwet gaat per 1 januari in, maar dat gebeurt nu toch niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Asielwet gaat per 1 januari in, maar dat gebeurt nu toch niet",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Asielwet gaat per 1 januari in, maar dat gebeurt nu toch niet",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Schiphol mag groeien naar 500.000 vluchten, maar dat mag van de rechter niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Schiphol mag groeien naar 500.000 vluchten, maar dat mag van de rechter niet",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Schiphol mag groeien naar 500.000 vluchten, maar dat mag van de rechter niet",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Tax cuts take effect next year, but that will now not happen after the vote",
+      "verwacht": "Tax cuts take effect next year, but that will now not…"
+    },
+    {
+      "kop": "Tax cuts take effect next year, but that will now not happen after the vote",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Tax cuts take effect next year, but that will now not happen after the vote",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet heeft een akkoord over de asielwet, die komt er toch niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet heeft een akkoord over de asielwet, die komt er toch niet",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Kabinet heeft een akkoord over de asielwet, die komt er toch niet",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet valt deze week, als het aan premier Schoof ligt in elk geval niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet valt deze week, als het aan premier Schoof ligt in elk geval niet",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Kabinet valt deze week, als het aan premier Schoof ligt in elk geval niet",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet valt over stikstof, tenzij de VVD alsnog niet instemt met het nieuwe plan",
+      "verwacht": "Kabinet valt over stikstof, tenzij de VVD alsnog niet…"
+    },
+    {
+      "kop": "Kabinet valt over stikstof, tenzij de VVD alsnog niet instemt met het nieuwe plan",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Kabinet valt over stikstof, tenzij de VVD alsnog niet instemt met het nieuwe plan",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er – als het aan de Kamer ligt niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er – als het aan de Kamer ligt niet",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er – als het aan de Kamer ligt niet",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Dat is absoluut niet waar’",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Dat is absoluut niet waar’",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Dat is absoluut niet waar’",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘That is absolutely not true’",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘That is absolutely not true’",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘That is absolutely not true’",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Rutte wordt nieuwe premier na de verkiezingen: ‘Dat ga ik zeker niet doen’",
+      "verwacht": null
+    },
+    {
+      "kop": "Rutte wordt nieuwe premier na de verkiezingen: ‘Dat ga ik zeker niet doen’",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Rutte wordt nieuwe premier na de verkiezingen: ‘Dat ga ik zeker niet doen’",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat",
+      "verwacht": "Kabinet stemt (níét) in met nieuwe asielwet van minister…"
+    },
+    {
+      "kop": "Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat",
+      "verwacht": "Kabinet stemt (níét) in met nieuwe asielwet…",
+      "max": 52
+    },
+    {
+      "kop": "Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat",
+      "verwacht": "Kabinet stemt (níét)…",
+      "max": 40
+    },
+    {
+      "kop": "De VVD steunt het nieuwe plan voor de verkoop van zorgverzekeraars écht níét",
+      "verwacht": null
+    },
+    {
+      "kop": "De VVD steunt het nieuwe plan voor de verkoop van zorgverzekeraars écht níét",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "De VVD steunt het nieuwe plan voor de verkoop van zorgverzekeraars écht níét",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren na kritiek Raad van State",
+      "verwacht": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren…"
+    },
+    {
+      "kop": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren na kritiek Raad van State",
+      "verwacht": "Kabinet zegt dat het de asielwet nu echt níét…",
+      "max": 52
+    },
+    {
+      "kop": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren na kritiek Raad van State",
+      "verwacht": null,
+      "max": 44
+    },
+    {
+      "kop": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren na kritiek Raad van State",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Government says British schools mustn’t reopen on Monday after the storm damage",
+      "verwacht": "Government says British schools mustn’t reopen on Monday…"
+    },
+    {
+      "kop": "Government says British schools mustn’t reopen on Monday after the storm damage",
+      "verwacht": "Government says British schools mustn’t reopen…",
+      "max": 52
+    },
+    {
+      "kop": "Government says British schools mustn’t reopen on Monday after the storm damage",
+      "verwacht": "Government says British schools mustn’t…",
+      "max": 40
+    },
+    {
+      "kop": "Government says British schools mustn’t reopen on Monday after the storm damage",
+      "verwacht": null,
+      "max": 36
+    },
+    {
+      "kop": "Netflix renews ‘Wednesday’ for a third season: it will not be the last, says star",
+      "verwacht": "Netflix renews ‘Wednesday’ for a third season: it will not…"
+    },
+    {
+      "kop": "Netflix renews ‘Wednesday’ for a third season: it will not be the last, says star",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Netflix renews ‘Wednesday’ for a third season: it will not be the last, says star",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na ruzie over asielwet, zegt oppositie; premier Schoof ontkent dat",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na ruzie over asielwet, zegt oppositie; premier Schoof ontkent dat",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Kabinet is gevallen na ruzie over asielwet, zegt oppositie; premier Schoof ontkent dat",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Een vaste basisplaats bij Marokko zit er voor Ayoub Oufkir niet in, maar door blessure kan Romelu Lukaku vandaag ook niet spelen",
+      "verwacht": null
+    },
+    {
+      "kop": "Een vaste basisplaats bij Marokko zit er voor Ayoub Oufkir niet in, maar door blessure kan Romelu Lukaku vandaag ook niet spelen",
+      "verwacht": null,
+      "max": 52
+    },
+    {
+      "kop": "Een vaste basisplaats bij Marokko zit er voor Ayoub Oufkir niet in, maar door blessure kan Romelu Lukaku vandaag ook niet spelen",
+      "verwacht": null,
+      "max": 40
     }
   ]
 }

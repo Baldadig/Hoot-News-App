@@ -28,7 +28,7 @@
 //      ("(90)") vallen ook weg als de kop dan past, of om ruimte te maken voor stap 5 en 6. Haakjes met een
 //      ontkenning erin ("Kabinet stemt (niet) in") blijven altijd staan.
 //   5. Een bijzin na een komma valt weg als de hoofdzin ervoor een kop is en past
-//      ("RIVM-laboratoria dreigen te sluiten, maar verhuizen kan nog niet"); met "…" erachter.
+//      ("RIVM-laboratoria dreigen te sluiten, maar verhuizen kan pas later"); met "…" erachter.
 //      (Ook dan geldt de bewaking: ", nog geen reactie VVD" valt niet weg.)
 //   6. Anders afkappen op de laatste woordgrens die past, zonder los lidwoord, voorzetsel of voegwoord aan
 //      het eind en zonder bijvoeglijk naamwoord dat zijn zelfstandig naamwoord kwijt is
@@ -76,7 +76,9 @@ export const ONTKENNINGEN = new Set([
   'amper', 'nauwelijks', 'zonder',
   'not', 'no', 'never', 'nothing', 'none', 'nobody', 'nowhere', 'neither', 'nor', 'cannot', 'hardly', 'barely', 'scarcely',
   'without', 'cant', 'dont', 'doesnt', 'didnt', 'wont', 'isnt', 'arent', 'wasnt', 'werent', 'hasnt', 'havent', 'hadnt',
-  'shouldnt', 'wouldnt', 'couldnt', 'aint',
+  'shouldnt', 'wouldnt', 'couldnt', 'aint', 'mustnt', 'neednt', 'shant', 'mightnt', 'oughtnt',
+  // Ontkennen zonder ontkenningswoord ("…; premier ontkent dat", "…; his office denies it").
+  'ontkent', 'ontkennen', 'ontkende', 'ontkenden', 'onwaar', 'onjuist', 'deny', 'denies', 'denied', 'false',
 ])
 // Een deel dat met een voorzetsel of voegwoord begint ("met eigen trekkers …", "from football …", "Ondanks …")
 // heeft geen eigen onderwerp vooraan: het is nooit een kop op zichzelf.
@@ -102,13 +104,21 @@ const staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, '')
 const kern = (s, min) => s.length >= KERN_MIN && woorden(s) >= min
 // Het eerste woord met een hoofdletter, als het een gewoon woord is ("advocaten" → "Advocaten", niet "iPhone").
 const hoofdletter = (s) => (/^\p{Ll}\p{Ll}/u.test(s) ? s[0].toLocaleUpperCase('nl') + s.slice(1) : s)
-const letters = (w) => w.toLowerCase().replace(/[^\p{L}]/gu, '')
-const ontkenning = (w) => ONTKENNINGEN.has(letters(w))
+// Accenten tellen niet: "níét" is "niet", "géén" is "geen" (NFD, dan de tekens zonder eigen letter eruit).
+const zonderAccent = (w) => w.normalize('NFD').replace(/\p{M}/gu, '')
+const letters = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}]/gu, '')
+// Een ontkenning: een woord uit ONTKENNINGEN, of een Engelse samentrekking op n't ("mustn't", "needn’t").
+export const ontkenning = (w) => ONTKENNINGEN.has(letters(w)) || /\p{L}n['’]t(?![\p{L}])/u.test(w.toLowerCase())
 const heeftOntkenning = (s) => s.split(' ').some(ontkenning)
+// Een deel dat met een persoonlijk voornaamwoord of verwijswoord begint ("it will not be the last", "that is not
+// true"), is geen kop op zichzelf: waar het naar verwijst, staat ervoor. "Dit is …" wel: dat wijst vooruit.
+const VOORNAAMWOORD = new Set([
+  'it', 'he', 'she', 'they', 'we', 'i', 'that', 'which', 'so', 'hij', 'zij', 'ze', 'wij', 'ik', 'dat', 'zo',
+])
 // Begint dit deel met een voorzetsel of voegwoord?
 const opent = (s) => OPENERS.has(letters(s.split(' ')[0] || ''))
 // Woorden waarmee een nieuwe (bij)zin begint: een ontkenning daarna hoort bij die zin, niet bij wat ervoor
-// staat ("… as talks end with no big breakthrough", "VVD twijfelt … als D66 en CDA niet inbinden").
+// staat ("…, maar door blessure kan Romelu Lukaku … niet …"), mits `losseZin` dat ook vindt.
 // Geen "en", "of", "and" of "or": "Kamer steunt plan en begroting niet" ontkent ook het plan.
 export const BIJZIN = new Set([
   'maar', 'want', 'omdat', 'als', 'terwijl', 'doordat', 'zodat', 'hoewel', 'nadat', 'toen', 'dat', 'die', 'wie',
@@ -119,14 +129,15 @@ export const BIJZIN = new Set([
 const zinsbegin = (alle, i) => i > 0 && i < alle.length && (/[,;:.?!]$/u.test(alle[i - 1]) || /^[–—-]$/u.test(alle[i]) || BIJZIN.has(letters(alle[i])))
 // De bewaking, voor elke uitkomst (welke stap ook): wat valt er weg uit de kop, en staat daar een ontkenning in
 // die het deel raakt dat blijft? Dan is de uitkomst ongeldig. De korte kop wordt woord voor woord op de kop
-// gelegd (hoofdletters, leestekens en "…" tellen niet), met zo weinig mogelijk weggevallen stukken. Een
-// weggevallen ontkenning is alleen onschuldig als ze in een eigen (bij)zin staat die helemaal wegvalt: die begint
-// met een bijzinswoord ("maar", "as", "that") of na een punt, vraag- of uitroepteken, en tussen dat begin en de
-// ontkenning staan minstens twee woorden, een eigen onderwerp en werkwoord ("…, maar verhuizen kan nog niet",
-// "… as talks end with no deal", "Kruis over de knock-outfase? OHL-vrouwen kunnen ook tegen Køge niet …").
-// Na een komma, dubbele punt of gedachtestreep zonder bijzinswoord hoort de ontkenning bij wat ervoor staat
-// (", niet uit de ether", ": of toch niet?", "– maar niet voor 2040").
-const sleutel = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+// gelegd (hoofdletters, accenten, leestekens en "…" tellen niet), met zo weinig mogelijk weggevallen stukken. Een
+// weggevallen ontkenning is standaard onveilig. Alleen onschuldig als ze in een losse (bij)zin staat die helemaal
+// wegvalt en niets terugzegt over het blijvende deel (`losseZin`): die begint met een bijzinswoord of na een punt,
+// vraag- of uitroepteken, niet met een voorwaarde ("als", "tenzij", "if", "unless", "yet") of een verwijswoord
+// ("dat", "die", "het", "that", "it", ook niet direct na "maar"), en heeft een eigen, benoemd onderwerp (een naam
+// of getal) voor de ontkenning ("Kruis over de knock-outfase? Vrouwen kunnen ook tegen Køge niet …"). Na een komma,
+// dubbele punt of gedachtestreep zonder bijzinswoord hoort de ontkenning bij wat ervoor staat (", niet uit de
+// ether", ": of toch niet?", "– maar niet voor 2040").
+const sleutel = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}\p{N}]/gu, '')
 // Welke woorden van de kop (index in `alle`) staan in de korte kop? null als hij er niet op past.
 function gelegd(alle, kort) {
   const idx = []
@@ -165,9 +176,33 @@ function gelegd(alle, kort) {
   }
   return null
 }
+// Verwijswoorden en persoonlijke voornaamwoorden: een zin die zo begint, zegt iets terug over wat ervoor staat
+// ("Dat klopt niet", "maar dat gebeurt niet", "die komt er niet", "that is not true", "‘Dat ga ik niet doen’").
+export const VERWIJS = new Set([
+  'dat', 'dit', 'die', 'deze', 'het', 'er', 'zo', 'hij', 'zij', 'ze', 'ik', 'wij', 'we', 'jij', 'je', 'u',
+  'that', 'this', 'these', 'those', 'it', 'which', 'so', 'he', 'she', 'they', 'i', 'we', 'you',
+])
+// Een voorwaarde of tegenstelling zet iets bij het blijvende deel: nooit een losse zin ("…, als het aan … ligt niet",
+// "…, tenzij de VVD niet instemt").
+export const VOORWAARDE = new Set(['als', 'tenzij', 'indien', 'mits', 'zolang', 'if', 'unless', 'yet', 'provided'])
+// Is de (bij)zin van `s` tot de ontkenning op `p` een losse zin die niets terugzegt over het blijvende deel? Alleen
+// als ze begint met een bijzinswoord of na een punt, vraag- of uitroepteken; niet met een voorwaarde; niet met een
+// verwijswoord (ook niet direct na het bijzinswoord: "maar dat …"); en met een eigen, benoemd onderwerp voor de
+// ontkenning (een naam of getal: "…, maar door blessure kan Romelu Lukaku … niet …"). Een weggevallen ontkenning is
+// dus standaard onveilig.
+function losseZin(alle, s, p) {
+  const eerste = letters(alle[s])
+  const opBijzin = BIJZIN.has(eerste)
+  if (!opBijzin && !/[.?!]$/u.test(alle[s - 1] || '')) return false
+  if (VOORWAARDE.has(eerste) || VERWIJS.has(eerste)) return false
+  if (opBijzin && VERWIJS.has(letters(alle[s + 1] || ''))) return false
+  const acroniem = /^[‘’“'"„«‚(]?\p{Lu}[\p{Lu}\d]+(?![\p{L}\p{N}])/u.test(alle[s])
+  return acroniem || alle.slice(s + 1, p).some((x) => /^[‘’“'"„«‚(]?(?:\p{Lu}|\d)/u.test(x))
+}
 // Een citaat na een dubbele punt dat helemaal wegvalt, is een eigen uitspraak: "Vader van …: ‘Zwaardere straffen
-// brengen haar niet terug’". Alleen als het citaat met een eigen onderwerp begint (geen voegwoord of ontkenning
-// vooraan: "‘Of toch niet?’", "‘Niet waar’") en er minstens twee woorden voor de ontkenning staan.
+// brengen haar niet terug’". Alleen als het citaat met een eigen onderwerp begint (geen voegwoord, ontkenning of
+// verwijswoord vooraan: "‘Of toch niet?’", "‘Niet waar’", "‘Dat is niet waar’", "‘Dat ga ik niet doen’") en er
+// minstens twee woorden voor de ontkenning staan.
 function citaatWeg(alle, p, mee) {
   let q = p
   while (q >= 0 && !OPEN_CITAAT.test(alle[q])) {
@@ -178,7 +213,7 @@ function citaatWeg(alle, p, mee) {
   while (r < alle.length && !SLUIT_CITAAT.test(alle[r])) r++
   if (q < 1 || r >= alle.length || p - q < 2 || !/:$/u.test(alle[q - 1])) return false
   const eerste = letters(alle[q])
-  if (OPENERS.has(eerste) || ONTKENNINGEN.has(eerste)) return false
+  if (OPENERS.has(eerste) || ONTKENNINGEN.has(eerste) || VERWIJS.has(eerste)) return false
   for (let i = q; i <= r; i++) if (mee.has(i)) return false
   return true
 }
@@ -195,8 +230,7 @@ export function veilig(kop, kort) {
     while (e < alle.length && !zinsbegin(alle, e)) e++
     let heelWeg = true
     for (let i = s; i < e; i++) if (mee.has(i)) heelWeg = false
-    const eigen = BIJZIN.has(letters(alle[s])) || /[.?!]$/u.test(alle[s - 1] || '')
-    if (s > 0 && eigen && p - s >= 3 && heelWeg) continue
+    if (s > 0 && heelWeg && p - s >= 3 && losseZin(alle, s, p)) continue
     if (citaatWeg(alle, p, mee)) continue
     return false
   }
@@ -298,7 +332,7 @@ function kort(t, max, kop) {
     const toevoegingB = woorden(b) <= KORT_TOEVOEGING || OPEN_CITAAT.test(b) || b.endsWith('?')
     // B kan alleen een kop zijn als het niet met een voorzetsel of voegwoord begint ("met eigen trekkers …",
     // "from football …"): dan mist het zijn onderwerp.
-    const bKop = kern(b, 4) && !opent(b)
+    const bKop = kern(b, 4) && !opent(b) && !VOORNAAMWOORD.has(letters(b.split(' ')[0] || ''))
     const alsB = () => (bKop && !titleCase(b) ? kort(hoofdletter(b), max, kop) : null)
     if (isCitaat(a)) {
       // a. Het citaat valt weg; spreker en onderwerp staan erna.

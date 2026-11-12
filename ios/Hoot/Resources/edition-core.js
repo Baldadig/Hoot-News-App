@@ -3699,7 +3699,23 @@ var HootCore = (() => {
     "shouldnt",
     "wouldnt",
     "couldnt",
-    "aint"
+    "aint",
+    "mustnt",
+    "neednt",
+    "shant",
+    "mightnt",
+    "oughtnt",
+    // Ontkennen zonder ontkenningswoord ("…; premier ontkent dat", "…; his office denies it").
+    "ontkent",
+    "ontkennen",
+    "ontkende",
+    "ontkenden",
+    "onwaar",
+    "onjuist",
+    "deny",
+    "denies",
+    "denied",
+    "false"
   ]);
   var OPENERS = /* @__PURE__ */ new Set([
     "van",
@@ -3803,9 +3819,28 @@ var HootCore = (() => {
   var staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, "");
   var kern = (s, min) => s.length >= KERN_MIN2 && woorden(s) >= min;
   var hoofdletter = (s) => /^\p{Ll}\p{Ll}/u.test(s) ? s[0].toLocaleUpperCase("nl") + s.slice(1) : s;
-  var letters = (w) => w.toLowerCase().replace(/[^\p{L}]/gu, "");
-  var ontkenning = (w) => ONTKENNINGEN.has(letters(w));
+  var zonderAccent = (w) => w.normalize("NFD").replace(/\p{M}/gu, "");
+  var letters = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}]/gu, "");
+  var ontkenning = (w) => ONTKENNINGEN.has(letters(w)) || /\p{L}n['’]t(?![\p{L}])/u.test(w.toLowerCase());
   var heeftOntkenning = (s) => s.split(" ").some(ontkenning);
+  var VOORNAAMWOORD = /* @__PURE__ */ new Set([
+    "it",
+    "he",
+    "she",
+    "they",
+    "we",
+    "i",
+    "that",
+    "which",
+    "so",
+    "hij",
+    "zij",
+    "ze",
+    "wij",
+    "ik",
+    "dat",
+    "zo"
+  ]);
   var opent = (s) => OPENERS.has(letters(s.split(" ")[0] || ""));
   var BIJZIN = /* @__PURE__ */ new Set([
     "maar",
@@ -3846,7 +3881,7 @@ var HootCore = (() => {
     "yet"
   ]);
   var zinsbegin = (alle, i) => i > 0 && i < alle.length && (/[,;:.?!]$/u.test(alle[i - 1]) || /^[–—-]$/u.test(alle[i]) || BIJZIN.has(letters(alle[i])));
-  var sleutel = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+  var sleutel = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}\p{N}]/gu, "");
   function gelegd(alle, kort2) {
     const idx = [];
     for (let i = 0; i < alle.length; i++) if (sleutel(alle[i])) idx.push(i);
@@ -3883,6 +3918,47 @@ var HootCore = (() => {
     }
     return null;
   }
+  var VERWIJS = /* @__PURE__ */ new Set([
+    "dat",
+    "dit",
+    "die",
+    "deze",
+    "het",
+    "er",
+    "zo",
+    "hij",
+    "zij",
+    "ze",
+    "ik",
+    "wij",
+    "we",
+    "jij",
+    "je",
+    "u",
+    "that",
+    "this",
+    "these",
+    "those",
+    "it",
+    "which",
+    "so",
+    "he",
+    "she",
+    "they",
+    "i",
+    "we",
+    "you"
+  ]);
+  var VOORWAARDE = /* @__PURE__ */ new Set(["als", "tenzij", "indien", "mits", "zolang", "if", "unless", "yet", "provided"]);
+  function losseZin(alle, s, p) {
+    const eerste = letters(alle[s]);
+    const opBijzin = BIJZIN.has(eerste);
+    if (!opBijzin && !/[.?!]$/u.test(alle[s - 1] || "")) return false;
+    if (VOORWAARDE.has(eerste) || VERWIJS.has(eerste)) return false;
+    if (opBijzin && VERWIJS.has(letters(alle[s + 1] || ""))) return false;
+    const acroniem = /^[‘’“'"„«‚(]?\p{Lu}[\p{Lu}\d]+(?![\p{L}\p{N}])/u.test(alle[s]);
+    return acroniem || alle.slice(s + 1, p).some((x) => /^[‘’“'"„«‚(]?(?:\p{Lu}|\d)/u.test(x));
+  }
   function citaatWeg(alle, p, mee) {
     let q = p;
     while (q >= 0 && !OPEN_CITAAT.test(alle[q])) {
@@ -3893,7 +3969,7 @@ var HootCore = (() => {
     while (r < alle.length && !SLUIT_CITAAT.test(alle[r])) r++;
     if (q < 1 || r >= alle.length || p - q < 2 || !/:$/u.test(alle[q - 1])) return false;
     const eerste = letters(alle[q]);
-    if (OPENERS.has(eerste) || ONTKENNINGEN.has(eerste)) return false;
+    if (OPENERS.has(eerste) || ONTKENNINGEN.has(eerste) || VERWIJS.has(eerste)) return false;
     for (let i = q; i <= r; i++) if (mee.has(i)) return false;
     return true;
   }
@@ -3910,8 +3986,7 @@ var HootCore = (() => {
       while (e < alle.length && !zinsbegin(alle, e)) e++;
       let heelWeg = true;
       for (let i = s; i < e; i++) if (mee.has(i)) heelWeg = false;
-      const eigen = BIJZIN.has(letters(alle[s])) || /[.?!]$/u.test(alle[s - 1] || "");
-      if (s > 0 && eigen && p - s >= 3 && heelWeg) continue;
+      if (s > 0 && heelWeg && p - s >= 3 && losseZin(alle, s, p)) continue;
       if (citaatWeg(alle, p, mee)) continue;
       return false;
     }
@@ -3979,7 +4054,7 @@ var HootCore = (() => {
       const a = staart(zonderLosEinde(punt[1].split(" "), VOEGWOORDEN).join(" "));
       const b = punt[2].trim();
       const toevoegingB = woorden(b) <= KORT_TOEVOEGING || OPEN_CITAAT.test(b) || b.endsWith("?");
-      const bKop = kern(b, 4) && !opent(b);
+      const bKop = kern(b, 4) && !opent(b) && !VOORNAAMWOORD.has(letters(b.split(" ")[0] || ""));
       const alsB = () => bKop && !titleCase(b) ? kort(hoofdletter(b), max, kop) : null;
       if (isCitaat(a)) {
         const k = bKop ? kort(hoofdletter(b), max, kop) : null;
