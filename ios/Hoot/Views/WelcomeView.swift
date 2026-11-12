@@ -279,6 +279,19 @@ struct WelcomeView: View {
 
     // ---- 1. De rode intro ----
 
+    // De eerste kop van de huidige algemene Editie (gelijk aan proofHeadline in src/lib/welcome.js). Geen Editie of
+    // geen kop (offline): nil, en de intro toont zijn gewone ondertitel.
+    static func proof(edition: Edition?, items: [String: Item]) -> (title: String, source: String)? {
+        guard let edition else { return nil }
+        let own = Dictionary((edition.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        for entry in edition.entries where entry.desk != "bubbel" {
+            guard let item = own[entry.leadId ?? entry.id] ?? items[entry.leadId ?? entry.id] else { continue }
+            let title = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !title.isEmpty { return (title, item.sourceName ?? "") }
+        }
+        return nil
+    }
+
     // Merkrood, alles erop papier (ook in donker). Het rood is de schijf van de iris. Eén knop: Begin.
     private var introStep: some View {
         VStack(spacing: 0) {
@@ -286,18 +299,34 @@ struct WelcomeView: View {
             Spacer(minLength: 0)
             VStack(spacing: Space.s4) {
                 OnboardingArt(kind: .intro, onRed: true, active: step == .intro, since: introSince)
-                Text("Minder scrollen.\nMeer lezen.")
+                Text("Nieuws met\neen einde.")
                     .font(.kop(size: min(hero, 56)))
                     .tracking(-0.8)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($headFocus)
-                Text("Het nieuws van jouw bronnen,\nrustig op een rij.")
-                    .zin() // zoals .ob__lede op het web
-                    .opacity(0.85)
-                    .multilineTextAlignment(.center)
+                if let proof = Self.proof(edition: store.edition, items: store.itemsById) {
+                    // Het bewijs: de eerste kop van de huidige (algemene) Editie, met bron; zoals .ob__proof op het web.
+                    VStack(spacing: Space.s1) {
+                        Text(proof.title)
+                            .font(.kop(size: 20))
+                            .lineLimit(3)
+                            .multilineTextAlignment(.center)
+                        Text(proof.source)
+                            .font(.ui(.subheadline))
+                            .opacity(0.85)
+                    }
+                    .frame(maxWidth: 320)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
+                } else {
+                    Text("Het nieuws van jouw bronnen,\nrustig op een rij.")
+                        .zin() // zoals .ob__lede op het web
+                        .opacity(0.85)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .padding(.horizontal, Space.s5)
             Spacer(minLength: 0)
@@ -461,7 +490,10 @@ struct WelcomeView: View {
                 sourceList
                     .onChange(of: mine) { before, _ in freezeFolds(before: before) }
                     .task(id: "\(interests)|\(picked)|\(store.newsSources.count)") {
-                        let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked)
+                        // Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt Nederlandse bronnen; Engelstalige alleen
+                        // als je er bij opnieuw kiezen al een volgt (gelijk aan `english` in src/views/Welcome.jsx).
+                        let english = again && store.followed.contains { $0.lang == "en" }
+                        let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked, english: english)
                         guard !Task.isCancelled else { return }
                         voorstel = next ?? nil
                         // De eerste keer staat het gratis deel van Voor jou alvast aan (review G2, keuze

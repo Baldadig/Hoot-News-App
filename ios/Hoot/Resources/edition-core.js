@@ -4094,10 +4094,10 @@ var HootCore = (() => {
     const names = INTERESTS.filter((i) => ids.includes(i.id)).map((i) => i.label);
     return names.length > 1 ? `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}` : names[0] || "";
   };
-  function voorstel(sources = [], interests = [], topics = []) {
+  function voorstel(sources = [], interests = [], topics = [], { english = false } = {}) {
     const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)));
     if (!chosen.length) return null;
-    const news = sources.filter((s) => s.kind !== "sociaal");
+    const news = sources.filter((s) => s.kind !== "sociaal" && (english || !s.lang || s.lang === "nl"));
     const out = [];
     const has = (id) => out.some((o) => o.id === id);
     const add = (s, why2) => s && !has(s.id) && out.length < VOORSTEL_MAX && out.push({ id: s.id, why: why2 });
@@ -4133,12 +4133,21 @@ var HootCore = (() => {
       const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0];
       if (next) add(next, why(next, i));
     }
+    if (!english) {
+      const alleenNl = chosen.every((i) => NL_NIEUWS.has(i.id));
+      for (const id of ALGEMEEN) {
+        if (out.length >= 3) break;
+        if (id === "rtl" && alleenNl) continue;
+        const s = news.find((x) => x.id === id);
+        if (s && free(s)) add(s, "Ook het nieuws van de dag");
+      }
+    }
     const paidOf = new Set(news.filter((s) => s.paid).map((s) => s.id));
     return out.map((o) => ({ ...o, on: !paidOf.has(o.id) })).sort((a, b) => (b.on ? 1 : 0) - (a.on ? 1 : 0));
   }
   function voorstelJSON(jsonIn) {
-    const { sources = [], interests = [], topics = [] } = JSON.parse(jsonIn || "{}");
-    return JSON.stringify(voorstel(sources, interests, topics));
+    const { sources = [], interests = [], topics = [], english = false } = JSON.parse(jsonIn || "{}");
+    return JSON.stringify(voorstel(sources, interests, topics, { english: !!english }));
   }
 
   // src/lib/editionCore.js

@@ -154,7 +154,6 @@ struct EditionView: View {
     }
     @Environment(HootStore.self) private var store
     @Environment(\.requestReview) private var requestReview // het venster van Apple (ReviewAsk)
-    @Environment(\.openTab) private var openTab
     @Environment(\.scenePhase) private var scenePhase
     @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel, zoals elders: buiten RootView is er geen krant
     @Environment(Reader.self) private var reader: Reader?
@@ -595,14 +594,7 @@ struct EditionView: View {
                                 .font(.ui(.subheadline))
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
-                            // Eén rustige link: het einde is leidend, verder lezen mag (E8). Het seintje
-                            // staat niet meer in de kaart.
-                            Button { openTab(.stroom) } label: {
-                                Text("Lees verder in de Stroom").underline()
-                            }
-                            .font(.ui(.subheadline, .semibold))
-                            .opacity(0.85)
-                            .frame(minHeight: Space.tap)
+                            // Het einde is een einde: geen link door naar de Stroom (Week · 1).
                         }
                         .foregroundStyle(nacht ? Theme.ink : Theme.onBrandRed)
                         .frame(maxWidth: .infinity)
