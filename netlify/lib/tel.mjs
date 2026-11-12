@@ -3,7 +3,7 @@
 // `v` telt alleen editie-open per appversie. Geen id, geen IP, geen toestel, geen tijdstempel per gebeurtenis;
 // de dag is de dag van het dagdeel. Een gelijktijdige telling gaat atomair (kvUpdate: voorwaardelijk schrijven).
 import { kvUpdate, kvGet } from './kv.mjs'
-import { EVENTS, PLATFORMS, SLOT_NAMES, VERSIONS_MAX, READ_MAX, counterKey, versionKey, docKey, dayNumber, dayOf } from '../../shared/tel.mjs'
+import { EVENTS, PLATFORMS, SLOT_NAMES, VERSIONS_MAX, READ_MAX, VIA_LABELS, VIA_ANDERS, WELKOM_STAPPEN, APPSTORE_TIK, counterKey, versionKey, docKey, dayNumber, dayOf } from '../../shared/tel.mjs'
 
 const MAX = 1e9
 
@@ -50,6 +50,11 @@ export function shapeDay(date, doc) {
     einde += x
   }
   out.lezers.dag = { open, einde, einde_procent: pct(einde, open) }
+  // Meten · 6 (alleen gevuld als NIEUWE_TELLERS aan staat): dagtotalen van de herkomst, de App Store-tik en het welkom.
+  const dagtotaal = (e) => PLATFORMS.reduce((t, p) => t + SLOT_NAMES.reduce((u, s) => u + (Number(c[counterKey(e, p, s)]) || 0), 0), 0)
+  out.herkomst = Object.fromEntries([...VIA_LABELS, VIA_ANDERS].map((l) => [l, dagtotaal(`via:${l}`)]))
+  out.appstore_tik = dagtotaal(APPSTORE_TIK)
+  out.welkom = Object.fromEntries(WELKOM_STAPPEN.map((s) => [s, dagtotaal(s)]))
   return out
 }
 

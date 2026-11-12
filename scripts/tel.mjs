@@ -19,6 +19,13 @@ export function overzicht(r) {
   const open = r.dagen.reduce((s, d) => s + d.lezers.dag.open, 0)
   const einde = r.dagen.reduce((s, d) => s + d.lezers.dag.einde, 0)
   regels.push('', `Samen: ${open} keer een Editie geopend, ${einde} keer uitgelezen${open ? ` (${Math.round((einde / open) * 100)} %)` : ''}.`)
+  // Meten · 6: herkomst, App Store-tik en het welkom, opgeteld over de periode (nullen zolang NIEUWE_TELLERS uit staat).
+  const som = (f) => r.dagen.reduce((t, d) => t + (Number(f(d)) || 0), 0)
+  const labels = Object.keys(r.dagen[0]?.herkomst || {})
+  regels.push('', `Herkomst (?via, één keer per dagdeel per browser): ${labels.length ? labels.map((l) => `${l} ${som((d) => d.herkomst?.[l])}`).join(', ') : 'geen'}`)
+  regels.push(`App Store-tik op de landing: ${som((d) => d.appstore_tik)}`)
+  const stappen = Object.keys(r.dagen[0]?.welkom || {})
+  regels.push(`Welkom op het web: ${stappen.length ? stappen.map((s) => `${s} ${som((d) => d.welkom?.[s])}`).join(', ') : 'geen'}`)
   return regels.join('\n')
 }
 

@@ -2,7 +2,7 @@
 // getoetst in tests/tel.test.mjs en ios/HootTests/TellingTests.swift) de app. Alleen totalen per dag.
 // Een gebeurtenis draagt nooit een id, een tijdstip of een toestel: alleen WAT er gebeurde, in welk dagdeel
 // van de Editie, op welk platform, in welke appversie (major.minor) en hoe vaak (n, begrensd).
-import { amsterdamClock } from './slot-times.mjs'
+import { amsterdamClock, SLOT_START } from './slot-times.mjs'
 
 export const EVENTS = ['editie-open', 'editie-einde', 'artikel-open', 'stroom-open', 'selectie-open', 'vergelijk-open', 'delen']
 // Eerste keer per dagdeel op dit toestel (de client onthoudt alleen "al geteld voor dagdeel X"): zo geeft
@@ -16,6 +16,34 @@ export const BODY_MAX = 400 // bytes
 export const KEEP_DAYS = 400
 export const READ_MAX = 60 // zoveel dagen leest één verzoek hooguit (elke dag is een Blobs-lezing)
 export const KEYS = ['e', 'd', 'p', 'v', 'n']
+
+// ---- Meten · 6: herkomst, App Store-tik en het welkom (audit punt 8). Alleen web en server; iOS volgt (1.3.1). ----
+// TODO(privacybeleid): deze tellers staan UIT tot Alex de nieuwe zinnen in src/views/Privacy.jsx heeft goedgekeurd en
+// ze live staan (zie Hoot-design/meten/VERSLAG-2.md, "Ter goedkeuring van Alex"). Pas dan hier op true zetten.
+// Zolang dit false is: het web stuurt ze niet, laat ?via in de adresbalk staan en de server negeert ze.
+export const NIEUWE_TELLERS = false
+
+// Herkomst: ?via=<label> op de landing en /lees. Alleen deze labels; al het andere telt als 'via:anders'.
+export const VIA_LABELS = ['ig', 'x', 'bsky', 'mail', 'nb', 'qr']
+export const VIA_ANDERS = 'anders'
+export const VIA_EVENTS = [...VIA_LABELS, VIA_ANDERS].map((l) => `via:${l}`)
+// De stappen van het eerste welkom op het web, als totalen (geen trechter per persoon).
+export const WELKOM_STAPPEN = ['welkom-open', 'bronnen-gekozen', 'liever-meteen-lezen', 'eerste-editie']
+export const APPSTORE_TIK = 'appstore-tik'
+export const NIEUW = [...VIA_EVENTS, APPSTORE_TIK, ...WELKOM_STAPPEN]
+// Ook deze tellen één keer per dagdeel per browser (herkomst en welkom); de App Store-tik elke keer.
+export const NIEUW_ONCE = [...VIA_EVENTS, ...WELKOM_STAPPEN]
+
+// Alle gebeurtenissen die nu meetellen: de zeven vaste, plus de nieuwe als de vlag aan staat.
+export const eventsFor = (nieuw = NIEUWE_TELLERS) => (nieuw ? [...EVENTS, ...NIEUW] : EVENTS)
+export const isOnce = (e) => ONCE.includes(e) || NIEUW_ONCE.includes(e)
+
+// '?via=IG' -> 'via:ig'; een onbekend of leeg label -> 'via:anders'; geen via -> null.
+export function viaEvent(raw) {
+  if (raw === null || raw === undefined) return null
+  const l = String(raw).trim().toLowerCase()
+  return `via:${VIA_LABELS.includes(l) ? l : VIA_ANDERS}`
+}
 
 const SLOT_ID = /^(\d{4}-\d{2}-\d{2})-(ochtend|middag|avond)$/
 const VERSION = /^\d{1,3}\.\d{1,3}$/
@@ -38,11 +66,11 @@ export function majorMinor(v) {
 }
 
 // Strikt: een object met alleen e, d, p (v, n mogen), een bekend vocabulaire, een dagdeel van eergisteren tot morgen. Alles anders is null en wordt genegeerd (de server antwoordt toch 204). Geeft de gewone vorm terug.
-export function parseTel(body, now = new Date()) {
+export function parseTel(body, now = new Date(), { nieuw = NIEUWE_TELLERS } = {}) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   if (Object.keys(body).some((k) => !KEYS.includes(k))) return null
   const { e, d, p, v, n } = body
-  if (!EVENTS.includes(e) || !PLATFORMS.includes(p) || typeof d !== 'string') return null
+  if (!eventsFor(nieuw).includes(e) || !PLATFORMS.includes(p) || typeof d !== 'string') return null
   const m = SLOT_ID.exec(d)
   const num = m ? dayNumber(m[1]) : null
   if (num == null) return null
@@ -58,10 +86,19 @@ export function parseTel(body, now = new Date()) {
     if (!Number.isInteger(n) || n < 1 || n > N_MAX) return null
     count = n
   }
-  if (ONCE.includes(e)) count = 1
+  if (isOnce(e)) count = 1
   return { e, p, date: m[1], slot: m[2], v: version, n: count }
 }
 
 export const counterKey = (e, p, slot) => `${e}|${p}|${slot}`
 export const versionKey = (p, v) => `${p}|${v}`
 export const docKey = (date) => `tel:${date}`
+
+// Het dagdeel-id van nu op de klok (Amsterdam): voor tellingen zonder Editie in beeld (de landing, het welkom).
+// Vóór de Ochtendeditie hoort het nog bij de Avondeditie van gisteren, zoals in de app.
+export function slotIdNow(now = new Date()) {
+  const c = amsterdamClock(now)
+  const date = `${c.year}-${c.month}-${c.day}`
+  if (c.minutes < SLOT_START.ochtend) return `${dayOf(dayNumber(date) - 1)}-avond`
+  return `${date}-${c.minutes < SLOT_START.middag ? 'ochtend' : c.minutes < SLOT_START.avond ? 'middag' : 'avond'}`
+}

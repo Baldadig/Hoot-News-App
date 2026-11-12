@@ -6,7 +6,7 @@
 // We slaan niets op over wie: geen IP, geen user-id, geen cookie, geen toestel, geen user-agent, geen tijdstempel
 // per gebeurtenis, en we loggen geen body, kop of adres. Rate limiting per IP doet Netlify (config.rateLimit).
 import { createHash, timingSafeEqual } from 'node:crypto'
-import { parseTel, BODY_MAX, today, dayNumber } from '../../shared/tel.mjs'
+import { parseTel, BODY_MAX, today, dayNumber, NIEUWE_TELLERS } from '../../shared/tel.mjs'
 import { record, readDay, readRange } from '../lib/tel.mjs'
 
 const quiet = () => new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } })
@@ -19,14 +19,15 @@ export function allowed(req, env = process.env) {
   return timingSafeEqual(sha(want), sha(got))
 }
 
-export async function handle(req, { env = process.env, now = new Date(), write = record, day = readDay, range = readRange } = {}) {
+// `nieuw`: telt de herkomst, de App Store-tik en het welkom mee (shared/tel.mjs, NIEUWE_TELLERS; standaard uit).
+export async function handle(req, { env = process.env, now = new Date(), write = record, day = readDay, range = readRange, nieuw = NIEUWE_TELLERS } = {}) {
   if (req.method === 'POST') {
     try {
       const len = Number(req.headers.get('content-length'))
       if (Number.isFinite(len) && len > BODY_MAX) return quiet()
       const text = await req.text()
       if (text.length > BODY_MAX) return quiet()
-      const parsed = parseTel(JSON.parse(text), now)
+      const parsed = parseTel(JSON.parse(text), now, { nieuw })
       if (parsed) await write(parsed)
     } catch {
       // onleesbaar of een storing: negeren, en niets loggen (geen body, geen adres)
