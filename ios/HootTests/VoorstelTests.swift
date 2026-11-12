@@ -23,8 +23,8 @@ final class VoorstelTests: XCTestCase {
     """#
     private var sources: [Source] { try! JSONDecoder().decode([Source].self, from: Data(catalogus.utf8)) }
 
-    private func ids(_ interests: [String], _ topics: [String] = []) async throws -> [String]? {
-        try await EditionEngine.shared.voorstel(sources: sources, interests: interests, topics: topics)?.map(\.id)
+    private func ids(_ interests: [String], _ topics: [String] = [], english: Bool = false) async throws -> [String]? {
+        try await EditionEngine.shared.voorstel(sources: sources, interests: interests, topics: topics, english: english)?.map(\.id)
     }
 
     func testProfielen() async throws {
@@ -32,11 +32,17 @@ final class VoorstelTests: XCTestCase {
         XCTAssertNil(geen, "zonder interesses de vaste Basis")
         let sport = try await ids(["sport"])
         XCTAssertEqual(sport, ["nos", "nos-sport", "vi"])
+        // Week · 4, taal volgt bronkeuze: een nieuw profiel krijgt alleen Nederlandse bronnen; NU.nl vult aan.
         let techWetenschap = try await ids(["tech", "wetenschap"])
-        XCTAssertEqual(techWetenschap, ["nos", "tweakers", "quanta"])
-        let wereldEconomie = try await ids(["wereld", "economie"])
+        XCTAssertEqual(techWetenschap, ["nos", "tweakers", "nu"])
+        let wereld = try await ids(["wereld"])
+        XCTAssertEqual(wereld, ["nos", "nu", "rtl"], "Wereld heeft geen Nederlandse bron: geen Guardian, wel het gratis Nederlandse nieuws")
+        // Met Engels aan (je volgt al een Engelstalige bron) het voorstel van voor Week · 4.
+        let techWetenschapEn = try await ids(["tech", "wetenschap"], english: true)
+        XCTAssertEqual(techWetenschapEn, ["nos", "tweakers", "quanta"])
+        let wereldEconomie = try await ids(["wereld", "economie"], english: true)
         XCTAssertEqual(wereldEconomie, ["nos", "guardian", "nos-economie", "nyt"])
-        let nyt = try await EditionEngine.shared.voorstel(sources: sources, interests: ["wereld", "economie"], topics: [])?.first { $0.id == "nyt" }
+        let nyt = try await EditionEngine.shared.voorstel(sources: sources, interests: ["wereld", "economie"], topics: [], english: true)?.first { $0.id == "nyt" }
         XCTAssertEqual(nyt?.why, "Past bij Wereld en Economie")
         XCTAssertEqual(nyt?.on, false, "betaald: in Voor jou, niet alvast aan (r5-voorstel-betaald)")
         // Alleen Economie: de gratis NOS Economie aan, FD erbij maar uit (r5-economiebron).

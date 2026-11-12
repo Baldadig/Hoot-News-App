@@ -19,6 +19,12 @@
 // 5. Alleen gratis alvast aan (keuze r5-voorstel-betaald): elke bron krijgt `on`, waar alleen bij een
 //    gratis bron. Een betaalde staat wel in de groep, met Abonnement, maar je zet hem zelf aan; zo leest
 //    je eerste Editie zonder betaalmuur. De gratis bronnen staan voorop.
+// 6. Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt alleen Nederlandse bronnen. Engelstalige komen
+//    pas in het voorstel als de lezer al een Engelstalige bron volgt (`english`, bij opnieuw kiezen); zo
+//    wordt de eerste Editie Nederlands. Blijft er na de Nederlandse keuzes minder dan drie over (Wereld,
+//    Politiek en Wetenschap hebben geen eigen Nederlandse bron), dan vult het gratis Nederlandse nieuws
+//    aan: NU.nl en RTL Nieuws (RTL niet als alleen Politiek en Binnenland zijn gekozen, r5-politiek-rtl).
+//    Engelstalige bronnen blijven te kiezen in de blokken, Meer bronnen en bij zoeken.
 // Per bron een korte reden in de stijl van de waarom-regels, vanuit wat de lezer eraan heeft. Nooit
 // "Omdat je X volgt" (huisregel).
 import { INTERESTS } from '../src/lib/topics.js'
@@ -54,11 +60,12 @@ const label = (ids) => {
 }
 
 // sources: de catalogus (id, name, cat, lang, paid, for, forTopic, pick); interests: ids; topics: de
-// onderwerpen die je zelf aantikte (mag leeg). Uitkomst: [{ id, why, on }] of null; `on`: alvast gevolgd.
-export function voorstel(sources = [], interests = [], topics = []) {
+// onderwerpen die je zelf aantikte (mag leeg); `english`: de lezer volgt al een Engelstalige bron (standaard niet).
+// Uitkomst: [{ id, why, on }] of null; `on`: alvast gevolgd.
+export function voorstel(sources = [], interests = [], topics = [], { english = false } = {}) {
   const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)))
   if (!chosen.length) return null
-  const news = sources.filter((s) => s.kind !== 'sociaal') // nieuws en muziek, geen Bluesky-accounts
+  const news = sources.filter((s) => s.kind !== 'sociaal' && (english || !s.lang || s.lang === 'nl')) // nieuws en muziek, geen Bluesky-accounts; zonder Engels aan alleen Nederlands
   const out = []
   const has = (id) => out.some((o) => o.id === id)
   const add = (s, why) => s && !has(s.id) && out.length < VOORSTEL_MAX && out.push({ id: s.id, why })
@@ -101,13 +108,23 @@ export function voorstel(sources = [], interests = [], topics = []) {
     const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0]
     if (next) add(next, why(next, i))
   }
+  // Zonder Engels aan blijft er soms minder dan drie over: vul aan met het gratis Nederlandse nieuws.
+  if (!english) {
+    const alleenNl = chosen.every((i) => NL_NIEUWS.has(i.id))
+    for (const id of ALGEMEEN) {
+      if (out.length >= 3) break
+      if (id === 'rtl' && alleenNl) continue
+      const s = news.find((x) => x.id === id)
+      if (s && free(s)) add(s, 'Ook het nieuws van de dag')
+    }
+  }
   // 5. Alleen gratis alvast aan; de gratis bronnen voorop (de volgorde verder zoals hierboven).
   const paidOf = new Set(news.filter((s) => s.paid).map((s) => s.id))
   return out.map((o) => ({ ...o, on: !paidOf.has(o.id) })).sort((a, b) => (b.on ? 1 : 0) - (a.on ? 1 : 0))
 }
 
-// Voor de app (HootCore): JSON erin ({ sources, interests, topics }), JSON eruit ([{ id, why }] of null).
+// Voor de app (HootCore): JSON erin ({ sources, interests, topics, english }), JSON eruit ([{ id, why }] of null).
 export function voorstelJSON(jsonIn) {
-  const { sources = [], interests = [], topics = [] } = JSON.parse(jsonIn || '{}')
-  return JSON.stringify(voorstel(sources, interests, topics))
+  const { sources = [], interests = [], topics = [], english = false } = JSON.parse(jsonIn || '{}')
+  return JSON.stringify(voorstel(sources, interests, topics, { english: !!english }))
 }

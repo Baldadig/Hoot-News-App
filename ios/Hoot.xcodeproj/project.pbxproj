@@ -34,10 +34,6 @@
 		A100000000000000000000F0 /* Exceptions for "Hoot" folder in "Hoot" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Resources/Fonts/Inter-400.ttf",
-				"Resources/Fonts/Inter-600.ttf",
-				"Resources/Fonts/Inter-700.ttf",
-				"Resources/Fonts/Inter-800.ttf",
 				"Resources/Fonts/Lezer-Inter-400.woff",
 				"Resources/Fonts/Lezer-Inter-800.woff",
 				"Resources/Fonts/OFL-Inter.txt",
