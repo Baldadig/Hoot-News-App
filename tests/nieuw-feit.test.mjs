@@ -6,7 +6,7 @@
 // Verzonnen namen: de regel kent geen namen of onderwerpen.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { newFact, newFactIn, developedSince, previousOf, signatures, selectForReader } from '../netlify/lib/stories.mjs'
+import { newFact, newFactIn, developedSince, previousOf, signatures, selectForReader, storyKeyAt, buildStories } from '../netlify/lib/stories.mjs'
 import { personalParts, profileOf, P } from '../shared/editor.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { serverFirst, servedLocal, SERVER_KEY } from '../src/lib/editionSync.js'
@@ -74,7 +74,7 @@ test('developedSince telt over het hele verhaal (known), de kop komt uit je eige
   assert.equal(developedSince(story(all), old, previous, sig, { known, now: NOW }), null)
 })
 
-const newFacts = (fresh, before, own) => newFactIn(fresh, before, sig, own)
+const newFacts = (fresh, before, own, whole) => newFactIn(fresh, before, sig, own, whole)
 const prof = profileOf({ interests: [], topics: [], affinity: null, taste: null, favorites: [], followed: new Set(all.map((i) => i.source)), sources: [], supply: {} })
 test('personalParts: gelezen en er kwamen alleen stukken bij: geen vervolg (+10), maar gezien', () => {
   const p = personalParts([...old, ...noise], prof, { readIds: new Set(['o1', 'o2']), newFacts }, { whole: [...old, ...noise] })
@@ -151,4 +151,71 @@ test('web-vangnet: na een dagdeelwissel telt de Editie van het vorige dagdeel al
   assert.equal(seen, null, 'vroeger: geen vorige Editie')
   await run(true)
   assert.ok(seen?.storyIds?.has('st-big'), 'nu: de Editie van de Ochtend is de vorige')
+})
+
+// Keuring 1, bevinding 1: wie weinig bronnen volgt, kent van de nieuwe stukken maar één uitgever. De server geeft per verhaal
+// de kenmerken van het hele verhaal mee (`keyAt`: eerste moment en aantal uitgevers), zodat de toets toch over alle uitgevers
+// telt. Zonder die gegevens (een oudere kern, het vangnet in de app) telt een kenmerk dat twee nieuwe stukken noemen, als het
+// toestel minder dan twee uitgevers van de nieuwe stukken kent en het verhaal er wel twee of meer heeft.
+const keyAt = storyKeyAt(all, sig)
+const stAll = { ...story(all), publisherCount: new Set(all.map((i) => i.source)).size, keyAt }
+test('storyKeyAt: per kenmerk met minstens twee uitgevers het eerste moment en het aantal uitgevers', () => {
+  assert.deepEqual(keyAt.marlies, [Date.parse(fact[0].publishedAt), 2])
+  assert.equal(keyAt.kalverda[0], Date.parse(old[0].publishedAt), 'stond er al in de Ochtend')
+  assert.ok(Object.values(keyAt).every(([, n]) => n >= 2), 'alleen kenmerken van twee of meer uitgevers')
+  assert.deepEqual(Object.keys(keyAt), [...Object.keys(keyAt)].sort(), 'op volgorde: de kern blijft byte-gelijk')
+  // buildStories met kenmerken geeft het mee, net als `keys`.
+  const [b] = buildStories(all, {}, { keys: true })
+  assert.ok(b && b.keyAt && typeof b.keyAt === 'object')
+})
+test('developedSince met keyAt: één eigen uitgever met het nieuwe feit is genoeg als het hele verhaal het bij twee heeft', () => {
+  const previous = previousOf(ochtend)
+  const mine = [...old, fact[0]] // je volgt alleen NOS, NRC en de Volkskrant
+  const known = new Map(mine.map((i) => [i.id, i]))
+  assert.equal(developedSince(story(all), mine, previous, sig, { known, now: NOW }), null, 'zonder de gegevens van het hele verhaal: geen nieuw feit')
+  const dev = developedSince(stAll, mine, previous, sig, { known, now: NOW })
+  assert.ok(dev, 'met keyAt telt de tweede uitgever mee')
+  assert.deepEqual(dev.heads.map((i) => i.id), ['n1'])
+  // Wat het hele verhaal al vóór de vorige Editie had, is nooit nieuw, ook als het toestel die stukken niet kent.
+  const early = { ...stAll, keyAt: { ...keyAt, marlies: [OCHTEND - 36e5, 2], verhoeven: [OCHTEND - 36e5, 2] } }
+  assert.equal(developedSince(early, mine, previous, sig, { known, now: NOW }), null)
+})
+test('personalParts met keyAt: gelezen, je eigen bron brengt het nieuwe feit, het hele verhaal bij twee uitgevers: vervolg', () => {
+  const mine = [old[0], fact[0]]
+  assert.ok(personalParts(mine, prof, { readIds: new Set(['o1']), newFacts }, { whole: mine }).seen, 'alleen wat het toestel kent: gezien')
+  const p = personalParts(mine, prof, { readIds: new Set(['o1']), newFacts }, { whole: mine, keyAt, pubs: stAll.publisherCount })
+  assert.equal(p.followUp?.pts, P.FOLLOW_UP)
+  assert.deepEqual(p.followUp.heads, ['n1'])
+})
+test('terugval zonder keyAt: kent het toestel maar één uitgever van de nieuwe stukken, dan tellen twee nieuwe stukken', () => {
+  const twice = [art('m1', 'volkskrant', 'Marlies Verhoeven volgt Kalverda op bij Orbix', at(2)), art('m2', 'volkskrant', 'Wie is Marlies Verhoeven, de nieuwe topman van Orbix?', at(1.5))]
+  const xs = [...old, ...twice]
+  const sg = signatures(xs)
+  const ko = (i) => { const s = sg.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }
+  const then = new Set(old.flatMap(ko))
+  assert.equal(newFact(twice, then, ko), null, 'zonder kennis van het verhaal: één uitgever is geen nieuw feit')
+  assert.equal(newFact(twice, then, ko, { pubs: 1 }), null, 'een verhaal van één uitgever: geen terugval')
+  assert.ok(newFact(twice, then, ko, { pubs: 5 }), 'het verhaal heeft meer uitgevers dan het toestel kent: twee stukken tellen')
+  assert.equal(newFact(twice, then, ko, { pubs: 5, keyAt: { marlies: [Date.parse(twice[0].publishedAt), 1] } }), null, 'met keyAt geldt het hele verhaal, geen terugval')
+})
+test('persoonlijke Editie, alleen NOS gevolgd: echt nieuws komt terug als je het las of als het in je vorige Editie stond', () => {
+  const T0 = new Date(OCHTEND - 3 * 36e5).toISOString(), T1 = new Date(OCHTEND - 2 * 36e5).toISOString()
+  const kOld = [art('d1', 'nos', 'Kabinet botst met Tweede Kamer over visserijwet', T0), art('d2', 'nrc', 'Visserijwet: kabinet en Kamer lijnrecht tegenover elkaar', T1), art('d3', 'volkskrant', 'Kamer dreigt visserijwet weg te stemmen', T1)]
+  const kNew = [art('d4', 'nos', 'Minister Sanne Oldenkamp treedt af na stemming over visserijwet', at(2)), art('d5', 'nos', 'Wie is Sanne Oldenkamp, de minister die opstapte?', at(1.8)), art('d6', 'nrc', 'Sanne Oldenkamp stapt op na verloren stemming visserijwet', at(1.5)), art('d7', 'volkskrant', 'Aftreden Sanne Oldenkamp schudt kabinet op', at(1.2))]
+  // Met storyId, zoals in de kern: dan kan een stuk niet los terugkomen als het verhaal wegvalt.
+  const xs = [...kOld, ...kNew].map((i) => ({ ...i, storyId: 'st-x' }))
+  const stX = { id: 'st-x', itemIds: xs.map((i) => i.id), sourceCount: 4, publisherCount: 3, latestAt: kNew.at(-1).publishedAt, desk: 'binnenland', keyAt: storyKeyAt(xs, signatures(xs)) }
+  const nos = new Set(['nos'])
+  // Vijf andere verhalen, zodat er plaats is: de toets gaat over terugkomen, niet over de rangorde.
+  const fillers = small.slice(0, 5).map((x) => ({ ...x, its: x.its.map((i) => ({ ...i, source: 'nos', sourceName: 'nos' })) }))
+  const run = (opts) => composePersonal({ global: { ...global, items: [fillers[0].its[0]] }, stories: [stX, ...fillers.map((f) => f.st)], items: [...xs.filter((i) => nos.has(i.source)), ...fillers.flatMap((f) => f.its)], sources: SOURCES, followed: nos, interests: ['binnenland'], now: NOW, ...opts })
+  const prev = previousOf({ id: '2026-10-30-ochtend', builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-x', leadId: 'd1', desk: 'binnenland', itemIds: kOld.map((i) => i.id), title: kOld[0].title }] })
+  const place = (ed) => ed.entries.findIndex((e) => e.id === 'st-x')
+  assert.equal(place(run({ readIds: new Set(['d1']) })), 0, 'gelezen, met keyAt: 01')
+  assert.ok(place(run({ previous: prev })) >= 0, 'in je vorige Editie, met keyAt: terug')
+  const zonder = { ...stX }
+  delete zonder.keyAt
+  const run2 = (opts) => composePersonal({ global: { ...global, items: [fillers[0].its[0]] }, stories: [zonder, ...fillers.map((f) => f.st)], items: [...xs.filter((i) => nos.has(i.source)), ...fillers.flatMap((f) => f.its)], sources: SOURCES, followed: nos, interests: ['binnenland'], now: NOW, ...opts })
+  assert.equal(place(run2({ readIds: new Set(['d1']) })), 0, 'gelezen, zonder keyAt (terugval, twee NOS-stukken): 01')
+  assert.ok(place(run2({ previous: prev })) >= 0, 'in je vorige Editie, zonder keyAt (terugval): terug')
 })

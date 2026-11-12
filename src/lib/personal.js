@@ -213,7 +213,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // `own`: al je eigen berichten, zodat de punten van een verhaal ook tellen wat je ervan leest in
   // sport of cultuur (de dood van Patrick Stewart is Film voor wie Cultuur koos).
   // `newFacts`: de toets op een nieuw feit voor wat je las (personalParts), met dezelfde kenmerken als developedSince.
-  const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])), newFacts: (fresh, old, own) => newFactIn(fresh, old, sigAll, own) }
+  const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])), newFacts: (fresh, old, own, whole) => newFactIn(fresh, old, sigAll, own, whole) }
   // Rekentijd: binnen deze samenstelling (dezelfde onveranderlijke pool en vorige Editie) dezelfde kenmerken en kern hergebruiken.
   if (_memoSignatures) {
     const memo = new WeakMap()
@@ -277,7 +277,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const ids = [...new Set([id, ...(st?.itemIds || [])])]
     if (!ids.some((x) => readIds.has(x))) return {}
     const members = ids.map((x) => itemAny.get(x)).filter(Boolean)
-    const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members })
+    const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members, keyAt: st?.keyAt, pubs: st?.publisherCount })
     return followUp ? { followUp } : { seen: seen || { pts: 0 } } // gelezen maar onbekend bericht: ook gezien
   }
   const preferred = new Set(favorites.filter((id) => followed.has(id)))

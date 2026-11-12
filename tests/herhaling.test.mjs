@@ -325,8 +325,13 @@ test('H2 keys: twee Nederlandse stukken over Wall Street zijn geen Vervolg als h
   // Met keys in de uitgebreide stand (de regressie van H6) was het wél een vals Vervolg.
   const extKeys = storyKeys(all, signatures(all, [], { extended: true }))
   assert.ok(!extKeys.includes('wall'), 'uitgebreid: Wallstreet is zwak en staat niet in keys')
-  const dev = developedSince(st, nl, { ...previous, keysOf: new Map([[st.id, extKeys]]) }, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known })
+  // Zonder de kenmerken van het hele verhaal (`keyAt`, een oudere kern): de regressie die deze toets vastlegt.
+  const { keyAt, ...zonderKeyAt } = st
+  const dev = developedSince(zonderKeyAt, nl, { ...previous, keysOf: new Map([[st.id, extKeys]]) }, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known })
   assert.ok(dev && dev.newSig >= 2, 'de regressie die deze toets vastlegt')
+  // Met `keyAt` (keuring 1 van nieuw feit) weet het toestel dat Wall Street er in de Ochtend al stond: geen vals Vervolg.
+  assert.ok(keyAt && keyAt.wall)
+  assert.equal(developedSince(st, nl, { ...previous, keysOf: new Map([[st.id, extKeys]]) }, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known }), null)
 })
 
 test('T7 H1: de aanvulling uit de algemene Editie en "Waar iedereen over schrijft" respecteren previous', () => {

@@ -246,7 +246,8 @@ export function geoOf(item, desk = null, foreign = false) {
 // selectie slaat de kandidaat over. `story`: wat voor iedereen gelijk is aan het verhaal, als de
 // selectie dat weet: zijn rubriek (`desk`, st.desk) en of het vooral buitenlandse bronnen heeft
 // (`foreign`); anders kijken we naar de berichten zelf. `story.whole`: alle berichten van het verhaal die het toestel kent
-// (ook van andere bronnen), voor de toets op een nieuw feit (`ctx.newFacts`).
+// (ook van andere bronnen), voor de toets op een nieuw feit (`ctx.newFacts`); `story.keyAt` en `story.pubs`: de kenmerken en
+// het aantal uitgevers van het hele verhaal (van de server), zodat die toets ook telt wat het toestel niet kent.
 export function personalParts(items = [], prof, ctx = {}, story = {}) {
   const parts = {}
   if (!items.length) return parts
@@ -310,7 +311,7 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
     const fresh = items.filter(after)
     if (ctx.newFacts) {
       const freshAll = whole.filter(after)
-      const fact = fresh.length ? ctx.newFacts(freshAll, whole.filter((i) => !after(i)), fresh) : null
+      const fact = fresh.length ? ctx.newFacts(freshAll, whole.filter((i) => !after(i)), fresh, { keyAt: story.keyAt, pubs: story.pubs, cutoff: last + FOLLOW_UP_GAP }) : null
       if (fact) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length, heads: fact.heads.map((i) => i.id) }
       else parts.seen = { pts: 0 }
     } else if (fresh.length >= FOLLOW_UP_MIN) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length }

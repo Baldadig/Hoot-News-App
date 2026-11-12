@@ -917,7 +917,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
-      ...(keys ? { keys: storyKeys(items, keySig) } : {}),
+      ...(keys ? { keys: storyKeys(items, keySig), keyAt: storyKeyAt(items, keySig) } : {}),
     })
     // Sport op niveau van het verhaal (shared/edition-policy.mjs): alleen gezet als het zo is, zodat andere
     // verhalen byte-gelijk blijven. De lead hoeft geen sporttag te hebben (een NYT-fotogalerij).
@@ -1163,6 +1163,27 @@ export function storyKeys(items, sig) {
   return [...out].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).slice(0, KEYS_MAX)
 }
 
+// Het hele verhaal voor de toets op een nieuw feit (newFact, keuring 1 van "nieuw feit"): het toestel kent van een verhaal
+// alleen de stukken uit je eigen bronnen plus de koppen van de algemene Editie. Wie één uitgever volgt, haalt zo nooit "twee
+// uitgevers". Daarom geeft de server per verhaal mee, voor elk kenmerk dat minstens NEW_FACT_PUBS uitgevers noemen: wanneer
+// het voor het eerst viel (ms; een stuk zonder tijd telt als altijd al bekend: 0) en hoeveel uitgevers het noemen. Is het
+// eerste moment ná de grens (de vorige Editie, of wat je las), dan vielen al die vermeldingen erna. Klein: alleen
+// kenmerken met twee of meer uitgevers, twee getallen per kenmerk; op volgorde, zodat de kern byte-gelijk blijft.
+export function storyKeyAt(items, sig) {
+  const keysOf = keysWith(sig)
+  const m = new Map()
+  for (const i of items) {
+    const at = (i.publishedAt && Date.parse(i.publishedAt)) || 0
+    for (const k of new Set(keysOf(i))) {
+      const x = m.get(k) || m.set(k, { at, pubs: new Set() }).get(k)
+      if (at < x.at) x.at = at
+      x.pubs.add(publisherOf(i.source))
+    }
+  }
+  const out = [...m].filter(([, x]) => x.pubs.size >= NEW_FACT_PUBS).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+  return Object.fromEntries(out.map(([k, x]) => [k, [x.at, x.pubs.size]]))
+}
+
 // ---------- Editie ----------
 export const EDITION_SIZE = EDITION_TARGET
 const MAX_LEADS_PER_SOURCE = 3
@@ -1390,8 +1411,9 @@ export const otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ''))
 export const DEVELOPED_FRESH = 2
 export const DEVELOPED_SIG = 2
 // Nieuw sinds de vorige Editie: niet getoond en gepubliceerd na die Editie (per verhaal: `atOf`).
+const previousAt = (st, previous) => previous.atOf?.get(st.id) ?? previous.at ?? 0
 const isNewSince = (st, previous) => {
-  const at = previous.atOf?.get(st.id) ?? previous.at ?? 0
+  const at = previousAt(st, previous)
   return (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at
 }
 export const newSincePrevious = (st, items, previous) => items.filter(isNewSince(st, previous))
@@ -1403,11 +1425,13 @@ export function developedSince(st, items, previous, sig, { mainIds = new Set(), 
   const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
   const whole = [...new Set([...all, ...items])]
   const freshAll = whole.filter(isNew)
-  if (freshAll.length < DEVELOPED_FRESH) return null
+  // Met de kenmerken van het hele verhaal (`st.keyAt`, van de server) telt newFact zelf de nieuwe stukken van alle
+  // uitgevers; zonder alleen wat het toestel kent.
+  if (!keyAtOf(st) && freshAll.length < DEVELOPED_FRESH) return null
   const then = new Set()
   for (const id of [st.id, ...(st.formerIds || [])]) for (const k of previous.keysOf?.get(id) || []) then.add(k)
   for (const i of whole) if (!isNew(i)) for (const k of keysOf(i)) then.add(k)
-  const fact = newFact(freshAll, then, keysOf)
+  const fact = newFact(freshAll, then, keysOf, { keyAt: keyAtOf(st), cutoff: previousAt(st, previous), pubs: st.publisherCount })
   if (!fact) return null
   const heads = factHeads(fresh, fact, sig)
   const lead = leadCandidates(heads, mainIds, preferred, now)[0]
@@ -1440,10 +1464,25 @@ const stemCount = (keys) => {
 }
 // { keys, carriers } of null. `keys`: de nieuwe feiten (in de volgorde waarin de nieuwe stukken ze noemen); `carriers`:
 // de nieuwe stukken die er minstens NEW_FACT_SIG samen noemen.
-export function newFact(fresh, then, keysOf) {
+// `story` (keuring 1): het hele verhaal, ook de uitgevers die het toestel niet kent. `keyAt` (storyKeyAt, van de server):
+// een kenmerk dat er vóór de grens `cutoff` al was, is nooit nieuw; een kenmerk dat pas daarna viel, telt met al zijn
+// uitgevers. Ontbreekt `keyAt` (een oudere kern, het vangnet in de app) en kent het toestel van de nieuwe stukken minder
+// dan NEW_FACT_PUBS uitgevers terwijl het verhaal er wel zoveel heeft (`pubs`), dan telt een kenmerk dat minstens
+// NEW_FACT_PUBS nieuwe stukken noemen (de oude eis), zodat wie weinig bronnen volgt echt nieuws niet mist.
+const keyAtOf = (st) => (st?.keyAt && typeof st.keyAt === 'object' && !Array.isArray(st.keyAt) ? st.keyAt : null)
+export function newFact(fresh, then, keysOf, story = null) {
+  const keyAt = keyAtOf(story)
+  const cutoff = story?.cutoff ?? 0
+  const known = (k) => keyAt && Array.isArray(keyAt[k]) && keyAt[k].length === 2
+  const old = (k) => then.has(k) || (known(k) && keyAt[k][0] <= cutoff)
   const pubs = new Map()
-  for (const i of fresh) for (const k of new Set(keysOf(i))) if (!then.has(k)) (pubs.get(k) || pubs.set(k, new Set()).get(k)).add(publisherOf(i.source))
-  const wide = new Set([...pubs].filter(([, p]) => p.size >= NEW_FACT_PUBS).map(([k]) => k))
+  const pieces = new Map()
+  for (const i of fresh) for (const k of new Set(keysOf(i))) if (!old(k)) {
+    ;(pubs.get(k) || pubs.set(k, new Set()).get(k)).add(publisherOf(i.source))
+    pieces.set(k, (pieces.get(k) || 0) + 1)
+  }
+  const thin = !keyAt && new Set(fresh.map((i) => publisherOf(i.source))).size < NEW_FACT_PUBS && (story?.pubs ?? 0) >= NEW_FACT_PUBS
+  const wide = new Set([...pubs].filter(([k, p]) => p.size >= NEW_FACT_PUBS || (known(k) && keyAt[k][1] >= NEW_FACT_PUBS) || (thin && pieces.get(k) >= NEW_FACT_PUBS)).map(([k]) => k))
   if (stemCount([...wide]) < NEW_FACT_SIG) return null
   const carriers = fresh.filter((i) => stemCount(keysOf(i).filter((k) => wide.has(k))) >= NEW_FACT_SIG)
   if (!carriers.length) return null
@@ -1462,9 +1501,9 @@ export const newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title 
 // Wat je las (personalParts, `ctx.newFacts`): brengen de stukken `fresh` (van het hele verhaal, ná wat je las) een nieuw
 // feit tegenover `old` (de rest van het verhaal)? Dan { keys, heads } met `heads` uit `own` (de nieuwe stukken uit je
 // eigen bronnen; bij voorkeur met het nieuwe feit in de kop), anders null.
-export function newFactIn(fresh, old, sig, own = fresh) {
+export function newFactIn(fresh, old, sig, own = fresh, story = null) {
   const keysOf = keysWith(sig)
-  const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf)
+  const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story)
   return fact ? { keys: fact.keys, heads: own.length ? factHeads(own, fact, sig) : [] } : null
 }
 
@@ -2315,7 +2354,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // BBC en Variety) een buitenlands verhaal tot "Omdat je Binnenland volgt" (keuring 1 november).
     const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : items
     const intl = internationalNews(whole, desk, st)
-    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl, whole })
+    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl, whole, keyAt: st.keyAt, pubs: st.publisherCount })
     // Je las het en er is een nieuw feit (personalParts, ctx.newFacts): de kop bij voorkeur uit een stuk dat het noemt.
     if (!dev && !held && parts.followUp?.heads?.length) heads = parts.followUp.heads.map((id) => items.find((i) => i.id === id)).filter(Boolean)
     // Ronde 4 · 3: in de algemene Editie gaat nieuws bij gelijke grootte voor een luchtig verhaal of curiosum (curioStory).
@@ -2334,7 +2373,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // telt dat ook: zonder nieuws doet het niet meer mee.
     const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null
     const mateItems = mates ? mates.itemIds.map((id) => ctx.own?.get(id) || byId.get(id)).filter(Boolean) : []
-    if (mates && personalParts(mateItems, prof, { readIds: ctx.readIds, newFacts: ctx.newFacts }, { whole: ctx.known ? mates.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : mateItems }).seen) { reject('item', it.id, [it.id], 'verhaal-al-gelezen'); continue }
+    if (mates && personalParts(mateItems, prof, { readIds: ctx.readIds, newFacts: ctx.newFacts }, { whole: ctx.known ? mates.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : mateItems, keyAt: mates.keyAt, pubs: mates.publisherCount }).seen) { reject('item', it.id, [it.id], 'verhaal-al-gelezen'); continue }
     const primary = primaryDesk([desksOf(it)])
     const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2
     const parts = personalParts([it], prof, ctx)
