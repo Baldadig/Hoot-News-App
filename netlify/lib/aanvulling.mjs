@@ -11,8 +11,8 @@
 // Een gratis Nederlands stuk moet aan dezelfde toelating voldoen als een eenbronsstuk in selectForReader: een kop, een
 // intro of beeld, geen opinie of liveblog, vers (TEMPO_MIN_H uur en van na de vorige Editie), niet in de vorige Editie,
 // geen lid van een verhaal van meer uitgevers, toegelaten (newsRejection: geen sport of licht nieuws, buitenland binnen
-// het plafond) en geen onderwerp dat al een plek heeft of in de vorige Editie stond (sameSubject).
-import { signatures, sameSubject, isLive, titled } from './stories.mjs'
+// het plafond) en geen onderwerp dat al een plek heeft of in de vorige Editie stond (sameSubject, sameCluster).
+import { signatures, sameSubject, sameCluster, isLive, titled } from './stories.mjs'
 import { coverageOf, publisherOf, newsRejection, cappedInternational, isGallery } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { TEMPO_MIN_H, INT_MAX, profileOf } from '../../shared/editor.mjs'
@@ -89,6 +89,8 @@ export function freeDutchFill(sel, { stories = [], newsStories = stories, newsPo
         if (capped && world >= INT_MAX) continue
         const s = sig.get(it.id)
         if (s && (vorige.some((v) => sameSubject(s, v)) || placedSigs().some((p) => sameSubject(s, p)))) continue
+        // Eén onderwerp op één dag, één plek (sameCluster): ook geen aanvulling over een onderwerp dat al een plek heeft.
+        if ([...keep, ...chosen].some((e) => sameCluster(sig, [it], itemsOf(e)))) continue
         take({ kind: 'item', id: it.id, itemIds: [it.id], title: it.title || null, desk, aanvulling: 'gratis-nl' }, it.source)
         if (capped) world++
       }

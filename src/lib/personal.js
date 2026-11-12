@@ -16,6 +16,7 @@ import { BASIS_REVISION } from '../../shared/editor-version.mjs'
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
 import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
+import { sameCluster } from '../../netlify/lib/stories.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
@@ -542,6 +543,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // plek over dezelfde stembus op een dag met een uitslag.
   const famOf = voteFamilyOf(stories, itemAny)
   const famTaken = new Map()
+  const acceptedItems = [] // per geaccepteerde plek de stukken die dit toestel kent (sameCluster)
   const famKey = (e) => famOf.get(e.kind === 'story' ? e.id : serverStory(e)) || famOf.get(storyOfItem.get(e.leadId || e.id)) || null
   const accept = e => {
     if (accepted.length >= capacity) return
@@ -553,12 +555,16 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (ids.some(x => finalTaken.has(x)) || (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x))))) return
     const fam = famKey(e)
     if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return
+    // Eén onderwerp op één dag, één plek (sameCluster), langs elke route: ook een breed verhaal of een aanvulling.
+    const known = ids.map((x) => itemAny.get(x)).filter(Boolean)
+    if (acceptedItems.some((xs) => sameCluster(sigAll, known, xs))) return
     const allowed = p.allowed || (floorLight && p.reason === 'licht-buiten-interesse')
     if (!allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
     if (p.capped) internationalCount++
     if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1)
     ids.forEach(x => finalTaken.add(x))
     finalLeads.push(id)
+    acceptedItems.push(known)
     accepted.push(e)
   }
   entries.forEach(accept)
