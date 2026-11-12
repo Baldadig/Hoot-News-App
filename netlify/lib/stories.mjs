@@ -1446,10 +1446,15 @@ export function developedSince(st, items, previous, sig, { mainIds = new Set(), 
 // (dertig nieuwe stukken noemen samen altijd wel twee keer een functie, een plaats of een beurswoord): de nieuwe
 // kenmerken moeten bovendien met minstens NEW_FACT_SIG samen in één nieuw stuk staan, zoals een naam met voor- en
 // achternaam of een nieuwe naam met de gebeurtenis. Losse woorden die toevallig twee keer vallen, staan zelden samen in
-// één stuk; een nieuwe topvrouw die vijf redacties noemen wel. Geen namen of onderwerpen in de code; alleen tellen, Sets
-// en vergelijken (web en app gelijk).
+// één stuk; een nieuwe topvrouw die vijf redacties noemen wel. Keuring 2 (bevinding A): een nieuwe naam levert vaak maar
+// één kenmerk op ("Jan Smit" → smit; een korte voornaam valt weg). Daarom telt één nieuw kenmerk ook alleen, als het breed
+// gedragen is: bij minstens NEW_FACT_BROAD uitgevers én bij minstens een derde (NEW_FACT_SHARE) van de uitgevers met
+// nieuwe stukken. Ruis haalt dat niet: een los woord valt bij twee uitgevers, of bij drie van elf. Geen namen of
+// onderwerpen in de code; alleen tellen, Sets en vergelijken (web en app gelijk).
 export const NEW_FACT_PUBS = 2
 export const NEW_FACT_SIG = DEVELOPED_SIG
+export const NEW_FACT_BROAD = 3
+export const NEW_FACT_SHARE = 3
 const keysWith = (sig) => (i) => {
   const s = sig.get(i?.id)
   return s ? [...s.strong, ...s.concepts] : []
@@ -1463,7 +1468,7 @@ const stemCount = (keys) => {
   return kept.length
 }
 // { keys, carriers } of null. `keys`: de nieuwe feiten (in de volgorde waarin de nieuwe stukken ze noemen); `carriers`:
-// de nieuwe stukken die er minstens NEW_FACT_SIG samen noemen.
+// de nieuwe stukken die er minstens NEW_FACT_SIG samen noemen, of één breed gedragen.
 // `story` (keuring 1): het hele verhaal, ook de uitgevers die het toestel niet kent. `keyAt` (storyKeyAt, van de server):
 // een kenmerk dat er vóór de grens `cutoff` al was, is nooit nieuw; een kenmerk dat pas daarna viel, telt met al zijn
 // uitgevers. Ontbreekt `keyAt` (een oudere kern, het vangnet in de app) en kent het toestel van de nieuwe stukken minder
@@ -1481,12 +1486,24 @@ export function newFact(fresh, then, keysOf, story = null) {
     ;(pubs.get(k) || pubs.set(k, new Set()).get(k)).add(publisherOf(i.source))
     pieces.set(k, (pieces.get(k) || 0) + 1)
   }
-  const thin = !keyAt && new Set(fresh.map((i) => publisherOf(i.source))).size < NEW_FACT_PUBS && (story?.pubs ?? 0) >= NEW_FACT_PUBS
-  const wide = new Set([...pubs].filter(([k, p]) => p.size >= NEW_FACT_PUBS || (known(k) && keyAt[k][1] >= NEW_FACT_PUBS) || (thin && pieces.get(k) >= NEW_FACT_PUBS)).map(([k]) => k))
-  if (stemCount([...wide]) < NEW_FACT_SIG) return null
-  const carriers = fresh.filter((i) => stemCount(keysOf(i).filter((k) => wide.has(k))) >= NEW_FACT_SIG)
+  const freshPubs = new Set(fresh.map((i) => publisherOf(i.source))).size
+  const thin = !keyAt && freshPubs < NEW_FACT_PUBS && (story?.pubs ?? 0) >= NEW_FACT_PUBS
+  // Bij hoeveel uitgevers een nieuw kenmerk valt: wat het toestel kent, of (met keyAt) het hele verhaal.
+  const reach = (k) => Math.max(pubs.get(k).size, known(k) ? keyAt[k][1] : 0)
+  const wide = new Set([...pubs].filter(([k]) => reach(k) >= NEW_FACT_PUBS || (thin && pieces.get(k) >= NEW_FACT_PUBS)).map(([k]) => k))
+  // Hoeveel uitgevers nieuwe stukken brachten: wat het toestel kent, en minstens zoveel als het breedste nieuwe kenmerk
+  // van het hele verhaal (die vermeldingen vielen allemaal na de grens).
+  const newPubs = Math.max(freshPubs, ...[...wide].map(reach))
+  const broad = new Set([...wide].filter((k) => reach(k) >= NEW_FACT_BROAD && reach(k) * NEW_FACT_SHARE >= newPubs))
+  // De nieuwe feiten van één stuk: zijn nieuwe kenmerken als het er minstens NEW_FACT_SIG samen noemt, anders alleen
+  // de breed gedragen.
+  const factsOf = (i) => {
+    const ks = keysOf(i).filter((k) => wide.has(k))
+    return stemCount(ks) >= NEW_FACT_SIG ? ks : ks.filter((k) => broad.has(k))
+  }
+  const carriers = fresh.filter((i) => factsOf(i).length)
   if (!carriers.length) return null
-  const keys = [...new Set(carriers.flatMap((i) => keysOf(i).filter((k) => wide.has(k))))]
+  const keys = [...new Set(carriers.flatMap(factsOf))]
   return { keys, carriers }
 }
 // De stukken voor de kop bij een nieuw feit: de nieuwe stukken die het nieuwe feit in kop of intro noemen, anders alle

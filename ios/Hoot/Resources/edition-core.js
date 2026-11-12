@@ -2931,6 +2931,8 @@ var HootCore = (() => {
   }
   var NEW_FACT_PUBS = 2;
   var NEW_FACT_SIG = DEVELOPED_SIG;
+  var NEW_FACT_BROAD = 3;
+  var NEW_FACT_SHARE = 3;
   var keysWith = (sig) => (i) => {
     const s = sig.get(i?.id);
     return s ? [...s.strong, ...s.concepts] : [];
@@ -2953,12 +2955,19 @@ var HootCore = (() => {
       (pubs.get(k) || pubs.set(k, /* @__PURE__ */ new Set()).get(k)).add(publisherOf(i.source));
       pieces.set(k, (pieces.get(k) || 0) + 1);
     }
-    const thin = !keyAt && new Set(fresh.map((i) => publisherOf(i.source))).size < NEW_FACT_PUBS && (story?.pubs ?? 0) >= NEW_FACT_PUBS;
-    const wide = new Set([...pubs].filter(([k, p]) => p.size >= NEW_FACT_PUBS || known(k) && keyAt[k][1] >= NEW_FACT_PUBS || thin && pieces.get(k) >= NEW_FACT_PUBS).map(([k]) => k));
-    if (stemCount([...wide]) < NEW_FACT_SIG) return null;
-    const carriers = fresh.filter((i) => stemCount(keysOf(i).filter((k) => wide.has(k))) >= NEW_FACT_SIG);
+    const freshPubs = new Set(fresh.map((i) => publisherOf(i.source))).size;
+    const thin = !keyAt && freshPubs < NEW_FACT_PUBS && (story?.pubs ?? 0) >= NEW_FACT_PUBS;
+    const reach = (k) => Math.max(pubs.get(k).size, known(k) ? keyAt[k][1] : 0);
+    const wide = new Set([...pubs].filter(([k]) => reach(k) >= NEW_FACT_PUBS || thin && pieces.get(k) >= NEW_FACT_PUBS).map(([k]) => k));
+    const newPubs = Math.max(freshPubs, ...[...wide].map(reach));
+    const broad = new Set([...wide].filter((k) => reach(k) >= NEW_FACT_BROAD && reach(k) * NEW_FACT_SHARE >= newPubs));
+    const factsOf = (i) => {
+      const ks = keysOf(i).filter((k) => wide.has(k));
+      return stemCount(ks) >= NEW_FACT_SIG ? ks : ks.filter((k) => broad.has(k));
+    };
+    const carriers = fresh.filter((i) => factsOf(i).length);
     if (!carriers.length) return null;
-    const keys = [...new Set(carriers.flatMap((i) => keysOf(i).filter((k) => wide.has(k))))];
+    const keys = [...new Set(carriers.flatMap(factsOf))];
     return { keys, carriers };
   }
   function factHeads(fresh, fact, sig) {

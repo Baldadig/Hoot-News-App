@@ -1,7 +1,8 @@
 // Eén toets voor "nieuw feit" (redacteur-2026-11-13-nieuw-feit; Hoot-design/redacteur-herhaling/DIAGNOSE.md en ADVIES.md).
 // Een verhaal uit je vorige Editie (developedSince) of dat je las (personalParts, ctx.newFacts) komt alleen terug met een
 // nieuw feit: een naam of begrip dat nieuwe stukken van minstens twee uitgevers noemen, dat er eerder niet in stond, en
-// waarvan er minstens twee samen in één nieuw stuk staan (geen losse woorden). Geteld over het hele verhaal, niet alleen
+// waarvan er minstens twee samen in één nieuw stuk staan (geen losse woorden), of één dat breed gedragen is (minstens drie
+// uitgevers en een derde van de uitgevers met nieuwe stukken). Geteld over het hele verhaal, niet alleen
 // over je eigen bronnen. Zonder nieuw feit: gelezen verdwijnt, alleen gezien (groot verhaal) zakt één keer.
 // Verzonnen namen: de regel kent geen namen of onderwerpen.
 import { test } from 'node:test'
@@ -218,4 +219,46 @@ test('persoonlijke Editie, alleen NOS gevolgd: echt nieuws komt terug als je het
   const run2 = (opts) => composePersonal({ global: { ...global, items: [fillers[0].its[0]] }, stories: [zonder, ...fillers.map((f) => f.st)], items: [...xs.filter((i) => nos.has(i.source)), ...fillers.flatMap((f) => f.its)], sources: SOURCES, followed: nos, interests: ['binnenland'], now: NOW, ...opts })
   assert.equal(place(run2({ readIds: new Set(['d1']) })), 0, 'gelezen, zonder keyAt (terugval, twee NOS-stukken): 01')
   assert.ok(place(run2({ previous: prev })) >= 0, 'in je vorige Editie, zonder keyAt (terugval): terug')
+})
+
+// Keuring 2, bevinding A: een nieuwe naam levert vaak maar één kenmerk op ("Jan Smit" → smit). Eén nieuw kenmerk telt
+// alleen als het breed gedragen is: bij minstens drie uitgevers én een derde van de uitgevers met nieuwe stukken.
+// Verzonnen namen; twaalf uitgevers melden eerst dat de topman opstapt, daarna zeven alleen analyses en vijf de opvolger.
+const PUBS12 = ['nos', 'nrc', 'volkskrant', 'trouw', 'parool', 'rtl', 'nu', 'ad', 'fd', 'telegraaf', 'nd', 'guardian']
+const gOld = PUBS12.map((p, k) => art(`go${k}`, p, `Topman Ruben Kalverda van Orbix stapt op na affaire`, new Date(OCHTEND - (3 + k * 0.1) * 36e5).toISOString()))
+const gNoise = PUBS12.slice(0, 7).map((p, k) => art(`gz${k}`, p, k < 3 ? `Analyse: Orbix na Kalverda, beleggers blijven onrustig` : `Orbix zonder Kalverda: wat nu voor het bedrijf`, at(4 - k * 0.1)))
+const gSmit = PUBS12.slice(7).map((p, k) => art(`gs${k}`, p, k % 2 ? `Orbix benoemt Jan Smit tot nieuwe topman` : `Jan Smit volgt Kalverda op bij Orbix`, at(2 - k * 0.1)))
+test('newFact: een nieuwe naam van één kenmerk telt bij genoeg uitgevers (≥ 3 en ≥ een derde van de nieuwe)', () => {
+  const xs = [...gOld, ...gNoise, ...gSmit]
+  const sg = signatures(xs)
+  const ko = (i) => { const s = sg.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }
+  const then = new Set(gOld.flatMap(ko))
+  assert.deepEqual(gSmit.map((i) => ko(i).filter((k) => !then.has(k))).map((ks) => ks.includes('smit') && !ks.includes('jan')), gSmit.map(() => true), 'één nieuw kenmerk per stuk')
+  const f = newFact([...gNoise, ...gSmit], then, ko)
+  assert.ok(f, 'vijf van de twaalf nieuwe uitgevers noemen de opvolger')
+  assert.ok(f.keys.includes('smit') && f.carriers.every((i) => gSmit.includes(i)))
+  assert.equal(newFact([...gNoise, ...gSmit.slice(0, 2)], then, ko), null, 'bij twee uitgevers: één kenmerk is te weinig')
+  // Drie van elf uitgevers met nieuwe stukken: geen derde, zoals een los plaats- of beurswoord in een heel groot verhaal.
+  const ELF = [...PUBS12.slice(0, 8), 'bbc', 'nyt', 'lemonde']
+  const loose = ELF.map((p, k) => art(`gl${k}`, p, k < 3 ? `Orbix-aandeel daalt in Lissabon` : `Orbix na Kalverda: de vragen van beleggers`, at(3 - k * 0.1)))
+  const sg3 = signatures([...gOld, ...loose])
+  const ko3 = (i) => { const s = sg3.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }
+  const then3 = new Set(gOld.flatMap(ko3))
+  assert.ok(loose.slice(0, 3).every((i) => ko3(i).filter((k) => !then3.has(k)).length === 1), 'één nieuw kenmerk')
+  assert.equal(newFact(loose, then3, ko3), null, 'drie van elf: ruis')
+  assert.ok(newFact(loose.slice(0, 9), then3, ko3), 'drie van negen: wel een derde')
+})
+test('developedSince en het leespad met keyAt: de opvolger "Jan Smit" bij vijf van twaalf uitgevers, je volgt er drie', () => {
+  const xs = [...gOld, ...gNoise, ...gSmit].map((i) => ({ ...i, storyId: 'st-g' }))
+  const sg = signatures(xs)
+  const st = { id: 'st-g', itemIds: xs.map((i) => i.id), sourceCount: 12, publisherCount: 12, latestAt: gSmit.at(-1).publishedAt, desk: 'economie', keyAt: storyKeyAt(xs, sg) }
+  const mine = xs.filter((i) => ['nos', 'trouw', 'telegraaf'].includes(i.source))
+  const known = new Map(mine.map((i) => [i.id, i]))
+  const prev = previousOf({ builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-g', leadId: 'go0', desk: 'economie', itemIds: gOld.map((i) => i.id), title: gOld[0].title }] })
+  const dev = developedSince(st, mine, prev, sg, { known, now: NOW })
+  assert.ok(dev && dev.facts.includes('smit'), 'vorige Editie: nieuw feit')
+  assert.ok(dev.heads.every((i) => i.source === 'telegraaf'), 'de kop noemt de opvolger')
+  const nf = (fresh, before, own, whole) => newFactIn(fresh, before, sg, own, whole)
+  const p = personalParts(mine, prof, { readIds: new Set(['go0']), newFacts: nf }, { whole: mine, keyAt: st.keyAt, pubs: 12 })
+  assert.equal(p.followUp?.pts, P.FOLLOW_UP, 'gelezen: vervolg')
 })
