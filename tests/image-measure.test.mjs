@@ -52,8 +52,11 @@ test('A1: ontbrekende en ongeldige metadata houden de oude weergave', () => {
 test('B11: de Stroom-rijen (tijdlijn en krant) en de Editie gebruiken dezelfde meting als de lead', async () => {
   const items = await readFile(new URL('../src/components/Items.jsx', import.meta.url), 'utf8')
   const img = await readFile(new URL('../src/components/Img.jsx', import.meta.url), 'utf8')
-  assert.match(items, /media media--tl\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>\s*\{\(onFail\) => <MeasuredImg item=\{item\} kind="lead"/)
-  assert.match(items, /thumb\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>[\s\S]*?<MeasuredImg item=\{item\} width="96"/)
+  assert.match(items, /media media--tl\$\{gemeten\(item, 'lead'\)\}`\} style=\{uitsnede\(item, 'lead'\)\}>\s*\{\(onFail\) => <MeasuredImg item=\{item\} kind="lead"/)
+  assert.match(items, /thumb\$\{gemeten\(item, 'thumb'\)\}`\} style=\{uitsnede\(item, 'thumb'\)\}>[\s\S]*?<MeasuredImg item=\{item\} width="96"/)
+  // De meetuitsnede alleen als MeasuredImg het origineel toont (DPG-beeldserver 12 november: anders rekt Safari de variant uit).
+  assert.match(items, /const gemeten = \(item, kind\) => \(measuredOriginal\(item, kind\) \? ' media--measured' : ''\)/)
+  assert.match(items, /const uitsnede = \(item, kind\) => \(measuredOriginal\(item, kind\) \? cropStyle\(item\) : undefined\)/)
   assert.match(items, /media--lead[\s\S]*?<MeasuredImg item=\{item\} kind="lead"/)
   // Zonder meting, of zonder randen en met varianten van de uitgever: de Img op maat (poetsbeurt 5 november).
   assert.match(img, /if \(!measuredOriginal\(item, kind\)\) return <Img/)

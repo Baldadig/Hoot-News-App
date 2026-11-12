@@ -137,3 +137,36 @@ test('scherp genoeg voor een groot beeld: bronbreedte ≥ 1,4 × het vak op een 
   assert.equal(sharpEnough({ image: 'https://example.org/b.jpg', imageMeta: meta(840, 472) }, 720, 2), false)
   assert.equal(sharpEnough({ image: 'https://example.org/b.jpg', imageMeta: meta(840, 472) }, 720, 1), true)
 })
+
+test('DPG: Het Parool en Trouw krijgen net als de Volkskrant het grote beeld van de beeldserver (feature-crop en roi)', async () => {
+  const { sourceWidth, measuredOriginal, sharpEnough, DPG_HOSTS } = await import('../src/lib/img.js')
+  const { readFileSync } = await import('node:fs')
+  const meta = { w: 320, h: 320, crop: { l: 0, r: 0, t: 0, b: 0 } }
+  for (const host of ['image.parool.nl', 'image.trouw.nl']) {
+    const url = `https://${host}/280236357/feature-crop/320/320/afbeelding`
+    assert.equal(imgProps(url, 'thumb').src, `https://${host}/280236357/feature-crop/176/176/afbeelding`)
+    assert.match(imgProps(url, 'thumb').srcSet, /feature-crop\/320\/320\/afbeelding 320w$/)
+    assert.match(imgProps(url, 'lead').srcSet, /feature-crop\/1080\/720\/afbeelding 1080w, .*feature-crop\/1360\/907\/afbeelding 1360w$/)
+    // De server mat het vierkant van 320 uit de feed; we tonen de variant, dus die telt (niet klein rechts).
+    const item = { image: url, imageMeta: meta }
+    assert.equal(measuredOriginal(item, 'lead'), false)
+    assert.equal(sourceWidth(item), 1360)
+    assert.equal(sharpEnough(item, 358, 3), true)
+    assert.equal(sharpEnough(item, 720, 2), true)
+  }
+  // roi (een uitsnede rond een brandpunt): de maat verandert, het brandpunt en de naam blijven.
+  const roi = 'https://image.parool.nl/280216597/roi/320/320/0.295181/0.317843/afbeelding'
+  assert.equal(imgProps(roi, 'thumb').src, 'https://image.parool.nl/280216597/roi/176/176/0.295181/0.317843/afbeelding')
+  assert.match(imgProps(roi, 'lead').srcSet, /roi\/1360\/907\/0\.295181\/0\.317843\/afbeelding 1360w$/)
+  assert.equal(sourceWidth({ image: roi, imageMeta: meta }), 1360)
+  // Met gemeten randen blijft het origineel (en de meting) leidend, zoals bij elke bron.
+  assert.equal(sourceWidth({ image: roi, imageMeta: { ...meta, crop: { l: 0, r: 0, t: 20, b: 20 } } }), 320)
+  // AD en de regionale titels: ondertekende adressen, een andere maat geeft 403. Die blijven ongemoeid.
+  const ad = 'https://images.ad.nl/NWY0ODcxOTZjZGU1YmEwMjc0ZTAvZGlvLzI3NDMwMzI5MC9maXQtd2lkdGgvNDAw/a'
+  assert.deepEqual(imgProps(ad, 'thumb'), { src: ad })
+  // Eén lijst voor web en app.
+  const swift = readFileSync(new URL('../ios/Hoot/ImageURL.swift', import.meta.url), 'utf8')
+  const set = swift.match(/static let dpgHosts: Set<String> = \[([^\]]*)\]/)
+  assert.ok(set, 'ImageURL.dpgHosts staat in de app')
+  assert.deepEqual([...set[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort(), [...DPG_HOSTS].sort())
+})
