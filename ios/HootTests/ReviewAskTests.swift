@@ -50,7 +50,22 @@ final class ReviewAskTests: XCTestCase {
         XCTAssertTrue(src.contains("if visible { reviewMoment() }"), "alleen als het einde in beeld komt")
         let r = try XCTUnwrap(src.range(of: "private func reviewMoment")).upperBound
         let body = String(src[r...].prefix(900))
-        XCTAssertTrue(body.contains("guard endVisible, !alertAsk, !alertYes"), "nog bij het einde en niet over de seintje-vraag heen")
+        XCTAssertTrue(body.contains("ReviewAsk.mayShowNow(endVisible: endVisible, alertAsk: alertAsk, alertYes: alertYes, pathEmpty: path.isEmpty"), "na de 1,5 s dezelfde beslisfunctie, met pad en tabblad")
+        XCTAssertTrue(body.contains("scenePhase == .active"))
         XCTAssertEqual(src.components(separatedBy: "requestReview()").count - 1, 1, "één plek die het venster vraagt")
+    }
+
+    func testMayShowNowOnlyWhenNothingIsOpen() {
+        func ok(end: Bool = true, ask: Bool = false, yes: Bool = false, path: Bool = true, story: Bool = false, tab: Bool = true, active: Bool = true) -> Bool {
+            ReviewAsk.mayShowNow(endVisible: end, alertAsk: ask, alertYes: yes, pathEmpty: path, storyOpen: story, editionTab: tab, sceneActive: active)
+        }
+        XCTAssertTrue(ok())
+        XCTAssertFalse(ok(end: false), "einde niet meer in beeld")
+        XCTAssertFalse(ok(ask: true))
+        XCTAssertFalse(ok(yes: true))
+        XCTAssertFalse(ok(path: false), "een verhaal staat open in het navigatiepad")
+        XCTAssertFalse(ok(story: true), "een verhaal naast de Editie (iPad) of in de lezer")
+        XCTAssertFalse(ok(tab: false), "een ander tabblad")
+        XCTAssertFalse(ok(active: false), "de app is niet actief")
     }
 }

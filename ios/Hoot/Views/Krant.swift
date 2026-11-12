@@ -246,6 +246,8 @@ enum Leesmaat {
 @MainActor @Observable
 final class KrantStaat {
     var verhaal: [RootView.Destination: Story] = [:]
+    /// Het actieve tabblad van dit venster (RootView zet hem); de beoordelingsvraag komt alleen op de Editie.
+    var tab: RootView.Destination = .editie
     /// De krant ligt open (twee bladzijden): de lezer staat op de rechterbladzijde, niet als blad.
     var spread = false
     /// Er is een vouw gemeten (de Duo open). Op de Duo geeft iOS de zone pas even na de start door.

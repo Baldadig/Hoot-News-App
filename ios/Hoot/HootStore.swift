@@ -87,7 +87,8 @@ final class HootStore {
     private(set) var personal: Edition?
     private var personalRaw: [String: Any]?
     // Het vangnet (De Redacteur op de server, 1.2.1): zelf samengesteld omdat de server niet antwoordde.
-    // Alleen in het geheugen; nooit in edition.json, je account of je geschiedenis.
+    // In het geheugen; nooit in edition.json, je account of je geschiedenis. Het laatste vangnet staat ook in
+    // edition-provisional.json (zie hieronder), alleen als geheugen voor het volgende dagdeel.
     private(set) var personalProvisional: Edition?
     // Het laatste vangnet, bewaard in edition-provisional.json (1.3.1): alleen als geheugen voor `previous` en
     // `earlier` van het volgende dagdeel. Het wordt nooit getoond na een herstart, nooit naar je account

@@ -25,6 +25,13 @@ enum ReviewAsk {
         return defaults.string(forKey: askedKey) != version
     }
 
+    /// Mag het venster nu echt komen, na de 1,5 s? Alleen als het einde van de Editie nog in beeld is, er geen
+    /// seintje-vraag staat, er geen verhaal open is (navigatiepad leeg, geen verhaal naast de Editie of in de lezer),
+    /// de Editie het actieve tabblad is en de app actief is. Nooit over een verhaal heen.
+    static func mayShowNow(endVisible: Bool, alertAsk: Bool, alertYes: Bool, pathEmpty: Bool, storyOpen: Bool, editionTab: Bool, sceneActive: Bool) -> Bool {
+        endVisible && !alertAsk && !alertYes && pathEmpty && !storyOpen && editionTab && sceneActive
+    }
+
     /// Vastleggen vóór het venster verschijnt: ook als Apple het niet toont, vragen we deze versie niet weer.
     static func markAsked(version: String?, defaults: UserDefaults = .standard) {
         if let version { defaults.set(version, forKey: askedKey) }

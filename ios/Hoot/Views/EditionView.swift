@@ -155,6 +155,9 @@ struct EditionView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.requestReview) private var requestReview // het venster van Apple (ReviewAsk)
     @Environment(\.openTab) private var openTab
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel, zoals elders: buiten RootView is er geen krant
+    @Environment(Reader.self) private var reader: Reader?
     @Environment(\.openStory) private var openStory
     @Environment(\.isWide) private var wide
     @Environment(\.tabloid) private var tabloid // de Duo open (Krant.swift): de Editie als tabloid, de goot op de vouw
@@ -194,7 +197,11 @@ struct EditionView: View {
         guard ReviewAsk.shouldAsk(read: read, version: version), !DebugLaunch.offline else { return }
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(1.5))
-            guard endVisible, !alertAsk, !alertYes, ReviewAsk.shouldAsk(read: ReviewAsk.record(edition: id), version: version) else { return }
+            // Na de 1,5 s opnieuw kijken: geen verhaal open (pad, naast de Editie, lezer), de Editie-tab actief, de app actief.
+            guard ReviewAsk.mayShowNow(endVisible: endVisible, alertAsk: alertAsk, alertYes: alertYes, pathEmpty: path.isEmpty,
+                                       storyOpen: staat?.verhaal[.editie] != nil || reader?.item != nil,
+                                       editionTab: staat?.tab ?? .editie == .editie, sceneActive: scenePhase == .active),
+                  ReviewAsk.shouldAsk(read: ReviewAsk.record(edition: id), version: version) else { return }
             ReviewAsk.markAsked(version: version)
             requestReview()
         }
