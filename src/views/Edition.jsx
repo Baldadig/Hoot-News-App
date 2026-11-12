@@ -481,10 +481,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
-              {/* Het einde is leidend; verder lezen mag, als één rustige link (geen knop die je doortrekt). */}
-              <a className="linkbtn endcap__more" href="#/stroom">
-                Lees verder in de Stroom
-              </a>
             </div>) : null}
             {nudge && browsing ? <MaakVanJou onChoose={onMakeYours} onLater={onLater} /> : null}
             {/* Het overzicht in één minuut: een dialoog, dus achteraan; hij neemt geen plek in de kolom. */}

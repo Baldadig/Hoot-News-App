@@ -113,10 +113,9 @@ test('landing: de kleine tekstronde uit de review', () => {
     'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
     'Hoot kiest elke Editie',
     'Bij elk verhaal zie je waarom.',
-    'Lees verder in de Stroom',
     'Lees mee in je browser.',
   ]) assert.ok(t.includes(zin), zin)
-  assert.doesNotMatch(t, /Of lees verder|Ontdek Hoot|Lees je laat|Met een inhoud bovenaan|Hoot onthoudt waar je was|Tien verhalen, en één/)
+  assert.doesNotMatch(t, /Lees verder in de Stroom|Of lees verder|Ontdek Hoot|Lees je laat|Met een inhoud bovenaan|Hoot onthoudt waar je was|Tien verhalen, en één/)
   // Meer kanten van één verhaal staat als vierde voordeel.
   assert.match(SRC, /de Selectie\.<\/span><\/h3>.*\n.*Meer kanten/)
   // Citaten in de aria-labels tussen ‘…’, en geen dubbele dubbele punt.

@@ -2393,15 +2393,6 @@ select.input {
   color: var(--on-brand-red);
   text-wrap: balance;
 }
-/* Verder lezen: een .linkbtn, stiller op merkrood; bij hover de volle tekstkleur. */
-.endcap__more {
-  color: var(--on-brand-red-2);
-}
-@media (hover: hover) {
-  .endcap__more:hover {
-    color: var(--on-brand-red);
-  }
-}
 
 .how {
   color: var(--ink-3);
