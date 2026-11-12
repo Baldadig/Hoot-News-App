@@ -26,9 +26,14 @@ enum KortKop {
         "they", "you", "it", "there", "i",
     ]
     static let voegwoorden: Set<String> = ["en", "of", "maar", "want", "dus", "and", "or", "but"]
-    // Een ontkenning is nooit een los einde, en valt nooit weg uit de zin waarin wordt afgekapt.
+    // Een ontkenning is nooit een los einde, en valt nooit weg als ze het deel raakt dat blijft (veilig). Ook wat
+    // bijna ontkent ("amper", "hardly") en "zonder"/"without".
     static let ontkenningen: Set<String> = [
-        "niet", "geen", "nooit", "niets", "niks", "niemand", "nergens", "not", "no", "never", "nothing", "none", "nobody", "neither", "nor",
+        "niet", "geen", "nooit", "niets", "niks", "niemand", "nergens", "nee", "noch", "nimmer", "geenszins", "allerminst",
+        "amper", "nauwelijks", "zonder",
+        "not", "no", "never", "nothing", "none", "nobody", "nowhere", "neither", "nor", "cannot", "hardly", "barely", "scarcely",
+        "without", "cant", "dont", "doesnt", "didnt", "wont", "isnt", "arent", "wasnt", "werent", "hasnt", "havent", "hadnt",
+        "shouldnt", "wouldnt", "couldnt", "aint",
     ]
     // Een deel dat met een voorzetsel of voegwoord begint, heeft geen eigen onderwerp vooraan.
     static let openers: Set<String> = [
@@ -92,15 +97,76 @@ enum KortKop {
     private static func zinsbegin(_ alle: [String], _ i: Int) -> Bool {
         i > 0 && i < alle.count && (test("[,;:.?!]$", alle[i - 1]) || test("^[–—-]$", alle[i]) || bijzin.contains(letters(alle[i])))
     }
-    // Valt er een ontkenning weg uit de zin waarin na `n` woorden wordt afgekapt?
-    private static func ontkenningWeg(_ alle: [String], _ n: Int) -> Bool {
-        var i = n
-        while i < alle.count {
-            if zinsbegin(alle, i) { return false }
-            if ontkenning(alle[i]) { return true }
-            i += 1
+    // MARK: De bewaking (zie veilig in kort-kop.mjs)
+
+    private static func sleutel(_ w: String) -> String { vervang("[^\\p{L}\\p{N}]", w.lowercased(), "") }
+    private static func gelijk(_ a: String, _ b: String) -> Bool { ns(a).isEqual(to: b) }
+    // Welke woorden van de kop (index in `alle`) staan in de korte kop, met zo weinig mogelijk weggevallen stukken?
+    private static func gelegd(_ alle: [String], _ kort: String) -> Set<Int>? {
+        let idx = alle.indices.filter { !sleutel(alle[$0]).isEmpty }
+        let sk = idx.map { sleutel(alle[$0]) }
+        let k = delen(vervang("…$", kort, "")).map { sleutel($0) }.filter { !$0.isEmpty }
+        let n = idx.count, m = k.count
+        let groot = 1_000_000_000
+        for prefix in [false, true] {
+            func past(_ i: Int, _ j: Int) -> Bool { gelijk(sk[i], k[j]) || (prefix && j == m - 1 && ns(sk[i]).hasPrefix(k[j])) }
+            var f = [[[Int]]](repeating: [[Int]](repeating: [Int](repeating: groot, count: m + 1), count: n + 1), count: 2)
+            f[0][n][m] = 0
+            f[1][n][m] = 0
+            if n > 0 {
+                for i in stride(from: n - 1, through: 0, by: -1) {
+                    for j in stride(from: m, through: 0, by: -1) {
+                        for d in 0 ... 1 {
+                            let weg = (d == 1 ? 0 : 1) + f[1][i + 1][j]
+                            let mee = j < m && past(i, j) ? f[0][i + 1][j + 1] : groot
+                            f[d][i][j] = Swift.min(mee, weg)
+                        }
+                    }
+                }
+            }
+            if f[0][0][0] >= groot { continue }
+            var uit = Set<Int>()
+            var j = 0, d = 0
+            for i in 0 ..< n {
+                if j < m && past(i, j) && f[0][i + 1][j + 1] <= (d == 1 ? 0 : 1) + f[1][i + 1][j] {
+                    uit.insert(idx[i]); j += 1; d = 0
+                } else { d = 1 }
+            }
+            return uit
         }
-        return false
+        return nil
+    }
+    // Een citaat na een dubbele punt dat helemaal wegvalt, met een eigen onderwerp vooraan.
+    private static func citaatWeg(_ alle: [String], _ p: Int, _ mee: Set<Int>) -> Bool {
+        var q = p
+        while q >= 0, !test(openCitaat, alle[q]) {
+            if q < p, test(sluitCitaat, alle[q]) { return false }
+            q -= 1
+        }
+        var r = p
+        while r < alle.count, !test(sluitCitaat, alle[r]) { r += 1 }
+        if q < 1 || r >= alle.count || p - q < 2 || !test(":$", alle[q - 1]) { return false }
+        let eerste = letters(alle[q])
+        if openers.contains(eerste) || ontkenningen.contains(eerste) { return false }
+        return !(q ... r).contains { mee.contains($0) }
+    }
+    // Valt er een ontkenning weg die het deel raakt dat blijft? Dan is deze korte kop niet veilig.
+    static func veilig(_ kop: String, _ kort: String?) -> Bool {
+        guard let kort else { return false }
+        let alle = delen(schoon(kop))
+        guard let mee = gelegd(alle, kort) else { return false }
+        for p in alle.indices where !mee.contains(p) && ontkenning(alle[p]) {
+            var s = p
+            while s > 0, !zinsbegin(alle, s) { s -= 1 }
+            var e = p + 1
+            while e < alle.count, !zinsbegin(alle, e) { e += 1 }
+            let heelWeg = !(s ..< e).contains { mee.contains($0) }
+            let eigen = bijzin.contains(letters(alle[s])) || (s > 0 && test("[.?!]$", alle[s - 1]))
+            if s > 0, eigen, p - s >= 3, heelWeg { continue }
+            if citaatWeg(alle, p, mee) { continue }
+            return false
+        }
+        return true
     }
 
     private static let openCitaat = "^[‘’“'\"„«‚]"
@@ -112,7 +178,8 @@ enum KortKop {
         return d
     }
 
-    private static func afkappen(_ t: String, _ max: Int) -> String? {
+    // Afkappen; niet veilig, dan steeds eerder (terug naar het begin van een zin); anders nil.
+    private static func afkappen(_ t: String, _ max: Int, _ kop: String) -> String? {
         let ruimte = max - 1
         let alle = delen(t)
         var d = delen(begin(t, ruimte))
@@ -129,22 +196,26 @@ enum KortKop {
             if Double(lengte(korter.joined(separator: " "))) < Double(ruimte) / 3 { break }
             d = korter
         }
-        // Valt er een ontkenning weg uit de zin waarin wordt afgekapt, dan terug naar het begin van die zin;
-        // blijft er dan geen kop over, geen veilige kop op deze maat (nil).
-        var j = d.count - 1
-        while j > 0, !zinsbegin(alle, j) { j -= 1 }
-        if !d.isEmpty, ontkenningWeg(alle, d.count) {
-            let terug = j > 0 ? staart(zonderLosEinde(Array(d.prefix(j))).joined(separator: " ")) : ""
-            return j > 0 && kern(terug, 2) ? terug + "…" : nil
-        }
         var uit = staart(d.joined(separator: " "))
         if uit.isEmpty { uit = begin(t, ruimte) }
-        return uit + "…"
+        if veilig(kop, uit + "…") { return uit + "…" }
+        var j = d.count - 1
+        while j > 0 {
+            if zinsbegin(alle, j) {
+                let terug = staart(zonderLosEinde(Array(d.prefix(j))).joined(separator: " "))
+                if kern(terug, 2), veilig(kop, terug + "…") { return terug + "…" }
+            }
+            j -= 1
+        }
+        return nil
     }
 
     private static func isCitaat(_ s: String) -> Bool { test(openCitaat, s) && test(sluitCitaat, s) && woorden(s) >= 2 }
-    private static func benoemd(_ s: String) -> Bool {
-        test("\\d", s) || delen(s).dropFirst().contains { test("^[‘’“'\"„«‚(]?\\p{Lu}", $0) }
+    // `metEerste`: ook het eerste woord, als het een afkorting is ("PSV aast op …").
+    private static func benoemd(_ s: String, metEerste: Bool = false) -> Bool {
+        let w = delen(s)
+        let eerste = metEerste && test("^[‘’“'\"„«‚(]?\\p{Lu}[\\p{Lu}\\d]+(?![\\p{L}\\p{N}])", w.first ?? "")
+        return test("\\d", s) || w.dropFirst(eerste ? 0 : 1).contains { test("^[‘’“'\"„«‚(]?\\p{Lu}", $0) }
     }
     // Title Case: na het eerste woord meestal een hoofdletter, ook op een klein woord ("It's", "Been").
     private static func titleCase(_ s: String) -> Bool {
@@ -162,10 +233,16 @@ enum KortKop {
     // nil: op deze maat is er geen veilige korte kop (er zou een ontkenning wegvallen).
     static func kort(_ title: String?, max: Int = KortKop.max) -> String? {
         let t = schoon(title ?? "")
-        if lengte(t) <= max { return t }
+        return kort(t, max, t)
+    }
+
+    // De korte kop van `t` (de hele kop of een deel), elke uitkomst getoetst tegen de hele `kop` (veilig).
+    private static func kort(_ t: String, _ max: Int, _ kop: String) -> String? {
+        func goed(_ k: String?) -> String? { if let k, lengte(k) <= max, veilig(kop, k) { return k }; return nil }
+        if lengte(t) <= max { return t == kop ? t : goed(t) }
 
         // De eerste zin, als die zelf een kop is.
-        if let z = match("^(.+?(?:[?!]|\\s\\p{Ll}{3,}\\.))\\s+\\S", t), lengte(z[1]) <= max, kern(z[1], 4) { return z[1] }
+        if let z = match("^(.+?(?:[?!]|\\s\\p{Ll}{3,}\\.))\\s+\\S", t), kern(z[1], 4), let k = goed(z[1]) { return k }
 
         // Dubbele punt, of een citaat vooraan zonder dubbele punt.
         // Zonder dubbele punt telt een citaat vooraan pas vanaf drie woorden ("‘Little Britain’ Star …" is een titel).
@@ -175,16 +252,17 @@ enum KortKop {
             let b = vervang("^\\s+|\\s+$", p[2], "")
             let toevoegingB = woorden(b) <= kortToevoeging || test(openCitaat, b) || b.hasSuffix("?")
             let bKop = kern(b, 4) && !opent(b)
-            let alsB = { bKop && !titleCase(b) ? kort(hoofdletter(b), max: max) : nil }
+            let alsB = { bKop && !titleCase(b) ? kort(hoofdletter(b), max, kop) : nil }
             if isCitaat(a) {
-                if bKop, let k = kort(hoofdletter(b), max: max) { return k }
+                if bKop, let k = kort(hoofdletter(b), max, kop) { return k }
             } else if kern(a, 4), !titelOverPunt(a, b) {
-                // Noemt B niets, dan blijft A; zonder veilige kop op deze maat het andere deel.
-                let wilB = !toevoegingB && bKop && (test("^\\p{Lu}", b) || (!benoemd(a) && (benoemd(b) || opent(a))))
+                // Noemt B niets, dan blijft A (ook het eerste woord van A telt, als afkorting); zonder veilige kop op
+                // deze maat het andere deel, maar B alleen als B een eigen kop is.
+                let wilB = !toevoegingB && bKop && (test("^\\p{Lu}", b) || opent(a) || (!benoemd(a, metEerste: true) && benoemd(b)))
                 // B in Title Case: twijfel, de hele kop inkorten.
                 if !wilB || !titleCase(b) {
-                    if let k = wilB ? alsB() : kort(a, max: max) { return k }
-                    if let k = wilB ? kort(a, max: max) : alsB() { return k }
+                    if let k = wilB ? alsB() : kort(a, max, kop) { return k }
+                    if let k = wilB ? kort(a, max, kop) : (toevoegingB ? nil : alsB()) { return k }
                 }
             }
             // Een titel over de dubbele punt: de hele kop inkorten.
@@ -193,11 +271,11 @@ enum KortKop {
         // Toevoeging na een gedachtestreep, of tussen haakjes.
         if let m = match("^(.+?)\\s[–—-]\\s.+$", t) {
             let voor = staart(m[1])
-            if lengte(voor) <= max, kern(voor, 3) { return voor }
+            if kern(voor, 3), let k = goed(voor) { return k }
         }
         if let m = match("^(.+?)\\s*\\(([^()]*)\\)$", t), !heeftOntkenning(m[2]) {
             let voor = staart(m[1])
-            if lengte(voor) <= max, kern(voor, 3) { return voor }
+            if kern(voor, 3), let k = goed(voor) { return k }
         }
         // Haakjes met een ontkenning erin ("Kabinet stemt (niet) in") blijven altijd staan.
         var zonderHaakjes = t
@@ -205,25 +283,28 @@ enum KortKop {
         where !heeftOntkenning(ns(t).substring(with: m.range(at: 1))) {
             zonderHaakjes = ns(zonderHaakjes).replacingCharacters(in: m.range, with: "")
         }
-        if zonderHaakjes != t, lengte(zonderHaakjes) <= max, kern(zonderHaakjes, 3) { return zonderHaakjes }
+        if zonderHaakjes != t, kern(zonderHaakjes, 3), let k = goed(zonderHaakjes) { return k }
         let basis = zonderHaakjes != t && kern(zonderHaakjes, 3) ? zonderHaakjes : t
 
         // Een bijzin na een komma.
         let r = ns(begin(basis, max - 1)).range(of: ", ", options: .backwards)
         if r.location != NSNotFound, r.location > 0 {
             let voor = staart(zonderLosEinde(delen(begin(basis, r.location))).joined(separator: " "))
-            if kern(voor, 4), Double(lengte(voor)) >= Double(max - 1) / 2, !isCitaat(voor), !opent(voor) { return voor + "…" }
+            if kern(voor, 4), Double(lengte(voor)) >= Double(max - 1) / 2, !isCitaat(voor), !opent(voor), let k = goed(voor + "…") { return k }
         }
 
-        return afkappen(basis, max)
+        return afkappen(basis, max, kop)
     }
 
     // Steeds kortere versies van een kop, voor een plek waar de korte kop van de server niet past: de widget
     // kiest de eerste die past (WidgetZet.pas), zodat iOS nooit midden in een woord afkapt. Een maat zonder
-    // veilige kop (er zou een ontkenning wegvallen) wordt overgeslagen; is er geen enkele, dan de kop zelf.
+    // veilige kop (er zou een ontkenning wegvallen) wordt overgeslagen; is er geen enkele, dan de kop zelf, en dan
+    // krijgt hij in de widget de regels die hij nodig heeft (WidgetZet.pas).
     static func trap(_ kop: String, kort: String?) -> [String] {
         var uit: [String] = []
-        for k in ([kort ?? self.kort(kop)] + [56, 52, 48, 44, 40, 36, 32, 28, 24].map({ self.kort(kop, max: $0) })).compactMap({ $0 })
+        // Een korte kop van de server telt alleen als hij veilig is (een oudere server kende de bewaking nog niet).
+        let vanServer = kort.flatMap { veilig(kop, $0) ? $0 : nil }
+        for k in ([vanServer ?? self.kort(kop)] + [56, 52, 48, 44, 40, 36, 32, 28, 24].map({ self.kort(kop, max: $0) })).compactMap({ $0 })
         where !k.isEmpty && !uit.contains(k) && (uit.last.map { lengte(k) < lengte($0) } ?? true) {
             uit.append(k)
         }

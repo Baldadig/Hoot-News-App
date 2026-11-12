@@ -107,15 +107,26 @@ private struct WKop: View {
             .multilineTextAlignment(.leading)
             .foregroundStyle(gelezen ? WidgetKleur.ink3 : WidgetKleur.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                // Alleen in toetsen: de breedte die deze kop echt kreeg (WidgetRenderTests).
-                if let opname = WidgetZetMeting.opname {
-                    GeometryReader { p in
-                        let _ = opname(gezet, m, p.size.width)
-                        Color.clear
-                    }
-                }
-            }
+            .widgetMeting(gezet, m)
+    }
+}
+
+// Een kop in zijn regels; heeft hij er meer nodig dan er zijn (het uiterste: een kop zonder veilige kortere vorm
+// die ook met een regel extra niet past), dan kleiner gezet, nooit afgekapt.
+private struct WKopOfPassend: View {
+    let gezet: WidgetZet.Gezet
+    let m: WidgetLetter.Maat
+    let ruimte: Int
+    var gelezen = false
+    var body: some View {
+        if gezet.regels <= ruimte {
+            WKop(gezet: gezet, m: m, gelezen: gelezen)
+        } else {
+            Text(gezet.tekst).widgetKopPassend(m, regels: ruimte)
+                .multilineTextAlignment(.leading)
+                .foregroundStyle(gelezen ? WidgetKleur.ink3 : WidgetKleur.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 
@@ -171,7 +182,7 @@ private extension WidgetEditie {
 
 // MARK: - Beginscherm
 
-// Middel · Top 3: naam en voortgang, dan 01–03. Elke regel opent dat verhaal; de kopregel de Editie.
+// Middel · Top 3: naam en voortgang, dan 01 en 02 als volle koppen, en 03 als er ruimte is (WidgetZet.top3). Elke regel opent dat verhaal; de kopregel de Editie.
 struct MiddelTop3: View {
     let editie: WidgetEditie
     let stand: WidgetStand
@@ -186,7 +197,7 @@ struct MiddelTop3: View {
     static func zet(_ editie: WidgetEditie, maat: CGSize, marge: CGFloat) -> (gezet: [WidgetZet.Gezet], breedte: CGFloat, hoogte: CGFloat) {
         let breedte = maat.width - 2 * marge - nummerKolom - WidgetRuimte.s2
         let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s3 - WidgetRuimte.s1
-        let gezet = WidgetZet.rijen(Array(editie.verhalen.prefix(3)), WidgetLetter.widgetKop, breedte: breedte, hoogte: hoogte, tussen: tussen, eersteVoorrang: true)
+        let gezet = WidgetZet.top3(editie.verhalen, WidgetLetter.widgetKop, breedte: breedte, hoogte: hoogte, tussen: tussen)
         return (gezet, breedte, hoogte)
     }
 
@@ -238,9 +249,17 @@ struct KleinKop: View {
         let v = editie.verhalen[0]
         let breedte = maat.width - 2 * marge
         let lees = v.gelezen(in: editie.leesSet)
-        if metBeeld {
-            let hoogte = maat.height - Self.beeldHoogte - WidgetRuimte.s3 - marge - 16 - WidgetRuimte.s1
-            let g = WidgetZet.pas(v.kop, kort: v.kortKop, WidgetLetter.widgetKop, breedte: breedte, max: max(1, Int(hoogte / WidgetLetter.widgetKop.regel)))
+        let m = WidgetLetter.widgetKop
+        let beeldRegels = max(1, Int((maat.height - Self.beeldHoogte - WidgetRuimte.s3 - marge - 16 - WidgetRuimte.s1) / m.regel))
+        let gBeeld = WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: breedte, max: beeldRegels)
+        // Zonder beeld: met de bron eronder, of (heeft de kop meer regels nodig) zonder bron.
+        let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s2
+        let metBron = max(1, min(5, Int((hoogte - WidgetRuimte.s2 - 16) / m.regel)))
+        let zonderBron = max(1, Int(hoogte / m.regel))
+        let g = WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: breedte, max: metBron)
+        // Een kop zonder veilige kortere vorm krijgt de ruimte die hij nodig heeft: het beeld en dan de bron wijken.
+        if metBeeld && gBeeld.regels <= beeldRegels {
+            let g = gBeeld
             VStack(alignment: .leading, spacing: 0) {
                 WidgetBeeld(verhaal: v)
                     .frame(width: maat.width, height: Self.beeldHoogte)
@@ -257,13 +276,13 @@ struct KleinKop: View {
             .widgetURL(HootLink.verhaal(v.itemId))
             .accessibilityElement(children: .combine)
         } else {
-            let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s2 - WidgetRuimte.s2 - 16
-            let g = WidgetZet.pas(v.kop, kort: v.kortKop, WidgetLetter.widgetKop, breedte: breedte, max: max(1, min(5, Int(hoogte / WidgetLetter.widgetKop.regel))))
+            let past = g.regels <= metBron
+            let g = past ? g : WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: breedte, max: zonderBron)
             VStack(alignment: .leading, spacing: WidgetRuimte.s2) {
                 WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees).frame(height: 16)
-                WKop(gezet: g, m: WidgetLetter.widgetKop, gelezen: lees)
+                WKopOfPassend(gezet: g, m: m, ruimte: past ? metBron : zonderBron, gelezen: lees)
                 Spacer(minLength: 0)
-                WBron(naam: v.bron)
+                if past { WBron(naam: v.bron) }
             }
             .padding(marge)
             .frame(width: maat.width, height: maat.height, alignment: .topLeading)
@@ -328,18 +347,35 @@ struct MiddelKop: View {
 
     static let beeldBreedte: CGFloat = 150
 
+    // De kop van 01: groot (t4-item), met beeld en bron. Heeft de kop meer regels nodig (geen veilige kortere vorm),
+    // dan wijken eerst het beeld, dan de bron, en dan wordt de kop kleiner (widget-kop).
+    static func zet(_ v: WidgetVerhaal, maat: CGSize, marge: CGFloat, metBeeld: Bool) -> (gezet: WidgetZet.Gezet, m: WidgetLetter.Maat, ruimte: Int, metBeeld: Bool, metBron: Bool) {
+        let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s2
+        for (m, beeld, bron) in [(WidgetLetter.item, true, true), (WidgetLetter.item, false, true), (WidgetLetter.item, false, false),
+                                 (WidgetLetter.widgetKop, false, false)] where metBeeld || !beeld {
+            let breedte = maat.width - 2 * marge - (beeld ? beeldBreedte : 0)
+            let ruimte = max(1, min(bron ? 4 : 5, Int((hoogte - (bron ? WidgetRuimte.s2 + 16 : 0)) / m.regel)))
+            let g = WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: breedte, max: ruimte)
+            if g.regels <= ruimte { return (g, m, ruimte, beeld, bron) }
+        }
+        // Past ook dat niet: de laatste vorm, en WKopOfPassend zet hem kleiner.
+        let breedte = maat.width - 2 * marge
+        let ruimte = max(1, Int(hoogte / WidgetLetter.widgetKop.regel))
+        return (WidgetZet.pas(v.kop, kort: v.kortKop, WidgetLetter.widgetKop, breedte: breedte, max: ruimte), WidgetLetter.widgetKop, ruimte, false, false)
+    }
+
     var body: some View {
         let v = editie.verhalen[0]
         let lees = v.gelezen(in: editie.leesSet)
-        let tekstBreedte = maat.width - 2 * marge - (metBeeld ? Self.beeldBreedte : 0)
-        let hoogte = maat.height - 2 * marge - 16 - WidgetRuimte.s2 - WidgetRuimte.s2 - 16
-        let g = WidgetZet.pas(v.kop, kort: v.kortKop, WidgetLetter.item, breedte: tekstBreedte, max: max(1, min(4, Int(hoogte / WidgetLetter.item.regel))))
+        let z = Self.zet(v, maat: maat, marge: marge, metBeeld: metBeeld)
+        let metBeeld = z.metBeeld
+        let g = z.gezet
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: WidgetRuimte.s2) {
                 WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees).frame(height: 16)
-                WKop(gezet: g, m: WidgetLetter.item, gelezen: lees)
+                WKopOfPassend(gezet: g, m: z.m, ruimte: z.ruimte, gelezen: lees)
                 Spacer(minLength: 0)
-                WBron(naam: v.bron)
+                if z.metBron { WBron(naam: v.bron) }
             }
             .padding(marge)
             .frame(width: maat.width - (metBeeld ? Self.beeldBreedte - marge : 0), height: maat.height, alignment: .topLeading)
@@ -457,16 +493,41 @@ struct VergrendelRechthoek: View {
     let editie: WidgetEditie
     let stand: WidgetStand
     let maat: CGSize
-    var body: some View {
-        let v = editie.verhalen[0]
-        let g = WidgetZet.pas(v.kop, kort: v.kortKop, WidgetLetter.widgetKop, breedte: maat.width, max: 2)
-        VStack(alignment: .leading, spacing: WidgetRuimte.s0) {
-            Text(editie.naam).widgetKicker().foregroundStyle(.secondary).widgetAccentable()
-            Text(g.tekst).widgetKop(WidgetLetter.widgetKop, regels: g.regels).multilineTextAlignment(.leading)
+
+    // Wat er staat: de kop van 01, met de naam erboven, in twee regels. Heeft de kop er meer nodig (geen veilige
+    // kortere vorm), dan krijgt hij een regel extra; past dat niet, dan wijkt de naam en staat de hele kop er
+    // alleen. Past ook dat niet, dan schuift de volgende kop op. Nooit afgekapt door iOS.
+    struct Zet { let verhaal: WidgetVerhaal; let gezet: WidgetZet.Gezet; let metNaam: Bool; let ruimte: Int }
+    static func zet(_ editie: WidgetEditie, maat: CGSize) -> Zet? {
+        let m = WidgetLetter.widgetKop
+        let metNaam = max(2, Int((maat.height - 16 - WidgetRuimte.s0) / m.regel))
+        let zonderNaam = max(2, Int(maat.height / m.regel))
+        var eerste: Zet?
+        for v in editie.verhalen {
+            let g = WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: maat.width, max: 2)
+            if g.regels <= metNaam { return Zet(verhaal: v, gezet: g, metNaam: true, ruimte: metNaam) }
+            if g.regels <= zonderNaam { return Zet(verhaal: v, gezet: g, metNaam: false, ruimte: zonderNaam) }
+            if eerste == nil { eerste = Zet(verhaal: v, gezet: g, metNaam: false, ruimte: zonderNaam) }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .widgetURL(HootLink.verhaal(v.itemId))
-        .accessibilityElement(children: .combine)
+        return eerste
+    }
+
+    var body: some View {
+        if let z = Self.zet(editie, maat: maat) {
+            VStack(alignment: .leading, spacing: WidgetRuimte.s0) {
+                if z.metNaam { Text(editie.naam).widgetKicker().foregroundStyle(.secondary).widgetAccentable() }
+                if z.gezet.regels <= z.ruimte {
+                    Text(z.gezet.tekst).widgetKop(WidgetLetter.widgetKop, regels: z.gezet.regels).multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .widgetMeting(z.gezet, WidgetLetter.widgetKop)
+                } else {
+                    Text(z.gezet.tekst).widgetKopPassend(WidgetLetter.widgetKop, regels: z.ruimte).multilineTextAlignment(.leading)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .widgetURL(HootLink.verhaal(z.verhaal.itemId))
+            .accessibilityElement(children: .combine)
+        }
     }
 }
 

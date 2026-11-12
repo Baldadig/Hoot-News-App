@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { kortKop, metKorteKoppen, KORT_MAX } from '../shared/kort-kop.mjs'
+import { kortKop, metKorteKoppen, veilig, KORT_MAX, ONTKENNINGEN } from '../shared/kort-kop.mjs'
 
 // tests/fixtures/kort-kop.json wordt ook door iOS gelezen (KortKopTests): dezelfde korte kop op beide.
 const fx = JSON.parse(readFileSync(new URL('./fixtures/kort-kop.json', import.meta.url), 'utf8'))
@@ -14,27 +14,57 @@ test('korte kop: dezelfde uitkomst als de gedeelde gevallen', () => {
   for (const c of fx.gevallen) assert.equal(kortKop(c.kop, c.max ?? KORT_MAX), c.verwacht, `${c.kop} (${c.max ?? KORT_MAX})`)
 })
 
-test('korte kop: een ontkenning valt nooit weg uit de zin waarin wordt afgekapt', () => {
-  const ontkenning = /(^|\s|\()(niet|geen|nooit|not|no|never)(\s|\)|$|[,.?!])/iu
+test('korte kop: een ontkenning valt nooit weg, via welke stap ook (keuring 4)', () => {
+  // Over de hele weggevallen rest, niet tot het eerste leesteken. Elke uitkomst gaat langs `veilig`; en los
+  // daarvan: valt er een ontkenning weg, dan staat ze in een eigen (bij)zin of citaat die helemaal wegvalt, met
+  // minstens drie woorden ervoor die ook wegvallen, en nooit direct na een komma, dubbele punt of gedachtestreep.
+  const sl = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
   for (const c of fx.gevallen) {
+    const alle = schoonKop(c.kop).split(' ')
     for (const max of [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]) {
       const k = kortKop(c.kop, max)
       if (k === null) continue
       assert.ok(k.length <= max, k)
-      // Wat overblijft is het begin van een zin uit de kop; stond daar een ontkenning in vóór het volgende
-      // leesteken of bijzinswoord, dan staat die er nog.
-      const body = k.replace(/…$/u, '')
-      const i = schoonKop(c.kop).indexOf(body)
-      if (i < 0) continue
-      const rest = schoonKop(c.kop).slice(i + body.length)
-      const zin = rest.split(/[,;:.?!]|\s[–—-]\s|\s(?:maar|als|dat|die|omdat|terwijl|but|as|that|while|because)\s/iu)[0]
-      // (Eén woord dat langer is dan alles wordt midden afgekapt; daar staat nog geen zin.)
-      if (body.includes(' ') && !/[,;:]$/u.test(body)) assert.ok(!ontkenning.test(zin), `${c.kop} (${max}) → ${k}`)
+      assert.ok(veilig(c.kop, k), `${c.kop} (${max}) → ${k}`)
+      const tel = (ws) => ws.filter((w) => ONTKENNINGEN.has(sl(w))).length
+      if (tel(k.split(' ')) >= tel(alle)) continue
+      const rest = new Map()
+      for (const w of k.replace(/…$/u, '').split(' ').map(sl)) rest.set(w, (rest.get(w) || 0) + 1)
+      for (let p = 0; p < alle.length; p++) {
+        if (!ONTKENNINGEN.has(sl(alle[p]))) continue
+        if (rest.get(sl(alle[p]))) { rest.set(sl(alle[p]), rest.get(sl(alle[p])) - 1); continue }
+        assert.ok(p >= 3 && !/[,:;]$/u.test(alle[p - 1]) && !/^[–—-]$/u.test(alle[p - 1]), `${c.kop} (${max}) → ${k}`)
+        const kaal = k.replace(/…$/u, '')
+        for (const w of alle.slice(p - 2, p)) assert.ok(!kaal.endsWith(w), `${c.kop} (${max}) → ${k}`)
+      }
     }
+  }
+  // De gevallen uit keuring 4: de ontkenning staat er nog, of er is op die maat geen korte kop.
+  const moet = [
+    ['Eén miljoen Fransen krijgen zender CNews, de “propagandamachine van extreemrechts”, niet uit de ether', 60],
+    ['Nieuwe asielwet aangenomen door de Tweede Kamer: of toch niet?', 60],
+    ['Rutte wordt de nieuwe secretaris-generaal van de NAVO: niet waar', 60],
+    ['Kabinet valt over stikstof: nee, zegt premier', 40],
+    ['Ajax neemt afscheid van trainer Farioli na nederlaag – nog niet officieel', 60],
+    ['Nieuwe kerncentrale in Borssele komt er – maar niet voor 2040', 60],
+    ['Acht maanden durfden D66 en CDA amper over de grenzen van hun eigen coalitie heen te kijken', 36],
+    ['Nvidia Tumbles as Investors Consider Future Without CEO Huang', 48],
+    ['Russia-Ukraine talks turn to post-war security but end without breakthrough', 60],
+    ['Een vaste basisplaats bij Marokko zit er voor Ayoub Oufkir niet in; bij Oranje ook niet', 60],
+  ]
+  for (const [kop, max] of moet) {
+    const k = kortKop(kop, max)
+    assert.ok(k === null || /(^|[\s‘“(])(niet|nee|amper|without)(\s|…|$)/iu.test(k), `${kop} (${max}) → ${k}`)
   }
   // Ook bij een komma (stap 5) en tussen haakjes.
   assert.equal(kortKop('Tweede Kamer steunt het nieuwe belastingplan niet, coalitie in zwaar weer na lange nacht van onderhandelen'), 'Tweede Kamer steunt het nieuwe belastingplan niet…')
   assert.match(kortKop('Kabinet stemt (niet) in met plan voor nieuwe kerncentrales in Borssele en op de Maasvlakte'), /\(niet\)/u)
+  // Een eigen bijzin met een eigen onderwerp mag wel weg.
+  assert.equal(kortKop('Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough'), 'Russia, Ukraine agree on prisoner exchange…')
+})
+
+test('korte kop: bij een dubbele punt blijft de naam vooraan (PSV)', () => {
+  assert.equal(kortKop('PSV aast op enorme transferstunt: landskampioen legt contact met Kevin De Bruyne, die in januari weg mag'), 'PSV aast op enorme transferstunt')
 })
 
 test('korte kop: na een dubbele punt nooit een deel zonder onderwerp, en geen onzichtbare tekens', () => {

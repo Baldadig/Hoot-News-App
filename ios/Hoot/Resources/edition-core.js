@@ -3662,14 +3662,44 @@ var HootCore = (() => {
     "niks",
     "niemand",
     "nergens",
+    "nee",
+    "noch",
+    "nimmer",
+    "geenszins",
+    "allerminst",
+    "amper",
+    "nauwelijks",
+    "zonder",
     "not",
     "no",
     "never",
     "nothing",
     "none",
     "nobody",
+    "nowhere",
     "neither",
-    "nor"
+    "nor",
+    "cannot",
+    "hardly",
+    "barely",
+    "scarcely",
+    "without",
+    "cant",
+    "dont",
+    "doesnt",
+    "didnt",
+    "wont",
+    "isnt",
+    "arent",
+    "wasnt",
+    "werent",
+    "hasnt",
+    "havent",
+    "hadnt",
+    "shouldnt",
+    "wouldnt",
+    "couldnt",
+    "aint"
   ]);
   var OPENERS = /* @__PURE__ */ new Set([
     "van",
@@ -3816,12 +3846,76 @@ var HootCore = (() => {
     "yet"
   ]);
   var zinsbegin = (alle, i) => i > 0 && i < alle.length && (/[,;:.?!]$/u.test(alle[i - 1]) || /^[–—-]$/u.test(alle[i]) || BIJZIN.has(letters(alle[i])));
-  function ontkenningWeg(alle, n) {
-    for (let i = n; i < alle.length; i++) {
-      if (zinsbegin(alle, i)) return false;
-      if (ontkenning(alle[i])) return true;
+  var sleutel = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+  function gelegd(alle, kort2) {
+    const idx = [];
+    for (let i = 0; i < alle.length; i++) if (sleutel(alle[i])) idx.push(i);
+    const sk = idx.map((i) => sleutel(alle[i]));
+    const K = kort2.replace(/…$/u, "").split(" ").map(sleutel).filter(Boolean);
+    const n = idx.length;
+    const m = K.length;
+    for (const prefix of [false, true]) {
+      const gelijk = (i, j2) => sk[i] === K[j2] || prefix && j2 === m - 1 && sk[i].startsWith(K[j2]);
+      const GROOT = 1e9;
+      const f = [0, 1].map(() => Array.from({ length: n + 1 }, () => new Array(m + 1).fill(GROOT)));
+      for (const d2 of [0, 1]) f[d2][n][m] = 0;
+      for (let i = n - 1; i >= 0; i--) {
+        for (let j2 = m; j2 >= 0; j2--) {
+          for (const d2 of [0, 1]) {
+            const weg = (d2 ? 0 : 1) + f[1][i + 1][j2];
+            const mee2 = j2 < m && gelijk(i, j2) ? f[0][i + 1][j2 + 1] : GROOT;
+            f[d2][i][j2] = Math.min(mee2, weg);
+          }
+        }
+      }
+      if (f[0][0][0] >= GROOT) continue;
+      const mee = /* @__PURE__ */ new Set();
+      let j = 0;
+      let d = 0;
+      for (let i = 0; i < n; i++) {
+        if (j < m && gelijk(i, j) && f[0][i + 1][j + 1] <= (d ? 0 : 1) + f[1][i + 1][j]) {
+          mee.add(idx[i]);
+          j++;
+          d = 0;
+        } else d = 1;
+      }
+      return mee;
     }
-    return false;
+    return null;
+  }
+  function citaatWeg(alle, p, mee) {
+    let q = p;
+    while (q >= 0 && !OPEN_CITAAT.test(alle[q])) {
+      if (q < p && SLUIT_CITAAT.test(alle[q])) return false;
+      q--;
+    }
+    let r = p;
+    while (r < alle.length && !SLUIT_CITAAT.test(alle[r])) r++;
+    if (q < 1 || r >= alle.length || p - q < 2 || !/:$/u.test(alle[q - 1])) return false;
+    const eerste = letters(alle[q]);
+    if (OPENERS.has(eerste) || ONTKENNINGEN.has(eerste)) return false;
+    for (let i = q; i <= r; i++) if (mee.has(i)) return false;
+    return true;
+  }
+  function veilig(kop, kort2) {
+    if (kort2 === null || kort2 === void 0) return false;
+    const alle = schoon(kop).split(" ");
+    const mee = gelegd(alle, kort2);
+    if (!mee) return false;
+    for (let p = 0; p < alle.length; p++) {
+      if (mee.has(p) || !ontkenning(alle[p])) continue;
+      let s = p;
+      while (s > 0 && !zinsbegin(alle, s)) s--;
+      let e = p + 1;
+      while (e < alle.length && !zinsbegin(alle, e)) e++;
+      let heelWeg = true;
+      for (let i = s; i < e; i++) if (mee.has(i)) heelWeg = false;
+      const eigen = BIJZIN.has(letters(alle[s])) || /[.?!]$/u.test(alle[s - 1] || "");
+      if (s > 0 && eigen && p - s >= 3 && heelWeg) continue;
+      if (citaatWeg(alle, p, mee)) continue;
+      return false;
+    }
+    return true;
   }
   function zonderLosEinde(delen, set = LOSSE_EINDES) {
     const d = [...delen];
@@ -3829,7 +3923,7 @@ var HootCore = (() => {
     return d;
   }
   var VOEGWOORDEN = /* @__PURE__ */ new Set(["en", "of", "maar", "want", "dus", "and", "or", "but"]);
-  function afkappen(t, max) {
+  function afkappen(t, max, kop) {
     const ruimte = max - 1;
     const alle = t.split(" ");
     let delen = t.slice(0, ruimte).split(" ");
@@ -3845,18 +3939,22 @@ var HootCore = (() => {
       if (korter.join(" ").length < ruimte / 3) break;
       delen = korter;
     }
-    let j = delen.length - 1;
-    while (j > 0 && !zinsbegin(alle, j)) j--;
-    if (delen.length > 0 && ontkenningWeg(alle, delen.length)) {
-      const terug = staart(zonderLosEinde(delen.slice(0, j)).join(" "));
-      return j > 0 && kern(terug, 2) ? `${terug}…` : null;
-    }
     let uit = staart(delen.join(" "));
     if (!uit) uit = t.slice(0, ruimte);
-    return `${uit}…`;
+    if (veilig(kop, `${uit}…`)) return `${uit}…`;
+    for (let j = delen.length - 1; j > 0; j--) {
+      if (!zinsbegin(alle, j)) continue;
+      const terug = staart(zonderLosEinde(delen.slice(0, j)).join(" "));
+      if (kern(terug, 2) && veilig(kop, `${terug}…`)) return `${terug}…`;
+    }
+    return null;
   }
   var isCitaat = (s) => OPEN_CITAAT.test(s) && SLUIT_CITAAT.test(s) && woorden(s) >= 2;
-  var benoemd = (s) => /\d/u.test(s) || s.split(" ").slice(1).some((w) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(w));
+  var benoemd = (s, metEerste = false) => {
+    const w = s.split(" ");
+    const eerste = metEerste && /^[‘’“'"„«‚(]?\p{Lu}[\p{Lu}\d]+(?![\p{L}\p{N}])/u.test(w[0] || "");
+    return /\d/u.test(s) || w.slice(eerste ? 0 : 1).some((x) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(x));
+  };
   function titleCase(s) {
     const w = s.split(" ").slice(1).filter((x) => /\p{L}/u.test(x));
     const groot = w.filter((x) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(x));
@@ -3868,9 +3966,13 @@ var HootCore = (() => {
   }
   function kortKop(title, max = KORT_MAX) {
     const t = schoon(title);
-    if (t.length <= max) return t;
+    return kort(t, max, t);
+  }
+  function kort(t, max, kop) {
+    const goed = (k) => k && k.length <= max && veilig(kop, k) ? k : null;
+    if (t.length <= max) return t === kop ? t : goed(t);
     const zin = t.match(/^(.+?(?:[?!]|\s\p{Ll}{3,}\.))\s+\S/u);
-    if (zin && zin[1].length <= max && kern(zin[1], 4)) return zin[1];
+    if (zin && kern(zin[1], 4) && goed(zin[1])) return zin[1];
     const vooraan = t.match(/^([‘“'"„«‚][^’”'"»]+[’”'"»])\s(\p{Lu}.+)$/u);
     const punt = t.match(/^([^:]+):\s(.+)$/u) || (vooraan && woorden(vooraan[1]) >= 3 ? vooraan : null);
     if (punt) {
@@ -3878,16 +3980,16 @@ var HootCore = (() => {
       const b = punt[2].trim();
       const toevoegingB = woorden(b) <= KORT_TOEVOEGING || OPEN_CITAAT.test(b) || b.endsWith("?");
       const bKop = kern(b, 4) && !opent(b);
-      const alsB = () => bKop && !titleCase(b) ? kortKop(hoofdletter(b), max) : null;
+      const alsB = () => bKop && !titleCase(b) ? kort(hoofdletter(b), max, kop) : null;
       if (isCitaat(a)) {
-        const k = bKop ? kortKop(hoofdletter(b), max) : null;
+        const k = bKop ? kort(hoofdletter(b), max, kop) : null;
         if (k) return k;
       } else if (kern(a, 4) && !titelOverPunt(a, b)) {
-        const wilB = !toevoegingB && bKop && (/^\p{Lu}/u.test(b) || !benoemd(a) && (benoemd(b) || opent(a)));
+        const wilB = !toevoegingB && bKop && (/^\p{Lu}/u.test(b) || opent(a) || !benoemd(a, true) && benoemd(b));
         if (!wilB || !titleCase(b)) {
-          const k = wilB ? alsB() : kortKop(a, max);
+          const k = wilB ? alsB() : kort(a, max, kop);
           if (k) return k;
-          const ander = wilB ? kortKop(a, max) : alsB();
+          const ander = wilB ? kort(a, max, kop) : toevoegingB ? null : alsB();
           if (ander) return ander;
         }
       }
@@ -3895,22 +3997,22 @@ var HootCore = (() => {
     const streep = t.match(/^(.+?)\s[–—-]\s.+$/u);
     if (streep) {
       const voor = staart(streep[1]);
-      if (voor.length <= max && kern(voor, 3)) return voor;
+      if (kern(voor, 3) && goed(voor)) return voor;
     }
     const haakjes = t.match(/^(.+?)\s*\(([^()]*)\)$/u);
     if (haakjes && !heeftOntkenning(haakjes[2])) {
       const voor = staart(haakjes[1]);
-      if (voor.length <= max && kern(voor, 3)) return voor;
+      if (kern(voor, 3) && goed(voor)) return voor;
     }
     const zonderHaakjes = t.replace(/\s+\(([^()]*)\)(?=\s|$)/gu, (m, binnen) => heeftOntkenning(binnen) ? m : "");
-    if (zonderHaakjes !== t && zonderHaakjes.length <= max && kern(zonderHaakjes, 3)) return zonderHaakjes;
+    if (zonderHaakjes !== t && kern(zonderHaakjes, 3) && goed(zonderHaakjes)) return zonderHaakjes;
     const basis = zonderHaakjes !== t && kern(zonderHaakjes, 3) ? zonderHaakjes : t;
     const komma = basis.slice(0, max - 1).lastIndexOf(", ");
     if (komma > 0) {
       const voor = staart(zonderLosEinde(basis.slice(0, komma).split(" ")).join(" "));
-      if (kern(voor, 4) && voor.length >= (max - 1) / 2 && !isCitaat(voor) && !opent(voor)) return `${voor}…`;
+      if (kern(voor, 4) && voor.length >= (max - 1) / 2 && !isCitaat(voor) && !opent(voor) && goed(`${voor}…`)) return `${voor}…`;
     }
-    return afkappen(basis, max);
+    return afkappen(basis, max, kop);
   }
   function metKorteKoppen(edition) {
     if (!edition || !Array.isArray(edition.entries)) return edition;
@@ -3919,8 +4021,8 @@ var HootCore = (() => {
       ...edition,
       entries: edition.entries.map((e) => {
         const kop = byId2.get(e.kind === "story" ? e.leadId || e.id : e.id)?.title || e.title;
-        const kort = kop ? kortKop(kop) : null;
-        return kort ? { ...e, kortKop: kort } : e;
+        const kort2 = kop ? kortKop(kop) : null;
+        return kort2 ? { ...e, kortKop: kort2 } : e;
       })
     };
   }

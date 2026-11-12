@@ -118,7 +118,7 @@ import WidgetKit
             "“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten",
             "Donaudampfschiffahrtsgesellschaftskapitänswitwenrentenauszahlungsstelle bestaat niet",
             "Russische ambassadeur Aleksandr Dartsjiëv (66) onverwachts overleden in VS",
-        ]
+        ] + WidgetTests.zonderVeiligeVorm
         let nu = WidgetDagdeel.op(WidgetTests.moment("2026-11-11T17:41:00Z"))
         var opnamen: [(WidgetZet.Gezet, WidgetLetter.Maat, CGFloat)] = []
         WidgetZetMeting.opname = { g, m, b in MainActor.assumeIsolated { opnamen.append((g, m, b)) } }
@@ -132,6 +132,7 @@ import WidgetKit
                 (.systemMedium, Self.iPhone.middel, .kop01, true), (.systemMedium, Self.iPhone.middel, .kop01, false),
                 (.systemSmall, Self.iPhone.klein, .kop01, true), (.systemSmall, Self.iPhone.klein, .kop01, false),
                 (.systemLarge, Self.iPhone.groot, .top3, true), (.systemLarge, Self.iPad.groot, .top3, true),
+                (.accessoryRectangular, Self.rechthoek, .top3, true),
             ]
             for (family, maat, toon, beeld) in gevallen {
                 let r = ImageRenderer(content: HootWidgetInhoud(entry: entry(e, toon, beeld: beeld), family: family, maat: maat).frame(width: maat.width, height: maat.height))
@@ -144,6 +145,8 @@ import WidgetKit
             XCTAssertLessThanOrEqual(WidgetZet.regels(g.tekst, m, breedte: breedte), g.regels, "\"\(g.tekst)\" past niet in \(breedte) punt")
             // En op een woordgrens: wat er staat is een begin van woorden uit de kop, met hooguit een beletselteken.
             XCTAssertFalse(g.tekst.isEmpty)
+            // Keuring 4: nooit een uitkomst waarin een ontkenning wegvalt.
+            XCTAssertTrue(koppen.contains { KortKop.veilig($0, g.tekst) }, g.tekst)
         }
     }
 

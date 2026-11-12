@@ -29,13 +29,17 @@
 //      ontkenning erin ("Kabinet stemt (niet) in") blijven altijd staan.
 //   5. Een bijzin na een komma valt weg als de hoofdzin ervoor een kop is en past
 //      ("RIVM-laboratoria dreigen te sluiten, maar verhuizen kan nog niet"); met "…" erachter.
+//      (Ook dan geldt de bewaking: ", nog geen reactie VVD" valt niet weg.)
 //   6. Anders afkappen op de laatste woordgrens die past, zonder los lidwoord, voorzetsel of voegwoord aan
 //      het eind en zonder bijvoeglijk naamwoord dat zijn zelfstandig naamwoord kwijt is
 //      ("voor verouderde…" → "voor…" → weg), met "…" erachter. Een ontkenning (ONTKENNINGEN) is nooit een
-//      los einde ("…belastingplan niet…" mag), en valt nooit weg uit de zin waarin wordt afgekapt: dan keert
-//      de betekenis om ("D66 en CDA zwichten niet …" → "D66 en CDA zwichten…"). Dan wordt afgekapt vóór die
-//      zin (na een leesteken, een gedachtestreep of een bijzinswoord als "als", "maar", "that"); kan dat niet,
-//      dan is er op deze maat geen korte kop (null) en kiest de widget een andere maat.
+//      los einde ("…belastingplan niet…" mag). Is het afgekapte niet veilig (zie hieronder), dan eerder: vóór
+//      de zin (na een leesteken, een gedachtestreep of een bijzinswoord als "als", "maar", "that").
+//   De bewaking (`veilig`) geldt voor elke uitkomst, welke stap ook: valt er een ontkenning weg (ook "amper",
+//   "nauwelijks", "zonder", "hardly", "without") die het deel raakt dat blijft, via een komma, dubbele punt,
+//   gedachtestreep, bijstelling of wat ook, dan telt die uitkomst niet en volgt de volgende stap. Blijft er
+//   niets veiligs over, dan is er op deze maat geen korte kop (null) en kiest de widget een andere maat; is er
+//   op geen enkele maat een, dan krijgt de kop in de widget de regels die hij nodig heeft (WidgetZet.pas).
 //   Onzichtbare tekens (U+200B–U+200D, U+FEFF) vallen vooraf weg.
 // iOS spiegelt dit in KortKop (ios/HootWidgetShared/KortKop.swift) en draait dezelfde gevallen uit
 // tests/fixtures/kort-kop.json; verander je hier iets, dan daar ook.
@@ -65,8 +69,14 @@ export const LOSSE_EINDES = new Set([
 // Een ontkenning is nooit een los einde: zonder haar keert de betekenis om ("D66 en CDA zwichten niet" →
 // "D66 en CDA zwichten…"). Eindigen op "…belastingplan niet…" mag; valt er een ontkenning weg uit de zin
 // waarin wordt afgekapt, dan wordt die zin niet afgekapt (zie `afkappen`).
+// Ook wat bijna ontkent ("amper", "nauwelijks", "hardly") en "zonder"/"without": zonder die woorden keert de
+// betekenis om of valt de kern weg ("…Consider Future Without CEO Huang" → "…Consider Future…").
 export const ONTKENNINGEN = new Set([
-  'niet', 'geen', 'nooit', 'niets', 'niks', 'niemand', 'nergens', 'not', 'no', 'never', 'nothing', 'none', 'nobody', 'neither', 'nor',
+  'niet', 'geen', 'nooit', 'niets', 'niks', 'niemand', 'nergens', 'nee', 'noch', 'nimmer', 'geenszins', 'allerminst',
+  'amper', 'nauwelijks', 'zonder',
+  'not', 'no', 'never', 'nothing', 'none', 'nobody', 'nowhere', 'neither', 'nor', 'cannot', 'hardly', 'barely', 'scarcely',
+  'without', 'cant', 'dont', 'doesnt', 'didnt', 'wont', 'isnt', 'arent', 'wasnt', 'werent', 'hasnt', 'havent', 'hadnt',
+  'shouldnt', 'wouldnt', 'couldnt', 'aint',
 ])
 // Een deel dat met een voorzetsel of voegwoord begint ("met eigen trekkers …", "from football …", "Ondanks …")
 // heeft geen eigen onderwerp vooraan: het is nooit een kop op zichzelf.
@@ -107,13 +117,90 @@ export const BIJZIN = new Set([
 ])
 // Begint bij woord `i` een nieuwe zin of bijzin: na een leesteken, bij een gedachtestreep of een bijzinswoord.
 const zinsbegin = (alle, i) => i > 0 && i < alle.length && (/[,;:.?!]$/u.test(alle[i - 1]) || /^[–—-]$/u.test(alle[i]) || BIJZIN.has(letters(alle[i])))
-// Valt er een ontkenning weg uit de zin waarin na `n` woorden wordt afgekapt? Dan keert de betekenis om.
-function ontkenningWeg(alle, n) {
-  for (let i = n; i < alle.length; i++) {
-    if (zinsbegin(alle, i)) return false
-    if (ontkenning(alle[i])) return true
+// De bewaking, voor elke uitkomst (welke stap ook): wat valt er weg uit de kop, en staat daar een ontkenning in
+// die het deel raakt dat blijft? Dan is de uitkomst ongeldig. De korte kop wordt woord voor woord op de kop
+// gelegd (hoofdletters, leestekens en "…" tellen niet), met zo weinig mogelijk weggevallen stukken. Een
+// weggevallen ontkenning is alleen onschuldig als ze in een eigen (bij)zin staat die helemaal wegvalt: die begint
+// met een bijzinswoord ("maar", "as", "that") of na een punt, vraag- of uitroepteken, en tussen dat begin en de
+// ontkenning staan minstens twee woorden, een eigen onderwerp en werkwoord ("…, maar verhuizen kan nog niet",
+// "… as talks end with no deal", "Kruis over de knock-outfase? OHL-vrouwen kunnen ook tegen Køge niet …").
+// Na een komma, dubbele punt of gedachtestreep zonder bijzinswoord hoort de ontkenning bij wat ervoor staat
+// (", niet uit de ether", ": of toch niet?", "– maar niet voor 2040").
+const sleutel = (w) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+// Welke woorden van de kop (index in `alle`) staan in de korte kop? null als hij er niet op past.
+function gelegd(alle, kort) {
+  const idx = []
+  for (let i = 0; i < alle.length; i++) if (sleutel(alle[i])) idx.push(i)
+  const sk = idx.map((i) => sleutel(alle[i]))
+  const K = kort.replace(/…$/u, '').split(' ').map(sleutel).filter(Boolean)
+  const n = idx.length
+  const m = K.length
+  for (const prefix of [false, true]) {
+    const gelijk = (i, j) => sk[i] === K[j] || (prefix && j === m - 1 && sk[i].startsWith(K[j]))
+    // f[d][i][j]: het minste aantal weggevallen stukken voor kop[i…] en kort[j…]; d: het vorige woord viel weg.
+    const GROOT = 1e9
+    const f = [0, 1].map(() => Array.from({ length: n + 1 }, () => new Array(m + 1).fill(GROOT)))
+    for (const d of [0, 1]) f[d][n][m] = 0
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m; j >= 0; j--) {
+        for (const d of [0, 1]) {
+          const weg = (d ? 0 : 1) + f[1][i + 1][j]
+          const mee = j < m && gelijk(i, j) ? f[0][i + 1][j + 1] : GROOT
+          f[d][i][j] = Math.min(mee, weg)
+        }
+      }
+    }
+    if (f[0][0][0] >= GROOT) continue
+    const mee = new Set()
+    let j = 0
+    let d = 0
+    for (let i = 0; i < n; i++) {
+      if (j < m && gelijk(i, j) && f[0][i + 1][j + 1] <= (d ? 0 : 1) + f[1][i + 1][j]) {
+        mee.add(idx[i])
+        j++
+        d = 0
+      } else d = 1
+    }
+    return mee
   }
-  return false
+  return null
+}
+// Een citaat na een dubbele punt dat helemaal wegvalt, is een eigen uitspraak: "Vader van …: ‘Zwaardere straffen
+// brengen haar niet terug’". Alleen als het citaat met een eigen onderwerp begint (geen voegwoord of ontkenning
+// vooraan: "‘Of toch niet?’", "‘Niet waar’") en er minstens twee woorden voor de ontkenning staan.
+function citaatWeg(alle, p, mee) {
+  let q = p
+  while (q >= 0 && !OPEN_CITAAT.test(alle[q])) {
+    if (q < p && SLUIT_CITAAT.test(alle[q])) return false
+    q--
+  }
+  let r = p
+  while (r < alle.length && !SLUIT_CITAAT.test(alle[r])) r++
+  if (q < 1 || r >= alle.length || p - q < 2 || !/:$/u.test(alle[q - 1])) return false
+  const eerste = letters(alle[q])
+  if (OPENERS.has(eerste) || ONTKENNINGEN.has(eerste)) return false
+  for (let i = q; i <= r; i++) if (mee.has(i)) return false
+  return true
+}
+export function veilig(kop, kort) {
+  if (kort === null || kort === undefined) return false
+  const alle = schoon(kop).split(' ')
+  const mee = gelegd(alle, kort)
+  if (!mee) return false
+  for (let p = 0; p < alle.length; p++) {
+    if (mee.has(p) || !ontkenning(alle[p])) continue
+    let s = p
+    while (s > 0 && !zinsbegin(alle, s)) s--
+    let e = p + 1
+    while (e < alle.length && !zinsbegin(alle, e)) e++
+    let heelWeg = true
+    for (let i = s; i < e; i++) if (mee.has(i)) heelWeg = false
+    const eigen = BIJZIN.has(letters(alle[s])) || /[.?!]$/u.test(alle[s - 1] || '')
+    if (s > 0 && eigen && p - s >= 3 && heelWeg) continue
+    if (citaatWeg(alle, p, mee)) continue
+    return false
+  }
+  return true
 }
 
 // Zonder los lidwoord, voorzetsel of voegwoord aan het eind ("…, maar" → "…").
@@ -126,8 +213,10 @@ function zonderLosEinde(delen, set = LOSSE_EINDES) {
 // Voor het deel voor een dubbele punt alleen de voegwoorden: "haalt hard uit:" houdt zijn "uit".
 const VOEGWOORDEN = new Set(['en', 'of', 'maar', 'want', 'dus', 'and', 'or', 'but'])
 
-// Afkappen op een woordgrens binnen `max`, met "…" erachter.
-function afkappen(t, max) {
+// Afkappen op een woordgrens binnen `max`, met "…" erachter. Is dat niet veilig (er valt een ontkenning weg, zie
+// `veilig`), dan steeds eerder: terug naar het begin van een zin (na een leesteken, een gedachtestreep of een
+// bijzinswoord). Is ook dat niet veilig, dan is er op deze maat geen korte kop (null).
+function afkappen(t, max, kop) {
   const ruimte = max - 1
   const alle = t.split(' ')
   let delen = t.slice(0, ruimte).split(' ')
@@ -148,25 +237,28 @@ function afkappen(t, max) {
     if (korter.join(' ').length < ruimte / 3) break
     delen = korter
   }
-  // Valt er een ontkenning weg uit de zin waarin wordt afgekapt, dan die zin helemaal niet: terug naar het
-  // begin van die zin (na een leesteken, een gedachtestreep of een bijzinswoord). Blijft er dan geen kop over,
-  // dan is er op deze maat geen veilige kop (null).
-  let j = delen.length - 1
-  while (j > 0 && !zinsbegin(alle, j)) j--
-  if (delen.length > 0 && ontkenningWeg(alle, delen.length)) {
-    const terug = staart(zonderLosEinde(delen.slice(0, j)).join(' '))
-    return j > 0 && kern(terug, 2) ? `${terug}…` : null
-  }
   let uit = staart(delen.join(' '))
   // Een enkel woord dat langer is dan alles: dan toch op de maat, met het beletselteken.
   if (!uit) uit = t.slice(0, ruimte)
-  return `${uit}…`
+  if (veilig(kop, `${uit}…`)) return `${uit}…`
+  for (let j = delen.length - 1; j > 0; j--) {
+    if (!zinsbegin(alle, j)) continue
+    const terug = staart(zonderLosEinde(delen.slice(0, j)).join(' '))
+    if (kern(terug, 2) && veilig(kop, `${terug}…`)) return `${terug}…`
+  }
+  return null
 }
 
 // Een citaat: tussen aanhalingstekens, van begin tot eind, en meer dan één woord (‘Romanticus’ is een bijnaam).
 const isCitaat = (s) => OPEN_CITAAT.test(s) && SLUIT_CITAAT.test(s) && woorden(s) >= 2
 // Heeft dit deel een eigen, benoemd onderwerp: een naam (een hoofdletter na het eerste woord) of een getal?
-const benoemd = (s) => /\d/u.test(s) || s.split(' ').slice(1).some((w) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(w))
+// `metEerste`: ook het eerste woord telt, als het een afkorting is (twee hoofdletters: "PSV aast op …"). Een
+// gewoon woord met een hoofdletter vooraan ("Stuntfietser, veganist …") is het begin van de zin, geen naam.
+const benoemd = (s, metEerste = false) => {
+  const w = s.split(' ')
+  const eerste = metEerste && /^[‘’“'"„«‚(]?\p{Lu}[\p{Lu}\d]+(?![\p{L}\p{N}])/u.test(w[0] || '')
+  return /\d/u.test(s) || w.slice(eerste ? 0 : 1).some((x) => /^[‘’“'"„«‚(]?\p{Lu}/u.test(x))
+}
 // Title Case: na het eerste woord begint het merendeel van de woorden (minstens drie met letters) met een
 // hoofdletter, en ook een klein woord als "It's" of "Been" ("Forever and It's Only Been 6 Days"). Een gewone
 // zin met een paar namen telt niet ("dit is ‘Snorremans’ Cameron Mason").
@@ -183,11 +275,18 @@ function titelOverPunt(a, b) {
 
 export function kortKop(title, max = KORT_MAX) {
   const t = schoon(title)
-  if (t.length <= max) return t
+  return kort(t, max, t)
+}
+
+// De korte kop van `t` (de hele kop, of een deel ervan), getoetst tegen de hele `kop`: elke uitkomst gaat langs
+// `veilig`. Een uitkomst die niet veilig is, telt niet; dan de volgende stap.
+function kort(t, max, kop) {
+  const goed = (k) => (k && k.length <= max && veilig(kop, k) ? k : null)
+  if (t.length <= max) return t === kop ? t : goed(t)
 
   // 2. De eerste zin, als die zelf een kop is.
   const zin = t.match(/^(.+?(?:[?!]|\s\p{Ll}{3,}\.))\s+\S/u)
-  if (zin && zin[1].length <= max && kern(zin[1], 4)) return zin[1]
+  if (zin && kern(zin[1], 4) && goed(zin[1])) return zin[1]
 
   // 3. Dubbele punt, of een citaat vooraan zonder dubbele punt ("‘Nog 1 kamer vrij!’ Brussel presenteert …").
   // Zonder dubbele punt telt een citaat vooraan pas vanaf drie woorden: "‘Little Britain’ Star …" is een titel.
@@ -200,24 +299,26 @@ export function kortKop(title, max = KORT_MAX) {
     // B kan alleen een kop zijn als het niet met een voorzetsel of voegwoord begint ("met eigen trekkers …",
     // "from football …"): dan mist het zijn onderwerp.
     const bKop = kern(b, 4) && !opent(b)
-    const alsB = () => (bKop && !titleCase(b) ? kortKop(hoofdletter(b), max) : null)
+    const alsB = () => (bKop && !titleCase(b) ? kort(hoofdletter(b), max, kop) : null)
     if (isCitaat(a)) {
       // a. Het citaat valt weg; spreker en onderwerp staan erna.
-      const k = bKop ? kortKop(hoofdletter(b), max) : null
+      const k = bKop ? kort(hoofdletter(b), max, kop) : null
       if (k) return k
     } else if (kern(a, 4) && !titelOverPunt(a, b)) {
       // b. Een korte toevoeging, een citaat of een vraag erna: de kop ervoor.
       // d. Allebei een kop: het deel met het benoemde onderwerp. B wint als het met een naam begint, of als A
-      //    niets benoemt en B wel ("Meteen twee seizoenen besteld: Netflix …"), en alleen als B een zin is, geen
-      //    Title Case. Noemt B niets ("Amsterdam begint …: miljoenen voor opvang en zorg"), dan blijft A, tenzij
-      //    A zelf met een voorzetsel begint ("Voor je studie …: deze school leidt …").
+      //    niets benoemt (ook het eerste woord telt: "PSV aast op …: landskampioen legt contact met …" houdt PSV)
+      //    en B wel, of als A zelf met een voorzetsel begint ("Voor je studie …: deze school leidt …"). Alleen als
+      //    B een zin is, geen Title Case. Noemt B niets ("Amsterdam begint …: miljoenen voor opvang en zorg"),
+      //    dan blijft A.
       // Heeft het gekozen deel op deze maat geen veilige kop (een ontkenning zou wegvallen), dan het andere.
-      const wilB = !toevoegingB && bKop && (/^\p{Lu}/u.test(b) || (!benoemd(a) && (benoemd(b) || opent(a))))
+      const wilB = !toevoegingB && bKop && (/^\p{Lu}/u.test(b) || opent(a) || (!benoemd(a, true) && benoemd(b)))
       // e. B in Title Case: twijfel, dan de hele kop inkorten (hieronder).
       if (!wilB || !titleCase(b)) {
-        const k = wilB ? alsB() : kortKop(a, max)
+        const k = wilB ? alsB() : kort(a, max, kop)
         if (k) return k
-        const ander = wilB ? kortKop(a, max) : alsB()
+        // B als uitwijk alleen als B een eigen kop is, geen toevoeging, citaat of vraag zonder spreker.
+        const ander = wilB ? kort(a, max, kop) : toevoegingB ? null : alsB()
         if (ander) return ander
       }
     }
@@ -229,16 +330,16 @@ export function kortKop(title, max = KORT_MAX) {
   const streep = t.match(/^(.+?)\s[–—-]\s.+$/u)
   if (streep) {
     const voor = staart(streep[1])
-    if (voor.length <= max && kern(voor, 3)) return voor
+    if (kern(voor, 3) && goed(voor)) return voor
   }
   const haakjes = t.match(/^(.+?)\s*\(([^()]*)\)$/u)
   if (haakjes && !heeftOntkenning(haakjes[2])) {
     const voor = staart(haakjes[1])
-    if (voor.length <= max && kern(voor, 3)) return voor
+    if (kern(voor, 3) && goed(voor)) return voor
   }
   // Haakjes met een ontkenning erin ("Kabinet stemt (niet) in") blijven altijd staan.
   const zonderHaakjes = t.replace(/\s+\(([^()]*)\)(?=\s|$)/gu, (m, binnen) => (heeftOntkenning(binnen) ? m : ''))
-  if (zonderHaakjes !== t && zonderHaakjes.length <= max && kern(zonderHaakjes, 3)) return zonderHaakjes
+  if (zonderHaakjes !== t && kern(zonderHaakjes, 3) && goed(zonderHaakjes)) return zonderHaakjes
 
   // Wat tussen haakjes staat ("(90)") kost ruimte die de kop beter kan gebruiken.
   const basis = zonderHaakjes !== t && kern(zonderHaakjes, 3) ? zonderHaakjes : t
@@ -247,11 +348,11 @@ export function kortKop(title, max = KORT_MAX) {
   const komma = basis.slice(0, max - 1).lastIndexOf(', ')
   if (komma > 0) {
     const voor = staart(zonderLosEinde(basis.slice(0, komma).split(' ')).join(' '))
-    if (kern(voor, 4) && voor.length >= (max - 1) / 2 && !isCitaat(voor) && !opent(voor)) return `${voor}…`
+    if (kern(voor, 4) && voor.length >= (max - 1) / 2 && !isCitaat(voor) && !opent(voor) && goed(`${voor}…`)) return `${voor}…`
   }
 
   // 6. Afkappen op een woordgrens.
-  return afkappen(basis, max)
+  return afkappen(basis, max, kop)
 }
 
 // De Editie met `kortKop` per plek: de kop die er staat (de getoonde kop van De Redacteur, anders die van

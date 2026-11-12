@@ -44,7 +44,7 @@
     },
     {
       "kop": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD",
-      "verwacht": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan…"
+      "verwacht": null
     },
     {
       "kop": "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
@@ -56,7 +56,7 @@
     },
     {
       "kop": "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough",
-      "verwacht": "Russia, Ukraine agree on prisoner exchange as talks end…"
+      "verwacht": "Russia, Ukraine agree on prisoner exchange…"
     },
     {
       "kop": "Podcast De Dag: Tarwekamp-slachtoffers en nabestaanden aan het woord",
@@ -76,7 +76,7 @@
     },
     {
       "kop": "Donaudampfschiffahrtsgesellschaftskapitänswitwenrentenauszahlungsstelle bestaat niet",
-      "verwacht": "Donaudampfschiffahrtsgesellschaftskapitänswitwenrentenausza…"
+      "verwacht": null
     },
     {
       "kop": "  Witruimte   wordt   netjes   samengevoegd  ",
@@ -96,7 +96,7 @@
     },
     {
       "kop": "“Of het nu goed gaat of minder, je merkt niet veel aan Senne”: Mark van Bommel twijfelt niet aan Lammens en hoopt Lukaku zondag te recupereren",
-      "verwacht": "Mark van Bommel twijfelt niet aan Lammens en hoopt Lukaku…"
+      "verwacht": null
     },
     {
       "kop": "Wat wil jij weten van de klimaattop in Turkije? Stel je vragen aan onze verslaggever",
@@ -200,7 +200,7 @@
     },
     {
       "kop": "Russische ambassadeur (66) in VS plots overleden, doodsoorzaak niet bekendgemaakt",
-      "verwacht": "Russische ambassadeur in VS plots overleden…"
+      "verwacht": null
     },
     {
       "kop": "Een zwarte leren jas en AI-visionair: wie is Nvidia-topman Jensen Huang?",
@@ -323,7 +323,7 @@
     },
     {
       "kop": "Of een patiënt behandeld wordt, mag niet afhangen van de kosten",
-      "verwacht": "Of een patiënt behandeld wordt…",
+      "verwacht": null,
       "max": 40
     },
     {
@@ -340,12 +340,12 @@
       "verwacht": "Jongeren nemen heft in eigen handen"
     },
     {
-      "kop": "‘Young, Black and female in Brixton is hard’: \u200bfrom football to Top Boy and wordplay, the inspiring journey of UK rapper Cristale",
+      "kop": "‘Young, Black and female in Brixton is hard’: ​from football to Top Boy and wordplay, the inspiring journey of UK rapper Cristale",
       "verwacht": "‘Young, Black and female in Brixton is hard’: from football…"
     },
     {
       "kop": "Een betere bondgenoot in het Huis van Afgevaardigden had Trump zich niet kunnen wensen: wie is de fanatieke worstelaar Jim Jordan?",
-      "verwacht": "Wie is de fanatieke worstelaar Jim Jordan?"
+      "verwacht": null
     },
     {
       "kop": "Shallowater Announce Deluxe There Is A Well Feat. New Songs And A Tour Across Europe",
@@ -354,6 +354,128 @@
     {
       "kop": "‘Little Britain’ Star David Walliams Accused of Sexual Misconduct and Grooming",
       "verwacht": "‘Little Britain’ Star David Walliams Accused of Sexual…"
+    },
+    {
+      "kop": "Eén miljoen Fransen krijgen zender CNews, de “propagandamachine van extreemrechts”, niet uit de ether",
+      "verwacht": null
+    },
+    {
+      "kop": "Eén miljoen Fransen krijgen zender CNews, de “propagandamachine van extreemrechts”, niet uit de ether",
+      "max": 36,
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe asielwet aangenomen door de Tweede Kamer: of toch niet?",
+      "verwacht": null
+    },
+    {
+      "kop": "Rutte wordt de nieuwe secretaris-generaal van de NAVO: niet waar",
+      "verwacht": "Rutte wordt de nieuwe secretaris-generaal van de NAVO: niet…"
+    },
+    {
+      "kop": "Rutte wordt de nieuwe secretaris-generaal van de NAVO: niet waar",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet valt over stikstof: nee, zegt premier",
+      "max": 40,
+      "verwacht": "Kabinet valt over stikstof: nee…"
+    },
+    {
+      "kop": "Kabinet valt over stikstof: nee, zegt premier",
+      "max": 36,
+      "verwacht": "Kabinet valt over stikstof: nee…"
+    },
+    {
+      "kop": "Ajax neemt afscheid van trainer Farioli na nederlaag – nog niet officieel",
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er – maar niet voor 2040",
+      "verwacht": "Nieuwe kerncentrale in Borssele komt er – maar niet…"
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er – maar niet voor 2040",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Acht maanden durfden D66 en CDA amper over de grenzen van hun eigen coalitie heen te kijken",
+      "max": 36,
+      "verwacht": null
+    },
+    {
+      "kop": "Acht maanden durfden D66 en CDA amper over de grenzen van hun eigen coalitie heen te kijken",
+      "verwacht": "Acht maanden durfden D66 en CDA amper over de grenzen…"
+    },
+    {
+      "kop": "Oppositie kan nauwelijks iets beginnen tegen de nieuwe meerderheid in de Eerste Kamer",
+      "max": 32,
+      "verwacht": "Oppositie kan nauwelijks iets…"
+    },
+    {
+      "kop": "Oppositie kan nauwelijks iets beginnen tegen de nieuwe meerderheid in de Eerste Kamer",
+      "max": 40,
+      "verwacht": "Oppositie kan nauwelijks iets beginnen…"
+    },
+    {
+      "kop": "Investors can hardly believe the rally in chip stocks keeps going after another record week",
+      "max": 40,
+      "verwacht": "Investors can hardly believe the rally…"
+    },
+    {
+      "kop": "Nvidia Tumbles as Investors Consider Future Without CEO Huang",
+      "max": 48,
+      "verwacht": null
+    },
+    {
+      "kop": "Russia-Ukraine talks turn to post-war security but end without breakthrough",
+      "verwacht": null
+    },
+    {
+      "kop": "Rechter: politie mocht demonstranten op de Dam niet zonder waarschuwing oppakken",
+      "verwacht": null
+    },
+    {
+      "kop": "De Tweede Kamer, tot verbazing van het kabinet, stemt niet in met het nieuwe pensioenakkoord",
+      "max": 36,
+      "verwacht": null
+    },
+    {
+      "kop": "Minister Keijzer, die vorige week nog alle steun kreeg, overleeft het debat niet",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Als een kabinet valt, hoeft de minister nog niet meteen weg uit het ministerie",
+      "max": 36,
+      "verwacht": null
+    },
+    {
+      "kop": "Of een patiënt behandeld wordt, mag niet afhangen van de kosten",
+      "max": 36,
+      "verwacht": null
+    },
+    {
+      "kop": "PSV aast op enorme transferstunt: landskampioen legt contact met Kevin De Bruyne, die in januari weg mag",
+      "verwacht": "PSV aast op enorme transferstunt"
+    },
+    {
+      "kop": "Een vaste basisplaats bij Marokko zit er voor Ayoub Oufkir niet in; bij Oranje ook niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Vader van slachtoffer: ‘Zwaardere straffen brengen haar niet terug’",
+      "verwacht": null
+    },
+    {
+      "kop": "Kruis over de knock-outfase? Vrouwen kunnen ook tegen Køge niet winnen en lijken uitgeteld in de Champions League",
+      "verwacht": "Kruis over de knock-outfase?"
+    },
+    {
+      "kop": "Ukraine talks in Abu Dhabi bring progress on prisoners but not on peace",
+      "verwacht": null
     }
   ]
 }

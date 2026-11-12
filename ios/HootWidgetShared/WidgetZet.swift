@@ -75,13 +75,48 @@ enum WidgetZet {
         let regels: Int
     }
 
+    // De langste versie die in `max` regels past. Past geen enkele veilige versie (een kop zonder veilige korte
+    // kop, besluit Alex 12 november 2026), dan de kortste veilige versie met de regels die hij nodig heeft
+    // (`regels` > `max`): nooit afkappen door iOS, want dan kan een ontkenning wegvallen. De plek maakt er ruimte
+    // voor (een regel extra, of de kop eronder valt weg).
     static func pas(_ kop: String, kort: String?, _ m: WidgetLetter.Maat, breedte: CGFloat, max: Int) -> Gezet {
         let trap = KortKop.trap(kop, kort: kort)
+        var kortste: Gezet?
         for t in trap {
             let n = regels(t, m, breedte: breedte)
             if n <= max { return Gezet(tekst: t, regels: n) }
+            kortste = Gezet(tekst: t, regels: n)
         }
-        return Gezet(tekst: trap.last ?? kop, regels: max)
+        return kortste ?? Gezet(tekst: kop, regels: regels(kop, m, breedte: breedte))
+    }
+
+    // Middel · Top 3 (besluit Alex 12 november 2026): 01 en 02 volle koppen, tot twee regels (of meer, als een kop
+    // geen veilige kortere vorm heeft); 01 wordt nooit tot één regel ingekort. 03 staat er als er ruimte is: met
+    // twee regels, of met één als hij daarbij genoeg van zijn tekst houdt (stompGrens). Anders valt 03 weg. Heeft
+    // 01 een regel extra nodig en past 02 dan niet meer, dan 02 op één regel (zelfde grens), anders 01 alleen.
+    static func top3(_ verhalen: [WidgetVerhaal], _ m: WidgetLetter.Maat, breedte: CGFloat, hoogte: CGFloat, tussen: CGFloat) -> [Gezet] {
+        func totaal(_ g: [Gezet]) -> CGFloat {
+            g.isEmpty ? 0 : g.reduce(0) { $0 + CGFloat($1.regels) * m.regel } + tussen * CGFloat(g.count - 1)
+        }
+        let v = Array(verhalen.prefix(3))
+        let vol = v.map { pas($0.kop, kort: $0.kortKop, m, breedte: breedte, max: 2) }
+        if vol.count == 3 {
+            if totaal(vol) <= hoogte { return vol }
+            if vol[2].regels > 1 {
+                let g3 = pas(v[2].kop, kort: v[2].kortKop, m, breedte: breedte, max: vol[2].regels - 1)
+                let blijft = Double(g3.tekst.utf16.count) / Double(Swift.max(1, vol[2].tekst.utf16.count))
+                let drie = [vol[0], vol[1], g3]
+                if g3.regels < vol[2].regels, blijft >= stompGrens, totaal(drie) <= hoogte { return drie }
+            }
+        }
+        if vol.count >= 2, totaal(Array(vol.prefix(2))) <= hoogte { return Array(vol.prefix(2)) }
+        // Heeft 01 een regel extra nodig, dan liever 02 op één regel (als hij genoeg houdt) dan 01 alleen.
+        if vol.count >= 2, vol[1].regels > 1 {
+            let g2 = pas(v[1].kop, kort: v[1].kortKop, m, breedte: breedte, max: vol[1].regels - 1)
+            let blijft = Double(g2.tekst.utf16.count) / Double(Swift.max(1, vol[1].tekst.utf16.count))
+            if g2.regels < vol[1].regels, blijft >= stompGrens, totaal([vol[0], g2]) <= hoogte { return [vol[0], g2] }
+        }
+        return Array(vol.prefix(1))
     }
 
     // Middel · Top 3 en de rijen van Groot: hoeveel regels elke kop krijgt binnen `hoogte`. Eerst elke kop tot
@@ -105,10 +140,11 @@ enum WidgetZet {
                 var kandidaten = gezet.indices.filter { gezet[$0].regels > 1 }
                 if eersteVoorrang, kandidaten.contains(where: { $0 > 0 }) { kandidaten.removeAll { $0 == 0 } }
                 // Per kandidaat: de kop met een regel minder, en welk deel van zijn tekst er blijft staan.
+                // Alleen een kop die echt een regel minder kan (een kop zonder veilige kortere vorm kan dat niet).
                 let opties = kandidaten.map { i -> (i: Int, g: Gezet, blijft: Double) in
                     let g = pas(v[i].kop, kort: v[i].kortKop, m, breedte: breedte, max: gezet[i].regels - 1)
                     return (i, g, Double(g.tekst.utf16.count) / Double(Swift.max(1, gezet[i].tekst.utf16.count)))
-                }
+                }.filter { $0.g.regels < gezet[$0.i].regels }
                 // Het meeste over; bij gelijk de onderste.
                 guard let beste = opties.max(by: { $0.blijft < $1.blijft || ($0.blijft == $1.blijft && $0.i < $1.i) }) else { break }
                 gezet[beste.i] = beste.g
@@ -128,7 +164,28 @@ enum WidgetZet {
     }
 }
 
+extension View {
+    // Alleen in toetsen: de breedte die deze kop echt kreeg (WidgetRenderTests).
+    func widgetMeting(_ gezet: WidgetZet.Gezet, _ m: WidgetLetter.Maat) -> some View {
+        background {
+            if let opname = WidgetZetMeting.opname {
+                GeometryReader { p in
+                    let _ = opname(gezet, m, p.size.width)
+                    Color.clear
+                }
+            }
+        }
+    }
+}
+
 extension Text {
+    // Het uiterste: een hele kop die ook met een regel extra niet past. Kleiner zetten, nooit afkappen.
+    func widgetKopPassend(_ m: WidgetLetter.Maat, regels: Int) -> some View {
+        self.font(WidgetLetter.kop(m))
+            .kerning(m.kern)
+            .lineLimit(regels)
+            .minimumScaleFactor(0.5)
+    }
     // Een kop in Newsreader 800 op een vaste regelhoogte (iOS 26: exact), zonder dat iOS kan afkappen.
     func widgetKop(_ m: WidgetLetter.Maat, regels: Int) -> some View {
         self.font(WidgetLetter.kop(m))

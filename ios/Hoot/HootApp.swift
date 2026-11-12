@@ -210,6 +210,8 @@ struct RootView: View {
     @State private var widgetVerhaal: String?
     // Het laden na de tik op de widget is klaar (pas dan kan de link vervallen).
     @State private var widgetGeladen = false
+    // Wanneer er op de widget getikt werd (de link wacht hooguit WidgetVerhaalWacht.grens).
+    @State private var widgetSinds = Date.distantPast
     // Waar een wachtend verhaal op let: de Editie (id en rijen) en of je account nog laadt.
     private var widgetWachtSleutel: String { WidgetVerhaalWacht.sleutel(store) + (account.status == .loading ? "|laadt" : "") }
     // Het verhaal uit de widget openen in de lezer (of in Safari, zoals je ingesteld hebt); het telt als gelezen,
@@ -222,7 +224,8 @@ struct RootView: View {
     // Wacht een verhaal uit de widget, dan nu openen; of, na het laden, laten vervallen als het niet in de Editie staat.
     private func widgetVerhaalStap() {
         guard let id = widgetVerhaal else { return }
-        switch WidgetVerhaalWacht.stap(id, rows: store.editionRows, geladen: widgetGeladen, accountLaadt: account.status == .loading) {
+        switch WidgetVerhaalWacht.stap(id, rows: store.editionRows, geladen: widgetGeladen, accountLaadt: account.status == .loading,
+                                       gewacht: Date().timeIntervalSince(widgetSinds)) {
         case .open: _ = openFromWidget(id); widgetVerhaal = nil
         case .vervalt: widgetVerhaal = nil
         case .wacht: break
@@ -344,7 +347,13 @@ struct RootView: View {
                 if !openFromWidget(id) {
                     widgetVerhaal = id
                     widgetGeladen = false
+                    widgetSinds = Date()
                     Task { await store.load(); widgetGeladen = true; widgetVerhaalStap() }
+                    // Na de grens nog eens kijken: staat er dan nog niets, dan vervalt de link.
+                    Task {
+                        try? await Task.sleep(for: .seconds(WidgetVerhaalWacht.grens + 0.5))
+                        widgetVerhaalStap()
+                    }
                 }
             }
         }
