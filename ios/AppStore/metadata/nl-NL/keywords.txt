@@ -1,1 +1,1 @@
-krant,duo,editie,actueel,rss,nieuwslezer,bronnen,politiek,economie,sport,wetenschap,tech,cultuur
+nieuwsapp,nieuwslezer,krant,kranten,rss,schermtijd,minder,rust,overzicht,ochtend,opinie,bronnen,duo

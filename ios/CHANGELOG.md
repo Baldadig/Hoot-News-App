@@ -52,6 +52,16 @@
 
 - Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
 
+## [1.3] — 2026-11-12 — Widgets, Uitleg bij begrippen, achttien beelden (build 53)
+
+- **Hoot-widgets**: op het beginscherm, het vergrendelscherm, in StandBy en op de iPad zie je de koppen van je Editie. Een kop wordt nooit ingekort tot iets anders dan het nieuws zegt, en een tik opent de Editie of dat verhaal (hoot://editie, hoot://verhaal/<id>). De widget-extensie deelt de Editie met de app via de App Group group.nl.hootnews.Hoot en haalt bij een nieuw dagdeel zo nodig zelf dezelfde Editie op.
+- **Uitleg bij begrippen**: onder een bericht met een begrip als formateur of midterms staat de pil "Uitleg: formateur". Een tik opent een half blad met de uitleg en een knop naar Wikipedia; omlaag vegen sluit het. Onderaan een verhaal staan alle Begrippen bij elkaar, uitklapbaar. Web en app gebruiken dezelfde lijst van 32 begrippen (shared/glossary.json).
+- **Achttien placeholderbeelden**: een stuk zonder beeld krijgt een van achttien Hoot-beelden in plaats van tien. Nieuw zijn De kop, Vouw, Baan, Eclips, Walsen, Zetsel, De rij en Koepels. Twee beeldloze stukken na elkaar krijgen nooit hetzelfde beeld of dezelfde soort.
+- **Grote beelden**: Parool, Trouw en Humo (DPG-beeldserver) krijgen het grote beeld, zoals ook Volkskrant, NU.nl en FD; de app volgt de beeldregel van het web.
+- **Rubrieken, namen gelijk**: Games hoort bij Cultuur in plaats van bij Tech; Privacy & veiligheid heet Hacks & privacy; Big Tech blijft Big Tech. Niemand verliest een keuze.
+- **Meten zonder volgen**: de app telt alleen totalen per dag (zonder id), zoals het web. Privacymanifest: Productinteractie houdt Analytics als doel; geen tracking.
+- Privacy: de widget-extensie heeft een eigen PrivacyInfo.xcprivacy (UserDefaults met reden 1C8F.1 voor de App Group, geen tracking, geen verzamelde gegevens).
+
 ## [1.2.1] — 2026-11-11 — Je account rechtsboven, Opinie in de Stroom, de Editie van de server (build 52)
 
 - **Je account rechtsboven**: in plaats van het tandwiel staat je account rechtsboven.
