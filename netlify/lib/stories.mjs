@@ -1349,20 +1349,21 @@ export function seenBefore(st, items, previous) {
   return items.some((i) => previous.itemIds?.has(i.id))
 }
 
-// Ontwikkeld: minstens DEVELOPED_FRESH stukken van ná de vorige Editie die daar niet in stonden, én de
-// kop van het zwaarste nieuwe stuk draagt minstens DEVELOPED_SIG namen of gebeurtenis-begrippen die in
-// geen enkel stuk van toen voorkwamen. Op kenmerken (signature, via ALIAS), niet op woorden: een
-// vertaalde kop is nooit "nieuw".
+// Ontwikkeld (één toets voor "nieuw feit", 13 november): een verhaal uit je vorige Editie komt alleen terug als er sindsdien
+// een nieuw feit is (newFact): een naam of gebeurtenis-begrip (signature: strong en concepts, via ALIAS; een vertaalde kop
+// is nooit "nieuw") dat nieuwe stukken van minstens NEW_FACT_PUBS onafhankelijke uitgevers noemen en dat in geen enkel stuk
+// van toen voorkwam. Geteld over het hele verhaal dat het toestel kent (`known`), niet alleen over je eigen bronnen: wie
+// weinig bronnen volgt, ziet echt nieuws anders nooit terug. Vroeger telde alleen de kop van het zwaarste nieuwe stuk; bij
+// een verhaal van dertig uitgevers was dat een beschouwing en zag de code het echte nieuws niet (12 november).
 // "Van toen" mag niet afhangen van wat dit toestel kent: het kent van een verhaal alleen de stukken uit
 // jouw bronnen plus de koppen van de algemene Editie, en een portret of necrologie heeft altijd eigen
 // namen (Shakespeare, Jean-Luc Picard) die bij de andere bronnen van toen wél al stonden. Daarom
 // legt elke plek de kenmerken van zijn hele verhaal vast (`keys`, van de server over alle bronnen;
 // `previous.keysOf`), en komen daar de kenmerken bij van de oude stukken die het toestel zelf kent
-// (`known`: ook uit de algemene Editie). Als extra slot telt een nieuwe naam alleen als nog een ander
-// nieuw stuk hem noemt: een echte ontwikkeling (staatsbegrafenis in Westminster Abbey) melden
-// meerdere nieuwe stukken, een eigenaardigheid van één stuk niet. `sig`: signatures over alle
-// bekende berichten. Uitvoer: { fresh, lead, newSig } of null. `previous.at` mag per verhaal
-// verschillen (`atOf`, als previous meer Edities omvat).
+// (`known`: ook uit de algemene Editie). `sig`: signatures over alle bekende berichten. Uitvoer: { fresh, heads, lead,
+// newSig, facts } of null; `fresh` en `heads` zijn stukken uit `items` (je eigen bronnen): zonder een nieuw stuk daarvan
+// is er niets om als kop te tonen. `heads`: bij voorkeur de nieuwe stukken waarvan de kop het nieuwe feit noemt.
+// `previous.at` mag per verhaal verschillen (`atOf`, als previous meer Edities omvat).
 // Ronde 7 · 3c (besluit van Alex 6 november): een groot verhaal mag zonder nieuwe ontwikkeling één Editie langer blijven,
 // maar zakt (heldDown: onder de top 5). Groot: minstens HOLD_PUBS onafhankelijke uitgevers, en er is sinds de vorige Editie
 // minstens één nieuw stuk dat de kop wordt. Eén keer: wat in de vorige Editie al zo bleef (`previous.heldIds`), maakt
@@ -1388,23 +1389,83 @@ const OTHER_LANG = /\b(las|los|del|para|una|segun|antes de|sus|les|une|pour|avec
 export const otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ''))
 export const DEVELOPED_FRESH = 2
 export const DEVELOPED_SIG = 2
-export function developedSince(st, items, previous, sig, { mainIds = new Set(), preferred = null, now = null, known = null } = {}) {
+// Nieuw sinds de vorige Editie: niet getoond en gepubliceerd na die Editie (per verhaal: `atOf`).
+const isNewSince = (st, previous) => {
   const at = previous.atOf?.get(st.id) ?? previous.at ?? 0
-  const isNew = (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at
+  return (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at
+}
+export const newSincePrevious = (st, items, previous) => items.filter(isNewSince(st, previous))
+export function developedSince(st, items, previous, sig, { mainIds = new Set(), preferred = null, now = null, known = null } = {}) {
+  const isNew = isNewSince(st, previous)
   const fresh = items.filter(isNew)
-  if (fresh.length < DEVELOPED_FRESH) return null
-  const keysOf = (i) => {
-    const s = sig.get(i.id)
-    return s ? [...s.strong, ...s.concepts] : []
-  }
+  if (!fresh.length) return null
+  const keysOf = keysWith(sig)
+  const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
+  const whole = [...new Set([...all, ...items])]
+  const freshAll = whole.filter(isNew)
+  if (freshAll.length < DEVELOPED_FRESH) return null
   const then = new Set()
   for (const id of [st.id, ...(st.formerIds || [])]) for (const k of previous.keysOf?.get(id) || []) then.add(k)
-  const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
-  for (const i of [...all, ...items]) if (!isNew(i)) for (const k of keysOf(i)) then.add(k)
-  const lead = leadCandidates(fresh, mainIds, preferred, now)[0]
-  const others = fresh.filter((i) => i !== lead).map(keysOf)
-  const newSig = keysOf(lead).filter((k) => !then.has(k) && others.some((ks) => ks.includes(k))).length
-  return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null
+  for (const i of whole) if (!isNew(i)) for (const k of keysOf(i)) then.add(k)
+  const fact = newFact(freshAll, then, keysOf)
+  if (!fact) return null
+  const heads = factHeads(fresh, fact, sig)
+  const lead = leadCandidates(heads, mainIds, preferred, now)[0]
+  return { fresh, heads, lead, newSig: fact.keys.length, facts: fact.keys }
+}
+
+// ---------- Eén toets voor "nieuw feit" (redacteur-2026-11-13-nieuw-feit) ----------
+// Voor allebei: wat in je vorige Editie stond (developedSince) en wat je al las (personalParts, `ctx.newFacts`). Een
+// nieuw feit is een naam of gebeurtenis-begrip uit de bestaande kenmerken dat in de nieuwe stukken van minstens
+// NEW_FACT_PUBS onafhankelijke uitgevers staat en in geen enkel stuk of kenmerk van toen (`then`). Eén stuk met eigen
+// namen (een podcast met zijn presentatoren, een auteur) is dus geen nieuw feit. Tegen ruis bij heel grote verhalen
+// (dertig nieuwe stukken noemen samen altijd wel twee keer een functie, een plaats of een beurswoord): de nieuwe
+// kenmerken moeten bovendien met minstens NEW_FACT_SIG samen in één nieuw stuk staan, zoals een naam met voor- en
+// achternaam of een nieuwe naam met de gebeurtenis. Losse woorden die toevallig twee keer vallen, staan zelden samen in
+// één stuk; een nieuwe topvrouw die vijf redacties noemen wel. Geen namen of onderwerpen in de code; alleen tellen, Sets
+// en vergelijken (web en app gelijk).
+export const NEW_FACT_PUBS = 2
+export const NEW_FACT_SIG = DEVELOPED_SIG
+const keysWith = (sig) => (i) => {
+  const s = sig.get(i?.id)
+  return s ? [...s.strong, ...s.concepts] : []
+}
+// Hoeveel verschillende kenmerken, met twee vormen van één woord als één (een werelddeel en zijn bijvoeglijk naamwoord): die
+// staan vanzelf samen in een stuk en zijn samen nog geen twee feiten. Een kenmerk dat met een ander (van minstens vier
+// letters) begint, telt niet apart. Kort eerst, dan op tekst (<): elke motor telt hetzelfde.
+const stemCount = (keys) => {
+  const kept = []
+  for (const k of [...new Set(keys)].sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0))) if (!kept.some((x) => x.length >= 4 && k.startsWith(x))) kept.push(k)
+  return kept.length
+}
+// { keys, carriers } of null. `keys`: de nieuwe feiten (in de volgorde waarin de nieuwe stukken ze noemen); `carriers`:
+// de nieuwe stukken die er minstens NEW_FACT_SIG samen noemen.
+export function newFact(fresh, then, keysOf) {
+  const pubs = new Map()
+  for (const i of fresh) for (const k of new Set(keysOf(i))) if (!then.has(k)) (pubs.get(k) || pubs.set(k, new Set()).get(k)).add(publisherOf(i.source))
+  const wide = new Set([...pubs].filter(([, p]) => p.size >= NEW_FACT_PUBS).map(([k]) => k))
+  if (stemCount([...wide]) < NEW_FACT_SIG) return null
+  const carriers = fresh.filter((i) => stemCount(keysOf(i).filter((k) => wide.has(k))) >= NEW_FACT_SIG)
+  if (!carriers.length) return null
+  const keys = [...new Set(carriers.flatMap((i) => keysOf(i).filter((k) => wide.has(k))))]
+  return { keys, carriers }
+}
+// De stukken voor de kop bij een nieuw feit: de nieuwe stukken die het nieuwe feit in kop of intro noemen, anders alle
+// nieuwe stukken; geen podcast of liveblog als er iets anders is (newsHeads). Daarbinnen kiest de gewone kopregel (leadPool:
+// eigen bronnen, de kern, Nederlands eerst), zodat een Nederlandse kop over de gebeurtenis voor een Engelse over de naam gaat.
+export function factHeads(fresh, fact, sig) {
+  const facts = new Set(fact.keys)
+  const named = fresh.filter((i) => { const s = sig.get(i.id); return !!s && [...s.strong, ...s.concepts].some((k) => facts.has(k)) })
+  return newsHeads(named.length ? named : fresh)
+}
+export const newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || '') && !isLive(i))
+// Wat je las (personalParts, `ctx.newFacts`): brengen de stukken `fresh` (van het hele verhaal, ná wat je las) een nieuw
+// feit tegenover `old` (de rest van het verhaal)? Dan { keys, heads } met `heads` uit `own` (de nieuwe stukken uit je
+// eigen bronnen; bij voorkeur met het nieuwe feit in de kop), anders null.
+export function newFactIn(fresh, old, sig, own = fresh) {
+  const keysOf = keysWith(sig)
+  const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf)
+  return fact ? { keys: fact.keys, heads: own.length ? factHeads(own, fact, sig) : [] } : null
 }
 
 // ---------- De kop van een plek (H7) ----------
@@ -2223,14 +2284,22 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     let straf = 0
     let held = false
     const recent = since !== null ? sinceLast(st, items) : null
+    let heads = recent
     if (seenBefore(st, items, previous)) {
       dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known })
       const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id))
       if (!dev) {
         // Ronde 7 · 3c: een groot verhaal (HOLD_PUBS uitgevers) met een nieuw stuk mag één Editie langer blijven, maar zakt.
-        if (!(recent?.length && holdable(st, items, previous))) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
+        // In de persoonlijke Editie (nieuw feit, 13 november) alleen als je het nog niet las, met een nieuw stuk uit je eigen
+        // bronnen als kop: wat je las en geen nieuw feit heeft, verdwijnt (H1); wat alleen in je vorige Editie stond, zakt één
+        // keer (onder de top 5, heldDown in composePersonal) en verdwijnt daarna.
+        if (since === null) heads = ctx.readIds?.size && st.itemIds.some((id) => ctx.readIds.has(id)) ? [] : newsHeads(newSincePrevious(st, items, previous).filter(titled))
+        if (!(heads?.length && holdable(st, items, previous))) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
         held = true
-      } else straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+      } else {
+        straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+        heads = dev.heads
+      }
     } else if (recent && !recent.length) { reject('story', st.id, st.itemIds, 'geen-nieuw-stuk-sinds-vorige-Editie'); continue }
     const primary = deskOfStory(items)
     const desk = storyDesk(st, primary)
@@ -2246,12 +2315,14 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // BBC en Variety) een buitenlands verhaal tot "Omdat je Binnenland volgt" (keuring 1 november).
     const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : items
     const intl = internationalNews(whole, desk, st)
-    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl })
+    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl, whole })
+    // Je las het en er is een nieuw feit (personalParts, ctx.newFacts): de kop bij voorkeur uit een stuk dat het noemt.
+    if (!dev && !held && parts.followUp?.heads?.length) heads = parts.followUp.heads.map((id) => items.find((i) => i.id === id)).filter(Boolean)
     // Ronde 4 · 3: in de algemene Editie gaat nieuws bij gelijke grootte voor een luchtig verhaal of curiosum (curioStory).
     // Zo'n verhaal krijgt geen versheidsbonus en weegt een halve uitgever minder (CURIO_TIE): even groot nieuws gaat altijd
     // voor, een luchtig verhaal met meer uitgevers kan nog steeds een plek krijgen.
     const tie = general && curioStory(st, items) ? weight({ sourceCount: 0, ownCount: 0, latestAt: st.latestAt }, now) + CURIO_TIE : 0
-    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads: dev ? dev.fresh : recent, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
+    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
@@ -2262,7 +2333,8 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // Hoort het bij een verhaal waarvan je al een stuk las (ook zonder storyId op het bericht), dan
     // telt dat ook: zonder nieuws doet het niet meer mee.
     const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null
-    if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) { reject('item', it.id, [it.id], 'verhaal-al-gelezen'); continue }
+    const mateItems = mates ? mates.itemIds.map((id) => ctx.own?.get(id) || byId.get(id)).filter(Boolean) : []
+    if (mates && personalParts(mateItems, prof, { readIds: ctx.readIds, newFacts: ctx.newFacts }, { whole: ctx.known ? mates.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : mateItems }).seen) { reject('item', it.id, [it.id], 'verhaal-al-gelezen'); continue }
     const primary = primaryDesk([desksOf(it)])
     const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2
     const parts = personalParts([it], prof, ctx)
@@ -2428,9 +2500,11 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const byFront = (a, b) => frontOf(b) - frontOf(a) || heaviest(a, b)
     const worldReader = worldChosen(prof)
     const domesticReader = (prof?.family?.binnenland || 0) > 0 || (!worldReader && Object.keys(prof?.family || {}).length === 0)
-    const front = cands.filter((c) => c.kind === 'story' && (c.sc >= FRONT_MIN || majorNews(c.st, c.items)) && !c.parts.seen).sort(byFront)
+    // Wat in de persoonlijke Editie zonder nieuw feit één keer blijft (`held`), is geen voorpagina: het zakt.
+    const frontable = (c) => !c.parts.seen && (general || !c.held)
+    const front = cands.filter((c) => c.kind === 'story' && (c.sc >= FRONT_MIN || majorNews(c.st, c.items)) && frontable(c)).sort(byFront)
     const dutch = c => homeNews(c)
-    const home = !domesticReader ? [] : cands.filter(c => !c.parts.seen && !c.parts.less && dutch(c)).sort(byFront)
+    const home = !domesticReader ? [] : cands.filter(c => frontable(c) && !c.parts.less && dutch(c)).sort(byFront)
     let hasHome = false
     const room = () => Math.min(FRONT_MAX, size) - (hasHome || !home.length ? 0 : 1) // een plek voor Nederland
     for (const c of front) {
