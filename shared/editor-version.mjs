@@ -14,7 +14,10 @@
 // zonder rubriek, en de rubriek volgt het land van het onderwerp.
 // 11 november 2026, filters-ai: aanbiedingen en kijk-/luisteraanbod uit de Editie, alleen bij een harde aanwijzing (A)
 // of een zeker oordeel van de AI op de server (B); bij twijfel blijft een stuk staan.
-export const EDITOR_REVISION = 'redacteur-2026-11-11-filters-ai'
+// 13 november 2026, nieuw feit: één toets voor "nieuw feit" (newFact in netlify/lib/stories.mjs) voor wat in je vorige
+// Editie stond én wat je las; een verhaal dat alleen groeit, komt niet terug en krijgt geen +10 meer. Wat alleen in je
+// vorige Editie stond (niet gelezen), zakt één keer in plaats van te verdwijnen.
+export const EDITOR_REVISION = 'redacteur-2026-11-13-nieuw-feit'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
 // met de rekenkern die erin zit. Veranderde de afdruk bij elke revisie, dan paste de Editie van de server nooit bij
@@ -23,7 +26,7 @@ export const EDITOR_REVISION = 'redacteur-2026-11-11-filters-ai'
 export const BASIS_REVISION = 'redacteur-2026-11-07-taalregel'
 // Eerdere revisies, nieuwste eerst. Zet bij elke verhoging de vorige revisie vooraan: daaruit komt de vorige Editie
 // ("wat stond er al") en de Editie die tot het volgende dagdeel blijft staan.
-export const EARLIER_REVISIONS = ['redacteur-2026-11-11-frisse-ogen-5', 'redacteur-2026-11-11-frisse-ogen-4', 'redacteur-2026-11-11-frisse-ogen-3', 'redacteur-2026-11-11-frisse-ogen-2', 'redacteur-2026-11-11-bubbel', 'redacteur-2026-11-11-opinie', 'redacteur-2026-11-07-taalregel', 'redacteur-2026-11-02-beta2', 'redacteur-2026-11-02-beta1', 'redacteur-2026-11-01-r2']
+export const EARLIER_REVISIONS = ['redacteur-2026-11-11-filters-ai', 'redacteur-2026-11-11-frisse-ogen-5', 'redacteur-2026-11-11-frisse-ogen-4', 'redacteur-2026-11-11-frisse-ogen-3', 'redacteur-2026-11-11-frisse-ogen-2', 'redacteur-2026-11-11-bubbel', 'redacteur-2026-11-11-opinie', 'redacteur-2026-11-07-taalregel', 'redacteur-2026-11-02-beta2', 'redacteur-2026-11-02-beta1', 'redacteur-2026-11-01-r2']
 // Bewuste herbouw: noem hier een dagdeel (bijv. '2026-11-07-middag') om de Editie van dat dagdeel onder deze revisie
 // opnieuw samen te stellen, ook als hij onder een eerdere revisie al vaststaat. Anders null.
 export const EDITION_REBUILD_SLOT = null

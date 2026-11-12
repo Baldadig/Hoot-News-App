@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **De Redacteur: één toets voor "nieuw feit"** (server, web; app-vangnet in de volgende app-versie): een verhaal dat je al las of dat in je vorige Editie stond, komt alleen terug als er een nieuw feit is: een naam of begrip dat minstens twee uitgevers nieuw noemen, samen in één stuk, geteld over het hele verhaal. Dan bij voorkeur met een kop die het nieuwe feit brengt. Een verhaal dat alleen groeit, krijgt geen voorrang meer: gelezen zonder nieuw feit verdwijnt het, alleen gezien (groot verhaal) zakt het één keer onder de top 5. Ook herkent de Editie nu echt nieuws in een lopend groot verhaal dat eerder wegviel. Op het web neemt het vangnet na een dagdeelwissel de vorige Editie weer mee. Revisie redacteur-2026-11-13-nieuw-feit.
+
 - **iOS 1.3 (build 53)** is de app-kant van: Hoot-widgets (beginscherm, vergrendelscherm, StandBy, iPad), Uitleg bij begrippen en Begrippen in het verhaal, achttien beelden bij stukken zonder foto, grote beelden van o.a. Volkskrant, Parool, Trouw, NU.nl en FD, de nieuwe rubrieknamen (Games onder Cultuur, Hacks & privacy) en Meten zonder volgen. Zie ios/CHANGELOG.md.
 
 - **Uitleg bij begrippen, ook in de app** (app in 1.3; web gelijk): onder een bericht met een begrip als formateur of midterms staat nu ook in de app de pil "Uitleg: formateur". Een tik opent een half blad met de uitleg en een knop naar Wikipedia; omlaag vegen sluit het. Onderaan een verhaal staan alle Begrippen bij elkaar, uitklapbaar. Web en app gebruiken dezelfde lijst van 32 begrippen (shared/glossary.json) en vinden er precies dezelfde.
