@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Selectie: nieuws over deals en podcasts blijft** (server; web en app krijgen het vanzelf): een kop met "deal", "discount", "coupon", "podcast" of "episode" valt niet meer weg. Een overname, een handelsakkoord of nieuws over Black Friday-verkopen hoort in de Selectie. Alleen een echte dealpagina (dealrubriek in de link) of een podcastaflevering (zoals de feed haar markeert, of met een vast podcastlabel in de kop) blijft weg, met dezelfde regel als de Editie.
+
 - **Wired-deals uit de Stroom** (server): een stuk dat Wired zelf alleen als deal indeelt (feedcategorie "Gear / Deals", zonder andere rubriek) komt niet meer in de Stroom: promocodes, kortingslijsten en Black Friday-overzichten. Wired-journalistiek over prijzen en koopjes blijft staan, net als elke andere bron met een rubriek "Deals".
 
 - **Geen nieuws meer weg bij het ophalen** (server): de ophaalfilter kijkt niet meer naar woorden in de kop. Nieuws over Black Friday, kortingen, een beursuitverkoop of een nieuwsbrief-aflevering staat weer in de Stroom en kan in de Editie. Alleen wat de uitgever zelf als reclame of geen bericht markeert (gesponsord, advertorial, partnercontent, aanmelden voor een nieuwsbrief, persberichten, puzzels, software-updates, eigen acties) en lege of dubbele items blijven weg. Een deal mag in de Stroom staan, maar neemt daar en in de Editie geen plek van het nieuws in. De AI-beoordeling (nog uit) is robuuster en klaar om te meten.
