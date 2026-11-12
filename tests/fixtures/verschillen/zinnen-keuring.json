@@ -1,0 +1,4347 @@
+{
+ "uitleg": "Foute zinnen uit keuring 3 en 4 (keuring 3 nagebouwd uit de tabel) en nieuwe varianten, plus goede zinnen. \"vangt\": wie de zin nu tegenhoudt: de code, of alleen de controle (Haiku). Gebruikt door tests/verschillen.test.mjs en scripts/verschillen-zinnen.mjs.",
+ "fout": [
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "onheilspellend",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft onheilspellend ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "pakt groot uit",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl pakt groot uit met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "alarmeert",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl alarmeert met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "zwakken dat af",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "NU.nl kopt ‘kabinetscrisis dreigt’, het ND en RTL Nieuws zwakken dat af met Paternotte die ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "overdrijft",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl overdrijft met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "kritiekloos",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws geven Paternotte kritiekloos het woord: ‘geen crisis’.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "Opvallend genoeg",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Opvallend genoeg schrijft NU.nl ‘kabinetscrisis dreigt’, terwijl het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "oordeel",
+   "naam": "gaan mee in de lezing van",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws gaan mee in de lezing van Paternotte: ‘geen crisis’.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "verwijst",
+   "naam": "Ook hier",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Ook hier verschillen de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "verwijst",
+   "naam": "Hetzelfde patroon",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Hetzelfde patroon in de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "verwijst",
+   "naam": "Weer",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Weer verschillen de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "verwijst",
+   "naam": "Anders dan hierboven",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Anders dan hierboven schrijft NU.nl ‘kabinetscrisis dreigt’, terwijl het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "verwijst",
+   "naam": "Het tweede verschil",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Het tweede verschil: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "verwijst",
+   "naam": "Zij (begin)",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Zij verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "verwijst",
+   "naam": "Eveneens",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Eveneens verschillen de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "eenzijdig",
+   "naam": "RTL Nieuws weggelaten",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "eenzijdig",
+   "naam": "te smal kenmerk: NOS ‘Hoogspanning in coalitie’, RTL Nieuws ‘in de coalitie’",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: de NOS kopt ‘Hoogspanning in coalitie’, het ND en RTL Nieuws dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     4,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "Hoogspanning in coalitie"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       4
+      ],
+      "kenmerk": "hoogspanning in coalitie"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "eenzijdig",
+   "naam": "één kant",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De NOS en RTL Nieuws koppen over ‘Hoogspanning’ in de coalitie.",
+    "bronnen": [
+     4,
+     8
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "Hoogspanning in coalitie"
+     },
+     {
+      "bron": 8,
+      "tekst": "Hoogspanning in de coalitie"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       4,
+       8
+      ],
+      "kenmerk": "hoogspanning"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "eenzijdig",
+   "naam": "kanten sluiten elkaar niet uit",
+   "vangt": "haiku",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De nadruk verschilt: De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’, NRC dat Hegseth ‘overleeft voorlopig’.",
+    "bronnen": [
+     3,
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     },
+     {
+      "bron": 2,
+      "tekst": "overleeft voorlopig"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       3
+      ],
+      "kenmerk": "republikeinen blokkeren"
+     },
+     {
+      "bronnen": [
+       2
+      ],
+      "kenmerk": "overleeft voorlopig"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "eenzijdig",
+   "naam": "FD-spanning, NOS en RTL Nieuws buiten de kant",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het FD houdt het op ‘Spanning in coalitie’.",
+    "bronnen": [
+     1,
+     16
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 16,
+      "tekst": "Spanning in coalitie"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       16
+      ],
+      "kenmerk": "spanning in coalitie na deal"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "engels",
+   "naam": "BBC bij naam",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De nadruk verschilt: NRC schrijft dat Hegseth ‘overleeft voorlopig’, de BBC dat Trump het toejuicht.",
+    "bronnen": [
+     2,
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 2,
+      "tekst": "overleeft voorlopig"
+     },
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       2
+      ],
+      "kenmerk": "overleeft voorlopig"
+     },
+     {
+      "bronnen": [
+       3
+      ],
+      "kenmerk": "republikeinen blokkeren"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "engels",
+   "naam": "Engelstalige media",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Engelstalige media leggen de nadruk op Trump, De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "engels",
+   "naam": "Volgens Amerikaanse media",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens Amerikaanse media gaat het om een nipte stemming; De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "engels",
+   "naam": "Engels citaat",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "NRC schrijft dat Hegseth ‘overleeft voorlopig’, Trump noemt hem een ‘Great American Patriot’.",
+    "bronnen": [
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 2,
+      "tekst": "overleeft voorlopig"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "engels",
+   "naam": "Engelse regel aangehaald",
+   "vangt": "code",
+   "verhaal": "HEG",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De BBC meldt dat Democraten het volgend jaar opnieuw kunnen proberen.",
+    "bronnen": [
+     4
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "Democrats can try again next year"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "engels",
+   "naam": "Britse pers",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Britse pers ziet een overwinning voor Trump; De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "twee dagen",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten binnen twee dagen een deal met Pro en Volt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "50 procent",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt die 50 procent van de vermogenden raakt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "voor de derde keer",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten voor de derde keer een akkoord met Pro en Volt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "een half miljard",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt van een half miljard.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "een kwart",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt die een kwart van de vermogenden raakt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "verdrievoudigt",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt waarmee de vermogenstaks verdrievoudigt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "dinsdag",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten dinsdag een akkoord met Pro en Volt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "vier partijen",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt: vier partijen in totaal, zonder de VVD.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "miljoenen",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt die miljoenen opbrengt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "soort": "getal",
+   "naam": "tweederde",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt, tweederde van de coalitie.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "alarmerend",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft alarmerend ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "dramatisch",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl brengt het dramatisch met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "terecht",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen terecht dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "opvallend stevig",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl kopt opvallend stevig ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "zet het zwaar aan",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl zet het zwaar aan met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "speculeert",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl speculeert met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "blijft ingetogen en zakelijk",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws blijven ingetogen en zakelijk: Paternotte ziet ‘geen crisis’.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "Opmerkelijk:",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Opmerkelijk: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "sussen",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws sussen met Paternotte die ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "maakt er een thriller van",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "NU.nl maakt er een thriller van met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "schetst somber",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schetst somber ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "oordeel",
+   "naam": "zonder kritische noot",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws geven Paternotte zonder kritische noot het woord: ‘geen crisis’.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Ook …",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Ook verschillen de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "ook hier",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen ook hier: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Daar staat tegenover",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Daar staat tegenover dat het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet, terwijl NU.nl ‘kabinetscrisis dreigt’ schrijft.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Zij … (begin)",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Zij koppen anders: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Hetzelfde doet …",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Hetzelfde doet NU.nl met ‘kabinetscrisis dreigt’, terwijl het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Hiertegenover",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Hiertegenover staat NU.nl met ‘kabinetscrisis dreigt’; het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Opnieuw",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Opnieuw verschillen de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Wederom",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Wederom verschillen de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Het verschil zit weer in",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Het verschil zit weer in de koppen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "\"zij\" midden in de zin",
+   "vangt": "haiku",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, terwijl zij bij het ND en RTL Nieuws Paternotte volgen die ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "verwijst",
+   "naam": "Dezelfde …",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Dezelfde krant, NU.nl, schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "eenzijdig",
+   "naam": "RTL Nieuws weggelaten bij ‘geen crisis’",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl kopt ‘kabinetscrisis dreigt’, het ND ‘geen crisis’.",
+    "bronnen": [
+     1,
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "eenzijdig",
+   "naam": "de NOS weggelaten bij ‘Spanning in coalitie’",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: het FD kopt ‘Spanning in coalitie’, het ND en RTL Nieuws dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     16,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 16,
+      "tekst": "Spanning in coalitie"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       16
+      ],
+      "kenmerk": "spanning in coalitie"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "eenzijdig",
+   "naam": "één kant",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "eenzijdig",
+   "naam": "kanten sluiten elkaar niet uit",
+   "vangt": "haiku",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: De Morgen kopt dat de ‘Eerste poging tot afzetting’ mislukt, De Standaard dat ‘Republikeinen blokkeren’.",
+    "bronnen": [
+     1,
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "Eerste poging tot afzetting"
+     },
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "mislukt"
+     },
+     {
+      "bronnen": [
+       3
+      ],
+      "kenmerk": "republikeinen blokkeren"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "eenzijdig",
+   "naam": "versmald kenmerk ‘geen crisis in coalitie’, RTL Nieuws zegt ‘geen crisis’",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND kopt ‘geen crisis in coalitie’.",
+    "bronnen": [
+     1,
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2
+      ],
+      "kenmerk": "geen crisis in coalitie"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "engels",
+   "naam": "BBC bij naam",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De BBC en De Standaard melden dat ‘Republikeinen blokkeren’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "engels",
+   "naam": "Al Jazeera bij naam",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "NRC schrijft dat Hegseth ‘overleeft voorlopig’; Al Jazeera vraagt of Democraten hem redden.",
+    "bronnen": [
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 2,
+      "tekst": "overleeft voorlopig"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "engels",
+   "naam": "Engels citaat",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’, Trump spreekt van een ‘Great American Patriot’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "engels",
+   "naam": "zoals Amerikaanse media",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Standaard kopt, zoals Amerikaanse media, ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "engels",
+   "naam": "Engelstalige kranten",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Engelstalige kranten leggen de nadruk op Trump; De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "600",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Trouw meldt 600 geëvacueerde Italiaanse scholen.",
+    "bronnen": [
+     10
+    ],
+    "fragmenten": [
+     {
+      "bron": 10,
+      "tekst": "300 Italiaanse scholen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "tientallen",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "NRC schrijft dat tientallen scholen per mail een bommelding kregen.",
+    "bronnen": [
+     7
+    ],
+    "fragmenten": [
+     {
+      "bron": 7,
+      "tekst": "per mail een bommelding"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "duizenden",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Het Nieuwsblad meldt duizenden scholen met een bommelding.",
+    "bronnen": [
+     1
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "zowat 6.000 scholen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "10 procent",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "VRT NWS meldt dat 10 procent van de scholen een valse bommelding kreeg.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "ongeveer 6.300 scholen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "twee miljard",
+   "vangt": "code",
+   "verhaal": "BEL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Telegraaf schrijft over een plan van twee miljard euro.",
+    "bronnen": [
+     12
+    ],
+    "fragmenten": [
+     {
+      "bron": 12,
+      "tekst": "voor 1 miljard euro"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "half vijf",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Tijd meldt dat de scholen om half vijf tijdelijk zijn ontruimd.",
+    "bronnen": [
+     4
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "tijdelijk ontruimd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "anderhalf",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "RTL Nieuws meldt dat de scholen anderhalve dag geëvacueerd bleven.",
+    "bronnen": [
+     8
+    ],
+    "fragmenten": [
+     {
+      "bron": 8,
+      "tekst": "scholen geëvacueerd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "een derde",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens RTL Nieuws is een derde van de scholen geëvacueerd.",
+    "bronnen": [
+     8
+    ],
+    "fragmenten": [
+     {
+      "bron": 8,
+      "tekst": "scholen geëvacueerd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "verdubbeld",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Het aantal bommeldingen is volgens de Volkskrant deze maand verdubbeld.",
+    "bronnen": [
+     6
+    ],
+    "fragmenten": [
+     {
+      "bron": 6,
+      "tekst": "deze maand bommeldingen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "voor de tweede keer",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Italiaanse scholen kregen volgens Trouw voor de tweede keer een bommelding.",
+    "bronnen": [
+     10
+    ],
+    "fragmenten": [
+     {
+      "bron": 10,
+      "tekst": "300 Italiaanse scholen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "keuring-3",
+   "soort": "getal",
+   "naam": "verzonnen weekdag (vrijdag)",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Tijd meldt dat de scholen vrijdag tijdelijk zijn ontruimd.",
+    "bronnen": [
+     4
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "tijdelijk ontruimd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "oordeel",
+   "naam": "dikt het aan",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl dikt het aan met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "oordeel",
+   "naam": "pakt flink uit",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl pakt flink uit met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "oordeel",
+   "naam": "slaat alarm (bron zegt het niet)",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl slaat alarm met ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "oordeel",
+   "naam": "verontrustend",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl kopt verontrustend ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "oordeel",
+   "naam": "suggereert",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl suggereert met ‘kabinetscrisis dreigt’ meer dan er is, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "oordeel",
+   "naam": "breed uitgemeten",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl meet ‘kabinetscrisis dreigt’ breed uit, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "oordeel",
+   "naam": "opmerkelijk genoeg",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Opmerkelijk genoeg schrijft NU.nl ‘kabinetscrisis dreigt’, terwijl het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "verwijst",
+   "naam": "Het eerste verschil",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Het eerste verschil: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "verwijst",
+   "naam": "Anders dan eerder",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Anders dan eerder schrijft NU.nl ‘kabinetscrisis dreigt’, terwijl het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "verwijst",
+   "naam": "weer een verschil",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "In de koppen weer een verschil: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "engels",
+   "naam": "Angelsaksische media",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Angelsaksische media zien een zege voor Trump; De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "engels",
+   "naam": "volgens buitenlandse media",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens buitenlandse media is het een zege voor Trump; De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "engels",
+   "naam": "de internationale pers",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De internationale pers ziet een zege voor Trump; De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "engels",
+   "naam": "Franstalige kranten",
+   "vangt": "code",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Franstalige kranten zien een zege voor Trump; De Standaard kopt ‘Republikeinen blokkeren afzettingsprocedure’.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "anderhalve week",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten na anderhalve week een deal met Pro en Volt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "verdubbeling",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt over een verdubbeling van de vermogenstaks.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "halveert",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt die de loonbelasting halveert.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "voor de vierde keer",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Italiaanse scholen kregen volgens Trouw voor de vierde keer een bommelding.",
+    "bronnen": [
+     10
+    ],
+    "fragmenten": [
+     {
+      "bron": 10,
+      "tekst": "300 Italiaanse scholen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "zaterdagavond",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Tijd meldt dat de scholen zaterdagavond tijdelijk zijn ontruimd.",
+    "bronnen": [
+     4
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "tijdelijk ontruimd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "driekwart",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens RTL Nieuws is driekwart van de scholen geëvacueerd.",
+    "bronnen": [
+     8
+    ],
+    "fragmenten": [
+     {
+      "bron": 8,
+      "tekst": "scholen geëvacueerd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "een vijfde",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens RTL Nieuws is een vijfde van de scholen geëvacueerd.",
+    "bronnen": [
+     8
+    ],
+    "fragmenten": [
+     {
+      "bron": 8,
+      "tekst": "scholen geëvacueerd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "getal",
+   "naam": "tweemaal",
+   "vangt": "code",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens RTL Nieuws zijn tweemaal zoveel scholen geëvacueerd.",
+    "bronnen": [
+     8
+    ],
+    "fragmenten": [
+     {
+      "bron": 8,
+      "tekst": "scholen geëvacueerd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "eenzijdig",
+   "naam": "te smal kenmerk zonder citaat: RTL Nieuws ‘Paternotte ziet geen crisis’, het ND ook",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, RTL Nieuws dat Paternotte geen crisis ziet.",
+    "bronnen": [
+     1,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       5
+      ],
+      "kenmerk": "paternotte ziet geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "soort": "eenzijdig",
+   "naam": "kenmerk met gedeelde woorden: ‘D66 en CDA sluiten akkoord’",
+   "vangt": "code",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De nadruk verschilt: NU.nl kopt ‘D66 en CDA sluiten akkoord’, De Telegraaf citeert een ‘duidelijke breuk binnen de coalitie’.",
+    "bronnen": [
+     19,
+     14
+    ],
+    "fragmenten": [
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     },
+     {
+      "bron": 14,
+      "tekst": "duidelijke breuk binnen de coalitie"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       19
+      ],
+      "kenmerk": "D66 en CDA sluiten akkoord"
+     },
+     {
+      "bronnen": [
+       14
+      ],
+      "kenmerk": "duidelijke breuk"
+     }
+    ]
+   }
+  }
+ ],
+ "goed": [
+  {
+   "bron": "keuring-4",
+   "naam": "schone basis",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De koppen verschillen: NU.nl schrijft ‘kabinetscrisis dreigt’, het ND en RTL Nieuws koppen dat Paternotte ‘geen crisis’ ziet.",
+    "bronnen": [
+     1,
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "kabinetscrisis dreigt"
+     },
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1
+      ],
+      "kenmerk": "kabinetscrisis dreigt"
+     },
+     {
+      "bronnen": [
+       2,
+       5
+      ],
+      "kenmerk": "geen crisis"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "keuring-4",
+   "naam": "schone onbekend-zin",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "D66 en CDA sluiten een deal met Pro en Volt.",
+    "bronnen": [
+     18,
+     19
+    ],
+    "fragmenten": [
+     {
+      "bron": 18,
+      "tekst": "D66 en CDA sluiten deal met Pro en Volt"
+     },
+     {
+      "bron": 19,
+      "tekst": "D66 en CDA sluiten akkoord"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "Tweede Kamer en donderdag uit de bron",
+   "verhaal": "BEL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Tweede Kamer debatteert donderdag verder over het belastingplan, melden het ND en De Telegraaf.",
+    "bronnen": [
+     1,
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "Kamer debatteert donderdag"
+     },
+     {
+      "bron": 2,
+      "tekst": "Kamer debatteert donderdag"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "\"afgezwakt\" uit de bron (alleen X)",
+   "verhaal": "BEL",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "Alleen het ND noemt het voorstel afgezwakt; De Telegraaf spreekt van een bom.",
+    "bronnen": [
+     5,
+     12
+    ],
+    "fragmenten": [
+     {
+      "bron": 5,
+      "tekst": "akkoord met afgezwakt belastingvoorstel"
+     },
+     {
+      "bron": 12,
+      "tekst": "Bom in coalitie"
+     }
+    ],
+    "uniek": [
+     "afgezwakt"
+    ],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "getal uit de bron, twee bronnen",
+   "verhaal": "BEL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Het ND en De Telegraaf noemen 1 miljard euro.",
+    "bronnen": [
+     5,
+     12
+    ],
+    "fragmenten": [
+     {
+      "bron": 5,
+      "tekst": "afgezwakt belastingvoorstel"
+     },
+     {
+      "bron": 12,
+      "tekst": "voor 1 miljard euro"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "euforisch uit de bron",
+   "verhaal": "BEL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Pro en Volt zijn volgens het ND euforisch.",
+    "bronnen": [
+     4
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "Pro en Volt zijn euforisch"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "de positie van de VVD",
+   "verhaal": "BEL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "NRC schrijft dat de positie van coalitiepartij VVD nog onduidelijk is.",
+    "bronnen": [
+     6
+    ],
+    "fragmenten": [
+     {
+      "bron": 6,
+      "tekst": "positie is van coalitiepartij VVD"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "woensdag en driehonderd uit de bron",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "In Italië zijn woensdag ten minste driehonderd scholen ontruimd, meldt het AD.",
+    "bronnen": [
+     11
+    ],
+    "fragmenten": [
+     {
+      "bron": 11,
+      "tekst": "ten minste driehonderd scholen ontruimd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "volgens de politie",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens de politie zijn de berichten nep, schrijft NRC.",
+    "bronnen": [
+     7
+    ],
+    "fragmenten": [
+     {
+      "bron": 7,
+      "tekst": "per mail een bommelding"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "verschil in aantallen",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "verschil",
+    "tekst": "De aantallen verschillen: Het Nieuwsblad en HLN noemen 6.000 scholen, VRT NWS 6.300.",
+    "bronnen": [
+     1,
+     2,
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "zowat 6.000 scholen"
+     },
+     {
+      "bron": 2,
+      "tekst": "zowat 6.000 scholen"
+     },
+     {
+      "bron": 3,
+      "tekst": "ongeveer 6.300 scholen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": [
+     {
+      "bronnen": [
+       1,
+       2
+      ],
+      "kenmerk": "6.000 scholen"
+     },
+     {
+      "bronnen": [
+       3
+      ],
+      "kenmerk": "6.300 scholen"
+     }
+    ]
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "tijdelijk ontruimd",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Tijd meldt dat scholen woensdag tijdelijk zijn ontruimd.",
+    "bronnen": [
+     4
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "tijdelijk ontruimd"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "deze maand",
+   "verhaal": "BOM",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens de Volkskrant zijn er deze maand bommeldingen binnengekomen bij scholen.",
+    "bronnen": [
+     6
+    ],
+    "fragmenten": [
+     {
+      "bron": 6,
+      "tekst": "deze maand bommeldingen"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "De Standaard",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Standaard meldt dat Republikeinen de afzettingsprocedure blokkeren.",
+    "bronnen": [
+     3
+    ],
+    "fragmenten": [
+     {
+      "bron": 3,
+      "tekst": "Republikeinen blokkeren afzettingsprocedure"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "eerste poging (geen rangtelwoord-fout)",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Morgen schrijft dat de eerste poging tot afzetting is mislukt.",
+    "bronnen": [
+     1
+    ],
+    "fragmenten": [
+     {
+      "bron": 1,
+      "tekst": "Eerste poging tot afzetting"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "overleeft voorlopig",
+   "verhaal": "HEG_NL",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Hegseth overleeft volgens NRC voorlopig een poging tot afzetting.",
+    "bronnen": [
+     2
+    ],
+    "fragmenten": [
+     {
+      "bron": 2,
+      "tekst": "overleeft voorlopig"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "Paternotte, onbekend",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Het ND en RTL Nieuws melden dat Paternotte geen crisis ziet.",
+    "bronnen": [
+     2,
+     5
+    ],
+    "fragmenten": [
+     {
+      "bron": 2,
+      "tekst": "Paternotte: geen crisis"
+     },
+     {
+      "bron": 5,
+      "tekst": "Paternotte ziet geen crisis"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "citaat met breuk",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De Telegraaf citeert Wouter de Winther over een ‘duidelijke breuk binnen de coalitie’.",
+    "bronnen": [
+     14
+    ],
+    "fragmenten": [
+     {
+      "bron": 14,
+      "tekst": "duidelijke breuk binnen de coalitie"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "goede hoop",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "CDA-leider Bontenbal heeft volgens RTL Nieuws ‘goede hoop’ dat de VVD met aanpassingen kan leven.",
+    "bronnen": [
+     11
+    ],
+    "fragmenten": [
+     {
+      "bron": 11,
+      "tekst": "goede hoop"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "hoogspanning bij de NOS",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "De verhoudingen in de coalitie staan volgens de NOS onder hoogspanning.",
+    "bronnen": [
+     4
+    ],
+    "fragmenten": [
+     {
+      "bron": 4,
+      "tekst": "Hoogspanning in coalitie"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  },
+  {
+   "bron": "nieuw",
+   "naam": "aan de VVD",
+   "verhaal": "LIVE",
+   "zin": {
+    "soort": "onbekend",
+    "tekst": "Volgens NRC is het nu aan de VVD om te reageren.",
+    "bronnen": [
+     10
+    ],
+    "fragmenten": [
+     {
+      "bron": 10,
+      "tekst": "aan de VVD om te reageren"
+     }
+    ],
+    "uniek": [],
+    "afwezig": [],
+    "kanten": []
+   }
+  }
+ ]
+}

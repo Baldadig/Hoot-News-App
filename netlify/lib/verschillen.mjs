@@ -32,7 +32,7 @@ import { coverageOf } from '../../shared/edition-policy.mjs'
 export const VERSCHILLEN_SCHRIJVER = 'claude-sonnet-5-5'
 export const VERSCHILLEN_CONTROLE = 'claude-haiku-5-5'
 // Versie van de regels: hoort bij de cachesleutel, zodat betere regels opnieuw schrijven.
-export const VERSCHILLEN_VERSIE = 3
+export const VERSCHILLEN_VERSIE = 4
 export const MIN_UITGEVERS = 3
 export const MAX_WOORDEN = 75 // hard plafond in code; de schrijver krijgt hooguit 70 mee
 export const MAX_ZINNEN = { gedeeld: 1, verschil: 1, onbekend: 1 } // één scherp verschil
@@ -62,11 +62,11 @@ Wat telt als verschil:
 Regels:
 - Elke bewering staat letterlijk in een kop of intro. Voeg niets toe, maak niets steviger ("zeker", "ten minste" alleen als de bron dat zegt).
 - Telwoorden ("negen bronnen", "zes van hen", "de meeste") alleen als het precies klopt, en hooguit één telwoord per zin. De bronnen bij die zin zijn dan precies de bronnen die je telt.
-- Elk getal (ook in woorden: "driehonderd", "elf") staat bij de bron die je ervoor noemt.
+- Elk getal (ook in woorden: "driehonderd", "elf", "anderhalf", "een derde", "de tweede keer", "verdubbelt") en elke weekdag staat bij de bron die je ervoor noemt.
 - Citaten tussen ‘ ’ alleen letterlijk uit een Nederlandstalige kop of intro van de bron die je ervoor noemt, hooguit vijf woorden. Engels vertaal je, nooit tussen aanhalingstekens.
-- Bronnamen precies zoals in de lijst, zonder bijvoeglijk naamwoord. Noem geen andere media of persbureaus (ANP, Reuters) dan die in de lijst.
+- Bronnamen precies zoals in de lijst, zonder bijvoeglijk naamwoord. Noem geen andere media of persbureaus (ANP, Reuters) dan die in de lijst, en geen groep ("Amerikaanse media", "Engelstalige kranten").
 - Beschrijf, beoordeel niet: zeg wat de bronnen schrijven, niet wat je ervan vindt. Geen oordeel over media of hun toon (eenzijdig, sensationeel, alarmistisch, overtrokken, dramatisch, kiest voor drama, genuanceerd, misleidend, terecht, framing), geen motieven (wil, probeert, bewust), geen kloktijden.
-- Elke zin staat los: hij moet kloppen als de andere zinnen wegvallen. Dus geen "ook", "eveneens", "daarnaast", "bovendien", "net als", en geen zin die begint met "die", "dat", "deze", "ze" of "maar" en zo naar een andere zin verwijst.
+- Elke zin staat los: hij moet kloppen als de andere zinnen wegvallen. Dus geen "ook", "eveneens", "daarnaast", "bovendien", "net als", en geen zin die begint met "die", "dat", "deze", "ze", "maar", "hetzelfde", "opnieuw" of "weer" en zo naar een andere zin verwijst.
 - Nederlands, neutraal, kort.
 
 Citeerplicht per zin:
@@ -210,10 +210,40 @@ const VERBODEN = [
   // Engels (alleen ter verdediging: het blok is Nederlands en citeert geen Engelse bron).
   /\balarmist/i, /\bsensationalis/i, /\boverblown/i, /\boverhyped/i, /\bhyperbol/i, /\bexaggerat/i, /\bbiased\b/i, /\bone-sided/i,
   /\bmisleading/i, /\bfearmonger/i, /\bspin\b/i, /\bslant(ed)?\b/i, /\bpartisan/i, /\bdownplay/i, /\bplay(s|ed)?\s+up\b/i,
+  // Oordelen in gewone woorden (keuring 3 en 4): uitpakken, aanzetten, aandikken, sussen, meegaan in een lezing.
+  /(?<![\p{L}])(pak|pakt|pakken|pakte|pakten)\s+(?:\p{L}+\s+){0,2}(groot|flink|stevig|zwaar|dik|breed)\s+uit(?![\p{L}])/iu,
+  /(?<![\p{L}])(zet|zetten|zette|zetten)\s+(?:het|dat|dit|de\s+toon|het\s+verhaal)\s+(?:\p{L}+\s+)?aan(?![\p{L}])/iu,
+  /(?<![\p{L}])(dik|dikt|dikken|dikte)\s+(?:\p{L}+\s+){0,2}aan(?![\p{L}])|\baangedikt|\baandik/iu,
+  /\bsussen\b|\bsust\b|\bsuste\b|\bgesust\b/i, /\bkritische?\s+(noot|vragen\s+ontbreken)/i, /\bga(at|an)\s+mee\s+in\b|\bmeegaand/i,
+  /\bingetogen/i, /\bbreed\s+uit(gemeten|meten|meet)?\b|\buitgemeten\b/i,
+]
+// Woorden die een oordeel zijn, tenzij de aangehaalde regels ze zelf gebruiken ("Artsen slaan alarm",
+// "sombere vooruitzichten", "akkoord met afgezwakt voorstel"): dan beschrijft de zin wat de bron schrijft.
+// `stam` wordt gezocht in de kop en intro van de aangehaalde bronnen.
+const OORDEEL_TENZIJ_BRON = [
+  { re: /\balarm/i, stam: /alarm/i },
+  { re: /\bopvallend/i, stam: /opvallend/i },
+  { re: /\bopmerkelijk/i, stam: /opmerkelijk/i },
+  { re: /\bspecul/i, stam: /specul/i },
+  { re: /\bsomber/i, stam: /somber/i },
+  { re: /\bzakelijk/i, stam: /zakelijk/i },
+  { re: /\bstevig/i, stam: /stevig/i },
+  { re: /\bverontrust|\bzorgwekkend|\bschokkend|\bonthutsend/i, stam: /verontrust|zorgwekkend|schokkend|onthutsend/i },
+  { re: /\bsuggere/i, stam: /suggere/i },
+  { re: /\bthriller/i, stam: /thriller/i },
+  { re: /(?<![\p{L}])(zwak|zwakt|zwakken|zwakte|zwakten)\s+(?:\p{L}+\s+){0,2}af(?![\p{L}])|\bafgezwakt|\bafzwak/iu, stam: /zwak/i },
 ]
 // Elke zin staat los (keuring 2): geen verwijzing naar een zin die kan wegvallen.
-const VERWIJST = /(?<![\p{L}])(ook|eveneens|daarnaast|bovendien|tevens|evenzo|evenmin|evenals|net als|nog een|een ander(e)? verschil|hetzelfde geldt|zelfde geldt)(?![\p{L}])/iu
-const VERWIJST_BEGIN = /^(die|dat|dit|deze|ze|zij|hij|daar\p{L}*|wel|toch|maar|en|dus|daarentegen|anderzijds)(?![\p{L}])/iu
+// Keuring 3 en 4: ook "hierboven", "het tweede verschil", "hetzelfde patroon" en "het verschil zit weer in".
+const VERWIJST = /(?<![\p{L}])(ook|eveneens|daarnaast|bovendien|tevens|evenzo|evenmin|evenals|net als|nog een|een ander(e)? verschil|hetzelfde geldt|zelfde geldt|hierboven|hieronder|hiertegenover|eerder genoemd\p{L}*|zelfde patroon|(?:het|een) (?:eerste|tweede|derde|vorige|volgende|laatste|andere) verschil|(?:weer|opnieuw|wederom) (?:een )?verschil|verschil\p{L}* (?:\p{L}+ ){0,2}(?:weer|opnieuw|wederom))(?![\p{L}])/iu
+const VERWIJST_BEGIN = /^(die|dat|dit|deze|ze|zij|hij|daar\p{L}*|wel|toch|maar|en|dus|daarentegen|anderzijds|hetzelfde|dezelfde|zelfde|weer|opnieuw|wederom|hiertegenover|hierbij|anders dan (?:hierboven|eerder|daar|zij|die))(?![\p{L}])/iu
+// Taal volgt bronkeuze (keuring 3 en 4): ook geen algemene groep anderstalige of buitenlandse media
+// ("Engelstalige kranten", "Amerikaanse media", "de Britse pers", "volgens buitenlandse media"), tenzij een
+// aangehaalde regel die groep zelf zo noemt.
+const MEDIAGROEP = '(?:media|pers|kranten|dagbladen|bladen|omroepen|zenders|nieuwssites|nieuwsmedia|persbureaus|journalisten|commentatoren|correspondenten)'
+const ALGEMENE_GROEP = new RegExp(`(?<![\\p{L}])(?:(?:engels|ander|frans|duits)talig\\p{L}*|angelsaksisch\\p{L}*|(?:amerikaanse?|britse?|engelse?|internationale?|buitenlandse?|duitse?|franse?|westerse?|europese?)\\s+${MEDIAGROEP}|volgens\\s+(?:de\\s+)?(?:\\p{L}+\\s+)?${MEDIAGROEP})(?![\\p{L}])`, 'giu')
+// Weekdagen: alleen als ze in een aangehaalde regel staan (een verzonnen "dinsdag" is een verzonnen feit).
+const WEEKDAG = /(?<![\p{L}])(maan|dins|woens|donder|vrij|zater|zon)dag(?:\p{L}*)/giu
 // De tekst zonder citaten: wat tussen aanhalingstekens staat, is (nagezocht) de bron, niet ons oordeel.
 const zonderCitaten = (t) => {
   let uit = String(t)
@@ -295,15 +325,45 @@ function nlWoord(w) {
 }
 // Telwoord-vage woorden: moeten in dezelfde orde bij de bron staan ("honderden" is geen "duizenden").
 const VAAG = { tientallen: 'tientallen', dozens: 'tientallen', honderden: 'honderden', hundreds: 'honderden', duizenden: 'duizenden', thousands: 'duizenden', tienduizenden: 'tienduizenden', honderdduizenden: 'honderdduizenden', miljoenen: 'miljoenen', millions: 'miljoenen' }
+// Rangtelwoorden, noemers van breuken, breuken in één woord en vermenigvuldigingen (Nederlands).
+const RANG = { tweede: 2, derde: 3, vierde: 4, vijfde: 5, zesde: 6, zevende: 7, achtste: 8, negende: 9, tiende: 10, elfde: 11, twaalfde: 12, twintigste: 20, honderdste: 100, duizendste: 1000 }
+const BREUK_NOEMER = { derde: 3, kwart: 4, vierde: 4, vijfde: 5, zesde: 6, zevende: 7, achtste: 8, negende: 9, tiende: 10 }
+const BREUK_WOORD = { anderhalf: '3/2', anderhalve: '3/2', half: '1/2', halve: '1/2', kwart: '1/4' }
+const MAAL_WOORD = [
+  [/^(ge)?verdubbel/, 2], [/^(ge)?verdrievoudig/, 3], [/^(ge)?verviervoudig/, 4], [/^(ge)?vertienvoudig/, 10],
+  [/^(ge)?halve(er|r)|^halvering/, '1/2'], [/^(twee|drie|vier|vijf|tien)maal$/, (w) => NL_GETAL[w.slice(0, -4)]],
+]
+// "Tweede Kamer", "Tweede Wereldoorlog": een naam, geen rangtelwoord.
+const eigenNaam = (tekst, ws, i) => {
+  const nxt = ws[i + 1]
+  return !!nxt && (/^\p{Lu}/u.test(tekst.slice(nxt.start, nxt.end)) || /^(kamer|wereldoorlog)/.test(nxt.w))
+}
 // Alle getallen in een tekst, met hun plek: cijfers ("6.000" = "6000"), woorden en vage aantallen.
 export function getallenIn(t, taal = 'nl') {
   const tekst = String(t)
   const uit = []
-  for (const m of tekst.matchAll(/\d+(?:[.,]\d+)*/g)) uit.push({ v: /^\d{1,3}(?:\.\d{3})+$/.test(m[0]) ? m[0].replace(/\./g, '') : m[0].replace(',', '.'), start: m.index, end: m.index + m[0].length })
+  for (const m of tekst.matchAll(/(?<![\p{L}\d])\d+(?:[.,]\d+)*/gu)) uit.push({ v: /^\d{1,3}(?:\.\d{3})+$/.test(m[0]) ? m[0].replace(/\./g, '') : m[0].replace(',', '.'), start: m.index, end: m.index + m[0].length })
   const ws = [...tekst.matchAll(/\p{L}+/gu)].map((m) => ({ w: m[0].toLowerCase(), start: m.index, end: m.index + m[0].length }))
+  const naast = (j) => j + 1 < ws.length && !tekst.slice(ws[j].end, ws[j + 1].start).trim()
   for (let i = 0; i < ws.length; i++) {
     const { w } = ws[i]
     if (VAAG[w]) { uit.push({ v: VAAG[w], start: ws[i].start, end: ws[i].end }); continue }
+    // Breuken, rangtelwoorden en vermenigvuldigingen (keuring 3 en 4): "anderhalf", "een derde", "tweederde",
+    // "een kwart", "half miljard", "voor de tweede keer", "verdubbelt". Ook dat zijn getallen die bij de bron staan.
+    if (taal !== 'en') {
+      const teller = NL_EEN[w]
+      if (teller && naast(i) && BREUK_NOEMER[ws[i + 1].w]) {
+        uit.push({ v: `deel:${teller}/${BREUK_NOEMER[ws[i + 1].w]}`, start: ws[i].start, end: ws[i + 1].end })
+        i++
+        continue
+      }
+      if (BREUK_WOORD[w]) { uit.push({ v: `deel:${BREUK_WOORD[w]}`, start: ws[i].start, end: ws[i].end }); continue }
+      const samen = w.match(/^(een|twee|drie|vier)(derde|kwart|vijfde)n?$/)
+      if (samen) { uit.push({ v: `deel:${NL_EEN[samen[1]]}/${BREUK_NOEMER[samen[2]]}`, start: ws[i].start, end: ws[i].end }); continue }
+      const maal = MAAL_WOORD.find(([re]) => re.test(w))
+      if (maal) { uit.push({ v: `maal:${typeof maal[1] === 'function' ? maal[1](w) : maal[1]}`, start: ws[i].start, end: ws[i].end }); continue }
+      if (RANG[w] && !eigenNaam(tekst, ws, i)) { uit.push({ v: `rang:${RANG[w]}`, start: ws[i].start, end: ws[i].end }); continue }
+    }
     // Een reeks getalwoorden ("three hundred", "zes duizend", "twenty-one").
     let tot = 0, cur = null, j = i
     for (; j < ws.length; j++) {
@@ -333,6 +393,8 @@ export function getallenIn(t, taal = 'nl') {
   }
   return uit.sort((a, b) => a.start - b.start)
 }
+// Leesbaar in het verslag: "deel:1/3" → "1/3", "rang:2" → "2e", "maal:3" → "×3".
+const toonGetal = (v) => String(v).replace(/^deel:/, '').replace(/^rang:(.+)$/, '$1e').replace(/^maal:/, '×')
 const heeftGetal = (row, v) => getallenIn(`${row.title} ${row.summary || ''}`, row.lang || 'nl').some((g) => g.v === v)
 const heeftCitaat = (row, q) => textOf(row).includes(norm(q))
 
@@ -383,7 +445,7 @@ export function toetsZin(zin, { rows, alle, storyNames = [] }) {
     if (telSpans.some(([a, b]) => g.start >= a && g.end <= b)) continue // "negen bronnen" is een telwoord, geen feit
     const groep = groepBij(groepen, g.start)
     beweringen.push({ soort: 'getal', v: g.v, groep })
-    for (const { naam, rijen } of rijenVan(groep)) if (!rijen.some((r) => heeftGetal(r, g.v))) fouten.push(naam ? `getal ${g.v} niet bij ${naam}` : `getal ${g.v} niet in de bronnen`)
+    for (const { naam, rijen } of rijenVan(groep)) if (!rijen.some((r) => heeftGetal(r, g.v))) fouten.push(naam ? `getal ${toonGetal(g.v)} niet bij ${naam}` : `getal ${toonGetal(g.v)} niet in de bronnen`)
   }
   for (const c of citatenIn(tekst)) {
     const q = c.q
@@ -436,6 +498,10 @@ export function toetsZin(zin, { rows, alle, storyNames = [] }) {
   // 8. Verboden woorden (beschrijft, oordeelt niet), buiten de nagezochte citaten.
   const eigen = zonderCitaten(tekst)
   for (const re of VERBODEN) if (re.test(eigen)) fouten.push(`verboden woord: ${eigen.match(re)[0]}`)
+  for (const { re, stam } of OORDEEL_TENZIJ_BRON) if (re.test(eigen) && !stam.test(refRuw)) fouten.push(`oordeel: ${eigen.match(re)[0]}`)
+  // Algemene groepen anderstalige of buitenlandse media, en weekdagen: alleen als de aangehaalde regels ze noemen.
+  for (const m of eigen.matchAll(ALGEMENE_GROEP)) if (!norm(refRuw).includes(norm(m[0]))) fouten.push(`algemene groep media zonder bron: ${m[0]} (taal volgt bronkeuze)`)
+  for (const m of eigen.matchAll(WEEKDAG)) if (!new RegExp(`(?<![\\p{L}])${m[1]}dag`, 'iu').test(refRuw)) fouten.push(`${m[0]} staat niet in de aangehaalde regels`)
   // 8b. Elke zin staat los: geen "ook", "daarnaast" of "die …" naar een andere zin.
   const verwijst = eigen.match(VERWIJST) || eigen.trim().match(VERWIJST_BEGIN)
   if (verwijst) fouten.push(`verwijst naar een andere zin ("${verwijst[0]}"): elke zin staat los`)
@@ -459,7 +525,7 @@ export function toetsZin(zin, { rows, alle, storyNames = [] }) {
     // groep staan. En wat één groep tussen aanhalingstekens zegt, staat bij geen enkele andere bron van het verhaal.
     for (const b of beweringen.filter((x) => x.groep)) {
       const heeft = (r) => (b.soort === 'getal' ? heeftGetal(r, b.v) : heeftCitaat(r, b.v))
-      const toon = b.soort === 'getal' ? b.v : `‘${b.v}’`
+      const toon = b.soort === 'getal' ? toonGetal(b.v) : `‘${b.v}’`
       for (const g of groepen) {
         if (g === b.groep) continue
         for (const naam of g.namen) if (!b.groep.namen.includes(naam) && refs.some((r) => r.sourceName === naam && heeft(r))) fouten.push(`${naam} zegt ook ${toon} (vals contrast)`)
@@ -473,6 +539,41 @@ export function toetsZin(zin, { rows, alle, storyNames = [] }) {
   }
   if (!['gedeeld', 'verschil', 'onbekend'].includes(zin.soort)) fouten.push(`onbekende soort ${zin.soort}`)
   return [...new Set(fouten)]
+}
+
+// Bijna-gelijke vorm van een kenmerk: dezelfde inhoudswoorden (stam, meervoud of samenstelling: "spanning",
+// "spanningen", "hoogspanning", "coalitiecrisis"), hooguit een paar woorden uit elkaar, met dezelfde ontkenning.
+// Kleine woorden (lidwoorden, voorzetsels) tellen niet: "in coalitie" = "in de coalitie". Bij drie of meer
+// woorden volstaat tweederde ("geen crisis in coalitie" ≈ "ziet geen crisis"). Een ontkenning hoort bij het woord
+// erna ("geen crisis" is niet "geen reactie … coalitie"); getallen moeten precies terugkomen.
+const KLEIN = new Set(['de', 'het', 'een', 'in', 'op', 'van', 'met', 'na', 'over', 'voor', 'bij', 'aan', 'te', 'en', 'of', 'om', 'tot', 'uit', 'door', 'naar', 'als', 'is', 'zijn', 'wordt', 'worden', 'er', 'zich', 'nog', 'al', 'dat', 'die', 'dit', 'deze', 'ook', 'maar'])
+const ONTKENNING = new Set(['geen', 'niet', 'nooit', 'niets', 'niemand'])
+const stamVan = (w) => (w.length > 5 ? w.replace(/(en|s|e|n)$/, '') : w)
+const lijkt = (a, b) => a === b || (Math.min(a.length, b.length) >= 5 && (a.startsWith(b) || b.startsWith(a) || a.endsWith(b) || b.endsWith(a)))
+const woordenIn = (t) => norm(t).match(/\p{L}+|\d+(?:[.,]\d+)*/gu) || []
+export function bijnaIn(kenmerk, tekst) {
+  const kw = woordenIn(kenmerk).filter((w) => !KLEIN.has(w))
+  // Ontkenningen en getallen moeten precies terugkomen: "6.000 scholen" is niet "6.300 scholen".
+  const vast = kw.filter((w) => ONTKENNING.has(w) || /^\d/.test(w))
+  const inhoud = [...new Set(kw.filter((w) => !vast.includes(w)).map(stamVan))]
+  if (!inhoud.length) return false
+  // Per ontkenning het inhoudswoord erna: dat moet in de tekst ook vlak na de ontkenning staan.
+  const gebonden = kw.flatMap((w, k) => (ONTKENNING.has(w) && kw[k + 1] && !vast.includes(kw[k + 1]) ? [[w, stamVan(kw[k + 1])]] : []))
+  const totaal = vast.length + inhoud.length
+  const nodig = totaal >= 3 ? Math.ceil((totaal * 2) / 3) - vast.length : inhoud.length
+  const tw = woordenIn(tekst)
+  const ontkend = !kw.some((w) => ONTKENNING.has(w))
+    ? (p) => ONTKENNING.has(tw[p - 1]) || ONTKENNING.has(tw[p - 2]) // "crisis" is niet "geen crisis"
+    : () => false
+  const breed = kw.length + 4
+  for (let s = 0; s < tw.length; s++) {
+    const venster = tw.slice(s, s + breed)
+    const stammen = venster.map(stamVan)
+    if (!vast.every((n) => venster.includes(n))) continue
+    if (!gebonden.every(([neg, w]) => venster.some((x, p) => x === neg && stammen.slice(p + 1, p + 3).some((y) => lijkt(w, y))))) continue
+    if (inhoud.filter((w) => stammen.some((y, p) => lijkt(w, y) && !ontkend(s + p))).length >= Math.max(1, nodig)) return true
+  }
+  return false
 }
 
 function toetsKanten(zin, { tekst, bronnen, byN, rows, alle, storyNames }) {
@@ -491,7 +592,9 @@ function toetsKanten(zin, { tekst, bronnen, byN, rows, alle, storyNames }) {
     for (const naam of namen[i]) if (!genoemd.has(naam)) fouten.push(`kant noemt ${naam} niet (eenzijdig)`)
     if (k.kenmerk.length < 3) return fouten.push('kant zonder kenmerk')
     for (const naam of namen[i]) if (!k.rijen.some((r) => r.sourceName === naam && textOf(r).includes(k.kenmerk))) fouten.push(`kenmerk ‘${k.kenmerk}’ staat niet bij ${naam}`)
-    const ook = [...new Set(stukken.filter((r) => !namen[i].has(r.sourceName) && textOf(r).includes(k.kenmerk)).map((r) => r.sourceName))]
+    // Wie hetzelfde zegt, ook in een bijna-gelijke vorm ("hoogspanning in de coalitie", "geen crisis"), staat
+    // aan die kant: een te smal kenmerk is geen uitweg (keuring 3 en 4).
+    const ook = [...new Set(stukken.filter((r) => !namen[i].has(r.sourceName) && (textOf(r).includes(k.kenmerk) || bijnaIn(k.kenmerk, textOf(r)))).map((r) => r.sourceName))]
     for (const naam of ook.filter((n) => namen[1 - i].has(n))) fouten.push(`${naam} zegt ook ‘${k.kenmerk}’ (vals contrast)`)
     const elders = ook.filter((n) => !namen[1 - i].has(n))
     if (elders.length) fouten.push(`‘${k.kenmerk}’ staat ook bij ${elders.join(', ')}, die niet bij die kant staat (eenzijdig)`)
@@ -694,19 +797,31 @@ export async function schrijfVerschillen({ aan = verschillenAan(), client, entri
     const een = async (w) => {
       const storyNames = w.st.sourceNames || []
       let schrijver = w.geschreven
+      // De poging telt vóór de modelaanroep (Sonnet én Haiku), en staat al in KV voordat het model iets kost.
+      // Een functie die na het budget bevriest of wordt afgebroken, raakt de poging dus niet kwijt: hooguit
+      // POGINGEN per verhaal-versie per dag, ook voor een controle die steeds blijft hangen. Lukt dat
+      // wegschrijven niet, dan geen aanroep (liever niets dan ongeteld).
+      const pogingen = w.pogingen + 1
+      try {
+        await set(w.key, { status: 'bezig', dag: vandaag, pogingen, schrijver: schrijver || undefined, at: new Date(now).toISOString() })
+      } catch (e) {
+        console.error('verschillen', w.st.id, 'poging niet geteld', String(e?.message || e))
+        return
+      }
+      if (stop.signal.aborted) return
       const naSchrijven = async (out) => {
         schrijver = out
-        await set(w.key, { status: 'geschreven', dag: vandaag, pogingen: w.pogingen, schrijver, at: new Date(now).toISOString() }).catch(() => {})
+        await set(w.key, { status: 'geschreven', dag: vandaag, pogingen, schrijver, at: new Date(now).toISOString() }).catch(() => {})
       }
       try {
         const { resultaat, verslag } = await maakVerschillen(client, { rows: w.rows, alle: w.alle, storyNames }, { signal: stop.signal, now, timeout, geschreven: w.geschreven, naSchrijven })
-        await set(w.key, { status: resultaat ? 'klaar' : 'geen', dag: vandaag, pogingen: w.pogingen + 1, resultaat, verslag, at: new Date(now).toISOString() })
+        await set(w.key, { status: resultaat ? 'klaar' : 'geen', dag: vandaag, pogingen, resultaat, verslag, at: new Date(now).toISOString() })
         if (resultaat) uit.set(w.st.id, resultaat)
       } catch (e) {
-        // Netwerk, time-out of afgebroken: later nog eens (hooguit POGINGEN per dag). Wat de schrijver al gaf,
-        // blijft bewaard: de volgende ronde doet alleen de controle.
+        // Netwerk, time-out of afgebroken: later nog eens (hooguit POGINGEN per dag; de poging is al geteld).
+        // Wat de schrijver al gaf, blijft bewaard: de volgende ronde doet alleen de controle.
         console.error('verschillen', w.st.id, String(e?.message || e))
-        await set(w.key, { status: 'fout', dag: vandaag, pogingen: w.pogingen + 1, schrijver: schrijver || undefined, fout: String(e?.message || e).slice(0, 200), at: new Date(now).toISOString() }).catch(() => {})
+        await set(w.key, { status: 'fout', dag: vandaag, pogingen, schrijver: schrijver || undefined, fout: String(e?.message || e).slice(0, 200), at: new Date(now).toISOString() }).catch(() => {})
       }
     }
     let timer
