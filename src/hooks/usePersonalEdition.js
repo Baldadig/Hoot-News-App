@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
-import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, askGate, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
+import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, servedLocal, askGate, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
 import { readingSummary } from '../lib/affinity.js'
 import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
@@ -82,6 +82,9 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
     if (!global || !followed.length) return
     const local = readJSON(KEY, null)
     const localFromServer = fromServer()
+    // Na een dagdeelwissel is de Editie hier van het vorige dagdeel: ook die (en haar history) gaat als vorige Editie mee,
+    // naar de server (zonder account) en naar het vangnet.
+    const localServed = servedLocal(local, readJSON(SERVER_KEY, ''), owner)
     if (fits(local) && localFromServer) {
       if (local !== edition) setEdition(local)
       return
@@ -104,7 +107,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       taste: prefs.taste || null,
       readIds: [...(readIds || [])],
       reading,
-      earlier: uid ? [] : earlierForServer(localFromServer ? local : null, { id: global.id, owner }),
+      earlier: uid ? [] : earlierForServer(localFromServer || localServed ? local : null, { id: global.id, owner }),
     })
     const ask = async (body) => {
       let token = null
@@ -122,6 +125,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       basis,
       local,
       localFromServer,
+      localServed,
       online,
       mayAsk,
       ask: askNow ? ask : null,
