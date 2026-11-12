@@ -1,4 +1,5 @@
 // Wat het welkom met je instellingen doet — pure functies (tests/welcome.test.mjs).
+import { RUBRIEKEN } from './topics.js'
 
 // Opnieuw kiezen (vanuit Bronnen of Instellingen): je bronnen beginnen met wat nu aan staat,
 // niet met een nieuw voorstel.
@@ -42,6 +43,7 @@ export function applyWelcome(p, choice) {
     browsing: !!choice.quick,
     interests: choice.interests,
     topics: choice.topics,
+    rubrieken: RUBRIEKEN, // gekozen in de indeling van nu (topics.js)
     pinned: kept.length ? kept : choice.topics.slice(0, 3),
     ...(choice.vak ? { vak: choice.vak } : {}),
     muted: [...(p.muted || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => !s.optional && !on.has(s.id)).map((s) => s.id)],

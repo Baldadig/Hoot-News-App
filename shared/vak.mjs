@@ -1,6 +1,7 @@
 // De onderwerpen van de Selectie, in acht domeinen (server: netlify/lib/vak.mjs; app: Instellingen
 // en de tab Selectie). Een domein is een wereld (je werk of wat je bezighoudt), een onderwerp is
-// wat je volgt. De id's van de eerste tien blijven gelijk: wie die al koos, houdt ze.
+// wat je volgt. De id's van de eerste tien blijven gelijk: wie die al koos, houdt ze. Dezelfde woorden als de
+// onderwerpen van je interesses (src/lib/topics.js) waar het hetzelfde is: Games, Gadgets, Hacks & privacy.
 export const VAK_DOMAINS = [
   { id: 'marketing', label: 'Marketing & communicatie' },
   { id: 'creatie', label: 'Design & creatie' },
@@ -29,8 +30,8 @@ export const VAK_FIELDS = [
   { id: 'dev', domain: 'tech', label: 'Development', about: 'Web- en appontwikkeling en de praktijk van het vak' },
   { id: 'product', domain: 'tech', label: 'Productmanagement', about: 'Productstrategie, discovery, roadmaps en productteams' },
   { id: 'data', domain: 'tech', label: 'Data & analytics', about: 'Data-analyse, BI, data engineering en meten' },
-  { id: 'security', domain: 'tech', label: 'Security & privacy', about: 'Cybersecurity, lekken en hacks, privacy en de AVG' },
-  { id: 'gadgets', domain: 'tech', label: 'Tech & gadgets', about: 'Telefoons, laptops, apps en andere techniek' },
+  { id: 'security', domain: 'tech', label: 'Hacks & privacy', about: 'Cybersecurity, lekken en hacks, privacy en de AVG' },
+  { id: 'gadgets', domain: 'tech', label: 'Gadgets', about: 'Telefoons, laptops, apps en andere techniek' },
   // Ondernemen & werk
   { id: 'ondernemen', domain: 'werk', label: 'Startups & ondernemen', about: 'Oprichten, groeien, financiering en ondernemerschap' },
   { id: 'ecommerce', domain: 'werk', label: 'E-commerce & retail', about: 'Webwinkels, conversie en de winkelstraat' },
@@ -54,7 +55,7 @@ export const VAK_FIELDS = [
   { id: 'muziek', domain: 'cultuur', label: 'Muziek', about: 'Nieuwe muziek, recensies en verhalen' },
   { id: 'boeken', domain: 'cultuur', label: 'Boeken', about: 'Recensies, schrijvers en de boekenwereld' },
   { id: 'kunst', domain: 'cultuur', label: 'Kunst & musea', about: 'Beeldende kunst, tentoonstellingen en erfgoed' },
-  { id: 'gaming', domain: 'cultuur', label: 'Gaming', about: 'Games, recensies en de gamewereld' },
+  { id: 'gaming', domain: 'cultuur', label: 'Games', about: 'Recensies, achtergronden en de gamewereld' },
   { id: 'geek', domain: 'cultuur', label: 'Geekcultuur', about: 'Sciencefiction, fantasy, strips, bordspellen en internetcultuur' },
   { id: 'eten', domain: 'cultuur', label: 'Eten & drinken', about: 'Koken, restaurants, wijn en de foodwereld' },
   { id: 'reizen', domain: 'cultuur', label: 'Reizen', about: 'Bestemmingen, reisverhalen en de reiswereld' },

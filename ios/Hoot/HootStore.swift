@@ -192,13 +192,21 @@ final class HootStore {
         #endif
         notify = load("hoot.notify") ?? false
         notifySlots = load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
-        interests = load("hoot.interests") ?? []
+        var storedInterests: [String] = load("hoot.interests") ?? []
         // Trump is sinds 1.1.0 Verenigde Staten: opgeslagen voorkeuren met de oude sleutel gaan mee (RetiredTopics).
         func rewrite<T: Codable & Equatable>(_ key: String, _ old: T, _ new: T) {
             if new != old { d.set(try? JSONEncoder().encode(new), forKey: key) }
         }
         let storedTopics: [String] = load("hoot.topics") ?? []
-        let migratedTopics = RetiredTopics.list(storedTopics)
+        var migratedTopics = RetiredTopics.list(storedTopics)
+        // 1.3: Games onder Cultuur (RubriekVersie). Eén keer, voor wat dit toestel van vóór 1.3 bewaarde.
+        if (load("hoot.rubrieken") as Int?) != RubriekVersie.current {
+            let m = RubriekVersie.migrate(interests: storedInterests, topics: migratedTopics)
+            if m.interests != storedInterests { storedInterests = m.interests; d.set(try? JSONEncoder().encode(m.interests), forKey: "hoot.interests") }
+            migratedTopics = m.topics
+            d.set(try? JSONEncoder().encode(RubriekVersie.current), forKey: "hoot.rubrieken")
+        }
+        interests = storedInterests
         topics = migratedTopics
         favorites = load("hoot.favorites") ?? []
         let storedAffinity: Affinity = load("hoot.affinity") ?? Affinity()
@@ -312,10 +320,11 @@ final class HootStore {
             var regels: Int? // de keuze sinds build 46; zonder: `preview` met de oude standaard 2 als 3
             var interests: [String]?
             var topics: [String]?
+            var rubrieken: Int? // de versie van de indeling (RubriekVersie); zonder: van vóór 1.3
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website (een kapotte rij valt weg, niet de hele lijst)
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, favorites, social, taste }
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, rubrieken, favorites, social, taste }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
@@ -330,6 +339,7 @@ final class HootStore {
                 bskyInStream = try? c.decodeIfPresent([String].self, forKey: .bskyInStream)
                 interests = try? c.decodeIfPresent([String].self, forKey: .interests)
                 topics = try? c.decodeIfPresent([String].self, forKey: .topics)
+                rubrieken = try? c.decodeIfPresent(Int.self, forKey: .rubrieken)
                 favorites = try? c.decodeIfPresent([String].self, forKey: .favorites)
                 social = (try? c.decodeIfPresent([Lossy<BlueskyAccount>].self, forKey: .social))?.compactMap(\.value)
                 taste = try? c.decodeIfPresent(Taste.self, forKey: .taste)
@@ -381,8 +391,16 @@ final class HootStore {
             if next != bskyInStream { bskyInStream = next }
         }
         if let v = p?.regels ?? Self.oldPreview(p?.preview), v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.regels", v) }
-        if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
-        if let v = p?.topics.map(RetiredTopics.list), v != topics { topics = v; save("hoot.topics", v) }
+        // Interesses en onderwerpen in de indeling van nu: zonder `rubrieken` zijn ze van een oudere app of het
+        // web van vóór 1.3 (Games onder Tech) en gaan ze eerst om (RubriekVersie).
+        var nextInterests = p?.interests, nextTopics = p?.topics.map(RetiredTopics.list)
+        if nextInterests != nil || nextTopics != nil, p?.rubrieken != RubriekVersie.current {
+            let m = RubriekVersie.migrate(interests: nextInterests ?? interests, topics: nextTopics ?? topics)
+            nextInterests = m.interests
+            nextTopics = m.topics
+        }
+        if let v = nextInterests, v != interests { interests = v; save("hoot.interests", v) }
+        if let v = nextTopics, v != topics { topics = v; save("hoot.topics", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
         if let v = p?.taste?.migrated, v != taste { taste = v; save("hoot.taste", v) }
         if let v = p?.social {
@@ -419,7 +437,7 @@ final class HootStore {
             "theme": theme.theme, "themeDark": theme.dark,
             "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
             "bubble": bubble, "bluesky": bluesky, "bskyInStream": bskyInStream.sorted(), "preview": preview == 0 ? "alles" as Any : preview as Any, "regels": preview == 0 ? "alles" as Any : preview as Any,
-            "interests": interests, "topics": topics, "favorites": favorites, "onboarded": true,
+            "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],
             "social": ownBluesky.map { ["handle": $0.handle, "name": $0.name, "avatar": $0.avatar as Any] },
         ]
@@ -1038,7 +1056,7 @@ final class HootStore {
     // `reading` alleen als lezen al meetelt.
     static func serverBody(followed: [String], interests: [String], topics: [String], favorites: [String], taste: Taste, readIds: [String], reading: [String: Any]?) -> [String: Any] {
         var body: [String: Any] = [
-            "v": 2, "followed": followed, "interests": interests, "topics": topics, "favorites": favorites,
+            "v": 2, "followed": followed, "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "favorites": favorites,
             "taste": taste.isEmpty ? NSNull() : Self.encoded(taste), "readIds": Array(readIds.suffix(1500)),
         ]
         if let reading { body["reading"] = reading }

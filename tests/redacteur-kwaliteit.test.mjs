@@ -61,7 +61,12 @@ test('toelating: licht alleen voor wie het gebied koos; Buiten je bubbel mag lic
   assert.equal(newsRejection(cultuur, {}, martha), null)
   assert.equal(newsRejection(nieuw, {}, martha, null, { bubble: true }), null)
   assert.equal(lightChosen(profileOf({ sources, interests: ['tech'], topics: ['ai'] }), 'games'), false)
-  assert.equal(lightChosen(profileOf({ sources, interests: ['tech'], topics: ['games'] }), 'games'), true)
+  // Games staat sinds 1.3 onder Cultuur (rubrieken, fase 2): Tech kiezen is geen Games meer.
+  assert.equal(lightChosen(profileOf({ sources, interests: ['tech'] }), 'games'), false)
+  assert.equal(lightChosen(profileOf({ sources, interests: ['cultuur'], topics: ['games'] }), 'games'), true)
+  // Alleen Games gekozen: geen cultuurstukken (muziek, film) als licht nieuws.
+  assert.equal(lightChosen(profileOf({ sources, interests: ['cultuur'], topics: ['games'] }), 'cultuur'), false)
+  assert.equal(lightChosen(profileOf({ sources, interests: ['cultuur'], topics: ['film'] }), 'cultuur'), true)
 })
 
 test('live, algemene Avondeditie 3 november: geen games- of cultuurverhaal in de genummerde plekken', () => {

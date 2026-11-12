@@ -37,12 +37,12 @@ final class SelectionLayoutTests: XCTestCase {
         XCTAssertEqual(full.fields.map(\.id),["ux","ai","foto"])
         XCTAssertEqual(full.summary,"5 stukken in 2 onderwerpen")
         XCTAssertEqual(SelectionOverview.pieces(0),"Nog geen stukken")
-        let empty=SelectionOverview([field("foto","Fotografie",0),field("gaming","Gaming",0)],offered:["gaming"])
+        let empty=SelectionOverview([field("foto","Fotografie",0),field("gaming","Games",0)],offered:["gaming"])
         XCTAssertEqual(empty.state, .empty)
-        XCTAssertEqual(empty.names,"Fotografie en Gaming")
+        XCTAssertEqual(empty.names,"Fotografie en Games")
         XCTAssertFalse(empty.unoffered)
         XCTAssertTrue(SelectionOverview([field("foto","Fotografie",0)],offered:[]).unoffered)
-        XCTAssertEqual(SelectionOverview.join(["AI","Fotografie","Gaming"]),"AI, Fotografie en Gaming")
+        XCTAssertEqual(SelectionOverview.join(["AI","Fotografie","Games"]),"AI, Fotografie en Games")
     }
 }
 private struct ClosedSectionProbe: View {

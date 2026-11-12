@@ -2,7 +2,7 @@
 // (getest in tests/prefs.test.mjs).
 import { themePref, darkPref } from './theme.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
-import { currentTopics, currentTopicMap } from './topics.js'
+import { currentTopics, currentTopicMap, currentChoice, RUBRIEKEN } from './topics.js'
 import { TASTE_CAP } from './affinity.js'
 import { INTRO_LINES } from '../../shared/zinnen.mjs'
 import { textSizePref } from './tekstgrootte.js'
@@ -22,7 +22,7 @@ export const DEFAULT_PREFS = {
   panel: 'dicht',
   enabled: [], // optionele bronnen die je zelf hebt aangezet (bv. extra muziekbronnen)
   interests: [], // brede interesses uit de onboarding (src/lib/topics.js → INTERESTS)
-  topics: [], // onderwerpen die je volgt; leeg = alle
+  topics: [], // onderwerpen die je volgt; leeg = alle (en `rubrieken`, de versie van de indeling: zie normalizePrefs)
   bluesky: false, // Bluesky-posts in de Stroom; geen aparte bestemming
   favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je Editie en staan vooraan
   vak: [], // vakgebieden in de Selectie (shared/vak.mjs); leeg = geen tab Selectie
@@ -64,6 +64,9 @@ export function normalizePrefs(raw) {
   // Oude onderwerpen (Trump → Verenigde Staten): ook in wat je volgt en vastzette; zie topics.js RETIRED_TOPICS.
   out.topics = currentTopics(out.topics)
   out.pinned = currentTopics(out.pinned)
+  // De indeling van 1.3 (Games onder Cultuur): keuzes zonder versie zijn van de oude indeling. Bij het lezen
+  // omgezet, niet bij het opslaan: zo blijft je account leesbaar voor een oudere app (zie topics.js currentChoice).
+  if (out.rubrieken !== RUBRIEKEN) Object.assign(out, currentChoice(out.interests, out.topics), { rubrieken: RUBRIEKEN })
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
   // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
   out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []

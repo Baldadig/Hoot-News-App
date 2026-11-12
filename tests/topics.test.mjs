@@ -11,7 +11,9 @@ test('elk smal onderwerp hoort bij precies één interesse, en de server kent ze
 })
 
 test('niets aangetikt binnen een interesse = alles daarbinnen', () => {
-  assert.deepEqual(resolveTopics(['tech', 'wereld'], ['oekraine']), ['oekraine', 'ai', 'tech', 'gadgets', 'privacy', 'ev', 'games'])
+  assert.deepEqual(resolveTopics(['tech', 'wereld'], ['oekraine']), ['oekraine', 'ai', 'tech', 'gadgets', 'privacy', 'ev'])
+  // Games hoort sinds 1.3 bij Cultuur (rubrieken, fase 2).
+  assert.deepEqual(resolveTopics(['cultuur'], []), ['muziek', 'film', 'boeken', 'kunst', 'media', 'games'])
   assert.deepEqual(resolveTopics([], ['ai']), [])
 })
 

@@ -143,7 +143,7 @@ var HootCore = (() => {
     T("ai", "AI"),
     T("tech", "Big Tech"),
     T("gadgets", "Gadgets"),
-    T("privacy", "Privacy & veiligheid"),
+    T("privacy", "Hacks & privacy"),
     T("ev", "Elektrisch rijden"),
     T("games", "Games"),
     T("klimaat", "Klimaat"),
@@ -168,9 +168,10 @@ var HootCore = (() => {
     { id: "binnenland", label: "Binnenland", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"] },
     { id: "wereld", label: "Wereld", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: [] },
     { id: "economie", label: "Economie", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"] },
-    { id: "tech", label: "Tech", topics: ["ai", "tech", "gadgets", "privacy", "ev", "games"], cats: ["tech", "games"] },
+    { id: "tech", label: "Tech", topics: ["ai", "tech", "gadgets", "privacy", "ev"], cats: ["tech"] },
     { id: "wetenschap", label: "Wetenschap", topics: ["klimaat", "gezondheid", "ruimte", "natuur", "brein"], cats: ["wetenschap"] },
-    { id: "cultuur", label: "Cultuur", topics: ["muziek", "film", "boeken", "kunst", "media"], cats: ["cultuur"] },
+    // Games hoort sinds 1.3 bij Cultuur (rubrieken, fase 2), niet meer bij Tech; zie currentChoice hieronder.
+    { id: "cultuur", label: "Cultuur", topics: ["muziek", "film", "boeken", "kunst", "media", "games"], cats: ["cultuur", "games"] },
     { id: "sport", label: "Sport", topics: ["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"], cats: ["sport"] }
   ];
   var INTEREST_OF = Object.fromEntries(INTERESTS.flatMap((i) => i.topics.map((t) => [t, i.id])));
@@ -1976,9 +1977,11 @@ var HootCore = (() => {
     const countries = new Set([...ids].map(publisherCountry).filter(Boolean));
     return ids.size >= LIGHT_MAJOR || ids.size >= 5 && countries.size >= 2;
   }
+  var CULTUUR_KIND = ["muziek", "film", "boeken", "kunst", "media"];
+  var cultuurChosen = (prof, min = 0.5) => Math.max(0, ...CULTUUR_KIND.map((t) => prof?.topicP?.[t] || 0)) >= min;
   function lightChosen(prof, kind) {
     if (kind === "games") return (prof?.topicP?.games || 0) >= 0.5;
-    if (kind === "cultuur") return (prof?.family?.cultuur || 0) >= 0.5;
+    if (kind === "cultuur") return cultuurChosen(prof);
     if (kind === "consument") return (prof?.topicP?.gadgets || 0) >= 0.5;
     return true;
   }
@@ -3601,10 +3604,10 @@ var HootCore = (() => {
       };
     }
     const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`;
-    const tech = INTERESTS.find((f) => f.id === "tech")?.topics || [];
-    const gamesSharp = interests.includes("tech") && topics.includes("games") && !tech.every((t) => topics.includes(t));
+    const cultuur = INTERESTS.find((f) => f.id === "cultuur")?.topics || [];
+    const gamesSharp = interests.includes("cultuur") && topics.includes("games") && !cultuur.every((t) => topics.includes(t));
     const gamesOk = (prof.topicP.games || 0) >= EXTRA_MIN && (gamesSharp || prof.origin.games === "geleerd");
-    const extraKinds = /* @__PURE__ */ new Set([...sportChosen(prof) ? ["sport"] : [], ...(prof.family.cultuur || 0) >= EXTRA_MIN ? ["cultuur"] : [], ...gamesOk ? ["games"] : []]);
+    const extraKinds = /* @__PURE__ */ new Set([...sportChosen(prof) ? ["sport"] : [], ...cultuurChosen(prof, EXTRA_MIN) ? ["cultuur"] : [], ...gamesOk ? ["games"] : []]);
     const storyById = new Map(stories.map((s) => [s.id, s]));
     const storyByItem = new Map(stories.flatMap((s) => s.itemIds.map((id) => [id, s])));
     const bigLight = (i) => ["cultuur", "games"].includes(kindOf(i)) && !!storyByItem.get(i.id) && majorGeneralNews(storyByItem.get(i.id), [i], catOf);
