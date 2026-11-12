@@ -35,7 +35,7 @@ export const HEAVY_WORDS = [
   'rellen', 'verkracht', 'misbruik', 'executie', 'geëxecuteerd', 'gijzel', 'terreur', 'terroris', 'zelfmoord', 'suïcide',
   'kanker', 'ziek', 'slachtoffer', 'schietpartij', 'neergeschoten', 'doodgeschoten', 'steekpartij', 'neergestoken',
   'bombardement', 'gewond', 'opgepakt', 'aangehouden', 'ontvoer', 'mishandel', 'mensensmokkel', 'migrant', 'vluchteling', 'brand', 'kinderporno', 'zedenzaak', 'zedendelict',
-  'aanhouding', 'relschopper', 'ongeregeld', 'plunder', 'oprui',
+  'aanhouding', 'relschopper', 'ongeregeld', 'plunder', 'oprui', 'vermist', 'verdronk', 'verdrink',
 ]
 const HEAVY_RE = new RegExp(`(?<![\\p{L}])(?:${HEAVY_WORDS.map(w => w === 'brand' ? 'brand(?!weer)' : w).join('|')})`, 'iu')
 const UNREST = new Set(['misdaad', 'rellen', 'geweld', 'ramp', 'rampen', 'oorlog', 'terrorisme'])
@@ -66,21 +66,32 @@ TOPIC_RUBRIEK.nederland = 'binnenland'
 // "walvis" in een autotest werd Wetenschap). Nu: harde signalen eerst (rubriek in de URL of sectie,
 // categorie van de bron), dan de rubriek die de Redacteur in de Editie gaf. Een trefwoord alleen
 // beslist nooit. null = niet zeker: de landing toont dan geen rubriek, alleen het nummer.
-const STRONG_SPORT = /^(sport|voetbal|darts|tennis|wielren|formule)/i
-function strongKind(item, srcCat) {
-  const section = SECTION_KIND.exec(`${item.section || ''} ${item.url || ''}`)?.[1]?.toLowerCase()
-  if (section) return STRONG_SPORT.test(section) ? 'sport' : 'cultuur'
-  if (/\/(darts|tennis|wielrennen|formule-?1|f1|schaatsen)\//i.test(item.url || '')) return 'sport'
+// Alleen hele mappen in de URL tellen (nooit woorden uit de slug: "sociale-media" is geen Cultuur,
+// "voetbal-geweld" geen Sport), plus de sectie die de uitgever zelf meegeeft.
+const SPORT_DIR = /^(?:sport[\w-]*|voetbal[\w-]*|darts|tennis|wielrennen|wielersport|formule-?1|f1|schaatsen|hockey)$/i
+const CULTUUR_DIR = /^(?:cultuur[\w-]*|media-en-cultuur|film|films|muziek|boeken|kunst|theater)$/i
+// Showbizz is niet zeker Cultuur: ook een incident bij de koning of een rechtszaak staat soms onder /boulevard/.
+const SHOWBIZZ_DIR = /^(?:entertainment|showbizz|boulevard|bv-en-co|celebrities|media)$/i
+function mappen(url) {
+  try { return new URL(url).pathname.split('/').filter(Boolean).slice(0, -1) } catch { return [] }
+}
+export function strongKind(item, srcCat) {
+  const delen = [...mappen(item.url || ''), String(item.section || '').trim().toLowerCase().replace(/\s*&\s*/g, '-').replace(/\s+/g, '-')].filter(Boolean)
+  if (delen.some((d) => SPORT_DIR.test(d))) return 'sport'
+  if (delen.some((d) => CULTUUR_DIR.test(d))) return 'cultuur'
   if (['sport', 'tech', 'cultuur'].includes(srcCat)) return srcCat
+  if (delen.some((d) => SHOWBIZZ_DIR.test(d))) return 'showbizz'
   return null
 }
 const GEO = new Set(['binnenland', ...HEAVY_DESKS])
 export function rubriek(item, desk, srcCat, editieDesk = null) {
   const strong = strongKind(item, srcCat)
+  // Showbizz telt alleen als Cultuur als de Editie het zelf ook Cultuur noemt; anders geen rubriek.
+  if (strong === 'showbizz') return editieDesk === 'cultuur' ? 'cultuur' : null
   if (strong) return strong
-  if (editieDesk && editieDesk !== 'bubbel' && DESK_LABEL[editieDesk]) return editieDesk
+  if (editieDesk && editieDesk !== 'bubbel' && LABEL[editieDesk]) return editieDesk
   // Het hoofdonderwerp van het bericht (niet een trefwoord uit de intro) mag Cultuur geven. Tech alleen via de bron (Tweakers e.d.).
-  const main = (item.mainTopics || []).map((t) => TOPIC_RUBRIEK[t]).find((r) => r === 'cultuur')
+  const main = (item.mainTopics || []).some((t) => ['muziek', 'film', 'boeken', 'kunst'].includes(t)) ? 'cultuur' : null // 'media' en 'games' zijn niet zeker Cultuur
   if (main) return main
   // Uit de pool: alleen de geografische indeling (Nederland of niet) is hard genoeg om te tonen.
   if (desk && GEO.has(desk)) return desk

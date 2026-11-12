@@ -95,7 +95,9 @@ test('sport zonder tags valt af; cultuur krijgt geen onjuiste Binnenland-stempel
   f.edition.items.push(it('coach', 'nos', 'NOS', 'AZ-coach blikt terug op zijn eerste seizoen', { section: 'Sport' }))
   assert.ok(extract(f).entries.every(e => !/AZ-coach/.test(e.title)))
   assert.equal(rubriek({ topics: ['film'], mainTopics: ['film'] }, 'binnenland', 'nl'), 'cultuur')
-  assert.equal(rubriek({ title: 'Een verrassend halloweenkostuum', section: 'Showbizz' }, 'binnenland', 'nl'), 'cultuur')
+  // Showbizz is niet zeker Cultuur (landing-live): geen rubriek, en zeker geen Binnenland. Noemt de Editie het Cultuur, dan wel.
+  assert.equal(rubriek({ title: 'Een verrassend halloweenkostuum', section: 'Showbizz' }, 'binnenland', 'nl'), null)
+  assert.equal(rubriek({ title: 'Een verrassend halloweenkostuum', section: 'Showbizz' }, 'binnenland', 'nl', 'cultuur'), 'cultuur')
   assert.equal(rubriek({ title: 'Schrijfwedstrijd voor jonge auteurs', topics: ['boeken'], mainTopics: ['boeken'] }, 'binnenland', 'nl'), 'cultuur')
 })
 
@@ -347,7 +349,7 @@ test('pool bewaart tags en rubriekbewijs zonder de URL; sport en cultuur blijven
   const direct = extract(f)
   assert.deepEqual(extract(withPool({ ...f, items: [], edition: { ...f.edition, items: [] } }, pool)), direct)
   assert.ok(direct.entries.every(e => !/trainer|rust keert/.test(e.title)))
-  assert.equal(direct.entries.find(e => /halloweenkostuum/.test(e.title)).desk, 'cultuur')
+  assert.equal(direct.entries.find(e => /halloweenkostuum/.test(e.title))?.desk ?? null, null) // showbizz: niet zeker, dus geen rubriek
 })
 
 test('HEAD heeft ook bij 503 geen body, met dezelfde veilige CORS- en cacheheaders', async () => {
@@ -379,4 +381,20 @@ test('rubriek: de Editie wint van een trefwoord uit de intro', () => {
   assert.equal(rubriek(lexus, null, 'nl'), null)
   const littler = { title: 'Luke Littler treft 24 tegenstanders', topics: ['film'], url: 'https://www.ad.nl/darts/luke-littler~a286a41d/' }
   assert.equal(rubriek(littler, null, 'nl'), 'sport')
+})
+
+// landing-live: alleen hele mappen in de URL, nooit woorden uit de slug; showbizz is niet zeker Cultuur.
+test('rubriek: alleen hele mappen uit de URL, geen woorden uit de slug', () => {
+  const sociaal = { title: 'Juristen waarschuwen voor rechtspraak via sociale media', url: 'https://www.vrt.be/vrtnws/nl/2026/11/12/sociale-media-gerecht/' }
+  assert.equal(rubriek(sociaal, 'buitenland', 'nl'), 'buitenland')
+  const geweld = { title: 'Kabinet wil harder optreden tegen geweld rond wedstrijden', url: 'https://nos.nl/artikel/123-voetbal-geweld-aanpak' }
+  assert.equal(rubriek(geweld, 'binnenland', 'nl'), 'binnenland')
+  const koning = { title: 'Veiligheidsexpert kritisch op beveiliging na incident bij koning', url: 'https://www.rtl.nl/boulevard/artikel/5662128/incident-koning' }
+  assert.equal(rubriek(koning, 'binnenland', 'nl'), null)
+  const darts = { title: 'Luke Littler treft 24 tegenstanders', url: 'https://www.ad.nl/darts/luke-littler~a286a41d/' }
+  assert.equal(rubriek(darts, null, 'nl'), 'sport')
+  const vk = { title: 'Acteur Patrick Stewart overleden', url: 'https://www.volkskrant.nl/cultuur-media/patrick-stewart~b1/' }
+  assert.equal(rubriek(vk, null, 'nl'), 'cultuur')
+  const ai = { title: 'Liechtenstein ruilt publieke omroep in voor AI-radio', mainTopics: ['ai', 'media'], url: 'https://nos.nl/l/2638489' }
+  assert.equal(rubriek(ai, 'buitenland', 'nl'), 'buitenland') // 'media' als onderwerp is niet zeker Cultuur
 })
