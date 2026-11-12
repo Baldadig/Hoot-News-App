@@ -2656,7 +2656,7 @@ var HootCore = (() => {
     try {
       const vocab = nameVocabulary(articles, extended);
       const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]));
-      sigVocab.set(out, { vocab, extended, heads: /* @__PURE__ */ new Map() });
+      sigVocab.set(out, { vocab, extended, heads: /* @__PURE__ */ new Map(), articles });
       return out;
     } finally {
       wordMemo = outer;
@@ -2674,6 +2674,21 @@ var HootCore = (() => {
     if (!v || !item) return null;
     let h = v.heads.get(item.id);
     if (!h) v.heads.set(item.id, h = signature({ ...item, text: "", summary: "" }, v.vocab, v.extended));
+    return h;
+  }
+  function clusterHead(sig, item) {
+    const v = sigVocab.get(sig);
+    if (!v || !item) return null;
+    const memo2 = v.cheads ||= /* @__PURE__ */ new Map();
+    let h = memo2.get(item.id);
+    if (h) return h;
+    h = signature({ ...item, text: "", summary: "" }, v.vocab, true);
+    if (isTitleCase(item.title)) {
+      v.headVocab ||= nameVocabulary((v.articles || []).filter((a) => a.title && !isTitleCase(a.title)).map((a) => ({ title: a.title })), true);
+      for (const k of [...h.strong]) if (!v.headVocab.has(k)) h.strong.delete(k);
+      h.titleRuns = (h.titleRuns || []).map((run) => run.filter((k) => h.strong.has(k))).filter((run) => run.length);
+    }
+    memo2.set(item.id, h);
     return h;
   }
   var OWN_STORY = 5;
@@ -3088,6 +3103,82 @@ var HootCore = (() => {
     if (c.voteResult && mates.some((x) => x.voteResult)) return false;
     return !(c.voteFrom && timeOf({ publishedAt: c.st.latestAt }) < c.voteFrom);
   }
+  var CLUSTER_SHARE = 3;
+  var CLUSTER_HOURS = 24;
+  var conceptKeys = /* @__PURE__ */ new Map();
+  var conceptWord = (k) => {
+    if (!conceptKeys.has(k)) conceptKeys.set(k, CONCEPTS_EXT.some(([, re]) => re.test(k)));
+    return conceptKeys.get(k);
+  };
+  function clusterCore(sig, items) {
+    const v = sigVocab.get(sig);
+    if (!v) return null;
+    const memo2 = v.cores ||= /* @__PURE__ */ new WeakMap();
+    let core = memo2.get(items);
+    if (core) return core;
+    const names = /* @__PURE__ */ new Map();
+    const runs = [];
+    let latest = 0;
+    for (const i of items) {
+      if (!i || !titled(i)) continue;
+      latest = Math.max(latest, timeOf(i));
+      const h = clusterHead(sig, i);
+      if (!h) continue;
+      for (const k of h.strong) {
+        if (BROAD.has(k) || conceptWord(k)) continue;
+        const n = names.get(k) || names.set(k, { pubs: /* @__PURE__ */ new Set(), heads: [] }).get(k);
+        n.pubs.add(publisherOf(i.source));
+        n.heads.push(h);
+      }
+      for (const run of h.titleRuns || []) if (run.length > 1) runs.push(run);
+    }
+    const pubs = coverageOf(items.filter(Boolean)).publisherCount;
+    const need = Math.max(1, Math.ceil(pubs / CLUSTER_SHARE));
+    const central = new Map([...names].filter(([, n]) => n.pubs.size >= need));
+    memo2.set(items, core = { central, runs, latest, pubs });
+    return core;
+  }
+  var sameCluster = (sig, a = [], b = []) => !!clusterMatch(sig, a, b);
+  function clusterMatch(sig, a = [], b = []) {
+    if (a === b) return null;
+    const ca = clusterCore(sig, a);
+    const cb = clusterCore(sig, b);
+    if (!ca || !cb || !ca.central.size || !cb.central.size) return null;
+    if (!ca.latest || !cb.latest || Math.abs(ca.latest - cb.latest) > CLUSTER_HOURS * 36e5) return null;
+    const shared = [...ca.central.keys()].filter((k) => cb.central.has(k)).sort(textOrder);
+    if (!shared.length) return null;
+    const parent = new Map(shared.map((k) => [k, k]));
+    const find = (k) => {
+      while (parent.get(k) !== k) k = parent.get(k);
+      return k;
+    };
+    for (const run of [...ca.runs, ...cb.runs]) {
+      const ks = run.filter((k) => parent.has(k));
+      for (let j = 1; j < ks.length; j++) parent.set(find(ks[j]), find(ks[0]));
+    }
+    if (new Set(shared.map(find)).size >= 2) return { namen: shared, via: "namen" };
+    const most = (c, k) => c.central.get(k).pubs.size >= 2 || c.central.get(k).pubs.size * 2 > c.pubs;
+    for (const k of shared) {
+      if (!most(ca, k) || !most(cb, k)) continue;
+      for (const x of ca.central.get(k).heads) for (const y of cb.central.get(k).heads) if (sameHeadEvent(x, y)) return { namen: shared, via: "kop" };
+    }
+    return null;
+  }
+  function clusterTaken(sig, c, placedC) {
+    let m = c.clu;
+    if (!m || m.placed !== placedC) m = c.clu = { placed: placedC, n: 0, hit: null };
+    if (m.hit || m.n >= placedC.length) return !!m.hit;
+    for (; m.n < placedC.length; m.n++) {
+      const x = placedC[m.n];
+      if (x === c || c.vote && x.vote === c.vote) continue;
+      if (sameCluster(sig, c.items, x.items)) {
+        m.hit = x;
+        m.n++;
+        break;
+      }
+    }
+    return !!m.hit;
+  }
   var prefer = (xs, f) => {
     const ys = xs.filter(f);
     return ys.length ? ys : xs;
@@ -3343,7 +3434,7 @@ var HootCore = (() => {
       const r = c.nr !== void 0 ? c.nr : c.nr = newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight });
       return r === null || open && r === "internationaal-niet-groot-genoeg";
     };
-    const admissible = (c, open = false) => !used.has(c) && newsOk(c, open) && !clashes(c) && familyRoom(c, placedC, general, now) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && worldPlaced() >= INT_MAX)) && !headTaken(c);
+    const admissible = (c, open = false) => !used.has(c) && newsOk(c, open) && !clashes(c) && familyRoom(c, placedC, general, now) && !clusterTaken(sig, c, placedC) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && worldPlaced() >= INT_MAX)) && !headTaken(c);
     const spread = (c) => c.kind === "item" ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount;
     let strongAt = -1;
     let strong = false;
@@ -3501,7 +3592,7 @@ var HootCore = (() => {
     }
     const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id));
     if (audit) for (const c of cands) {
-      const reason = used.has(c) ? "gekozen-in-route" : c.parts.seen ? "verhaal-al-gelezen" : clashes(c) ? "zelfde-onderwerp-gekozen-of-eerder" : !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk) ? newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk) : capped(c) ? "internationaal-plafond" : entries.length >= size ? "route-vol" : "onverklaard";
+      const reason = used.has(c) ? "gekozen-in-route" : c.parts.seen ? "verhaal-al-gelezen" : clashes(c) ? "zelfde-onderwerp-gekozen-of-eerder" : clusterTaken(sig, c, placedC) ? "zelfde-onderwerp-zelfde-dag" : !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk) ? newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk) : capped(c) ? "internationaal-plafond" : entries.length >= size ? "route-vol" : "onverklaard";
       reject(c.kind, c.id, c.ids, reason);
     }
     Object.defineProperty(entries, "sig", { value: sig, enumerable: false });
@@ -3918,6 +4009,7 @@ var HootCore = (() => {
     let floorLight = false;
     const famOf = voteFamilyOf(stories, itemAny);
     const famTaken = /* @__PURE__ */ new Map();
+    const acceptedItems = [];
     const famKey = (e) => famOf.get(e.kind === "story" ? e.id : serverStory(e)) || famOf.get(storyOfItem.get(e.leadId || e.id)) || null;
     const accept = (e) => {
       if (accepted.length >= capacity) return;
@@ -3928,12 +4020,15 @@ var HootCore = (() => {
       if (ids.some((x) => finalTaken.has(x)) || sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
       const fam = famKey(e);
       if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return;
+      const known2 = ids.map((x) => itemAny.get(x)).filter(Boolean);
+      if (acceptedItems.some((xs) => sameCluster(sigAll, known2, xs))) return;
       const allowed = p.allowed || floorLight && p.reason === "licht-buiten-interesse";
       if (!allowed || capAbroad && p.capped && internationalCount >= INT_MAX) return;
       if (p.capped) internationalCount++;
       if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1);
       ids.forEach((x) => finalTaken.add(x));
       finalLeads.push(id);
+      acceptedItems.push(known2);
       accepted.push(e);
     };
     entries.forEach(accept);
