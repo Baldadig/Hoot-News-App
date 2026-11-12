@@ -27,14 +27,16 @@ test('Sport met het onderwerp wielrennen: WielerFlits in plaats van VI', () => {
   assert.deepEqual(ids(voorstel(SOURCES, ['sport'], ['wielrennen'])), ['nos', 'nos-sport', 'wielerflits'])
 })
 
-test('Tech en Wetenschap: Tweakers (Nederlands, gratis) en een gratis wetenschapsbron', () => {
+test('Tech en Wetenschap: Tweakers (Nederlands, gratis); Wetenschap heeft geen Nederlandse bron, NU.nl vult aan', () => {
   const p = voorstel(SOURCES, ['tech', 'wetenschap'])
-  assert.deepEqual(ids(p), ['nos', 'tweakers', 'quanta'])
+  assert.deepEqual(ids(p), ['nos', 'tweakers', 'nu'])
   assert.ok(p.every((x) => !byId.get(x.id).paid))
+  // Met Engels aan (je volgt al een Engelstalige bron) komt de gratis wetenschapsbron terug.
+  assert.deepEqual(ids(voorstel(SOURCES, ['tech', 'wetenschap'], [], { english: true })), ['nos', 'tweakers', 'quanta'])
 })
 
-test('Wereld en Economie: gratis voorop en aan, NYT erbij met Abonnement maar niet aangezet (r5-voorstel-betaald)', () => {
-  const p = voorstel(SOURCES, ['wereld', 'economie'])
+test('Wereld en Economie: gratis voorop en aan, NYT erbij met Abonnement maar niet aangezet (r5-voorstel-betaald), met Engels aan', () => {
+  const p = voorstel(SOURCES, ['wereld', 'economie'], [], { english: true })
   assert.deepEqual(ids(p), ['nos', 'guardian', 'nos-economie', 'nyt'])
   const nyt = p.find((x) => x.id === 'nyt')
   assert.equal(nyt.why, 'Past bij Wereld en Economie')
@@ -91,7 +93,7 @@ test('een Vlaamse of Nederlandse krant past niet bij een interesse; sport niet b
 test('web en app gebruiken dezelfde regels: de rekenkern en de bronnenstap', () => {
   assert.match(read('src/lib/editionCore.js'), /export \{ voorstelJSON \} from '\.\.\/\.\.\/shared\/voorstel\.mjs'/)
   assert.match(read('ios/Hoot/Resources/edition-core.js'), /voorstelJSON/)
-  assert.match(read('src/views/Welcome.jsx'), /voorstel\(pickable, interests, picked\)/)
+  assert.match(read('src/views/Welcome.jsx'), /voorstel\(pickable, interests, picked, \{ english \}\)/)
   assert.match(read('ios/Hoot/Views/WelcomeView.swift'), /EditionEngine\.shared\.voorstel/)
 })
 
@@ -111,4 +113,42 @@ test('review G1, G2, G3 en G6: voorstel alvast aan, knop nooit dood, voorbeeld e
   }
   assert.match(ios, /title: voorstel == nil \? "Basis" : "Voor jou"/)
   assert.match(read('ios/Hoot/Views/StreamView.swift'), /Text\("Je bent bij\."\)/)
+})
+
+// Week · 4 (taal volgt bronkeuze): een nieuw profiel krijgt alleen Nederlandse bronnen, dus een Nederlandse eerste Editie.
+test('een nieuw profiel: nooit een Engelstalige bron, voor geen enkele interesse of combinatie', () => {
+  const all = INTERESTS.map((i) => i.id)
+  const sets = [...all.map((i) => [i]), all, ['wereld', 'economie'], ['tech', 'wetenschap'], ['politiek', 'wereld']]
+  for (const set of sets) {
+    const p = voorstel(SOURCES, set)
+    assert.ok(p.every((x) => (byId.get(x.id).lang || 'nl') === 'nl'), `${set.join('+')}: ${ids(p)}`)
+    assert.equal(p[0].id, 'nos')
+    assert.ok(p.length >= 3 || set.every((i) => ['politiek', 'binnenland'].includes(i)), `${set.join('+')}: minstens drie`)
+  }
+  assert.deepEqual(ids(voorstel(SOURCES, ['wereld'])), ['nos', 'nu', 'rtl'])
+  assert.deepEqual(ids(voorstel(SOURCES, ['wetenschap'])), ['nos', 'nu', 'rtl'])
+  assert.deepEqual(ids(voorstel(SOURCES, ['politiek'])), ['nos', 'nu'], 'RTL Nieuws blijft weg bij Politiek (r5-politiek-rtl)')
+  assert.deepEqual(ids(voorstel(SOURCES, ['sport'])), ['nos', 'nos-sport', 'vi'], 'wat al Nederlands was, blijft')
+})
+
+test('Engels aan geeft het voorstel van voor Week · 4, ook via de rekenkern van de app', () => {
+  const en = voorstel(SOURCES, ['wereld'], [], { english: true })
+  assert.deepEqual(ids(en), ['nos', 'guardian', 'bbc'])
+  const viaJSON = JSON.parse(voorstelJSON(JSON.stringify({ sources: SOURCES, interests: ['wereld'], english: true })))
+  assert.deepEqual(ids(viaJSON), ids(en))
+  const zonder = JSON.parse(voorstelJSON(JSON.stringify({ sources: SOURCES, interests: ['wereld'] })))
+  assert.deepEqual(ids(zonder), ['nos', 'nu', 'rtl'])
+  assert.match(read('src/views/Welcome.jsx'), /voorstel\(pickable, interests, picked, \{ english \}\)/)
+  assert.match(read('ios/Hoot/Views/WelcomeView.swift'), /voorstel\(sources: store\.newsSources, interests: interests, topics: picked, english: english\)/)
+})
+
+test('de eerste Editie van een nieuw profiel is Nederlands: de voorbeeldregels in de bronnenstap komen uit Nederlandse bronnen', async () => {
+  const { previewLines } = await import('../src/lib/follow-welcome.js')
+  const items = SOURCES.map((s, n) => ({ id: `i${n}`, source: s.id, sourceName: s.name, title: `Kop ${s.id}`, kind: 'article', publishedAt: `2026-11-12T0${n % 9}:00:00Z` }))
+  for (const set of [['wereld'], ['wetenschap'], ['tech', 'wetenschap'], ['wereld', 'economie']]) {
+    const mine = voorstel(SOURCES, set).filter((x) => x.on).map((x) => x.id)
+    const lines = previewLines(items, SOURCES, mine, 4)
+    assert.ok(lines.length > 0)
+    assert.ok(lines.every((l) => byId.get(l.source.id).lang === 'nl'), `${set.join('+')}: ${lines.map((l) => l.source.id)}`)
+  }
 })

@@ -490,7 +490,10 @@ struct WelcomeView: View {
                 sourceList
                     .onChange(of: mine) { before, _ in freezeFolds(before: before) }
                     .task(id: "\(interests)|\(picked)|\(store.newsSources.count)") {
-                        let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked)
+                        // Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt Nederlandse bronnen; Engelstalige alleen
+                        // als je er bij opnieuw kiezen al een volgt (gelijk aan `english` in src/views/Welcome.jsx).
+                        let english = again && store.followed.contains { $0.lang == "en" }
+                        let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked, english: english)
                         guard !Task.isCancelled else { return }
                         voorstel = next ?? nil
                         // De eerste keer staat het gratis deel van Voor jou alvast aan (review G2, keuze

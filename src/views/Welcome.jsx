@@ -91,7 +91,10 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
   const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
   const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
   // Het voorstel bovenaan de bronnenstap (shared/voorstel.mjs): uit je interesses en je eigen onderwerpen.
-  const plan = useMemo(() => voorstel(pickable, interests, picked), [pickable, interests, picked])
+  // Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt Nederlandse bronnen; Engelstalige alleen als je er
+  // bij opnieuw kiezen al een volgt.
+  const english = useMemo(() => reopen && pickable.some((s) => s.lang === 'en' && !muted.has(s.id)), [reopen, pickable, muted])
+  const plan = useMemo(() => voorstel(pickable, interests, picked, { english }), [pickable, interests, picked, english])
   // Je bronnen: je eigen keuze; opnieuw kiezen begint bij wat nu aan staat. De eerste keer staat het voorstel
   // alvast aan (review G2: anders merkt je Editie niets van je interesses); zonder interesses niets.
   // Alleen gratis alvast aan (keuze r5-voorstel-betaald): een betaalde bron in Voor jou zet je zelf aan.

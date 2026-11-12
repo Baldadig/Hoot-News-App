@@ -2393,6 +2393,15 @@ select.input {
   color: var(--on-brand-red);
   text-wrap: balance;
 }
+/* Verder lezen: een .linkbtn, stiller op merkrood; bij hover de volle tekstkleur. */
+.endcap__more {
+  color: var(--on-brand-red-2);
+}
+@media (hover: hover) {
+  .endcap__more:hover {
+    color: var(--on-brand-red);
+  }
+}
 
 .how {
   color: var(--ink-3);
@@ -3191,28 +3200,6 @@ select.input {
   text-wrap: pretty;
 }
 .ob--open .ob__lede {
-  color: var(--on-brand-red-2);
-}
-/* Het bewijs onder de kop: de eerste kop van de huidige Editie, met zijn bron. */
-.ob__proof {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s1);
-  max-inline-size: 20em;
-  margin-top: var(--s3);
-}
-.ob__prooftitle {
-  font-family: var(--serif);
-  font-size: var(--t4);
-  line-height: var(--lh-tight);
-  text-wrap: balance;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.ob__proofsrc {
-  font-size: var(--t2);
   color: var(--on-brand-red-2);
 }
 
