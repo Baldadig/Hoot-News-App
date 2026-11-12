@@ -235,7 +235,9 @@ struct SubscriptionsView: View {
         .alert("Overal uitloggen in de lezer?", isPresented: $confirmForget) {
             Button("Annuleer", role: .cancel) {}
             Button("Log uit", role: .destructive) {
-                ArticleLoader.dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {}
+                // Het dagboek pas wissen als de cookies echt weg zijn: dan begint het opnieuw, en kijkt
+                // Hoot niet nog net voor het opruimen (en schrijft dan "weg vóór de vervaldatum").
+                ArticleLoader.dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) { LoginDiary.erase() }
                 PublisherLogin.forget()
                 loggedIn = []
             }

@@ -9,7 +9,8 @@ import WebKit
 //
 // Privacy: alleen op dit toestel, er gaat niets naar de server. Per cookie alleen het domein, de naam,
 // de vervaldatum (of "sessie") en of de site hem alleen zelf kan lezen (HttpOnly: dan zette de server
-// hem, niet een script). Nooit de waarde. Tijden op een dagdeel nauwkeurig, niet op de minuut.
+// hem, niet een script). Nooit de waarde. Intern staan de echte tijden (anders klopt "verlopen" tegenover
+// "weg vóór de vervaldatum" niet); alleen bij het tonen en delen wordt afgerond op een dagdeel.
 struct LoginDiary: Codable, Equatable {
     struct Cookie: Codable, Hashable {
         var publisher: String // de naam van de bron, zoals in Abonnementen
@@ -24,7 +25,7 @@ struct LoginDiary: Codable, Equatable {
             self.publisher = publisher
             self.domain = domain
             self.name = name
-            self.expires = expires.map { LoginDiary.dagdeel($0) }
+            self.expires = expires
             self.httpOnly = httpOnly
         }
         init(_ cookie: HTTPCookie, publisher: String) {
@@ -46,7 +47,7 @@ struct LoginDiary: Codable, Equatable {
 
     // Een nieuwe blik: wat er nu staat, naast wat er de vorige keer stond.
     mutating func observe(_ now: [Cookie], at date: Date) {
-        let at = Self.dagdeel(date)
+        let at = date
         let before = Dictionary(cookies.map { ($0.key, $0) }, uniquingKeysWith: { a, _ in a })
         let after = Dictionary(now.map { ($0.key, $0) }, uniquingKeysWith: { a, _ in a })
         if started == nil {
@@ -65,13 +66,7 @@ struct LoginDiary: Codable, Equatable {
         return expires <= at ? "verlopen" : "weg vóór de vervaldatum (\(dag(expires)))"
     }
 
-    // MARK: Dagdelen: nacht, ochtend, middag, avond (0, 6, 12 en 18 uur).
-
-    static func dagdeel(_ date: Date, calendar: Calendar = .current) -> Date {
-        let day = calendar.startOfDay(for: date)
-        let hour = calendar.component(.hour, from: date)
-        return calendar.date(byAdding: .hour, value: hour / 6 * 6, to: day) ?? day
-    }
+    // MARK: Dagdelen bij het tonen: nacht, ochtend, middag, avond. Opgeslagen blijft de echte tijd.
 
     static func dagdeelNaam(_ date: Date, calendar: Calendar = .current) -> String {
         ["nacht", "ochtend", "middag", "avond"][min(3, calendar.component(.hour, from: date) / 6)]
@@ -123,10 +118,19 @@ struct LoginDiary: Codable, Equatable {
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         guard let data = try? JSONEncoder().encode(self) else { return }
         try? data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+        Self.excludeFromBackup(url) // na elke schrijfbeurt: een atomic schrijfbeurt maakt een nieuw bestand
     }
 
     static func erase(at url: URL = file) {
         try? FileManager.default.removeItem(at: url)
+    }
+
+    // Het dagboek hoort bij dit toestel: niet mee in de back-up (iCloud of computer).
+    static func excludeFromBackup(_ url: URL) {
+        var url = url
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try? url.setResourceValues(values)
     }
 }
 

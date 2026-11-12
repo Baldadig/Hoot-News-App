@@ -60,14 +60,16 @@ final class LoginDiaryTests: XCTestCase {
         var diary = LoginDiary()
         diary.observe([token, session, gone], at: date(12, 7, 13))
         XCTAssertTrue(diary.events.isEmpty, "de eerste keer is de beginstand")
-        XCTAssertEqual(diary.started, date(12, 6), "ochtend")
+        XCTAssertEqual(diary.started, date(12, 7, 13), "de echte tijd blijft bewaard")
+        XCTAssertEqual(LoginDiary.moment(diary.started!), "12 nov, ochtend", "afronden alleen bij het tonen")
 
         diary.observe([token], at: date(14, 20, 5))
         XCTAssertEqual(diary.events.count, 2)
-        XCTAssertTrue(diary.events.allSatisfy { $0.kind == .gone && $0.at == date(14, 18) }, "avond, geen minuten")
-        XCTAssertEqual(LoginDiary.reason(session, goneAt: date(14, 18)), "sessie voorbij")
-        XCTAssertEqual(LoginDiary.reason(gone, goneAt: date(14, 18)), "verlopen")
-        XCTAssertTrue(LoginDiary.reason(token, goneAt: date(14, 18)).hasPrefix("weg vóór de vervaldatum"))
+        XCTAssertTrue(diary.events.allSatisfy { $0.kind == .gone && $0.at == date(14, 20, 5) })
+        XCTAssertEqual(LoginDiary.moment(diary.events[0].at), "14 nov, avond", "avond, geen minuten")
+        XCTAssertEqual(LoginDiary.reason(session, goneAt: date(14, 20, 5)), "sessie voorbij")
+        XCTAssertEqual(LoginDiary.reason(gone, goneAt: date(14, 20, 5)), "verlopen")
+        XCTAssertTrue(LoginDiary.reason(token, goneAt: date(14, 20, 5)).hasPrefix("weg vóór de vervaldatum"))
 
         diary.observe([token, session], at: date(15, 13))
         XCTAssertEqual(diary.events.last?.kind, .appeared)
@@ -76,9 +78,28 @@ final class LoginDiaryTests: XCTestCase {
         XCTAssertEqual(LoginDiary.moment(date(15, 2)), "15 nov, nacht")
     }
 
-    func testExpiryIsKeptOnADagdeelToo() {
+    // De echte tijden blijven bewaard; alleen tonen rondt af. Dus "verlopen" tegenover "weg vóór de
+    // vervaldatum" klopt ook binnen hetzelfde dagdeel.
+    func testRealTimesDecideExpiredOrEarly() {
         let c = LoginDiary.Cookie(publisher: "NRC", domain: "nrc.nl", name: "x_token", expires: date(30, 10, 47), httpOnly: false)
-        XCTAssertEqual(c.expires, date(30, 6))
+        XCTAssertEqual(c.expires, date(30, 10, 47))
+        XCTAssertEqual(LoginDiary.reason(c, goneAt: date(30, 10, 12)), "weg vóór de vervaldatum (30 nov)", "zelfde dagdeel, maar ervóór")
+        XCTAssertEqual(LoginDiary.reason(c, goneAt: date(30, 10, 47)), "verlopen")
+        XCTAssertEqual(LoginDiary.reason(c, goneAt: date(30, 11, 5)), "verlopen", "zelfde dagdeel, erna")
+        XCTAssertEqual(LoginDiary.line(c), "nrc.nl · x_token · tot 30 nov")
+    }
+
+    func testEraseRemovesTheFileAndItIsKeptOutOfTheBackup() throws {
+        let file = FileManager.default.temporaryDirectory.appending(path: "inlogdagboek-\(UUID().uuidString).json")
+        defer { LoginDiary.erase(at: file) }
+        var diary = LoginDiary()
+        diary.observe([], at: date(1, 8))
+        diary.save(to: file)
+        let values = try file.resourceValues(forKeys: [.isExcludedFromBackupKey])
+        XCTAssertEqual(values.isExcludedFromBackup, true)
+        LoginDiary.erase(at: file)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: file.path()))
+        XCTAssertEqual(LoginDiary.load(from: file), LoginDiary(), "zonder bestand begint het dagboek opnieuw")
     }
 
     func testTheDiaryStaysSmall() {

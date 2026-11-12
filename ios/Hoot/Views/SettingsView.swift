@@ -83,6 +83,7 @@ struct SettingsView: View {
 
     // Terug naar het welkom: opnieuw kiezen, of opnieuw inloggen. Wat je bewaarde en las blijft.
     private func reset() {
+        LoginDiary.erase() // ook het inlogdagboek begint opnieuw
         dismiss()
         Task {
             try? await Task.sleep(for: .milliseconds(450)) // eerst dit blad dicht, dan het welkom

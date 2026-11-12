@@ -51,6 +51,32 @@ final class LoginPopupsTests: XCTestCase {
         XCTAssertEqual(popups.sheet?.id, "google")
     }
 
+    // MARK: Welke vensters een inlogvel worden
+
+    func testLoginServicesAreRecognised() {
+        for u in ["https://appleid.apple.com/auth/authorize", "https://accounts.google.com/o/oauth2/auth", "https://login.nrc.nl/clientredirect",
+                  "https://auth.example.com/x", "https://account.theverge.com/signin", "https://id.vox.com/", "https://www.facebook.com/v18.0/dialog/oauth",
+                  "https://www.telegraph.co.uk/login", "https://login.microsoftonline.com/common/oauth2", "https://x.com/i/flow/login"] {
+            XCTAssertTrue(LoginPopups.looksLikeLogin(action(u)), u)
+        }
+        for u in ["https://www.nrc.nl/voorwaarden/", "https://www.theguardian.com/info/privacy", "https://www.facebook.com/sharer/sharer.php?u=x",
+                  "https://twitter.com/intent/tweet", "https://www.example.com/artikel", "about:blank"] {
+            XCTAssertFalse(LoginPopups.looksLikeLogin(action(u)), u)
+        }
+        XCTAssertFalse(LoginPopups.looksLikeLogin(nil))
+    }
+
+    // Een gewone link met target=_blank opent in dezelfde weergave (zoals vroeger); een inlogdienst, ook via
+    // een link, een vel; window.open van een script een echt venster; Google blijft het blad.
+    func testPlanPerNewWindowRequest() {
+        XCTAssertEqual(LoginPopups.plan(url: action("https://www.nrc.nl/voorwaarden/"), linkActivated: true), .sameView)
+        XCTAssertEqual(LoginPopups.plan(url: action("https://appleid.apple.com/auth/authorize"), linkActivated: true), .popup)
+        XCTAssertEqual(LoginPopups.plan(url: action("https://appleid.apple.com/auth/authorize"), linkActivated: false), .popup)
+        XCTAssertEqual(LoginPopups.plan(url: action("about:blank"), linkActivated: false), .popup, "window.open('') wacht op een opener")
+        XCTAssertEqual(LoginPopups.plan(url: action("https://www.example.com/deel"), linkActivated: false), .popup)
+        XCTAssertEqual(LoginPopups.plan(url: action("https://accounts.google.com/o/oauth2/auth"), linkActivated: true), .google)
+    }
+
     // MARK: Pop-ups maken en sluiten (met WebKit zelf: window.open, opener, window.close)
 
     func testWindowOpenMakesARealSecondWindowAndCloseRemovesIt() async throws {
@@ -105,8 +131,10 @@ final class LoginPopupsTests: XCTestCase {
     }
 
     func testTitlesAndAnnouncement() {
-        XCTAssertEqual(LoginPopupSheet.title("appleid.apple.com"), "Inloggen bij appleid.apple.com")
-        XCTAssertEqual(LoginPopupSheet.title(""), "Inloggen")
+        XCTAssertEqual(LoginPopupSheet.title("appleid.apple.com", login: true), "Inloggen bij appleid.apple.com")
+        XCTAssertEqual(LoginPopupSheet.title("", login: true), "Inloggen")
+        XCTAssertEqual(LoginPopupSheet.title("www.telegraph.co.uk", login: false), "www.telegraph.co.uk", "geen inlogdienst: alleen de host")
+        XCTAssertEqual(LoginPopupSheet.title("", login: false), "Venster")
         XCTAssertEqual(LoginPopups.announcement("NRC"), "Je bent terug op de pagina van NRC.")
     }
 

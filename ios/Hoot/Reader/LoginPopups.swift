@@ -77,13 +77,46 @@ final class LoginPopups: NSObject, WKUIDelegate, WKNavigationDelegate {
     nonisolated static let googleDoorlaten = false
     #endif
 
+    // Lijkt dit een inlogdienst? Hosts als login., auth., account., id. (de bestaande herkenning van
+    // `ArticleLoader.isGate`, ook op het pad /login), plus de grote inlogdiensten zelf.
+    static func looksLikeLogin(_ url: URL?) -> Bool {
+        guard let url, let host = url.host()?.lowercased() else { return false }
+        // Diensten die alleen om in te loggen bestaan.
+        if ["appleid.apple.com", "accounts.google.com", "login.microsoftonline.com", "login.live.com", "api.twitter.com"].contains(host) { return true }
+        // Sociale netwerken: alleen hun inlog- en toestemmingspagina's, niet elke link naar de site.
+        let path = url.path().lowercased()
+        if host == "facebook.com" || host.hasSuffix(".facebook.com") || host == "x.com" || host == "twitter.com" {
+            return ["/dialog/", "/login", "/oauth", "/i/flow"].contains { path.contains($0) }
+        }
+        return ArticleLoader.isGate(url)
+    }
+
+    enum Plan: Equatable { case google, popup, sameView }
+
+    // Wat te doen met een verzoek om een nieuw venster. Een inlogvenster (van een inlogknop of window.open
+    // naar een inlogdienst) wordt een vel, met de opener intact. Een gewone link met `target=_blank`
+    // (voorwaarden, privacy, een ander artikel) is geen inlog: die opent in dezelfde weergave, zoals de
+    // lezer altijd deed. Een script dat zelf een venster opent (window.open) krijgt wel een echt venster,
+    // want de site kan daarop wachten, maar zonder "Inloggen bij" in de titel als het geen inlogdienst is.
+    static func plan(url: URL?, linkActivated: Bool) -> Plan {
+        if catchesGoogle(url, mainFrame: true) { return .google }
+        if looksLikeLogin(url) { return .popup }
+        return linkActivated ? .sameView : .popup
+    }
+
     // MARK: WKUIDelegate
 
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-        // Naar Google: geen venster (het wordt toch geweigerd), maar het blad.
-        if Self.catchesGoogle(navigationAction.request.url, mainFrame: true) {
+        switch Self.plan(url: navigationAction.request.url, linkActivated: navigationAction.navigationType == .linkActivated) {
+        case .google:
+            // Naar Google: geen venster (het wordt toch geweigerd), maar het blad.
             google = true
             return nil
+        case .sameView:
+            webView.load(navigationAction.request)
+            return nil
+        case .popup:
+            break
         }
         // Precies deze configuratie gebruiken: WebKit koppelt het nieuwe venster dan aan de opener.
         let popup = WKWebView(frame: .zero, configuration: configuration)
@@ -143,6 +176,8 @@ struct LoginPopupSheet: View {
     let popup: LoginPopups.Popup
     let cancel: () -> Void
     @State private var host = ""
+    // Pas "Inloggen bij" als de pagina echt een inlogdienst is.
+    @State private var login = false
 
     var body: some View {
         NavigationStack {
@@ -150,7 +185,7 @@ struct LoginPopupSheet: View {
                 .ignoresSafeArea(edges: .bottom)
                 .background(Theme.paper)
                 // Zodat je ziet (en VoiceOver zegt) bij wie je inlogt.
-                .navigationTitle(LoginPopupSheet.title(host))
+                .navigationTitle(LoginPopupSheet.title(host, login: login))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -158,10 +193,17 @@ struct LoginPopupSheet: View {
                     }
                 }
         }
-        .onReceive(popup.webView.publisher(for: \.url)) { host = $0?.host() ?? host }
+        .onReceive(popup.webView.publisher(for: \.url)) { url in
+            host = url?.host() ?? host
+            if url?.host() != nil { login = LoginPopups.looksLikeLogin(url) }
+        }
     }
 
-    static func title(_ host: String) -> String { host.isEmpty ? "Inloggen" : "Inloggen bij \(host)" }
+    // "Inloggen bij {host}" alleen voor een echte inlogdienst; een ander venster toont gewoon de host.
+    static func title(_ host: String, login: Bool) -> String {
+        if host.isEmpty { return login ? "Inloggen" : "Venster" }
+        return login ? "Inloggen bij \(host)" : host
+    }
 }
 
 // Google laat inloggen alleen toe in Safari. Kort, met de twee uitwegen die echt werken: een wachtwoord
