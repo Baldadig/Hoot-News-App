@@ -79,9 +79,15 @@ export async function claimEdition(client, uid, stamped) {
 }
 
 // De samenvatting erbij: alleen bij de Editie die er nog staat (zelfde dagdeel en afdruk), nooit over
-// een andere heen (P8-3, brief-schrijfactie).
+// een andere heen (P8-3, brief-schrijfactie). Gaf de server je Editie met jouw afdruk terug terwijl de rij een
+// andere heeft (dezelfde keuze in de oude indeling, van app 1.2.1; edition.mjs forAsker), dan staat die van de
+// rij in `bases`: ook daarop raak.
+const MARK = /^[0-9a-z]{1,16}$/
 export async function writeBrief(client, uid, next) {
-  await client.from(TABLE).update({ edition: next }).eq('user_id', uid).eq('edition->>id', next.id).eq('edition->>basis', next.basis).then(() => {}, () => {})
+  const marks = [...new Set([next.basis, ...(Array.isArray(next.bases) ? next.bases : [])])].filter((b) => typeof b === 'string' && MARK.test(b))
+  if (!marks.length) return
+  const q = client.from(TABLE).update({ edition: next }).eq('user_id', uid).eq('edition->>id', next.id)
+  await (marks.length === 1 ? q.eq('edition->>basis', marks[0]) : q.or(marks.map((b) => `edition->>basis.eq.${b}`).join(','))).then(() => {}, () => {})
 }
 
 // P8-5: de Editie van het andere toestel, hier vastgelegd met de Edities van toen van beide toestellen als
