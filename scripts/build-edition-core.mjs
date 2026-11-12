@@ -65,6 +65,7 @@ if (isMain) {
     copyFileSync(resolve(ROOT, 'shared/slots.json'), resolve(ROOT, 'ios/Hoot/Resources/slots.json'))
     copyFileSync(resolve(ROOT, 'shared/edition-limits.json'), resolve(ROOT, 'ios/Hoot/Resources/edition-limits.json'))
     copyFileSync(resolve(ROOT, 'shared/edition-display.json'), resolve(ROOT, 'ios/Hoot/Resources/edition-display.json'))
+    copyFileSync(resolve(ROOT, 'shared/glossary.json'), resolve(ROOT, 'ios/Hoot/Resources/glossary.json'))
     console.log(`${OUT}: ${(fresh.length / 1024).toFixed(0)} kB, sha256 ${hashOf(fresh).slice(0, 12)}`)
   }
 }

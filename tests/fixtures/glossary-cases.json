@@ -1,0 +1,2114 @@
+{
+ "about": "Voorbeeldkoppen voor termsIn: web (tests/glossary.test.mjs) en app (ios/HootTests/GlossaryTests.swift) moeten precies deze begrippen vinden. Gemaakt met de lijst uit shared/glossary.json; de echte koppen komen uit opgeslagen feeds.",
+ "cases": [
+  {
+   "text": "De informateur en de formateur spreken met de partijen",
+   "max": 2,
+   "terms": [
+    "informateur",
+    "formateur"
+   ]
+  },
+  {
+   "text": "Kamer dient moties van wantrouwen in",
+   "max": 2,
+   "terms": [
+    "motie van wantrouwen"
+   ]
+  },
+  {
+   "text": "Raad van State, Hoge Raad en hoger beroep",
+   "max": 2,
+   "terms": [
+    "Raad van State",
+    "Hoge Raad"
+   ]
+  },
+  {
+   "text": "Raad van State, Hoge Raad en hoger beroep",
+   "max": 1,
+   "terms": [
+    "Raad van State"
+   ]
+  },
+  {
+   "text": "Raad van State, Hoge Raad en hoger beroep",
+   "max": 5,
+   "terms": [
+    "Raad van State",
+    "Hoge Raad",
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Raad van State, Hoge Raad en hoger beroep",
+   "max": 0,
+   "terms": []
+  },
+  {
+   "text": "",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Het bestand is beschadigd",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "De omgeving van het kamp",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Informatie over de formatie",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Cassette uit de jaren tachtig",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Vakbonden en werkgevers sluiten cao's af; nieuwe cao voor zorg",
+   "max": 2,
+   "terms": [
+    "cao"
+   ]
+  },
+  {
+   "text": "Houthi's vallen schip aan in de Rode Zee, Houthi-leider dreigt",
+   "max": 2,
+   "terms": [
+    "Houthi's"
+   ]
+  },
+  {
+   "text": "Het OM eist celstraf; het Openbaar Ministerie gaat in cassatie",
+   "max": 2,
+   "terms": [
+    "cassatie",
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "het om half drie",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Trump dreigt met nieuwe importtarieven en invoerheffingen",
+   "max": 2,
+   "terms": [
+    "importheffing"
+   ]
+  },
+  {
+   "text": "Israël en Hamas sluiten staakt-het-vuren; wapenstilstand wankel",
+   "max": 2,
+   "terms": [
+    "staakt-het-vuren",
+    "Hamas"
+   ]
+  },
+  {
+   "text": "VN-Veiligheidsraad en Veiligheidsraad stemmen",
+   "max": 2,
+   "terms": [
+    "VN-Veiligheidsraad"
+   ]
+  },
+  {
+   "text": "ICC vaardigt arrestatiebevel uit; Internationaal Strafhof",
+   "max": 2,
+   "terms": [
+    "Internationaal Strafhof"
+   ]
+  },
+  {
+   "text": "De eerste kamer van het huis",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Eerste Kamer stemt in met box 3-wet",
+   "max": 2,
+   "terms": [
+    "Eerste Kamer",
+    "box 3"
+   ]
+  },
+  {
+   "text": "BOX 3 en Box3 en box 30",
+   "max": 2,
+   "terms": [
+    "box 3"
+   ]
+  },
+  {
+   "text": "Stikstofcrisis: stikstofuitstoot en stikstofregels; stikstofje",
+   "max": 3,
+   "terms": [
+    "stikstof"
+   ]
+  },
+  {
+   "text": "Afzettingsprocedure tegen president; impeachment",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Midterm en tussentijdse verkiezingen in de VS",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Het bbp groeit, de ECB verlaagt de rente",
+   "max": 2,
+   "terms": [
+    "bbp",
+    "ECB"
+   ]
+  },
+  {
+   "text": "ecb in kleine letters, navo in kleine letters, aivd klein",
+   "max": 3,
+   "terms": []
+  },
+  {
+   "text": "NAVO, AIVD en Kremlin",
+   "max": 3,
+   "terms": [
+    "AIVD",
+    "NAVO",
+    "Kremlin"
+   ]
+  },
+  {
+   "text": "Hezbollah en Hamas",
+   "max": 1,
+   "terms": [
+    "Hamas"
+   ]
+  },
+  {
+   "text": "caféNAVO en NAVOé",
+   "max": 2,
+   "terms": [
+    "NAVO"
+   ]
+  },
+  {
+   "text": "Hamasé en éHamas",
+   "max": 2,
+   "terms": [
+    "Hamas"
+   ]
+  },
+  {
+   "text": "inflatieë en recessieö",
+   "max": 2,
+   "terms": [
+    "inflatie",
+    "recessie"
+   ]
+  },
+  {
+   "text": "Ëbbp",
+   "max": 2,
+   "terms": [
+    "bbp"
+   ]
+  },
+  {
+   "text": "naïeve inflatie",
+   "max": 2,
+   "terms": [
+    "inflatie"
+   ]
+  },
+  {
+   "text": "ÉCB of ECB",
+   "max": 2,
+   "terms": [
+    "ECB"
+   ]
+  },
+  {
+   "text": "stikstof_crisis",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "stikstof2",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "2stikstof",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "toeslagenaffaire en toeslagenschandaal",
+   "max": 2,
+   "terms": [
+    "toeslagenaffaire"
+   ]
+  },
+  {
+   "text": "Toeslagenaffaire",
+   "max": 2,
+   "terms": [
+    "toeslagenaffaire"
+   ]
+  },
+  {
+   "text": "kort geding, kort gedingen",
+   "max": 2,
+   "terms": [
+    "kort geding"
+   ]
+  },
+  {
+   "text": "Hoger beroep",
+   "max": 2,
+   "terms": [
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Recessie dreigt; recessies",
+   "max": 2,
+   "terms": [
+    "recessie"
+   ]
+  },
+  {
+   "text": "sancties tegen Rusland; sanctie",
+   "max": 2,
+   "terms": [
+    "sancties"
+   ]
+  },
+  {
+   "text": "Het Kremlin reageert",
+   "max": 2,
+   "terms": [
+    "Kremlin"
+   ]
+  },
+  {
+   "text": "Europese Commissie en europese commissie",
+   "max": 2,
+   "terms": [
+    "Europese Commissie"
+   ]
+  },
+  {
+   "text": "Formateur's plan",
+   "max": 2,
+   "terms": [
+    "formateur"
+   ]
+  },
+  {
+   "text": "informateur\nformateur",
+   "max": 2,
+   "terms": [
+    "informateur",
+    "formateur"
+   ]
+  },
+  {
+   "text": "  inflatie  ",
+   "max": 2,
+   "terms": [
+    "inflatie"
+   ]
+  },
+  {
+   "text": "Inflatie 3,7 procent in oktober",
+   "max": 1,
+   "terms": [
+    "inflatie"
+   ]
+  },
+  {
+   "text": "Dua Lipa, Tame Impala, SZA to Headline 2027 Coachella Madonna, Phoebe Bridgers, Daddy Yankee, and Don Toliver among performers set for desert festival for two weekends April",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Car Crashes Into Crowd in Los Angeles, Killing at Least 3 Pedestrians At least three others were critically injured after an S.U.V. jumped the curb near a North Hollywood metro station, the authorities said.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Coachella Reveals 2027 Lineup The post Coachella Reveals 2027 Lineup appeared first on Stereogum.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Zelensky blij met nieuwe aanpak vredesonderhandelingen vanuit VS Oekraïne heeft zondagnacht een grote droneaanval uitgevoerd op een olieraffinaderij in Kirisji, nabij Sint-Petersburg in het noordwesten van Rusland.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Trump Trots Out His Chaotic Greatest Hits to a Weary Public As he braces for Democrats to assume legislative control in Washington, President Trump has sought to take back center stage with some discordant maneuvers.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Vijf jaar The Kyiv Independent: hoe bedrijf je journalistiek in een land in oorlog? Terwijl in Abu Dhabi opnieuw wordt onderhandeld over het verloop van de oorlog, kijkt de redactie van The Kyiv Independent vandaag terug op bijna vijf jaar oorlogsverslaggeving.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Server Farms. Doomsday Bunkers. Has Argentina’s Milei Gone Too Far? Voters are turning on Javier Milei’s dreams of an A.I.-powered Argentina.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Republikeinen in Huis VS blokkeren afzettingsprocedure defensieminister Hegseth, elf Democraten misten stemming ",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Republikeinen in Huis VS blokkeren afzettingsprocedure defensieminister Hegseth, elf Democraten misten stemming ",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "More Eaze – Valley and Structure Valley and Structure The latest from Mari Rubio builds complex scaffolding from the simplest of motifs valley and structure by more eaze Over the last few years, I’ve seen More Eaze (aka Mari Rubio) twice.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Wekdienst 11/11: Elfde van de Elfde en Sint-Maarten gevierd • Online misbruikzaak voor de rechter Goedemorgen! Het is de Elfde van de Elfde, de traditionele opening van het carnavalsseizoen. Ook wordt in delen van Nederland Sint-Maarten gevierd.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Werkloosheid onder migranten stijgt, vooral jongeren vaker werkloos In de eerste drie kwartalen van dit jaar is de werkloosheid onder migranten gestegen.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "The United States Is Skipping COP31 in Turkey President Trump refused to send an American delegation to the United Nations climate summit in Turkey.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Er is pas reden tot feest als KLM echt krimpt ",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "AI pikt banen in van hoogopgeleide jongeren. Wat nu? Pikt AI onze banen in? Het is een veelbesproken angst, die redacteur Wouter van Noort langzaam werkelijkheid ziet worden.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Hoe de mensheid in zes dagen ten onder kan gaan aan biologische wapens Biologische wapens zijn verboden, maar dat betekent niet dat ze niet bestaan.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "De ‘domme, dikke en blije’ Nederlandse economie loopt als een tierelier. Hoe kan dat? Terwijl de brandstof steeds duurder wordt, de inflatie stukken hoger is dan we willen en er nauwelijks gebouwd kan worden, volgen de uitstekende groeicijfers van de…",
+   "max": 2,
+   "terms": [
+    "inflatie"
+   ]
+  },
+  {
+   "text": "De ‘domme, dikke en blije’ Nederlandse economie loopt als een tierelier. Hoe kan dat? Terwijl de brandstof steeds duurder wordt, de inflatie stukken hoger is dan we willen en er nauwelijks gebouwd kan worden, volgen de uitstekende groeicijfers van de…",
+   "max": 1,
+   "terms": [
+    "inflatie"
+   ]
+  },
+  {
+   "text": "Nvidia-topman Jensen Huang zat midden in de American dream, totdat hij viel voor een vermeende Chinese spion Jensen Huang, kind van Taiwanese immigranten en de onbetwistbare ‘koning van AI’, zat midden in de American dream.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Stacy Keach, Actor Who Embodied Hamlet and Mike Hammer, Dies at 85 He missed out on several major film roles, but found steady work in the theater, on TV and in movies.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "ICE Deportation Flight Carrying Iranians Turns Back and Lands in Arizona The Iranian immigrants in the plane were scheduled to be flown to Pakistan and then transferred to Iran, lawyers for the group said.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Alina Habba Mildon Faces Discipline Over Settlement at Trump Golf Club The state’s Office of Attorney Ethics recommended discipline for her role in brokering a sexual harassment settlement involving a waitress at the president’s golf club…",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Republicans Turn Back Effort to Impeach Hegseth The G.O.P. banded together to shelve impeachment articles against the defense secretary, sparing him from a damaging rebuke and potential ouster.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Republicans Turn Back Effort to Impeach Hegseth The G.O.P. banded together to shelve impeachment articles against the defense secretary, sparing him from a damaging rebuke and potential ouster.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Brandy and Monica Set ‘Boy Is Mine’ Residency In Las Vegas: ‘This Is Where We Belong’ Hot off their co-headlining tour, the singers are heading to Resorts World Las Vegas for a 10-date residency that kicks off in May",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Kennedys Join Suit to Block Trump’s Arch, Saying It Would Mar J.F.K. Gravesite The legal filing argues that the arch would cast a shadow on Kennedy family graves and disrupt the sightline from the eternal flame memorializing the former president.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Ballot Deadlines Pass in Mississippi Senate Race After Considerable Struggles The tight race between Senator Cindy Hyde-Smith and her Democratic challenger, Scott Colom, has highlighted the difficulties that stringent elections laws present to voters.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Stacy Keach, ‘Mike Hammer’ and ‘Fat City’ Star, Dead at 85 Keach was considered one of the greatest Shakespearean actors of his era",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Schietpartij in Amsterdam, kogel komt in rijdende bus terecht In Amsterdam is bij een schietpartij gisteravond mogelijk een kogel door de ruit van een rijdende bus gevlogen. Voor zover bekend is er niemand gewond geraakt.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Bernie Sanders Opposes Schumer as Majority Leader The progressive leader was among a few Democrats who signaled skepticism about Senator Chuck Schumer of New York, though his allies offered support and called for party unity.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "On the Defense: Takeaways From Hegseth’s Remarks on Articles of Impeachment Defense Secretary Pete Hegseth broke a monthslong drought of news briefings to defend his record in office.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "On the Defense: Takeaways From Hegseth’s Remarks on Articles of Impeachment Defense Secretary Pete Hegseth broke a monthslong drought of news briefings to defend his record in office.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Voorlopig geen afzettingsprocedure tegen Amerikaanse defensieminister Hegseth De Amerikaanse minister van Defensie Pete Hegseth blijft voorlopig aan.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Voorlopig geen afzettingsprocedure tegen Amerikaanse defensieminister Hegseth De Amerikaanse minister van Defensie Pete Hegseth blijft voorlopig aan.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "After Online Uproar, Sammy Kershaw and His Wife Will Walk CMA Awards Red Carpet After the Nineties hitmaker and his wife were denied access to the red carpet, a slew of artists rallied around him",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Microsoft’s DLSS competitor is out for the Xbox Ally X and works in handheld mode Microsoft is now rolling out Automatic Super Resolution (Auto SR), an upscaling technology that competes with Nvidia’s DLSS, for the Xbox Ally X, Xbox Ally X20, and select Windows Copilot Plus PCs, the company announced today.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Bessent Is Moved From D.C.-Area Home to Military Base Amid Iranian Threats The Treasury secretary, who is leading an economic pressure campaign against Iran, is the latest Trump official to leave his home over security concerns.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Kylie Jenner Sued by Housekeeper Who Says Mogul’s Dog Bit Her The new lawsuit comes after two other former housekeepers sued the cosmetics mogul in April with similar allegations",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Storms Slam British Columbia and California Is Next Northern California is likely to record some of its heaviest rain so far this season later this week.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Sade Are Not Attending Rock & Roll Hall of Fame Induction Ceremony “Please know that our absence takes nothing away from how much this recognition means to us,” band writes",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Vogellokker Een kennis heeft een klein achtertuintje waar ze met groene beplanting en vetbollen vogels probeert te lokken.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "How to Watch ‘Love & Hip Hop: The Final Chapter’ for Free Using This Simple Hack Want to tune in to the final installment of the hit VH1 franchise that’s been entertaining fans for more than a decade? Here’s how to watch without paying",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "New Research Compares Long-Term Relief From 21 Antidepressants In the meta-analysis, a few drugs stood out for offering greater effectiveness over time.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Megan Thee Stallion and Daniel Radcliffe Reunite for Season Two of ‘Reggie Dinkins’ The rapper will reprise her role as a divorced mom who strikes up a flirtation with Radcliffe’s character on The Fall and Rise of Reggie Dinkins",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "The Evening: House Republicans Shelve Hegseth Impeachment Plus, worrisome inflation numbers. Here’s the latest at the end of Tuesday.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "The Evening: House Republicans Shelve Hegseth Impeachment Plus, worrisome inflation numbers. Here’s the latest at the end of Tuesday.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Representative María Elvira Salazar Wins Re-Election in Florida Ms. Salazar, a Republican, had released an ad in which she said the White House had “gone too far” on immigration amid worries of Hispanic voter backlash within her party.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "The Tension Between Two of the Democrats’ Biggest Promises Lawmakers will have to figure out how to deliver on AI regulation without damaging the economy they’ve promised to protect.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Stung by Losses, G.O.P. Chooses Jordan and Thune as Leaders In the House, Republicans signaled a desire for fresh leadership after their biggest election defeat in decades. In the Senate, they re-elected their current leader.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Gegevens sportverenigingen op straat door datalek bij beheersysteem Er is een datalek geweest bij een systeem dat de gegevens van leden van sportclubs- en bonden beheert. Daarbij zijn persoonsgegevens buitgemaakt.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Inside NYC’s First Hip-Hop High School Where Students Freestyle Every Friday In the South Bronx, the first program of its kind offers the same classes as any high school. Only these classes are infused with hip-hop.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "The U.S. Has Lost Its Measles-Elimination Status, Data Suggests An international panel of scientific experts will convene on Tuesday to evaluate the status, but genetic data already shows the virus is once again entrenched in the United States.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Will N.Y. Democrats Use Their Supermajority to Push Hochul to the Left? Democratic socialists have expanded their political influence in New York, potentially setting up a showdown with the state’s moderate governor over raising taxes.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Trump Officials Drop Threat to Colorado School District Over Transgender Issues Trump administration officials had accused the district of allowing boys on girls’ teams, which they said violated a ban on sex discrimination in schools.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "King Gizzard & the Lizard Wizard Announce New Album Entropy, Two North American Tours It’s a companion LP to their last album, Alien Metal",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "US Soldier Is Arrested in UK on Suspicion of Spying for Russia The 41-year-old man, who was not named, was in custody pending possible charges after a joint investigation with the F.B.I. and U.S. military intelligence.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Global bullies have turned uncertainty into a weapon America and China see profit in keeping the whole world on edge",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Ahead of the ‘Grand Theft Auto VI’ Release, Here’s Where to Buy the Sony PlayStation 5 Pro Online The best way to play GTA 6 is with the PS5 Pro, thanks to better 4K graphics, high quality 3D audio, and smoother motion",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Europe has been living beyond its means. Now the bills are due It accounts for half the world’s social spending, but its fractured politics make cuts difficult",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Coalitie en Kamer nog geen steek verder met belastingplan Na weer een avond debatteren, is nog altijd niet duidelijk hoe het verder moet met het belastingplan.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Anthropic’s Giant IPO Will Tie It Closer to Nvidia Nvidia planned to invest $10 billion in Anthropic alongside its initial public offering, the largest of the new financial commitments from several giants to the A.I. company.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Mildred – “Fluorescence” The post Mildred – “Fluorescence” appeared first on Stereogum.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Prepare for the AI Apocalypse Like You’d Prepare for a Snowstorm Since late last year, a small but growing chorus of cybersecurity experts has been warning that AI models were pushing the internet toward a sort of cataclysm.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "It’s Time for Israelis to Throw Out Their Trump The U.S. midterm election results should be a lesson to the Israeli opposition in rallying against Netanyahu.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "It’s Time for Israelis to Throw Out Their Trump The U.S. midterm election results should be a lesson to the Israeli opposition in rallying against Netanyahu.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The VR Disney Plus app on Meta Quest now has 3D movies Disney is bringing more than 60 3D movies to the Disney Plus app on Meta Quest.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Oud-president Biden (83) bekogeld bij verrassingsbezoek aan Ierland Joe Biden, voormalig president van de Verenigde Staten, is tijdens een verrassingsbezoek aan Ierland belaagd en bekogeld. Er zijn zeker twee mensen aangehouden.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Amazon and Google Will See Big Paydays from Anthropic IPO Amazon and Google are the largest investors in the A.I. start-up, and their shares could gain hundreds of billions of dollars in value.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Met stemming in zicht nog altijd geen meerderheid voor Belastingplan. Tijd begint te dringen voor kabinet-Jetten: ‘Poldert u lekker vooruit’ Urenlange debatten voerde de Tweede Kamer over de belastingplannen van het kabinet voor het komende jaar.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Shane Butler – “Devotee” The post Shane Butler – “Devotee” appeared first on Stereogum.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Oura is acquiring medical AI chatbot startup Counsel Health Oura announced its quarterly earnings today and said it agreed to acquire Counsel Health for $625 million, after adding the company’s AI chatbot to its app earlier this year.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Sorry – “Winner” The post Sorry – “Winner” appeared first on Stereogum.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Spanjaard spreekt van martelingen in Rotterdam en Utrecht door criminelen Een Spaanse crimineel heeft tegenover de Spaanse politie een uitgebreide verklaring afgelegd over martelingen die hij eerder dit jaar zou hebben ondergaan in Rotterdam en Utrecht.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Who Is Alice Huang, the Woman in the Middle of Nvidia’s Spy Scandal? Alice Huang, who U.S. intelligence determined is a Chinese asset, emerged from the high-flying world of Shanghai finance to work with tech titans and obtain essential A.I. chips.",
+   "max": 2,
+   "terms": []
+  },
+  {
+   "text": "Pete Hegseth Digs in for Battle Against Impeachment Blitz Donald Trump and his administration are gearing up to defend their most loyal soldier",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Pete Hegseth Digs in for Battle Against Impeachment Blitz Donald Trump and his administration are gearing up to defend their most loyal soldier",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Ver vóór de afzettingsprocedure tegen Pete ‘geen vetzakken’ Hegseth maakte de minister al veel vijanden De Amerikaanse minister van Defensie Pete Hegseth verzet zich met hand en tand tegen een mogelijke afzetting, maar twijfels over zijn functioneren zijn er al heel lang, ook in eigen kring.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Ver vóór de afzettingsprocedure tegen Pete ‘geen vetzakken’ Hegseth maakte de minister al veel vijanden De Amerikaanse minister van Defensie Pete Hegseth verzet zich met hand en tand tegen een mogelijke afzetting, maar twijfels over zijn functioneren zijn er al heel lang, ook in eigen kring.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "In Midterm Elections, Voters Backed Democrats but Broke Right on Many Ballot Measures Many Republican and moderate voters who chose Democratic candidates did not do the same on transgender and other social issues.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "In Midterm Elections, Voters Backed Democrats but Broke Right on Many Ballot Measures Many Republican and moderate voters who chose Democratic candidates did not do the same on transgender and other social issues.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Ongedocumenteerden eisen bed, bad en brood: ‘Nederland is door de ondergrens gezakt’ De bestuursafdeling van de Raad van State heeft zich dinsdag over de sluiting van de bed-bad-broodopvang gebogen.",
+   "max": 2,
+   "terms": [
+    "Raad van State"
+   ]
+  },
+  {
+   "text": "Ongedocumenteerden eisen bed, bad en brood: ‘Nederland is door de ondergrens gezakt’ De bestuursafdeling van de Raad van State heeft zich dinsdag over de sluiting van de bed-bad-broodopvang gebogen.",
+   "max": 1,
+   "terms": [
+    "Raad van State"
+   ]
+  },
+  {
+   "text": "Arnhems bedrijf blaast rechtszaak af tegen Nederlandse honorair consul van Oekraïne De Arnhemse onderneming Peja Group heeft dinsdag op het laatste moment een kort geding ingetrokken tegen de honorair consul van Oekraïne in Nederland, Karel Burger Dirven.",
+   "max": 2,
+   "terms": [
+    "kort geding"
+   ]
+  },
+  {
+   "text": "Arnhems bedrijf blaast rechtszaak af tegen Nederlandse honorair consul van Oekraïne De Arnhemse onderneming Peja Group heeft dinsdag op het laatste moment een kort geding ingetrokken tegen de honorair consul van Oekraïne in Nederland, Karel Burger Dirven.",
+   "max": 1,
+   "terms": [
+    "kort geding"
+   ]
+  },
+  {
+   "text": "Why Pete Hegseth Faces Impeachment A Republican lawmaker is forcing a vote on impeaching the defense secretary based on these eight charges.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Why Pete Hegseth Faces Impeachment A Republican lawmaker is forcing a vote on impeaching the defense secretary based on these eight charges.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "‘We Have to Take Over’: Far-Right Extremists Want to Seize Control of the GOP MAGA failed because it didn’t go far enough, right-wing extremists say—and following devastating midterm losses, they see an opportunity to take over.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "‘We Have to Take Over’: Far-Right Extremists Want to Seize Control of the GOP MAGA failed because it didn’t go far enough, right-wing extremists say—and following devastating midterm losses, they see an opportunity to take over.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "OM: vrouw (26) stuurde tieners met wapens op pad voor liquidaties Het Openbaar Ministerie denkt dat een 26-jarige vrouw uit Amsterdam verschillende jongeren heeft aangestuurd om zwaar geweld te plegen.",
+   "max": 2,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "OM: vrouw (26) stuurde tieners met wapens op pad voor liquidaties Het Openbaar Ministerie denkt dat een 26-jarige vrouw uit Amsterdam verschillende jongeren heeft aangestuurd om zwaar geweld te plegen.",
+   "max": 1,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "Eerste Kamer stemt nipt in met kweken van embryo’s voor wetenschappelijk onderzoek De senaat stemt in met een verruiming van de Embryowet. Voortaan mogen embryo’s worden gekweekt voor wetenschappelijk onderzoek.",
+   "max": 2,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "Eerste Kamer stemt nipt in met kweken van embryo’s voor wetenschappelijk onderzoek De senaat stemt in met een verruiming van de Embryowet. Voortaan mogen embryo’s worden gekweekt voor wetenschappelijk onderzoek.",
+   "max": 1,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "The Impeachment Charges Against Defense Secretary Pete Hegseth, Explained The charges accuse the defense secretary of illegally starting the war with Iran, directing extrajudicial killings and ignoring laws meant to minimize civilian casualties.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "The Impeachment Charges Against Defense Secretary Pete Hegseth, Explained The charges accuse the defense secretary of illegally starting the war with Iran, directing extrajudicial killings and ignoring laws meant to minimize civilian casualties.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Hegseth piekert er niet over af te treden en noemt aanklachten tegen hem schadelijk De Amerikaanse minister van Defensie Pete Hegseth heeft de afzettingsprocedure die het Republikeinse Congreslid Thomas Massie tegen hem is begonnen, afgedaan als een politieke farce.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Hegseth piekert er niet over af te treden en noemt aanklachten tegen hem schadelijk De Amerikaanse minister van Defensie Pete Hegseth heeft de afzettingsprocedure die het Republikeinse Congreslid Thomas Massie tegen hem is begonnen, afgedaan als een politieke farce.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Eerste Kamer stemt voor verruiming embryowet: kweek wordt toegestaan voor onderzoek De Eerste Kamer heeft dinsdag ingestemd met het wetsvoorstel om de embryowet te verruimen.",
+   "max": 2,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "Eerste Kamer stemt voor verruiming embryowet: kweek wordt toegestaan voor onderzoek De Eerste Kamer heeft dinsdag ingestemd met het wetsvoorstel om de embryowet te verruimen.",
+   "max": 1,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "Eerste Kamer maakt weg vrij voor kweek van embryo’s voor onderzoek Onderzoek naar erfelijke ziekten en ongewilde kinderloosheid mag binnenkort ook gedaan worden met menselijke embryo’s die daar speciaal voor zijn gekweekt.",
+   "max": 2,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "Eerste Kamer maakt weg vrij voor kweek van embryo’s voor onderzoek Onderzoek naar erfelijke ziekten en ongewilde kinderloosheid mag binnenkort ook gedaan worden met menselijke embryo’s die daar speciaal voor zijn gekweekt.",
+   "max": 1,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "Thuiswerkstrijd bij Booking gaat door: or in hoger beroep tegen kantoorverplichting De thuiswerkstrijd bij Booking is nog niet gestreden.",
+   "max": 2,
+   "terms": [
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Thuiswerkstrijd bij Booking gaat door: or in hoger beroep tegen kantoorverplichting De thuiswerkstrijd bij Booking is nog niet gestreden.",
+   "max": 1,
+   "terms": [
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Thuiswerkstrijd bij Booking gaat door: ondernemingsraad in hoger beroep tegen kantoorverplichting De thuiswerkstrijd bij Booking is nog niet gestreden.",
+   "max": 2,
+   "terms": [
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Thuiswerkstrijd bij Booking gaat door: ondernemingsraad in hoger beroep tegen kantoorverplichting De thuiswerkstrijd bij Booking is nog niet gestreden.",
+   "max": 1,
+   "terms": [
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Hegseth to Hold Rare News Conference as Impeachment Vote Looms The defense secretary has indicated that he will fight accusations that he violated the Constitution and federal law.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Hegseth to Hold Rare News Conference as Impeachment Vote Looms The defense secretary has indicated that he will fight accusations that he violated the Constitution and federal law.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "De staatsschuld loopt met miljarden op voor versnelde aanpassing vermogensbelasting box 3. Toch lijkt een Kamermeerderheid voor De staatsschuld stijgt met 17,5 miljard euro om de versnelde overstap naar een vermogenswinstbelasting te kunnen financieren.",
+   "max": 2,
+   "terms": [
+    "box 3"
+   ]
+  },
+  {
+   "text": "De staatsschuld loopt met miljarden op voor versnelde aanpassing vermogensbelasting box 3. Toch lijkt een Kamermeerderheid voor De staatsschuld stijgt met 17,5 miljard euro om de versnelde overstap naar een vermogenswinstbelasting te kunnen financieren.",
+   "max": 1,
+   "terms": [
+    "box 3"
+   ]
+  },
+  {
+   "text": "Amerikaanse verkiezingen 2026: bekijk hier de uitslagen Dinsdag 3 november gaan de Amerikanen naar de stembus voor de midterms, de tussentijdse verkiezingen in de Verenigde Staten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Amerikaanse verkiezingen 2026: bekijk hier de uitslagen Dinsdag 3 november gaan de Amerikanen naar de stembus voor de midterms, de tussentijdse verkiezingen in de Verenigde Staten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Een ‘blauwe golf’? Het is een Democratische tsunami in de midterms . Zij winnen Huis én Senaat Democraten leveren senatoren uit Texas, Ohio, Kansas, Iowa, North en South Carolina, verzekeren zich van een meerderheid in de Senaat en winnen gouverneurschappen waar ze tot voor kort niet van durfden te dromen.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Een ‘blauwe golf’? Het is een Democratische tsunami in de midterms . Zij winnen Huis én Senaat Democraten leveren senatoren uit Texas, Ohio, Kansas, Iowa, North en South Carolina, verzekeren zich van een meerderheid in de Senaat en winnen gouverneurschappen waar ze tot voor kort niet van durfden te dromen.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Enorme winst Democraten bij midterms, Republikeinen verliezen Huis en Senaat President Trump is keihard afgestraft bij de tussentijdse verkiezingen in de Verenigde Staten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Enorme winst Democraten bij midterms, Republikeinen verliezen Huis en Senaat President Trump is keihard afgestraft bij de tussentijdse verkiezingen in de Verenigde Staten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "‘The Choice to Elevate Darline Graham Was Just a Huge, Needless Error’: Opinion Writers Break Down the Midterms Michelle Cottle and David French talk about the stunning Texas Senate and governor’s results.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "‘The Choice to Elevate Darline Graham Was Just a Huge, Needless Error’: Opinion Writers Break Down the Midterms Michelle Cottle and David French talk about the stunning Texas Senate and governor’s results.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Why Republicans Lost So Big The president’s party is always expected to do poorly in midterm elections, just not this poorly.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Why Republicans Lost So Big The president’s party is always expected to do poorly in midterm elections, just not this poorly.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Democrat Annie Andrews Upsets Darline Graham to Win South Carolina Senate Seat The midterms elections are going extremely well for Democrats",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Democrat Annie Andrews Upsets Darline Graham to Win South Carolina Senate Seat The midterms elections are going extremely well for Democrats",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Tinashe to Republican Voters During Midterm Elections: ‘Yall Can Go’ The pop star clapped back at Republican supporters on social media who criticized her Election Day message",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Tinashe to Republican Voters During Midterm Elections: ‘Yall Can Go’ The pop star clapped back at Republican supporters on social media who criticized her Election Day message",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Here’s How to Watch NBC If You Don’t Have Cable Tuning into 2026 midterm election coverage? Here’s how to do it online",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Here’s How to Watch NBC If You Don’t Have Cable Tuning into 2026 midterm election coverage? Here’s how to do it online",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "In Alaska nu al meer gestemd dan bij de meeste andere midterms Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "In Alaska nu al meer gestemd dan bij de meeste andere midterms Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "This Election Day, remember which party ran against EVs and tethered us all to the gas pump It’s the midterms! Here’s a fun fact for you as you head to the polls: Gas prices today are the highest ever recorded for a US Election Day.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "This Election Day, remember which party ran against EVs and tethered us all to the gas pump It’s the midterms! Here’s a fun fact for you as you head to the polls: Gas prices today are the highest ever recorded for a US Election Day.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "OM eist 12 jaar cel voor verdachte van ‘vriezermoord’ op vader Het Openbaar Ministerie (OM) eist een gevangenisstraf van twaalf jaar tegen een 33-jarige man uit Heerhugowaard.",
+   "max": 2,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "OM eist 12 jaar cel voor verdachte van ‘vriezermoord’ op vader Het Openbaar Ministerie (OM) eist een gevangenisstraf van twaalf jaar tegen een 33-jarige man uit Heerhugowaard.",
+   "max": 1,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "Ken Burns: Why I’m Optimistic About the Midterms There’s something fundamental at stake in the midterms this year, beyond policy differences.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Ken Burns: Why I’m Optimistic About the Midterms There’s something fundamental at stake in the midterms this year, beyond policy differences.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Van Essen heeft stikstofplannen rond en denkt steun van Pro te behouden: ‘Dit zijn geen afzwakkingen’ Landbouwminister Jaimi van Essen (D66) houdt vast aan de doelen die het kabinet heeft opgesteld om de stikstofuitstoot drastisch in te perken.",
+   "max": 2,
+   "terms": [
+    "stikstof"
+   ]
+  },
+  {
+   "text": "Van Essen heeft stikstofplannen rond en denkt steun van Pro te behouden: ‘Dit zijn geen afzwakkingen’ Landbouwminister Jaimi van Essen (D66) houdt vast aan de doelen die het kabinet heeft opgesteld om de stikstofuitstoot drastisch in te perken.",
+   "max": 1,
+   "terms": [
+    "stikstof"
+   ]
+  },
+  {
+   "text": "Van Essen heeft stikstofplannen rond en kan op steun van Pro rekenen: ‘Dit zijn geen afzwakkingen’ Landbouwminister Jaimi van Essen (D66) houdt vast aan de doelen die het kabinet heeft opgesteld om de stikstofuitstoot drastisch in te perken.",
+   "max": 2,
+   "terms": [
+    "stikstof"
+   ]
+  },
+  {
+   "text": "Van Essen heeft stikstofplannen rond en kan op steun van Pro rekenen: ‘Dit zijn geen afzwakkingen’ Landbouwminister Jaimi van Essen (D66) houdt vast aan de doelen die het kabinet heeft opgesteld om de stikstofuitstoot drastisch in te perken.",
+   "max": 1,
+   "terms": [
+    "stikstof"
+   ]
+  },
+  {
+   "text": "How to Livestream Midterm Election-Night News for Free Without Cable Here’s what the major news networks have planned for the midterms, plus how to watch all of it for free without cable",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "How to Livestream Midterm Election-Night News for Free Without Cable Here’s what the major news networks have planned for the midterms, plus how to watch all of it for free without cable",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "U.S. Military Strikes Iran’s Qeshm Island in What U.S. Officials Call a Defensive Measure The action was limited, the officials said, with no immediate plans to escalate. The strikes come on the eve of the midterm elections.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "U.S. Military Strikes Iran’s Qeshm Island in What U.S. Officials Call a Defensive Measure The action was limited, the officials said, with no immediate plans to escalate. The strikes come on the eve of the midterm elections.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "What’s at Stake in Today’s Elections Though President Trump’s name is not on the ballot, voters are weighing the effects of his agenda in Tuesday’s midterm elections.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "What’s at Stake in Today’s Elections Though President Trump’s name is not on the ballot, voters are weighing the effects of his agenda in Tuesday’s midterm elections.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "OM eist 100 uur taakstraf tegen agent die met wapenstok ingreep op huwelijksfeest Als het aan het Openbaar Ministerie (OM) ligt, moet de agent die in augustus 2024 zijn wapenstok gebruikte tegen feestvierders een taakstraf van 100 uur krijgen.",
+   "max": 2,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "OM eist 100 uur taakstraf tegen agent die met wapenstok ingreep op huwelijksfeest Als het aan het Openbaar Ministerie (OM) ligt, moet de agent die in augustus 2024 zijn wapenstok gebruikte tegen feestvierders een taakstraf van 100 uur krijgen.",
+   "max": 1,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "Iraans regime toont billboard in Teheran met doodsbedreiging aan Donald Trump Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Iraans regime toont billboard in Teheran met doodsbedreiging aan Donald Trump Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Midterm elections 2026: all the news The 2026 midterm elections will determine the scope of President Donald Trump’s power in his final two years in office, and signal what voters care about going into the 2028 presidential election.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Midterm elections 2026: all the news The 2026 midterm elections will determine the scope of President Donald Trump’s power in his final two years in office, and signal what voters care about going into the 2028 presidential election.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "PFAS lozen? Dat kan bedrijven voortaan miljoenen euro’s aan boetes kosten Het Openbaar Ministerie en milieuhandhavers krijgen meer mogelijkheden om op te treden tegen milieucriminaliteit. Zo worden de straffen voor milieuovertredingen hoger.",
+   "max": 2,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "PFAS lozen? Dat kan bedrijven voortaan miljoenen euro’s aan boetes kosten Het Openbaar Ministerie en milieuhandhavers krijgen meer mogelijkheden om op te treden tegen milieucriminaliteit. Zo worden de straffen voor milieuovertredingen hoger.",
+   "max": 1,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "De Houthi’s vormen allesbehalve een houtje-touwtjemilitie. Hier halen ze hun wapens vandaan De Houthi’s beschikken over een hele waaier aan eigen raketten, vaak aangepaste varianten van wapens die oorspronkelijk werden gebouwd in de toenmalige Sovjet-Unie, China, Noord-Korea of Iran.",
+   "max": 2,
+   "terms": [
+    "Houthi's"
+   ]
+  },
+  {
+   "text": "De Houthi’s vormen allesbehalve een houtje-touwtjemilitie. Hier halen ze hun wapens vandaan De Houthi’s beschikken over een hele waaier aan eigen raketten, vaak aangepaste varianten van wapens die oorspronkelijk werden gebouwd in de toenmalige Sovjet-Unie, China, Noord-Korea of Iran.",
+   "max": 1,
+   "terms": [
+    "Houthi's"
+   ]
+  },
+  {
+   "text": "Celstraffen van twintig en twaalf jaar met tbs voor ouders Woudenberg die hun zes oppaskinderen misbruikten Het Openbaar Ministerie had straffen geëist van dertig en twintig jaar, maar de rechtbank acht niet alle verdenkingen bewezen.",
+   "max": 2,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "Celstraffen van twintig en twaalf jaar met tbs voor ouders Woudenberg die hun zes oppaskinderen misbruikten Het Openbaar Ministerie had straffen geëist van dertig en twintig jaar, maar de rechtbank acht niet alle verdenkingen bewezen.",
+   "max": 1,
+   "terms": [
+    "Openbaar Ministerie"
+   ]
+  },
+  {
+   "text": "Terwijl Amerikanen een nieuw Congres kiezen, lopen de presidentskandidaten zich al warm Terwijl de uitslagen van de tussentijdse verkiezingen lang op zich kunnen laten wachten, biedt verkiezingsdag in de Verenigde Staten een uitstekend moment om vooruit te blikken.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Terwijl Amerikanen een nieuw Congres kiezen, lopen de presidentskandidaten zich al warm Terwijl de uitslagen van de tussentijdse verkiezingen lang op zich kunnen laten wachten, biedt verkiezingsdag in de Verenigde Staten een uitstekend moment om vooruit te blikken.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "US midterms 2026: live results Follow all the races in the Senate and the House of Representatives",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "US midterms 2026: live results Follow all the races in the Senate and the House of Representatives",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "6 Themes to Watch for in the Midterms Elections Results Republicans are bracing for losses amid a backlash to the president’s economic leadership and the Iran war.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "6 Themes to Watch for in the Midterms Elections Results Republicans are bracing for losses amid a backlash to the president’s economic leadership and the Iran war.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Kabinet stelt nieuwe box 3-taks uit tot ‘uiterlijk’ 2029, maar hoopt toch nog op 2028 ",
+   "max": 2,
+   "terms": [
+    "box 3"
+   ]
+  },
+  {
+   "text": "Kabinet stelt nieuwe box 3-taks uit tot ‘uiterlijk’ 2029, maar hoopt toch nog op 2028 ",
+   "max": 1,
+   "terms": [
+    "box 3"
+   ]
+  },
+  {
+   "text": "‘Our Risk, Their Reward’: Zohran Mamdani on AI and Data Centers Ahead of the midterms, WIRED talked to New York City’s mayor about data centers, AI in schools, and the future of the Democratic party.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "‘Our Risk, Their Reward’: Zohran Mamdani on AI and Data Centers Ahead of the midterms, WIRED talked to New York City’s mayor about data centers, AI in schools, and the future of the Democratic party.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "As Trump’s Midterm Deadline Looms, Gulf Countries Brace for Possible Renewal of Iran War The energy-rich Gulf Arab countries are engaged in a flurry of mediation efforts to avert war between the U.S. and Iran, as many fear that the fighting will be worse this time around.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "As Trump’s Midterm Deadline Looms, Gulf Countries Brace for Possible Renewal of Iran War The energy-rich Gulf Arab countries are engaged in a flurry of mediation efforts to avert war between the U.S. and Iran, as many fear that the fighting will be worse this time around.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Kabinet neemt het risico en stuurt Belastingplan zonder garantie naar de Kamer. ‘We gaan het zien’ Het kabinet weet nog niet hoe het een meerderheid in de Eerste Kamer waarborgt, maar stuurt het Belastingplan toch alvast naar de Tweede Kamer.",
+   "max": 2,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "Kabinet neemt het risico en stuurt Belastingplan zonder garantie naar de Kamer. ‘We gaan het zien’ Het kabinet weet nog niet hoe het een meerderheid in de Eerste Kamer waarborgt, maar stuurt het Belastingplan toch alvast naar de Tweede Kamer.",
+   "max": 1,
+   "terms": [
+    "Eerste Kamer"
+   ]
+  },
+  {
+   "text": "Podcast De Dag: hoe de Democraten de verkiezingen (nu én straks) proberen te winnen Na twee jaar aan de zijlijn, hopen de Democraten bij de midterm-verkiezingen in Amerika het tij te keren.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Podcast De Dag: hoe de Democraten de verkiezingen (nu én straks) proberen te winnen Na twee jaar aan de zijlijn, hopen de Democraten bij de midterm-verkiezingen in Amerika het tij te keren.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Midterms: hoe een Texaanse prediker Trump vleugellam kan maken Vandaag, 3 november, gaan Amerikanen naar de stembus voor de Congresverkiezingen.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Midterms: hoe een Texaanse prediker Trump vleugellam kan maken Vandaag, 3 november, gaan Amerikanen naar de stembus voor de Congresverkiezingen.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "In Run-Up to Midterms, Legacy of 2020 Looms Large Over Justice Dept. The refusal of top department officials to acknowledge Donald J. Trump’s loss that year is the engine driving an intensifying effort to intercede in state administration of elections.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "In Run-Up to Midterms, Legacy of 2020 Looms Large Over Justice Dept. The refusal of top department officials to acknowledge Donald J. Trump’s loss that year is the engine driving an intensifying effort to intercede in state administration of elections.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump Delivers a Closing Midterm Message. Mostly About Landscaping. On the eve of the election, the president held forth in great detail on columns, drain pipes and granite at the newly refilled Reflecting Pool.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump Delivers a Closing Midterm Message. Mostly About Landscaping. On the eve of the election, the president held forth in great detail on columns, drain pipes and granite at the newly refilled Reflecting Pool.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Maybe Donald Trump Doesn’t Want His Party to Win the Midterms I put it to you plainly: Would someone who wanted to win the midterms be behaving as Donald Trump has?",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Maybe Donald Trump Doesn’t Want His Party to Win the Midterms I put it to you plainly: Would someone who wanted to win the midterms be behaving as Donald Trump has?",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The Online Right’s Closing Campaign Argument: Fascist Anakin Skywalker Memes With Democrats poised to make significant gains in Tuesday’s midterm elections, Trump supporters have been reduced to posting bizarre Star Wars fan fiction.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The Online Right’s Closing Campaign Argument: Fascist Anakin Skywalker Memes With Democrats poised to make significant gains in Tuesday’s midterm elections, Trump supporters have been reduced to posting bizarre Star Wars fan fiction.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Kabinet slaagt er niet in om vóór Kamerdebat een deal te maken over het Belastingplan, en hervorming Box 3 wordt uitgesteld De coalitie is na urenlang overleg tot een tussenakkoord gekomen over de vermogensbelasting en het Belastingplan, zo bevestigen ingewijden aan NRC.",
+   "max": 2,
+   "terms": [
+    "box 3"
+   ]
+  },
+  {
+   "text": "Kabinet slaagt er niet in om vóór Kamerdebat een deal te maken over het Belastingplan, en hervorming Box 3 wordt uitgesteld De coalitie is na urenlang overleg tot een tussenakkoord gekomen over de vermogensbelasting en het Belastingplan, zo bevestigen ingewijden aan NRC.",
+   "max": 1,
+   "terms": [
+    "box 3"
+   ]
+  },
+  {
+   "text": "CISA Retreats From Election Security Ahead of Midterms Protecting the vote was once considered among the top priorities of the Cybersecurity and Infrastructure Security Agency. Now it barely mentions the issue.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "CISA Retreats From Election Security Ahead of Midterms Protecting the vote was once considered among the top priorities of the Cybersecurity and Infrastructure Security Agency. Now it barely mentions the issue.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "As voters head to the polls, Democrats bet that discontent will power their victory Our latest forecast of the midterms’ outcome",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "As voters head to the polls, Democrats bet that discontent will power their victory Our latest forecast of the midterms’ outcome",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump Uses Final Pre-Midterm Speech to Ramble About Reflecting Pool The president would like you to reward him for overhauling Washington, D.C., by voting Republican",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump Uses Final Pre-Midterm Speech to Ramble About Reflecting Pool The president would like you to reward him for overhauling Washington, D.C., by voting Republican",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "How a Reporter Interviews People About the Midterms, Even Those Who ‘Don’t Talk Politics’ In purple states like Michigan, sharing political views — especially with reporters — has become a socially risky thing to do.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "How a Reporter Interviews People About the Midterms, Even Those Who ‘Don’t Talk Politics’ In purple states like Michigan, sharing political views — especially with reporters — has become a socially risky thing to do.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "VS voert eerste aanval na verkiezingen op Iran uit Het Amerikaanse leger heeft gisteravond een aanval uitgevoerd op Iran, de eerste sinds de tussentijdse verkiezingen in de VS afgelopen dinsdag.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "VS voert eerste aanval na verkiezingen op Iran uit Het Amerikaanse leger heeft gisteravond een aanval uitgevoerd op Iran, de eerste sinds de tussentijdse verkiezingen in de VS afgelopen dinsdag.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Southern Democrats Now Have a Chance to Lead. What Will They Do With It? Sweeping midterm successes in Georgia and North Carolina have given the party an opportunity, and a test, to lay out a vision for governing in the South.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Southern Democrats Now Have a Chance to Lead. What Will They Do With It? Sweeping midterm successes in Georgia and North Carolina have given the party an opportunity, and a test, to lay out a vision for governing in the South.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "A Chief of Staff Who ‘Will Crack Skulls’ In the days before MAGA’s midterm disaster, President Trump began complaining about his presidency. He felt stuck. The war in Iran wouldn’t end.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "A Chief of Staff Who ‘Will Crack Skulls’ In the days before MAGA’s midterm disaster, President Trump began complaining about his presidency. He felt stuck. The war in Iran wouldn’t end.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "VS voeren nieuwe aanvallen uit op Iraans eiland Qeshm, Iran meldt neerhalen Amerikaanse drone Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "VS voeren nieuwe aanvallen uit op Iraans eiland Qeshm, Iran meldt neerhalen Amerikaanse drone Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Iraanse media: Amerikaanse drone neergehaald na raketaanval op eiland Qeshm in Straat van Hormuz Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Iraanse media: Amerikaanse drone neergehaald na raketaanval op eiland Qeshm in Straat van Hormuz Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Iraanse media: Amerikaanse drone neergehaald na raketinslagen op eiland Qeshm in Straat van Hormuz Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Iraanse media: Amerikaanse drone neergehaald na raketinslagen op eiland Qeshm in Straat van Hormuz Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Hegseth Faces Impeachment Effort and Bipartisan Scrutiny After Midterm Elections A looming impeachment push could put President Trump’s polarizing defense secretary in a standoff with Democrats and Republicans.",
+   "max": 2,
+   "terms": [
+    "midterms",
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Hegseth Faces Impeachment Effort and Bipartisan Scrutiny After Midterm Elections A looming impeachment push could put President Trump’s polarizing defense secretary in a standoff with Democrats and Republicans.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Harmeet Dhillon’s Tenure of Destruction Harmeet Dhillon is not the most notable administration official to depart after Democrats’ enormous midterm victory—that title goes to White House Chief of Staff Susie Wiles, who President Trump announced today would be replaced by Stephen Miller.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Harmeet Dhillon’s Tenure of Destruction Harmeet Dhillon is not the most notable administration official to depart after Democrats’ enormous midterm victory—that title goes to White House Chief of Staff Susie Wiles, who President Trump announced today would be replaced by Stephen Miller.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Verfproducenten AkzoNobel en Axalta mogen onder voorwaarden fuseren De Europese Commissie heeft de fusie tussen de verfproducenten AkzoNobel en Axalta goedgekeurd.",
+   "max": 2,
+   "terms": [
+    "Europese Commissie"
+   ]
+  },
+  {
+   "text": "Verfproducenten AkzoNobel en Axalta mogen onder voorwaarden fuseren De Europese Commissie heeft de fusie tussen de verfproducenten AkzoNobel en Axalta goedgekeurd.",
+   "max": 1,
+   "terms": [
+    "Europese Commissie"
+   ]
+  },
+  {
+   "text": "How Elon Musk Frittered Away Nearly $500 Million on the Midterm Elections Behind the scenes, the world’s richest person spent a record amount over two years to bend the country’s politics to his will. He couldn’t.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "How Elon Musk Frittered Away Nearly $500 Million on the Midterm Elections Behind the scenes, the world’s richest person spent a record amount over two years to bend the country’s politics to his will. He couldn’t.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump’s First Big Post-Midterms Move Is Promoting Stephen Miller The president announced that his longtime adviser and immigration hawk will take over for Susie Wiles as White House Chief of Staff",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump’s First Big Post-Midterms Move Is Promoting Stephen Miller The president announced that his longtime adviser and immigration hawk will take over for Susie Wiles as White House Chief of Staff",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Republicans’ Losses in New York’s Midterms Were Bad. Then Came Their Post-Election Freakout. The party’s losses in New York mirrored those across the nation, but leading Republicans in the state quickly blamed each other for the results.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Republicans’ Losses in New York’s Midterms Were Bad. Then Came Their Post-Election Freakout. The party’s losses in New York mirrored those across the nation, but leading Republicans in the state quickly blamed each other for the results.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "U.S. Attorney Who Oversaw Centerpiece of Trump’s Revenge Campaign Resigns Jason Reding Quiñones joins what is expected to be a succession of departures at the Justice Department after the midterm elections, including that of the leader of the national security division.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "U.S. Attorney Who Oversaw Centerpiece of Trump’s Revenge Campaign Resigns Jason Reding Quiñones joins what is expected to be a succession of departures at the Justice Department after the midterm elections, including that of the leader of the national security division.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Knot en Hernández de Cos als enigen over in de race om presidentschap ECB Klaas Knot, de Nederlandse kandidaat voor de functie van president van de Europese Centrale Bank, heeft maar één tegenstander bij de strijd om die functie.",
+   "max": 2,
+   "terms": [
+    "ECB"
+   ]
+  },
+  {
+   "text": "Knot en Hernández de Cos als enigen over in de race om presidentschap ECB Klaas Knot, de Nederlandse kandidaat voor de functie van president van de Europese Centrale Bank, heeft maar één tegenstander bij de strijd om die functie.",
+   "max": 1,
+   "terms": [
+    "ECB"
+   ]
+  },
+  {
+   "text": "After These Midterms, JD Vance Is in a Bind He will need to sell voters on a tarnished Trump brand.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "After These Midterms, JD Vance Is in a Bind He will need to sell voters on a tarnished Trump brand.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The Voters Who Powered the Blue Tsunami A younger, more diverse electorate than is typical in midterm elections helped drive Democrats’ decisive victory, along with gains among swing voters and support from some Republican voters.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The Voters Who Powered the Blue Tsunami A younger, more diverse electorate than is typical in midterm elections helped drive Democrats’ decisive victory, along with gains among swing voters and support from some Republican voters.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Strijd om de Amerikaanse democratie is nog lang niet beslecht: ‘Nu begint het zware werk’ De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Strijd om de Amerikaanse democratie is nog lang niet beslecht: ‘Nu begint het zware werk’ De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Strijd om de democratie is nog lang niet beslecht: ‘Nu begint het zware werk’ De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Strijd om de democratie is nog lang niet beslecht: ‘Nu begint het zware werk’ De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Met een president die toch niet geïnteresseerd is in wetgeving, kan democratische politiek bedrijven wel eens heel lastig worden De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Met een president die toch niet geïnteresseerd is in wetgeving, kan democratische politiek bedrijven wel eens heel lastig worden De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "De Democraten mogen de gunst van de kiezer nu hebben teruggewonnen, het gevecht om hun democratie is nog lang niet gestreden De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "De Democraten mogen de gunst van de kiezer nu hebben teruggewonnen, het gevecht om hun democratie is nog lang niet gestreden De democratie heeft gewonnen, klinkt het overal na de midterms in de VS.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Is this the end of the Trump era? Our weekly podcast on America. This week, what happens next after those extraordinary midterms",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Is this the end of the Trump era? Our weekly podcast on America. This week, what happens next after those extraordinary midterms",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Saoedi-Arabië moet wennen aan oorlog: ‘Dit is een rampzalig jaar geweest’ Jenne Jan Holtland, onze correspondent in het Midden-Oosten, zag in Saoedi-Arabië dat het land gebukt gaat onder de dreiging van Iran en de Houthi’s.",
+   "max": 2,
+   "terms": [
+    "Houthi's"
+   ]
+  },
+  {
+   "text": "Saoedi-Arabië moet wennen aan oorlog: ‘Dit is een rampzalig jaar geweest’ Jenne Jan Holtland, onze correspondent in het Midden-Oosten, zag in Saoedi-Arabië dat het land gebukt gaat onder de dreiging van Iran en de Houthi’s.",
+   "max": 1,
+   "terms": [
+    "Houthi's"
+   ]
+  },
+  {
+   "text": "The Midterms Could Unleash a New Era of Clean Energy in These States Democrats won long-sought “trifectas” in Wisconsin, Pennsylvania, and Arizona. They have big plans for climate action",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The Midterms Could Unleash a New Era of Clean Energy in These States Democrats won long-sought “trifectas” in Wisconsin, Pennsylvania, and Arizona. They have big plans for climate action",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Hogere straf voor doodrijden twee vrouwen en twee kinderen in Oud Gastel Een automobilist uit Roosendaal die vier jaar geleden twee kinderen en twee moeders doodreed heeft in hoger beroep een zwaardere straf gekregen.",
+   "max": 2,
+   "terms": [
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Hogere straf voor doodrijden twee vrouwen en twee kinderen in Oud Gastel Een automobilist uit Roosendaal die vier jaar geleden twee kinderen en twee moeders doodreed heeft in hoger beroep een zwaardere straf gekregen.",
+   "max": 1,
+   "terms": [
+    "hoger beroep"
+   ]
+  },
+  {
+   "text": "Fed Up With Politics and Struggle, Young Voters Powered Democrats’ Midterm Victory Young people powered Democratic candidates, joining global demands for generational change from a cohort weary of older people sitting on jobs and devouring resources.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Fed Up With Politics and Struggle, Young Voters Powered Democrats’ Midterm Victory Young people powered Democratic candidates, joining global demands for generational change from a cohort weary of older people sitting on jobs and devouring resources.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "AI-bedrijven leken onaantastbaar. Maar na de midterms zitten ze in de verdrukking Ongehinderd door regulering en verwend met belastingvoordelen, werden Amerikaanse AI-bedrijven de afgelopen jaren een serieuze machtsfactor in de wereld.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "AI-bedrijven leken onaantastbaar. Maar na de midterms zitten ze in de verdrukking Ongehinderd door regulering en verwend met belastingvoordelen, werden Amerikaanse AI-bedrijven de afgelopen jaren een serieuze machtsfactor in de wereld.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "TikTok lokt gebruikers volgens Europese Commissie naar schadelijke video’s TikTok overtreedt Europese regels door gebruikers schadelijke inhoud aan te bevelen. Dat stelt de Europese Commissie.",
+   "max": 2,
+   "terms": [
+    "Europese Commissie"
+   ]
+  },
+  {
+   "text": "TikTok lokt gebruikers volgens Europese Commissie naar schadelijke video’s TikTok overtreedt Europese regels door gebruikers schadelijke inhoud aan te bevelen. Dat stelt de Europese Commissie.",
+   "max": 1,
+   "terms": [
+    "Europese Commissie"
+   ]
+  },
+  {
+   "text": "A Data Center Backlash in the Midterms, and Melania Trump’s Surprising Diplomatic Role Plus, the Friday news quiz.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "A Data Center Backlash in the Midterms, and Melania Trump’s Surprising Diplomatic Role Plus, the Friday news quiz.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Guarded Optimism, and Some Jokes, in Ukraine Over Trump’s Midterm Wipeout Victory for Democrats could alter the course of peace negotiations and a war nearing its fifth year.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Guarded Optimism, and Some Jokes, in Ukraine Over Trump’s Midterm Wipeout Victory for Democrats could alter the course of peace negotiations and a war nearing its fifth year.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump belt met leider Qatar na voorstel Iran over aanpak nucleair programma Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Trump belt met leider Qatar na voorstel Iran over aanpak nucleair programma Volgens de bronnen zou Trump voorrang willen geven aan een diplomatieke oplossing, terwijl Netanyahu de aanvallen meteen na de tussentijdse verkiezingen in de Verenigde Staten wil hervatten.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Alaska en Mississippi zijn de grote vraagtekens op weg naar de installatie van een nieuw Congres Na de ‘blauwe tsunami’ bij de midterms kunnen Democraten niet wachten tot begin januari.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Alaska en Mississippi zijn de grote vraagtekens op weg naar de installatie van een nieuw Congres Na de ‘blauwe tsunami’ bij de midterms kunnen Democraten niet wachten tot begin januari.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Hegseth wacht mogelijk volgende week afzettingsprocedure in Huis van Afgevaardigden Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "max": 2,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "Hegseth wacht mogelijk volgende week afzettingsprocedure in Huis van Afgevaardigden Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "max": 1,
+   "terms": [
+    "impeachment"
+   ]
+  },
+  {
+   "text": "OpenAI is stepping back from NDAs for data center projects Following this week’s midterms where voters resoundingly voiced their opposition to data center expansion, OpenAI today announced new commitments to communities where it…",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "OpenAI is stepping back from NDAs for data center projects Following this week’s midterms where voters resoundingly voiced their opposition to data center expansion, OpenAI today announced new commitments to communities where it…",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Democrats Have No Coherent Plan for AI Among the many gifts that Donald Trump bequeathed to Democrats ahead of the midterms was allowing them the exclusive political use of the AI backlash.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Democrats Have No Coherent Plan for AI Among the many gifts that Donald Trump bequeathed to Democrats ahead of the midterms was allowing them the exclusive political use of the AI backlash.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "How Elon Musk and Big Tech Poured Millions Into the Midterms, and Lost This week on “Uncanny Valley,” we discuss the historic blue wave that swept the midterms and delivered a rebuke to the Trump administration, Big Tech, and data centers.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "How Elon Musk and Big Tech Poured Millions Into the Midterms, and Lost This week on “Uncanny Valley,” we discuss the historic blue wave that swept the midterms and delivered a rebuke to the Trump administration, Big Tech, and data centers.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Stevie Nicks Knew a Blue Tsunami Was Coming ‘I really believed that what has happened was going to happen,’ she wrote of Democrats crushing the midterm elections. ‘It just had to’",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Stevie Nicks Knew a Blue Tsunami Was Coming ‘I really believed that what has happened was going to happen,’ she wrote of Democrats crushing the midterm elections. ‘It just had to’",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The midterms proved once and for all that X is not real life A week before the midterm elections, Vice President JD Vance hosted a town hall in Texas with Fox News host Jesse Watters.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "The midterms proved once and for all that X is not real life A week before the midterm elections, Vice President JD Vance hosted a town hall in Texas with Fox News host Jesse Watters.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Will Trump Bring Down His Pumped-Up God of War? After a crushing midterm loss, Republicans are looking for someone to blame. Pete Hegseth is at the top of the list.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "Will Trump Bring Down His Pumped-Up God of War? After a crushing midterm loss, Republicans are looking for someone to blame. Pete Hegseth is at the top of the list.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "‘Democraten maken een grote fout als ze denken dat Amerikaanse kiezers ineens verliefd op ze zijn geworden’ Hij geldt al jaren als een van de beste politieke journalisten van de Verenigde Staten. Ook hij ziet de midterms als een afwijzing van Trump en de Republikeinen.",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "‘Democraten maken een grote fout als ze denken dat Amerikaanse kiezers ineens verliefd op ze zijn geworden’ Hij geldt al jaren als een van de beste politieke journalisten van de Verenigde Staten. Ook hij ziet de midterms als een afwijzing van Trump en de Republikeinen.",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "In the Wake of the 2026 Midterms, Can We Reframe the Patriotic Song? Artists like Brandy Clark, with her new pro-immigration single ‘American Roots,’ want to try",
+   "max": 2,
+   "terms": [
+    "midterms"
+   ]
+  },
+  {
+   "text": "In the Wake of the 2026 Midterms, Can We Reframe the Patriotic Song? Artists like Brandy Clark, with her new pro-immigration single ‘American Roots,’ want to try",
+   "max": 1,
+   "terms": [
+    "midterms"
+   ]
+  }
+ ]
+}

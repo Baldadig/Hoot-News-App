@@ -1,0 +1,229 @@
+{
+  "about": "Begrippen uit het nieuws, kort uitgelegd. Gedeeld door web (src/lib/glossary.js) en app (ios/Hoot/Glossary.swift, kopie in ios/Hoot/Resources/glossary.json via npm run build:core). pattern en flags zijn een JavaScript-RegExp; de app vertaalt \\b en \\w naar dezelfde ASCII-betekenis.",
+  "terms": [
+    {
+      "term": "informateur",
+      "pattern": "\\binformateurs?\\b",
+      "flags": "i",
+      "text": "Onderzoekt na verkiezingen welke partijen samen een kabinet kunnen vormen, en waarover ze het eens zouden moeten worden.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Informateur"
+    },
+    {
+      "term": "formateur",
+      "pattern": "\\bformateurs?\\b",
+      "flags": "i",
+      "text": "Stelt bij een kabinetsformatie het nieuwe kabinet samen en zoekt de ministers en staatssecretarissen. Meestal wordt de formateur zelf premier.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Formateur"
+    },
+    {
+      "term": "motie van wantrouwen",
+      "pattern": "\\bmoties? van wantrouwen\\b",
+      "flags": "i",
+      "text": "Een voorstel in het parlement om een minister of het kabinet het vertrouwen op te zeggen. Krijgt die een meerderheid, dan treedt de bewindspersoon in de regel af.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Motie%20van%20wantrouwen"
+    },
+    {
+      "term": "Eerste Kamer",
+      "pattern": "\\bEerste Kamer\\b",
+      "flags": "",
+      "text": "De senaat van Nederland. Stemt als laatste over wetsvoorstellen en kan ze aannemen of verwerpen, maar niet wijzigen.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Eerste%20Kamer%20der%20Staten-Generaal"
+    },
+    {
+      "term": "Raad van State",
+      "pattern": "\\bRaad van State\\b",
+      "flags": "",
+      "text": "Adviseert regering en parlement over wetsvoorstellen en is de hoogste algemene bestuursrechter van Nederland.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Raad%20van%20State%20(Nederland)"
+    },
+    {
+      "term": "Hoge Raad",
+      "pattern": "\\bHoge Raad\\b",
+      "flags": "",
+      "text": "De hoogste Nederlandse rechter in strafzaken, civiele zaken en belastingzaken.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Hoge%20Raad%20der%20Nederlanden"
+    },
+    {
+      "term": "cassatie",
+      "pattern": "\\bcassatie\\b",
+      "flags": "i",
+      "text": "Beroep bij de Hoge Raad. Die kijkt alleen of het recht goed is toegepast, niet opnieuw naar de feiten.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Cassatie"
+    },
+    {
+      "term": "hoger beroep",
+      "pattern": "\\bhoger beroep\\b",
+      "flags": "i",
+      "text": "Een zaak opnieuw laten behandelen door een hogere rechter; in Nederland meestal het gerechtshof.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Hoger%20beroep"
+    },
+    {
+      "term": "kort geding",
+      "pattern": "\\bkort geding\\b",
+      "flags": "i",
+      "text": "Een snelle procedure bij de rechter voor zaken die haast hebben. De uitspraak is voorlopig.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Kort%20geding"
+    },
+    {
+      "term": "Openbaar Ministerie",
+      "pattern": "\\bOpenbaar Ministerie\\b|\\bhet OM\\b",
+      "flags": "",
+      "text": "De organisatie die strafbare feiten vervolgt en verdachten voor de rechter brengt.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Openbaar%20Ministerie%20(Nederland)"
+    },
+    {
+      "term": "AIVD",
+      "pattern": "\\bAIVD\\b",
+      "flags": "",
+      "text": "De Algemene Inlichtingen- en Veiligheidsdienst: onderzoekt dreigingen voor de nationale veiligheid van Nederland.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Algemene%20Inlichtingen-%20en%20Veiligheidsdienst"
+    },
+    {
+      "term": "toeslagenaffaire",
+      "pattern": "\\btoeslagen(affaire|schandaal)\\b",
+      "flags": "i",
+      "text": "Schandaal waarin de Belastingdienst duizenden ouders onterecht als fraudeur behandelde en kinderopvangtoeslag terugvorderde.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Toeslagenaffaire"
+    },
+    {
+      "term": "box 3",
+      "pattern": "\\bbox 3\\b",
+      "flags": "i",
+      "text": "Het deel van de inkomstenbelasting voor sparen en beleggen. De Hoge Raad oordeelde in 2021 dat de oude manier van belasten niet mocht; het stelsel wordt herzien.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Box%203"
+    },
+    {
+      "term": "cao",
+      "pattern": "\\bcao'?s?\\b",
+      "flags": "i",
+      "text": "Collectieve arbeidsovereenkomst: afspraken over loon en arbeidsvoorwaarden tussen werkgevers en vakbonden.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Collectieve%20arbeidsovereenkomst"
+    },
+    {
+      "term": "stikstof",
+      "pattern": "\\bstikstof(crisis|uitstoot|regels)?\\b",
+      "flags": "i",
+      "text": "Stikstofverbindingen uit vooral landbouw, verkeer en industrie schaden de natuur. Daarom gelden in Nederland strenge regels voor bouwen en boeren.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Stikstofcrisis%20in%20Nederland"
+    },
+    {
+      "term": "inflatie",
+      "pattern": "\\binflatie\\b",
+      "flags": "i",
+      "text": "Het stijgen van het algemene prijsniveau: met hetzelfde geld kun je minder kopen.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Inflatie"
+    },
+    {
+      "term": "recessie",
+      "pattern": "\\brecessie\\b",
+      "flags": "i",
+      "text": "Een periode waarin de economie krimpt; vaak: twee kwartalen op rij krimp.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Recessie"
+    },
+    {
+      "term": "bbp",
+      "pattern": "\\bbbp\\b",
+      "flags": "i",
+      "text": "Bruto binnenlands product: de waarde van alles wat een land in een jaar produceert. Een maat voor de omvang van de economie.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Bruto%20binnenlands%20product"
+    },
+    {
+      "term": "ECB",
+      "pattern": "\\bECB\\b",
+      "flags": "",
+      "text": "De Europese Centrale Bank: bepaalt de rente voor de landen met de euro en moet de prijzen stabiel houden.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Europese%20Centrale%20Bank"
+    },
+    {
+      "term": "Europese Commissie",
+      "pattern": "\\bEuropese Commissie\\b",
+      "flags": "",
+      "text": "Het dagelijks bestuur van de Europese Unie: stelt nieuwe Europese wetten voor en ziet toe op de naleving.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Europese%20Commissie"
+    },
+    {
+      "term": "importheffing",
+      "pattern": "\\b(import|invoer)(heffing|tarie)\\w*",
+      "flags": "i",
+      "text": "Een belasting op goederen uit het buitenland. Die worden daardoor duurder.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Invoerrecht"
+    },
+    {
+      "term": "sancties",
+      "pattern": "\\bsancties\\b",
+      "flags": "i",
+      "text": "Strafmaatregelen tegen een land, bedrijf of persoon, zoals handelsbeperkingen of het bevriezen van tegoeden.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Sanctie"
+    },
+    {
+      "term": "NAVO",
+      "pattern": "\\bNAVO\\b",
+      "flags": "",
+      "text": "Militair bondgenootschap van Noord-Amerikaanse en Europese landen. Een aanval op één lid geldt als een aanval op allemaal (artikel 5).",
+      "source": "https://nl.wikipedia.org/w/index.php?search=NAVO"
+    },
+    {
+      "term": "VN-Veiligheidsraad",
+      "pattern": "\\b(VN-)?Veiligheidsraad\\b",
+      "flags": "",
+      "text": "Het orgaan van de Verenigde Naties dat besluit over internationale vrede en veiligheid. De vijf vaste leden hebben een vetorecht.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Veiligheidsraad%20van%20de%20Verenigde%20Naties"
+    },
+    {
+      "term": "Internationaal Strafhof",
+      "pattern": "\\bInternationaal Strafhof\\b|\\bICC\\b",
+      "flags": "",
+      "text": "Het strafhof in Den Haag dat personen vervolgt voor genocide, oorlogsmisdaden en misdaden tegen de menselijkheid.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Internationaal%20Strafhof"
+    },
+    {
+      "term": "staakt-het-vuren",
+      "pattern": "\\b(staakt-het-vuren|wapenstilstand)\\b",
+      "flags": "i",
+      "text": "Een afspraak tussen strijdende partijen om, tijdelijk of voorgoed, op te houden met vechten.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Wapenstilstand"
+    },
+    {
+      "term": "Hamas",
+      "pattern": "\\bHamas\\b",
+      "flags": "",
+      "text": "Palestijnse islamistische beweging die sinds 2007 de Gazastrook bestuurt. De EU en de VS merken haar aan als terroristische organisatie.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Hamas"
+    },
+    {
+      "term": "Hezbollah",
+      "pattern": "\\bHezbollah\\b",
+      "flags": "",
+      "text": "Libanese sjiitische beweging met een politieke partij en een gewapende tak, gesteund door Iran.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Hezbollah"
+    },
+    {
+      "term": "Houthi's",
+      "pattern": "\\bHouthi'?s?\\b",
+      "flags": "",
+      "text": "Jemenitische opstandelingenbeweging die grote delen van Jemen bestuurt, gesteund door Iran. Bekend van aanvallen op de scheepvaart in de Rode Zee.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Houthi"
+    },
+    {
+      "term": "Kremlin",
+      "pattern": "\\bKremlin\\b",
+      "flags": "",
+      "text": "Het regeringscentrum in Moskou. In het nieuws staat het vaak voor de Russische president en regering.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Kremlin%20(Moskou)"
+    },
+    {
+      "term": "midterms",
+      "pattern": "\\bmidterms?\\b|\\btussentijdse verkiezingen\\b",
+      "flags": "i",
+      "text": "Amerikaanse verkiezingen halverwege de termijn van de president. Dan worden het hele Huis van Afgevaardigden en een derde van de Senaat gekozen.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Midterm%20elections"
+    },
+    {
+      "term": "impeachment",
+      "pattern": "\\bimpeachment\\b|\\bafzettingsprocedure\\b",
+      "flags": "i",
+      "text": "In de VS de procedure om bijvoorbeeld de president af te zetten: het Huis van Afgevaardigden klaagt aan, de Senaat oordeelt.",
+      "source": "https://nl.wikipedia.org/w/index.php?search=Impeachment"
+    }
+  ]
+}
