@@ -1073,6 +1073,7 @@ struct LeadCard: View {
                 HangRow(number: number, read: store.isRead(item)) {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()).opensArticle(item)
+                        UitlegPillen(item: item) // buiten het tikvlak van het artikel (Uitleg.swift)
                         SourceLine(item: item, story: story, outside: outside)
                     }
                 }
@@ -1105,6 +1106,8 @@ struct LeadCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .opensArticle(item)
+            // De pil telt mee in wat boven de vouw moet passen, zoals .terms binnen de meting van src/lib/vouw.js.
+            UitlegPillen(item: item, max: 1, top: Space.s2)
             SourceLine(item: item, story: story, outside: outside, kaart: true).padding(.top, Space.s3)
         }
     }
@@ -1175,6 +1178,7 @@ struct LeadCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .opensArticle(item)
+            UitlegPillen(item: item, max: 1, top: Space.s2) // buiten het tikvlak (Uitleg.swift)
             SourceLine(item: item, story: story, outside: outside, kaart: true).padding(.top, Space.s3)
             StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4 + Space.s1) // de sterke inktlijn: het begin van de lijst, 20 onder 01 (gelijk aan het web)
         }
@@ -1198,6 +1202,7 @@ struct LeadCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .opensArticle(item)
+            UitlegPillen(item: item) // hooguit twee, zoals LeadStory op het web
             SourceLine(item: item, story: story, outside: outside)
         }
     }
@@ -1332,6 +1337,7 @@ struct ItemRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .opensArticle(item)
+            UitlegPillen(item: item, max: 1) // buiten het tikvlak van het artikel (Uitleg.swift)
             SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, kaart: true)
         }
         .padding(.vertical, Space.s2)
@@ -1359,6 +1365,7 @@ struct ItemRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .opensArticle(item)
+            UitlegPillen(item: item, max: 1) // buiten het tikvlak van het artikel (Uitleg.swift)
             SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, kaart: true)
         }
         .padding(.vertical, Space.s2)

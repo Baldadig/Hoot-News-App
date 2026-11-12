@@ -39,6 +39,8 @@ import SwiftUI
 //   -HootVerhaalVast <pad>   (een JSON-bestand verhaal-id → stukken: Vergelijken toont precies die stukken, zoals
 //                            het blok ze zag; alleen voor schermen)
 //   -HootVerhaal <verhaal-id>   (met -HootScreen verhaal: dit verhaal openen in plaats van dat met de meeste bronnen)
+//   -HootUitleg <begrip>   (het blad met de uitleg van dat begrip gaat open bij de eerste pil die het heeft)
+//   -HootBegrippen YES   (in het verhaal staan de Begrippen en elk begrip opengeklapt)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
     #if DEBUG
@@ -81,6 +83,8 @@ enum DebugLaunch {
         }
     }
     static var verhaal: String? { defaults.string(forKey: "HootVerhaal") }
+    static var uitleg: String? { defaults.string(forKey: "HootUitleg") }
+    static var begrippen: Bool { defaults.bool(forKey: "HootBegrippen") }
     static func verschillen(_ storyId: String) -> StoryVerschillen? {
         guard let pad = defaults.string(forKey: "HootVerschillen"), let data = FileManager.default.contents(atPath: pad) else { return nil }
         return (try? JSONDecoder().decode([String: StoryVerschillen].self, from: data))?[storyId]
@@ -95,6 +99,8 @@ enum DebugLaunch {
     static func verschillen(_ storyId: String) -> StoryVerschillen? { nil }
     static func vasteStukken(_ storyId: String) -> [Item]? { nil }
     static let verhaal: String? = nil
+    static let uitleg: String? = nil
+    static let begrippen = false
     static let screen: String? = nil
     static let engine = false
     static let grid: String? = nil
