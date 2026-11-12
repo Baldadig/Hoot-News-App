@@ -5,7 +5,8 @@ import SwiftUI
 // anders het beeld zou staan: het stuk heeft geen beeld, het beeld is te klein voor die plek, of het laadt
 // niet. Nooit een grijs vlak. Een beeld van een ander verhaal nooit; wel (besluit Alex, 7 november) dat van een
 // andere bron over hetzelfde feit, dat de server al als `image` meegeeft (borrowImagesFromStories). Pas daarna dit.
-// Tien beelden in vijf sets (shared/placeholder.mjs, de tekening in PlaceholderBeelden.swift): welk, volgt
+// Achttien beelden: tien in vijf sets en acht die elk een eigen set zijn (shared/placeholder.mjs, de tekening
+// in PlaceholderBeelden.swift): welk, volgt
 // uit de id van het artikel, en twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit
 // dezelfde set (Placeholder.plan, via de omgeving). Het is decoratie: verborgen voor VoiceOver.
 struct BeeldloosView: View {
@@ -46,7 +47,7 @@ struct BeeldloosView: View {
     }
 }
 
-// Beeld 1 tot 10 (index 0 tot 9), getekend op de echte maat. Het vult het vak als een foto (cover): de
+// Beeld 1 tot 18 (index 0 tot 17), getekend op de echte maat. Het vult het vak als een foto (cover): de
 // kortste kant past, de rest valt weg, gecentreerd. Zoals de SVG's met background-size: cover op het web.
 struct PlaceholderBeeld: View {
     @Environment(\.colorScheme) private var scheme
@@ -116,10 +117,11 @@ struct PHBeeld {
 
 // De keuze, gelijk aan shared/placeholder.mjs (tests/fixtures/placeholder.json draait op beide).
 enum Placeholder {
-    static let count = 10
-    // Doorschuiven: drie verder valt altijd in een andere set (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9).
+    static let count = 18
+    // Doorschuiven: drie verder valt altijd in een andere set (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9
+    // · De kop, Vouw, Baan, Eclips, Walsen, Zetsel, De rij en Koepels elk een eigen set, 10–17).
     static let shift = 3
-    // De set van beeld k: zon, iris, lijn, raster of stapel.
+    // De set van beeld k: zon, iris, lijn, raster, stapel of een van de acht eenlingen.
     static func set(_ k: Int) -> String { PlaceholderBeelden.beelden[k].familie }
     // FNV-1a (32 bit) over de UTF-8-bytes van de id.
     static func fnv1a(_ s: String) -> UInt32 {
