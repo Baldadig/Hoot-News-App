@@ -400,7 +400,7 @@ test('kortingscodes: 20 Wired-nieuwskoppen onder /story/ met een codewoord-slug 
   }
 })
 
-test('kortingscodes: 131 van de 144 /story/-codepagina\'s van Wired (keuring 3) vallen weg; de andere 4 blijven zoals voorheen', () => {
+test('kortingscodes: 131 van de 144 /story/-codepagina\'s van Wired (keuring 3) vallen weg', () => {
   const f = new URL('./fixtures/kortingscodes-wired-story-titels.tsv', import.meta.url)
   const rows = readFileSync(f, 'utf8').trim().split('\n').map((l) => l.split('\t'))
   const story = rows.filter(([url]) => url.includes('/story/'))
