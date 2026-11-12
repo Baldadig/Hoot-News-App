@@ -72,7 +72,7 @@ test('lege schermen: lijntekening uit de beeldtaal (01 horizon, 04 raster), éé
   assert.match(css, /\.empty__lint \{\s*fill: var\(--accent\);/)
   assert.match(css, /:root\[data-theme='night'\] \{[^}]*--art-thin: var\(--ink-3\);/)
 })
-test('design system v2.3: register, gids en beeldtaal bestaan en kloppen met de code', async () => {
+test('design system v2.4: register, gids en beeldtaal bestaan en kloppen met de code', async () => {
   const { readdirSync } = await import('node:fs')
   const tokens = JSON.parse(readFileSync(new URL('../docs/design-system/tokens.json', import.meta.url), 'utf8'))
   assert.equal(tokens.version, 3)
@@ -104,9 +104,9 @@ test('design system v2.3: register, gids en beeldtaal bestaan en kloppen met de 
   const files = readdirSync(new URL('../docs/design-system/beeldtaal/', import.meta.url))
   for (const n of chosen) assert.ok(files.some(f => f.startsWith(n + '-') && f.endsWith('.svg')), n)
   assert.ok(!files.some(f => /^(03|08|12)-/.test(f)), 'alleen gekozen composities')
-  const guide = readFileSync(new URL('../docs/design-system/brand-guide-v2.3.md', import.meta.url), 'utf8')
+  const guide = readFileSync(new URL('../docs/design-system/brand-guide-v2.4.md', import.meta.url), 'utf8')
   assert.ok(tokens.type.families.sans.startsWith('"Schibsted Grotesk"'))
-  for (const needle of ['Schibsted Grotesk', 'Kaart A+', 'De stapel', 'Tien en de bubbel', 'Zoals je toestel', '×0,9 tot ×1,45', '60 · 30 · 10', 'Papier op rood', 'vervangt het oude verbod', 'Web 720, iOS 680', '200 ms crossfade', '400 met `ease-glide`', 'Zacht papier', 'Stem en toon', 'Je weet genoeg.']) assert.ok(guide.includes(needle), needle)
+  for (const needle of ['Schibsted Grotesk', 'Kaart A+', 'De stapel', 'Tien en de bubbel', 'Zoals je toestel', '×0,9 tot ×1,45', '60 · 30 · 10', 'Papier op rood', 'vervangt het oude verbod', 'Web 720, iOS 680', '200 ms crossfade', '400 met `ease-glide`', 'Zacht papier', 'Stem en toon', 'Je weet genoeg.', 'Rubrica', '#9A3324', 'Voor jou', 'Bluesky-kaart A+', 'Vergelijken']) assert.ok(guide.includes(needle), needle)
   // "houdt op" staat er alleen als verbod of als voorbeeld van hoe het niet moet.
   for (const line of guide.split('\n').filter(l => l.includes('houdt op'))) assert.match(line, /[Nn]ooit|geen|Voor:|zeg niet|einde, houdt op/, line)
 })

@@ -8,7 +8,7 @@ import { createRequire } from 'node:module'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import {
-  toetsZin, maakVerschillen, verschillenRows, schrijfVerschillen, verschillenUitKV, verschillenRonde, metVerschillen, verschillenAan, verschillenKey, stelSamen, kandidaten, namenIn,
+  toetsZin, maakVerschillen, verschillenRows, schrijfVerschillen, verschillenUitKV, verschillenRonde, metVerschillen, verschillenAan, verschillenKey, stelSamen, kandidaten, namenIn, bijnaIn,
   VERSCHILLEN_SCHRIJVER, VERSCHILLEN_CONTROLE, MAX_WOORDEN,
 } from '../netlify/lib/verschillen.mjs'
 import { verschillenDelen, zetTekst, VERSCHILLEN_LABEL, VERSCHILLEN_VOET } from '../shared/verschillen.mjs'
@@ -288,7 +288,7 @@ test('cache: per verhaal-versie in KV; tweede ronde zonder model; nieuwe bron = 
   assert.deepEqual(twee.get(LIVE.story.id), een.get(LIVE.story.id))
   assert.equal(client.calls.length, 2) // uit de cache
   const key = verschillenKey(LIVE.story, LIVE.rows)
-  assert.match(key, /^verschillen-v3:[a-z0-9]+$/)
+  assert.match(key, /^verschillen-v4:[a-z0-9]+$/)
   const entry = kv.m.get(key)
   assert.equal(entry.status, 'klaar')
   assert.doesNotMatch(JSON.stringify(entry), /owner|user|email|account|device/i)
@@ -624,4 +624,93 @@ test('feed met de vlag aan duurt niet langer dan zonder, ook met een traag nepmo
     if (vlag === undefined) delete process.env.HOOT_VERSCHILLEN
     else process.env.HOOT_VERSCHILLEN = vlag
   }
+})
+
+// ---------- Vóór aanzetten (keuring 3 en 4) ----------
+test('pogingen: geteld vóór de modelaanroep, ook als de functie na het budget bevriest; hooguit drie per dag, ook voor Haiku', async () => {
+  const now = Date.parse('2026-11-11T16:00:00Z')
+  // Een bevroren functie: alles wat na de return nog naar KV zou gaan, gaat verloren.
+  const bevriesKv = () => {
+    const kv = memKv()
+    let dicht = false
+    return { ...kv, set: async (k, v) => (dicht ? undefined : kv.set(k, v)), dicht: () => (dicht = true), open: () => (dicht = false) }
+  }
+  const hangt = (luistert) => (req, opts) => new Promise((_, rej) => luistert && opts.signal.addEventListener('abort', () => rej(new Error('afgebroken'))))
+  for (const luistert of [false, true]) {
+    // 1. De schrijver (Sonnet) blijft hangen.
+    const kv = bevriesKv()
+    const sonnet = { calls: [], messages: { create: async (req, opts) => (sonnet.calls.push(req.model), hangt(luistert)(req, opts)) } }
+    for (let ronde = 1; ronde <= 5; ronde++) {
+      kv.open()
+      await schrijfVerschillen({ aan: true, client: sonnet, ...editie(BOM), get: kv.get, set: kv.set, now, budget: 20 })
+      kv.dicht()
+      await new Promise((r) => setTimeout(r, 10))
+    }
+    assert.deepEqual(sonnet.calls, Array(3).fill(VERSCHILLEN_SCHRIJVER), `Sonnet, luistert naar abort: ${luistert}`)
+    assert.equal(kv.m.get(verschillenKey(BOM.story, BOM.rows)).pogingen, 3)
+    // 2. De schrijver is klaar, de controle (Haiku) blijft hangen: ook die telt.
+    const kv2 = bevriesKv()
+    const goed = nepClient(nagebootstLive.sts2z5a)
+    const haiku = { calls: [], messages: { create: async (req, opts) => (haiku.calls.push(req.model), req.model === VERSCHILLEN_CONTROLE ? hangt(luistert)(req, opts) : goed.messages.create(req, opts)) } }
+    for (let ronde = 1; ronde <= 6; ronde++) {
+      kv2.open()
+      await schrijfVerschillen({ aan: true, client: haiku, ...editie(LIVE), get: kv2.get, set: kv2.set, now, budget: 20 })
+      kv2.dicht()
+      await new Promise((r) => setTimeout(r, 10))
+    }
+    assert.deepEqual(haiku.calls, [VERSCHILLEN_SCHRIJVER, VERSCHILLEN_CONTROLE, VERSCHILLEN_CONTROLE, VERSCHILLEN_CONTROLE], `Haiku, luistert naar abort: ${luistert}`)
+    // Een nieuwe dag: opnieuw drie pogingen, en de schrijver hoeft niet opnieuw.
+    kv2.open()
+    const morgen = nepClient(nagebootstLive.sts2z5a)
+    const r = await schrijfVerschillen({ aan: true, client: morgen, ...editie(LIVE), get: kv2.get, set: kv2.set, now: now + 864e5 })
+    assert.ok(r.get(LIVE.story.id)?.delen)
+    assert.deepEqual(morgen.calls.map((c) => c.model), [VERSCHILLEN_CONTROLE])
+  }
+  // Kan de poging niet worden weggeschreven, dan geen aanroep (liever niets dan ongeteld).
+  const kv3 = memKv()
+  const c3 = nepClient(nagebootst.s11wahg9)
+  const r3 = await schrijfVerschillen({ aan: true, client: c3, ...editie(BOM), get: kv3.get, set: async (k, v) => { if (k === verschillenKey(BOM.story, BOM.rows)) throw new Error('KV weg'); return kv3.set(k, v) }, now })
+  assert.equal(r3.size, 0)
+  assert.equal(c3.calls.length, 0)
+})
+
+test('codecontrole: de foute zinnen van keuring 3 en 4 (en nieuwe) vallen weg in code; goede zinnen komen erdoor', () => {
+  const set = JSON.parse(src('tests/fixtures/verschillen/zinnen-keuring.json'))
+  const V = { LIVE, BEL, BOM, HEG, HEG_NL }
+  for (const x of set.goed) assert.deepEqual(toetsZin(x.zin, ctx(V[x.verhaal])), [], `goed: ${x.naam}`)
+  for (const x of set.fout) {
+    const r = toetsZin(x.zin, ctx(V[x.verhaal]))
+    if (x.vangt === 'code') assert.ok(r.length, `[${x.bron} · ${x.soort}] ${x.naam} komt door de code`)
+    else assert.deepEqual(r, [], `[${x.bron} · ${x.soort}] ${x.naam}: alleen de controle (Haiku) kan hem tegenhouden; staat hij nu in code, zet "vangt" op "code"`)
+  }
+  const telling = (bron) => set.fout.filter((x) => x.bron === bron && x.vangt === 'code').length
+  assert.ok(telling('keuring-4') >= 35 && telling('keuring-3') >= 42, `${telling('keuring-4')}/36 en ${telling('keuring-3')}/44`)
+  assert.ok(set.goed.length >= 20)
+})
+
+test('codecontrole: oordeelwoorden uit de bron zelf mogen; weekdagen, breuken en rangtelwoorden alleen als de bron ze noemt', () => {
+  // "afgezwakt" staat bij het ND: dan beschrijft de zin de bron.
+  const z = (tekst, bronnen, fragmenten, v = BEL) => toetsZin(zin({ soort: 'onbekend', tekst, bronnen, fragmenten }), ctx(v))
+  assert.deepEqual(z('Het ND noemt het voorstel afgezwakt.', [5], [{ bron: 5, tekst: 'afgezwakt voorstel' }]), [])
+  assert.ok(z('De Telegraaf noemt het voorstel afgezwakt.', [12], [{ bron: 12, tekst: 'Bom in coalitie' }]).some((r) => /^oordeel:/.test(r)))
+  // De Tweede Kamer is een naam; "donderdag" staat bij het ND.
+  assert.deepEqual(z('De Tweede Kamer debatteert donderdag verder, meldt het ND.', [1], [{ bron: 1, tekst: 'Kamer debatteert donderdag' }]), [])
+  assert.ok(z('De Tweede Kamer debatteert vrijdag verder, meldt het ND.', [1], [{ bron: 1, tekst: 'Kamer debatteert donderdag' }]).includes('vrijdag staat niet in de aangehaalde regels'))
+  // D66 is een naam, geen getal 66.
+  assert.deepEqual(z('D66 en CDA hebben volgens het ND een deal met Pro.', [4], [{ bron: 4, tekst: 'D66 en het CDA' }]), [])
+  // "Amerikaanse media" mag als de aangehaalde regel het zelf zo zegt; anders niet.
+  const amr = { rows: [{ n: 1, id: 'a', sourceName: 'NOS', lang: 'nl', title: 'Hegseth blijft', summary: 'Dat melden Amerikaanse media.' }], alle: [], storyNames: ['NOS'] }
+  assert.deepEqual(toetsZin(zin({ soort: 'onbekend', tekst: 'De NOS meldt via Amerikaanse media dat Hegseth blijft.', bronnen: [1], fragmenten: [{ bron: 1, tekst: 'Hegseth blijft' }] }), amr), [])
+  assert.ok(toetsZin(zin({ soort: 'onbekend', tekst: 'De NOS meldt via Britse media dat Hegseth blijft.', bronnen: [1], fragmenten: [{ bron: 1, tekst: 'Hegseth blijft' }] }), amr).some((r) => /algemene groep/.test(r)))
+})
+
+test('kantentoets: een bijna-gelijke vorm bij een andere bron telt als hetzelfde kenmerk', () => {
+  assert.equal(bijnaIn('hoogspanning in coalitie', 'hoogspanning in de coalitie, vvd-top bijeen'), true)
+  assert.equal(bijnaIn('geen crisis in coalitie', 'paternotte ziet geen crisis, maar perspectief'), true)
+  assert.equal(bijnaIn('spanningen', 'spanning in coalitie na deal'), true) // meervoud
+  assert.equal(bijnaIn('crisis', 'paternotte ziet geen crisis'), false) // "crisis" is niet "geen crisis"
+  assert.equal(bijnaIn('geen crisis', 'kabinetscrisis dreigt'), false)
+  assert.equal(bijnaIn('geen crisis in coalitie', 'nog geen reactie vvd — coalitiepartijen d66 en cda'), false) // "geen" hoort bij het woord erna
+  assert.equal(bijnaIn('6.000 scholen', 'ongeveer 6.300 scholen'), false) // getallen precies
+  assert.equal(bijnaIn('kabinetscrisis dreigt', 'paternotte: geen crisis in coalitie'), false)
 })
