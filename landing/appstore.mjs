@@ -5,7 +5,9 @@ export const APP_ID = '6828037269'
 export const APP_URL = `https://apps.apple.com/nl/app/id${APP_ID}`
 
 const MARK = '<svg class="wacht-i" viewBox="0 0 82.15 72" aria-hidden="true"><use href="#mark"/></svg>'
-const ACCOUNT = 'Gratis, met of zonder account.'
+// Belofte onder de knop (audit punt 2). Klopt met het privacybeleid (src/views/Privacy.jsx: geen advertenties,
+// geen trackers, "Hoot volgt je niet."); de eigen dagteller telt alleen totalen, zonder id of cookie.
+const ACCOUNT = 'Gratis, met of zonder account.<br>Geen advertenties. Hoot volgt je niet.'
 
 export function appStore(aan) {
   if (aan) return {

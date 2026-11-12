@@ -380,12 +380,24 @@
     var SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' };
     function ini(b) { return b.replace(/^(de|het|the)\s+/i, '').charAt(0).toUpperCase(); }
     function weg(el) { if (el && el.parentNode) el.parentNode.removeChild(el); }
-    function vul(it, x, why) {
-      var kick = $('.k-kick', it), nr = kick && $('.k-nr', kick);
-      if (kick) {
-        kick.textContent = ''; if (nr) kick.appendChild(nr);
-        if (x.deskLabel) kick.appendChild(document.createTextNode(x.deskLabel)); else kick.classList.add('k-kick--los');
-      }
+    /* Zelfde woorden als de app; Buitenland heet op de landing Wereld (zoals de Stroom-tab). Zie landing/bewaard.mjs. */
+    var LABEL = { binnenland: 'Binnenland', buitenland: 'Wereld', cultuur: 'Cultuur', tech: 'Tech', wetenschap: 'Wetenschap', sport: 'Sport', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne' };
+    var MND = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    function vandaagIso() {
+      try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); } catch (e) { return ''; }
+    }
+    /* 'Vandaag' alleen als de Editie van vandaag is; anders de dag zelf ("11 november"). Nooit een tijdstip. */
+    function wanneer(iso) {
+      if (iso && iso === vandaagIso()) return 'Vandaag';
+      var p = String(iso || '').split('-'); return p.length === 3 ? Number(p[2]) + ' ' + MND[Number(p[1]) - 1] : '';
+    }
+    /* metRubriek: false in de held (besluit Alex: de grote kop zonder rubriek). Rubriek alleen als de server hem zeker weet. */
+    function vul(it, x, why, metRubriek, dag) {
+      var kick = $('.k-kick', it), nr = kick && $('.k-nr', kick), rub = metRubriek && x.desk ? LABEL[x.desk] || '' : '';
+      if (!kick) { kick = document.createElement('div'); kick.className = 'k-kick'; it.insertBefore(kick, $('.k-why', it) || $('.k-kop', it)); }
+      kick.textContent = ''; if (nr) kick.appendChild(nr);
+      if (rub) { kick.classList.remove('k-kick--los'); kick.appendChild(document.createTextNode(rub)); } else kick.classList.add('k-kick--los');
+      kick.hidden = !nr && !rub;
       $('.k-kop', it).textContent = x.title;
       weg($('.k-intro', it));
       if (why != null) { var w = $('.k-why', it); if (w) w.textContent = why; }
@@ -394,9 +406,9 @@
       if (!bron) { weg(b); return; }
       $('i', b).textContent = ini(bron);
       var sp = $('span', b); sp.textContent = bron;
-      var sm = document.createElement('small'); sm.textContent = 'Vandaag'; sp.appendChild(sm);
+      var sm = document.createElement('small'); sm.textContent = dag; sp.appendChild(sm);
       var kn = $('.k-n', b);
-      if (n >= 2) { if (!kn) { kn = document.createElement('b'); kn.className = 'k-n'; sp.parentNode.insertBefore(kn, sp.nextSibling); } kn.textContent = n + ' bronnen'; } else weg(kn);
+      if (n >= 2 && !$('mark[data-w="w3"]', it)) { if (!kn) { kn = document.createElement('b'); kn.className = 'k-n'; sp.parentNode.insertBefore(kn, sp.nextSibling); } kn.textContent = n + ' bronnen'; } else weg(kn);
     }
     function zetNaam(sel, slot) { $$(sel).forEach(function (s) { s.textContent = slot; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); }); }
     if (LIVE && window.fetch) {
@@ -418,24 +430,24 @@
             var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns);
             if (!rd) throw 0;
             if (!ed.bubble) { if (rd[1] === 'eigen') throw 0; rd[2] = 'eigen'; } /* geen bubbel: dan ook niet zo noemen */
-            var dag = '';
+            var dag = '', wn = wanneer(ed.date);
             try { dag = new Date(ed.date + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
             /* held: het hoofdverhaal */
             var lead = $('.js-held-lead');
             if (lead) {
-              vul(lead, lijst[0], ns[0] >= 5 ? 'Groot nieuws' : (ns[0] >= 2 ? ns[0] + ' bronnen schrijven erover' : 'Ook het lezen waard'));
+              vul(lead, lijst[0], ns[0] >= 5 ? 'Groot nieuws' : (ns[0] >= 2 ? ns[0] + ' bronnen schrijven erover' : 'Ook het lezen waard'), false, wn);
               zetNaam('.held .js-editie', slot);
               $$('.held .js-datum').forEach(function (s) { if (dag) s.textContent = dag; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); });
-              var fig = $('.js-held-toestel'); if (fig) fig.setAttribute('aria-label', 'De ' + slot + ' van vandaag op iPhone, met het hoofdverhaal: ' + lijst[0].title);
+              var fig = $('.js-held-toestel'); if (fig) fig.setAttribute('aria-label', 'De ' + slot + ' van ' + (wn === 'Vandaag' ? 'vandaag' : dag) + ' op iPhone, met het hoofdverhaal: ' + lijst[0].title);
             }
             /* De Redacteur: iPad en telefoon krijgen dezelfde drie verhalen */
             if (pod) {
               $$('.toestel', pod).forEach(function (fig) {
                 var items = $$('.rd-item', fig).filter(function (it) { return $('mark', it); });
-                lijst.forEach(function (x, i) { if (items[i]) vul(items[i], x, null); });
+                lijst.forEach(function (x, i) { if (items[i]) vul(items[i], x, null, true, wn); });
               });
               zetNaam('.js-rd-editie', slot);
-              $$('.sc-sub[data-vast]', pod).forEach(function (s) { s.textContent = 'Vandaag'; s.removeAttribute('data-vast'); });
+              $$('.sc-sub[data-vast]', pod).forEach(function (s) { if (dag) s.textContent = dag; s.removeAttribute('data-vast'); });
               zetRedenen(ns, rd);
               pod.setAttribute('data-bron', 'live');
               lijn();
@@ -448,15 +460,4 @@
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-})();
-
-/* Held: de datum van vandaag onder de Editie-titel in de telefoon (alleen in de held) */
-/* Het script staat in de <head>: pas na het inlezen van de pagina bestaat de held. */
-(function () {
-  function zet() {
-    var el = document.querySelector('.held .js-datum');
-    if (!el || el.hasAttribute('data-vast') || el.hasAttribute('data-live')) return;
-    try { el.textContent = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zet); else zet();
 })();

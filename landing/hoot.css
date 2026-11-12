@@ -185,17 +185,20 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .k-kop{margin-top:.47em;font:800 1.294em/1.27 var(--kop);letter-spacing:-.01em;color:var(--s-ink);text-wrap:pretty}
 .k>.k-kop:first-child,.sc-kaart .k-kop{margin-top:0}
 .k-kop--lead{font-size:1.765em;line-height:1.2;letter-spacing:-.015em}
+/* echte koppen kunnen lang zijn: hooguit drie regels in de toestellen */
+.k .k-kop,.k-lead .k-kop,.rd-item .k-kop{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+.k-kick[hidden]{display:none}
+.ip-top .k-kop{-webkit-line-clamp:4;line-clamp:4}
 .k-intro{margin:.47em 0 0;font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:1.06em;line-height:1.55;color:var(--s-ink2)}
 .k-lead .k-intro{font-size:1.176em;line-height:1.5}
 /* beeld 2:1 onder de tekst, hoek 12 */
 .k-beeld2{display:block;width:100%;height:auto;aspect-ratio:2/1;margin-top:.94em;border-radius:.7em}
 /* bronregel: logo, naam en tijd, dan bronnen, bewaren en meer */
 .k-bron{display:flex;align-items:center;gap:.5em;margin-top:.75em;font:500 .882em/1.2 var(--tekst);color:var(--s-ink)}
-.k-bron i{flex:none;width:1.75em;height:1.75em;border-radius:50%;display:grid;place-items:center;font:700 .6em/1 var(--tekst);font-style:normal;color:#fff;background:var(--c,#1A1814)}
+.k-bron i{flex:none;width:1.75em;height:1.75em;border-radius:50%;display:grid;place-items:center;font:700 .6em/1 var(--tekst);font-style:normal;color:var(--s-bg);background:var(--s-ink2)}
 .k-bron span{display:grid;min-width:0;line-height:1.2;white-space:nowrap}
 .k-bron small{font-weight:400;font-size:.87em;color:var(--s-ink3)}
 .k-n{margin-left:auto;font-weight:600;color:var(--s-ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
-.c1{--c:#2F4F8F}.c2{--c:#8C3B2F}.c3{--c:#2E6B5A}.c4{--c:#7A5A1E}.c5{--c:#5A3E7A}
 .sc-bm{width:1em;height:1.25em;flex:none;fill:none;stroke:var(--s-ink2);stroke-width:1.6}
 .k-bron span+.sc-bm{margin-left:auto}
 .k-n+.sc-bm{margin-left:.7em}

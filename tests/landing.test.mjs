@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { INLINE } from '../landing/inline.mjs'
 import { appStore, APP_URL } from '../landing/appstore.mjs'
+import { vulBewaard } from '../landing/bewaard.mjs'
 
 // Voert het inline script van de landing uit met een nagebootste adresbalk; geeft het doel of null.
 const run = (search, hash) => {
@@ -27,7 +28,8 @@ test('landing: oude app-links en uitnodigingen gaan mee; gewone ankers blijven o
 const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8')
 // Alleen de zichtbare tekst en de attributen die voorgelezen of gedeeld worden; geen opmaak.
 // De pagina zoals build.mjs hem vult, met de App Store-plekken uit of aan.
-const vul = (aan) => SRC.replace(/\{\{(APPSTORE_\w+)\}\}/g, (_, k) => appStore(aan)[k])
+const BEWAARD = JSON.parse(readFileSync(new URL('../landing/bewaard.json', import.meta.url), 'utf8'))
+const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+)\}\}/g, (_, k) => appStore(aan)[k])
 const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
 
 test('landing: overal dezelfde accountzin, en een eigen vraag over het account', () => {
@@ -64,7 +66,7 @@ test('landing: de voorbeelden houden zich aan de huisregels', () => {
 })
 
 test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie met inhoud)', () => {
-  const editie = SRC.slice(SRC.indexOf('id="demo-editie"'), SRC.indexOf('<!-- 02 Stroom'))
+  const editie = vul(true).slice(vul(true).indexOf('id="demo-editie"'), vul(true).indexOf('<!-- 02 Stroom'))
   const nrs = [...editie.matchAll(/<span class="(?:k|sc)-nr">(\d\d)<\/span>/g)].map((m) => m[1])
   assert.deepEqual(nrs, ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'])
   // De bubbel komt na 10, zonder nummer, vóór het eindblok.
@@ -90,7 +92,7 @@ test('landing: de App Store staat klaar achter één regel in build.mjs', () => 
   assert.doesNotMatch(uit, /App Store/)
   assert.match(uit, /<p class="kicker">Voor iPhone, iPad en Web<\/p>/)
   assert.match(uit, /href="\/lees\/">Probeer Hoot op het web/)
-  assert.match(uit, /<p class="gratis">Gratis, met of zonder account\.<\/p>/)
+  assert.match(uit, /<p class="gratis">Gratis, met of zonder account\.<br>Geen advertenties\. Hoot volgt je niet\.<\/p>/)
   assert.doesNotMatch(uit, /<details>\s*<\/details>/)
   assert.match(aan, /<details>\s*<summary>Staat Hoot in de App Store\?<\/summary>/)
   assert.match(aan, /<p class="wacht-gratis|<em class="wacht-gratis">/)
@@ -140,10 +142,8 @@ test('landing: de schermen zijn kaart A+ van 1.1.0, met weinig tekst', () => {
   assert.match(CSS, /\.k-lead \.k-nr\{[^}]*color:var\(--s-red\)/)
   assert.match(CSS, /\.k-intro\{[^}]*font-family:var\(--lees\);font-weight:var\(--lees-wght\);font-variation-settings:var\(--lees-vs\)/)
   assert.match(CSS, /--lees-wght:450;--lees-vs:"opsz" 12/)
-  // korte intro's: hooguit twaalf woorden, en per scherm hooguit één intro (behalve de Stroom: één per rubriek)
-  const intros = [...SRC.matchAll(/<p class="k-intro">([^<]+)<\/p>/g), ...BUILD.matchAll(/'([^']+)', 'il-/g)].map((m) => m[1])
-  assert.ok(intros.length >= 4)
-  for (const t of intros) assert.ok(t.split(/\s+/).length <= 12, t)
+  // echte koppen van uitgevers: geen intro's van anderen op de landing (landing-live), alleen kop, uitgever en datum
+  assert.doesNotMatch(vul(true), /<p class="k-intro">/)
   // geen losse illustraties meer op de pagina (ronde 1 staat in _archief)
   assert.doesNotMatch(SRC, /<svg class="il"/)
 })
@@ -184,4 +184,26 @@ test('landing: huisregels in de FAQ (vroege avond, geen kloktijden)', () => {
 test('frisse ogen: de Stroom heeft een tab Opinie, dus de landing belooft geen nieuws "zonder de meningen eromheen"', () => {
   assert.doesNotMatch(SRC, /zonder de meningen/)
   assert.match(SRC, /in de Stroom\.<\/span><\/h3><p>Al het nieuws uit jouw bronnen, met opinie apart\.<\/p>/)
+})
+
+// landing-live (audit punt 1): echte Editie, geen verzonnen kranten, de held zonder rubriek.
+test('landing: geen verzonnen kranten; de voorbeelden komen uit een bewaarde, echte Editie met datum', () => {
+  const html = vul(true)
+  assert.doesNotMatch(html + BUILD, /Landelijk Dagblad|Stadskrant|Cultuurkrant|Weekblad Wereld|Omroep Nieuws/)
+  assert.doesNotMatch(html, /\{\{BW_|\{\{PANELEN/)
+  assert.match(BEWAARD.date, /^\d{4}-\d\d-\d\d$/)
+  assert.ok(['ochtend', 'middag', 'avond'].includes(BEWAARD.slot))
+  // geen kloktijden en geen "x uur geleden"
+  assert.doesNotMatch(tekst(html), /\b\d{1,2}:\d\d\b|\b\d+ (?:min|minuten|uur) geleden/)
+  // geen beelden van uitgevers: alleen eigen illustraties
+  assert.doesNotMatch(html, /<img[^>]+src="https?:/)
+})
+
+test('landing: de held toont het hoofdverhaal zonder rubriek, alleen het nummer', () => {
+  const held = vul(true).match(/<div class="k-lead js-held-lead">([\s\S]*?)<\/figure>/)[1]
+  assert.match(held, /<div class="k-kick k-kick--los"><span class="k-nr">01<\/span><\/div>/)
+  for (const r of ['Binnenland', 'Wereld', 'Cultuur', 'Tech', 'Wetenschap']) assert.doesNotMatch(held.replace(/<div class="k-kop[^"]*">[^<]*<\/div>/, ''), new RegExp(r))
+  const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+  assert.match(js, /vul\(lead, lijst\[0\], [^;]*, false, wn\)/) // live: ook dan geen rubriek in de held
+  assert.match(js, /if \(iso && iso === vandaagIso\(\)\) return 'Vandaag'/) // 'Vandaag' alleen voor de Editie van vandaag
 })
