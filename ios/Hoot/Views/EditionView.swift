@@ -717,6 +717,7 @@ struct StoryView: View {
 
     var body: some View {
         let sources = Set(items.map(\.source)).count
+        ScrollViewReader { proxy in
         List {
             // Waar het over gaat (de kop van het hoofdbericht), en eerlijk geteld: bronnen zijn
             // uitgevers, niet artikelen; drie stukken van één krant zijn geen drie bevestigingen.
@@ -754,6 +755,17 @@ struct StoryView: View {
                 ItemRow(item: item, label: label(item), linkSource: false, form: .krant)
                     .listRowBackground(Theme.surface)
             }
+            // Onderaan: de begrippen uit alle stukken, ingeklapt (Uitleg.swift). Alleen als het verhaal ze heeft.
+            let begrippen = BegrippenSectie.of(items)
+            if !begrippen.isEmpty {
+                Section {
+                    BegrippenSectie(begrippen: begrippen, open: DebugLaunch.begrippen, openTerms: DebugLaunch.begrippen ? Set(begrippen.map(\.term)) : [])
+                        .listRowBackground(Theme.surface)
+                        .id("begrippen")
+                }
+            }
+        }
+        .debugJump(proxy, to: BegrippenSectie.of(items).isEmpty ? nil : "begrippen", when: items.count) // -HootScroll onder: naar de Begrippen
         }
         .scrollContentBackground(.hidden)
         .contentMargins(.horizontal, 0, for: .scrollContent)
