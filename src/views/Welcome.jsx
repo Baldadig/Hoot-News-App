@@ -8,7 +8,7 @@ import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.j
 import { vakByDomain } from '../../shared/vak.mjs'
 import { voorstel } from '../../shared/voorstel.mjs'
 import { INTERESTS, resolveTopics } from '../lib/topics.js'
-import { sourcesOn, pickedFrom, sourceLine } from '../lib/welcome.js'
+import { sourcesOn, pickedFrom, sourceLine, proofHeadline } from '../lib/welcome.js'
 import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines, chosenIn, startsOpen, foldCount } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
@@ -39,7 +39,7 @@ const TRIO = [
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
-export default function Welcome({ sources, items = [], prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {} }) {
+export default function Welcome({ sources, items = [], edition = null, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {} }) {
   const reopen = !!onClose
   const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | uitleg | interesses | bronnen
   const [interests, setInterests] = useState(() => prefs.interests || [])
@@ -86,6 +86,8 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
     }
   }, [leaving])
 
+  // Het bewijs onder de kop: de eerste kop van de huidige algemene Editie. Zonder feed (offline) valt hij weg.
+  const proof = useMemo(() => proofHeadline(edition), [edition])
   const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
   const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
   // Het voorstel bovenaan de bronnenstap (shared/voorstel.mjs): uit je interesses en je eigen onderwerpen.
@@ -304,11 +306,18 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
           <div className="col ob__mid">
             <SunArt kind="intro" className="ob__art" />
             <h1 id={paper ? undefined : 'ob-title'} ref={redHead} tabIndex={-1} className="ob__hero">
-              Minder scrollen.
+              Nieuws met
               <br />
-              Meer lezen.
+              een einde.
             </h1>
-            <p className="ob__lede">Het nieuws van jouw bronnen, rustig op een rij.</p>
+            {proof ? (
+              <p className="ob__proof">
+                <span className="ob__prooftitle">{proof.title}</span>
+                <span className="ob__proofsrc">{proof.source}</span>
+              </p>
+            ) : (
+              <p className="ob__lede">Het nieuws van jouw bronnen, rustig op een rij.</p>
+            )}
           </div>
           <div className="ob__foot">
             <div className="col">

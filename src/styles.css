@@ -3193,6 +3193,28 @@ select.input {
 .ob--open .ob__lede {
   color: var(--on-brand-red-2);
 }
+/* Het bewijs onder de kop: de eerste kop van de huidige Editie, met zijn bron. */
+.ob__proof {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  max-inline-size: 20em;
+  margin-top: var(--s3);
+}
+.ob__prooftitle {
+  font-family: var(--serif);
+  font-size: var(--t4);
+  line-height: var(--lh-tight);
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ob__proofsrc {
+  font-size: var(--t2);
+  color: var(--on-brand-red-2);
+}
 
 /* De zon (components/SunArt.jsx): het kader is 168 × 140; de hoogte volgt het scherm, de breedte
    volgt de tekening. Schijf en ring in --accent (op rood papier), de horizon en het water in inkt. */
