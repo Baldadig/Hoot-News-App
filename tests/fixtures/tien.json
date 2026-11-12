@@ -96,8 +96,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -198,8 +198,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -222,8 +222,8 @@
     "dots": [
      [
       120,
-      21.151,
-      0.288,
+      20,
+      0,
       0,
       0
      ],
@@ -300,8 +300,8 @@
     "line1": 0.45,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -324,8 +324,8 @@
     "dots": [
      [
       120,
-      23.784,
-      0.946,
+      22.838,
+      0.709,
       0,
       0
      ],
@@ -402,8 +402,8 @@
     "line1": 0.75,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -419,7 +419,7 @@
    "f": {
     "ring": [
      48,
-     65.753,
+     49.785,
      0,
      1
     ],
@@ -439,9 +439,9 @@
       0
      ],
      [
-      165.963,
-      57.066,
-      0.918,
+      167.403,
+      56.598,
+      0.539,
       0,
       0
      ],
@@ -504,8 +504,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -521,7 +521,7 @@
    "f": {
     "ring": [
      48,
-     178.059,
+     173.753,
      0,
      1
     ],
@@ -563,8 +563,8 @@
      ],
      [
       120,
-      120.049,
-      0.988,
+      120.328,
+      0.918,
       0,
       0
      ],
@@ -606,8 +606,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -623,7 +623,7 @@
    "f": {
     "ring": [
      48,
-     301.785,
+     286.059,
      0,
      1
     ],
@@ -685,16 +685,16 @@
       0
      ],
      [
-      74.349,
-      57.167,
-      1,
+      74.303,
+      57.152,
+      0.988,
       0,
       0
      ],
      [
-      90.704,
-      31.677,
-      0.539,
+      89.435,
+      29.931,
+      0,
       0,
       0
      ]
@@ -708,8 +708,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -725,8 +725,8 @@
    "f": {
     "ring": [
      48,
-     340.145,
-     0.667,
+     323.271,
+     0,
      1
     ],
     "dots": [
@@ -734,70 +734,70 @@
       120,
       24,
       1,
-      0.667,
+      0,
       0
      ],
      [
       148.214,
       33.167,
       1,
-      0.667,
+      0,
       0
      ],
      [
       165.651,
       57.167,
       1,
-      0.667,
+      0,
       0
      ],
      [
       165.651,
       86.833,
       1,
-      0.667,
+      0,
       0
      ],
      [
       148.214,
       110.833,
       1,
-      0.667,
+      0,
       0
      ],
      [
       120,
       120,
       1,
-      0.667,
+      0,
       0
      ],
      [
       91.786,
       110.833,
       1,
-      0.667,
+      0,
       0
      ],
      [
       74.349,
       86.833,
       1,
-      0.667,
+      0,
       0
      ],
      [
       74.349,
       57.167,
       1,
-      0.667,
+      0,
       0
      ],
      [
-      91.786,
-      33.167,
-      1,
-      0.667,
+      91.785,
+      33.165,
+      0.999,
+      0,
       0
      ]
     ],
@@ -810,8 +810,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -827,8 +827,8 @@
    "f": {
     "ring": [
      48,
-     358.464,
-     1,
+     356.2,
+     0.988,
      1
     ],
     "dots": [
@@ -836,70 +836,70 @@
       120,
       24,
       1,
-      1,
+      0.988,
       0
      ],
      [
       148.214,
       33.167,
       1,
-      1,
+      0.988,
       0
      ],
      [
       165.651,
       57.167,
       1,
-      1,
+      0.988,
       0
      ],
      [
       165.651,
       86.833,
       1,
-      1,
+      0.988,
       0
      ],
      [
       148.214,
       110.833,
       1,
-      1,
+      0.988,
       0
      ],
      [
       120,
       120,
       1,
-      1,
+      0.988,
       0
      ],
      [
       91.786,
       110.833,
       1,
-      1,
+      0.988,
       0
      ],
      [
       74.349,
       86.833,
       1,
-      1,
+      0.988,
       0
      ],
      [
       74.349,
       57.167,
       1,
-      1,
+      0.988,
       0
      ],
      [
       91.786,
       33.167,
       1,
-      1,
+      0.988,
       0
      ]
     ],
@@ -912,8 +912,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -929,7 +929,7 @@
    "f": {
     "ring": [
      48,
-     360,
+     359.976,
      1,
      1
     ],
@@ -937,72 +937,72 @@
      [
       120,
       24,
-      0.995,
+      1,
       1,
       0
      ],
      [
       148.214,
       33.167,
-      0.995,
+      1,
       1,
       0
      ],
      [
       165.651,
       57.167,
-      0.995,
+      1,
       1,
       0
      ],
      [
       165.651,
       86.833,
-      0.995,
+      1,
       1,
       0
      ],
      [
       148.214,
       110.833,
-      0.995,
+      1,
       1,
       0
      ],
      [
       120,
       120,
-      0.995,
+      1,
       1,
       0
      ],
      [
       91.786,
       110.833,
-      0.995,
+      1,
       1,
       0
      ],
      [
       74.349,
       86.833,
-      0.995,
+      1,
       1,
       0
      ],
      [
       74.349,
       57.167,
-      0.995,
+      1,
       1,
       0
      ],
      [
-      91.712,
-      33.064,
+      91.786,
+      33.167,
       1,
       1,
-      0.005
+      0
      ]
     ],
     "ghost": [
@@ -1014,8 +1014,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -1039,72 +1039,72 @@
      [
       120,
       24,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       148.214,
       33.167,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       165.651,
       57.167,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       165.651,
       86.833,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       148.214,
       110.833,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       120,
       120,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       91.786,
       110.833,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       74.349,
       86.833,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
       74.349,
       57.167,
-      0.488,
+      0.861,
       1,
       0
      ],
      [
-      84.566,
-      23.229,
+      89.819,
+      30.459,
       1,
       1,
-      0.512
+      0.139
      ]
     ],
     "ghost": [
@@ -1116,8 +1116,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
@@ -1141,72 +1141,72 @@
      [
       120,
       24,
-      0,
+      0.012,
       1,
       0
      ],
      [
       148.214,
       33.167,
-      0,
+      0.012,
       1,
       0
      ],
      [
       165.651,
       57.167,
-      0,
+      0.012,
       1,
       0
      ],
      [
       165.651,
       86.833,
-      0,
+      0.012,
       1,
       0
      ],
      [
       148.214,
       110.833,
-      0,
+      0.012,
       1,
       0
      ],
      [
       120,
       120,
-      0,
+      0.012,
       1,
       0
      ],
      [
       91.786,
       110.833,
-      0,
+      0.012,
       1,
       0
      ],
      [
       74.349,
       86.833,
-      0,
+      0.012,
       1,
       0
      ],
      [
       74.349,
       57.167,
-      0,
+      0.012,
       1,
       0
      ],
      [
-      77.679,
-      13.751,
+      77.854,
+      13.992,
       1,
       1,
-      1
+      0.988
      ]
     ],
     "ghost": [
@@ -1218,9 +1218,9 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
-    "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
+    "show": 2680,
+    "tick": 1460,
+    "say": "Hoot stelt je eerste Editie samen",
     "done": false
    }
   },
@@ -1320,8 +1320,8 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
    }
@@ -1336,10 +1336,10 @@
    "t": 2400,
    "f": {
     "ring": [
-     48.805,
+     48,
      360,
      1,
-     0.9
+     1
     ],
     "dots": [
      [
@@ -1419,11 +1419,11 @@
      0,
      0
     ],
-    "line1": 0.8,
+    "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
    }
@@ -1438,10 +1438,10 @@
    "t": 2500,
    "f": {
     "ring": [
-     62.567,
+     54.204,
      360,
      1,
-     0.65
+     0.75
     ],
     "dots": [
      [
@@ -1521,11 +1521,11 @@
      0,
      0
     ],
-    "line1": 0.3,
+    "line1": 0.5,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
    }
@@ -1540,10 +1540,10 @@
    "t": 2600,
    "f": {
     "ring": [
-     125.799,
+     90.956,
      360,
      1,
-     0.4
+     0.5
     ],
     "dots": [
      [
@@ -1612,7 +1612,7 @@
      [
       77.679,
       13.751,
-      0.714,
+      1,
       1,
       1
      ]
@@ -1626,8 +1626,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
    }
@@ -1642,10 +1642,10 @@
    "t": 2700,
    "f": {
     "ring": [
-     178.897,
+     165.063,
      360,
      1,
-     0.15
+     0.25
     ],
     "dots": [
      [
@@ -1714,7 +1714,7 @@
      [
       77.679,
       13.751,
-      0,
+      0.286,
       1,
       1
      ]
@@ -1728,8 +1728,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
    }
@@ -1744,7 +1744,7 @@
    "t": 2900,
    "f": {
     "ring": [
-     199.895,
+     198.983,
      360,
      1,
      0
@@ -1830,8 +1830,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
    }
@@ -1932,8 +1932,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2034,8 +2034,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2136,8 +2136,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2238,8 +2238,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2340,8 +2340,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2442,8 +2442,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2544,8 +2544,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2646,8 +2646,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2748,8 +2748,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2850,8 +2850,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -2952,8 +2952,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -3054,8 +3054,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -3156,8 +3156,8 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 2640,
-    "tick": 1420,
+    "show": 2680,
+    "tick": 1460,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
    }
@@ -3384,8 +3384,8 @@
     "dots": [
      [
       120,
-      21.151,
-      0.288,
+      20,
+      0,
       0,
       0
      ],
@@ -3486,8 +3486,8 @@
     "dots": [
      [
       120,
-      23.784,
-      0.946,
+      22.838,
+      0.709,
       0,
       0
      ],
@@ -3683,7 +3683,7 @@
    "f": {
     "ring": [
      48,
-     34.059,
+     29.795,
      0,
      1
     ],
@@ -3696,9 +3696,9 @@
       0
      ],
      [
-      148.242,
-      33.128,
-      0.988,
+      148.406,
+      32.902,
+      0.918,
       0,
       0
      ],
@@ -6546,8 +6546,8 @@
     "dots": [
      [
       120,
-      21.151,
-      0.288,
+      20,
+      0,
       0,
       0
      ],
@@ -6648,8 +6648,8 @@
     "dots": [
      [
       120,
-      23.784,
-      0.946,
+      22.838,
+      0.709,
       0,
       0
      ],
@@ -6845,7 +6845,7 @@
    "f": {
     "ring": [
      48,
-     34.059,
+     29.795,
      0,
      1
     ],
@@ -6858,9 +6858,9 @@
       0
      ],
      [
-      148.242,
-      33.128,
-      0.988,
+      148.406,
+      32.902,
+      0.918,
       0,
       0
      ],
@@ -7049,7 +7049,7 @@
    "f": {
     "ring": [
      48,
-     63.622,
+     43.281,
      0,
      1
     ],
@@ -7069,9 +7069,9 @@
       0
      ],
      [
-      166.121,
-      57.014,
-      0.876,
+      168.36,
+      56.287,
+      0.288,
       0,
       0
      ],
@@ -7151,7 +7151,7 @@
    "f": {
     "ring": [
      48,
-     71.809,
+     70.967,
      0,
      1
     ],
@@ -7171,9 +7171,9 @@
       0
      ],
      [
-      165.651,
-      57.167,
-      1,
+      165.66,
+      57.164,
+      0.997,
       0,
       0
      ],
@@ -7559,7 +7559,7 @@
    "f": {
     "ring": [
      48,
-     108,
+     107.809,
      0,
      1
     ],
@@ -7967,7 +7967,7 @@
    "f": {
     "ring": [
      48,
-     142.059,
+     137.795,
      0,
      1
     ],
@@ -8001,9 +8001,9 @@
       0
      ],
      [
-      148.242,
-      110.872,
-      0.988,
+      148.406,
+      111.098,
+      0.918,
       0,
       0
      ],
@@ -8658,7 +8658,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.052,
+     0.038,
      0
     ],
     "line1": 1,
@@ -8760,7 +8760,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.342,
+     0.331,
      0
     ],
     "line1": 1,
@@ -8862,7 +8862,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.322,
+     0.334,
      0
     ],
     "line1": 1,
@@ -8964,7 +8964,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.229,
+     0.242,
      0
     ],
     "line1": 1,
@@ -9066,7 +9066,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.111,
+     0.11,
      0
     ],
     "line1": 1,
@@ -9708,8 +9708,8 @@
     "dots": [
      [
       120,
-      21.151,
-      0.288,
+      20,
+      0,
       0,
       0
      ],
@@ -9810,8 +9810,8 @@
     "dots": [
      [
       120,
-      23.784,
-      0.946,
+      22.838,
+      0.709,
       0,
       0
      ],
@@ -10007,7 +10007,7 @@
    "f": {
     "ring": [
      48,
-     34.059,
+     29.795,
      0,
      1
     ],
@@ -10020,9 +10020,9 @@
       0
      ],
      [
-      148.242,
-      33.128,
-      0.988,
+      148.406,
+      32.902,
+      0.918,
       0,
       0
      ],
@@ -10211,7 +10211,7 @@
    "f": {
     "ring": [
      48,
-     63.622,
+     43.281,
      0,
      1
     ],
@@ -10231,9 +10231,9 @@
       0
      ],
      [
-      166.121,
-      57.014,
-      0.876,
+      168.36,
+      56.287,
+      0.288,
       0,
       0
      ],
@@ -10313,7 +10313,7 @@
    "f": {
     "ring": [
      48,
-     71.809,
+     70.967,
      0,
      1
     ],
@@ -10333,9 +10333,9 @@
       0
      ],
      [
-      165.651,
-      57.167,
-      1,
+      165.66,
+      57.164,
+      0.997,
       0,
       0
      ],
@@ -10721,7 +10721,7 @@
    "f": {
     "ring": [
      48,
-     108,
+     107.809,
      0,
      1
     ],
@@ -11129,7 +11129,7 @@
    "f": {
     "ring": [
      48,
-     142.059,
+     137.795,
      0,
      1
     ],
@@ -11163,9 +11163,9 @@
       0
      ],
      [
-      148.242,
-      110.872,
-      0.988,
+      148.406,
+      111.098,
+      0.918,
       0,
       0
      ],
@@ -11820,7 +11820,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.052,
+     0.038,
      0
     ],
     "line1": 1,
@@ -11922,7 +11922,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.342,
+     0.331,
      0
     ],
     "line1": 1,
@@ -12024,7 +12024,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.322,
+     0.334,
      0
     ],
     "line1": 1,
@@ -12126,7 +12126,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.229,
+     0.242,
      0
     ],
     "line1": 1,
@@ -12228,7 +12228,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.39,
+     0.385,
      0
     ],
     "line1": 1,
@@ -12432,7 +12432,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.308,
+     0.32,
      0
     ],
     "line1": 1,
@@ -12534,7 +12534,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.214,
+     0.226,
      0
     ],
     "line1": 1,
@@ -12636,7 +12636,7 @@
     "ghost": [
      91.786,
      33.167,
-     0.141,
+     0.148,
      0
     ],
     "line1": 1,
@@ -12870,8 +12870,8 @@
     "dots": [
      [
       120,
-      21.151,
-      0.288,
+      20,
+      0,
       0,
       0
      ],
@@ -12972,8 +12972,8 @@
     "dots": [
      [
       120,
-      23.784,
-      0.946,
+      22.838,
+      0.709,
       0,
       0
      ],
@@ -13169,7 +13169,7 @@
    "f": {
     "ring": [
      48,
-     34.059,
+     29.795,
      0,
      1
     ],
@@ -13182,9 +13182,9 @@
       0
      ],
      [
-      148.242,
-      33.128,
-      0.988,
+      148.406,
+      32.902,
+      0.918,
       0,
       0
      ],
@@ -13373,7 +13373,7 @@
    "f": {
     "ring": [
      48,
-     63.622,
+     43.281,
      0,
      1
     ],
@@ -13393,9 +13393,9 @@
       0
      ],
      [
-      166.121,
-      57.014,
-      0.876,
+      168.36,
+      56.287,
+      0.288,
       0,
       0
      ],
@@ -13475,7 +13475,7 @@
    "f": {
     "ring": [
      48,
-     71.809,
+     70.967,
      0,
      1
     ],
@@ -13495,9 +13495,9 @@
       0
      ],
      [
-      165.651,
-      57.167,
-      1,
+      165.66,
+      57.164,
+      0.997,
       0,
       0
      ],
@@ -13883,7 +13883,7 @@
    "f": {
     "ring": [
      48,
-     108,
+     107.809,
      0,
      1
     ],
@@ -14291,7 +14291,7 @@
    "f": {
     "ring": [
      48,
-     142.059,
+     137.795,
      0,
      1
     ],
@@ -14325,9 +14325,9 @@
       0
      ],
      [
-      148.242,
-      110.872,
-      0.988,
+      148.406,
+      111.098,
+      0.918,
       0,
       0
      ],
@@ -14633,14 +14633,14 @@
      [
       148.214,
       110.833,
-      0.504,
+      0.461,
       0,
       0
      ],
      [
       120,
       120,
-      0.017,
+      0.012,
       0,
       0
      ],
@@ -14728,14 +14728,14 @@
      [
       165.651,
       86.833,
-      0.224,
+      0.188,
       0,
       0
      ],
      [
       148.214,
       110.833,
-      0.004,
+      0.003,
       0,
       0
      ],
@@ -19068,7 +19068,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -19167,10 +19167,10 @@
      0,
      1
     ],
-    "line1": 0.286,
+    "line1": 0.5,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -19269,10 +19269,10 @@
      0,
      1
     ],
-    "line1": 0.6,
+    "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -19371,10 +19371,10 @@
      0,
      1
     ],
-    "line1": 0.771,
+    "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -19476,7 +19476,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -19494,77 +19494,77 @@
     "ring": [
      48,
      360,
-     0.857,
+     1,
      1
     ],
     "dots": [
      [
       120,
       24,
-      0.143,
+      0,
       0,
       0
      ],
      [
       148.214,
       33.167,
-      0.143,
+      0,
       0,
       0
      ],
      [
       165.651,
       57.167,
-      0.143,
+      0,
       0,
       0
      ],
      [
       165.651,
       86.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       148.214,
       110.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       120,
       120,
-      0.143,
+      0,
       0,
       0
      ],
      [
       91.786,
       110.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       74.349,
       86.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       74.349,
       57.167,
-      0.143,
+      0,
       0,
       0
      ],
      [
       91.786,
       33.167,
-      0.143,
+      0,
       0,
       0
      ]
@@ -19572,13 +19572,13 @@
     "ghost": [
      77.679,
      13.751,
-     0.857,
+     1,
      1
     ],
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
@@ -19680,7 +19680,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
@@ -19782,7 +19782,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
@@ -19884,7 +19884,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
@@ -19903,7 +19903,7 @@
      48,
      360,
      1,
-     1
+     0.5
     ],
     "dots": [
      [
@@ -19980,13 +19980,13 @@
     "ghost": [
      77.679,
      13.751,
-     1,
+     0.5,
      1
     ],
-    "line1": 1,
+    "line1": 0.5,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
@@ -20005,7 +20005,7 @@
      48,
      360,
      1,
-     0.857
+     0
     ],
     "dots": [
      [
@@ -20082,16 +20082,16 @@
     "ghost": [
      77.679,
      13.751,
-     0.857,
+     0,
      1
     ],
-    "line1": 0.857,
+    "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
-    "done": false
+    "done": true
    }
   },
   {
@@ -20107,7 +20107,7 @@
      48,
      360,
      1,
-     0.4
+     0
     ],
     "dots": [
      [
@@ -20184,16 +20184,16 @@
     "ghost": [
      77.679,
      13.751,
-     0.4,
+     0,
      1
     ],
-    "line1": 0.4,
+    "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
-    "done": false
+    "done": true
    }
   },
   {
@@ -20292,7 +20292,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -20394,7 +20394,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -20496,7 +20496,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -20598,7 +20598,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -20700,7 +20700,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -20802,7 +20802,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -20904,7 +20904,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21006,7 +21006,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21108,7 +21108,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21210,7 +21210,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21312,7 +21312,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21414,7 +21414,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21516,7 +21516,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21618,7 +21618,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21720,7 +21720,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21822,7 +21822,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -21924,7 +21924,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -22026,7 +22026,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -22128,7 +22128,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 1750,
+    "show": 1600,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -22230,7 +22230,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -22329,10 +22329,10 @@
      0,
      1
     ],
-    "line1": 0.286,
+    "line1": 0.5,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -22431,10 +22431,10 @@
      0,
      1
     ],
-    "line1": 0.6,
+    "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -22533,10 +22533,10 @@
      0,
      1
     ],
-    "line1": 0.771,
+    "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -22638,7 +22638,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -22740,7 +22740,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -22842,7 +22842,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -22944,7 +22944,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23046,7 +23046,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23148,7 +23148,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23250,7 +23250,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23352,7 +23352,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23454,7 +23454,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23556,7 +23556,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23658,7 +23658,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23760,7 +23760,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23862,7 +23862,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -23964,7 +23964,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -24066,7 +24066,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -24168,7 +24168,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -24270,7 +24270,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -24372,7 +24372,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -24474,7 +24474,7 @@
     "line1": 1,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -24574,9 +24574,9 @@
      1
     ],
     "line1": 1,
-    "line2": 0.286,
+    "line2": 0.5,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Hoot stelt je eerste Editie samen",
     "done": false
@@ -24678,7 +24678,7 @@
     "line1": 1,
     "line2": 1,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
@@ -24696,77 +24696,77 @@
     "ring": [
      48,
      360,
-     0.857,
+     1,
      1
     ],
     "dots": [
      [
       120,
       24,
-      0.143,
+      0,
       0,
       0
      ],
      [
       148.214,
       33.167,
-      0.143,
+      0,
       0,
       0
      ],
      [
       165.651,
       57.167,
-      0.143,
+      0,
       0,
       0
      ],
      [
       165.651,
       86.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       148.214,
       110.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       120,
       120,
-      0.143,
+      0,
       0,
       0
      ],
      [
       91.786,
       110.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       74.349,
       86.833,
-      0.143,
+      0,
       0,
       0
      ],
      [
       74.349,
       57.167,
-      0.143,
+      0,
       0,
       0
      ],
      [
       91.786,
       33.167,
-      0.143,
+      0,
       0,
       0
      ]
@@ -24774,13 +24774,13 @@
     "ghost": [
      77.679,
      13.751,
-     0.857,
+     1,
      1
     ],
     "line1": 1,
-    "line2": 0.143,
+    "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": false
@@ -24882,7 +24882,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -24984,7 +24984,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -25086,7 +25086,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -25188,7 +25188,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -25290,7 +25290,7 @@
     "line1": 0,
     "line2": 0,
     "err": 0,
-    "show": 8150,
+    "show": 8000,
     "tick": -1,
     "say": "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.",
     "done": true
@@ -25491,7 +25491,7 @@
      0,
      1
     ],
-    "line1": 0.286,
+    "line1": 0.5,
     "line2": 0,
     "err": 0,
     "show": -1,
@@ -25593,7 +25593,7 @@
      0,
      1
     ],
-    "line1": 0.6,
+    "line1": 1,
     "line2": 0,
     "err": 0,
     "show": -1,
@@ -25695,7 +25695,7 @@
      0,
      1
     ],
-    "line1": 0.771,
+    "line1": 1,
     "line2": 0,
     "err": 0,
     "show": -1,
@@ -26533,76 +26533,76 @@
      48,
      360,
      0,
-     0.429
+     0
     ],
     "dots": [
      [
       120,
       24,
-      0.429,
+      0,
       0,
       0
      ],
      [
       148.214,
       33.167,
-      0.429,
+      0,
       0,
       0
      ],
      [
       165.651,
       57.167,
-      0.429,
+      0,
       0,
       0
      ],
      [
       165.651,
       86.833,
-      0.429,
+      0,
       0,
       0
      ],
      [
       148.214,
       110.833,
-      0.429,
+      0,
       0,
       0
      ],
      [
       120,
       120,
-      0.429,
+      0,
       0,
       0
      ],
      [
       91.786,
       110.833,
-      0.429,
+      0,
       0,
       0
      ],
      [
       74.349,
       86.833,
-      0.429,
+      0,
       0,
       0
      ],
      [
       74.349,
       57.167,
-      0.429,
+      0,
       0,
       0
      ],
      [
       91.786,
       33.167,
-      0.429,
+      0,
       0,
       0
      ]
@@ -26613,7 +26613,7 @@
      0,
      1
     ],
-    "line1": 0.429,
+    "line1": 0,
     "line2": 0,
     "err": 0,
     "show": -1,
@@ -26717,11 +26717,11 @@
     ],
     "line1": 0,
     "line2": 0,
-    "err": 0.143,
+    "err": 1,
     "show": -1,
     "tick": -1,
     "say": "Je eerste Editie kon nog niet laden. Geen verbinding.",
-    "done": false
+    "done": true
    }
   },
   {
@@ -26819,11 +26819,11 @@
     ],
     "line1": 0,
     "line2": 0,
-    "err": 0.429,
+    "err": 1,
     "show": -1,
     "tick": -1,
     "say": "Je eerste Editie kon nog niet laden. Geen verbinding.",
-    "done": false
+    "done": true
    }
   },
   {
@@ -26921,11 +26921,11 @@
     ],
     "line1": 0,
     "line2": 0,
-    "err": 0.714,
+    "err": 1,
     "show": -1,
     "tick": -1,
     "say": "Je eerste Editie kon nog niet laden. Geen verbinding.",
-    "done": false
+    "done": true
    }
   },
   {
@@ -28462,7 +28462,7 @@
  "blocks": [
   [
    0,
-   2640,
+   2680,
    2600,
    0,
    0,
@@ -28470,7 +28470,7 @@
   ],
   [
    0,
-   2640,
+   2680,
    2600,
    1,
    0,
@@ -28478,39 +28478,39 @@
   ],
   [
    0,
-   2640,
+   2680,
    2700,
    0,
-   0.793,
-   1.659
+   0.397,
+   4.826
   ],
   [
    0,
-   2640,
+   2680,
    2700,
    1,
-   0.171,
+   0.1,
    0
   ],
   [
    0,
-   2640,
+   2680,
    2800,
    0,
-   0.992,
-   0.061
+   0.971,
+   0.23
   ],
   [
    0,
-   2640,
+   2680,
    2800,
    1,
-   0.457,
+   0.6,
    0
   ],
   [
    0,
-   2640,
+   2680,
    2900,
    0,
    1,
@@ -28518,15 +28518,15 @@
   ],
   [
    0,
-   2640,
+   2680,
    2900,
    1,
-   0.743,
+   1,
    0
   ],
   [
    0,
-   2640,
+   2680,
    3100,
    0,
    1,
@@ -28534,7 +28534,7 @@
   ],
   [
    0,
-   2640,
+   2680,
    3100,
    1,
    1,
@@ -28542,7 +28542,7 @@
   ],
   [
    1,
-   2640,
+   2680,
    2600,
    0,
    0,
@@ -28550,7 +28550,7 @@
   ],
   [
    1,
-   2640,
+   2680,
    2600,
    1,
    0,
@@ -28558,7 +28558,7 @@
   ],
   [
    1,
-   2640,
+   2680,
    2700,
    0,
    0,
@@ -28566,47 +28566,47 @@
   ],
   [
    1,
-   2640,
+   2680,
    2700,
    1,
-   0.171,
+   0.1,
    0
   ],
   [
    1,
-   2640,
+   2680,
    2800,
    0,
-   0.878,
-   0.972
+   0.682,
+   2.546
   ],
   [
    1,
-   2640,
+   2680,
    2800,
    1,
-   0.457,
+   0.6,
    0
   ],
   [
    1,
-   2640,
+   2680,
    2900,
    0,
-   0.998,
-   0.014
+   0.986,
+   0.11
   ],
   [
    1,
-   2640,
+   2680,
    2900,
    1,
-   0.743,
+   1,
    0
   ],
   [
    1,
-   2640,
+   2680,
    3100,
    0,
    1,
@@ -28614,7 +28614,7 @@
   ],
   [
    1,
-   2640,
+   2680,
    3100,
    1,
    1,
@@ -28622,7 +28622,7 @@
   ],
   [
    2,
-   2640,
+   2680,
    2600,
    0,
    0,
@@ -28630,7 +28630,7 @@
   ],
   [
    2,
-   2640,
+   2680,
    2600,
    1,
    0,
@@ -28638,7 +28638,7 @@
   ],
   [
    2,
-   2640,
+   2680,
    2700,
    0,
    0,
@@ -28646,15 +28646,15 @@
   ],
   [
    2,
-   2640,
+   2680,
    2700,
    1,
-   0.171,
+   0.1,
    0
   ],
   [
    2,
-   2640,
+   2680,
    2800,
    0,
    0,
@@ -28662,31 +28662,31 @@
   ],
   [
    2,
-   2640,
+   2680,
    2800,
    1,
-   0.457,
+   0.6,
    0
   ],
   [
    2,
-   2640,
+   2680,
    2900,
    0,
-   0.93,
-   0.563
+   0.828,
+   1.379
   ],
   [
    2,
-   2640,
+   2680,
    2900,
    1,
-   0.743,
+   1,
    0
   ],
   [
    2,
-   2640,
+   2680,
    3100,
    0,
    1,
@@ -28694,7 +28694,7 @@
   ],
   [
    2,
-   2640,
+   2680,
    3100,
    1,
    1,
@@ -28702,7 +28702,7 @@
   ],
   [
    5,
-   2640,
+   2680,
    2600,
    0,
    0,
@@ -28710,7 +28710,7 @@
   ],
   [
    5,
-   2640,
+   2680,
    2600,
    1,
    0,
@@ -28718,7 +28718,7 @@
   ],
   [
    5,
-   2640,
+   2680,
    2700,
    0,
    0,
@@ -28726,15 +28726,15 @@
   ],
   [
    5,
-   2640,
+   2680,
    2700,
    1,
-   0.171,
+   0.1,
    0
   ],
   [
    5,
-   2640,
+   2680,
    2800,
    0,
    0,
@@ -28742,15 +28742,15 @@
   ],
   [
    5,
-   2640,
+   2680,
    2800,
    1,
-   0.457,
+   0.6,
    0
   ],
   [
    5,
-   2640,
+   2680,
    2900,
    0,
    0,
@@ -28758,23 +28758,23 @@
   ],
   [
    5,
-   2640,
+   2680,
    2900,
    1,
-   0.743,
+   1,
    0
   ],
   [
    5,
-   2640,
+   2680,
    3100,
    0,
-   0.793,
-   1.659
+   0.397,
+   4.826
   ],
   [
    5,
-   2640,
+   2680,
    3100,
    1,
    1,
@@ -28792,31 +28792,31 @@
    0.1,
    0.39669217835238074,
    0.010913674097878303,
-   0.3591214749648649
+   0.39669217835238074
   ],
   [
    0.25,
    0.7672843007165581,
    0.095832711526222,
-   0.7273733960918348
+   0.7672843007165581
   ],
   [
    0.5,
    0.9460794626659367,
    0.7046853301991391,
-   0.9295788220897292
+   0.9460794626659367
   ],
   [
    0.75,
    0.9911082380163556,
    0.9562266833449444,
-   0.9874681063629491
+   0.9911082380163556
   ],
   [
    0.9,
    0.9988302593045216,
    0.9942190180129338,
-   0.9982866217839776
+   0.9988302593045216
   ],
   [
    1,

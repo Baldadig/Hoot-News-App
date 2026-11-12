@@ -20,15 +20,15 @@
 export const TIEN = {
   w: 240, h: 128, cx: 120, cy: 72, // het vlak en het hart
   r: 48, out: 72, dot: 8, hair: 1, iris: 200, nudge: 4,
-  first: 200, // de eerste punt: na het wegvagen van het welkom (dur-2)
+  first: 240, // de eerste punt: na het wegvagen van het welkom (--dur-gewoon)
   fast: 120, slow: 600, // stap tussen de punten: snel, of de bronnen volgen
   dotIn: 140, lineIn: 200, close: 260, shut: 140, merge: 280, still: 400,
   irisMs: 560, irisGone: 400, redAfter: 200, redOut: 140,
   edAfter: 280, block: 200, blockStep: 80, rise: 8, // de Editie komt in
   sentenceAt: 120, sentence: 200, slowNote: 6000, breath: 2750,
   failDot: 140, failStep: 80, failLine: 400, errAfter: 480, errIn: 200,
-  reduceFade: 350, reduceHold: 800, reduceMin: 600,
-  welcomeFade: 200, gap: 16, line: 24, // het welkom vervaagt in 200; de zin 16 onder het vlak (24 onder de kring)
+  reduceFade: 200, reduceHold: 800, reduceMin: 600,
+  welcomeFade: 240, gap: 16, line: 24, // het welkom vervaagt in 240 (gewoon); de zin 16 onder het vlak (24 onder de kring)
   area: 400, // het lege vlak onder de titel waarin het teken gecentreerd staat
 }
 export const TEXT = {
@@ -56,7 +56,8 @@ export function bezier(x1, y1, x2, y2) {
     return ((ay * t + by) * t + cy) * t
   }
 }
-export const CURVE = { glide: [0.2, 0.8, 0.2, 1], iris: [0.6, 0, 0.2, 1], ease: [0.2, 0.7, 0.2, 1] }
+// Twee curves: bediening (glide en ease zijn dezelfde) en iris, gelijk aan --ease-bediening en --ease-iris.
+export const CURVE = { glide: [0.2, 0.8, 0.2, 1], iris: [0.6, 0, 0.2, 1], ease: [0.2, 0.8, 0.2, 1] }
 export const E = { glide: bezier(...CURVE.glide), iris: bezier(...CURVE.iris), ease: bezier(...CURVE.ease) }
 
 const INF = Infinity

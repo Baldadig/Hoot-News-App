@@ -391,14 +391,14 @@ struct EditionView: View {
 
     private func answerAlerts(_ yes: Bool) {
         alertOffered = true
-        withAnimation(still ? nil : .easeInOut(duration: 0.3)) {
+        withAnimation(still ? nil : Beweging.gewoonAnim) {
             alertAsk = false
             alertYes = yes
         }
         guard yes else { return }
         Task {
             try? await Task.sleep(for: .seconds(3))
-            withAnimation(still ? nil : .easeInOut(duration: 0.3)) { alertYes = false }
+            withAnimation(still ? nil : Beweging.gewoonAnim) { alertYes = false }
         }
     }
 
@@ -657,14 +657,14 @@ struct EditionView: View {
                 let room = g.contentSize.height - g.containerSize.height
                 return room > 0 && (g.contentOffset.y + g.contentInsets.top) / room > 0.35
             } action: { _, past in
-                if past, store.browsing, !nudge { withAnimation(.easeOut(duration: 0.3)) { nudge = true } }
+                if past, store.browsing, !nudge { withAnimation(Beweging.gewoonAnim) { nudge = true } }
             }
             // Het einde van de eerste Editie in beeld: één keer de vraag om een seintje, los van de eindkaart.
             .onChange(of: endVisible) { _, visible in
                 if visible { store.tel(.editieEinde) } // gemeten: één keer per dagdeel (Telling.swift)
                 guard visible, !alertAsk, EditionAlerts.offerAfterEdition(permission: alerts.permission, notify: store.notify, offered: alertOffered, browsing: store.browsing) else { return }
                 alertOffered = true // gesteld zodra de kaart in beeld komt: wie niet antwoordt, ziet hem niet weer
-                withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
+                withAnimation(still ? nil : Beweging.gewoonAnim) { alertAsk = true }
             }
             // Om een beoordeling vragen: eigen onChange, los van de seintje-vraag hierboven (ReviewAsk).
             .onChange(of: endVisible) { _, visible in if visible { reviewMoment() } }
@@ -702,12 +702,12 @@ struct EditionView: View {
                 try? await Task.sleep(for: .milliseconds(16))
                 guard !Task.isCancelled else { ruleDrawn = true; storyShown = true; return }
                 if still {
-                    withAnimation(.easeOut(duration: 0.2)) { ruleDrawn = true; storyShown = true }
+                    withAnimation(Beweging.gewoonAnim) { ruleDrawn = true; storyShown = true }
                 } else {
-                    withAnimation(.timingCurve(0.2,0.8,0.2,1,duration: 0.4)) { ruleDrawn = true }
+                    withAnimation(Beweging.bediening(0.4)) { ruleDrawn = true }
                     try? await Task.sleep(for: .milliseconds(480))
                     guard !Task.isCancelled else { ruleDrawn = true; storyShown = true; return }
-                    withAnimation(.timingCurve(0.2,0.7,0.2,1,duration: 0.2)) { storyShown = true }
+                    withAnimation(Beweging.gewoonAnim) { storyShown = true }
                 }
                 try? await Task.sleep(for: .milliseconds(200))
                 if !Task.isCancelled { seenEdition = id }

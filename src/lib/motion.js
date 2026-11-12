@@ -1,18 +1,30 @@
-// Merkbeweging die buiten de CSS valt: de iris in Welkom, het opstartscherm en de overvloeier
-// van Welkom naar de Editie. De regel voor Minder beweging onderaan styles.css zet élke
-// CSS-animatie en -transition uit met !important, dus daar kan geen fade mee. Daarom loopt
-// alles hier via de Web Animations API (el.animate), die niet onder die regel valt, en kiest
-// `reduced()` zelf de stille variant: één fade van 0,35 s, zoals iOS bij Verminder beweging.
+// Beweging op het web en in de app: drie duren en twee curves, en één stille variant. Dezelfde getallen
+// staan als tokens in styles.css (--dur-kort, --dur-gewoon, --dur-merk, --ease-bediening, --ease-iris,
+// --dur-minder) en in ios/Hoot/Theme/Beweging.swift; tests/beweging.test.mjs houdt de drie gelijk.
+//   kort 120 ms    directe reactie (bewaren, schakelaar, chip)
+//   gewoon 240 ms  iets dat in beeld komt of van plek wisselt
+//   merk 700 ms    de iris: opstart en Welkom
+//   bediening      alles wat je bedient: vlot weg, zacht geland
+//   iris           de iris sluit en opent: zacht weg, zacht aan
+// Minder beweging: alles wat verplaatst of schaalt wordt één fade van STILL_MS (200 ms). In de CSS doet
+// styles/minder-beweging.css dat; wat hier in JS loopt (de iris, het opstartscherm, de overvloeier van
+// Welkom naar de Editie) kiest met `reduced()` zelf de fade. De iris en het woordmerk zijn clip-path en
+// transform met in JS gemeten geometrie, daarom lopen ze via el.animate.
 // De getallen staan hier (en niet in de component), zodat tests/motion.test.mjs ze kan nalopen.
-// Maten en curves uit het brandboard §03 en HootApp.swift/WelcomeView.swift.
+// Bewuste uitzonderingen op de drie duren (langer dan een overgang: lussen en choreografie met een eigen
+// tijdlijn): de sprong van het opstartscherm (1,6 s) en de adem (2,75 s en 8,25 s), het laadteken
+// (0,9 s), Tien en de bubbel, de laadstrepen, de pull-strook (lib/pull-horizon.js), het drukken van de
+// Editie (hooks/usePrintEdition.js) en de rustige hover-fade van de kaarten (0,56 en 0,38 s, keuze 5 nov).
 
-export const IRIS = 'cubic-bezier(0.6, 0, 0.2, 1)' // het rood sluit tot de punt
-export const IRIS_BACK = 'cubic-bezier(0.8, 0, 0.4, 1)' // en opent weer bij Terug
-export const LAND = 'cubic-bezier(0.3, 0, 0.1, 1)' // het woordmerk glijdt naar zijn plek (opstart)
-export const IRIS_MS = 700
-export const FADE_MS = 350
+export const DUR = { kort: 120, gewoon: 240, merk: 700 }
+export const STILL_MS = 200 // Minder beweging: één fade
+export const EASE = { bediening: 'cubic-bezier(0.2, 0.8, 0.2, 1)', iris: 'cubic-bezier(0.6, 0, 0.2, 1)' }
+
+export const IRIS = EASE.iris // het rood sluit tot de punt en opent weer bij Terug; het woordmerk glijdt er ook mee
+export const IRIS_MS = DUR.merk
+export const FADE_MS = STILL_MS
 export const STEP_OUT_MS = 80 // tussen papieren stappen: even uit (WelcomeView.go)
-export const STEP_IN_MS = 120 // en weer in
+export const STEP_IN_MS = DUR.kort // en weer in
 
 // Het opstartscherm (index.html + components/Splash.jsx, naar SplashView/HootApp.swift): de punt
 // stuitert in sprongen van 1,6 s (CSS @keyframes in index.html; bij Minder beweging staat hij stil);
@@ -21,8 +33,8 @@ export const STEP_IN_MS = 120 // en weer in
 // zijbalk), of landt het woordmerk in 0,7 s op de rode intro van Welkom (het rood blijft).
 export const BOUNCE_MS = 1600
 export const SPLASH_MAX_MS = 5000
-export const SPLASH_IRIS_MS = 700
-export const SPLASH_LAND_MS = 700
+export const SPLASH_IRIS_MS = DUR.merk
+export const SPLASH_LAND_MS = DUR.merk
 // Het woordmerk op het opstartscherm: de tekening (viewBox 239,45 × 73,5, punt op (231,75; 65,8)
 // r 7,7, zie components/Brand.jsx) passend in 160 × 49, zoals LaunchMark in de app.
 export const SPLASH_MARK = { w: 160, h: 49 }
@@ -50,20 +62,19 @@ export const tintTimes = (d = IRIS_MS) => ({ dotEnd: Math.round(d * 0.35), tintS
 // over 40 %, de punt weer tevoorschijn in de laatste 35 %, en 50 ms rust voordat de intro telt.
 export const openTimes = (d = IRIS_MS) => ({ delay: 32, tintDur: Math.round(d * 0.4), dotStart: Math.round(d * 0.65), dotDur: Math.round(d * 0.35), end: d + 50 })
 
-// Minder beweging: alleen dekking, 0,35 s.
+// Minder beweging: alleen dekking, STILL_MS (200 ms).
 export const reducedPlan = () => ({ fade: FADE_MS })
 
 // ---- Van Welkom naar de Editie ----
 
-// De overvloeier (HootApp.swift: `.animation(.easeInOut(duration: 0.45), value: store.onboarded)`):
-// Welkom vervaagt in 0,45 s over de Editie die eronder al staat (App.jsx tekent hem tijdens Welkom),
+// De overvloeier (HootApp.swift, `welcomeFade`): Welkom vervaagt in een merkduur (0,7 s) over de Editie die eronder al staat (App.jsx tekent hem tijdens Welkom),
 // alleen dekking, geen harde knip en geen skelet. Ook bij Minder beweging: er verplaatst niets, en
 // de app houdt hem dan ook.
-export const CROSS_MS = 450
-export const CROSS = 'ease-in-out'
+export const CROSS_MS = DUR.merk
+export const CROSS = EASE.bediening
 // De eerste keer (je eerste Editie, "Tien en de bubbel", src/lib/tien.js): het welkom vervaagt in
-// 200 ms (dur-2), bij Minder beweging in 350; dan begint het samenstellen.
-export const crossPlan = (first = false) => (first ? { fade: reduced() ? FADE_MS : 200, easing: CROSS } : { fade: CROSS_MS, easing: CROSS })
+// een gewone duur (240 ms), bij Minder beweging in 200; dan begint het samenstellen.
+export const crossPlan = (first = false) => (first ? { fade: reduced() ? STILL_MS : DUR.gewoon, easing: CROSS } : { fade: CROSS_MS, easing: CROSS })
 
 // ---- Opstartscherm ----
 
@@ -86,11 +97,11 @@ export function restDelay(phase, d = BOUNCE_MS) {
 // half weg is (20 %, 0,14 s) en reist in 0,7 s naar de gemeten punt. Daar kleurt het rood in 30 %
 // (0,21 s) naar de kleur van de punt en neemt de echte punt het over. Zonder "hoot." in beeld sluit
 // het rood tot de eigen punt en vervaagt dan kort. Gelijk aan IrisTimes in SplashView.swift.
-export const splashTimes = (d = SPLASH_IRIS_MS) => ({ fade: Math.round(d * 0.4), delay: Math.round(d * 0.2), travel: d, tintStart: Math.round(d * 1.2), tintDur: Math.round(d * 0.3), end: Math.round(d * 1.5) + 50, fadeOwn: 150 })
+export const splashTimes = (d = SPLASH_IRIS_MS) => ({ fade: Math.round(d * 0.4), delay: Math.round(d * 0.2), travel: d, tintStart: Math.round(d * 1.2), tintDur: Math.round(d * 0.3), end: Math.round(d * 1.5) + 50, fadeOwn: DUR.kort })
 
 // De landing op de rode intro: het woord glijdt in 55 % van de tijd naar linksboven, daarna
 // vervaagt het opstartscherm in 0,3 s (woordmerk en rood blijven gelijk; de tekst komt op).
-export const landTimes = (d = SPLASH_LAND_MS) => ({ word: Math.round(d * 0.55), fadeAt: Math.round(d * 0.55) + 100, fade: 300 })
+export const landTimes = (d = SPLASH_LAND_MS) => ({ word: Math.round(d * 0.55), fadeAt: Math.round(d * 0.55) + 100, fade: DUR.gewoon })
 
 // Waar de punt van het opstartscherm in rust staat, uit de rect van het kader van 160 × 49 (de
 // tekening staat gecentreerd, een smalle rand links en rechts). In viewport-coördinaten.
@@ -133,7 +144,7 @@ export function wordAt(svg) {
 }
 
 // Het woordmerk glijdt naar zijn plek: schalen om de eigen punt en verschuiven (zie fitWord).
-export function glide(el, from, to, { duration, easing = LAND }) {
+export function glide(el, from, to, { duration, easing = IRIS }) {
   const { dx, dy, k } = fitWord(from, to)
   el.style.transformOrigin = `${Math.round((from.dot.x - from.left) * 100) / 100}px ${Math.round((from.dot.y - from.top) * 100) / 100}px`
   return el.animate([{ transform: 'translate(0px, 0px) scale(1)' }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }], { duration, easing, fill: 'forwards' })
@@ -141,7 +152,7 @@ export function glide(el, from, to, { duration, easing = LAND }) {
 
 // Vervagen; bestaande dekkingsanimaties op het element gaan eerst weg, zodat ze niet stapelen.
 // Geeft de Animation terug (wacht op `.finished`; die verwerpt als hij geannuleerd wordt).
-export function fade(el, ms, from, to, easing = 'ease-out') {
+export function fade(el, ms, from, to, easing = EASE.bediening) {
   el.getAnimations?.().forEach((a) => a.id === 'fade' && a.cancel())
   const a = el.animate([{ opacity: from }, { opacity: to }], { duration: ms, easing, fill: 'forwards' })
   a.id = 'fade'
@@ -155,13 +166,13 @@ export function irisClose(el, { x, y, r, w, h, duration = IRIS_MS, delay = 0, ea
 }
 
 // De iris opent: van de punt tot schermvullend.
-export function irisOpen(el, { x, y, r, w, h, duration = IRIS_MS, easing = IRIS_BACK }) {
+export function irisOpen(el, { x, y, r, w, h, duration = IRIS_MS, easing = IRIS }) {
   const [open, closed] = irisKeyframes({ x, y, r, w, h })
   return el.animate([{ clipPath: closed }, { clipPath: open }], { duration, easing, fill: 'forwards' })
 }
 
 // Het vlak kleurt mee: van de ene kleur naar de andere (merkrood ↔ de kleur van de punt).
-export function tint(el, from, to, { duration, delay = 0, easing = 'ease-in-out' }) {
+export function tint(el, from, to, { duration, delay = 0, easing = EASE.bediening }) {
   return el.animate([{ backgroundColor: from }, { backgroundColor: to }], { duration, delay, easing, fill: 'both' })
 }
 

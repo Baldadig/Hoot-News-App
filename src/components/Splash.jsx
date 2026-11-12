@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { holdBrandBar } from './Brand.jsx'
-import { reduced, reducedPlan, fade, irisClose, tint, glide, wordAt, splashDot, splashTimes, landTimes, restDelay, waitFor, sleep, rootColor, IRIS, LAND, BOUNCE_MS, SPLASH_MAX_MS, SPLASH_IRIS_MS, SPLASH_LAND_MS } from '../lib/motion.js'
+import { reduced, reducedPlan, fade, irisClose, tint, glide, wordAt, splashDot, splashTimes, landTimes, restDelay, waitFor, sleep, rootColor, IRIS, BOUNCE_MS, SPLASH_MAX_MS, SPLASH_IRIS_MS, SPLASH_LAND_MS } from '../lib/motion.js'
 
 // Het opstartscherm, naar HootApp.endSplash. Het vlak zelf staat al in index.html (merkrood, het
 // woordmerk in papier, de punt stuitert in CSS) zodat het er is vóór de app laadt; dit onderdeel
@@ -52,7 +52,7 @@ export default function Splash({ ready, toWelcome, onDone }) {
       while (alive && !readyRef.current && performance.now() - t0 < SPLASH_MAX_MS) await sleep(100)
       if (!alive) return
       if (reduced() || !node.animate) {
-        await fade(node, reducedPlan().fade, 1, 0, 'ease-out').finished.catch(() => {})
+        await fade(node, reducedPlan().fade, 1, 0).finished.catch(() => {})
         return finish()
       }
       // Eigen woord en punt (in rust), als vertrekpunt van het glijden en als terugval voor de iris.
@@ -72,14 +72,14 @@ export default function Splash({ ready, toWelcome, onDone }) {
           if (hop) hop.style.animation = 'none'
           if (dot) dot.style.animation = 'none'
           const t = landTimes(SPLASH_LAND_MS)
-          glide(mark, own, to, { duration: t.word, easing: LAND })
+          glide(mark, own, to, { duration: t.word, easing: IRIS })
           await sleep(t.fadeAt)
           if (!alive) return
-          await fade(node, t.fade, 1, 0, 'ease-out').finished.catch(() => {})
+          await fade(node, t.fade, 1, 0).finished.catch(() => {})
           return finish()
         }
         // Geen intro in beeld (nog niet geladen): dan gewoon vervagen.
-        await fade(node, reducedPlan().fade, 1, 0, 'ease-out').finished.catch(() => {})
+        await fade(node, reducedPlan().fade, 1, 0).finished.catch(() => {})
         return finish()
       }
 
@@ -90,12 +90,12 @@ export default function Splash({ ready, toWelcome, onDone }) {
       const target = to ? to.dot : own.dot
       // Het woord (met zijn papieren punt) vervaagt op zijn plek; de iris vertrekt als het half weg is.
       if (hop) hop.style.animation = 'none'
-      fade(mark, t.fade, 1, 0, 'ease-out')
+      fade(mark, t.fade, 1, 0)
       irisClose(node, { ...target, w: innerWidth, h: innerHeight, duration: t.travel, delay: t.delay, easing: IRIS })
       tint(node, rootColor('--brand-red'), rootColor('--accent'), { delay: t.tintStart, duration: t.tintDur })
       await sleep(t.end)
       if (!alive) return
-      if (!to) await fade(node, t.fadeOwn, 1, 0, 'ease-out').finished.catch(() => {})
+      if (!to) await fade(node, t.fadeOwn, 1, 0).finished.catch(() => {})
       finish()
     })()
     return () => {

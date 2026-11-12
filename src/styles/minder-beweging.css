@@ -1,0 +1,68 @@
+/* Minder beweging (prefers-reduced-motion: reduce), web gelijk aan de app (Verminder beweging):
+   alles wat verplaatst of schaalt wordt een fade van 200 ms (--dur-minder). Geen !important: dit
+   bestand wordt als laatste geladen (main.jsx), dus wint het op volgorde. Wat in beeld komt, fadet
+   in (de keyframes verliezen hun transform); wat van plek wisselt (vinkjes, schakelaars, de rode
+   streep) zet zijn plek meteen en fadet alleen zijn dekking en kleur. Lussen die iets laten
+   bewegen of ademen staan stil. De merkbeweging in JS (iris, opstart, Tien, de pull-strook) kiest
+   zelf dezelfde fade: lib/motion.js (STILL_MS). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-kort: var(--dur-minder);
+    --dur-gewoon: var(--dur-minder);
+    --dur-merk: var(--dur-minder);
+  }
+
+  /* Komt in beeld: alleen dekking. */
+  @keyframes rise {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes popmenu-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes save-pop {
+    from {
+      opacity: 0.4;
+    }
+  }
+  /* Het laadteken draait niet maar vervaagt (dezelfde 900 ms per ronde). */
+  @keyframes spin {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  /* Wisselt van plek: de plek meteen, dekking en kleur vloeien. */
+  .nav__link::before,
+  .switch__thumb,
+  .disclosure .caret,
+  .rub__scroll,
+  .rub__bar,
+  .sb,
+  .sb__check,
+  .src__label {
+    transition-property: opacity, color, background-color, border-color, box-shadow;
+  }
+  .rub__bar {
+    transition-property: none;
+  }
+
+  /* Lussen die bewegen of ademen: stil (een pulserend skelet blijft een rustig vlak). */
+  .waiting svg .brand__dot,
+  .waiting__dot,
+  .sk__bar,
+  .sk__thumb {
+    animation: none;
+  }
+  /* Rust-hover (rust.css): de fade van 200 ms in plaats van de trage 560/380 ms met pauze. */
+  :is(.meta, .kmeta) > :is(.morebtn, .kmeta__bronnen, .iconbtn),
+  .entry:is(:hover, :focus-within) :is(.meta, .kmeta) > :is(.morebtn, .kmeta__bronnen, .iconbtn),
+  :is(.meta, .kmeta) > .save.is-on,
+  .entry .terms__row,
+  .entry:is(:hover, :focus-within) .terms__row {
+    transition: opacity var(--dur-minder) var(--ease-bediening);
+  }
+}

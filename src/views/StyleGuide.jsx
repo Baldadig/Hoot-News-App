@@ -535,7 +535,7 @@ export default function StyleGuide({ stream }) {
             <strong>Rijen</strong>: minstens 44, 56 of 64 hoog, nooit vast, zodat ze meegroeien met grote tekst. De lijn staat tússen de rijen; het omhulsel bepaalt de buitenlijnen.
           </li>
           <li>
-            <strong>Beweging</strong>: 140 · 200 · 400 ms (<code>--dur-1</code> t/m <code>--dur-3</code>). Directe reactie · iets dat in beeld komt · iets dat van plek wisselt (de bronnenstapel en de rode streep in de Stroom, met <code>--ease-glide</code>). Bij Minder beweging staat alles direct goed. Merkbeweging (de iris in Welkom, 700 ms) loopt via <code>lib/motion.js</code> en wordt dan een fade van 350 ms.
+            <strong>Beweging</strong>: drie duren, 120 · 240 · 700 ms (<code>--dur-kort</code>, <code>--dur-gewoon</code>, <code>--dur-merk</code>) en twee curves (<code>--ease-bediening</code> voor alles wat je bedient, <code>--ease-iris</code> voor de iris). Directe reactie · iets dat in beeld komt of van plek wisselt (ook de bronnenstapel en de rode streep in de Stroom) · het merk (de iris in Welkom, via <code>lib/motion.js</code>). Bij Minder beweging wordt alles wat verplaatst of schaalt een fade van 200 ms (<code>--dur-minder</code>), op het web en in de app.
           </li>
           <li>
             <strong>Uitlijning</strong>: één linkerlijn per scherm; de kop van een scherm is één rij van 44 px (titel, gereedschap, knoppen) met daaronder hooguit één metaregel.

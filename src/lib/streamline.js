@@ -151,7 +151,7 @@ export const zeg = {
 
 // ---- Beweging ----
 // Een cubic-bezier als functie van de tijd (0–1), voor het schuiven van de rijen in JS met
-// dezelfde curve als de CSS (--ease-glide), in plaats van de ingebouwde 'smooth' die per browser
+// dezelfde curve als de CSS (--ease-bediening), in plaats van de ingebouwde 'smooth' die per browser
 // anders loopt.
 export function bezier(x1, y1, x2, y2) {
   const cx = 3 * x1

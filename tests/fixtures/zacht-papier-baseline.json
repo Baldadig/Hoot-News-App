@@ -1,5 +1,5 @@
 {
-  "cssBeforeNightOverrideSha256": "bc41e5e7b0955b4c0a88056b7a768b6a54b8c708bf8ce652a0e772338296efc5",
+  "cssBeforeNightOverrideSha256": "713a9aa35007b8d7ba14d3b4235143553aa333d1f5cd96cc3d6e72b8fea462e8",
   "nativeAssets": {
     "ios/Hoot/Assets.xcassets/AccentSoft.colorset/Contents.json": "a6dd53ea95e1f6e6b94294edaefa3d9815151cdac982fd26b8703112753aa8e8",
     "ios/Hoot/Assets.xcassets/BrandRed.colorset/Contents.json": "eba93c7ee424f0ef64a58823969b5fee30ff8150e48dd3d797b0e9c77c50288c",
@@ -16,5 +16,5 @@
     "ios/Hoot/Assets.xcassets/OnAccent.colorset/Contents.json": "6aeb7f4d9104d2d6b9c6493cc0467442908ad1529ca40379b00637482d9865ed"
   },
   "readerNonNightSha256": "583e38e2d89589e5fad0505c661484807051459d4e0e6dce052a1840133b497d",
-  "approvedCrossfadeAppendix": "\n/* Rubriekwissel: alleen opacity; het papier en de scroll-viewport blijven staan. */\n.rubriek-stage { position: relative; }\n.rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }\n.rub__bar { transition-duration: var(--dur-2); }\n@media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }\n"
+  "approvedCrossfadeAppendix": "\n/* Rubriekwissel: alleen opacity; het papier en de scroll-viewport blijven staan. */\n.rubriek-stage { position: relative; }\n.rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }\n.rub__bar { transition-duration: var(--dur-gewoon); }\n"
 }

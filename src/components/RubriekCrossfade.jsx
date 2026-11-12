@@ -52,8 +52,8 @@ export function RubriekCrossfade({ category, children }) {
     parent.style.minHeight = Math.max(0, (viewport?.getBoundingClientRect().bottom || innerHeight) - parent.getBoundingClientRect().top) + 'px'
     parent.append(ghost)
     const css = getComputedStyle(document.documentElement)
-    const duration = timeMs(css.getPropertyValue('--dur-2'))
-    const easing = css.getPropertyValue('--ease-glide').trim() || 'cubic-bezier(.2,.8,.2,1)'
+    const duration = timeMs(css.getPropertyValue('--dur-gewoon'))
+    const easing = css.getPropertyValue('--ease-bediening').trim() || 'cubic-bezier(.2,.8,.2,1)'
     const incoming = current.animate([{ opacity: 0 }, { opacity: 1 }], { duration, easing })
     const outgoing = ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing })
     let done = false

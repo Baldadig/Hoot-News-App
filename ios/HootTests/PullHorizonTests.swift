@@ -104,7 +104,7 @@ final class PullHorizonTests: XCTestCase {
         let fout = Horizon.journey(responseMs: 2000, ok: false)
         XCTAssertNil(fout.set); XCTAssertEqual(fout.close, 4600); XCTAssertEqual(fout.done, 5000)
         let stil = Horizon.journey(responseMs: 1000, reduce: true)
-        XCTAssertEqual(stil.done, 1350, "Verminder beweging: één vervaging van 350 ms")
+        XCTAssertEqual(stil.done, 1200, "Verminder beweging: één vervaging van 200 ms")
         // Trekken: de lijn op 72 van kantlijn tot kantlijn, de zon rust op de lijn.
         let drempel = Horizon.geom(HorizonState(phase: .pull, pull: 72, glow: 1), now: 0, width: 390)
         XCTAssertEqual(drempel.w, 358); XCTAssertEqual(drempel.sy, 8); XCTAssertTrue(drempel.strong)

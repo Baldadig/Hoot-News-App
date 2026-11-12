@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { irisKeyframes, tintTimes, openTimes, reducedPlan, reduced, IRIS, IRIS_BACK, IRIS_MS, FADE_MS, LAND, BOUNCE_MS, SPLASH_MAX_MS, SPLASH_IRIS_MS, SPLASH_LAND_MS, SPLASH_MARK, splashWanted, restDelay, splashTimes, landTimes, splashDot, fitWord, CROSS_MS, CROSS, crossPlan } from '../src/lib/motion.js'
+import { irisKeyframes, tintTimes, openTimes, reducedPlan, reduced, IRIS, IRIS_MS, FADE_MS, BOUNCE_MS, SPLASH_MAX_MS, SPLASH_IRIS_MS, SPLASH_LAND_MS, SPLASH_MARK, splashWanted, restDelay, splashTimes, landTimes, splashDot, fitWord, CROSS_MS, CROSS, crossPlan } from '../src/lib/motion.js'
 
 // De iris (Welkom, W3): de getallen staan in de lib, niet in de component.
 
@@ -32,11 +32,10 @@ test('openen: één beeld gesloten, kleur terug over 40 %, punt terug in de laat
   assert.equal(o.dotStart + o.dotDur, 700, 'de punt is terug precies als de iris open is')
 })
 
-test('curves uit het brandboard en Minder beweging als fade van 0,35 s', () => {
+test('de iris-curve (sluiten, openen, landen) en Minder beweging als fade van 0,2 s', () => {
   assert.equal(IRIS, 'cubic-bezier(0.6, 0, 0.2, 1)')
-  assert.equal(IRIS_BACK, 'cubic-bezier(0.8, 0, 0.4, 1)')
-  assert.deepEqual(reducedPlan(), { fade: 350 })
-  assert.equal(FADE_MS, 350)
+  assert.deepEqual(reducedPlan(), { fade: 200 })
+  assert.equal(FADE_MS, 200)
   assert.equal(reduced(), false, 'buiten de browser nooit')
 })
 
@@ -47,7 +46,6 @@ test('opstart: één sprong van 1,6 s, hooguit 5 s, iris 0,7 s naar de Editie, l
   assert.equal(SPLASH_MAX_MS, 5000)
   assert.equal(SPLASH_IRIS_MS, 700)
   assert.equal(SPLASH_LAND_MS, 700)
-  assert.equal(LAND, 'cubic-bezier(0.3, 0, 0.1, 1)')
   assert.deepEqual(SPLASH_MARK, { w: 160, h: 49 })
 })
 
@@ -68,10 +66,11 @@ test('opstart: vertrekken in de rust van de sprong (1,08–1,5 s), anders wachte
 })
 
 test('opstart → Editie: eerst vervagen (0,28 s), dan reist alleen de iris (vanaf 0,14 s, 0,7 s), tint 0,21 s op de punt', () => {
-  assert.deepEqual(splashTimes(700), { fade: 280, delay: 140, travel: 700, tintStart: 840, tintDur: 210, end: 1100, fadeOwn: 150 })
+  assert.deepEqual(splashTimes(700), { fade: 280, delay: 140, travel: 700, tintStart: 840, tintDur: 210, end: 1100, fadeOwn: 120 })
   // Gelijk aan IrisTimes in SplashView.swift.
   const swift = readFileSync(new URL('../ios/Hoot/Views/SplashView.swift', import.meta.url), 'utf8')
-  for (const [k, v] of Object.entries({ fade: 0.28, delay: 0.14, travel: 0.7, tint: 0.21, reduced: 0.35 })) assert.match(swift, new RegExp(`static let ${k} = ${v} `), k)
+  for (const [k, v] of Object.entries({ fade: 0.28, delay: 0.14, travel: 0.7, tint: 0.21 })) assert.match(swift, new RegExp(`static let ${k} = ${v} `), k)
+  assert.match(swift, /static let reduced = Beweging\.minder /)
   // Het woord glijdt niet meer mee naar de app: alleen naar de rode intro van Welkom.
   const splash = readFileSync(new URL('../src/components/Splash.jsx', import.meta.url), 'utf8')
   assert.equal(splash.match(/glide\(/g)?.length, 1, 'één glide: alleen naar Welkom')
@@ -93,7 +92,7 @@ test('opstart → Editie (build 46): alleen de iris, vast middelpunt op de punt,
 })
 
 test('opstart → rode intro: woord landt op 55 %, dan 0,1 s rust en 0,3 s vervagen', () => {
-  assert.deepEqual(landTimes(700), { word: 385, fadeAt: 485, fade: 300 })
+  assert.deepEqual(landTimes(700), { word: 385, fadeAt: 485, fade: 240 })
   assert.deepEqual(landTimes(), landTimes(SPLASH_LAND_MS))
 })
 
@@ -116,11 +115,11 @@ test('opstart: het woordmerk past op een ander "hoot." via zijn hoogte, punt op 
   assert.ok(Math.abs(f.dy - (41.9 - 43.87)) < 0.001)
 })
 
-// Van Welkom naar de Editie (W5): een overvloeier van 0,45 s, alleen dekking, zoals HootApp.swift
-// (`.easeInOut(duration: 0.45)` op `onboarded`). Ook bij Minder beweging: er verplaatst niets.
+// Van Welkom naar de Editie (W5): een overvloeier van een merkduur, alleen dekking, zoals HootApp.swift
+// (`welcomeFade` op `onboarded`). Ook bij Minder beweging: er verplaatst niets.
 
-test('Welkom → Editie: overvloeier van 0,45 s ease-in-out, alleen dekking, ook bij Minder beweging', () => {
-  assert.equal(CROSS_MS, 450)
-  assert.equal(CROSS, 'ease-in-out')
-  assert.deepEqual(crossPlan(), { fade: 450, easing: 'ease-in-out' })
+test('Welkom → Editie: overvloeier van een merkduur (0,7 s) met de bedieningscurve, alleen dekking, ook bij Minder beweging', () => {
+  assert.equal(CROSS_MS, 700)
+  assert.equal(CROSS, 'cubic-bezier(0.2, 0.8, 0.2, 1)')
+  assert.deepEqual(crossPlan(), { fade: 700, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' })
 })

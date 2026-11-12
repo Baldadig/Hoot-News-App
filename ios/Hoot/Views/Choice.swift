@@ -51,7 +51,7 @@ struct ChoicePress: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .animation(Beweging.kortAnim, value: configuration.isPressed)
     }
 }
 
@@ -66,7 +66,7 @@ struct ChoiceChip: View {
 
     var body: some View {
         Button {
-            withAnimation(still ? nil : .easeOut(duration: 0.14)) { action() } // het vinkje schuift rustig in
+            withAnimation(still ? nil : Beweging.kortAnim) { action() } // het vinkje schuift rustig in
         } label: {
             HStack(spacing: Space.s1) {
                 if on {
@@ -130,7 +130,7 @@ struct ChoiceTile: View {
             .contentShape(RoundedRectangle(cornerRadius: Radius.md))
         }
         .buttonStyle(ChoicePress())
-        .animation(.easeOut(duration: 0.14), value: on)
+        .animation(Beweging.kortAnim, value: on)
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 

@@ -54,12 +54,12 @@ export const MS = {
   leg: 800, // per dagdeel
   breath: 2750, // elke stap van de adem (dur-breathe)
   set: 600, // ondergang, ease-iris
-  out: 140, // lijn en boog vervagen (dur-pull-out) …
+  out: 120, // lijn en boog vervagen (--dur-kort) …
   outAt: 440, // … vanaf hier in de ondergang
   back: 600, // fout: terug over de boog naar de ochtend
   sink: 400, // fout: daar terug onder de horizon
   hold: 2000, // fout: zo lang staat de zin
-  reduced: 350, // Verminder beweging: één vervaging (dur-reduced)
+  reduced: 200, // Verminder beweging: één vervaging (--dur-minder)
 }
 export const NOON = 400 + MS.leg // de zon staat op de middag, gemeten vanaf loslaten (1,2 s)
 
@@ -83,9 +83,9 @@ export function bezier(x1, y1, x2, y2) {
   }
 }
 export const E = {
-  glide: bezier(0.2, 0.8, 0.2, 1), // --ease-glide
+  glide: bezier(0.2, 0.8, 0.2, 1), // --ease-bediening
   iris: bezier(0.6, 0, 0.2, 1), // --ease-iris
-  ease: bezier(0.2, 0.7, 0.2, 1), // --ease
+  ease: bezier(0.2, 0.8, 0.2, 1), // --ease-bediening (glide en ease zijn dezelfde)
   io: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2), // landing: hoot.js ease()
   sine: (t) => 0.5 - 0.5 * Math.cos(Math.PI * t),
 }
@@ -232,7 +232,7 @@ export function extraAt(st, now) {
   if (st.extraT0 == null) return st.extra || 0
   return (st.extraFrom || 0) * (1 - (st.reduce ? 1 : E.glide(c01((now - st.extraT0) / MS.close))))
 }
-// Verminder beweging: annuleren is één vervaging van 350 ms, de strook valt daarna dicht.
+// Verminder beweging: annuleren is één vervaging van 200 ms, de strook valt daarna dicht.
 export function cancelOp(st, now) {
   return st.phase === 'cancel' && st.reduce ? 1 - c01((now - st.cancelT0) / MS.reduced) : 1
 }

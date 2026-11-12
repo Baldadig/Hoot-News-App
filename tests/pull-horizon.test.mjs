@@ -95,7 +95,7 @@ test('laden: ringen wijken (200), boog verschijnt (200), zon loopt in 800 naar d
   near(load(NOON + 9000).sx, 0, 0.01, 'blijft op de middag')
 })
 
-test('Snel: van antwoord tot dicht 1840 ms; ondergang 600 ms bij de vroege avond, lijn uit op 440', () => {
+test('Snel: van antwoord tot dicht 1840 ms; ondergang 600 ms bij de vroege avond, lijn uit op 440 (120 ms)', () => {
   const j = journey({ responseMs: 1000 })
   assert.deepEqual(j, { set: 2000, close: 2440, done: 2840 })
   assert.equal(j.done - 1000, 1840)
@@ -106,7 +106,7 @@ test('Snel: van antwoord tot dicht 1840 ms; ondergang 600 ms bij de vroege avond
   st = { ...st, phase: 'set', setT0: 2000 }
   const set = (t) => geom(st, 2000 + t, CW)
   near(set(0).sy, 8); near(set(0).sx, 68); near(set(600).sy, -8, 0.01, 'onder in 600 ms')
-  near(set(440).lineOp, 1); near(set(510).lineOp, 0.5); near(set(580).lineOp, 0)
+  near(set(440).lineOp, 1); near(set(500).lineOp, 0.5); near(set(560).lineOp, 0)
   near(set(300).sy, 8 - 16 * E.iris(0.5))
   assert.equal(closeAt(st), 2440); assert.equal(doneAt(st), 2840)
   near(stripHeight({ ...st, from: 90, loadT0: 0 }, 2440), 56); near(stripHeight({ ...st, from: 90, loadT0: 0 }, 2840), 0)
@@ -191,13 +191,13 @@ test('Verminder beweging: lijn meteen heel, zon komt op met de afstand, één wi
   near(geom(st, 0, CW).sx, -68); near(geom(st, 175, CW).sx, 0, 0.01, 'één wissel naar de middag op 175')
   assert.equal(geom(st, 6000, CW).scale, 1, 'geen adem')
   assert.equal(stripHeight({ ...st, from: 90 }, 0), 56, 'strook direct op 56')
-  assert.deepEqual(journey({ responseMs: 1000, reduce: true }), { set: 1000, close: 1350, done: 1350 })
+  assert.deepEqual(journey({ responseMs: 1000, reduce: true }), { set: 1000, close: 1200, done: 1200 })
   const s = answer(st, 1000, true)
-  near(geom(s, 1175, CW).lineOp, 0.5); near(geom(s, 1350, CW).sunOp, 0)
-  assert.equal(stripHeight({ ...s, from: 90 }, 1349), 56); assert.equal(stripHeight({ ...s, from: 90 }, 1350), 0)
-  assert.deepEqual(journey({ responseMs: 1000, ok: false, reduce: true }), { set: null, close: 3350, done: 3350 })
+  near(geom(s, 1100, CW).lineOp, 0.5); near(geom(s, 1200, CW).sunOp, 0)
+  assert.equal(stripHeight({ ...s, from: 90 }, 1199), 56); assert.equal(stripHeight({ ...s, from: 90 }, 1200), 0)
+  assert.deepEqual(journey({ responseMs: 1000, ok: false, reduce: true }), { set: null, close: 3200, done: 3200 })
   const c = release({ phase: 'pull', pull: 50, armed: false, reduce: true }, 0, false).st
-  assert.equal(stripHeight(c, 100), 50, 'annuleren zonder glijden'); assert.equal(stripHeight(c, 350), 0)
+  assert.equal(stripHeight(c, 100), 50, 'annuleren zonder glijden'); assert.equal(stripHeight(c, 200), 0)
 })
 
 test('tekening: geen h., geen tekst; één rood ding (de zon met zijn ringen), lijn altijd 1 pt', () => {

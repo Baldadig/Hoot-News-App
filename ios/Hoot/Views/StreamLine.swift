@@ -88,7 +88,7 @@ struct StreamLine: View {
                     stapelKnop(breed: rechts)
                 }
             }
-            .animation(move(0.2), value: stapel)
+            .animation(move(Beweging.gewoon), value: stapel)
         }
         .frame(height: band + 1)
         // Open klapt elke tik naast de lijn de rij dicht: ook op de titel, de werkbalk of de tabbalk.
@@ -135,7 +135,7 @@ struct StreamLine: View {
                             .fill(Theme.accent)
                             .frame(width: r.width, height: 3)
                             .offset(x: r.minX, y: g.size.height - 3)
-                            .animation(move(0.2), value: rubriek)
+                            .animation(move(Beweging.gewoon), value: rubriek)
                     }
                 }
                 .accessibilityHidden(true)
@@ -149,7 +149,7 @@ struct StreamLine: View {
         .offset(x: open ? -Space.s5 : 0)
         .animation(open ? move() : move(delay: 0.08), value: open)
         .opacity(open ? 0 : 1)
-        .animation(open ? move(0.28) : move(0.28, delay: 0.08), value: open)
+        .animation(open ? move(Beweging.gewoon * 0.7) : move(Beweging.gewoon * 0.7, delay: 0.08), value: open)
         .allowsHitTesting(!open)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Rubriek")
@@ -163,7 +163,7 @@ struct StreamLine: View {
             Text(r.label)
                 .font(.lees(.body))
                 .foregroundStyle(aan ? Theme.ink : Theme.ink2)
-                .animation(move(0.2), value: aan)
+                .animation(move(Beweging.gewoon), value: aan)
                 .fixedSize()
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { if eerste { allesW = $0 } }
                 .anchorPreference(key: Streep.self, value: .bounds) { aan ? $0 : nil }
@@ -199,7 +199,7 @@ struct StreamLine: View {
         else if f.maxX > rub.x + rub.w - rand { naar = f.maxX - rub.w + rand }
         naar = min(max(0, naar), max(0, rub.inhoud - rub.w))
         guard abs(naar - rub.x) > 0.5 else { return }
-        if glijd, let a = move(0.2) { withAnimation(a) { rubPos.scrollTo(x: naar) } } else { rubPos.scrollTo(x: naar) }
+        if glijd, let a = move(Beweging.gewoon) { withAnimation(a) { rubPos.scrollTo(x: naar) } } else { rubPos.scrollTo(x: naar) }
     }
 
     // ---- Bronnen ----
@@ -295,7 +295,7 @@ struct StreamLine: View {
         .offset(x: x)
         .animation(move(delay: vertrek), value: stand)
         .opacity(zicht)
-        .animation(move(0.24, delay: vertrek), value: stand)
+        .animation(move(Beweging.gewoon, delay: vertrek), value: stand)
         .zIndex(alle ? 50 : k.map { 40 - Double($0) } ?? 1)
         .accessibilityLabel(b.bron?.name ?? "Alle bronnen")
         .accessibilityAddTraits(aan ? .isSelected : [])
@@ -331,7 +331,7 @@ struct StreamLine: View {
             .frame(maxWidth: labelMax, alignment: .trailing)
             .offset(y: basis)
             .opacity(toon ? 1 : 0)
-            .animation(toon ? move(0.2, delay: 0.22) : move(0.2), value: toon) // pas als de stapel dicht is
+            .animation(toon ? move(Beweging.gewoon, delay: 0.22) : move(Beweging.gewoon), value: toon) // pas als de stapel dicht is
             .offset(x: open ? -Self.pad : opzij)
             .animation(move(), value: Stand(open: open, deck: deck, peek: peek))
             .padding(.trailing, edge + deckW + Self.pad)
@@ -430,11 +430,11 @@ struct StreamLine: View {
         return (-Space.s1...Space.s4).contains(e) ? max(0, e) : Self.edgeBasis
     }
 
-    // Beweging: 400 ms met een zachte uitloop, cubic-bezier(.2,.8,.2,1); met Verminder beweging direct.
-    private func move(_ duur: Double = 0.4, delay: Double = 0) -> Animation? {
-        reduceMotion ? nil : .timingCurve(0.2, 0.8, 0.2, 1, duration: duur).delay(delay)
+    // Beweging: dur-gewoon (240 ms) met ease-bediening, cubic-bezier(.2,.8,.2,1); met Verminder beweging direct.
+    private func move(_ duur: Double = Beweging.gewoon, delay: Double = 0) -> Animation? {
+        reduceMotion ? nil : Beweging.bediening(duur).delay(delay)
     }
-    private var snel: Animation? { reduceMotion ? nil : .timingCurve(0.2, 0.7, 0.2, 1, duration: 0.14) } // gewone bediening
+    private var snel: Animation? { reduceMotion ? nil : Beweging.kortAnim } // gewone bediening
 
     // Vervaagde randen van een rij: alleen aan de kant waar nog iets ligt. Met `uit…` reikt het
     // masker zover buiten de rij, zodat wat daar uitsteekt (ring, vinkje) heel blijft; een

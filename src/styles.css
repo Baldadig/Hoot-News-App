@@ -168,14 +168,16 @@
   --underline-offset: 3px;
   --tabbar-h: 52px;
 
-  /* Beweging: kort en functioneel. Alleen opacity/transform/kleur; nooit iets dat de
-     leespositie verschuift. Valt weg bij prefers-reduced-motion (onderaan). */
-  --dur-1: 140ms; /* directe reactie: bewaren, chip, navigatie */
-  --dur-2: 200ms; /* iets dat in beeld komt: verhaal, melding */
-  --dur-3: 400ms; /* iets dat van plek wisselt: de bronnenstapel en de rode streep in de Stroom */
-  --dur-spin: 900ms; /* één omwenteling van een laadteken */
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --ease-glide: cubic-bezier(0.2, 0.8, 0.2, 1); /* glijden: vlot weg, zacht geland (bij --dur-3) */
+  /* Beweging: drie duren en twee curves, op het web en in de app (lib/motion.js, ios/Hoot/Theme/Beweging.swift).
+     Alleen opacity/transform/kleur; nooit iets dat de leespositie verschuift. Bij Minder beweging (onderaan)
+     wordt alles wat verplaatst of schaalt een fade van 200 ms. */
+  --dur-kort: 120ms; /* directe reactie: bewaren, chip, schakelaar, navigatie */
+  --dur-gewoon: 240ms; /* iets dat in beeld komt of van plek wisselt: verhaal, melding, de bronnenstapel en de rode streep */
+  --dur-merk: 700ms; /* de iris: opstart, Welkom (lib/motion.js; de CSS gebruikt hem niet zelf) */
+  --dur-minder: 200ms; /* Minder beweging: één fade, in plaats van verplaatsen of schalen */
+  --ease-bediening: cubic-bezier(0.2, 0.8, 0.2, 1); /* alles wat je bedient: vlot weg, zacht geland */
+  --ease-iris: cubic-bezier(0.6, 0, 0.2, 1); /* de iris: zacht weg, zacht aan (merkmomenten) */
+  --dur-spin: 900ms; /* één omwenteling van een laadteken (bewuste uitzondering: een lus, geen overgang) */
 
   /* Afstand: één schaal van 4 px. Elke marge, padding en gap komt hiervandaan. */
   --s1: 4px;
@@ -556,8 +558,8 @@ select {
     .srcgroup > summary
   ) {
   transition:
-    background-color var(--dur-1) var(--ease),
-    color var(--dur-1) var(--ease);
+    background-color var(--dur-kort) var(--ease-bediening),
+    color var(--dur-kort) var(--ease-bediening);
 }
 /* Tekstknoppen hebben geen eigen vorm: de laag krijgt de hoek van bediening. Klikbare rijen
    (vanaf .disclosure in de lijst) houden hun rechte vorm: het vlak vult de rij tussen de lijnen. */
@@ -843,8 +845,8 @@ select {
 .nav__link {
   position: relative;
   transition:
-    color var(--dur-1) var(--ease),
-    background-color var(--dur-1) var(--ease);
+    color var(--dur-kort) var(--ease-bediening),
+    background-color var(--dur-kort) var(--ease-bediening);
 }
 /* De tabbalk ligt tegen de onderrand en onder de inhoud: de focusring valt binnen de tab
    (offset −2, zoals bij de rubrieken), anders verdwijnt hij half achter het scherm. */
@@ -865,8 +867,8 @@ select {
   opacity: 0;
   transform: scaleX(0.3);
   transition:
-    opacity var(--dur-1) var(--ease),
-    transform var(--dur-1) var(--ease);
+    opacity var(--dur-kort) var(--ease-bediening),
+    transform var(--dur-kort) var(--ease-bediening);
 }
 .nav__link[aria-current]::before {
   opacity: 1;
@@ -1292,7 +1294,7 @@ select {
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color var(--dur-1) var(--ease);
+  transition: background-color var(--dur-kort) var(--ease-bediening);
 }
 .btn svg {
   flex: none;
@@ -1486,7 +1488,7 @@ select {
   display: inline-flex;
   flex: none;
   color: var(--ink-3);
-  transition: rotate var(--dur-1) var(--ease);
+  transition: rotate var(--dur-kort) var(--ease-bediening);
 }
 .disclosure .caret svg {
   width: var(--icon-sm);
@@ -1636,8 +1638,8 @@ select.input {
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--edge);
   transition:
-    background-color var(--dur-1) var(--ease),
-    box-shadow var(--dur-1) var(--ease);
+    background-color var(--dur-kort) var(--ease-bediening),
+    box-shadow var(--dur-kort) var(--ease-bediening);
 }
 .switch__thumb {
   position: absolute;
@@ -1653,8 +1655,8 @@ select.input {
     var(--shadow-thumb),
     inset 0 0 0 1px var(--hairline);
   transition:
-    transform var(--dur-1) var(--ease),
-    background-color var(--dur-1) var(--ease);
+    transform var(--dur-kort) var(--ease-bediening),
+    background-color var(--dur-kort) var(--ease-bediening);
 }
 .switch[aria-checked='true'] .switch__track {
   background: var(--ink);
@@ -2201,15 +2203,15 @@ select.input {
 /* ---------- Beweging ---------- */
 .pill {
   transition:
-    background-color var(--dur-1) var(--ease),
-    color var(--dur-1) var(--ease),
-    border-color var(--dur-1) var(--ease);
+    background-color var(--dur-kort) var(--ease-bediening),
+    color var(--dur-kort) var(--ease-bediening),
+    border-color var(--dur-kort) var(--ease-bediening);
 }
 .save svg {
-  transition: color var(--dur-1) var(--ease);
+  transition: color var(--dur-kort) var(--ease-bediening);
 }
 .save.is-on svg {
-  animation: save-pop var(--dur-1) var(--ease);
+  animation: save-pop var(--dur-kort) var(--ease-bediening);
 }
 @keyframes save-pop {
   from {
@@ -2218,7 +2220,7 @@ select.input {
 }
 .story,
 .toast {
-  animation: rise var(--dur-2) var(--ease);
+  animation: rise var(--dur-gewoon) var(--ease-bediening);
 }
 @keyframes rise {
   from {
@@ -3858,16 +3860,7 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   gap: var(--s3);
 }
 
-/* ---------- Minder beweging ---------- */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* Minder beweging: styles/minder-beweging.css (als laatste geladen). */
 
 
 /* Segment: één keuze uit een paar. Een pil van 44 met knoppen van 36 erin, als egaal raster: elke
@@ -3901,8 +3894,8 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   white-space: nowrap;
   cursor: pointer;
   transition:
-    background-color var(--dur-1) var(--ease),
-    color var(--dur-1) var(--ease);
+    background-color var(--dur-kort) var(--ease-bediening),
+    color var(--dur-kort) var(--ease-bediening);
 }
 /* Raakvlak: de knop is 36 hoog, het vlak loopt boven en onder door tot de rand van de pil (44).
    Opzij niet: daar begint de buurknop. */
@@ -5157,8 +5150,8 @@ html[data-systeem='ax'] .edmeta > span {
   mask-image: linear-gradient(to right, transparent var(--cl), #000 calc(var(--cl) + var(--fl)), #000 calc(100% - var(--cr) - var(--fr)), transparent calc(100% - var(--cr)));
   /* terug na het dichtklappen: 80 ms later, zodat de stapel eerst plaats maakt */
   transition:
-    opacity calc(var(--dur-3) * 0.7) var(--ease-glide) 80ms,
-    transform var(--dur-3) var(--ease-glide) 80ms;
+    opacity calc(var(--dur-gewoon) * 0.7) var(--ease-bediening) 80ms,
+    transform var(--dur-gewoon) var(--ease-bediening) 80ms;
 }
 .rub__scroll::-webkit-scrollbar {
   display: none;
@@ -5186,7 +5179,7 @@ html[data-systeem='ax'] .edmeta > span {
   line-height: var(--lh-ui);
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--dur-2) var(--ease);
+  transition: color var(--dur-gewoon) var(--ease-bediening);
 }
 .rub__btn:first-child {
   padding-left: 0; /* 'Alles' op de kolomlijn, onder 'Stroom' */
@@ -5234,7 +5227,7 @@ html[data-systeem='ax'] .edmeta > span {
   background: var(--accent);
   transform-origin: 0 0;
   pointer-events: none;
-  transition: transform var(--dur-3) var(--ease-glide);
+  transition: transform var(--dur-gewoon) var(--ease-bediening);
 }
 
 /* Pijltjes (alleen breed scherm): in de eindkap, nooit over tekst; geen eigen achtergrond */
@@ -5252,8 +5245,8 @@ html[data-systeem='ax'] .edmeta > span {
   color: var(--ink-3);
   cursor: pointer;
   transition:
-    opacity var(--dur-2) var(--ease),
-    color var(--dur-1) var(--ease);
+    opacity var(--dur-gewoon) var(--ease-bediening),
+    color var(--dur-kort) var(--ease-bediening);
 }
 .rub__more svg {
   width: var(--s4);
@@ -5351,8 +5344,8 @@ html[data-systeem='ax'] .edmeta > span {
   cursor: pointer;
   transform-origin: 50% 50%;
   transition:
-    transform var(--dur-3) var(--ease-glide),
-    opacity calc(var(--dur-3) * 0.6) var(--ease-glide);
+    transform var(--dur-gewoon) var(--ease-bediening),
+    opacity calc(var(--dur-gewoon) * 0.6) var(--ease-bediening);
 }
 .sb:focus-visible {
   outline: none;
@@ -5363,7 +5356,7 @@ html[data-systeem='ax'] .edmeta > span {
   inset: 0;
   border-radius: 50%;
   pointer-events: none;
-  transition: box-shadow var(--dur-1) var(--ease);
+  transition: box-shadow var(--dur-kort) var(--ease-bediening);
 }
 .line.is-open .sb[aria-pressed='true'] .sb__ring {
   box-shadow: inset 0 0 0 2px var(--accent);
@@ -5407,8 +5400,8 @@ html[data-systeem='ax'] .edmeta > span {
   opacity: 0;
   transform: scale(0.6);
   transition:
-    opacity var(--dur-1) var(--ease),
-    transform var(--dur-1) var(--ease);
+    opacity var(--dur-kort) var(--ease-bediening),
+    transform var(--dur-kort) var(--ease-bediening);
 }
 .sb__check svg {
   width: 10px;
@@ -5422,7 +5415,7 @@ html[data-systeem='ax'] .edmeta > span {
 .line.has-choice:not(.is-open) .sb.is-front .sb__check {
   opacity: 1;
   transform: none;
-  transition-delay: calc(var(--dur-3) * 0.55);
+  transition-delay: calc(var(--dur-gewoon) * 0.55);
 }
 
 /* Leesbaarheid in de stapel: een papierring (getekend 2,5) en het randje van 1 binnen (de
@@ -5431,8 +5424,8 @@ html[data-systeem='ax'] .edmeta > span {
 .sb .mark {
   box-shadow: 0 0 0 3.2px var(--paper);
   transition:
-    filter var(--dur-1) var(--ease),
-    opacity var(--dur-1) var(--ease);
+    filter var(--dur-kort) var(--ease-bediening),
+    opacity var(--dur-kort) var(--ease-bediening);
 }
 /* Met een keuze: de rest grijs en gedimd, maar klikbaar */
 .line.has-choice .sb:not(.sb--all)[aria-pressed='false'] .mark {
@@ -5489,8 +5482,8 @@ html[data-systeem='ax'] .edmeta > span {
   pointer-events: none;
   opacity: 0;
   transition:
-    opacity var(--dur-2) var(--ease-glide),
-    transform var(--dur-3) var(--ease-glide);
+    opacity var(--dur-gewoon) var(--ease-bediening),
+    transform var(--dur-gewoon) var(--ease-bediening);
 }
 .src__label > span {
   overflow: hidden;
@@ -5498,7 +5491,7 @@ html[data-systeem='ax'] .edmeta > span {
 }
 .line.has-choice:not(.is-open) .src__label {
   opacity: 1;
-  transition-delay: calc(var(--dur-3) * 0.55), 0ms;
+  transition-delay: calc(var(--dur-gewoon) * 0.55), 0ms;
 }
 .line.is-open .src__label {
   transform: translateX(calc(-1 * var(--s2)));
@@ -5585,8 +5578,7 @@ html[data-systeem='ax'] .edmeta > span {
 @keyframes hoot-breathe { 0%,100% { transform: scale(1); } 33% { transform: scale(1.06); } 66% { transform: scale(.92); } }
 .seen { display: flex; align-items: center; gap: var(--s3); padding-block: var(--s3); color: var(--ink-2); font-family: var(--serif); font-size: var(--t2); }
 .seen::before, .seen::after { content: ''; flex: 1; height: 1px; background: var(--accent); }
-.stream-new { animation: rise 200ms var(--ease) backwards; animation-delay: var(--rise-delay, 0ms); }
-@media (prefers-reduced-motion: reduce) { .waiting svg .brand__dot, .waiting__dot, .stream-new { animation: none; } }
+.stream-new { animation: rise 200ms var(--ease-bediening) backwards; animation-delay: var(--rise-delay, 0ms); }
 
 /* De laadstrepen (src/lib/load-lines.js, iOS LoadLines.swift; concept "A · De stapel"): het
    wachtteken bij het eerste laden van Editie, Stroom en Selectie. Haarlijnen van 1 pt in inkt 3; de
@@ -5635,7 +5627,7 @@ html[data-systeem='ax'] .edmeta > span {
 .dirow--big .dirow__icon { margin-top: calc((var(--lh-head-lg) - var(--tap)) / 2); }
 .dirow:focus-visible { outline-offset: var(--s1); }
 /* Na het springen licht het onderwerp even op (niet bij Verminder beweging: dan zet Vak.jsx hem niet). */
-.dirow--flash { animation: dirow-flash 1.2s var(--ease) 1; }
+.dirow--flash { animation: dirow-flash 1.2s var(--ease-bediening) 1; }
 @keyframes dirow-flash { 0%, 40% { background: var(--tint); } 100% { background: transparent; } }
 .dfield__head { margin: 0; }
 .dfield__head .dirow { scroll-margin-top: calc(var(--safe-t) + var(--s4)); }
@@ -5683,8 +5675,7 @@ html[data-systeem='ax'] .edmeta > span {
 /* Rubriekwissel: alleen opacity; het papier en de scroll-viewport blijven staan. */
 .rubriek-stage { position: relative; }
 .rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
-.rub__bar { transition-duration: var(--dur-2); }
-@media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }
+.rub__bar { transition-duration: var(--dur-gewoon); }
 
 /* Hoofdknop in Nacht: inkt is hier een licht vlak, te fel op zwart. Een gedempt vlak met de leesinkt
    als tekst; de rood gevulde .btn--accent en de stille .btn--quiet blijven zoals ze zijn. */

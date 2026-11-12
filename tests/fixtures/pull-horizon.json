@@ -329,7 +329,7 @@
     "sunOp": 1,
     "scale": 1,
     "grow": 1,
-    "ringOp": 0.07,
+    "ringOp": 0.054,
     "msg": 0
    }
   },
@@ -345,7 +345,7 @@
     "w": 358,
     "strong": true,
     "lineOp": 1,
-    "arcOp": 0.93,
+    "arcOp": 0.946,
     "sx": -68,
     "sy": 8,
     "sunOp": 1,
@@ -480,7 +480,7 @@
     "arcOp": 1,
     "sx": 0,
     "sy": 32,
-    "sunOp": 0,
+    "sunOp": 0.75,
     "scale": 1,
     "grow": 1,
     "ringOp": 0,
@@ -502,7 +502,7 @@
     "arcOp": 1,
     "sx": 0,
     "sy": 32,
-    "sunOp": 0.714,
+    "sunOp": 1,
     "scale": 1,
     "grow": 1,
     "ringOp": 0,
@@ -658,8 +658,8 @@
    "g": {
     "w": 358,
     "strong": true,
-    "lineOp": 0.5,
-    "arcOp": 0.5,
+    "lineOp": 0.417,
+    "arcOp": 0.417,
     "sx": 68,
     "sy": -7.779,
     "sunOp": 1,
@@ -724,11 +724,11 @@
    "g": {
     "w": 358,
     "strong": true,
-    "lineOp": 0.5,
-    "arcOp": 0.5,
+    "lineOp": 0.125,
+    "arcOp": 0.125,
     "sx": 0,
     "sy": 32,
-    "sunOp": 0.5,
+    "sunOp": 0.125,
     "scale": 1,
     "grow": 1,
     "ringOp": 0,
@@ -771,7 +771,7 @@
     "w": 358,
     "strong": true,
     "lineOp": 1,
-    "arcOp": 0.07,
+    "arcOp": 0.054,
     "sx": -41.17,
     "sy": 23.203,
     "sunOp": 1,
@@ -885,7 +885,7 @@
    "g": {
     "w": 358,
     "strong": true,
-    "lineOp": 0.286,
+    "lineOp": 0.167,
     "arcOp": 0,
     "sx": -68,
     "sy": -8,
@@ -893,7 +893,7 @@
     "scale": 1,
     "grow": 1,
     "ringOp": 0,
-    "msg": 0.07
+    "msg": 0.054
    }
   },
   {
@@ -977,7 +977,7 @@
    "g": {
     "w": 358,
     "strong": true,
-    "lineOp": 0.5,
+    "lineOp": 0.125,
     "arcOp": 0,
     "sx": 0,
     "sy": 32,
@@ -985,7 +985,7 @@
     "scale": 1,
     "grow": 1,
     "ringOp": 0,
-    "msg": 0.5
+    "msg": 0.125
    }
   }
  ],
@@ -1019,16 +1019,16 @@
    "ok": true,
    "reduce": true,
    "set": 1000,
-   "close": 1350,
-   "done": 1350
+   "close": 1200,
+   "done": 1200
   },
   {
    "responseMs": 1000,
    "ok": false,
    "reduce": true,
    "set": null,
-   "close": 3350,
-   "done": 3350
+   "close": 3200,
+   "done": 3200
   }
  ],
  "shut": [

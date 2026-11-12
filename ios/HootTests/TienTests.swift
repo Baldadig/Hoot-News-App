@@ -60,7 +60,7 @@ final class TienTests: XCTestCase {
         XCTAssertEqual(Tien.w, 240); XCTAssertEqual(Tien.h, 128); XCTAssertEqual(Tien.r * 2, 96); XCTAssertEqual(Tien.dot, 8)
         XCTAssertEqual(Tien.out - Tien.r, 24); XCTAssertEqual(Tien.hair, 1)
         let p = Tien.plan(0, nil)
-        XCTAssertEqual(p.a.first, 200); XCTAssertEqual(p.close, 1420); XCTAssertEqual(p.open, 2360); XCTAssertEqual(p.ed, 2640)
+        XCTAssertEqual(p.a.first, 240); XCTAssertEqual(p.close, 1460); XCTAssertEqual(p.open, 2400); XCTAssertEqual(p.ed, 2680)
         XCTAssertEqual(Tien.ready, "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.")
         XCTAssertEqual(Tien.busy, "Hoot stelt je eerste Editie samen")
     }

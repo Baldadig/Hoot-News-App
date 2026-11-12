@@ -16,7 +16,7 @@
   background: var(--elev-1);
   box-shadow: 0 0 0 1px var(--elev-edge), var(--shadow-float);
   color: var(--ink);
-  animation: popmenu-in var(--dur-1) var(--ease);
+  animation: popmenu-in var(--dur-kort) var(--ease-bediening);
   transform-origin: top right;
 }
 .popmenu[data-side='boven'] {
@@ -26,11 +26,6 @@
   from {
     opacity: 0;
     transform: scale(0.97);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .popmenu {
-    animation: none;
   }
 }
 .popmenu__item {
@@ -52,7 +47,7 @@
   line-height: var(--lh-2);
   text-align: start;
   cursor: pointer;
-  transition: background-color var(--dur-1) var(--ease);
+  transition: background-color var(--dur-kort) var(--ease-bediening);
 }
 @media (hover: hover) and (pointer: fine) {
   .popmenu__item {

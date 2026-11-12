@@ -70,9 +70,9 @@ enum RefreshStrip {
     static let loading: CGFloat = Horizon.strip
     // Op de bewegingsschaal (140 · 200 · 400): lijn en boog vervagen in dur-1 (vanaf 440 ms in de
     // ondergang), de strook gaat open (ease-glide) en dicht (ease-iris, Horizon.shut) in dur-3.
-    static let fadeOut: Double = 0.14
+    static let fadeOut: Double = Beweging.kort
     static let close: Double = 0.4
-    static var glide: Animation { .timingCurve(0.2, 0.8, 0.2, 1, duration: close) }
+    static var glide: Animation { Beweging.bediening(close) }
     // Hoe ver de strook nog open is (1 → 0), `shutT0` het begin van het dichtgaan (ms; nil: open).
     // Verminder beweging: na de vervaging meteen dicht, zonder glijden.
     static func open(shutT0: Double?, now: Double, reduce: Bool) -> CGFloat {
@@ -256,10 +256,10 @@ struct EmptyPageArt: View {
         }.frame(width: Layout.emptyIcon, height: Layout.emptyIcon).accessibilityHidden(true)
             .task {
                 guard !still else { drawn = 1; detail = true; return }
-                withAnimation(.timingCurve(0.2,0.8,0.2,1,duration: 0.4)) { drawn = 1 }
+                withAnimation(Beweging.bediening(0.4)) { drawn = 1 }
                 try? await Task.sleep(for: .milliseconds(400))
                 guard !Task.isCancelled else { return }
-                withAnimation(.easeOut(duration: 0.14)) { detail = true }
+                withAnimation(Beweging.kortAnim) { detail = true }
             }
     }
 }

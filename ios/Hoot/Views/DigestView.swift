@@ -136,14 +136,14 @@ struct DigestView: View {
         Task { @MainActor in
             await Task.yield()
             guard store.digestFields.contains(id) else { return }
-            if still { proxy.scrollTo(id, anchor: .top) } else { withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: .top) } }
+            if still { proxy.scrollTo(id, anchor: .top) } else { withAnimation(Beweging.gewoonAnim) { proxy.scrollTo(id, anchor: .top) } }
             focusedField = id
             keyboardField = id
             // Na het springen licht het onderwerp even op, behalve bij Verminder beweging.
             guard !still else { return }
             flash = id
             try? await Task.sleep(for: .milliseconds(1200))
-            if flash == id { withAnimation(.easeOut(duration: 0.4)) { flash = nil } }
+            if flash == id { withAnimation(Beweging.gewoonAnim) { flash = nil } }
         }
     }
 
