@@ -400,15 +400,30 @@ test('kortingscodes: 20 Wired-nieuwskoppen onder /story/ met een codewoord-slug 
   }
 })
 
-test('kortingscodes: 132 van de 144 /story/-codepagina\'s van Wired (keuring 3) vallen weg; de andere 4 blijven zoals voorheen', () => {
+test('kortingscodes: 131 van de 144 /story/-codepagina\'s van Wired (keuring 3) vallen weg; de andere 4 blijven zoals voorheen', () => {
   const f = new URL('./fixtures/kortingscodes-wired-story-titels.tsv', import.meta.url)
   const rows = readFileSync(f, 'utf8').trim().split('\n').map((l) => l.split('\t'))
   const story = rows.filter(([url]) => url.includes('/story/'))
   assert.equal(story.length, 148)
   const weg = story.filter(([url, title]) => couponPage({ title, url }, wired))
-  assert.equal(weg.length, 132)
+  assert.equal(weg.length, 131)
   // De missers (gesloten woordenschat: een vrij woord of een zin in de kop) mogen: bij twijfel blijft het staan.
   assert.ok(weg.length >= 130)
   // geen enkele link zonder /story/ valt weg
   assert.equal(rows.filter(([url]) => !url.includes('/story/')).filter(([url, title]) => couponPage({ title, url }, wired)).length, 0)
+})
+
+test('kortingscodes · 6: na een kortingsvorm alleen productwoorden uit de gesloten lijst; "up" alleen in "up to"', async () => {
+  const { couponPage } = await import('../netlify/lib/kortingscode.mjs')
+  const { SOURCES } = await import('../netlify/lib/sources.mjs')
+  const wired = SOURCES.find((s) => s.id === 'wired')
+  const at = (title, slug) => couponPage({ title, url: `https://www.wired.com/story/${slug}/` }, wired)
+  for (const [t, s] of [
+    ['Peloton Promo Code: 40% Off Bikes Recalled', 'peloton-promo-code'],
+    ['Uber Promo Code: 50% Off Rides Spark Outrage', 'uber-promo-code'],
+    ['Groupon Coupons Sales Up 40% in November 2026', 'groupon-coupons'],
+    ['Nike Promo Code: 30% Off scam spreads on WhatsApp', 'nike-promo-code'],
+  ]) assert.equal(at(t, s), false, t)
+  assert.equal(at('Factor Promo Code: 50% Off Off Meal Prep', 'factor-promo-code'), true)
+  assert.equal(at('Hydrow Discount Code: Save Up to $150 | November 2026', 'hydrow-discount-code'), true)
 })

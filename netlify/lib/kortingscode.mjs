@@ -33,6 +33,10 @@ const MONTH = /^(?:january|february|march|april|may|june|july|august|september|o
 const MONTH_YEAR = /\b(?:january|february|march|april|may|june|july|august|september|october|november|december) (?:20\d\d)\b/
 const FORM = /\d+ ?%|\b\d+ off\b|\bsave up to \d|\bfree shipping\b|\bfree trial\b/
 const MAX_CAT = 3
+// Gesloten lijst productwoorden (kortingscodes · 6, keuring 5: een open vak liet "40% Off Bikes Recalled" door). Alleen de
+// woorden die Wired's echte codepagina's na een kortingsvorm gebruiken; elk ander woord maakt de kop een zin.
+const PRODUCT = new Set(['meal', 'meals', 'prep', 'healthy', 'rugs', 'appliances', 'hosting', 'headphones', 'headsets', 'more', 'llc',
+  'formations', 'stock', 'advisor', 'bathroom', 'kitchen', 'diy', 'tax', 'pro', 'assist', 'plans'])
 // Een productcategoriewoord is een zelfstandig naamwoord, nooit een voorzetsel, lidwoord of werkwoord ("at scam shops",
 // "with student ID", "Is Coming"): zo'n woord maakt de kop een zin, dus geen codepagina.
 const STOP = new Set(['at', 'with', 'by', 'from', 'as', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'of', 'the', 'a', 'an', 'it', 'its',
@@ -89,12 +93,15 @@ function closedForm(title, brands, amp) {
   if (i === start || i >= t.length || !brands.includes(t.slice(start, i).join(''))) return false
   let cats = 0
   let afterForm = start > 0 // een kortingsvorm vooraan geldt ook als aanloop voor categoriewoorden
-  for (const w of t.slice(i)) {
+  const rest = t.slice(i)
+  for (let k = 0; k < rest.length; k++) {
+    const w = rest[k]
+    if (w === 'up' && rest[k + 1] !== 'to') return false // "up" alleen in "up to N"; "Sales Up 40%" is een bewering
     if (LIST.has(w) || isNum(w) || MONTH.test(w) || /^20\d\d$/.test(w)) {
       if (w === 'off' || /%$/.test(w)) afterForm = true
       continue
     }
-    if (!afterForm || STOP.has(w) || ++cats > MAX_CAT) return false
+    if (!afterForm || STOP.has(w) || !PRODUCT.has(w) || ++cats > MAX_CAT) return false
   }
   const txt = norm(title, 'and')
   return FORM.test(txt) || MONTH_YEAR.test(txt) || start > 0
