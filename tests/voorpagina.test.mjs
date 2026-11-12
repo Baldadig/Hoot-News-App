@@ -82,9 +82,10 @@ test('drie rustige koppen met één bron zijn genoeg; spreiding bekijkt ook de o
   f.stories = []
   f.edition.items = [1, 2, 3].map(n => it('huis-' + n, 'nos', 'NOS', 'Woningbouwplan ' + n, { topics: ['wonen'] }))
   f.edition.entries = f.edition.items.map(i => ({ kind: 'item', id: i.id, desk: 'binnenland' }))
-  f.items = [it('kunst', 'nrc', 'NRC', 'Museum opent de deuren', { topics: ['kunst'], publishedAt: '2026-10-31T04:00:00Z' }), it('ruimte', 'nos', 'NOS', 'Een nieuwe planeet ontdekt', { topics: ['ruimte'], publishedAt: '2026-10-31T04:00:00Z' })]
+  f.items = [it('kunst', 'nrc', 'NRC', 'Museum opent de deuren', { topics: ['kunst'], mainTopics: ['kunst'], publishedAt: '2026-10-31T04:00:00Z' }), it('ruimte', 'nos', 'NOS', 'Een nieuwe planeet ontdekt', { topics: ['ruimte'], publishedAt: '2026-10-31T04:00:00Z' })]
   const r = extract(f)
-  assert.deepEqual(new Set(r.entries.map(e => e.desk)), new Set(['binnenland', 'cultuur', 'wetenschap']))
+  // schets: een losse onderwerp-tag geeft geen Wetenschap meer; zonder zekere rubriek is desk null
+  assert.deepEqual(new Set(r.entries.map(e => e.desk)), new Set(['binnenland', 'cultuur', null]))
   assert.ok(r.entries.every(e => e.sourceCount === 1))
 })
 
@@ -93,9 +94,9 @@ test('sport zonder tags valt af; cultuur krijgt geen onjuiste Binnenland-stempel
   f.edition.entries.unshift({ kind: 'item', id: 'coach', desk: 'binnenland' })
   f.edition.items.push(it('coach', 'nos', 'NOS', 'AZ-coach blikt terug op zijn eerste seizoen', { section: 'Sport' }))
   assert.ok(extract(f).entries.every(e => !/AZ-coach/.test(e.title)))
-  assert.equal(rubriek({ topics: ['film'] }, 'binnenland', 'nl'), 'cultuur')
+  assert.equal(rubriek({ topics: ['film'], mainTopics: ['film'] }, 'binnenland', 'nl'), 'cultuur')
   assert.equal(rubriek({ title: 'Een verrassend halloweenkostuum', section: 'Showbizz' }, 'binnenland', 'nl'), 'cultuur')
-  assert.equal(rubriek({ title: 'Schrijfwedstrijd voor jonge auteurs', topics: ['boeken'] }, 'binnenland', 'nl'), 'cultuur')
+  assert.equal(rubriek({ title: 'Schrijfwedstrijd voor jonge auteurs', topics: ['boeken'], mainTopics: ['boeken'] }, 'binnenland', 'nl'), 'cultuur')
 })
 
 test('alleen onrust levert ook via de HTTP-handler 503 in plaats van drie ongeschikte koppen', async () => {
@@ -151,8 +152,8 @@ test('rubriekvoorkeur: rustige rubrieken gaan voor buitenland, in volgorde van g
 test('rubrieken afgeleid uit bron en onderwerpen (cultuur, tech, sport)', () => {
   assert.equal(rubriek({ topics: [] }, null, 'sport'), 'sport')
   assert.equal(rubriek({ topics: [] }, null, 'tech'), 'tech')
-  assert.equal(rubriek({ topics: ['muziek'] }, null, 'nl'), 'cultuur')
-  assert.equal(rubriek({ topics: ['klimaat'] }, null, 'nl'), 'wetenschap')
+  assert.equal(rubriek({ mainTopics: ['muziek'] }, null, 'nl'), 'cultuur')
+  assert.equal(rubriek({ topics: ['klimaat'] }, null, 'nl'), null) // schets: een tag alleen is niet zeker genoeg
   assert.equal(rubriek({ topics: [] }, 'bubbel', 'nl'), null)
   assert.equal(rubriek({ topics: [] }, 'vs', 'nl'), 'vs')
 })
@@ -368,4 +369,14 @@ test('endpoint: echte productievorm (KEYS.start + KEYS.voorpagina) geeft 200 met
   const r = await get({ origin: 'https://gethoot.app' })
   assert.equal(r.status, 200)
   assert.equal((await r.json()).edition.entries.length, 3)
+})
+
+// Schets landing-schets (12 november): echte fouten van de live voorpagina blijven weg.
+test('rubriek: de Editie wint van een trefwoord uit de intro', () => {
+  const iran = { title: 'België: aanwijzingen voor Iraanse betrokkenheid bij hack koelsystemen', summary: 'Mogelijk is een Iraanse actor verantwoordelijk voor de cyberaanval.', topics: ['privacy'], mainTopics: ['privacy'], url: 'https://www.nrc.nl/nieuws/2026/11/12/belgie-a4941176' }
+  assert.equal(rubriek(iran, 'buitenland', 'nl', 'buitenland'), 'buitenland')
+  const lexus = { title: 'De Lexus ES 350e: een walvis met vijfsterrensuite in zijn buik', topics: ['natuur'], url: 'https://www.nrc.nl/nieuws/2026/10/30/de-lexus-a4939741' }
+  assert.equal(rubriek(lexus, null, 'nl'), null)
+  const littler = { title: 'Luke Littler treft 24 tegenstanders', topics: ['film'], url: 'https://www.ad.nl/darts/luke-littler~a286a41d/' }
+  assert.equal(rubriek(littler, null, 'nl'), 'sport')
 })
