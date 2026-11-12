@@ -143,16 +143,14 @@
      "middenoosten": 0.55
     },
     "sources": {
-     "gamespot": 8.16,
-     "polygon": 4.59,
-     "eurogamer": 4.49,
-     "tweakers": 4.16,
-     "ign": 3.06,
-     "theverge": 2.94,
-     "ars": 2.13,
-     "wired": 2.05,
-     "vi": 1.16,
-     "bbc-sport": 0.64
+     "gamespot": 8.79,
+     "ign": 7.36,
+     "polygon": 5.21,
+     "eurogamer": 4.36,
+     "nos-sport": 2.89,
+     "atlantic": 2.17,
+     "nos-cultuur": 1.78,
+     "nu": 0.74
     }
    },
    "summary": {
@@ -168,16 +166,14 @@
      "middenoosten": 0.55
     },
     "sources": {
-     "gamespot": 8.16,
-     "polygon": 4.59,
-     "eurogamer": 4.49,
-     "tweakers": 4.16,
-     "ign": 3.06,
-     "theverge": 2.94,
-     "ars": 2.13,
-     "wired": 2.05,
-     "vi": 1.16,
-     "bbc-sport": 0.64
+     "gamespot": 8.79,
+     "ign": 7.36,
+     "polygon": 5.21,
+     "eurogamer": 4.36,
+     "nos-sport": 2.89,
+     "atlantic": 2.17,
+     "nos-cultuur": 1.78,
+     "nu": 0.74
     }
    }
   },
@@ -939,6 +935,7 @@
     "klimaat",
     "natuur"
    ],
+   "rubrieken": 2,
    "favorites": [
     "carbonbrief"
    ],

@@ -81,8 +81,10 @@ test('per gekozen interesse een blok, in vaste volgorde, met de nichebronnen en 
   const of = (id) => blocks.find((b) => b.id === id).sources.map((s) => s.id)
   // De kleine en vakbronnen staan bij hun interesse, niet verstopt.
   for (const id of ['quanta', 'carbonbrief', 'nature']) assert.ok(of('wetenschap').includes(id), id)
-  for (const id of ['tweakers', 'ars', 'ign', 'polygon']) assert.ok(of('tech').includes(id), id)
-  for (const id of ['3voor12', 'quietus', 'variety']) assert.ok(of('cultuur').includes(id), id)
+  for (const id of ['tweakers', 'ars']) assert.ok(of('tech').includes(id), id)
+  // De gamesites horen sinds 1.3 bij Cultuur (rubrieken, fase 2), niet meer bij Tech.
+  for (const id of ['3voor12', 'quietus', 'variety', 'ign', 'polygon']) assert.ok(of('cultuur').includes(id), id)
+  for (const id of ['ign', 'polygon', 'gamespot', 'eurogamer']) assert.ok(!of('tech').includes(id), id)
   // De gratis aanrader staat voorop en is gratis; Nederlands gaat voor.
   for (const b of blocks) {
     assert.equal(b.sources[0].id, b.pick)

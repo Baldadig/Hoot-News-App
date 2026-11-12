@@ -20,6 +20,11 @@ enum HootBasis {
 enum ImageURL {
     static let cdnHosts: Set<String> = ["images.nrc.nl", "i.guim.co.uk", "cdn.theatlantic.com", "images.vpro.nl", "thequietus.com", "lede-admin.stereogum.com", "ichef.bbci.co.uk", "npr.brightspotcdn.com", "images.ft.com"]
 
+    // De beeldserver van DPG Media: elke maat van dezelfde uitsnede (feature-crop, of roi met het brandpunt) is op te
+    // vragen. Nagelopen met GET op 12 november 2026; AD, de regionale titels en HLN niet (ondertekend, 403).
+    // Gelijk aan DPG_HOSTS in src/lib/img.js (tests/img.test.mjs controleert dat).
+    static let dpgHosts: Set<String> = ["image.volkskrant.nl", "image.demorgen.be", "image.parool.nl", "image.trouw.nl", "image.humo.be"]
+
     enum Kind { case thumb, large }
 
     static func url(_ raw: String?, _ kind: Kind) -> URL? {
@@ -42,9 +47,9 @@ enum ImageURL {
             c.queryItems = (c.queryItems ?? []).filter { !["w", "h", "fit", "crop"].contains($0.name) } + [URLQueryItem(name: "w", value: String(width))]
             return c.url
         }
-        // De Morgen gebruikt dezelfde beeldserver (DPG) en dezelfde feature-crop-maten als de Volkskrant.
-        if host == "image.volkskrant.nl" || host == "image.demorgen.be", let m = s.firstMatch(#"^(.*)/feature-crop/\d+/\d+/(.*)$"#) {
-            return URL(string: kind == .thumb ? "\(m[1])/feature-crop/320/320/\(m[2])" : "\(m[1])/feature-crop/1280/853/\(m[2])")
+        // DPG (dpgHosts): dezelfde uitsnede op maat.
+        if dpgHosts.contains(host), let m = s.firstMatch(#"^(.*)/(feature-crop|roi)/\d+/\d+/(.*)$"#) {
+            return URL(string: kind == .thumb ? "\(m[1])/\(m[2])/320/320/\(m[3])" : "\(m[1])/\(m[2])/1280/853/\(m[3])")
         }
         if host == "images.cdn.nos.nl", let m = s.firstMatch(#"^(.*)-1024x576(\.webp)$"#) {
             return URL(string: kind == .thumb ? "\(m[1])-512x288\(m[2])" : s)

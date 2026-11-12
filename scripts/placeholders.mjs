@@ -37,13 +37,13 @@ const hex = (c) => `0x${c.slice(1).toUpperCase()}`
 function swiftVorm(s) {
   const opt = (v) => (v ? `"${v}"` : 'nil')
   if (s.t === 'rect') return `.init(soort: .rect, a: ${num(s.x)}, b: ${num(s.y)}, c: ${num(s.w)}, d: ${num(s.h)}, fill: ${opt(s.fill)})`
-  if (s.t === 'line') return `.init(soort: .line, a: ${num(s.x1)}, b: ${num(s.y1)}, c: ${num(s.x2)}, d: ${num(s.y2)}, stroke: ${opt(s.stroke)}, sw: 1, fixed: ${!!s.fixed})`
+  if (s.t === 'line') return `.init(soort: .line, a: ${num(s.x1)}, b: ${num(s.y1)}, c: ${num(s.x2)}, d: ${num(s.y2)}, stroke: ${opt(s.stroke)}, sw: ${num(s.sw || 1)}, fixed: ${!!s.fixed})`
   return `.init(soort: .circle, a: ${num(s.cx)}, b: ${num(s.cy)}, c: ${num(s.r)}, d: 0, fill: ${opt(s.fill)}, stroke: ${opt(s.stroke)}, sw: ${num(s.sw || 0)}, clip: ${!!s.clip})`
 }
 const swiftTekening = (L, pad) => `PHTekening(w: ${L.w}, h: ${L.h}, clipY: ${L.clipY ?? 'nil'}, vormen: [\n${L.shapes.map((s) => `${pad}    ${swiftVorm(s)},`).join('\n')}\n${pad}])`
 function swift() {
   let s = '// Gegenereerd door scripts/placeholders.mjs uit shared/placeholder.mjs. Niet met de hand aanpassen.\n'
-  s += '// De tekening van de tien placeholderbeelden; BeeldloosView (Beeldloos.swift) tekent ze, zoals de SVG\'s op het web.\n'
+  s += '// De tekening van de achttien placeholderbeelden; BeeldloosView (Beeldloos.swift) tekent ze, zoals de SVG\'s op het web.\n'
   s += 'import CoreGraphics\n\nenum PlaceholderBeelden {\n'
   s += '    static let palettes: [String: [String: [String: UInt32]]] = [\n'
   for (const [fam, themes] of Object.entries(PALETTES)) {

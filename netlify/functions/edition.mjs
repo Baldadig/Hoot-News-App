@@ -34,7 +34,7 @@
 //         previous: { storyIds: [], itemIds: [], leadIds: [], leadStoryId, leadStoryIds: [], at, atOf: { [verhaal-id]: ms },
 //                     titles: [], shown: [{ title, summary, publishedAt }], keysOf: { [verhaal-id]: [kenmerk] } } }
 // Body v2: { v: 2, followed, interests, topics, favorites, taste, readIds, reading: { n, topics, sources } | weg,
-//          earlier: [history-regel] (alleen zonder account) }
+//          earlier: [history-regel] (alleen zonder account), rubrieken: 2 (web en app 1.3: de indeling van nu; zie choiceOf) }
 // `previous` mag drie Edities omvatten (bouwspec-aanvulling H3/H4, previousOf over een lijst): vandaar
 // de ruime grenzen (90 verhalen, 4500 stukken) en `atOf` (per verhaal de builtAt van de laatste Editie
 // waarin het stond) naast `at`. `keysOf` zijn de kenmerken van toen per verhaal (de `keys` van de
@@ -48,6 +48,7 @@ import { composePersonal, withoutDebug, editionBasis, earlierEditions } from '..
 import { fitsEdition, accountAhead, claimFilter, readAccountEdition, TABLE } from '../../src/lib/editionSync.js'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 import { readingSummary } from '../../src/lib/affinity.js'
+import { currentChoice, RUBRIEKEN } from '../../src/lib/topics.js'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 
 const fail = (status, error, headers = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
@@ -83,6 +84,14 @@ const signed = (o, max = 40) =>
 
 export const READ_MAX = 1500 // zoveel gelezen berichten gaan ook mee in de sync (bouwspec §8)
 
+// Interesses en onderwerpen zoals gevraagd, en zoals de Redacteur ze leest. Zonder `rubrieken` (app 1.2.1 en
+// ouder, en v1) zijn ze van de oude indeling (Games onder Tech) en zetten we ze om (src/lib/topics.js
+// currentChoice). De afdruk (`basis`) blijft die van de vraag zelf: zo herkent het toestel zijn Editie.
+export function choiceOf(body) {
+  const asked = { interests: ids(body.interests, 20), topics: ids(body.topics, 60) }
+  return { asked, ...(body.rubrieken === RUBRIEKEN ? asked : currentChoice(asked.interests, asked.topics)) }
+}
+
 // Alleen nieuwsbronnen die bestaan, in de volgorde van de aanvraag.
 export function followedOf(start, body) {
   const known = new Set((start.sources || []).filter((s) => s.kind !== 'sociaal').map((s) => s.id))
@@ -112,8 +121,7 @@ export function editionFor(start, items, body) {
     : null
   const t = body.taste && typeof body.taste === 'object' ? body.taste : null
   const taste = t ? { topics: signed(t.topics), sources: signed(t.sources) } : null
-  const interests = ids(body.interests, 20)
-  const topics = ids(body.topics, 60)
+  const { asked, interests, topics } = choiceOf(body)
   const favorites = ids(body.favorites, 50)
   // Op de start van het dagdeel, zoals het web: zo geeft elk toestel met dezelfde invoer dezelfde Editie.
   const now = Date.parse(start.edition?.builtAt) || Date.now()
@@ -137,7 +145,7 @@ export function editionFor(start, items, body) {
   if (!edition) return null
   // Zonder de velden ter inzage (`_parts`, `_plan`): geen punten naar het toestel. Met de afdruk, en
   // als terugval gemerkt: van geen toestel, en nooit voor je account.
-  return { ...withoutDebug(edition), basis: editionBasis(followed, interests, topics, favorites), owner: null, fallback: true }
+  return { ...withoutDebug(edition), basis: editionBasis(followed, asked.interests, asked.topics, favorites), owner: null, fallback: true }
 }
 
 // De id's die de AI op de server zeker als aanbieding of aankondiging zag (netlify/lib/editie-ai.mjs, `editionFilter` in de
@@ -154,10 +162,12 @@ const sha = (s) => createHash('sha256').update(s).digest('hex')
 export function profileOf(start, body) {
   const followed = followedOf(start, body)
   const t = body.taste && typeof body.taste === 'object' ? body.taste : null
+  const { asked, interests, topics } = choiceOf(body)
   return {
     followed,
-    interests: ids(body.interests, 20),
-    topics: ids(body.topics, 60),
+    interests,
+    topics,
+    asked,
     favorites: ids(body.favorites, 50),
     taste: t ? { topics: signed(t.topics), sources: signed(t.sources) } : null,
     readIds: ids(body.readIds, READ_MAX),
@@ -188,7 +198,11 @@ export function cleanEarlier(list) {
 // De afdruk van een vraag zonder account: alles wat de Editie bepaalt, in een vaste volgorde.
 export function anonKey(globalId, p, earlier) {
   const sorted = (xs) => [...xs].sort()
-  const norm = JSON.stringify([sorted(p.followed), sorted(p.interests), sorted(p.topics), sorted(p.favorites), p.taste, sorted(p.readIds), earlier, p.reading ?? null])
+  const asked = p.asked || p
+  // Omgezet uit de oude indeling (choiceOf): de keuze zoals de Redacteur hem leest telt mee, anders kan dezelfde
+  // vraag in de oude en de nieuwe indeling dezelfde Editie krijgen. Niet omgezet: de afdruk van altijd.
+  const read = sorted(p.interests).join() === sorted(asked.interests).join() && sorted(p.topics).join() === sorted(asked.topics).join() ? [] : [sorted(p.interests), sorted(p.topics)]
+  const norm = JSON.stringify([sorted(p.followed), sorted(asked.interests), sorted(asked.topics), sorted(p.favorites), p.taste, sorted(p.readIds), earlier, p.reading ?? null, ...read])
   return `pe:${EDITOR_REVISION}:${globalId}:${sha(norm)}`
 }
 
@@ -216,7 +230,7 @@ export function composeFor(start, items, p, { owner, earlier = [] }) {
   return {
     ...withoutDebug(edition),
     owner,
-    basis: editionBasis(p.followed, p.interests, p.topics, p.favorites),
+    basis: editionBasis(p.followed, (p.asked || p).interests, (p.asked || p).topics, p.favorites),
     history: earlier.map(historyOf).filter(Boolean),
     revision: EDITOR_REVISION,
     server: true,
@@ -291,7 +305,7 @@ export async function editionV2(req, body, deps = {}) {
   const global = start.edition
   const id = global.id
   const p = profileOf(start, body)
-  const basis = editionBasis(p.followed, p.interests, p.topics, p.favorites)
+  const basis = editionBasis(p.followed, p.asked.interests, p.asked.topics, p.favorites)
 
   if (uid) {
     const client = clientFor(token)

@@ -30,14 +30,37 @@ extension ImageURL {
 
     // Hoe breed een groot beeld hooguit te krijgen is zonder op te rekken: de grootste variant van de uitgever
     // of de beeld-CDN (url(_:.large)), anders de gemeten breedte (door de server) of wat het adres verraadt.
-    // Met een meting tonen we het origineel (Item.pictureURL), dus dan telt de meting. Nil: onbekend.
+    // Tonen we het gemeten origineel (measuredOriginal), dan telt de meting; een gemeten 320 × 320 van de Volkskrant
+    // of Het Parool telt dus niet, want dan tonen we de variant van 1280. Nil: onbekend.
     // Gelijk aan sourceWidth in src/lib/img.js.
     static func sourceWidth(_ item: Item) -> Double? {
-        if let m = item.measure { return m.w }
+        let measured = item.imageMeta.flatMap { $0.valid ? $0.w : nil }
+        if measuredOriginal(item) { return measured }
         guard let raw = item.image, let u = URL(string: raw), let host = u.host() else { return nil }
         if host == "images.cdn.nos.nl", raw.firstMatch(#"-1024x576\.webp$"#) != nil { return 1024 }
-        if let large = url(raw, .large), large.absoluteString != raw.replacingOccurrences(of: "http://", with: "https://") { return 1024 }
-        return knownWidth(raw).map(Double.init)
+        if let large = variant(raw, .large) {
+            // De beeld-CDN van Netlify rekt niet op: dan telt de meting (hooguit de gevraagde 1360).
+            if large.host() == HootAPI.base.host(), large.path() == "/.netlify/images", let measured { return min(measured, 1360) }
+            return 1024
+        }
+        return measured ?? knownWidth(raw).map(Double.init)
+    }
+
+    // Een andere maat dan het adres uit de feed (van de uitgever of via de beeld-CDN), of nil.
+    static func variant(_ raw: String?, _ kind: Kind) -> URL? {
+        // Vergeleken met hetzelfde URL(string:) als in url(_:_:): een adres met bijvoorbeeld een spatie wordt daar
+        // gecodeerd, en is dan nog steeds hetzelfde beeld.
+        guard let raw, let sized = url(raw, kind), sized != URL(string: raw.replacingOccurrences(of: "http://", with: "https://")) else { return nil }
+        return sized
+    }
+
+    // Tonen we het gemeten origineel uit de feed? Ja als er egale randen zijn gemeten: daar horen de meetgegevens bij.
+    // Zonder randen gaat het via de variant op maat, als die er is (de Volkskrant, Het Parool: de feed geeft 320 × 320).
+    // Gelijk aan measuredOriginal in src/lib/img.js.
+    static func measuredOriginal(_ item: Item, _ kind: Kind = .large) -> Bool {
+        guard let m = item.imageMeta, m.valid else { return false }
+        let plain = m.crop.l == 0 && m.crop.r == 0 && m.crop.t == 0 && m.crop.b == 0
+        return !(plain && variant(item.image, kind) != nil)
     }
 
     // Scherp genoeg: minstens `sharp` keer zo breed als het vak, op een scherm met hoge pixeldichtheid (hooguit

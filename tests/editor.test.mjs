@@ -12,14 +12,17 @@ const TECH = INTERESTS.find((f) => f.id === 'tech').topics
 
 test('profiel: volledige lijst onderwerpen is geërfd (0,6), scherp kiezen geeft 1 en laat de rest weg', () => {
   const all = prof({ interests: ['tech'], topics: TECH })
-  assert.equal(all.topicP.games, G.W_INHERITED)
+  assert.equal(all.topicP.privacy, G.W_INHERITED)
   assert.equal(all.topicP.ai, 0.6)
   assert.equal(all.family.tech, 0.6)
+  // Games staat sinds 1.3 onder Cultuur (rubrieken, fase 2): niet meer geërfd van Tech.
+  assert.equal(all.topicP.games, undefined)
   const none = prof({ interests: ['tech'], topics: [] }) // niets gekozen: ook geërfd
-  assert.equal(none.topicP.games, 0.6)
+  assert.equal(none.topicP.ev, 0.6)
+  assert.equal(prof({ interests: ['cultuur'], topics: [] }).topicP.games, 0.6)
   const sharp = prof({ interests: ['tech'], topics: ['ai'] })
   assert.equal(sharp.topicP.ai, 1)
-  assert.equal(sharp.topicP.games, undefined)
+  assert.equal(sharp.topicP.privacy, undefined)
   assert.equal(sharp.origin.ai, 'gekozen')
   assert.equal(sharp.family.tech, 1)
 })
@@ -127,7 +130,8 @@ test('punten: interesse naar sterkte en dekking', () => {
   // De helft van de eigen berichten raakt: 18 × 1 × 0,75.
   assert.equal(G.personalParts([it('a', 'nos', ['ai']), it('b', 'nos', ['europa'])], p).interest.pts, 14)
   // Geërfd (0,6) en volledig gedekt: 18 × 0,6 = 10,8.
-  assert.equal(G.personalParts([it('a', 'nos', ['games'])], prof({ interests: ['tech'] })).interest.pts, 11)
+  assert.equal(G.personalParts([it('a', 'nos', ['games'])], prof({ interests: ['cultuur'] })).interest.pts, 11)
+  assert.equal(G.personalParts([it('a', 'nos', ['gadgets'])], prof({ interests: ['tech'] })).interest.pts, 11)
 })
 
 test('punten: snijvlak — AI en muziek, met Tech en Cultuur gekozen, raakt beide gebieden', () => {

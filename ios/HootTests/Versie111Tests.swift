@@ -42,7 +42,12 @@ import SwiftUI
             if let w { it.imageMeta = ImageMeasure(w: w, h: w * 2 / 3, crop: .init(l: 0, r: 0, t: 0, b: 0), ratio: 1.5) }
             return it
         }
-        XCTAssertEqual(ImageURL.sourceWidth(item("https://images.fd.nl/a.jpg?w=140&h=140&fit=crop", w: 140)), 140, "met een meting telt de meting")
+        // Met gemeten randen tonen we het origineel: dan telt de meting (gelijk aan src/lib/img.js). Zonder randen
+        // gaat het FD via een variant op maat (imgix), zoals op het web (DPG-beeldserver, 12 november).
+        var fd = item("https://images.fd.nl/a.jpg?w=140&h=140&fit=crop", w: 140)
+        fd.imageMeta?.crop = .init(l: 16, r: 12, t: 0, b: 0)
+        XCTAssertEqual(ImageURL.sourceWidth(fd), 140, "met gemeten randen telt de meting")
+        XCTAssertEqual(ImageURL.sourceWidth(item("https://images.fd.nl/a.jpg?w=140&h=140&fit=crop", w: 140)), 1024, "zonder randen de variant")
         XCTAssertEqual(ImageURL.sourceWidth(item("https://images.cdn.nos.nl/x-1024x576.webp")), 1024)
         XCTAssertEqual(ImageURL.sourceWidth(item("https://image.volkskrant.nl/a/feature-crop/640/427/b.jpg")), 1024, "variant van de uitgever")
         XCTAssertNil(ImageURL.sourceWidth(item("https://onbekend.nl/beeld.jpg")), "onbekend: dan past het, zoals altijd")

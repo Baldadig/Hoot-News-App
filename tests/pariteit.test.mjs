@@ -1,3 +1,4 @@
+import { RUBRIEKEN } from '../src/lib/topics.js'
 import { editionStoryCount } from '../shared/edition-limits.mjs'
 // Pariteit web en app (Hoot-design/algoritme/aanvulling-pariteit-herhaling.md P8, §3): dezelfde lezer
 // krijgt op elk toestel dezelfde Editie. Hier de server-route (POST /api/edition als terugval, P8-7)
@@ -16,7 +17,8 @@ const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt ||
 const webItems = (followed) => snap.items.filter((i) => followed.has(i.source)).sort(byRecency)
 // Zoals functions/edition.mjs: de delen van de gevolgde bronnen, in de volgorde van `followed`.
 const serverItems = (followed) => [...followed].flatMap((id) => snap.items.filter((i) => i.source === id))
-const bodyOf = (setup, readIds = new Set()) => ({ followed: [...setup.followed], interests: setup.interests, topics: setup.topics, favorites: setup.favorites, taste: setup.taste, readIds: [...readIds] })
+// `rubrieken`: de persona's kozen in de indeling van nu (Games onder Cultuur); zonder zet de server ze eerst om.
+const bodyOf = (setup, readIds = new Set()) => ({ followed: [...setup.followed], interests: setup.interests, topics: setup.topics, rubrieken: RUBRIEKEN, favorites: setup.favorites, taste: setup.taste, readIds: [...readIds] })
 // De plekken als verhalen (zoals de meetlat): verhaal-id, of het verhaal van een los bericht.
 const storyOfItem = new Map(snap.stories.flatMap((s) => s.itemIds.map((id) => [id, s.id])))
 const keysOf = (ed) => ed.entries.map((e) => (e.kind === 'story' ? e.id : storyOfItem.get(e.id) || e.id))

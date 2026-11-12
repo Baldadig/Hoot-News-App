@@ -1,5 +1,5 @@
 import { withCleanIntro } from '../../shared/edition-display.mjs'
-import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, exceptionalDutchSport, coverageOf, majorGeneralNews } from '../../shared/edition-policy.mjs'
+import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, cultuurChosen, exceptionalDutchSport, coverageOf, majorGeneralNews } from '../../shared/edition-policy.mjs'
 import { BASIS_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -230,12 +230,13 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`
 
   // 2. Het extra blok: sport en cultuur als dat gebied sterk genoeg in je profiel zit (ook uit
-  //    lezen); games alleen als je dat onderwerp scherp koos of las, niet geërfd van Tech (wie Tech
-  //    kiest, bedoelt meestal AI en technologie).
-  const tech = INTERESTS.find((f) => f.id === 'tech')?.topics || []
-  const gamesSharp = interests.includes('tech') && topics.includes('games') && !tech.every((t) => topics.includes(t))
+  //    lezen); games alleen als je dat onderwerp scherp koos of las, niet geërfd van Cultuur (wie Cultuur
+  //    kiest, bedoelt meestal muziek, film en boeken; tot 1.3 hoorde Games bij Tech, met dezelfde regel).
+  //    Games telt daarom ook niet mee voor de sterkte van Cultuur (cultuurChosen in shared/edition-policy.mjs).
+  const cultuur = INTERESTS.find((f) => f.id === 'cultuur')?.topics || []
+  const gamesSharp = interests.includes('cultuur') && topics.includes('games') && !cultuur.every((t) => topics.includes(t))
   const gamesOk = (prof.topicP.games || 0) >= EXTRA_MIN && (gamesSharp || prof.origin.games === 'geleerd')
-  const extraKinds = new Set([...(sportChosen(prof) ? ['sport'] : []), ...((prof.family.cultuur || 0) >= EXTRA_MIN ? ['cultuur'] : []), ...(gamesOk ? ['games'] : [])])
+  const extraKinds = new Set([...(sportChosen(prof) ? ['sport'] : []), ...(cultuurChosen(prof, EXTRA_MIN) ? ['cultuur'] : []), ...(gamesOk ? ['games'] : [])])
   const storyById = new Map(stories.map(s => [s.id, s]))
   const storyByItem = new Map(stories.flatMap(s => s.itemIds.map(id => [id, s])))
   // Groot cultuurnieuws (zie majorGeneralNews) is nieuws, ook met onderwerp muziek of film.

@@ -61,8 +61,8 @@ export function profileOf({ interests = [], topics = [], affinity = null, taste 
   if (affinity?.topics) affinity = { ...affinity, topics: currentTopicMap(affinity.topics) }
   if (taste?.topics) taste = { ...taste, topics: currentTopicMap(taste.topics, TASTE_SCALE) }
   // Expliciet. Scherp is een deel van de onderwerpen van een gebied; niets gekozen of de volledige
-  // lijst (zoals Welkom die bewaart) telt als geërfd: alles, maar minder sterk. Zo lekt Games niet
-  // mee met wie Tech kiest.
+  // lijst (zoals Welkom die bewaart) telt als geërfd: alles, maar minder sterk. (Games staat sinds 1.3
+  // onder Cultuur; geërfd telt het niet voor het extra blok, zie composePersonal.)
   const expl = {}
   const inherited = new Set()
   for (const f of INTERESTS) {

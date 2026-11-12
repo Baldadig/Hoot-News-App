@@ -9,7 +9,7 @@ import { placeholderBase, placeholderPlan } from '../../shared/placeholder.mjs'
 // plek, of het laadt niet. Nooit een grijs vlak. Een beeld van een ander verhaal nooit; wel (besluit Alex,
 // 7 november) dat van een andere bron over hetzelfde feit, dat de server dan al als `image` meegeeft (build.mjs:
 // borrowImagesFromStories). Pas als ook dat er niet is, dit placeholderbeeld.
-// Tien beelden in vijf sets (shared/placeholder.mjs): welk, volgt uit de id van het artikel, en twee
+// Achttien beelden, tien in vijf sets en acht eenlingen (shared/placeholder.mjs): welk, volgt uit de id van het artikel, en twee
 // beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit dezelfde set (PlaceholderList). Het is decoratie: aria-hidden.
 // `kind`: 'lead' (hoofdverhaal), 'tijdlijn' (beeld over de kolom) of 'krant' (miniatuur).
 const BOX = { lead: 'media media--lead', tijdlijn: 'media media--tl', krant: 'thumb' }
@@ -38,7 +38,7 @@ export function PlaceholderList({ rows, children }) {
   return <Plan.Provider value={value}>{children}</Plan.Provider>
 }
 
-// Beeld 1 tot 10 voor dit stuk.
+// Beeld 1 tot 18 voor dit stuk.
 export function usePlaceholder(item) {
   const plan = useContext(Plan)?.plan
   return (plan?.get(item?.id) ?? placeholderBase(item?.id ?? '')) + 1

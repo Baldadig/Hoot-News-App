@@ -8,9 +8,10 @@
 //   3. wie het schreef: een vakexpert weegt zwaarder dan een vakblad, en dat zwaarder dan een
 //      bedrijfsblog.
 // Alleen mensenwerk: redactionele bronnen en vakmensen met naam; geen gesponsorde stukken,
-// webinars, podcasts, vacatures of "10 tools"-lijstjes. Geen AI-tekst: bij elk stuk staat de
+// webinars, podcastafleveringen, dealpagina's, vacatures of "10 tools"-lijstjes. Geen AI-tekst: bij elk stuk staat de
 // eigen intro van de schrijver.
 import { loadSourceWithRetry } from './rss.mjs'
+import { hardMark } from '../../shared/editie-filter.mjs'
 import { visibleFor, langOf } from '../../shared/lang.mjs'
 import { tzOffsetMs, hostname } from './text.mjs'
 import { loadOgImage } from './og.mjs'
@@ -212,8 +213,12 @@ const BASE_FITS = {
 const WIDER = ['paid-social', 'ecommerce', 'seo', 'merk', 'ux', 'design']
 const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !(k in BASE_FITS))), ...BASE_FITS, ...Object.fromEntries(WIDER.filter((k) => MORE_FITS[k]).map((k) => [k, MORE_FITS[k]])) }
 
-// Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, audio, vacatures, lijstjes.
-const NOT_READING = /\b(sponsored|^sponsor|partner content|advertorial|presented by|webinars?|podcast|episode|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
+// Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, vacatures, lijstjes.
+// Deals en podcasts niet op een woord in de kop (Selectie · deals · 1, 12 november 2026): "OpenAI signs $10bn chip deal",
+// "Wat de deal tussen Ahold en Bol betekent" en nieuws over Black Friday-verkopen zijn vakstukken. Een echte dealpagina of
+// podcastaflevering herkent hardMark, dezelfde regel als de Editie (shared/editie-filter.mjs): een dealrubriek als eerste
+// padsegment, "Podcast:" vooraan, een iTunes-aflevering of een audio-enclosure zonder eigen intro.
+const NOT_READING = /\b(sponsored|^sponsor|partner content|advertorial|presented by|webinars?|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
@@ -221,7 +226,25 @@ export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i,
 // "Freebies, Sales, and Charity Bundles for October 19, 2026") en vaste linklijsten
 // ("… – This Week's Links", "News Digest …", "RPG Print News – …", "RPG Crowdfunding News – …").
 const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
-export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title)
+// Een vast programmalabel van een podcast in de kop, naast "Podcast:" vooraan (hardMark). De Selectie heeft geen AI die
+// twijfel beoordeelt, dus hier ook de vormen die vakbronnen gebruiken, en alleen als label (gescheiden door een pijp of
+// streep), nooit als woord in een zin: "… | The PetaPixel Podcast", "… – All Things Product Podcast with Teresa Torres",
+// "AI & Tech-podcast | …", "The Low Culture Podcast: …", een afleveringsnummer ("Podcast #422", "Podcast Episode 12") of de koptelefoon vooraan.
+// Nieuws óver podcasts ("Will YouTube kill the podcast industry?", "NOS-podcast De Dag uitgeroepen tot beste …") blijft.
+const SHOW = /^(?:the\s+)?(?:[\p{L}\p{N}&'’.+]+[\s-]+){0,5}podcast(?:\s+(?:with|met)\s+.+)?$/iu
+const SHOW_NAME = /^the\s+(?:[\p{L}\p{N}&'’.+-]+\s+){1,4}podcast$/iu
+const SHOW_NUMBER = /\bpodcast\s+(?:episode\s+|aflevering\s+)?#?\d+\b/i
+export function podcastLabel(title = '') {
+  const t = String(title || '').replace(/\s+/g, ' ').trim()
+  if (/^\s*🎧/u.test(t) || SHOW_NUMBER.test(t)) return true
+  const tail = t.split(/\s(?:[|–—]|-)\s/)
+  if (tail.length > 1 && SHOW.test(tail[tail.length - 1].trim())) return true
+  const head = t.split(/\s*\|\s*/)
+  if (head.length > 1 && SHOW.test(head[0].trim())) return true
+  // Met een dubbele punt alleen een eigen naam: "The Low Culture Podcast: …" (niet "Video Podcast: …").
+  return SHOW_NAME.test(t.split(/\s*:\s*/)[0].trim()) && t.includes(':')
+}
+export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title) && !hardMark(it) && !podcastLabel(it.title)
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
 const AMS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short' })
@@ -414,7 +437,9 @@ export async function loadVakItems(sources = VAK_SOURCES) {
   const byId = new Map(sources.map((s) => [s.id, s]))
   // Een bericht in een andere taal dan zijn bron (ArchiNed in het Engels) valt af: zie vakLang.
   const keep = (i) => byId.has(i.source) && visibleFor(i) && isReading(i) && fieldOf(i, byId.get(i.source))
-  const slim = ({ text, cats, ...it }) => it // de artikeltekst en rubrieken hebben we hier niet nodig
+  // De artikeltekst en rubrieken hebben we hier niet nodig; mediaType, feedMark en podcastEpisode blijven (hardMark
+  // kijkt er in composeVak opnieuw naar).
+  const slim = ({ text, cats, ...it }) => it
   return { items: results.flatMap((r) => r.items).filter(keep).map(slim), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count, newest: newest(r) })) }
 }
 
