@@ -1,0 +1,351 @@
+// Eén toets voor "nieuw feit" (redacteur-2026-11-13-nieuw-feit; Hoot-design/redacteur-herhaling/DIAGNOSE.md en ADVIES.md).
+// Een verhaal uit je vorige Editie (developedSince) of dat je las (personalParts, ctx.newFacts) komt alleen terug met een
+// nieuw feit: een naam of begrip dat nieuwe stukken van minstens twee uitgevers noemen, dat er eerder niet in stond, en
+// waarvan er minstens twee samen in één nieuw stuk staan (geen losse woorden), of één dat breed gedragen is (minstens drie
+// uitgevers en een derde van de uitgevers met nieuwe stukken). Geteld over het hele verhaal, niet alleen
+// over je eigen bronnen. Zonder nieuw feit: gelezen verdwijnt, alleen gezien (groot verhaal) zakt één keer.
+// Verzonnen namen: de regel kent geen namen of onderwerpen.
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { newFact, newFactIn, developedSince, previousOf, signatures, selectForReader, storyKeyAt, storyPubAt, buildStories } from '../netlify/lib/stories.mjs'
+import { personalParts, profileOf, P } from '../shared/editor.mjs'
+import { composePersonal } from '../src/lib/personal.js'
+import { serverFirst, servedLocal, SERVER_KEY } from '../src/lib/editionSync.js'
+
+const OCHTEND = Date.parse('2026-10-30T05:00:00Z')
+const NOW = Date.parse('2026-10-30T11:00:00Z')
+const at = (h) => new Date(NOW - h * 36e5).toISOString()
+const art = (id, source, title, iso, summary = title + '.') => ({ id, kind: 'article', source, sourceName: source, title, summary, publishedAt: iso, image: 'https://x/y.jpg' })
+
+// Toen (vóór de Ochtend): een topman onder vuur.
+const old = [
+  art('o1', 'nos', 'Topman Ruben Kalverda van chipmaker Orbix onder vuur na affaire', new Date(OCHTEND - 3 * 36e5).toISOString()),
+  art('o2', 'nrc', 'Orbix-bestuur beraadt zich over Ruben Kalverda', new Date(OCHTEND - 2 * 36e5).toISOString()),
+]
+// Sindsdien: alleen beschouwingen, met losse woorden die elk twee uitgevers noemen maar nooit samen (ruis).
+const noise = [
+  art('z1', 'guardian', 'Orbix shares slide in Lisbon trading as Kalverda scandal deepens', at(4)),
+  art('z2', 'bbc', 'Kalverda affair: what Orbix investors in Lisbon are asking', at(3.5)),
+  art('z3', 'economist', 'Orbix and the CFO question', at(3), 'The finance chief of Orbix faces questions from investors.'),
+  art('z4', 'atlantic', 'Why the Orbix CFO matters now', at(2.5), 'Kalverda leaves a vacuum.'),
+]
+// Het echte nieuws: een opvolger, door twee redacties gemeld.
+const fact = [
+  art('n1', 'volkskrant', 'Marlies Verhoeven volgt Ruben Kalverda op als topman van Orbix', at(2)),
+  art('n2', 'trouw', 'Orbix benoemt Marlies Verhoeven tot interim-topman na vertrek Kalverda', at(1.5)),
+]
+const all = [...old, ...noise, ...fact]
+const sig = signatures(all)
+const keysOf = (i) => { const s = sig.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }
+const thenOf = (xs) => new Set(xs.flatMap(keysOf))
+const ochtend = { builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-orbix', leadId: 'o1', desk: 'tech', itemIds: old.map((i) => i.id), title: old[0].title }] }
+const story = (xs) => ({ id: 'st-orbix', itemIds: xs.map((i) => i.id), sourceCount: xs.length, latestAt: xs[xs.length - 1].publishedAt, desk: 'tech' })
+
+test('newFact: losse woorden die elk twee uitgevers noemen, maar nooit samen in één stuk, zijn geen nieuw feit', () => {
+  assert.equal(newFact(noise, thenOf(old), keysOf), null)
+})
+test('newFact: een nieuwe naam die twee uitgevers noemen is een nieuw feit; één uitgever niet', () => {
+  const f = newFact([...noise, ...fact], thenOf(old), keysOf)
+  assert.ok(f, 'de opvolger is nieuw')
+  assert.ok(['marlies', 'verhoeven'].every((k) => f.keys.includes(k)), `feiten: ${f.keys}`)
+  assert.ok(f.carriers.every((i) => fact.includes(i)))
+  assert.equal(newFact([...noise, fact[0]], thenOf(old), keysOf), null, 'één redactie is geen nieuw feit')
+  // Wat er toen al stond, is nooit nieuw.
+  assert.equal(newFact(fact, thenOf([...old, ...fact]), keysOf), null)
+})
+
+test('developedSince: meer stukken zonder nieuw feit is geen ontwikkeling; met nieuw feit wel, met een kop die het noemt', () => {
+  const previous = previousOf(ochtend)
+  assert.equal(developedSince(story([...old, ...noise]), [...old, ...noise], previous, sig), null)
+  const dev = developedSince(story(all), all, previous, sig, { mainIds: new Set(all.map((i) => i.source)), now: NOW })
+  assert.ok(dev, 'ontwikkeld')
+  assert.ok(fact.includes(dev.lead), `de kop noemt het nieuwe feit (${dev.lead?.id})`)
+  assert.ok(dev.heads.every((i) => fact.includes(i)))
+  assert.equal(dev.fresh.length, 6, 'vervolg telt je nieuwe stukken')
+})
+test('developedSince telt over het hele verhaal (known), de kop komt uit je eigen bronnen', () => {
+  const previous = previousOf(ochtend)
+  const mine = [...old, noise[0]] // je volgt alleen NOS, NRC en de Guardian
+  const known = new Map(all.map((i) => [i.id, i]))
+  assert.equal(developedSince(story(all), mine, previous, sig), null, 'met alleen je eigen bronnen geen nieuw feit')
+  const dev = developedSince(story(all), mine, previous, sig, { known, now: NOW })
+  assert.ok(dev, 'het hele verhaal heeft het nieuwe feit')
+  assert.deepEqual(dev.heads.map((i) => i.id), ['z1'], 'de kop is je eigen nieuwe stuk')
+  // Geen nieuw stuk uit je eigen bronnen: niets om als kop te tonen.
+  assert.equal(developedSince(story(all), old, previous, sig, { known, now: NOW }), null)
+})
+
+const newFacts = (fresh, before, own, whole) => newFactIn(fresh, before, sig, own, whole)
+const prof = profileOf({ interests: [], topics: [], affinity: null, taste: null, favorites: [], followed: new Set(all.map((i) => i.source)), sources: [], supply: {} })
+test('personalParts: gelezen en er kwamen alleen stukken bij: geen vervolg (+10), maar gezien', () => {
+  const p = personalParts([...old, ...noise], prof, { readIds: new Set(['o1', 'o2']), newFacts }, { whole: [...old, ...noise] })
+  assert.ok(p.seen && !p.followUp)
+  // Zonder de toets (oude aanroepen): zoals vroeger een vervolg bij ≥ 2 nieuwe stukken.
+  assert.ok(personalParts([...old, ...noise], prof, { readIds: new Set(['o1', 'o2']) }).followUp)
+})
+test('personalParts: gelezen en er is een nieuw feit: vervolg, met de kop uit een stuk dat het noemt', () => {
+  const p = personalParts(all, prof, { readIds: new Set(['o1', 'o2']), newFacts }, { whole: all })
+  assert.equal(p.followUp?.pts, P.FOLLOW_UP)
+  assert.ok(p.followUp.heads.length && p.followUp.heads.every((id) => ['n1', 'n2'].includes(id)))
+})
+test('personalParts: het nieuwe feit telt over het hele verhaal, ook als je eigen bronnen het niet noemen', () => {
+  const mine = [...old, noise[0]]
+  const p = personalParts(mine, prof, { readIds: new Set(['o1']), newFacts }, { whole: all })
+  assert.ok(p.followUp, 'vervolg op het hele verhaal')
+  assert.deepEqual(p.followUp.heads, ['z1'])
+  assert.ok(personalParts(mine, prof, { readIds: new Set(['o1']), newFacts }, { whole: mine }).seen, 'zonder de rest van het verhaal: gezien')
+})
+
+// Een groot verhaal (twaalf uitgevers) uit je vorige Editie, met één nieuw stuk maar geen nieuw feit, naast verse verhalen.
+const SOURCES = ['nos', 'nrc', 'volkskrant', 'trouw', 'parool', 'rtl', 'nu', 'ad', 'fd', 'telegraaf', 'nd', 'tweakers'].map((id) => ({ id, cat: 'nl', lang: 'nl' }))
+const FOLLOWED = new Set(SOURCES.map((s) => s.id))
+const big = SOURCES.map((s, k) => art('b' + k, s.id, 'Kabinet en oppositie botsen over begroting van Defensie', new Date(OCHTEND - 36e5 * (1 + k * 0.1)).toISOString()))
+const bigNew = art('b-nieuw', 'nos', 'Wat staat er op het spel bij de begroting van Defensie?', at(1))
+const stBig = { id: 'st-big', itemIds: [...big.map((i) => i.id), bigNew.id], sourceCount: 12, publisherCount: 12, latestAt: bigNew.publishedAt, desk: 'binnenland' }
+const TOWNS = ['Utrecht', 'Groningen', 'Breda', 'Zwolle', 'Leiden', 'Delft', 'Haarlem', 'Almere', 'Tilburg', 'Arnhem']
+const small = TOWNS.map((t, k) => {
+  const its = [art(`s${k}a`, SOURCES[k % 12].id, `Gemeente ${t} sluit zwembad om tekort op begroting`, at(1 + k * 0.1)), art(`s${k}b`, SOURCES[(k + 5) % 12].id, `Zwembad in ${t} dicht door bezuinigingen gemeente`, at(1.2 + k * 0.1))]
+  return { st: { id: 'st-s' + k, itemIds: its.map((i) => i.id), sourceCount: 2, publisherCount: 2, latestAt: its[0].publishedAt, desk: 'binnenland' }, its }
+})
+const pool = [...big, bigNew, ...small.flatMap((s) => s.its)]
+const stories = [stBig, ...small.map((s) => s.st)]
+const vorige = { id: '2026-10-30-ochtend', builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-big', leadId: 'b0', desk: 'binnenland', itemIds: big.map((i) => i.id), title: big[0].title }] }
+const global = { id: '2026-10-30-middag', slot: 'middag', date: '2026-10-30', builtAt: new Date(NOW).toISOString(), entries: [{ kind: 'story', id: 'st-s0', leadId: 's0a', desk: 'binnenland' }], items: [small[0].its[0]], bubble: [] }
+const compose = (opts) => composePersonal({ global, stories, items: pool, sources: SOURCES, followed: FOLLOWED, interests: ['binnenland'], now: NOW, ...opts })
+
+test('persoonlijke Editie: alleen in je vorige Editie, niet gelezen, geen nieuw feit: het grote verhaal zakt onder de top 5', () => {
+  const zonder = compose({ previous: null })
+  assert.equal(zonder.entries[0].id, 'st-big', 'zonder vorige Editie opent het grote verhaal')
+  const mine = compose({ previous: previousOf(vorige) })
+  const k = mine.entries.findIndex((e) => e.id === 'st-big')
+  assert.ok(k >= 5, `het grote verhaal staat op ${k + 1}`)
+  assert.equal(mine.entries[k].held, true)
+  assert.equal(mine.entries[k].leadId, 'b-nieuw', 'met het nieuwe stuk als kop')
+  // Eén keer: de volgende Editie (met deze als vorige) laat het weg.
+  const next = compose({ previous: previousOf([{ ...mine, id: '2026-10-30-middag', builtAt: new Date(NOW).toISOString() }, vorige]) })
+  assert.ok(!next.entries.some((e) => e.id === 'st-big'), 'twee keer gezakt')
+})
+test('persoonlijke Editie: gelezen en geen nieuw feit: het verhaal verdwijnt, met of zonder vorige Editie', () => {
+  for (const previous of [null, previousOf(vorige)]) {
+    const mine = compose({ previous, readIds: new Set(['b0', 'b1']) })
+    assert.ok(!mine.entries.some((e) => e.id === 'st-big'), `terug ${previous ? 'met' : 'zonder'} vorige Editie`)
+  }
+})
+test('selectForReader: een gezakt verhaal is geen voorpagina en geen vervolg', () => {
+  const p = profileOf({ interests: ['binnenland'], topics: [], affinity: null, taste: null, favorites: [], followed: FOLLOWED, sources: SOURCES, supply: {} })
+  const sel = selectForReader(stories, pool, { mainIds: FOLLOWED, now: NOW, prof: p, ctx: {}, seed: 't', previous: previousOf(vorige) })
+  const e = sel.find((x) => x.id === 'st-big')
+  assert.ok(e && e.held && !e.front && !e.vervolg)
+})
+
+// Web-vangnet: na een dagdeelwissel neemt het vangnet de laatste Editie van de server op dit toestel als vorige Editie mee.
+test('web-vangnet: na een dagdeelwissel telt de Editie van het vorige dagdeel als previous', async () => {
+  const owner = 'anon'
+  const local = { id: '2026-10-30-ochtend', builtAt: new Date(OCHTEND).toISOString(), owner, basis: 'b1', entries: vorige.entries, history: [] }
+  assert.equal(servedLocal(local, `2026-10-30-ochtend|${owner}|b1`, owner), true)
+  assert.equal(servedLocal(local, '', owner), false, 'zonder sleutel: niet van de server')
+  assert.equal(servedLocal(local, `2026-10-30-ochtend|${owner}|b1`, 'iemand'), false, 'van een andere lezer')
+  assert.equal(typeof SERVER_KEY, 'string')
+  let seen = null
+  const run = (localServed) => serverFirst({ global, owner, basis: 'b1', local, localFromServer: false, localServed, online: false, ready: true, compose: ({ previous }) => { seen = previous; return null } })
+  await run(false)
+  assert.equal(seen, null, 'vroeger: geen vorige Editie')
+  await run(true)
+  assert.ok(seen?.storyIds?.has('st-big'), 'nu: de Editie van de Ochtend is de vorige')
+})
+
+// Keuring 1, bevinding 1: wie weinig bronnen volgt, kent van de nieuwe stukken maar één uitgever. De server geeft per verhaal
+// de kenmerken van het hele verhaal mee (`keyAt`: eerste moment en aantal uitgevers), zodat de toets toch over alle uitgevers
+// telt. Zonder die gegevens (een oudere kern, het vangnet in de app) telt een kenmerk dat twee nieuwe stukken noemen, als het
+// toestel minder dan twee uitgevers van de nieuwe stukken kent en het verhaal er wel twee of meer heeft.
+const keyAt = storyKeyAt(all, sig)
+const stAll = { ...story(all), publisherCount: new Set(all.map((i) => i.source)).size, keyAt }
+test('storyKeyAt: per kenmerk met minstens twee uitgevers het eerste moment en het aantal uitgevers', () => {
+  assert.deepEqual(keyAt.marlies, [Date.parse(fact[0].publishedAt), 2])
+  assert.equal(keyAt.kalverda[0], Date.parse(old[0].publishedAt), 'stond er al in de Ochtend')
+  assert.ok(Object.values(keyAt).every(([, n]) => n >= 2), 'alleen kenmerken van twee of meer uitgevers')
+  assert.deepEqual(Object.keys(keyAt), [...Object.keys(keyAt)].sort(), 'op volgorde: de kern blijft byte-gelijk')
+  // buildStories met kenmerken geeft het mee, net als `keys`.
+  const [b] = buildStories(all, {}, { keys: true })
+  assert.ok(b && b.keyAt && typeof b.keyAt === 'object')
+})
+test('developedSince met keyAt: één eigen uitgever met het nieuwe feit is genoeg als het hele verhaal het bij twee heeft', () => {
+  const previous = previousOf(ochtend)
+  const mine = [...old, fact[0]] // je volgt alleen NOS, NRC en de Volkskrant
+  const known = new Map(mine.map((i) => [i.id, i]))
+  assert.equal(developedSince(story(all), mine, previous, sig, { known, now: NOW }), null, 'zonder de gegevens van het hele verhaal: geen nieuw feit')
+  const dev = developedSince(stAll, mine, previous, sig, { known, now: NOW })
+  assert.ok(dev, 'met keyAt telt de tweede uitgever mee')
+  assert.deepEqual(dev.heads.map((i) => i.id), ['n1'])
+  // Wat het hele verhaal al vóór de vorige Editie had, is nooit nieuw, ook als het toestel die stukken niet kent.
+  const early = { ...stAll, keyAt: { ...keyAt, marlies: [OCHTEND - 36e5, 2], verhoeven: [OCHTEND - 36e5, 2] } }
+  assert.equal(developedSince(early, mine, previous, sig, { known, now: NOW }), null)
+})
+test('personalParts met keyAt: gelezen, je eigen bron brengt het nieuwe feit, het hele verhaal bij twee uitgevers: vervolg', () => {
+  const mine = [old[0], fact[0]]
+  assert.ok(personalParts(mine, prof, { readIds: new Set(['o1']), newFacts }, { whole: mine }).seen, 'alleen wat het toestel kent: gezien')
+  const p = personalParts(mine, prof, { readIds: new Set(['o1']), newFacts }, { whole: mine, keyAt, pubs: stAll.publisherCount })
+  assert.equal(p.followUp?.pts, P.FOLLOW_UP)
+  assert.deepEqual(p.followUp.heads, ['n1'])
+})
+test('terugval zonder keyAt: kent het toestel maar één uitgever van de nieuwe stukken, dan tellen twee nieuwe stukken', () => {
+  const twice = [art('m1', 'volkskrant', 'Marlies Verhoeven volgt Kalverda op bij Orbix', at(2)), art('m2', 'volkskrant', 'Wie is Marlies Verhoeven, de nieuwe topman van Orbix?', at(1.5))]
+  const xs = [...old, ...twice]
+  const sg = signatures(xs)
+  const ko = (i) => { const s = sg.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }
+  const then = new Set(old.flatMap(ko))
+  assert.equal(newFact(twice, then, ko), null, 'zonder kennis van het verhaal: één uitgever is geen nieuw feit')
+  assert.equal(newFact(twice, then, ko, { pubs: 1 }), null, 'een verhaal van één uitgever: geen terugval')
+  assert.ok(newFact(twice, then, ko, { pubs: 5 }), 'het verhaal heeft meer uitgevers dan het toestel kent: twee stukken tellen')
+  assert.equal(newFact(twice, then, ko, { pubs: 5, keyAt: { marlies: [Date.parse(twice[0].publishedAt), 1] } }), null, 'met keyAt geldt het hele verhaal, geen terugval')
+})
+test('persoonlijke Editie, alleen NOS gevolgd: echt nieuws komt terug als je het las of als het in je vorige Editie stond', () => {
+  const T0 = new Date(OCHTEND - 3 * 36e5).toISOString(), T1 = new Date(OCHTEND - 2 * 36e5).toISOString()
+  const kOld = [art('d1', 'nos', 'Kabinet botst met Tweede Kamer over visserijwet', T0), art('d2', 'nrc', 'Visserijwet: kabinet en Kamer lijnrecht tegenover elkaar', T1), art('d3', 'volkskrant', 'Kamer dreigt visserijwet weg te stemmen', T1)]
+  const kNew = [art('d4', 'nos', 'Minister Sanne Oldenkamp treedt af na stemming over visserijwet', at(2)), art('d5', 'nos', 'Wie is Sanne Oldenkamp, de minister die opstapte?', at(1.8)), art('d6', 'nrc', 'Sanne Oldenkamp stapt op na verloren stemming visserijwet', at(1.5)), art('d7', 'volkskrant', 'Aftreden Sanne Oldenkamp schudt kabinet op', at(1.2))]
+  // Met storyId, zoals in de kern: dan kan een stuk niet los terugkomen als het verhaal wegvalt.
+  const xs = [...kOld, ...kNew].map((i) => ({ ...i, storyId: 'st-x' }))
+  const stX = { id: 'st-x', itemIds: xs.map((i) => i.id), sourceCount: 4, publisherCount: 3, latestAt: kNew.at(-1).publishedAt, desk: 'binnenland', keyAt: storyKeyAt(xs, signatures(xs)) }
+  const nos = new Set(['nos'])
+  // Vijf andere verhalen, zodat er plaats is: de toets gaat over terugkomen, niet over de rangorde.
+  const fillers = small.slice(0, 5).map((x) => ({ ...x, its: x.its.map((i) => ({ ...i, source: 'nos', sourceName: 'nos' })) }))
+  const run = (opts) => composePersonal({ global: { ...global, items: [fillers[0].its[0]] }, stories: [stX, ...fillers.map((f) => f.st)], items: [...xs.filter((i) => nos.has(i.source)), ...fillers.flatMap((f) => f.its)], sources: SOURCES, followed: nos, interests: ['binnenland'], now: NOW, ...opts })
+  const prev = previousOf({ id: '2026-10-30-ochtend', builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-x', leadId: 'd1', desk: 'binnenland', itemIds: kOld.map((i) => i.id), title: kOld[0].title }] })
+  const place = (ed) => ed.entries.findIndex((e) => e.id === 'st-x')
+  assert.equal(place(run({ readIds: new Set(['d1']) })), 0, 'gelezen, met keyAt: 01')
+  assert.ok(place(run({ previous: prev })) >= 0, 'in je vorige Editie, met keyAt: terug')
+  const zonder = { ...stX }
+  delete zonder.keyAt
+  const run2 = (opts) => composePersonal({ global: { ...global, items: [fillers[0].its[0]] }, stories: [zonder, ...fillers.map((f) => f.st)], items: [...xs.filter((i) => nos.has(i.source)), ...fillers.flatMap((f) => f.its)], sources: SOURCES, followed: nos, interests: ['binnenland'], now: NOW, ...opts })
+  assert.equal(place(run2({ readIds: new Set(['d1']) })), 0, 'gelezen, zonder keyAt (terugval, twee NOS-stukken): 01')
+  assert.ok(place(run2({ previous: prev })) >= 0, 'in je vorige Editie, zonder keyAt (terugval): terug')
+})
+
+// Keuring 2, bevinding A: een nieuwe naam levert vaak maar één kenmerk op ("Jan Smit" → smit). Eén nieuw kenmerk telt
+// alleen als het breed gedragen is: bij minstens drie uitgevers én een derde van de uitgevers met nieuwe stukken.
+// Verzonnen namen; twaalf uitgevers melden eerst dat de topman opstapt, daarna zeven alleen analyses en vijf de opvolger.
+const PUBS12 = ['nos', 'nrc', 'volkskrant', 'trouw', 'parool', 'rtl', 'nu', 'ad', 'fd', 'telegraaf', 'nd', 'guardian']
+const gOld = PUBS12.map((p, k) => art(`go${k}`, p, `Topman Ruben Kalverda van Orbix stapt op na affaire`, new Date(OCHTEND - (3 + k * 0.1) * 36e5).toISOString()))
+const gNoise = PUBS12.slice(0, 7).map((p, k) => art(`gz${k}`, p, k < 3 ? `Analyse: Orbix na Kalverda, beleggers blijven onrustig` : `Orbix zonder Kalverda: wat nu voor het bedrijf`, at(4 - k * 0.1)))
+const gSmit = PUBS12.slice(7).map((p, k) => art(`gs${k}`, p, k % 2 ? `Orbix benoemt Jan Smit tot nieuwe topman` : `Jan Smit volgt Kalverda op bij Orbix`, at(2 - k * 0.1)))
+test('newFact: een nieuwe naam van één kenmerk telt bij genoeg uitgevers (≥ 3 en ≥ een derde van de nieuwe)', () => {
+  const xs = [...gOld, ...gNoise, ...gSmit]
+  const sg = signatures(xs)
+  const ko = (i) => { const s = sg.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }
+  const then = new Set(gOld.flatMap(ko))
+  assert.deepEqual(gSmit.map((i) => ko(i).filter((k) => !then.has(k))).map((ks) => ks.includes('smit') && !ks.includes('jan')), gSmit.map(() => true), 'één nieuw kenmerk per stuk')
+  // De telling van het hele verhaal (`pubAt`, keuring 3): per uitgever het laatste stuk; de grens is de Ochtend.
+  const whole = (fresh) => ({ pubAt: storyPubAt([...gOld, ...fresh]), cutoff: OCHTEND })
+  const f = newFact([...gNoise, ...gSmit], then, ko, whole([...gNoise, ...gSmit]))
+  assert.ok(f, 'vijf van de twaalf nieuwe uitgevers noemen de opvolger')
+  assert.ok(f.keys.includes('smit') && f.carriers.every((i) => gSmit.includes(i)))
+  assert.equal(newFact([...gNoise, ...gSmit], then, ko), null, 'zonder de telling van het hele verhaal: geen brede regel')
+  assert.equal(newFact([...gNoise, ...gSmit.slice(0, 2)], then, ko, whole([...gNoise, ...gSmit.slice(0, 2)])), null, 'bij twee uitgevers: één kenmerk is te weinig')
+  // Drie van elf uitgevers met nieuwe stukken: geen derde, zoals een los plaats- of beurswoord in een heel groot verhaal.
+  const ELF = [...PUBS12.slice(0, 8), 'bbc', 'nyt', 'lemonde']
+  const loose = ELF.map((p, k) => art(`gl${k}`, p, k < 3 ? `Orbix-aandeel daalt in Lissabon` : `Orbix na Kalverda: de vragen van beleggers`, at(3 - k * 0.1)))
+  const sg3 = signatures([...gOld, ...loose])
+  const ko3 = (i) => { const s = sg3.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }
+  const then3 = new Set(gOld.flatMap(ko3))
+  assert.ok(loose.slice(0, 3).every((i) => ko3(i).filter((k) => !then3.has(k)).length === 1), 'één nieuw kenmerk')
+  const whole3 = (fresh) => ({ pubAt: storyPubAt([...gOld, ...fresh]), cutoff: OCHTEND })
+  assert.equal(newFact(loose, then3, ko3, whole3(loose)), null, 'drie van elf: ruis')
+  assert.ok(newFact(loose.slice(0, 9), then3, ko3, whole3(loose.slice(0, 9))), 'drie van negen: wel een derde')
+})
+test('developedSince en het leespad met keyAt: de opvolger "Jan Smit" bij vijf van twaalf uitgevers, je volgt er drie', () => {
+  const xs = [...gOld, ...gNoise, ...gSmit].map((i) => ({ ...i, storyId: 'st-g' }))
+  const sg = signatures(xs)
+  const st = { id: 'st-g', itemIds: xs.map((i) => i.id), sourceCount: 12, publisherCount: 12, latestAt: gSmit.at(-1).publishedAt, desk: 'economie', keyAt: storyKeyAt(xs, sg), pubAt: storyPubAt(xs) }
+  const mine = xs.filter((i) => ['nos', 'trouw', 'telegraaf'].includes(i.source))
+  const known = new Map(mine.map((i) => [i.id, i]))
+  const prev = previousOf({ builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-g', leadId: 'go0', desk: 'economie', itemIds: gOld.map((i) => i.id), title: gOld[0].title }] })
+  const dev = developedSince(st, mine, prev, sg, { known, now: NOW })
+  assert.ok(dev && dev.facts.includes('smit'), 'vorige Editie: nieuw feit')
+  assert.ok(dev.heads.every((i) => i.source === 'telegraaf'), 'de kop noemt de opvolger')
+  const nf = (fresh, before, own, whole) => newFactIn(fresh, before, sg, own, whole)
+  const p = personalParts(mine, prof, { readIds: new Set(['go0']), newFacts: nf }, { whole: mine, keyAt: st.keyAt, pubAt: st.pubAt, pubs: 12 })
+  assert.equal(p.followUp?.pts, P.FOLLOW_UP, 'gelezen: vervolg')
+})
+
+// Keuring 3, bevinding B: de brede regel telt de uitgevers met nieuwe stukken van het hele verhaal (`pubAt`), niet wat de
+// lezer volgt. Een groot verhaal: twaalf uitgevers melden dat de topman opstapt; daarna brengen elf uitgevers beschouwingen,
+// drie daarvan met alleen een los plaatswoord. Bij wie drie bronnen volgt of alleen NOS (die het woord draagt), komt het
+// verhaal daardoor niet terug; een opvolger bij vijf van twaalf wel.
+const ELF = [...PUBS12.slice(0, 8), 'bbc', 'nyt', 'lemonde']
+const rLoose = ELF.map((p, k) => art(`rl${k}`, p, k < 3 ? 'Orbix-aandeel daalt in Lissabon' : 'Orbix na Kalverda: de vragen van beleggers', at(3 - k * 0.1)))
+const SRC_R = [...PUBS12, 'bbc', 'nyt', 'lemonde'].map((id) => ({ id, cat: 'nl', lang: 'nl' }))
+function lezer(newI, followed, { read = [], prev = false, keyAt = true } = {}) {
+  const xs = [...gOld, ...newI].map((i) => ({ ...i, storyId: 'st-r' }))
+  const sg = signatures(xs)
+  const st = { id: 'st-r', itemIds: xs.map((i) => i.id), sourceCount: xs.length, publisherCount: new Set(xs.map((i) => i.source)).size, latestAt: newI[0].publishedAt, desk: 'binnenland', ...(keyAt ? { keyAt: storyKeyAt(xs, sg), pubAt: storyPubAt(xs) } : {}) }
+  const fol = new Set(followed)
+  const fl = TOWNS.slice(0, 6).map((t, k) => {
+    const its = [art(`rf${k}a`, followed[k % followed.length], `Gemeente ${t} sluit zwembad om tekort op begroting`, at(1 + k * 0.1)), art(`rf${k}b`, followed[(k + 1) % followed.length], `Zwembad in ${t} dicht door bezuinigingen gemeente`, at(1.2 + k * 0.1))]
+    return { st: { id: `st-rf${k}`, itemIds: its.map((i) => i.id), sourceCount: 2, publisherCount: followed.length > 1 ? 2 : 1, latestAt: its[0].publishedAt, desk: 'binnenland' }, its }
+  })
+  const glob = { id: '2026-10-30-middag', slot: 'middag', date: '2026-10-30', builtAt: new Date(NOW).toISOString(), entries: [{ kind: 'story', id: 'st-rf0', leadId: 'rf0a', desk: 'binnenland' }], items: [fl[0].its[0]], bubble: [] }
+  const sg0 = signatures(gOld)
+  const previous = prev ? previousOf({ id: '2026-10-30-ochtend', builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-r', leadId: (gOld.find((i) => fol.has(i.source)) || gOld[0]).id, desk: 'binnenland', itemIds: gOld.map((i) => i.id), title: gOld[0].title, keys: [...new Set(gOld.flatMap((i) => { const s = sg0.get(i.id); return s ? [...s.strong, ...s.concepts] : [] }))] }] }) : null
+  const ed = composePersonal({ global: glob, stories: [st, ...fl.map((f) => f.st)], items: [...xs.filter((i) => fol.has(i.source)), ...fl.flatMap((f) => f.its)], sources: SRC_R, followed: fol, interests: ['binnenland'], now: NOW, previous, readIds: new Set(read) })
+  const k = ed.entries.findIndex((e) => e.id === 'st-r' || newI.some((n) => e.leadId === n.id))
+  return k < 0 ? null : { place: k, held: !!ed.entries[k].held, title: ed.entries[k].title }
+}
+test('keuring 3, R2: lezer met drie bronnen, een los woord bij drie van elf: geen nieuw feit, niet bovenaan', () => {
+  const three = ['nos', 'nrc', 'trouw']
+  assert.equal(lezer(rLoose, three, { read: ['go0'] }), null, 'gelezen: weg')
+  const r = lezer(rLoose, three, { prev: true })
+  assert.ok(!r || (r.held && r.place > 0), 'vorige Editie: hooguit één keer gezakt, nooit 01 met het ruiswoord')
+})
+test('keuring 3, R3: lezer volgt alleen NOS (die het woord draagt): geen nieuw feit', () => {
+  assert.equal(lezer(rLoose, ['nos'], { read: ['go0'] }), null, 'gelezen: weg')
+  const r = lezer(rLoose, ['nos'], { prev: true })
+  assert.ok(!r || (r.held && r.place > 0), 'vorige Editie: hooguit één keer gezakt')
+})
+test('keuring 3: twee losse woorden (drie plus drie van elf), lezer met drie bronnen: geen nieuw feit', () => {
+  const loose2 = ELF.map((p, k) => art(`rm${k}`, p, k < 3 ? 'Orbix-aandeel daalt in Lissabon' : k < 6 ? 'Orbix-winkels in Brabant blijven open' : 'Orbix na Kalverda: de vragen van beleggers', at(3 - k * 0.1)))
+  assert.equal(lezer(loose2, ['nos', 'volkskrant', 'bbc'], { read: ['go0'] }), null)
+})
+test('keuring 3: de opvolger "Jan Smit" bij vijf van twaalf komt terug, ook bij drie bronnen of alleen NOS', () => {
+  const smit = [...gNoise, ...gSmit]
+  for (const fol of [PUBS12, ['nos', 'trouw', 'telegraaf'], ['nos', 'fd', 'guardian']]) {
+    const r = lezer(smit, fol, { read: ['go0'] })
+    assert.ok(r && r.place === 0, `gelezen (${fol.length} bronnen): 01`)
+    const v = lezer(smit, fol, { prev: true })
+    assert.ok(v && !v.held, `vorige Editie (${fol.length} bronnen): terug, niet gezakt`)
+  }
+})
+test('keuring 3: een naam bij drie van vijftien nieuwe uitgevers telt voor elke lezer gelijk (geen derde)', () => {
+  const vijftien = [...PUBS12.map((p, k) => art(`rh${k}`, p, 'Analyse: Orbix na Kalverda, beleggers blijven onrustig', at(3 - k * 0.1))), ...['bbc', 'nyt', 'lemonde'].map((p, k) => art(`rs${k}`, p, k % 2 ? 'Orbix kiest Jan Smit als nieuwe ceo' : 'Raad van bestuur benoemt Jan Smit tot topman Orbix', at(1.5 - k * 0.1)))]
+  assert.equal(lezer(vijftien, [...PUBS12, 'bbc', 'nyt', 'lemonde'], { read: ['go0'] }), null, 'alle bronnen')
+  assert.equal(lezer(vijftien, ['nos', 'bbc', 'nyt'], { read: ['go0'] }), null, 'drie bronnen, twee met de naam: hetzelfde oordeel')
+})
+test('storyPubAt: per uitgever het laatste stuk, op volgorde; buildStories geeft het mee', () => {
+  const p = storyPubAt([...gOld, ...gSmit])
+  assert.deepEqual(Object.keys(p), [...Object.keys(p)].sort())
+  assert.equal(p.telegraaf, Date.parse(gSmit.find((i) => i.source === 'telegraaf').publishedAt))
+  assert.equal(p.nos, Date.parse(gOld[0].publishedAt))
+  const [b] = buildStories(all, {}, { keys: true })
+  assert.ok(b && b.pubAt && typeof b.pubAt === 'object')
+})
+
+// Keuring 3, met echte data (stress-lezer): het verhaal over de midterms-uitslag in de Ochtend van 6 november. Elf uitgevers
+// brachten nieuwe stukken; "nasdaq" valt er bij drie. Een lezer met Alex' veertien bronnen kent er vier. Vroeger telde het
+// toestel alleen die vier, en dan haalde "nasdaq" een derde: een nieuw feit. Met de telling van het hele verhaal niet.
+test('keuring 3, echte data: "nasdaq" bij drie van elf is geen nieuw feit, ook niet voor een lezer met veertien bronnen', async () => {
+  const { readFileSync } = await import('node:fs')
+  const fx = JSON.parse(readFileSync(new URL('./fixtures/nieuw-feit-nasdaq-2026-11-06.json', import.meta.url), 'utf8'))
+  const sg = new Map(fx.items.map((i) => [i.id, { strong: i.keys, concepts: [] }]))
+  const ko = (i) => sg.get(i.id)?.strong || []
+  const story = { keyAt: storyKeyAt(fx.items, sg), pubAt: storyPubAt(fx.items), cutoff: fx.cutoff, pubs: fx.publisherCount }
+  const isNew = (i) => Date.parse(i.publishedAt) > fx.cutoff
+  const fresh = fx.items.filter(isNew), old = fx.items.filter((i) => !isNew(i))
+  const VEERTIEN = new Set(['nos', 'nrc', 'volkskrant', 'parool', 'ftm', 'nyt', 'newyorker', 'atlantic', 'economist', 'theverge', 'wired', 'tweakers', '3voor12', 'fd'])
+  const kf = fresh.filter((i) => VEERTIEN.has(i.source)), kOld = old.filter((i) => VEERTIEN.has(i.source))
+  assert.ok(story.keyAt.nasdaq && story.keyAt.nasdaq[1] === 3 && story.keyAt.nasdaq[0] > fx.cutoff, 'nasdaq: na de grens, bij drie uitgevers')
+  assert.equal(Object.values(story.pubAt).filter((t) => t > fx.cutoff).length, 11, 'elf uitgevers met nieuwe stukken')
+  assert.ok(kf.some((i) => ko(i).includes('nasdaq')), 'de lezer kent een stuk met nasdaq')
+  assert.equal(newFact(fresh, new Set(old.flatMap(ko)), ko, story), null, 'over alle stukken: geen nieuw feit')
+  assert.equal(newFact(kf, new Set(kOld.flatMap(ko)), ko, story), null, 'als lezer met veertien bronnen: geen nieuw feit')
+  const { pubAt, ...zonder } = story
+  assert.equal(newFact(kf, new Set(kOld.flatMap(ko)), ko, zonder), null, 'zonder telling: geen brede regel')
+})
