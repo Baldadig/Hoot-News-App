@@ -157,10 +157,22 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
         }
     }
 
-    // Links die een nieuw venster willen (bijvoorbeeld "Log in met …" op een inlogpagina): hier openen.
+    // Links die een nieuw venster willen (bijvoorbeeld "Log in met Apple" op de pagina van de uitgever): een
+    // echt tweede venster met de meegegeven configuratie, als vel, zodat `window.opener` blijft werken
+    // (LoginPopups). Vroeger laadde het hier in dezelfde weergave en raakte de site zijn opener kwijt.
+    let popups = LoginPopups()
+
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-        if navigationAction.targetFrame == nil { webView.load(navigationAction.request) }
-        return nil
+        popups.webView(webView, createWebViewWith: configuration, for: navigationAction, windowFeatures: windowFeatures)
+    }
+
+    // Google weigert de lezer: gaat de pagina naar Google's inlog, dan niet laden maar het blad tonen
+    // (LoginPopups). Gebeurt dat tijdens het onzichtbare laden, dan zie je de pagina van de uitgever.
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
+        guard LoginPopups.catchesGoogle(navigationAction.request.url, mainFrame: navigationAction.targetFrame?.isMainFrame ?? true) else { return .allow }
+        popups.google = true
+        if state == .loading { round += 1; state = .visit }
+        return .cancel
     }
 
     // Pagina's die om toestemming of een inlog vragen (DPG, Mediahuis, inlogdiensten).
