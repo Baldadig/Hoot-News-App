@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { vakWeek, isReading, cleanTitle, fieldOf, sameSubject, isArticleLink, composeVak, mergePool, VAK_SOURCES, ogImageFrom, wantsOgImage, addOgImages, loadVakItems, vakLang } from '../netlify/lib/vak.mjs'
+import { vakWeek, isReading, podcastLabel, cleanTitle, fieldOf, sameSubject, isArticleLink, composeVak, mergePool, VAK_SOURCES, ogImageFrom, wantsOgImage, addOgImages, loadVakItems, vakLang } from '../netlify/lib/vak.mjs'
 import { normalizePrefs } from '../src/lib/prefs.js'
 
 // Meta Newsroom staat niet meer bij de bronnen (paste zelden); als bedrijfsblog blijft hij handig in de test.
@@ -270,4 +270,55 @@ test('Selectie: een mislukte verversing blijft mislukt, ook als de opgeslagen Se
   assert.deepEqual(settleVak('loading', false, true), { status: 'ready', refreshFailed: true })
   assert.deepEqual(settleVak('loading', false, false), { status: 'error', refreshFailed: true }) // niets om te tonen
   assert.deepEqual(settleVak('refreshing', true, true), { status: 'ready', refreshFailed: false })
+})
+
+// Selectie · deals · 1: deals en podcasts niet op een woord in de kop, alleen op een harde aanwijzing (hardMark, de regel
+// van de Editie) of een vast podcastlabel in de kop.
+test('Selectie: nieuws over deals, kortingen en podcasts blijft staan', () => {
+  for (const title of [
+    'OpenAI signs $10bn chip deal with Broadcom',
+    'Wat de deal tussen Ahold en Bol betekent',
+    'Black Friday deals drove record online sales',
+    'Why ad discounts hurt your brand',
+    'Will YouTube kill the podcast industry?',
+    'NOS-podcast De Dag uitgeroepen tot beste dagelijkse podcast',
+    'Russell Brand trial: Video shows push 10m views but audio still ‘king’ says Mail podcast chief',
+    'Shopify Tax free discount will no longer reset annually',
+  ]) assert.equal(isReading({ title, url: 'https://example.com/news/2026/11/' + title.length }), true, title)
+  // Een gewone nieuwsrubriek "deals" dieper in het pad is geen dealrubriek.
+  assert.equal(isReading({ title: 'Top 10 M&A deals of the year', url: 'https://www.reuters.com/markets/deals/top-10-ma-deals-2026-11-12/' }), true)
+  // Een nieuwsbericht met een voorleesversie (audio-enclosure) en een eigen intro blijft.
+  assert.equal(isReading({ title: 'Meta cuts CPMs for Reels ads', url: 'https://example.com/meta-cpm', mediaType: 'audio/mpeg', summary: 'Meta verlaagt de prijzen voor advertenties in Reels, meldt het bedrijf aan adverteerders.' }), true)
+})
+
+test('Selectie: een echte dealpagina en een podcastaflevering vallen weg', () => {
+  assert.equal(isReading({ title: 'iPhone 18 Pro Max is nog maar net uit, maar nu al honderden euro’s goedkoper', url: 'https://www.iculture.nl/deals/iphone-18-pro-max-goedkoper/' }), false)
+  assert.equal(isReading({ title: 'Google Pixel 11 Pro was nog nooit zó goedkoop', url: 'https://androidworld.nl/aanbiedingen/google-pixel-11-pro-laagste-prijs-ooit/' }), false)
+  // iTunes-aflevering: altijd weg, ook met een eigen intro.
+  assert.equal(isReading({ title: 'Designing for Agents — Zeno Rocha, Resend', url: 'https://latent.space/p/resend/', mediaType: 'audio/mpeg', podcastEpisode: '01:25:52', summary: 'Where does answer engine optimization (AEO) end and agent experience begin?' }), false)
+  // Audio-enclosure zonder eigen intro.
+  assert.equal(isReading({ title: 'EP108 Why Product Teams Slow Down as Companies Scale', url: 'https://www.productcoalition.com/p/ep108', mediaType: 'audio/mpeg', summary: 'Summary' }), false)
+  assert.equal(isReading({ title: 'Podcast: Boeken FM geeft Himmler in New York een 7,6', url: 'https://www.tzum.info/2026/11/podcast-boeken-fm/' }), false)
+  // Een podcastrubriek zonder eigen intro.
+  assert.equal(isReading({ title: 'De kamer van Klok: Laura Bromet is de nieuwe vijand van rechts', url: 'https://www.volkskrant.nl/luister/de-kamer-van-klok-laura-bromet~b6a0919f/' }), false)
+})
+
+test('Selectie: een vast podcastlabel in de kop, niet het woord in een zin', () => {
+  for (const t of [
+    'Discovery & The 4 Risks – All Things Product Podcast with Teresa Torres & Petra Wille',
+    'Canon and Nikon Cine Both Getting Nice Upgrades | The PetaPixel Podcast',
+    'AI & Tech-podcast | Naïeve AI-projecten doen kosten oplopen',
+    '🎧 Distrifood Podcast: De rekening van voedselzekerheid',
+    'Podcast #422 livestream: Dragonlance TV, D&D comics',
+    'The Low Culture Podcast: The Walker Brothers’ Nite Flights',
+  ]) assert.equal(podcastLabel(t), true, t)
+  for (const t of [
+    'Charlie Sheen Launches Weekly Interview Podcast With Fox’s Red Seat Ventures',
+    'Thoughts from the 2026 London Podcast Show',
+    'From the MAICON Stage to Your Podcast Feed',
+    'Russell Brand trial: Video shows push 10m views but audio still ‘king’ says Mail podcast chief',
+    'Spotify’s ‘Memberships’ Turns Podcast Fans Into Paying Members',
+    'Video Podcast: why brands now film every episode',
+    'The Podcast Boom: who pays for it?',
+  ]) assert.equal(podcastLabel(t), false, t)
 })

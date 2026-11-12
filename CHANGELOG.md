@@ -5,6 +5,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 ## Onuitgebracht
 
 - **Achttien placeholderbeelden** (web en app): een stuk zonder beeld krijgt nu een van achttien Hoot-beelden in plaats van tien. Nieuw zijn De kop, Vouw, Baan, Eclips, Walsen, Zetsel, De rij en Koepels: krant, zonnestelsel en drukpers, vlak en stil, met één rood accent. Twee beeldloze stukken na elkaar krijgen nog steeds nooit hetzelfde beeld of dezelfde soort; een bestaand stuk kan een ander beeld krijgen.
+- **Selectie: nieuws over deals en podcasts blijft** (server; web en app krijgen het vanzelf): een kop met "deal", "discount", "coupon", "podcast" of "episode" valt niet meer weg. Een overname, een handelsakkoord of nieuws over Black Friday-verkopen hoort in de Selectie. Alleen een echte dealpagina (dealrubriek in de link) of een podcastaflevering (zoals de feed haar markeert, of met een vast podcastlabel in de kop) blijft weg, met dezelfde regel als de Editie.
 
 - **Wired-deals uit de Stroom** (server): een stuk dat Wired zelf alleen als deal indeelt (feedcategorie "Gear / Deals", zonder andere rubriek) komt niet meer in de Stroom: promocodes, kortingslijsten en Black Friday-overzichten. Wired-journalistiek over prijzen en koopjes blijft staan, net als elke andere bron met een rubriek "Deals".
 
