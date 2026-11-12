@@ -25,7 +25,7 @@ enum SettingsMap {
         Page(id: "beeld", title: "Beeld en intro", rows: ["Voorbeeld", "Beeld", "Intro"]),
         Page(id: "artikelen", title: "Artikelen", rows: ["Artikelen openen", "Abonnementen"]),
         Page(id: "toestel", title: "Op dit toestel", rows: ["App-icoon", "Alles als ongelezen markeren", "Bewaarde artikelen verwijderen", "Stel Hoot opnieuw in"]),
-        Page(id: "over", title: "Over Hoot", rows: ["Hulp en contact", "Privacy", "gethoot.app"]),
+        Page(id: "over", title: "Over Hoot", rows: ["Hulp en contact", "Privacy", "gethoot.app", "Inlogdagboek"]),
     ]
     // Bestaande lijsten achter een rij: inhoud, geen extra laag.
     static let lists = ["interesses", "bronnen", "vakken", "bluesky", "appicoon", "abonnementen"]
@@ -37,6 +37,7 @@ enum SettingsMap {
         switch page {
         case "wissen": return ["toestel"]
         case "geleerd": return ["editie"]
+        case "inlogdagboek": return ["over", "inlogdagboek"]
         default: return pages.map(\.id).contains(page) || lists.contains(page) ? [page] : []
         }
     }
@@ -315,6 +316,11 @@ struct OverHootView: View {
                 Link(destination: URL(string: "https://gethoot.app")!) { OutboundRow(title: "gethoot.app") }
             } footer: {
                 Text("Hoot \(SettingsView.version) · gemaakt door Baldadig").foregroundStyle(Theme.ink3)
+            }
+            .hootRows()
+            // Welke inlogs bij je uitgevers blijven, en wanneer ze verdwijnen (LoginDiary). Alleen op dit toestel.
+            Section {
+                NavigationLink(value: "inlogdagboek") { SettingsRow("Inlogdagboek") }
             }
             .hootRows()
         }

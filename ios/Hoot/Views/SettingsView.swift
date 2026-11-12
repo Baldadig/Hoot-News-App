@@ -113,6 +113,7 @@ private struct SettingsDestination: View {
             case "toestel": DeviceDataView(onReset: onReset)
             case "appicoon": AppIconPicker()
             case "over": OverHootView()
+            case "inlogdagboek": LoginDiaryView()
             default: DigestFieldsList().navigationTitle("Selectie").navigationBarTitleDisplayMode(.inline)
             }
         }
