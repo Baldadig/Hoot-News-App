@@ -234,7 +234,10 @@ export async function askServer(body, { fetchImpl = fetch, token = null, refresh
 // Uitkomst { edition, source, keep }: `keep` = bewaren als Editie van de server (alleen bij 1 en 2).
 // Een antwoord van een later dagdeel dan de kern op dit toestel (de kern loopt achter) heet 'ahead': bewaren,
 // en tonen zodra de kern bij is; tot dan het vangnet.
-export async function serverFirst({ global, owner, basis, local = null, localFromServer = false, online = true, mayAsk = true, ask, request, compose = null, ready = false, stuck = false }) {
+// `localServed`: `local` kwam van de server voor zijn eigen dagdeel (servedLocal). Na een dagdeelwissel is `localFromServer`
+// (voor dít dagdeel) altijd false; de Editie van het vorige dagdeel hoort dan toch in `previous` van het vangnet, anders
+// stelt het vangnet samen zonder herhaalregel (nieuw feit, 13 november).
+export async function serverFirst({ global, owner, basis, local = null, localFromServer = false, localServed = localFromServer, online = true, mayAsk = true, ask, request, compose = null, ready = false, stuck = false }) {
   if (!global) return null
   const id = global.id
   const fits = (e) => fitsEdition(e, { id, basis }) && e.owner === owner
@@ -248,13 +251,18 @@ export async function serverFirst({ global, owner, basis, local = null, localFro
   }
   const out = (x) => (ahead ? { ...x, ahead } : x)
   if (ready && compose) {
-    const earlier = earlierEditions({ local: localFromServer ? local : null, account: null, id, owner })
+    const earlier = earlierEditions({ local: localFromServer || localServed ? local : null, account: null, id, owner })
     const mine = compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
     if (mine) return out({ edition: { ...withoutDebug(mine), owner, basis, provisional: true }, source: 'provisional', keep: false })
   }
   if (stuck) return out({ edition: { ...global, brief: null, fallback: true, owner }, source: 'global', keep: false })
   return ahead ? { edition: null, source: 'ahead', keep: false, ahead } : null
 }
+
+// Kwam `local` (de laatst bewaarde Editie op dit toestel) van de server, voor zijn eigen dagdeel, deze lezer en zijn afdruk?
+// `serverTask`: wat onder SERVER_KEY staat (dagdeel|lezer|afdruk). Dan telt hij als vorige Editie, ook na een
+// dagdeelwissel. Het vangnet staat onder een eigen sleutel en telt nooit.
+export const servedLocal = (local, serverTask, owner) => !!local && typeof local === 'object' && local.owner === owner && typeof local.id === 'string' && serverTask === `${local.id}|${owner}|${local.basis}`
 
 // Zonder account: de history-regels van je vorige Edities van de server op dit toestel (nooit het vangnet).
 export const earlierForServer = (local, { id, owner }) => earlierEditions({ local, account: null, id, owner }).map(historyOf).filter(Boolean)
