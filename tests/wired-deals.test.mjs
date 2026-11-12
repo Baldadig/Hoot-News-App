@@ -56,13 +56,26 @@ test('wired-deals: Wired heeft de instelling, geen andere bron', () => {
   assert.deepEqual(SOURCES.filter((s) => s.dealsCategory).map((s) => s.id), ['wired'])
 })
 
+// Sinds Redacteur · kortingscodes (12 november) vallen daarnaast de kortingscode-pagina's weg die Wired alleen "Gear" geeft
+// (kop én slug, netlify/lib/kortingscode.mjs). Die hielden deze regel niet tegen; nu de generieke regel wel.
+const KORTINGSCODE = [
+  'Home Depot Promo Codes: 30% Off in November 2026',
+  'NordVPN Coupons: 75% Off, Plus 3 Months Free in November 2026',
+  'OnePlus Promo Codes: 30% Off November 2026',
+  'Visible Promo Codes and Coupons for November 2026',
+  'Factor Promo Code: 50% Off Off Meal Prep',
+  'Squarespace Promo Codes: 20% Off in November 2026',
+  'Bose Promo Code: 40% Off for November 2026',
+]
+
 test('wired-deals: uit de live Wired-RSS valt precies de lijst weg, allemaal op de eigen markering', async () => {
-  const weg = live.filter((x) => isNoise({ title: x.title, link: x.url }, x.cats, wired))
-  assert.deepEqual(weg.map((x) => x.title).sort(), [...WEG].sort())
-  for (const x of weg) assert.equal(noiseReason({ title: x.title, link: x.url }, x.cats, wired), 'bron-aanbod', x.title)
+  const reason = (x) => noiseReason({ title: x.title, link: x.url }, x.cats, wired)
+  assert.deepEqual(live.filter((x) => reason(x) === 'bron-aanbod').map((x) => x.title).sort(), [...WEG].sort())
+  assert.deepEqual(live.filter((x) => reason(x) === 'kortingscode').map((x) => x.title).sort(), [...KORTINGSCODE].sort())
+  assert.equal(live.filter((x) => isNoise({ title: x.title, link: x.url }, x.cats, wired)).length, WEG.length + KORTINGSCODE.length)
   // Ook door de echte ophaalroute (rss-parser, loadSource).
   const got = new Set((await viaFeed(wired, live)).map((i) => i.title))
-  assert.deepEqual(live.filter((x) => !got.has(x.title)).map((x) => x.title).sort(), [...WEG].sort())
+  assert.deepEqual(live.filter((x) => !got.has(x.title)).map((x) => x.title).sort(), [...WEG, ...KORTINGSCODE].sort())
 })
 
 test('wired-deals: Wired-journalistiek over deals en prijzen blijft (Gear / Deals mét een andere rubriek)', () => {
@@ -88,7 +101,7 @@ test('wired-deals: een Wired-nieuwsstuk met "deal" in de kop maar zonder markeri
     { title: 'Black Friday Deals Are Getting Worse. The FTC Wants to Know Why', url: 'https://www.wired.com/story/ftc-black-friday-deals-probe/', cats: ['Business', 'Business / Regulation'] },
     { title: 'Microsoft’s $20 Billion Deal for an AI Startup Draws EU Scrutiny', url: 'https://www.wired.com/story/microsoft-ai-deal-eu/', cats: ['Business', 'Business / Artificial Intelligence'] },
     { title: 'Prime Day Deals Explained', url: 'https://www.wired.com/story/deals/prime-day-explained/', cats: [] }, // woord in link of kop telt niet
-    { title: 'Home Depot Promo Codes: 30% Off in November 2026', url: 'https://www.wired.com/story/home-depot-promo-code/', cats: ['Gear'] }, // geen markering: blijft (een gemiste deal mag)
+    { title: 'Home Depot Promo Codes: 30% Off in November 2026', url: 'https://www.wired.com/coupons/home-depot/', cats: ['Gear'] }, // geen markering en een slug zonder kortingscodewoord: blijft (een gemiste deal mag; de kortingscoderegel vraagt kop én slug)
   ]
   for (const x of items) assert.equal(isNoise({ title: x.title, link: x.url }, x.cats, wired), false, x.title)
   assert.equal((await viaFeed(wired, items)).length, items.length)

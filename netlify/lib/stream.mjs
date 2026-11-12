@@ -7,6 +7,7 @@
 // feed, ook als die ouder zijn dan 36 uur: editionWindowOf in sources.mjs, zie build.mjs).
 import { SOURCES, STREAM_HOURS, STREAM_MAX, editionWindowOf } from './sources.mjs'
 import { withoutCopies } from '../../shared/dedupe.mjs'
+import { couponPage } from './kortingscode.mjs'
 
 export const STORE_KEY = 'stream-v1'
 const HOUR = 36e5
@@ -48,7 +49,8 @@ export function recentOf(list = [], { now = Date.now(), hours = STREAM_HOURS, ma
 // Eén bron: wat de feed nu geeft (`fresh`) plus wat we bewaarden (`stored`).
 export function mergeSource(fresh = [], stored = [], { now = Date.now(), hours, max } = {}) {
   const seen = fresh.map((it) => ({ ...it, seenAt: now }))
-  const old = (Array.isArray(stored) ? stored : []).filter((it) => it && it.url && it.title)
+  // Een kortingscode-pagina die al bewaard was (van vóór de ophaalregel, rss.mjs) komt niet terug in de Stroom.
+  const old = (Array.isArray(stored) ? stored : []).filter((it) => it && it.url && it.title && !couponPage(it))
   return recentOf(withoutCopies([...seen, ...old], { perSource: true }), { now, hours, max })
 }
 
@@ -85,7 +87,7 @@ export function splitFeed(fetched = [], stored = null, { now = Date.now(), windo
 export function withLatest(groups = [], latest = {}, { now = Date.now(), hours, max } = {}) {
   const st = latest && typeof latest === 'object' ? latest : {}
   return groups.map((g) => {
-    const extra = (Array.isArray(st[g.id]) ? st[g.id] : []).filter((it) => it && it.url && it.title)
+    const extra = (Array.isArray(st[g.id]) ? st[g.id] : []).filter((it) => it && it.url && it.title && !couponPage(it))
     const items = extra.length ? recentOf(withoutCopies([...g.items, ...extra], { perSource: true }), { now, hours, max }) : g.items
     return { ...g, items }
   })

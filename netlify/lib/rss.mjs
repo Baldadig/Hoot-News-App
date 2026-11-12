@@ -8,6 +8,7 @@ import { firstOf } from './stream.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime, withoutPromo, PROMO_OWN } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
 import { rubricSegments } from '../../shared/editie-filter.mjs'
+import { couponPage } from './kortingscode.mjs'
 
 const parser = new Parser({
   timeout: 9000,
@@ -52,7 +53,8 @@ function categoriesOf(it) {
 //      (daar schrijft een commerce-redactie ook stukken die op nieuws lijken; bij twijfel blijft het staan, B beoordeelt het);
 //   2. wat de uitgever zelf als geen-bericht indeelt: een persbericht (/press-releases/), puzzels (/puzzels/), een
 //      versie-overzicht (/downloads/) en een eigen actie of winactie (feedcategorie ".Actie" of ".Plan");
-//   3. lege of kapotte items (geen kop of geen http(s)-link) en dubbele items (dezelfde link): in loadSource.
+//   3. lege of kapotte items (geen kop of geen http(s)-link) en dubbele items (dezelfde link): in loadSource;
+//   4. een kortingscode-pagina, als kop én slug het zeggen ("Nike Promo Codes: …", …/nike-promo-code/; kortingscode.mjs).
 // Een aanbieding of kijk-/luisteraanbod dat de uitgever niet zo markeert, staat gewoon in de Stroom (een deal mag daar
 // staan). Uit de Editie houden A (harde aanwijzing, shared/editie-filter.mjs) en B (de AI, netlify/lib/editie-ai.mjs) het.
 // Alleen een rubriek telt (een segment vóór de slug, rubricSegments), nooit de slug: "/show/ex-partner-van-zanger" blijft.
@@ -92,6 +94,8 @@ export function noiseReason(it = {}, cats = [], src = null) {
   if (AD_LABEL.test(toText(String(it.title || '')).trim())) return 'label'
   if (rubricSegments(it.link || it.guid || '').some((s) => NOISE_RUBRIC.has(s))) return 'rubriek'
   if (src && sourceDeal(src, cats)) return 'bron-aanbod'
+  // Een kortingscode-pagina (Redacteur · kortingscodes): kop én slug, zie kortingscode.mjs. Voor elke bron.
+  if (couponPage({ title: toText(String(it.title || '')), link: it.link || it.guid || '' })) return 'kortingscode'
   return null
 }
 export const isNoise = (it, cats = [], src = null) => noiseReason(it, cats, src) != null
