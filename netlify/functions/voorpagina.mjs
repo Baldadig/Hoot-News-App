@@ -116,8 +116,11 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   ed.entries.forEach((e, idx) => {
     if (e.desk === 'bubbel') { // de echte 'Buiten je bubbel' van deze Editie, apart (de landing labelt er plek 3 mee)
       const it = byId.get(e.kind === 'story' ? e.leadId || stories.get(e.id)?.leadId : e.id)
-      const c = it && make(it, null, e.sourceCount || 1, idx)
-      if (c && !c.heavy) bubble = c
+      // Geen zware-rubriekregel hier: de bubbel is per definitie ver weg (vaak Buitenland), wel geen zwaar nieuws of sport.
+      const src = it && srcs.get(it.source)
+      if (it?.title && isDutch(it, src?.lang) && !isHeavy(it) && src?.cat !== 'sport' && contentKind(it) !== 'sport') {
+        bubble = { item: it, storyId: it.storyId || null, rubriek: rubriek(it, 'desk' in it ? it.desk : primaryDesk([desksOf(it)]), src?.cat), sourceCount: e.sourceCount || 1, order: idx }
+      }
       return
     }
     const story = e.kind === 'story' ? stories.get(e.id) : null
@@ -157,12 +160,13 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   // plekken, en alleen als het dan nog geen drie zijn de zwaardere rubrieken.
   const rank = (a, b) => (CALM_WEIGHT[b.rubriek] || 0) - (CALM_WEIGHT[a.rubriek] || 0) || a.order - b.order || b.sourceCount - a.sourceCount
   const picked = []
-  const sig = signatures([...new Map(cands.map(c => [c.item.id, c.item])).values()])
+  const sig = signatures([...new Map([...cands, ...(bubble ? [bubble] : [])].map(c => [c.item.id, c.item])).values()])
   const duplicate = (a, b) => a.item.id === b.item.id ||
     (a.storyId && a.storyId === b.storyId) ||
     a.item.title.trim().toLocaleLowerCase('nl') === b.item.title.trim().toLocaleLowerCase('nl') ||
     sameSubject(sig.get(a.item.id), sig.get(b.item.id))
-  const available = c => !picked.some(p => duplicate(p, c))
+  // de bubbel blijft de bubbel: niet ook nog als gewone plek
+  const available = c => !picked.some(p => duplicate(p, c)) && !(bubble && duplicate(bubble, c))
   const pickFrom = (list) => {
     const sorted = [...list].sort(rank)
     for (const c of sorted) if (picked.length < places && available(c) && !picked.some((p) => p.rubriek === c.rubriek)) picked.push(c)
@@ -183,7 +187,7 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   }
   const entries = picked.map(plek)
   if (entries.length !== places) return null
-  const b = bubble && !picked.some(p => duplicate(p, bubble)) ? plek(bubble) : null
+  const b = bubble ? plek(bubble) : null
   return b ? { slot: ed.slot, date: ed.date, entries, bubble: b } : { slot: ed.slot, date: ed.date, entries }
 }
 

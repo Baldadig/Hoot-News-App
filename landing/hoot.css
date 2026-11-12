@@ -179,6 +179,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .k .k-kick{margin-top:0}
 .k-nr{font:800 1.33em/1 var(--kop);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--s-ink)}
 .k-nr::after{content:"\00a0·\00a0";font:700 .6em/1 var(--tekst);color:var(--s-ink3)}
+.k-kick--los .k-nr::after{content:none}
 .k-lead .k-nr{font-size:1.67em;color:var(--s-red)}
 .k-why{margin-top:.4em;font:400 .765em/1.25 var(--tekst);color:var(--s-ink3)}
 .k-kop{margin-top:.47em;font:800 1.294em/1.27 var(--kop);letter-spacing:-.01em;color:var(--s-ink);text-wrap:pretty}
