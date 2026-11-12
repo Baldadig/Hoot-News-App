@@ -72,7 +72,7 @@ test('lege schermen: lijntekening uit de beeldtaal (01 horizon, 04 raster), éé
   assert.match(css, /\.empty__lint \{\s*fill: var\(--accent\);/)
   assert.match(css, /:root\[data-theme='night'\] \{[^}]*--art-thin: var\(--ink-3\);/)
 })
-test('design system v2.3: register, gids en beeldtaal bestaan en kloppen met de code', async () => {
+test('design system v2.4: register, gids en beeldtaal bestaan en kloppen met de code', async () => {
   const { readdirSync } = await import('node:fs')
   const tokens = JSON.parse(readFileSync(new URL('../docs/design-system/tokens.json', import.meta.url), 'utf8'))
   assert.equal(tokens.version, 3)
