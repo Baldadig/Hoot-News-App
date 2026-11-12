@@ -12,7 +12,7 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="label label--section sect">Wat Hoot telt</h2>
         <p>
-          Hoot telt alleen totalen: hoeveel Edities er vandaag zijn geopend en uitgelezen, en hoe vaak de Stroom, de Selectie, een vergelijking, een verhaal of het delen is gebruikt. Zonder te weten wie. Er gaat geen
+          Hoot telt alleen totalen: hoeveel Edities er vandaag zijn geopend en uitgelezen, en hoe vaak de Stroom, de Selectie, een vergelijking, een verhaal of het delen is gebruikt. Op de website telt Hoot ook hoe vaak het welkom wordt doorlopen, hoe vaak er op de App Store-knop wordt getikt en via welke link je binnenkwam, als die een kort label draagt (zoals ?via=mail); dat label haalt Hoot daarna uit de adresbalk. Zonder te weten wie. Er gaat geen
           account of id mee en er wordt niets per persoon bewaard: geen IP-adres, alleen een getal per dag. Je toestel onthoudt zelf alleen dat het een dagdeel al heeft geteld. Staat Do Not Track of Global Privacy Control aan, dan telt de website niets.
         </p>
 

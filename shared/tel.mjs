@@ -18,10 +18,9 @@ export const READ_MAX = 60 // zoveel dagen leest één verzoek hooguit (elke dag
 export const KEYS = ['e', 'd', 'p', 'v', 'n']
 
 // ---- Meten · 6: herkomst, App Store-tik en het welkom (audit punt 8). Alleen web en server; iOS volgt (1.3.1). ----
-// TODO(privacybeleid): deze tellers staan UIT tot Alex de nieuwe zinnen in src/views/Privacy.jsx heeft goedgekeurd en
-// ze live staan (zie Hoot-design/meten/VERSLAG-2.md, "Ter goedkeuring van Alex"). Pas dan hier op true zetten.
-// Zolang dit false is: het web stuurt ze niet, laat ?via in de adresbalk staan en de server negeert ze.
-export const NIEUWE_TELLERS = false
+// Aan sinds 12 november 2026: Alex keurde de zin in src/views/Privacy.jsx ("Wat Hoot telt") goed. Vlag en zin gaan
+// samen (tests/tel.test.mjs); zet je hem uit, haal dan ook de zin weg.
+export const NIEUWE_TELLERS = true
 
 // Herkomst: ?via=<label> op de landing en /lees. Alleen deze labels; al het andere telt als 'via:anders'.
 export const VIA_LABELS = ['ig', 'x', 'bsky', 'mail', 'nb', 'qr']

@@ -279,13 +279,12 @@ import { telVia } from '../src/lib/tel.js'
 import { startTel } from '../landing/tel.mjs'
 
 const AAN = { nieuw: true }
-test('Meten · 6: één constante, standaard uit, met TODO-vlag; uit betekent dat de server de nieuwe tellers negeert', () => {
-  assert.equal(NIEUWE_TELLERS, false)
+test('Meten · 6: één constante (aan na goedkeuring van het beleid); uit betekent dat de server de nieuwe tellers negeert', () => {
+  assert.equal(NIEUWE_TELLERS, true)
   const src = readFileSync(new URL('../shared/tel.mjs', import.meta.url), 'utf8')
   assert.equal(src.match(/export const NIEUWE_TELLERS = (true|false)/g).length, 1)
-  assert.match(src, /TODO\(privacybeleid\)[\s\S]*export const NIEUWE_TELLERS = false/)
   for (const e of NIEUW) {
-    assert.equal(parseTel(ok({ e }), NOW), null, e + ' uit')
+    assert.equal(parseTel(ok({ e }), NOW, { nieuw: false }), null, e + ' uit')
     assert.ok(parseTel(ok({ e }), NOW, AAN), e + ' aan')
   }
   assert.deepEqual(eventsFor(false), EVENTS)
@@ -328,7 +327,7 @@ test('Meten · 6 op de server: uit genegeerd, aan geteld; in de opslag alleen he
   const up = async (k, fn) => { const n = fn(mem.get(k) ?? null); mem.set(k, n); return n }
   const write = (p) => record(p, up)
   const kop = { 'x-forwarded-for': '203.0.113.9', 'user-agent': 'Zeer Uniek/1', cookie: 'id=42', 'x-nf-client-connection-ip': '198.51.100.7' }
-  assert.equal((await handle(post(ok({ e: 'via:ig' }), kop), { now: NOW, write })).status, 204)
+  assert.equal((await handle(post(ok({ e: 'via:ig' }), kop), { now: NOW, write, nieuw: false })).status, 204)
   assert.equal(mem.size, 0) // vlag uit: niets
   for (const e of ['via:ig', 'via:anders', APPSTORE_TIK, APPSTORE_TIK, ...WELKOM_STAPPEN]) assert.equal((await handle(post(ok({ e }), kop), { now: NOW, write, nieuw: true })).status, 204)
   assert.equal((await handle(post(ok({ e: 'via:onbekend' }), kop), { now: NOW, write, nieuw: true })).status, 204)
@@ -350,7 +349,7 @@ test('Meten · 6 op de server: uit genegeerd, aan geteld; in de opslag alleen he
 test('Meten · 6 op het web: uit stuurt niets en onthoudt niets; aan één keer per dagdeel (herkomst, welkom), App Store-tik elke keer', async () => {
   const storage = fakeStore()
   const a = beacon()
-  for (const e of NIEUW) assert.equal(tel(e, D, { nav: a, prod: true, storage }), false, e)
+  for (const e of NIEUW) assert.equal(tel(e, D, { nav: a, prod: true, storage, nieuw: false }), false, e)
   assert.equal(a.sent.length, 0)
   assert.equal(storage.m.size, 0)
   const go = (e) => tel(e, D, { nav: a, prod: true, storage, nieuw: true, version: '1.2.0' })
@@ -379,7 +378,7 @@ const nepAdres = (search, hash = '#/editie') => {
 test('telVia: uit raakt de adresbalk niet aan; aan telt via:<label> en haalt ?via weg, de rest van het adres blijft', async () => {
   const a = beacon()
   const uit = nepAdres('?via=ig')
-  assert.equal(telVia({ ...uit, nav: a, prod: true, storage: fakeStore() }), null)
+  assert.equal(telVia({ ...uit, nav: a, prod: true, storage: fakeStore(), nieuw: false }), null)
   assert.equal(uit.calls.length, 0)
   assert.equal(a.sent.length, 0)
   const storage = fakeStore()
@@ -410,7 +409,7 @@ test('telVia: uit raakt de adresbalk niet aan; aan telt via:<label> en haalt ?vi
 test('landing: uit doet niets; aan telt een tik op een App Store-link als appstore-tik', async () => {
   let listener = null
   const doc = { addEventListener: (t, fn) => { listener = fn } }
-  assert.equal(startTel({ doc }), false)
+  assert.equal(startTel({ doc, nieuw: false }), false)
   assert.equal(listener, null)
   const a = beacon()
   const adres = nepAdres('')
