@@ -601,21 +601,27 @@ function headSignature(sig, item) {
   return h
 }
 // Het kenmerk van alleen de kop voor het cluster (sameCluster), altijd in de uitgebreide stand (landen en hun
-// bijvoeglijke vormen zijn zwak, "Spaanse" is geen naam; `titleRuns` voor voor- en achternaam). Een kop In Titelkast
-// (NYT, Wired) zegt niets over wat een naam is ("Album", "Election", "Black"): daar telt een naam alleen als hij ook
-// ergens in een gewone kop van de pool midden in een zin met een hoofdletter staat (`headVocab`).
+// bijvoeglijke vormen zijn zwak, "Spaanse" is geen naam; `titleRuns` voor voor- en achternaam). De woordenschat: die van
+// de pool plus de woorden die in een gewone kop van de pool midden in een zin met een hoofdletter staan (een kleine pool,
+// zoals die van jouw bronnen, noemt "Olesjky" soms alleen in de kop). Een kop In Titelkast (NYT, Wired, vaak ook de BBC)
+// zegt niets over wat een naam is ("Album", "Black"): daar telt een woord alleen als naam als het in geen enkele kop van
+// de pool met een kleine letter staat.
 function clusterHead(sig, item) {
   const v = sigVocab.get(sig)
   if (!v || !item) return null
   const memo = (v.cheads ||= new Map())
   let h = memo.get(item.id)
   if (h) return h
-  h = signature({ ...item, text: '', summary: '' }, v.vocab, true)
-  if (isTitleCase(item.title)) {
-    v.headVocab ||= nameVocabulary((v.articles || []).filter((a) => a.title && !isTitleCase(a.title)).map((a) => ({ title: a.title })), true)
-    for (const k of [...h.strong]) if (!v.headVocab.has(k)) h.strong.delete(k)
-    h.titleRuns = (h.titleRuns || []).map((run) => run.filter((k) => h.strong.has(k))).filter((run) => run.length)
+  if (!v.cvocab) {
+    const titles = (v.articles || []).map((a) => String(a.title || '')).filter(Boolean)
+    const lower = new Set()
+    for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm(w))
+    v.cvocab = new Set([...v.vocab, ...nameVocabulary(titles.filter((t) => !isTitleCase(t)).map((title) => ({ title })), true)])
+    // Dezelfde naam in de Engelse spelling ("Olesjky", "Oleshky"; zie translit).
+    for (const w of [...v.cvocab]) if (w.includes('sj')) v.cvocab.add(translit(w))
+    v.tvocab = new Set([...v.cvocab].filter((w) => !lower.has(w)))
   }
+  h = signature({ ...item, text: '', summary: '' }, isTitleCase(item.title) ? v.tvocab : v.cvocab, true)
   memo.set(item.id, h)
   return h
 }

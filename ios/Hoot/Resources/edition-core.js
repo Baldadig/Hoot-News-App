@@ -2682,12 +2682,15 @@ var HootCore = (() => {
     const memo2 = v.cheads ||= /* @__PURE__ */ new Map();
     let h = memo2.get(item.id);
     if (h) return h;
-    h = signature({ ...item, text: "", summary: "" }, v.vocab, true);
-    if (isTitleCase(item.title)) {
-      v.headVocab ||= nameVocabulary((v.articles || []).filter((a) => a.title && !isTitleCase(a.title)).map((a) => ({ title: a.title })), true);
-      for (const k of [...h.strong]) if (!v.headVocab.has(k)) h.strong.delete(k);
-      h.titleRuns = (h.titleRuns || []).map((run) => run.filter((k) => h.strong.has(k))).filter((run) => run.length);
+    if (!v.cvocab) {
+      const titles = (v.articles || []).map((a) => String(a.title || "")).filter(Boolean);
+      const lower = /* @__PURE__ */ new Set();
+      for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm(w));
+      v.cvocab = /* @__PURE__ */ new Set([...v.vocab, ...nameVocabulary(titles.filter((t) => !isTitleCase(t)).map((title) => ({ title })), true)]);
+      for (const w of [...v.cvocab]) if (w.includes("sj")) v.cvocab.add(translit(w));
+      v.tvocab = new Set([...v.cvocab].filter((w) => !lower.has(w)));
     }
+    h = signature({ ...item, text: "", summary: "" }, isTitleCase(item.title) ? v.tvocab : v.cvocab, true);
     memo2.set(item.id, h);
     return h;
   }
