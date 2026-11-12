@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- 1.3.1, Editie sneller: jouw Editie wordt aan de server gevraagd zodra de kern er is, tegelijk met de berichten per bron (die heeft alleen het vangnet nodig). Bleef het antwoord uit, dan vraagt dezelfde laadronde niet nog eens maar rekent meteen het vangnet; een volgende ronde vraagt opnieuw. Wachttijd (20 s, één nieuwe poging) ongewijzigd. Toetsen: EditieSnellerTests.
+
 - Nieuw merkrood Rubrica (PMS 484 C), na build 48: BrandRed en AccentColor `#9A3324`, AccentSoft `#F2E4DF` (Donker en Nacht ongewijzigd). Daarmee ook het rode opstartscherm, de iris, de zon in de placeholders, het nummer 01, de punt van "hoot.", de eindkaart in Nacht (`#41150F`, 42 procent over zwart), de lezer en de deelkaart. De vier app-iconen en hun voorbeelden in Instellingen zijn opnieuw gemaakt met `scripts/appiconen.mjs` (zelfde bron, nieuw rood; Donker blijft gelijk). Een nieuw icoon vraagt een nieuwe build voor de App Store.
 
 - Build 48 (1.1.0): Instellingen D, intro variant 4, Zoeken in Mijn bronnen / Alle bronnen. De ongebruikte Inter-bestanden (Inter-400 t/m -800, Lezer-Inter-400/-800, OFL-Inter) gaan niet meer mee in de app (uitzondering in het Xcode-project; de bestanden blijven in de repo).

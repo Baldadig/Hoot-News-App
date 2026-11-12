@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
-import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, servedLocal, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
+import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, servedLocal, askGate, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
 import { readingSummary } from '../lib/affinity.js'
 import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
@@ -48,6 +48,15 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
   // Opnieuw vragen bij weer online en terug in de app, zolang er geen Editie van de server is.
   const [nonce, setNonce] = useState(0)
   const pending = useRef('')
+  // Eén vraag aan de server per taak, lezer-stand en `nonce` (Editie sneller C2, Hoot-design/editie-sneller/METING.md §3):
+  // komen de berichten binnen (`ready`) of je account (`pulled`) terwijl de vraag loopt, dan wachten we op dat
+  // antwoord in plaats van het weg te gooien en opnieuw te vragen. Bleef het antwoord uit, dan rekent een volgende
+  // ronde alleen het vangnet met de stand van nu (askGate in editionSync.js), zonder opnieuw te vragen; weer
+  // online of terug in de app (`nonce`) vraagt opnieuw.
+  const gate = useRef(null)
+  if (!gate.current) gate.current = askGate()
+  const latest = useRef('')
+  const [settled, setSettled] = useState(0)
 
   const keep = (e, t = task) => {
     setEdition(e)
@@ -80,10 +89,15 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       if (local !== edition) setEdition(local)
       return
     }
-    const run = `${task}|${pulled}|${ready}|${stuck}|${nonce}`
-    if (pending.current === run) return
-    pending.current = run
     const online = typeof navigator === 'undefined' || navigator.onLine !== false
+    const mayAsk = !uid || pulled
+    const askKey = `${task}|${mayAsk}|${nonce}`
+    const run = `${askKey}|${ready}|${stuck}`
+    latest.current = run
+    if (pending.current === run) return
+    if (gate.current.busy(askKey)) return // de vraag loopt nog: haar antwoord telt (zie boven)
+    pending.current = run
+    const askNow = gate.current.start(askKey, online && mayAsk)
     const reading = readingSummary(affinity)
     const request = serverRequest({
       followed,
@@ -113,14 +127,19 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       localFromServer,
       localServed,
       online,
-      mayAsk: !uid || pulled,
-      ask,
+      mayAsk,
+      ask: askNow ? ask : null,
       request,
       ready,
       stuck,
       compose: ({ previous, now }) => composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: reading, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
     })
       .then((r) => {
+        if (askNow) {
+          gate.current.done(askKey)
+          // Geen Editie van de server en intussen een andere stand (de berichten kwamen): nu het vangnet daarmee.
+          if (!r?.keep && latest.current !== run) setSettled((n) => n + 1)
+        }
         if (!r || pending.current !== run) return
         // Een Editie van een later dagdeel (de kern hier loopt achter): bewaren, tonen zodra de kern bij is.
         if (r.ahead) {
@@ -133,8 +152,10 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
           if (r.source === 'provisional') writeJSON(PROVISIONAL_KEY, r.edition)
         }
       })
-      .catch(() => {}) // lukt het nu niet, dan de volgende keer (geen onafgehandelde fout)
-  }, [global?.id, owner, basis, pulled, ready, stuck, nonce, followed.length]) // eslint-disable-line react-hooks/exhaustive-deps
+      .catch(() => {
+        if (askNow) gate.current.fail(askKey)
+      }) // lukt het nu niet, dan de volgende keer (geen onafgehandelde fout)
+  }, [global?.id, owner, basis, pulled, ready, stuck, nonce, settled, followed.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Leden: een eigen samenvatting, één keer per editie (de server bewaakt het maximum).
   const asked = useRef('')

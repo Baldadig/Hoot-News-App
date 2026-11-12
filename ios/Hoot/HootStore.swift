@@ -723,6 +723,11 @@ final class HootStore {
             coreFailed = fromCache
             coreFresh = !fromCache
             reloadParts()
+            // Jouw Editie meteen vragen, niet pas als alle delen er zijn (Editie sneller C1, 1.3.1;
+            // Hoot-design/editie-sneller/METING.md §2): de Editie van de server draagt haar eigen berichten mee
+            // (`edition.items`). Alleen het vangnet wacht op de delen (provisional, itemsCurrent).
+            serverRound += 1
+            Task { await self.loadPersonal() }
             // Eigen Bluesky-accounts los ophalen: een trage Bluesky houdt de editie niet op.
             Task { await loadOwnPosts() }
             // Op de nieuwste ronde: zet je tijdens het laden een bron om, dan begint er een nieuwe.
@@ -1015,16 +1020,29 @@ final class HootStore {
 
         // (2) De server stelt samen en legt als lid zelf vast; als lid pas na de eerste pull (anders vraagt
         // een vers toestel met instellingen die je account nog niet gaf, en zet de server die in je account).
-        let mayAsk = !force && (account?.uid == nil || account?.pulled == true)
+        // Eén vraag per taak en laadronde (C1): bleef het antwoord uit, dan vraagt een volgende aanleiding in
+        // dezelfde ronde (de delen kwamen binnen) niet nog eens 20 s, maar rekent meteen het vangnet. Een
+        // volgende ronde (terug in de app, verversen) vraagt opnieuw.
+        let round = "\(task)#\(serverRound)"
+        let mayAsk = Self.asksServer(force: force, uid: account?.uid, pulled: account?.pulled == true, failed: serverFailed, round: round)
         if mayAsk, let raw = await askServer(global: global, owner: owner) {
             // Veranderde er intussen iets (bron gedempt, uitgelogd)? Dan komt er zo een nieuwe ronde.
             guard followed.map(\.id) == followedIds, ownerNow == owner else { return }
             keepServer(raw, task: task)
             return
         }
+        if mayAsk { serverFailed = round }
         // (3) Geen antwoord (offline, een fout, 429): het vangnet, voorlopig.
         await provisional(global: global, owner: owner, basis: basis, force: force)
     }
+
+    // Mag deze ronde de server vragen? Niet bij `-HootEngine`, als lid pas na de eerste pull, en niet nog eens in een
+    // ronde waarin de vraag al zonder antwoord bleef (`failed`, zie loadPersonal).
+    static func asksServer(force: Bool, uid: String?, pulled: Bool, failed: String, round: String) -> Bool {
+        !force && (uid == nil || pulled) && failed != round
+    }
+    @ObservationIgnored private var serverRound = 0 // telt de laadrondes (fetchAll)
+    @ObservationIgnored private var serverFailed = "" // taak#ronde waarin de server geen antwoord gaf
 
     // Voor welke taak (dagdeel|lezer|afdruk) edition.json van de server kwam. Een Editie die dit toestel vroeger
     // zelf samenstelde (1.2) past misschien ook, maar de server heeft het laatste woord: die vragen we één keer.
