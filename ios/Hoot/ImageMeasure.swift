@@ -22,10 +22,12 @@ struct ImageMeasure: Codable, Hashable {
 }
 
 extension Item {
-    var measure: ImageMeasure? { imageMeta.flatMap { $0.valid ? $0 : nil } }
-    /// Met een meting het originele beeld, anders de CDN-variant van die maat.
+    /// De meting, als we het gemeten origineel tonen (ImageURL.measuredOriginal). Bij een variant op maat niet: die
+    /// heeft andere pixels (de Volkskrant: 3:2 in plaats van het gemeten vierkant) en zou anders worden uitgerekt.
+    var measure: ImageMeasure? { ImageURL.measuredOriginal(self) ? imageMeta : nil }
+    /// Met een meting het originele beeld, anders de variant van die maat (uitgever of beeld-CDN).
     func pictureURL(_ kind: ImageURL.Kind) -> URL? {
-        measure != nil ? image.flatMap(URL.init(string:)) : ImageURL.url(image, kind)
+        ImageURL.measuredOriginal(self, kind) ? image.flatMap(URL.init(string:)) : ImageURL.url(image, kind)
     }
 }
 
@@ -34,8 +36,8 @@ struct MeasuredLeadImage: View {
     let spacious: Bool
     var onFail: (() -> Void)? = nil // laadt niet: de beeldloze vorm (LeadCard), geen grijs vlak
     var landscape: CGFloat? = nil // een vaste verhouding voor een liggend beeld (kaart A+: 3:2); een staand beeld houdt zijn eigen
-    private var measure: ImageMeasure? { item.imageMeta.flatMap { $0.valid ? $0 : nil } }
-    private var ratio: CGFloat { measure?.portrait == true ? (spacious ? 3 / 4 : 4 / 5) : landscape ?? 2 }
+    private var measure: ImageMeasure? { item.measure }
+    private var ratio: CGFloat { item.imageMeta?.portrait == true ? (spacious ? 3 / 4 : 4 / 5) : landscape ?? 2 }
     var body: some View {
         Color.clear.aspectRatio(ratio, contentMode: .fit)
             .overlay {

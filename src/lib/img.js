@@ -7,6 +7,15 @@ import { imageMeta } from './image-meta.js'
 
 // Moet gelijk lopen met [images] remote_images in netlify.toml (de test controleert dat).
 export const CDN_HOSTS = ['images.nrc.nl', 'i.guim.co.uk', 'cdn.theatlantic.com', 'images.vpro.nl', 'thequietus.com', 'lede-admin.stereogum.com', 'ichef.bbci.co.uk', 'npr.brightspotcdn.com', 'images.ft.com']
+// De beeldserver van DPG Media (image.<titel>/<id>/feature-crop/<b>/<h>/… of /roi/<b>/<h>/<x>/<y>/…): elke maat
+// is op te vragen, de feed geeft er 320 × 320. Nagelopen met GET op 12 november 2026 (HTTP 200, echte maten):
+// feature-crop op 176/176, 480/320, 720/480, 1080/720, 1360/907, 1280/853 en 640/427 voor de Volkskrant,
+// De Morgen, Het Parool, Trouw en Humo; roi op 176/176, 1280/853 en 1360/907 voor de eerste vier. Niet: AD,
+// de regionale titels (images.ad.nl, images.bd.nl, …) en HLN: die adressen zijn ondertekend, een andere maat
+// geeft 403. Moet gelijk lopen met ImageURL.dpgHosts in de app
+// (de test controleert dat).
+export const DPG_HOSTS = ['image.volkskrant.nl', 'image.demorgen.be', 'image.parool.nl', 'image.trouw.nl', 'image.humo.be']
+const DPG_PATH = /^(.*)\/(feature-crop|roi)\/\d+\/\d+\/(.*)$/
 const viaCdn = (url, w) => `/.netlify/images?url=${encodeURIComponent(url)}&w=${w}`
 
 const WIDTHS = { thumb: [176, 320], lead: [480, 720, 1080, 1360] }
@@ -76,11 +85,11 @@ export function candidates(url, kind) {
     const base = u.origin + u.pathname
     return widths.map((w) => [`${base}?quality=80&strip=all&w=${w}`, w])
   }
-  if (host === 'image.volkskrant.nl' || host === 'image.demorgen.be') {
-    // Zelfde beeldserver (DPG): De Morgen levert dezelfde feature-crop-maten (nagelopen 5 november 2026).
-    const m = url.match(/^(.*)\/feature-crop\/\d+\/\d+\/(.*)$/)
+  if (DPG_HOSTS.includes(host)) {
+    // DPG (zie DPG_HOSTS): dezelfde uitsnede (feature-crop, of roi met het brandpunt), op maat.
+    const m = url.match(DPG_PATH)
     if (!m) return null
-    return widths.map((w) => [`${m[1]}/feature-crop/${w}/${kind === 'thumb' ? w : Math.round((w * 2) / 3)}/${m[2]}`, w])
+    return widths.map((w) => [`${m[1]}/${m[2]}/${w}/${kind === 'thumb' ? w : Math.round((w * 2) / 3)}/${m[3]}`, w])
   }
   if (host === 'images.cdn.nos.nl') {
     // NOS levert vaste formaten (16:9); alleen omrekenen als de feed het grote formaat gaf.

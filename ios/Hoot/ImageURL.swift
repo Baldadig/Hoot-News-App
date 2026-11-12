@@ -6,6 +6,11 @@ import Foundation
 enum ImageURL {
     static let cdnHosts: Set<String> = ["images.nrc.nl", "i.guim.co.uk", "cdn.theatlantic.com", "images.vpro.nl", "thequietus.com", "lede-admin.stereogum.com", "ichef.bbci.co.uk", "npr.brightspotcdn.com", "images.ft.com"]
 
+    // De beeldserver van DPG Media: elke maat van dezelfde uitsnede (feature-crop, of roi met het brandpunt) is op te
+    // vragen. Nagelopen met GET op 12 november 2026; AD, de regionale titels en HLN niet (ondertekend, 403).
+    // Gelijk aan DPG_HOSTS in src/lib/img.js (tests/img.test.mjs controleert dat).
+    static let dpgHosts: Set<String> = ["image.volkskrant.nl", "image.demorgen.be", "image.parool.nl", "image.trouw.nl", "image.humo.be"]
+
     enum Kind { case thumb, large }
 
     static func url(_ raw: String?, _ kind: Kind) -> URL? {
@@ -28,9 +33,9 @@ enum ImageURL {
             c.queryItems = (c.queryItems ?? []).filter { !["w", "h", "fit", "crop"].contains($0.name) } + [URLQueryItem(name: "w", value: String(width))]
             return c.url
         }
-        // De Morgen gebruikt dezelfde beeldserver (DPG) en dezelfde feature-crop-maten als de Volkskrant.
-        if host == "image.volkskrant.nl" || host == "image.demorgen.be", let m = s.firstMatch(#"^(.*)/feature-crop/\d+/\d+/(.*)$"#) {
-            return URL(string: kind == .thumb ? "\(m[1])/feature-crop/320/320/\(m[2])" : "\(m[1])/feature-crop/1280/853/\(m[2])")
+        // DPG (dpgHosts): dezelfde uitsnede op maat.
+        if dpgHosts.contains(host), let m = s.firstMatch(#"^(.*)/(feature-crop|roi)/\d+/\d+/(.*)$"#) {
+            return URL(string: kind == .thumb ? "\(m[1])/\(m[2])/320/320/\(m[3])" : "\(m[1])/\(m[2])/1280/853/\(m[3])")
         }
         if host == "images.cdn.nos.nl", let m = s.firstMatch(#"^(.*)-1024x576(\.webp)$"#) {
             return URL(string: kind == .thumb ? "\(m[1])-512x288\(m[2])" : s)
@@ -74,14 +79,37 @@ enum ImageURL {
 
     // Hoe breed een groot beeld hooguit te krijgen is zonder op te rekken: de grootste variant van de uitgever
     // of de beeld-CDN (url(_:.large)), anders de gemeten breedte (door de server) of wat het adres verraadt.
-    // Met een meting tonen we het origineel (Item.pictureURL), dus dan telt de meting. Nil: onbekend.
+    // Tonen we het gemeten origineel (measuredOriginal), dan telt de meting; een gemeten 320 × 320 van de Volkskrant
+    // of Het Parool telt dus niet, want dan tonen we de variant van 1280. Nil: onbekend.
     // Gelijk aan sourceWidth in src/lib/img.js.
     static func sourceWidth(_ item: Item) -> Double? {
-        if let m = item.measure { return m.w }
+        let measured = item.imageMeta.flatMap { $0.valid ? $0.w : nil }
+        if measuredOriginal(item) { return measured }
         guard let raw = item.image, let u = URL(string: raw), let host = u.host() else { return nil }
         if host == "images.cdn.nos.nl", raw.firstMatch(#"-1024x576\.webp$"#) != nil { return 1024 }
-        if let large = url(raw, .large), large.absoluteString != raw.replacingOccurrences(of: "http://", with: "https://") { return 1024 }
-        return knownWidth(raw).map(Double.init)
+        if let large = variant(raw, .large) {
+            // De beeld-CDN van Netlify rekt niet op: dan telt de meting (hooguit de gevraagde 1360).
+            if large.host() == HootAPI.base.host(), large.path() == "/.netlify/images", let measured { return min(measured, 1360) }
+            return 1024
+        }
+        return measured ?? knownWidth(raw).map(Double.init)
+    }
+
+    // Een andere maat dan het adres uit de feed (van de uitgever of via de beeld-CDN), of nil.
+    static func variant(_ raw: String?, _ kind: Kind) -> URL? {
+        // Vergeleken met hetzelfde URL(string:) als in url(_:_:): een adres met bijvoorbeeld een spatie wordt daar
+        // gecodeerd, en is dan nog steeds hetzelfde beeld.
+        guard let raw, let sized = url(raw, kind), sized != URL(string: raw.replacingOccurrences(of: "http://", with: "https://")) else { return nil }
+        return sized
+    }
+
+    // Tonen we het gemeten origineel uit de feed? Ja als er egale randen zijn gemeten: daar horen de meetgegevens bij.
+    // Zonder randen gaat het via de variant op maat, als die er is (de Volkskrant, Het Parool: de feed geeft 320 × 320).
+    // Gelijk aan measuredOriginal in src/lib/img.js.
+    static func measuredOriginal(_ item: Item, _ kind: Kind = .large) -> Bool {
+        guard let m = item.imageMeta, m.valid else { return false }
+        let plain = m.crop.l == 0 && m.crop.r == 0 && m.crop.t == 0 && m.crop.b == 0
+        return !(plain && variant(item.image, kind) != nil)
     }
 
     // Scherp genoeg: minstens `sharp` keer zo breed als het vak, op een scherm met hoge pixeldichtheid (hooguit

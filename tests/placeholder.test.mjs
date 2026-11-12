@@ -1,4 +1,4 @@
-// Placeholderbeeld (build 46, tien sinds placeholders-12): deterministisch per artikel, nooit twee
+// Placeholderbeeld (build 46, tien sinds placeholders-12, achttien sinds placeholders-18): deterministisch per artikel, nooit twee
 // gelijke buren en nooit twee keer dezelfde set na elkaar.
 // Dezelfde gevallen draaien in de app (ios/HootTests/PlaceholderTests.swift).
 import { test } from 'node:test'
@@ -10,14 +10,14 @@ import { fnv1a, placeholderBase, placeholderPlan, placeholderSet, placeholderSvg
 const root = new URL('../', import.meta.url)
 const fixture = JSON.parse(readFileSync(new URL('tests/fixtures/placeholder.json', root), 'utf8'))
 
-test('placeholder: fnv1a(id) mod 10, op web en in de app dezelfde som', () => {
+test('placeholder: fnv1a(id) mod 18, op web en in de app dezelfde som', () => {
   assert.equal(fnv1a(''), 0x811c9dc5)
   assert.equal(fnv1a('a'), 0xe40c292c) // bekende FNV-1a-waarde
   for (const { id, fnv1a: h, beeld } of fixture.base) {
     assert.equal(fnv1a(id), h, id)
     assert.equal(placeholderBase(id) + 1, beeld, id)
   }
-  // Alle tien komen voor.
+  // Alle achttien komen voor.
   assert.equal(new Set(fixture.base.map((b) => b.beeld)).size, PLACEHOLDER_COUNT)
 })
 
@@ -47,14 +47,14 @@ test('placeholder: twee beeldloze rijen direct na elkaar nooit hetzelfde beeld e
   }
 })
 
-test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle tien door elkaar', () => {
+test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle achttien door elkaar', () => {
   const rows = Array.from({ length: 5000 }, (_, i) => ({ id: `https://www.nrc.nl/nieuws/2026/11/05/stuk-${i}-a${(i * 7919) % 1000}`, bare: true }))
   const plan = placeholderPlan(rows)
   buren(rows, plan, 'lange reeks')
   const telling = Array(PLACEHOLDER_COUNT).fill(0)
   for (const k of plan.values()) telling[k]++
-  // Elk beeld komt geregeld voor: geen beeld onder de 4 of boven de 13 procent.
-  for (const [k, n] of telling.entries()) assert.ok(n > 0.04 * rows.length && n < 0.13 * rows.length, `beeld ${k + 1}: ${n}`)
+  // Elk beeld komt geregeld voor (gemiddeld 5,6 procent): geen beeld onder de 2,5 of boven de 7,5 procent.
+  for (const [k, n] of telling.entries()) assert.ok(n > 0.025 * rows.length && n < 0.075 * rows.length, `beeld ${k + 1}: ${n}`)
   // En het is geen vast patroon: de reeks herhaalt zich niet met een korte periode.
   const seq = rows.map((r) => plan.get(r.id))
   for (let p = 1; p <= 24; p++) assert.ok(seq.some((v, i) => i >= p && v !== seq[i - p]), `periode ${p}`)
@@ -79,9 +79,10 @@ test('placeholder: geen dagdeel in tekening of code; decoratie (aria-hidden); de
   assert.match(readFileSync(new URL('ios/Hoot/Views/Beeldloos.swift', root), 'utf8'), /accessibilityHidden\(true\)/)
 })
 
-test('placeholder: tien beelden in vijf sets, elk met een kleine tekening (96 × 64), even groot als de rest', () => {
-  assert.equal(PLACEHOLDERS.length, 10)
-  assert.deepEqual(PLACEHOLDERS.map((p) => p.family), ['zon', 'zon', 'zon', 'iris', 'iris', 'iris', 'lijn', 'raster', 'raster', 'stapel'])
+test('placeholder: achttien beelden, tien in vijf sets en acht eenlingen, elk met een kleine tekening (96 × 64), even groot als de rest', () => {
+  assert.equal(PLACEHOLDERS.length, 18)
+  assert.equal(PLACEHOLDER_COUNT, PLACEHOLDERS.length)
+  assert.deepEqual(PLACEHOLDERS.map((p) => p.family), ['zon', 'zon', 'zon', 'iris', 'iris', 'iris', 'lijn', 'raster', 'raster', 'stapel', 'kop', 'vouw', 'baan', 'eclips', 'walsen', 'zetsel', 'rij', 'koepels'])
   // Zonnestand: de zon is altijd een vol vlak in rood, ook in beeld 3 (keuze Alex), groot en klein.
   for (const n of [1, 2, 3]) for (const L of [PLACEHOLDERS[n - 1].groot, PLACEHOLDERS[n - 1].klein]) {
     const zon = L.shapes.find((s) => s.t === 'circle')
@@ -101,8 +102,24 @@ test('placeholder: tien beelden in vijf sets, elk met een kleine tekening (96 ×
   const rood = (p) => [...p.groot.shapes].filter((s) => s.fill === 'sun' || s.stroke === 'sun').length
   for (const n of [7]) assert.ok(PLACEHOLDERS[n - 1].groot.shapes.every((s) => s.t === 'line'), `beeld ${n}`)
   for (const n of [8, 9, 10]) assert.equal(rood(PLACEHOLDERS[n - 1]), 1, `beeld ${n}`)
+  // Ronde 2 (11 tot 18): precies één rood accent, groot en klein.
+  const roodIn = (L) => L.shapes.filter((s) => s.fill === 'sun' || s.stroke === 'sun').length
+  for (let n = 11; n <= 18; n++) for (const L of [PLACEHOLDERS[n - 1].groot, PLACEHOLDERS[n - 1].klein]) assert.equal(roodIn(L), 1, `beeld ${n}`)
+  // Geen reuzenvormen (Vouw had een cirkel van r 4000 als rechte vouw; nu een brede rechte lijn): elke
+  // cirkel en lijn blijft binnen een paar keer het beeld, zodat web en SwiftUI hem exact en snel tekenen.
+  for (const [i, p] of PLACEHOLDERS.entries()) for (const L of [p.groot, p.klein]) for (const s of L.shapes) {
+    if (s.t === 'circle') assert.ok(s.r <= 3 * L.w, `beeld ${i + 1}: cirkel r ${s.r}`)
+    if (s.t === 'line') for (const v of [s.x1, s.x2]) assert.ok(Math.abs(v) <= 3 * L.w, `beeld ${i + 1}: lijn ${v}`)
+  }
+  // Vouw: de vouw is recht en onder 45 graden.
+  for (const L of [PLACEHOLDERS[11].groot, PLACEHOLDERS[11].klein]) {
+    const v = L.shapes.find((s) => s.t === 'line')
+    assert.ok(Math.abs(v.x2 - v.x1 - (v.y2 - v.y1)) < 0.02, 'vouw onder 45 graden')
+    assert.ok(v.sw > 0 && !v.fixed && v.stroke === 'bg')
+    assert.match(placeholderSvg(12, 'licht', L === PLACEHOLDERS[11].klein), new RegExp(`stroke-width="${v.sw}"`))
+  }
   // Rood is Rubrica in Licht, de lichtere tinten uit tokens.json in Donker en Nacht.
-  for (const fam of ['zon', 'iris', 'raster', 'stapel']) assert.deepEqual([PALETTES[fam].licht.sun, PALETTES[fam].donker.sun, PALETTES[fam].nacht.sun], ['#9A3324', '#EC7A70', '#DF8276'], fam)
+  for (const fam of ['zon', 'iris', 'raster', 'stapel', 'kop', 'vouw', 'baan', 'eclips', 'walsen', 'zetsel', 'rij', 'koepels']) assert.deepEqual([PALETTES[fam].licht.sun, PALETTES[fam].donker.sun, PALETTES[fam].nacht.sun], ['#9A3324', '#EC7A70', '#DF8276'], fam)
 })
 
 test('placeholder: SVG, CSS en de SwiftUI-tabel zijn bij (scripts/placeholders.mjs --check)', () => {
