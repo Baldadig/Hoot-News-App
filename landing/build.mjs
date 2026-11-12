@@ -48,34 +48,12 @@ const AS = appStore(APP_STORE);
 const { INLINE } = await import('./inline.mjs');
 const HASH = 'sha256-' + crypto.createHash('sha256').update(INLINE).digest('base64');
 
-// De Stroom-lijsten, als kaart A+ van 1.1.0: kop, een korte intro, beeld 2:1, de bronregel. Twee kaarten per rubriek, de eerste met beeld.
-// De rubrieken in de vaste volgorde van de app (Alles, Binnenland, Wereld, Cultuur). Fictieve bronnen; nooit "Omdat je X volgt".
-const BR = { LD: ['c1', 'Landelijk Dagblad'], SK: ['c2', 'Stadskrant'], WW: ['c4', 'Weekblad Wereld'], CK: ['c3', 'Cultuurkrant'], ON: ['c5', 'Omroep Nieuws'] };
-const BM = '<svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg><svg class="k-meer" viewBox="0 0 24 24"><use href="#i-meer"/></svg>';
-const item = ([kop, intro, beeld, b, tijd]) => `<div class="k"><div class="k-kop">${kop}</div>${intro ? `<p class="k-intro">${intro}</p>` : ''}${beeld ? `<svg class="k-beeld2" viewBox="0 0 320 160"><use href="#${beeld}"/></svg>` : ''}<div class="k-bron"><i class="${BR[b][0]}">${b}</i><span>${BR[b][1]}<small>${tijd}</small></span>${BM}</div></div>`;
-const L = {
-  alles: [
-    ['Netbeheerders mogen eerder beginnen met bouwen', 'Ook als de inspraak nog loopt, mag de schop de grond in.', 'il-c', 'ON', '4 min geleden'],
-    'HIER',
-    ['Oude bioscoop in de binnenstad wordt weer filmhuis', '', '', 'SK', '11 min geleden'],
-  ],
-  binnenland: [
-    ['Treinreizigers vinden sneller een zitplaats', 'De nieuwe dienstregeling spreidt de drukte over de ochtend.', 'il-a', 'LD', '2 uur geleden'],
-    ['Fietsbrug verbindt twee wijken die jarenlang gescheiden waren', '', '', 'SK', '3 uur geleden'],
-  ],
-  wereld: [
-    ['Zuid-Europese steden zoeken verkoeling met stadsbossen', 'Nieuwe bomen moeten de straten in de zomer koeler maken.', 'il-c', 'WW', '1 uur geleden'],
-    ['Noorse haven laadt schepen voortaan op stroom van land', '', '', 'WW', '4 uur geleden'],
-  ],
-  cultuur: [
-    ['Debuutroman over een dorp aan de rivier verovert de boekenlijsten', 'Lezers en boekhandels noemen het de verrassing van het najaar.', 'il-iris', 'CK', '1 uur geleden'],
-    ['Museum zet de zaalteksten voortaan ook in eenvoudige taal', '', '', 'SK', '5 uur geleden'],
-  ],
-};
-const PANELEN = Object.entries(L).map(([k, arr]) =>
-  `<div class="sc-lijst" data-pan="${k}"${k === 'alles' ? '' : ' hidden'}>${arr.map(i => i === 'HIER' ? '<div class="sc-hier">Hier was je gebleven</div>' : item(i)).join('')}</div>`).join('');
+// De voorbeelden (held, Editie, Stroom, Selectie, Hoot kiest) komen uit een echte, bewaarde Editie: landing/bewaard.json,
+// ververst met `node landing/bewaar.mjs` (alleen GET). Geen verzonnen kranten; de live voorpagina vervangt held en Hoot kiest.
+const { vulBewaard } = await import('./bewaard.mjs');
+const BEWAARD = JSON.parse(rd('bewaard.json'));
 
-const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, PANELEN, ...AS })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
+const fill = (t) => vulBewaard(t, BEWAARD).replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, ...AS })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
 fs.writeFileSync(path.join(OUT, '404.html'), fill(rd('404.src.html')));
 

@@ -1,0 +1,185 @@
+{
+ "slot": "avond",
+ "date": "2026-11-12",
+ "voorpagina": {
+  "entries": [
+   {
+    "desk": "binnenland",
+    "deskLabel": "Binnenland",
+    "title": "Kabinet ontraadt deal met Pro en Volt die door D66 en CDA wordt gesteund",
+    "source": "NRC",
+    "sourceCount": 6
+   },
+   {
+    "desk": "cultuur",
+    "deskLabel": "Cultuur",
+    "title": "NS Publieksprijs 2026 voor roman ‘Narcis’ van laatbloeier Judith Fanto",
+    "source": "NRC",
+    "sourceCount": 7
+   },
+   {
+    "desk": null,
+    "deskLabel": null,
+    "title": "Steeds meer aangetoonde verzekeringsfraude – mede door AI",
+    "source": "de Volkskrant",
+    "sourceCount": 1
+   }
+  ],
+  "bubble": {
+   "desk": null,
+   "deskLabel": null,
+   "title": "Slimste Mens-deelnemer trekt zich terug na beschuldigingen",
+   "source": "RTL Nieuws",
+   "sourceCount": 1
+  }
+ },
+ "editie": [
+  {
+   "title": "Kabinet ontraadt deal met Pro en Volt die door D66 en CDA wordt gesteund",
+   "source": "NRC",
+   "sourceCount": 6,
+   "desk": "binnenland"
+  },
+  {
+   "title": "EU eist ‘dringende’ opheffing Starlink-beperkingen voor Oekraïne",
+   "source": "Nederlands Dagblad",
+   "sourceCount": 1,
+   "desk": "oekraine"
+  },
+  {
+   "title": "Belastingplan wankelt nog steeds: veel hangt af van ChristenUnie en 50Plus",
+   "source": "de Volkskrant",
+   "sourceCount": 1,
+   "desk": "binnenland"
+  },
+  {
+   "title": "Stemming aanpassing belastingplan even uitgesteld na verzoek Denk",
+   "source": "de Volkskrant",
+   "sourceCount": 1,
+   "desk": "binnenland"
+  },
+  {
+   "title": "Maatschappelijke organisaties uiten onvrede over kabinetscrisis: ‘Los dit samen op’",
+   "source": "NOS",
+   "sourceCount": 1,
+   "desk": "binnenland"
+  },
+  {
+   "title": "Jensen Huang treedt per direct terug als topman van Nvidia na uitkomen tweede affaire",
+   "source": "de Volkskrant",
+   "sourceCount": 1,
+   "desk": "buitenland"
+  },
+  {
+   "title": "‘Narcis’ van Judith Fanto wint NS Publieksprijs",
+   "source": "NOS",
+   "sourceCount": 1,
+   "desk": "binnenland"
+  },
+  {
+   "title": "Belastingplan levert zware coalitiecrisis op: vier vragen en antwoorden",
+   "source": "NOS",
+   "sourceCount": 1,
+   "desk": "binnenland"
+  },
+  {
+   "title": "Pas na de stemmingen wordt duidelijk hoe het verder gaat met belastingplan en kabinet",
+   "source": "NOS",
+   "sourceCount": 1,
+   "desk": "binnenland"
+  },
+  {
+   "title": "Debat geschorst, spanning rond stemming stijgt",
+   "source": "de Volkskrant",
+   "sourceCount": 1,
+   "desk": "binnenland"
+  }
+ ],
+ "bubbel": {
+  "title": "Slimste Mens-deelnemer trekt zich terug na beschuldigingen",
+  "source": "RTL Nieuws",
+  "sourceCount": 1,
+  "desk": null
+ },
+ "stroom": {
+  "alles": [
+   {
+    "title": "Trump bemoeit zich met opvolging afgetreden Nvidia-topman en pleit voor benoeming Apple-bestuurder Tim Cook",
+    "source": "de Volkskrant",
+    "sourceCount": 1,
+    "desk": "vs"
+   },
+   {
+    "title": "Rabobank trekt miljoenen uit voor boeren die minder bestrijdingsmiddelen willen gebruiken",
+    "source": "de Volkskrant",
+    "sourceCount": 1,
+    "desk": "binnenland"
+   },
+   {
+    "title": "Westland maakt afspraken met andere gemeenten over opvang asielzoekers onder druk van Spreidingswet",
+    "source": "de Volkskrant",
+    "sourceCount": 1,
+    "desk": "binnenland"
+   }
+  ],
+  "binnenland": [
+   {
+    "title": "Marktbezoekers over politieke crisis: ‘Het is elke keer hetzelfde liedje’",
+    "source": "NOS",
+    "sourceCount": 1,
+    "desk": "binnenland"
+   },
+   {
+    "title": "Jetten wil door met de VVD en erkent dat hij moet werken aan reset",
+    "source": "de Volkskrant",
+    "sourceCount": 1,
+    "desk": "binnenland"
+   }
+  ],
+  "wereld": [
+   {
+    "title": "Vicepresident Indonesië stapt op na diplomaschandaal en oplopende spanningen",
+    "source": "NOS",
+    "sourceCount": 1,
+    "desk": "buitenland"
+   },
+   {
+    "title": "Duitsland moet van ‘economische wijzen’ fors bezuinigen om crisis te voorkomen",
+    "source": "de Volkskrant",
+    "sourceCount": 1,
+    "desk": "buitenland"
+   }
+  ],
+  "cultuur": [
+   {
+    "title": "Foam Paul Huf Award voor Iraanse fotograaf die de verslavingscrisis in zijn land toont",
+    "source": "de Volkskrant",
+    "sourceCount": 1,
+    "desk": "cultuur"
+   },
+   {
+    "title": "Album van de Week (46): Library Card",
+    "source": "3voor12",
+    "sourceCount": 1,
+    "desk": "cultuur"
+   }
+  ]
+ },
+ "selectie": {
+  "week": 45,
+  "velden": [
+   {
+    "label": "Wetenschap",
+    "count": 3
+   },
+   {
+    "label": "Boeken",
+    "count": 3
+   }
+  ],
+  "kaart": {
+   "title": "Archeologische vondst onthult dat cannabis 2.800 jaar geleden al werd gebruikt als geestverruimend middel",
+   "source": "Scientias"
+  }
+ }
+}

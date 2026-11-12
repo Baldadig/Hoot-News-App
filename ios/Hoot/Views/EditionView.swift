@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 // Editie: drie keer per dag tien genummerde verhalen. De redactionele volgorde blijft leidend;
 // een optioneel bubbelverhaal staat los en ongenummerd na de gewone reeks.
@@ -152,7 +153,11 @@ struct EditionView: View {
         return nil
     }
     @Environment(HootStore.self) private var store
+    @Environment(\.requestReview) private var requestReview // het venster van Apple (ReviewAsk)
     @Environment(\.openTab) private var openTab
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel, zoals elders: buiten RootView is er geen krant
+    @Environment(Reader.self) private var reader: Reader?
     @Environment(\.openStory) private var openStory
     @Environment(\.isWide) private var wide
     @Environment(\.tabloid) private var tabloid // de Duo open (Krant.swift): de Editie als tabloid, de goot op de vouw
@@ -182,6 +187,24 @@ struct EditionView: View {
     private var loaderShown: Bool {
         let empty = !EditionNumbering.rows(store.editionRows).contains { $0.desk != "bubbel" }
         return empty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil))
+    }
+    // Om een beoordeling vragen (ReviewAsk): alleen op het einde, na de derde uitgelezen Editie, een tel nadat de
+    // eindkaart in beeld kwam, en alleen als je er nog bent en er geen seintje-vraag staat. Hooguit één keer per versie.
+    private func reviewMoment() {
+        guard let id = store.edition?.id, !store.browsing else { return }
+        let read = ReviewAsk.record(edition: id)
+        let version = ReviewAsk.appVersion
+        guard ReviewAsk.shouldAsk(read: read, version: version), !DebugLaunch.offline else { return }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.5))
+            // Na de 1,5 s opnieuw kijken: geen verhaal open (pad, naast de Editie, lezer), de Editie-tab actief, de app actief.
+            guard ReviewAsk.mayShowNow(endVisible: endVisible, alertAsk: alertAsk, alertYes: alertYes, pathEmpty: path.isEmpty,
+                                       storyOpen: staat?.verhaal[.editie] != nil || reader?.item != nil,
+                                       editionTab: staat?.tab ?? .editie == .editie, sceneActive: scenePhase == .active),
+                  ReviewAsk.shouldAsk(read: ReviewAsk.record(edition: id), version: version) else { return }
+            ReviewAsk.markAsked(version: version)
+            requestReview()
+        }
     }
     private var title: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     private var dateLine: String {
@@ -643,6 +666,8 @@ struct EditionView: View {
                 alertOffered = true // gesteld zodra de kaart in beeld komt: wie niet antwoordt, ziet hem niet weer
                 withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
             }
+            // Om een beoordeling vragen: eigen onChange, los van de seintje-vraag hierboven (ReviewAsk).
+            .onChange(of: endVisible) { _, visible in if visible { reviewMoment() } }
             .task { await alerts.refresh() }
             }
             .safeAreaInset(edge: .bottom) {

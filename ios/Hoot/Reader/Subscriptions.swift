@@ -115,6 +115,34 @@ enum PublisherLogin {
         }.map { "\($0.domain)|\($0.name)" })
     }
 
+    // Kan het een inlog- of accountcookie zijn? Alleen op de naam (voor het inlogdagboek): de waarde
+    // kijken we hier bewust niet in.
+    static func mayBeLogin(name: String, domain: String) -> Bool {
+        if known[domain]?.contains(name) == true { return true }
+        let n = name.lowercased()
+        guard !noise.contains(where: n.contains) else { return false }
+        return n == "__utp" || n.hasPrefix("wordpress_logged_in_") || markers.contains(where: n.contains) || accountWords.contains(where: n.contains)
+    }
+
+    // Google weigert de lezer. Wie bij een uitgever met Google inlogt, kan daar meestal ook een
+    // wachtwoord maken (de pagina "wachtwoord vergeten" stuurt een link naar je e-mailadres). Per uitgever
+    // het adres, alleen waar die pagina echt bestaat en zonder inlog opent. Opgevraagd op 12 november 2026
+    // (alleen GET). Niet gevonden of niet los te openen: de Telegraph (een stap binnen de inlogpagina),
+    // The Verge en The Atlantic (in een app op de pagina), de andere Mediahuis-kranten (een eigen
+    // sleutel per krant, niet op te vragen).
+    private static let passwordPages: [String: String] = [
+        "nrc.nl": "https://login.nrc.nl/wachtwoord-vergeten",
+        "nd.nl": "https://www.nd.nl/wachtwoord-vergeten",
+        "limburger.nl": "https://auth.mediahuis.com/password/forgot?client_id=640a00e8-4cf0-479a-a825-6bb8dde940fa&tenantId=c2e4b1d4-8ecb-4088-b468-189b88e1e9ff&locale=nl",
+        "theguardian.com": "https://profile.theguardian.com/reset-password",
+        "ft.com": "https://accounts.ft.com/reset-password",
+        "lemonde.fr": "https://secure.lemonde.fr/sfuser/password/lost",
+        "independent.co.uk": "https://www.independent.co.uk/forgotten-password",
+        "eurogamer.net": "https://id.gamer.network/auth/password-reset",
+    ]
+    static func passwordPage(_ domain: String?) -> URL? { domain.flatMap { passwordPages[$0] }.flatMap(URL.init(string:)) }
+    static var passwordDomains: [String] { passwordPages.keys.sorted() }
+
     // Uitgevers waar we je zagen inloggen (alleen op dit toestel, net als de inlog zelf).
     private static let rememberedKey = "hoot.publisherLogins"
     static var remembered: Set<String> { Set(UserDefaults.standard.stringArray(forKey: rememberedKey) ?? []) }
@@ -207,7 +235,9 @@ struct SubscriptionsView: View {
         .alert("Overal uitloggen in de lezer?", isPresented: $confirmForget) {
             Button("Annuleer", role: .cancel) {}
             Button("Log uit", role: .destructive) {
-                ArticleLoader.dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {}
+                // Het dagboek pas wissen als de cookies echt weg zijn: dan begint het opnieuw, en kijkt
+                // Hoot niet nog net voor het opruimen (en schrijft dan "weg vóór de vervaldatum").
+                ArticleLoader.dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) { LoginDiary.erase() }
                 PublisherLogin.forget()
                 loggedIn = []
             }

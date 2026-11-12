@@ -203,6 +203,9 @@ struct RootView: View {
     @Environment(\.horizontalSizeClass) private var horizontal // -HootScreen lezer: compact wacht niet op een vouw
     @Environment(EditionAlerts.self) private var alerts
     @Environment(\.brandHandoff) private var handoff
+    #if DEBUG
+    @State private var inlogDebug = LoginDebug.target
+    #endif
 
     enum Destination: String, Sendable { case editie, stroom, digest, bewaard, zoek }
 
@@ -263,6 +266,7 @@ struct RootView: View {
         .tabBarMinimizeBehavior(.onScrollDown)
         // Meten zonder volgen (Telling.swift): welk tabblad opent. De Editie telt één keer per dagdeel, ook als hij pas laadt.
         .onChange(of: tab, initial: true) { _, t in
+            krant.tab = t
             switch t {
             case .editie: store.tel(.editieOpen)
             case .stroom: store.tel(.stroomOpen)
@@ -332,6 +336,12 @@ struct RootView: View {
             tab = .editie
             Task { await store.load() }
         }
+        // Het inlogdagboek: bij elke keer openen kijken welke inlogcookies er (nog) zijn. Alleen op dit toestel.
+        .task(id: "\(phase == .active) \(store.newsSources.count)") { if phase == .active { await LoginDiaryBook.look(store) } }
+        #if DEBUG
+        // `-HootInlogURL <url> [-HootInlogNaam <naam>]`: meteen het inlogvel op die pagina (LoginDebug).
+        .sheet(item: $inlogDebug) { LoginWebView(target: $0) }
+        #endif
         // De widgets (HootWidget): na elke nieuwe Editie en elk gelezen verhaal het bestand in de App Group bij.
         .task(id: WidgetSchrijver.sleutel(store)) { await WidgetSchrijver.schrijf(store) }
         // Een tik op een widget: hoot://editie of hoot://verhaal/<id> (HootLink). Bij een koude start wacht het

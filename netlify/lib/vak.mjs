@@ -6,7 +6,8 @@
 //   1. hoeveel vakbronnen over hetzelfde schrijven;
 //   2. of mensen het zelf hebben uitgekozen (de redactie van Sidebar kiest elke werkdag vijf links);
 //   3. wie het schreef: een vakexpert weegt zwaarder dan een vakblad, en dat zwaarder dan een
-//      bedrijfsblog.
+//      bedrijfsblog. In de onderwerpen met veel nieuws (LEESVOER) beslist dit, en telt 1 alleen bij gelijke stand.
+// Wat die week al in een Editie stond, komt niet in de top: de Selectie is leesvoer, geen herhaling.
 // Alleen mensenwerk: redactionele bronnen en vakmensen met naam; geen gesponsorde stukken,
 // webinars, podcastafleveringen, dealpagina's, vacatures of "10 tools"-lijstjes. Geen AI-tekst: bij elk stuk staat de
 // eigen intro van de schrijver.
@@ -145,7 +146,7 @@ const ORDER = {
 // alles op .nl of .be, plus de Nederlandstalige bronnen op een ander domein (hieronder). Geen
 // hoofdtaal: bronnen die bewust in meer talen schrijven. De rest is Engelstalig.
 const NL_ELSEWHERE = new Set(
-  ['frankwatching', 'photofacts', 'fotodok', 'iusmentis', 'tweakers', 'tweakers-games', 'thuiswinkel', 'esb', 'changeinc', 'verheggen', 'gemeentenu', 'writteninmusic', 'gonzocircus', 'tzum', 'trendbeheer', 'gamekings'].map(
+  ['frankwatching', 'photofacts', 'fotodok', 'iusmentis', 'tweakers', 'tweakers-games', 'thuiswinkel', 'esb', 'changeinc', 'verheggen', 'gemeentenu', 'writteninmusic', 'gonzocircus', 'tzum', 'trendbeheer', 'gamekings', 'helden'].map(
     (id) => 'vak:' + id,
   ),
 )
@@ -213,19 +214,21 @@ const BASE_FITS = {
 const WIDER = ['paid-social', 'ecommerce', 'seo', 'merk', 'ux', 'design']
 const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !(k in BASE_FITS))), ...BASE_FITS, ...Object.fromEntries(WIDER.filter((k) => MORE_FITS[k]).map((k) => [k, MORE_FITS[k]])) }
 
-// Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, vacatures, lijstjes.
+// Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, vacatures, lijstjes. En geen liveblog of
+// kijkwijzer ("England vs Croatia live updates", "How to watch …"): leesvoer, geen nieuws van de week (fase 3).
 // Deals en podcasts niet op een woord in de kop (Selectie · deals · 1, 12 november 2026): "OpenAI signs $10bn chip deal",
 // "Wat de deal tussen Ahold en Bol betekent" en nieuws over Black Friday-verkopen zijn vakstukken. Een echte dealpagina of
 // podcastaflevering herkent hardMark, dezelfde regel als de Editie (shared/editie-filter.mjs): een dealrubriek als eerste
 // padsegment, "Podcast:" vooraan, een iTunes-aflevering of een audio-enclosure zonder eigen intro.
-const NOT_READING = /\b(sponsored|^sponsor|partner content|advertorial|presented by|webinars?|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
+const NOT_READING = /^\W*live\b|\blive ?(updates|blog|event)\b|:\s*the latest (from|on)\b|\bhow to watch\b|\b(sponsored|^sponsor|partner content|advertorial|presented by|webinars?|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
 // Ook vaste rubrieken met een datum in de kop ("New Ecommerce Tools: October 21, 2026",
 // "Freebies, Sales, and Charity Bundles for October 19, 2026") en vaste linklijsten
 // ("… – This Week's Links", "News Digest …", "RPG Print News – …", "RPG Crowdfunding News – …").
-const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
+// En uitzendoverzichten van een programma ("12/11 in Nieuwsuur: Cruciaal debat • Hybride oorlog • …").
+const ROUNDUP = /^\s*\d{1,2}\/\d{1,2}(\/\d{2,4})? in [^:]{2,40}:|^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
 // Een vast programmalabel van een podcast in de kop, naast "Podcast:" vooraan (hardMark). De Selectie heeft geen AI die
 // twijfel beoordeelt, dus hier ook de vormen die vakbronnen gebruiken, en alleen als label (gescheiden door een pijp of
 // streep), nooit als woord in een zin: "… | The PetaPixel Podcast", "… – All Things Product Podcast with Teresa Torres",
@@ -244,7 +247,9 @@ export function podcastLabel(title = '') {
   // Met een dubbele punt alleen een eigen naam: "The Low Culture Podcast: …" (niet "Video Podcast: …").
   return SHOW_NAME.test(t.split(/\s*:\s*/)[0].trim()) && t.includes(':')
 }
-export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title) && !hardMark(it) && !podcastLabel(it.title)
+// `textOnly` (een bron die ook audio en video plaatst, zoals Paul Krugman): alleen de geschreven stukken.
+const AV = /^(audio|video)\//i
+export const isReading = (it, src = null) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
 const AMS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short' })
@@ -292,6 +297,27 @@ export function sameSubject(a, b, df = new Map()) {
 }
 
 const WEIGHT = { expert: 3, vakblad: 2, curator: 2, community: 1, officieel: 1 }
+// Leesvoer, geen nieuws van de week (Selectie · fase 3): in deze onderwerpen schrijven veel bronnen over hetzelfde
+// nieuws (een debat, een wedstrijd, een première). Daar beslist het gewicht van de schrijver (WEIGHT); hoeveel bronnen
+// erover schreven telt alleen nog bij gelijke stand.
+export const LEESVOER = new Set(['politiek', 'economie', 'sport', 'film', 'muziek'])
+
+// Stond dit stuk (zelfde link of zelfde verhaal) deze week al in een Editie? `editie`: de stukken van de bewaarde
+// Edities van de week ({ title, url }), zie editieItems in vakRefresh.mjs. Zo'n stuk komt niet in de top.
+function editieMatcher(editie = []) {
+  if (!editie.length) return () => false
+  const links = new Set(editie.map((e) => cleanLink(e.url)).filter(Boolean))
+  // Zelfde verhaal: drie gedeelde woorden in de kop ("Jensen", "Nvidia", "Huang"; "John", "Harrison", "Booker"). Strenger
+  // dan sameSubject binnen de Selectie: twee woorden als "wins" en "prize" maken nog geen zelfde verhaal (een
+  // bordspelprijs is geen Booker Prize), ook niet als ze zeldzaam zijn.
+  const heads = editie.filter((e) => e.title).map((e) => words(e.title))
+  return (items) =>
+    items.some((i) => {
+      if (i.url && links.has(cleanLink(i.url))) return true
+      const t = [...words(i.title)]
+      return heads.some((h) => t.filter((w) => h.has(w)).length >= 3)
+    })
+}
 const cleanLink = (u) => (u || '').replace(/[?#].*$/, '').replace(/\/$/, '').replace(/^https?:\/\/(www\.)?/, '')
 const prettyHost = (u) => hostname(u).replace(/^www\./, '')
 
@@ -319,15 +345,28 @@ export function isArticleLink(url) {
 // De Vakweek samenstellen uit de voorraad (alle stukken van de afgelopen weken).
 // `since`: sinds wanneer we verzamelen. Is dat later dan het begin van de week, dan is die week
 // niet compleet: dan een voorproefje over de afgelopen zeven dagen (tot de eerste volle week).
-export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top = 3, more = 5, since = null } = {}) {
+// De week waarover we samenstellen: de volle Vakweek, of het voorproefje over de afgelopen zeven dagen.
+export function vakRange(now = Date.now(), since = null) {
   const full = vakWeek(now)
   const preview = !!since && since > full.from
-  const wk = preview ? { ...full, from: new Date(now - 7 * 864e5).toISOString(), to: new Date(now).toISOString() } : full
+  return { preview, wk: preview ? { ...full, from: new Date(now - 7 * 864e5).toISOString(), to: new Date(now).toISOString() } : full }
+}
+// De dagdelen van de Editie in die week (id's als in netlify/lib/build.mjs: 2026-11-12-ochtend), in Amsterdamse dagen.
+const AMS_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' })
+export function editieSlotIds({ from, to }) {
+  const days = new Set()
+  for (let t = Date.parse(from); t < Date.parse(to) + 864e5; t += 864e5) days.add(AMS_DAY.format(new Date(Math.min(t, Date.parse(to)))))
+  return [...days].flatMap((d) => ['ochtend', 'middag', 'avond'].map((s) => `${d}-${s}`))
+}
+
+export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top = 3, more = 5, since = null, editie = [] } = {}) {
+  const { preview, wk } = vakRange(now, since)
   const byId = new Map(sources.map((s) => [s.id, s]))
-  const inWeek = pool.filter((i) => i.publishedAt >= wk.from && i.publishedAt < wk.to && byId.has(i.source) && isReading(i) && inReaderLang(i, byId.get(i.source)) && (byId.get(i.source).kind !== 'curator' || isArticleLink(i.url)))
+  const inWeek = pool.filter((i) => i.publishedAt >= wk.from && i.publishedAt < wk.to && byId.has(i.source) && isReading(i, byId.get(i.source)) && inReaderLang(i, byId.get(i.source)) && (byId.get(i.source).kind !== 'curator' || isArticleLink(i.url)))
 
   const df = new Map()
   for (const it of inWeek) for (const w of words(textOf(it))) df.set(w, (df.get(w) || 0) + 1)
+  const inEditie = editieMatcher(editie)
   // Alleen onderwerpen met bronnen (een nieuw onderwerp zonder bronnen staat nog niet in de keuze).
   const covered = new Set(sources.flatMap((s) => s.fields))
   const fields = VAK_FIELDS.filter((f) => covered.has(f.id)).map((f) => {
@@ -339,6 +378,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const g = groups.find((gr) => sameSubject(gr.items[0], it, df))
       g ? g.items.push(it) : groups.push({ items: [it] })
     }
+    const hidden = new Set() // stond deze week al in een Editie: niet in de top
     const scored = groups.map((g) => {
       const srcs = new Set(g.items.map((i) => i.source))
       // Gekozen door Sidebar telt als signaal als een andere bron het stuk (of onderwerp) ook heeft.
@@ -347,7 +387,9 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const rank = (i) => (byId.get(i.source).kind === 'curator' ? 0 : WEIGHT[byId.get(i.source).kind]) * 10 + (i.author ? 2 : 0) + (i.summary ? 1 : 0)
       const lead = [...g.items].sort((a, b) => rank(b) - rank(a) || (a.publishedAt < b.publishedAt ? -1 : 1))[0]
       const src = byId.get(lead.source)
-      const score = WEIGHT[src.kind] + 2.5 * (srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
+      const extra = 2.5 * (srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
+      // Leesvoer: het gewicht eerst, de rest alleen bij gelijke stand (extra blijft ruim onder de 100).
+      const score = LEESVOER.has(f.id) ? WEIGHT[src.kind] * 100 + extra : WEIGHT[src.kind] + extra
       const why = []
       if (srcs.size > 1) why.push(`${srcs.size} vakbronnen schreven erover`)
       const chooser = g.items.map((i) => byId.get(i.source)).find((x) => x.kind === 'curator')
@@ -364,6 +406,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
         also: g.items.filter((i) => i.source !== lead.source && byId.get(i.source).kind !== 'curator' && cleanLink(i.url) !== cleanLink(lead.url)).map((i) => ({ sourceName: i.sourceName, url: i.url, title: i.title })),
         score,
       }
+      if (inEditie(g.items)) hidden.add(entry)
       delete entry.text
       delete entry.cats
       delete entry.ogTried
@@ -384,7 +427,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       return out
     }
     // Een bedrijfsblog (Meta, Figma) haalt de top alleen als ook anderen erover schrijven.
-    const topList = pick(scored.filter((e) => byId.get(e.source).kind !== 'officieel' || e.also.length), top, 1)
+    const topList = pick(scored.filter((e) => !hidden.has(e) && (byId.get(e.source).kind !== 'officieel' || e.also.length)), top, 1)
     const rest = pick(scored.filter((e) => !topList.includes(e)), more, 2)
     return { ...f, count: its.length, top: topList, more: rest }
   })
@@ -436,7 +479,7 @@ export async function loadVakItems(sources = VAK_SOURCES) {
   // rubrieksfeed) leveren veel meer dan we bewaren willen.
   const byId = new Map(sources.map((s) => [s.id, s]))
   // Een bericht in een andere taal dan zijn bron (ArchiNed in het Engels) valt af: zie vakLang.
-  const keep = (i) => byId.has(i.source) && visibleFor(i) && isReading(i) && fieldOf(i, byId.get(i.source))
+  const keep = (i) => byId.has(i.source) && visibleFor(i) && isReading(i, byId.get(i.source)) && fieldOf(i, byId.get(i.source))
   // De artikeltekst en rubrieken hebben we hier niet nodig; mediaType, feedMark en podcastEpisode blijven (hardMark
   // kijkt er in composeVak opnieuw naar).
   const slim = ({ text, cats, ...it }) => it
