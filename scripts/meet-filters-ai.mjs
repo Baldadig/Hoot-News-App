@@ -10,9 +10,12 @@
 //   - vangst: echte deals/aankondigingen door A, en door A+B;
 //   - gedrag: aanroepen, verdachte batches, ontspoord, fouten en time-outs, looptijd per aanroep (p50 en max);
 //   - kosten (Haiku 5.5: $0,10 / $0,50 per miljoen tokens), en voor de live kern per dagdeel;
-//   - aanvallen op het vangnet (filters-b): de ankers bij het echte model (moeten allemaal nieuws zijn), en het echte model
-//     met een vervalst antwoord: alles weg (40 en 5 stukken), per onderwerp ontspoord (Black Friday, koopdag, korting, prijs,
-//     podcast, deal, video, percentages; 40 en 3 stukken) en tegenstrijdige oordelen. Eis: overal 0 nieuws weg. Niet met --set;
+//   - aanvallen op het vangnet (filters-b, uitgebreid na B-keuring 1): de ankers en tweelingen bij het echte model (moeten
+//     allemaal nieuws zijn), en het echte model met een vervalst antwoord zoals een ontspoord model het zou geven: alles weg,
+//     per onderwerp (Black Friday, koopdag, korting, prijs, podcast, deal, video, percentages), per bron en domein, zonder
+//     intro, op de kopvorm (dubbele punt, vraag), op taal, op namen, op sport, op een woord in de link, het oordeel van de
+//     buurman, willekeurig (vast per kop, en per aanroep) en tegenstrijdig; elk bij meerdere batchgroottes. Eis: overal 0
+//     nieuws weg. Niet met --set;
 //   - het oordeel: mag HOOT_EDITIE_AI=aan, ja of nee.
 // Zonder ANTHROPIC_API_KEY: een droge telling (kandidaten, aanroepen, geschatte kosten). Vult nooit zelf een sleutel in.
 // Gebruik:
@@ -21,7 +24,7 @@
 // Afsluitcode 1 als er met een sleutel nieuws onterecht wegvalt (ook in een aanval), of als aanroepen mislukken.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { hardMark } from '../shared/editie-filter.mjs'
-import { judge, askOnce, weakSignal, excludes, ANKERS, ANCHORS_PER, MAX_BATCH, MODEL, TIMEOUT_MS, CONTROLS } from '../netlify/lib/editie-ai.mjs'
+import { judge, askOnce, weakSignal, excludes, controlSet, langOf, namesOf, ANKERS, MAX_BATCH, MODEL, TIMEOUT_MS, CONTROLS_FIRST, CONTROLS_VERIFY, VERIFY_ITEMS } from '../netlify/lib/editie-ai.mjs'
 
 const args = process.argv.slice(2)
 const labelFiles = args.flatMap((a, k) => (a === '--labels' ? [args[k + 1]] : []))
@@ -93,8 +96,9 @@ const ms = []
 const total = { N: 0, Nweg: 0, NwegA: 0, W: 0, Wa: 0, Wb: 0, naarModel: 0, calls: 0, tin: 0, tout: 0, verdacht: 0, ontspoord: 0, fout: 0, timeout: 0 }
 for (const [name, xs] of sets) {
   const ask = xs.filter((i) => !hardMark(i) && weakSignal(i))
-  // Controlestukken zoals op de server: gewone stukken uit dezelfde set zonder zwak signaal (de labels kijken we niet in).
-  const controls = xs.filter((i) => !hardMark(i) && !weakSignal(i)).slice(0, CONTROLS)
+  // Controlestukken zoals op de server: gewone stukken uit dezelfde set zonder zwak signaal (de labels kijken we niet in);
+  // judge kiest daaruit per aanroep de best passende, naast de tweelingen.
+  const controls = xs.filter((i) => !hardMark(i) && !weakSignal(i))
   const aWeg = new Set(xs.filter((i) => hardMark(i)).map((i) => i.id))
   const weg = new Map([...aWeg].map((id) => [id, { soort: 'A', reden: 'harde aanwijzing' }]))
   let calls = 0, tin = 0, tout = 0, verdacht = 0, ontspoord = 0, fout = 0, timeout = 0
@@ -102,15 +106,15 @@ for (const [name, xs] of sets) {
     const batch = ask.slice(k, k + MAX_BATCH)
     calls++
     if (!client) {
-      tin += 700 + 95 * batch.length // schatting: systeemprompt + per stuk bron/kop/intro/link/code
-      tout += 30 * batch.length
-      // Elke batch waarin iets weg zou gaan, krijgt een controle: de zekere stukken plus ankers en gewone stukken (schatting:
-      // de gelabelde deals/aankondigingen in de batch, plus ANCHORS_PER + CONTROLS controlestukken).
-      const zeker = batch.filter((i) => i.label === 'W').length
+      tin += 700 + 95 * (batch.length + CONTROLS_FIRST) // schatting: systeemprompt + per stuk bron/kop/intro/link/code
+      tout += 30 * (batch.length + CONTROLS_FIRST)
+      // Elke batch waarin iets weg zou gaan, krijgt een controle: de zekere stukken twee keer plus CONTROLS_VERIFY
+      // controlestukken (schatting: de gelabelde deals/aankondigingen in de batch, hooguit VERIFY_ITEMS).
+      const zeker = Math.min(VERIFY_ITEMS, batch.filter((i) => i.label === 'W').length)
       if (zeker) {
         calls++
-        tin += 700 + 95 * (zeker + ANCHORS_PER + CONTROLS)
-        tout += 30 * (zeker + ANCHORS_PER + CONTROLS)
+        tin += 700 + 95 * (2 * zeker + CONTROLS_VERIFY)
+        tout += 30 * (2 * zeker + CONTROLS_VERIFY)
       }
       continue
     }
@@ -166,69 +170,106 @@ if (liveWeg.length) {
   for (const w of liveWeg) say(`- ${w.source}: ${w.title} · ${w.soort}${w.reden ? `: ${w.reden}` : ''}`)
   say()
 }
-// Aanvallen (filters-b): het vangnet om het echte model heen. Met een sleutel krijgt het model de echte vragen, en een
-// omhulsel vervalst daarna het antwoord zoals een ontspoord model zou doen. Eis: in elke aanval 0 nieuws weg.
-//   - ankers: de vaste controlekoppen alleen; het echte model hoort ze allemaal nieuws te noemen (anders legt de controle
-//     B stil, of ontspoort het model op die onderwerpen);
-//   - alles-weg: elk oordeel wordt "aanbieding, zeker" (groot en klein: 40 en 5 nieuwsstukken);
-//   - onderwerp: elk stuk met het meest voorkomende signaalwoord van de batch wordt "aanbieding, zeker" (koopdag, Black Friday …);
-//   - tegenstrijdig: na elk oordeel komt een tweede over hetzelfde nummer dat het tegendeel zegt.
+// Aanvallen (filters-b, uitgebreid in filters-b-2): het vangnet om het echte model heen. Met een sleutel krijgt het model de
+// echte vragen, en een omhulsel vervalst daarna het antwoord zoals een ontspoord model zou doen: elk stuk in de aanroep (ook
+// elk controlestuk) met het kenmerk wordt "aanbieding, zeker", de rest houdt het echte oordeel. Eis: in elke aanval 0 nieuws weg.
+// De kenmerken komen uit de gegevens zelf (de meest voorkomende domeinen, bronnen en namen); in dit script staan geen bronnen.
 const attacks = []
 if (client && !only) {
   const newsPool = []
   for (const [name, xs] of sets) if (name !== 'live-kern') newsPool.push(...xs.filter((i) => i.label === 'N' && !hardMark(i) && weakSignal(i)))
   const plain = []
   for (const [name, xs] of sets) if (name !== 'live-kern') plain.push(...xs.filter((i) => !hardMark(i) && !weakSignal(i)))
-  const controls = plain.slice(0, CONTROLS)
-  const TOPICS = [/black friday|cyber monday|prime day/i, /koopdag|uitverkoop|koopje/i, /korting|discount|aanbieding/i, /prijs|price/i, /podcast|aflevering|episode/i, /deal/i, /video|kijk|watch|stream/i, /\d\s?(%|procent|percent)/i]
-  const kopsOf = (params) => [...params.messages[0].content.matchAll(/^ {3}kop: (.*)$/gm)].map((m) => m[1])
-  const codesOf = (params) => [...params.messages[0].content.matchAll(/^ {3}code: (.*)$/gm)].map((m) => m[1])
-  const wrap = (rewrite) => ({ messages: { create: async (params, opts) => {
-    const res = await client.messages.create(params, opts)
-    let data = { oordelen: [] }
-    try { data = JSON.parse((res.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')) } catch {}
-    const oordelen = rewrite(Array.isArray(data?.oordelen) ? data.oordelen : [], kopsOf(params), codesOf(params))
-    return { ...res, stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ oordelen }) }] }
-  } } })
+  const controls = plain
+  const rowsOf = (params) => params.messages[0].content.split('\n\n').filter((r) => /^\d+\. bron:/.test(r)).map((r) => ({ bron: (r.match(/bron: (.*)/) || [])[1] || '', kop: (r.match(/ {3}kop: (.*)/) || [])[1] || '', intro: (r.match(/ {3}intro: (.*)/) || [])[1] || '', link: (r.match(/ {3}link: (.*)/) || [])[1] || '', code: (r.match(/ {3}code: (.*)/) || [])[1] || '' }))
+  const wrap = (rewrite) => {
+    let n = 0
+    return { messages: { create: async (params, opts) => {
+      const res = await client.messages.create(params, opts)
+      let data = { oordelen: [] }
+      try { data = JSON.parse((res.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')) } catch {}
+      const oordelen = rewrite(Array.isArray(data?.oordelen) ? data.oordelen : [], rowsOf(params), ++n)
+      return { ...res, stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ oordelen }) }] }
+    } } }
+  }
   const zeker = (nr, code) => ({ nr, code, soort: 'aanbieding', zeker: true, reden: 'aanval' })
-  const run = async (naam, batch, c) => {
-    const row = { naam, stukken: batch.length, weg: 0, ontspoord: false, fout: null }
+  const real = (os, r, j) => os.find((o) => o?.nr === j + 1) || { nr: j + 1, code: r.code, soort: 'nieuws', zeker: false, reden: 'aanval' }
+  // Een ontsporing op een kenmerk van de rij (bron, kop, intro, link).
+  const skewOf = (flag) => wrap((os, rows, call) => rows.map((r, j) => (flag(r, j, rows, call) ? zeker(j + 1, r.code) : real(os, r, j))))
+  let tinA = 0, toutA = 0
+  // Over `items` in batches van `size` (hooguit `maxBatches` batches): hoeveel nieuws weg, ontspoord gezien, fouten.
+  const run = async (naam, items, c, { sizes = [MAX_BATCH, 3], maxBatches = 3 } = {}) => {
+    for (const size of sizes) {
+      const row = { naam: `${naam}, ${size}`, stukken: 0, weg: 0, ontspoord: false, fout: null }
+      for (let k = 0, b = 0; k < items.length && b < maxBatches; k += size, b++) {
+        const batch = items.slice(k, k + size)
+        row.stukken += batch.length
+        try {
+          const r = await judge(typeof c === 'function' ? c() : c, batch, { controls, deadline: Date.now() + 10000 })
+          row.weg += batch.filter((i) => excludes(r.verdicts.get(i.id))).length
+          row.ontspoord ||= !!r.ontspoord
+          tinA += r.usage?.input_tokens || 0
+          toutA += r.usage?.output_tokens || 0
+        } catch (e) {
+          row.fout = e?.constructor?.name || 'fout'
+        }
+      }
+      attacks.push(row)
+    }
+  }
+  // Stukken met het kenmerk eerst (tot 20 per batch van 40), aangevuld met ander nieuws.
+  const focus = (flag) => {
+    const on = newsPool.filter(flag), off = newsPool.filter((i) => !flag(i))
+    return on.length >= 3 ? [...on.slice(0, 20), ...off.slice(0, MAX_BATCH - Math.min(20, on.length)), ...on.slice(20)] : null
+  }
+  const asRow = (i) => ({ bron: String(i.sourceName || i.source || ''), kop: i.title || '', intro: i.borrowedFrom || !String(i.summary || '').trim() ? '(geen)' : String(i.summary), link: String(i.url || '') })
+  const top = (xs, n) => [...xs.reduce((m, x) => m.set(x, (m.get(x) || 0) + 1), new Map())].filter(([x]) => x).sort((a, b) => b[1] - a[1]).slice(0, n).map(([x]) => x)
+  const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, '') } catch { return '' } }
+  // 1. De ankers bij het echte model, los en als tweelingen van echte nieuwsstukken: ze moeten allemaal nieuws zijn.
+  for (const [naam, list] of [['ankers', ANKERS], ['tweelingen', controlSet(newsPool.slice(0, 10), { max: 30 }).filter((c) => c.anker)]]) {
     try {
-      const r = await judge(c, batch, { controls, deadline: Date.now() + 10000 })
-      row.weg = batch.filter((i) => excludes(r.verdicts.get(i.id))).length
-      row.ontspoord = !!r.ontspoord
+      const r = await askOnce(client, list)
       tinA += r.usage?.input_tokens || 0
       toutA += r.usage?.output_tokens || 0
+      const weg = [...r.byNr.values()].filter(excludes).length
+      attacks.push({ naam: `${naam} (echt model, eis: alle nieuws)`, stukken: list.length, weg, ontspoord: false, fout: r.byNr.size === list.length ? null : `${list.length - r.byNr.size} zonder oordeel` })
     } catch (e) {
-      row.fout = e?.constructor?.name || 'fout'
+      attacks.push({ naam: `${naam} (echt model, eis: alle nieuws)`, stukken: list.length, weg: 0, ontspoord: false, fout: e?.constructor?.name || 'fout' })
     }
-    attacks.push(row)
   }
-  let tinA = 0, toutA = 0
-  // ankers
-  try {
-    const r = await askOnce(client, ANKERS)
-    tinA += r.usage?.input_tokens || 0
-    toutA += r.usage?.output_tokens || 0
-    const weg = [...r.byNr.values()].filter(excludes).length
-    attacks.push({ naam: 'ankers (echt model, eis: alle nieuws)', stukken: ANKERS.length, weg, ontspoord: false, fout: r.byNr.size === ANKERS.length ? null : `${ANKERS.length - r.byNr.size} zonder oordeel` })
-  } catch (e) {
-    attacks.push({ naam: 'ankers (echt model, eis: alle nieuws)', stukken: ANKERS.length, weg: 0, ontspoord: false, fout: e?.constructor?.name || 'fout' })
-  }
-  const big = newsPool.slice(0, MAX_BATCH)
-  await run('alles-weg, 40 nieuws', big, wrap((os, kops, codes) => kops.map((_, k) => zeker(k + 1, codes[k]))))
-  await run('alles-weg, 5 nieuws', newsPool.slice(-5), wrap((os, kops, codes) => kops.map((_, k) => zeker(k + 1, codes[k]))))
-  // Elk onderwerp met minstens 3 nieuwskoppen: een batch met (tot) 20 daarvan en de rest ander nieuws; plus een kleine batch van 3.
+  // 2. Alles weg.
+  await run('alles-weg', newsPool, skewOf(() => true), { sizes: [MAX_BATCH, 5, 1], maxBatches: 2 })
+  // 3. Per onderwerp.
+  const TOPICS = [/black friday|cyber monday|prime day/i, /koopdag|uitverkoop|koopje/i, /korting|discount|aanbieding/i, /prij[sz]|price/i, /podcast|aflevering|episode/i, /deal/i, /video|kijk|watch|stream/i, /\d\s?(%|procent|percent)/i]
   for (const topic of TOPICS) {
-    const onTopic = newsPool.filter((i) => topic.test(i.title))
-    if (onTopic.length < 3) continue
-    const naam = topic.source.replace(/\\d\\s\?/g, 'getal ').replace(/[()]/g, '').replace(/\|/g, ' / ')
-    const topicBatch = [...onTopic.slice(0, 20), ...newsPool.filter((i) => !topic.test(i.title)).slice(0, MAX_BATCH - Math.min(20, onTopic.length))]
-    const skew = wrap((os, kops, codes) => kops.map((k, j) => (topic.test(k) ? zeker(j + 1, codes[j]) : os.find((o) => o?.nr === j + 1) || { nr: j + 1, code: codes[j], soort: 'nieuws', zeker: false, reden: 'aanval' })))
-    await run(`onderwerp ${naam}, 40`, topicBatch, skew)
-    await run(`onderwerp ${naam}, 3`, onTopic.slice(-3), skew)
+    const items = focus((i) => topic.test(i.title))
+    if (items) await run(`onderwerp ${topic.source.replace(/\\d\\s\?/g, 'getal ').replace(/[()]/g, '').replace(/\|/g, ' / ')}`, items, skewOf((r) => topic.test(r.kop)))
   }
-  await run('tegenstrijdig', big, wrap((os) => os.flatMap((o) => [o, excludes(o) ? { ...o, soort: 'nieuws' } : { ...o, soort: 'aanbieding', zeker: true }])))
+  // 4. Kenmerken buiten het onderwerp: domein en bron (de drie meest voorkomende), intro, kopvorm, taal, namen, sport, link.
+  const feats = []
+  for (const h of top(newsPool.map((i) => hostOf(i.url)), 3)) feats.push([`domein ${h}`, (r) => hostOf(r.link) === h])
+  for (const b of top(newsPool.map((i) => String(i.sourceName || i.source || '')), 3)) feats.push([`bron ${b}`, (r) => r.bron === b])
+  feats.push(['zonder intro', (r) => r.intro === '(geen)'], ['kopvorm dubbele punt', (r) => /:/.test(r.kop)], ['kopvorm vraag', (r) => /\?\s*$/.test(r.kop)])
+  feats.push(['taal Engels', (r) => langOf({ title: r.kop, summary: r.intro === '(geen)' ? '' : r.intro, url: r.link }) === 'en'], ['taal Nederlands', (r) => langOf({ title: r.kop, summary: r.intro === '(geen)' ? '' : r.intro, url: r.link }) === 'nl'])
+  feats.push(['een naam in de kop', (r) => namesOf(r.kop).length > 0])
+  for (const n of top(newsPool.flatMap((i) => namesOf(i.title, i.summary)), 3)) feats.push([`naam ${n}`, (r) => r.kop.includes(n)])
+  feats.push(['sport', (r) => /voetbal|wedstrijd|coach|trainer|kampioen|elftal|competitie|match|league|football|soccer|tennis|wielren|formule/i.test(r.kop)])
+  for (const w of top(newsPool.flatMap((i) => (String(i.url || '').toLowerCase().match(/[a-z]{5,}/g) || []).filter((x) => !/https?|www/.test(x))), 2)) feats.push([`woord "${w}" in de link`, (r) => r.link.toLowerCase().includes(w)])
+  for (const [naam, flag] of feats) {
+    const items = focus((i) => flag(asRow(i)))
+    if (items) await run(naam, items, skewOf(flag))
+  }
+  // 5. Het oordeel van de buurman (één plek opgeschoven), en willekeurig: vast per kop (20%) en per aanroep (10% en 30%).
+  await run('oordeel van de buurman', newsPool, () => wrap((os, rows) => rows.map((r, j) => { const o = os.find((x) => x?.nr === ((j + rows.length - 1) % rows.length) + 1); return { ...(o || real(os, r, j)), nr: j + 1, code: r.code, ...(o ? {} : {}) } })), { sizes: [MAX_BATCH, 3] })
+  const h = (t) => { let x = 0; for (const c of t) x = (x * 31 + c.charCodeAt(0)) | 0; return Math.abs(x) }
+  await run('willekeurig vast per kop 20%', newsPool, skewOf((r) => h(r.kop) % 5 === 0), { sizes: [MAX_BATCH, 3, 1], maxBatches: 20 })
+  for (const p of [0.1, 0.3]) {
+    let seed = 7
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+    await run(`willekeurig per aanroep ${Math.round(p * 100)}%`, newsPool, skewOf(() => rnd() < p), { sizes: [MAX_BATCH, 3], maxBatches: 20 })
+  }
+  // 6. Tegenstrijdig: na elk oordeel een tweede over hetzelfde nummer dat het tegendeel zegt.
+  await run('tegenstrijdig', newsPool, wrap((os) => os.flatMap((o) => [o, excludes(o) ? { ...o, soort: 'nieuws' } : { ...o, soort: 'aanbieding', zeker: true }])), { sizes: [MAX_BATCH], maxBatches: 2 })
   total.tin += tinA
   total.tout += toutA
   say('## Aanvallen op het vangnet (eis: 0 nieuws weg)')
@@ -237,7 +278,7 @@ if (client && !only) {
   say('| --- | ---: | ---: | --- | --- |')
   for (const a of attacks) say(`| ${a.naam} | ${a.stukken} | ${a.weg ? `**${a.weg}**` : 0} | ${a.ontspoord ? 'ja' : '-'} | ${a.fout || '-'} |`)
   say()
-  say(`Kosten van de aanvallen: ${usd(tinA * IN + toutA * OUT)}.`)
+  say(`${attacks.length} aanvallen; kosten: ${usd(tinA * IN + toutA * OUT)}.`)
   say()
 }
 const attacksOk = attacks.every((a) => a.weg === 0 && !a.fout)

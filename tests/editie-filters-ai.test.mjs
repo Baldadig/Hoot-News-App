@@ -2,7 +2,7 @@
 // geen netwerk, geen sleutel. Alleen "aanbieding"/"aankondiging" met zeker = true weert; elke fout = niets weren.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { aiExclusions, aiEnabled, codeOf, codesFor, controlsOf, anchorsFor, ANKERS, ANCHORS_PER, CONTROLS, MAX_TRIES, SWITCH, candidates, weakSignal, readVerdicts, promptOf, judge, excludes, cacheKeyOf, dayKey, loadCache, saveCache, SYSTEM, SCHEMA, MODEL, MAX_BATCH, MAX_CANDIDATES, PREFIX } from '../netlify/lib/editie-ai.mjs'
+import { aiExclusions, aiEnabled, codeOf, codesFor, controlsOf, anchorsFor, controlSet, twinOf, profileOf, namesOf, spread, ANKERS, ANCHORS_PER, CONTROLS, CONTROLS_FIRST, CONTROLS_VERIFY, VERIFY_ITEMS, HERBEVESTIG_MS, REVERIFY_MAX, MAX_TRIES, SWITCH, candidates, weakSignal, readVerdicts, promptOf, judge, excludes, cacheKeyOf, dayKey, loadCache, saveCache, SYSTEM, SCHEMA, MODEL, MAX_BATCH, MAX_CANDIDATES, PREFIX } from '../netlify/lib/editie-ai.mjs'
 
 const NOW = Date.parse('2026-11-27T10:00:00Z')
 const iso = (ms) => new Date(ms).toISOString()
@@ -143,8 +143,8 @@ test('B: cache per id + kop-hash: een tweede ronde vraagt niets en weert hetzelf
   assert.deepEqual([...kv.m.keys()], [PREFIX + '2026-11-27'])
   const doc = kv.m.get(dayKey(NOW))
   assert.equal(doc.n, 4)
-  assert.deepEqual(doc.o[cacheKeyOf(pool[0])], ['aanbieding', true, 'proef'])
-  // Geen persoonsgegevens: alleen id:hash -> [soort, zeker, reden].
+  assert.deepEqual(doc.o[cacheKeyOf(pool[0])], ['aanbieding', true, 'proef', NOW]) // met het tijdstip van de bevestiging
+  // Geen persoonsgegevens: alleen id:hash -> [soort, zeker, reden(, tijdstip)].
   assert.ok(Object.keys(doc.o).every((k) => /^[a-z0-9]+:[a-z0-9]+$/.test(k)))
   const second = nepModel(() => { throw new Error('mag niet') })
   const r2 = await aiExclusions({ pool, now: NOW + 600e3, client: second, kv, log: quiet, enabled: true })
@@ -181,7 +181,9 @@ test('B: batchgrootte en dagplafond zijn begrensd', async () => {
   assert.equal(r.stats.kandidaten, 120)
   assert.ok(MAX_CANDIDATES >= 120)
   assert.equal(client.calls.length, 1)
-  assert.equal((client.calls[0].params.messages[0].content.match(/^\d+\. bron:/gm) || []).length, MAX_BATCH)
+  // De 40 stukken, met de controlestukken van de eerste aanroep ertussen.
+  assert.equal((client.calls[0].params.messages[0].content.match(/kop: Deal nummer/g) || []).length, MAX_BATCH)
+  assert.equal((client.calls[0].params.messages[0].content.match(/^\d+\. bron:/gm) || []).length, MAX_BATCH + CONTROLS_FIRST)
   assert.equal(MAX_BATCH, 40)
   // De volgende ronde vraagt de volgende 40 (wat al beoordeeld is, komt uit de cache).
   const next = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: 'nieuws', zeker: false, reden: 'x' })))
@@ -292,14 +294,15 @@ test('B herstel 2: elk oordeel geeft nummer + code terug; verwisseling bij gelij
   // Hoofdletters en spaties rond de code tellen niet.
   assert.equal(readVerdicts(JSON.stringify({ oordelen: [{ nr: 1, code: ' AB12C ', soort: 'nieuws', zeker: true, reden: 'x' }] }), 1, ['ab12c']).size, 1)
   // Het goede oordeel (juiste nummer + code) telt wel.
-  const good = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k.includes('AirPods') ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
+  const good = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k === b.title ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
   assert.deepEqual([...(await aiExclusions({ pool: [a, b], now: NOW, client: good, kv: nepKv(), log: quiet, enabled: true })).weg], ['bf-deal'])
 })
 
 test('B herstel 2: één echte deal wordt na een controle gewoon geweerd (geen stilstand bij een kleine batch)', async () => {
   const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
   const gewoon = [it('c1', 'Kabinet valt over stikstof', { source: 'nos' }), it('c2', 'Aardbeving treft kust van Japan', { source: 'nos' })]
-  const client = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: /Sonos/.test(k) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
+  // Een eerlijk model kent de deal aan de hele kop (niet aan een merknaam: dat zou een ontsporing zijn, zie de tweelingen).
+  const client = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
   const kv = nepKv()
   const r = await aiExclusions({ pool: [deal, ...gewoon], now: NOW, client, kv, log: quiet, enabled: true })
   assert.deepEqual([...r.weg], ['deal1'])
@@ -320,11 +323,22 @@ test('B herstel 2: een dealrijke batch (Black Friday) wordt gecontroleerd en gew
   const gewoon = [it('c1', 'Kabinet valt over stikstof', { source: 'nos' }), it('c2', 'Aardbeving treft kust van Japan', { source: 'nos' }), it('c3', 'Formatie loopt vast', { source: 'nos' })]
   const honest = (n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: /deal \d+:/.test(k) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))
   const client = nepModel(honest)
-  const r = await aiExclusions({ pool: [...deals, ...nieuws, ...gewoon], now: NOW, client, kv: nepKv(), log: quiet, enabled: true })
-  assert.equal(r.weg.size, 30)
+  const kv = nepKv()
+  const all = [...deals, ...nieuws, ...gewoon]
+  const r = await aiExclusions({ pool: all, now: NOW, client, kv, log: quiet, enabled: true })
+  // Per controle hooguit VERIFY_ITEMS stukken; de rest komt de volgende ronde terug (zonder dat het een poging kost).
+  assert.equal(r.weg.size, VERIFY_ITEMS)
   assert.ok(nieuws.every((i) => !r.weg.has(i.id)))
   assert.equal(client.calls.length, 2)
   assert.equal(r.stats.fout, null)
+  assert.ok(!kv.m.get(dayKey(NOW)).p)
+  let weg = r.weg
+  for (let round = 1; round < 4; round++) {
+    const rr = await aiExclusions({ pool: all, now: NOW + round * 600e3, client: nepModel(honest), kv, log: quiet, enabled: true })
+    weg = rr.weg
+  }
+  assert.equal(weg.size, 30)
+  assert.ok(nieuws.every((i) => !weg.has(i.id)))
 })
 
 test('B herstel 2: een ontspoord model (alles zeker weg) weert niets: de controlestukken verraden het', async () => {
@@ -337,13 +351,13 @@ test('B herstel 2: een ontspoord model (alles zeker weg) weert niets: de control
   assert.equal(r.weg.size, 0)
   assert.equal(r.stats.fout, 'ontspoord')
   assert.equal(Object.keys(kv.m.get(dayKey(NOW)).o).length, 0) // geen oordeel bewaard, alleen pogingen
-  assert.match(lines[0], /gecontroleerd, fout ontspoord$/)
-  // Zonder gewone stukken in de pool: de vaste ankers verraden het.
+  assert.match(lines[0], /fout ontspoord$/) // al in de eerste aanroep: de controlestukken daar verraden het
+  // Zonder gewone stukken in de pool: de ankers (als tweelingen) verraden het.
   const gek2 = nepModel((n) => Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: 'aanbieding', zeker: true, reden: 'x' })))
   const r2 = await aiExclusions({ pool: xs, now: NOW, client: gek2, kv: nepKv(), log: quiet, enabled: true })
   assert.equal(r2.weg.size, 0)
   assert.equal(r2.stats.fout, 'ontspoord')
-  assert.equal(gek2.calls.length, 2)
+  assert.equal(gek2.calls.length, 1)
   // Een gek model dat bij de controle opeens wél alles nieuws noemt: niets bevestigd, niets weg.
   let call = 0
   const wisselt = nepModel((n) => (call++, Array.from({ length: n }, (_, k) => ({ nr: k + 1, soort: call === 1 ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))))
@@ -362,7 +376,7 @@ test('B herstel 2: een niet-bewaard oordeel kost niet elke ronde dezelfde batch:
     assert.equal(r.weg.size, 0)
     if (round >= 2) assert.equal(r.stats.overgeslagen, 40)
   }
-  assert.deepEqual(calls, [2, 2, 0, 0, 0]) // per ronde de batch en de controle
+  assert.deepEqual(calls, [1, 1, 0, 0, 0]) // per ronde één aanroep: de controlestukken daarin verraden het model al
   // Ook een fout van het model telt als poging.
   const kv2 = nepKv()
   const fails = []
@@ -436,7 +450,7 @@ test('B filters-b: een model dat op het onderwerp ontspoort (Black Friday = aanb
   const c2 = nepModel(scheef(/Black Friday/)())
   const r2 = await aiExclusions({ pool: pool2, now: NOW, client: c2, kv: nepKv(), log: quiet, enabled: true })
   assert.equal(r2.weg.size, 0)
-  assert.equal(c2.calls.length, 2)
+  assert.ok(c2.calls.length <= 2)
   assert.equal(r2.stats.fout, 'ontspoord')
   // Koopdag en uitverkoop: hetzelfde.
   const kd = [it('kd1', 'Koopdag en uitverkoop: winkels trekken minder publiek dan vorig jaar'), it('kd2', 'Gemeente schrapt extra koopdag in december', { summary: 'De raad stemde tegen het voorstel van de winkeliers, de prijs voor personeel werd te hoog.' })]
@@ -454,9 +468,8 @@ test('B filters-b: kleine batches (1 tot 7) krijgen ook controlestukken: een mod
     const r = await aiExclusions({ pool: xs, now: NOW, client, kv: nepKv(), log: quiet, enabled: true })
     assert.equal(r.weg.size, 0, `batch van ${size}`)
     assert.equal(r.stats.fout, 'ontspoord', `batch van ${size}`)
-    assert.equal(client.calls.length, 2)
-    // De controle-aanroep bevat ankers.
-    assert.match(client.calls[1].params.messages[0].content, /bron: Nieuwsdienst/)
+    assert.equal(client.calls.length, 1) // de eerste aanroep heeft al controlestukken
+    assert.equal((client.calls[0].params.messages[0].content.match(/^\d+\. bron:/gm) || []).length, size + CONTROLS_FIRST)
   }
   // De grens: zonder enig controlestuk (geen ankers, geen gewone stukken) gaat er nooit iets weg.
   const five = Array.from({ length: 5 }, (_, k) => it(`f${k}`, `Kabinet ${k} bespreekt prijs van energie`))
@@ -510,17 +523,211 @@ test('B filters-b: tegenstrijdige oordelen over hetzelfde nummer vervallen samen
 test('B filters-b: elke batch waarin iets weg zou gaan wordt gecontroleerd; een onvolledige controle bevestigt niets', async () => {
   const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
   const nieuws = Array.from({ length: 39 }, (_, k) => it(`n${k}`, `Kabinet ${k} bespreekt prijs van energie`, { publishedAt: iso(NOW - (5 + k) * 60e3) }))
-  const eerlijk = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: /Sonos/.test(k) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
+  const eerlijk = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
   const r = await aiExclusions({ pool: [deal, ...nieuws, it('c1', 'Kabinet valt over stikstof')], now: NOW, client: eerlijk, kv: nepKv(), log: quiet, enabled: true })
   assert.deepEqual([...r.weg], ['deal1'])
   assert.equal(eerlijk.calls.length, 2) // 1 van 40: toch gecontroleerd
   const second = eerlijk.calls[1].params.messages[0].content
-  assert.equal((second.match(/bron: Nieuwsdienst/g) || []).length, ANCHORS_PER)
+  // De deal twee keer, met CONTROLS_VERIFY controlestukken: tweelingen in de kleren van de deal (zelfde bron, zelfde domein)
+  // en een gewoon stuk uit de pool.
+  assert.equal((second.match(/^\d+\. bron:/gm) || []).length, 2 + CONTROLS_VERIFY)
+  assert.equal((second.match(/kop: The Sonos Era 100 is \$70 off right now/g) || []).length, 2)
+  assert.ok((second.match(/bron: The Verge/g) || []).length >= CONTROLS_VERIFY - 3)
+  assert.ok((second.match(/link: https:\/\/example\.test\/tech\//g) || []).length >= CONTROLS_VERIFY - 3)
   assert.match(second, /Kabinet valt over stikstof/) // plus een gewoon stuk uit de pool
   assert.ok(CONTROLS >= 1)
   // Het model slaat de controlestukken over: niet bevestigd, de deal blijft deze ronde staan.
-  const zwijgt = nepModel((n, kops) => kops.flatMap((k, j) => (/Sonos/.test(k) ? [{ nr: j + 1, soort: 'aanbieding', zeker: true, reden: 'x' }] : [])))
+  const zwijgt = nepModel((n, kops) => kops.flatMap((k, j) => (k === deal.title ? [{ nr: j + 1, soort: 'aanbieding', zeker: true, reden: 'x' }] : [])))
   assert.equal((await aiExclusions({ pool: [deal], now: NOW, client: zwijgt, kv: nepKv(), log: quiet, enabled: true })).weg.size, 0)
+})
+
+// ---- filters-b-2 (na B-keuring 1): tweelingen, ruime controle, twee keer bevestigen, herbevestigen ----
+
+// Een klein, verzonnen corpus: nieuws met een zwak signaal uit verschillende bronnen en vormen (met en zonder intro, met een
+// dubbele punt of een vraag, Nederlands en Engels, met namen, sport), deals, en gewone stukken uit dezelfde bronnen.
+const SRC = [
+  ['techsite', 'Techsite', 'https://www.techsite.example/news/'],
+  ['krant', 'Krant', 'https://www.krant.example/binnenland/'],
+  ['omroep', 'Omroep', 'https://omroep.example/artikel/'],
+  ['daily', 'The Daily', 'https://www.daily.example/business/'],
+]
+const NIEUWS = [
+  'Zentrix verhoogt prijs van abonnement na kritiek van toezichthouder', 'Orvana cuts prices as sales slump in Europe', 'Huizenprijzen dalen voor het eerst in twee jaar',
+  'Kijkcijfers: finale van talentenjacht trekt drie miljoen kijkers', 'Why are Zentrix shares falling after the price hike?', 'Voetbalclub verliest wedstrijd en moet prijzengeld inleveren',
+  'Coach of the year award comes with $10,000 prize after cup match', 'Toezichthouder: korting bij Orvana was misleidend', 'Black Friday trekt minder kopers naar de binnenstad',
+  'Bitcoin falls 8% after regulators announce new rules', 'Podcastmaker wint prijs voor reeks over de zorg', 'Streaming service loses subscribers after price rise',
+  'Prijsvergelijking: energie per maand duurder dan vorig jaar', 'Gratis openbaar vervoer voor ouderen gaat niet door', 'Zentrix and Orvana settle pricing dispute',
+]
+const DEALS = ['De beste deals van vandaag: koptelefoon nu 40 procent goedkoper', 'Grab this robot vacuum for $199 today', 'Kortingscode: 25 euro korting op je eerste bestelling', 'Save $70 on the Zentrix Pro this weekend']
+const PLAIN = ['Kabinet valt over stikstof', 'Storm treft kust, honderden huizen zonder stroom', 'Minister stapt op na kritiek: Kamer wil opheldering', 'Floods force thousands from their homes', 'Election results: turnout highest in decades', 'Rechter spreekt verdachte vrij in moordzaak', 'Who will lead the party after the defeat?', 'Zentrix-topman vertrekt na onderzoek']
+const corpus = () => {
+  const out = []
+  let n = 0
+  const add = (title, k, kind, intro) => {
+    const [source, sourceName, base] = SRC[k % SRC.length]
+    out.push(it(`${kind}${n++}`, title, { source, sourceName, url: base + title.toLowerCase().replace(/[^a-z0-9]+/g, '-'), summary: intro ? `${title.split(' ').slice(0, 4).join(' ')} — volgens betrokkenen speelt dit al langer.` : '', label: kind, publishedAt: iso(NOW - (n + 1) * 60e3) }))
+  }
+  NIEUWS.forEach((t, k) => { add(t, k, 'N', k % 2 === 0); add(t + ' (2)', k + 1, 'N', k % 2 === 1) })
+  DEALS.forEach((t, k) => add(t, k, 'W', k % 2 === 0))
+  PLAIN.forEach((t, k) => { add(t, k, 'P', k % 2 === 0); add(t + '.', k + 2, 'P', k % 2 === 1) })
+  return out
+}
+// Nepmodellen die ontsporen: elk stuk (ook een controlestuk) met dit kenmerk is "zeker een aanbieding", de rest nieuws.
+const rowsOf = (content) => content.split('\n\n').filter((r) => /^\d+\. bron:/.test(r)).map((r) => ({ bron: (r.match(/bron: (.*)/) || [])[1] || '', kop: (r.match(/ {3}kop: (.*)/) || [])[1] || '', intro: (r.match(/ {3}intro: (.*)/) || [])[1] || '', link: (r.match(/ {3}link: (.*)/) || [])[1] || '', code: (r.match(/ {3}code: (.*)/) || [])[1] || '' }))
+const rowModel = (flag) => {
+  const calls = []
+  return { calls, messages: { create: async (params) => {
+    const rows = rowsOf(params.messages[0].content)
+    calls.push(rows.length)
+    const oordelen = rows.map((r, k) => ({ nr: k + 1, code: r.code, soort: flag(r, k, rows, calls.length) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))
+    return { stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ oordelen }) }], usage: { input_tokens: 100, output_tokens: 10 } }
+  } } }
+}
+const hashOf = (t) => { let x = 0; for (const c of t) x = (x * 31 + c.charCodeAt(0)) | 0; return Math.abs(x) }
+const ONTSPORINGEN = {
+  'bron (domein)': (r) => /techsite/.test(r.link),
+  'bron (naam)': (r) => r.bron === 'Krant',
+  'zonder intro': (r) => r.intro === '(geen)',
+  'kopvorm: dubbele punt': (r) => /:/.test(r.kop),
+  'kopvorm: vraag': (r) => /\?$/.test(r.kop),
+  'taal: Engels': (r) => /\b(the|and|of|to|for|with|after|as)\b/i.test(r.kop) && !/\b(de|het|een|van)\b/i.test(r.kop),
+  'taal: Nederlands': (r) => /\b(de|het|een|van|na|voor)\b/i.test(r.kop),
+  'namen': (r) => /Zentrix|Orvana/.test(r.kop),
+  'sport': (r) => /voetbal|wedstrijd|coach|match|cup/i.test(r.kop),
+  'woord in de link': (r) => /prijsvergelijking|huizenprijzen/.test(r.link),
+  'willekeurig (vast, 20%)': (r) => hashOf(r.kop) % 5 === 0,
+  'alles': () => true,
+  'naïef signaalwoord': (r) => weakSignal({ title: r.kop, summary: r.intro }),
+  'verschoven (oordeel van de buur)': (r, k, rows) => DEALS.includes(rows[(k + rows.length - 1) % rows.length].kop),
+}
+
+test('B filters-b-2: een model dat ontspoort op bron, intro, kopvorm, taal, namen, sport, de link of willekeurig, weert bij elke batchgrootte geen nieuws', async () => {
+  const xs = corpus()
+  const cands = xs.filter((i) => i.label !== 'P')
+  const plain = xs.filter((i) => i.label === 'P')
+  assert.ok(cands.every((i) => weakSignal(i)), 'elk nieuwsstuk en elke deal is kandidaat')
+  assert.ok(plain.every((i) => !weakSignal(i)), 'de gewone stukken zijn geen kandidaat')
+  for (const [naam, flag] of Object.entries(ONTSPORINGEN)) {
+    for (const size of [1, 3, 7, 40]) {
+      let weg = 0
+      for (let k = 0; k < cands.length; k += size) {
+        const batch = cands.slice(k, k + size)
+        const r = await judge(rowModel(flag), batch, { controls: plain })
+        weg += batch.filter((i) => i.label === 'N' && excludes(r.verdicts.get(i.id))).length
+      }
+      assert.equal(weg, 0, `${naam}, batch ${size}`)
+    }
+  }
+  // Willekeurig per aanroep (10% en 30%, vaste zaadwaarde): ook 0.
+  for (const p of [0.1, 0.3]) {
+    let seed = 7
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+    for (const size of [1, 3, 40]) {
+      for (let k = 0; k < cands.length; k += size) {
+        const batch = cands.slice(k, k + size)
+        const r = await judge(rowModel(() => rnd() < p), batch, { controls: plain })
+        assert.equal(batch.filter((i) => i.label === 'N' && excludes(r.verdicts.get(i.id))).length, 0, `willekeurig ${p}, batch ${size}`)
+      }
+    }
+  }
+  // Het eerlijke model (kent de deals aan de hele kop) haalt ze wel weg, bij elke batchgrootte.
+  for (const size of [1, 7, 40]) {
+    const wegW = new Set()
+    for (let k = 0; k < cands.length; k += size) {
+      const batch = cands.slice(k, k + size)
+      const r = await judge(rowModel((row) => DEALS.includes(row.kop)), batch, { controls: plain })
+      for (const i of batch) if (excludes(r.verdicts.get(i.id))) wegW.add(i.label)
+    }
+    assert.deepEqual([...wegW], ['W'], `eerlijk, batch ${size}`)
+  }
+})
+
+test('B filters-b-2: tweelingen dragen de bron, het domein, de taal, de intro (of niet), de dubbele punt en de namen van het stuk', () => {
+  const s = it('s1', 'Zentrix: prijs van abonnement omhoog na kritiek van Orvana', { source: 'krant', sourceName: 'Krant', url: 'https://www.krant.example/economie/zentrix-prijs-omhoog~a1b2/', summary: '' })
+  assert.deepEqual(namesOf(s.title), ['Orvana', 'Zentrix'])
+  const p = profileOf(s)
+  assert.equal(p.lang, 'nl')
+  const cs = controlSet([s], { max: 12 })
+  assert.equal(cs.length, 12)
+  for (const c of cs) {
+    assert.equal(c.sourceName, 'Krant')
+    assert.match(c.url, /^https:\/\/www\.krant\.example\/economie\//)
+    assert.equal(c.summary, '') // het stuk heeft geen intro, de tweeling ook niet
+    assert.match(c.title, /:/)
+    assert.equal(profileOf(c).lang, 'nl', c.title)
+    assert.ok(c.anker && weakSignal(c), c.title)
+  }
+  assert.ok(cs.some((c) => /Zentrix/.test(c.title) && /Orvana/.test(c.title)), 'een tweeling met de namen uit de kop')
+  assert.ok(cs.some((c) => c.url.endsWith('zentrix-prijs-omhoog~a1b2/')), 'een tweeling met het slot van de link')
+  assert.ok(!cs.some((c) => c.url === s.url || c.title === s.title))
+  // Een Engels stuk met intro krijgt Engelse tweelingen met intro; een vraag krijgt (ook) een vraaganker.
+  const e = it('e1', 'Why is the price of coffee still rising?', { source: 'daily', sourceName: 'The Daily', url: 'https://www.daily.example/business/coffee-price', summary: 'Traders point to poor harvests.' })
+  const ce = controlSet([e], { max: 6 })
+  assert.ok(ce.every((c) => profileOf(c).lang === 'en' && c.summary && c.sourceName === 'The Daily'))
+  assert.ok(ce.some((c) => /\?$/.test(c.title)))
+  // Gewone stukken uit de pool: van dezelfde bron eerst.
+  const pool2 = [it('g1', 'Storm treft kust', { source: 'omroep', sourceName: 'Omroep', url: 'https://omroep.example/a/1' }), it('g2', 'Kabinet valt', { source: 'krant', sourceName: 'Krant', url: 'https://www.krant.example/binnenland/2' })]
+  assert.equal(controlSet([s], { pool: pool2, max: 3 })[0].id, 'g2')
+  // Gelijk verspreid: vóór elk stuk een controlestuk.
+  assert.deepEqual(spread(['a', 'b'], ['x', 'y', 'z']), ['x', 'a', 'y', 'z', 'b'])
+  assert.deepEqual(spread(['a', 'b', 'c', 'd'], ['x', 'y']), ['x', 'a', 'b', 'y', 'c', 'd'])
+})
+
+test('B filters-b-2: "prijzen" en "duurder" zijn een zwak signaal, en kiezen een prijsanker', () => {
+  for (const t of ['Huizenprijzen dalen voor het eerst in twee jaar', 'Prijzenoorlog tussen supermarkten', 'Energie wordt duurder']) assert.ok(weakSignal({ title: t }), t)
+  assert.ok(anchorsFor([{ title: 'Huizenprijzen dalen voor het eerst in twee jaar' }]).some((a) => /prij[sz]/i.test(a.title)))
+})
+
+test('B filters-b-2: in de controle staat elk stuk twee keer; alleen twee keer zeker telt', async () => {
+  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
+  let call = 0
+  // Noemt het stuk in de controle maar één keer zeker: blijft staan.
+  const eenmaal = nepModel((n, kops) => (call++, kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title && (call === 1 || kops.indexOf(k) === j) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))))
+  const r = await judge(eenmaal, [deal])
+  assert.equal(r.verdicts.size, 1)
+  assert.equal(excludes(r.verdicts.get('deal1')), false)
+})
+
+test('B filters-b-2: een bewaard "zeker weg" telt maar HERBEVESTIG_MS; daarna gaat het opnieuw door de controle', async () => {
+  assert.ok(HERBEVESTIG_MS <= 6 * 3600e3)
+  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now', { publishedAt: iso(NOW - 3600e3) })
+  const gewoon = it('c1', 'Kabinet valt over stikstof', { source: 'nos' })
+  const eerlijk = () => nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
+  const kv = nepKv()
+  assert.deepEqual([...(await aiExclusions({ pool: [deal, gewoon], now: NOW, client: eerlijk(), kv, log: quiet, enabled: true })).weg], ['deal1'])
+  // Binnen de termijn: uit de cache, geen aanroep.
+  const stil = nepModel(() => { throw new Error('mag niet') })
+  assert.deepEqual([...(await aiExclusions({ pool: [deal, gewoon], now: NOW + HERBEVESTIG_MS - 60e3, client: stil, kv, log: quiet, enabled: true })).weg], ['deal1'])
+  assert.equal(stil.calls.length, 0)
+  // Verlopen, en geen sleutel of een fout: telt niet meer (het stuk blijft staan).
+  const later = NOW + HERBEVESTIG_MS + 60e3
+  assert.equal((await aiExclusions({ pool: [deal, gewoon], now: later, client: null, kv, log: quiet, enabled: true })).weg.size, 0)
+  assert.equal((await aiExclusions({ pool: [deal, gewoon], now: later, client: nepModel(() => [], { fail: new Error('x') }), kv, log: quiet, enabled: true })).weg.size, 0)
+  // Verlopen en herbevestigd: één controle-aanroep (het stuk twee keer, plus de controlestukken), weer weg met een nieuw tijdstip.
+  const her = eerlijk()
+  const r = await aiExclusions({ pool: [deal, gewoon], now: later, client: her, kv, log: quiet, enabled: true })
+  assert.deepEqual([...r.weg], ['deal1'])
+  assert.equal(her.calls.length, 1)
+  assert.equal(r.stats.herbevestigd, 1)
+  assert.equal((her.calls[0].params.messages[0].content.match(/kop: The Sonos Era 100 is \$70 off right now/g) || []).length, 2)
+  assert.equal(kv.m.get(dayKey(later)).o[cacheKeyOf(deal)][3], later)
+  // Verlopen en het model ontspoort bij de herbevestiging: het oordeel wordt "nieuws", het stuk blijft voortaan staan.
+  const nog = later + HERBEVESTIG_MS + 60e3
+  const gek = nepModel(allesWeg())
+  const r2 = await aiExclusions({ pool: [deal, gewoon], now: nog, client: gek, kv, log: quiet, enabled: true })
+  assert.equal(r2.weg.size, 0)
+  assert.equal(r2.stats.fout, 'ontspoord')
+  const doc = kv.m.get(dayKey(nog))
+  assert.deepEqual(doc.o[cacheKeyOf(deal)].slice(0, 2), ['nieuws', false])
+  const daarna = nepModel(() => { throw new Error('mag niet') })
+  assert.equal((await aiExclusions({ pool: [deal, gewoon], now: nog + 600e3, client: daarna, kv, log: quiet, enabled: true })).weg.size, 0)
+  assert.equal(daarna.calls.length, 0)
+  // Een oud oordeel zonder tijdstip telt niet tot het herbevestigd is.
+  const kv2 = nepKv()
+  kv2.m.set(dayKey(NOW), { v: 1, n: 1, o: { [cacheKeyOf(deal)]: ['aanbieding', true, 'oud'] } })
+  assert.equal((await aiExclusions({ pool: [deal, gewoon], now: NOW, client: null, kv: kv2, log: quiet, enabled: true })).weg.size, 0)
+  // Per ronde hooguit REVERIFY_MAX herbevestigingen.
+  assert.ok(REVERIFY_MAX >= 1 && REVERIFY_MAX <= VERIFY_ITEMS)
 })
 
 test('meet-filters-ai: de rookproef draait de aanvallen, en een set zonder naam heet naar zijn bestand (geen "undefined")', async () => {
@@ -539,7 +746,9 @@ test('meet-filters-ai: de rookproef draait de aanvallen, en een set zonder naam 
   assert.ok(!out.includes('undefined'), out)
   assert.match(out, /\| zonder-naam \| 2 \|/)
   assert.match(out, /## Aanvallen op het vangnet/)
-  for (const naam of ['ankers', 'alles-weg, 40', 'alles-weg, 5', 'onderwerp black friday', 'tegenstrijdig']) assert.ok(out.includes(`| ${naam}`), naam)
+  for (const naam of ['ankers', 'tweelingen', 'alles-weg, 40', 'alles-weg, 5', 'alles-weg, 1', 'onderwerp black friday', 'tegenstrijdig', 'domein example.test', 'zonder intro', 'kopvorm dubbele punt', 'taal Engels', 'taal Nederlands', 'een naam in de kop', 'oordeel van de buurman', 'willekeurig vast per kop 20%, 1', 'willekeurig per aanroep 10%', 'willekeurig per aanroep 30%']) assert.ok(out.includes(`| ${naam}`), naam)
   // Elke aanval: 0 nieuws weg.
-  for (const line of out.split('\n').filter((l) => /^\| (ankers|alles-weg|onderwerp|tegenstrijdig)/.test(l))) assert.match(line, /^\| [^|]+ \| \d+ \| 0 \|/, line)
+  const rows = out.slice(out.indexOf('## Aanvallen')).split('\n').filter((l) => /^\| (?!Aanval|---)/.test(l))
+  assert.ok(rows.length >= 20, String(rows.length))
+  for (const line of rows) assert.match(line, /^\| [^|]+ \| \d+ \| 0 \|/, line)
 })
