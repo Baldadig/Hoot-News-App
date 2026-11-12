@@ -1766,8 +1766,8 @@ var HootCore = (() => {
     S("bloomberg", "Bloomberg", "economie", "en", "Markten en bedrijfsnieuws.", "https://feeds.bloomberg.com/markets/news.rss", { login: "https://www.bloomberg.com/account/signin", paid: true, color: "#1A1A1A", bsky: "bloomberg.com" }),
     // Tech
     S("theverge", "The Verge", "tech", "en", "Technologie, gadgets en internetcultuur.", "https://www.theverge.com/rss/index.xml", { login: "https://www.theverge.com/auth/login?returnPath=/", pick: true, for: ["tech"], base: true, bsky: "theverge.com", x: "verge", color: "#5200FF" }),
-    S("wired", "Wired", "tech", "en", "Wat technologie met de wereld doet.", "https://www.wired.com/feed/rss", { login: "https://www.wired.com/auth/initiate", paid: true, pick: true, for: ["tech"], base: true, bsky: "wired.com", x: "wired", color: "#222222", dealsCategory: "Gear / Deals" }),
-    // alleen wat Wired zelf uitsluitend als deal indeelt (rss.mjs, sourceDeal)
+    S("wired", "Wired", "tech", "en", "Wat technologie met de wereld doet.", "https://www.wired.com/feed/rss", { login: "https://www.wired.com/auth/initiate", paid: true, pick: true, for: ["tech"], base: true, bsky: "wired.com", x: "wired", color: "#222222", dealsCategory: "Gear / Deals", couponPages: true }),
+    // dealsCategory: alleen wat Wired zelf uitsluitend als deal indeelt (rss.mjs, sourceDeal); couponPages: Wired's eigen kortingscodepagina's (…/story/<naam>-promo-code/, kortingscode.mjs)
     S("tweakers", "Tweakers", "tech", "nl", "Nederlands technieuws en reviews.", "https://tweakers.net/feeds/mixed.xml", { login: "https://tweakers.net/my.tnet/login/", pick: true, for: ["tech"], bsky: "tweakers.net", bskyImages: true, color: "#E5202C" }),
     S("ars", "Ars Technica", "tech", "en", "Diepgaand over technologie en wetenschap.", "https://feeds.arstechnica.com/arstechnica/index", { login: "https://arstechnica.com/civis/login", pick: true, for: ["tech"], color: "#FF4E00", bsky: "arstechnica.com" }),
     S("techcrunch", "TechCrunch", "tech", "en", "Start-ups en de techindustrie.", "https://techcrunch.com/feed/", { color: "#0A9E01", bsky: "techcrunch.com" }),

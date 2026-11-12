@@ -57,7 +57,7 @@ test('wired-deals: Wired heeft de instelling, geen andere bron', () => {
 })
 
 // Sinds Redacteur · kortingscodes (12 november) vallen daarnaast de kortingscode-pagina's weg die Wired alleen "Gear" geeft
-// (kop én slug, netlify/lib/kortingscode.mjs). Die hielden deze regel niet tegen; nu de generieke regel wel.
+// (kop én slug, netlify/lib/kortingscode.mjs). Die hielden deze regel niet tegen; nu Wired's eigen `couponPages` wel.
 const KORTINGSCODE = [
   'Home Depot Promo Codes: 30% Off in November 2026',
   'NordVPN Coupons: 75% Off, Plus 3 Months Free in November 2026',
@@ -101,7 +101,7 @@ test('wired-deals: een Wired-nieuwsstuk met "deal" in de kop maar zonder markeri
     { title: 'Black Friday Deals Are Getting Worse. The FTC Wants to Know Why', url: 'https://www.wired.com/story/ftc-black-friday-deals-probe/', cats: ['Business', 'Business / Regulation'] },
     { title: 'Microsoft’s $20 Billion Deal for an AI Startup Draws EU Scrutiny', url: 'https://www.wired.com/story/microsoft-ai-deal-eu/', cats: ['Business', 'Business / Artificial Intelligence'] },
     { title: 'Prime Day Deals Explained', url: 'https://www.wired.com/story/deals/prime-day-explained/', cats: [] }, // woord in link of kop telt niet
-    { title: 'Home Depot Promo Codes: 30% Off in November 2026', url: 'https://www.wired.com/coupons/home-depot/', cats: ['Gear'] }, // geen markering en een slug zonder kortingscodewoord: blijft (een gemiste deal mag; de kortingscoderegel vraagt kop én slug)
+    { title: 'Home Depot Promo Codes: 30% Off in November 2026', url: 'https://www.wired.com/coupons/home-depot/', cats: ['Gear'] }, // geen markering en geen codepagina-slug: blijft (een gemiste deal mag; de kortingscoderegel vraagt kop én slug)
   ]
   for (const x of items) assert.equal(isNoise({ title: x.title, link: x.url }, x.cats, wired), false, x.title)
   assert.equal((await viaFeed(wired, items)).length, items.length)

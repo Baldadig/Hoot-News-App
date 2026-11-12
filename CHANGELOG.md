@@ -4,7 +4,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
-- **Kortingscode-pagina's uit de Stroom** (server): een pagina die alleen kortingscodes van één winkel verzamelt ("Nike Promo Codes: …" op …/nike-promo-code/) komt niet meer in de Stroom en dus nooit in de Editie, bij elke bron. Alleen als kop én link het zeggen én er na de dubbele punt een korting of periode staat ("30% Off | November 2026"), geen zin; nieuws over kortingscodes, nepcoupons, kortingscodefraude of obligatiecoupons blijft staan.
+- **Kortingscode-pagina's uit de Stroom** (server): Wired's eigen kortingscodepagina's ("Nike Promo Codes: …" op …/story/nike-promo-code/) komen niet meer in de Stroom en dus nooit in de Editie. Per bron, net als de Wired-deals: alleen een bron die het in sources.mjs aanzet (nu alleen Wired), en alleen als de link op "<naam>-promo-code" (of coupon, coupon-code, discount-code) eindigt én de kop het woord vooraan heeft. Bij elke andere bron blijft alles staan; obligatiecoupons nooit.
 
 - **Wired-deals uit de Stroom** (server): een stuk dat Wired zelf alleen als deal indeelt (feedcategorie "Gear / Deals", zonder andere rubriek) komt niet meer in de Stroom: promocodes, kortingslijsten en Black Friday-overzichten. Wired-journalistiek over prijzen en koopjes blijft staan, net als elke andere bron met een rubriek "Deals".
 
