@@ -6,17 +6,23 @@ import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { usePhone } from '../hooks/usePhone.js'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
-import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
+import { portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
-import { avatarUrl, fitsLarge, fitsHero, sharpHere } from '../lib/img.js'
+import { avatarUrl, fitsLarge, fitsHero, sharpHere, measuredOriginal } from '../lib/img.js'
 import { Beeld } from './Beeld.jsx'
 import { focusMenuNotice } from '../lib/popmenu-dismiss.js'
 import { Popmenu } from './Popmenu.jsx'
 import { TermHelp } from './Terms.jsx'
 import { Img, MeasuredImg } from './Img.jsx'
+// De meting hoort bij het origineel uit de feed: alleen als MeasuredImg dat toont (measuredOriginal) krijgt het
+// vak de meetuitsnede. Een variant van de uitgever (de Volkskrant, Het Parool: 3:2 in plaats van het vierkant
+// uit de feed) vult het vak zelf; met de uitsnede van het vierkant zou die zonder object-view-box (Safari)
+// worden uitgerekt.
+const gemeten = (item, kind) => (measuredOriginal(item, kind) ? ' media--measured' : '')
+const uitsnede = (item, kind) => (measuredOriginal(item, kind) ? cropStyle(item) : undefined)
 import { isPlayableVideo } from '../lib/video-fullscreen.js'
 import { Video } from './Video.jsx'
 import { Why } from './Why.js'
@@ -332,7 +338,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
       <a className={`lead__link${staand ? ' lead__link--portrait' : ''}`} href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
-        <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media media--lead${staand ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+        <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media media--lead${staand ? ' media--portrait' : ''}${gemeten(item, 'lead')}`} style={uitsnede(item, 'lead')}>
           {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
         </Beeld>
         <Kicker item={item} extra={note} followed={followed} n={n} />
@@ -375,7 +381,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
-          <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media media--tl${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+          <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media media--tl${gemeten(item, 'lead')}`} style={uitsnede(item, 'lead')}>
             {(onFail) => <MeasuredImg item={item} kind="lead" onFail={onFail} />}
           </Beeld>
         </a>
@@ -393,7 +399,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', (prefs?.images ?? 'aan') === 'aan')} />
         </div>
         {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
-        <Beeld item={item} kind="krant" className={`thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+        <Beeld item={item} kind="krant" className={`thumb${gemeten(item, 'thumb')}`} style={uitsnede(item, 'thumb')}>
           {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}
         </Beeld>
       </a>
@@ -464,15 +470,15 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
   const kaartRef = useRef(null)
   const vouw = useVouw(kaartRef, { aan: lead && phone, introTekst: lead ? wholeSentences(ownIntro(item), 240 - viaLength(item), 240 - viaLength(item)) : '', key: item.id })
   const beeld = klein ? (
-    <Beeld item={item} kind="krant" className={`thumb kaart__thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+    <Beeld item={item} kind="krant" className={`thumb kaart__thumb${gemeten(item, 'thumb')}`} style={uitsnede(item, 'thumb')}>
       {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}
     </Beeld>
   ) : lead ? (
-    <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={vouw?.beeld ? { ...cropStyle(item), '--vouw-beeld': `${vouw.beeld}px` } : cropStyle(item)}>
+    <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media kaart__beeld${gemeten(item, 'lead')}`} style={vouw?.beeld ? { ...uitsnede(item, 'lead'), '--vouw-beeld': `${vouw.beeld}px` } : uitsnede(item, 'lead')}>
       {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
     </Beeld>
   ) : (
-    <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+    <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media kaart__beeld${gemeten(item, 'lead')}`} style={uitsnede(item, 'lead')}>
       {(onFail) => <MeasuredImg item={item} kind="lead" onFail={onFail} />}
     </Beeld>
   )
