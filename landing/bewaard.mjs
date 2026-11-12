@@ -17,6 +17,21 @@ export function datum(iso) {
   const dt = new Date(Date.UTC(y, m - 1, d, 12))
   return { kort: `${d} ${MAAND[m - 1]}`, lang: `${WEEKDAG[dt.getUTCDay()]} ${d} ${MAAND[m - 1]}` }
 }
+// Eén beslisregel voor de waarom-markering in Hoot kiest, gelijk aan redenen() in hoot.js. Plek 3 is 'Buiten je bubbel'
+// alleen als de Editie echt een bubbel heeft; anders 'Ook het lezen waard'. Geeft null als twee plekken dezelfde reden krijgen.
+export const REDEN = {
+  groot: ['Groot nieuws', 'Veel bronnen schrijven erover. Dit wil je weten.'],
+  meer: ['Meerdere bronnen', 'Niet één krant, maar meerdere vinden het belangrijk.'],
+  eigen: ['Ook het lezen waard', 'Eén bron schrijft erover, en het is de moeite waard.'],
+  bubbel: ['Buiten je bubbel', 'Iets wat je anders niet had gelezen.'],
+}
+export function redenen(ns, bubbel) {
+  const s0 = ns[0] >= 5 ? 'groot' : ns[0] >= 2 ? 'meer' : 'eigen'
+  const s1 = ns[1] >= 2 && s0 !== 'meer' ? 'meer' : 'eigen'
+  const s2 = bubbel ? 'bubbel' : 'eigen'
+  return new Set([s0, s1, s2]).size === 3 ? [s0, s1, s2] : null
+}
+const markering = (soort, n) => (soort === 'groot' ? `Groot nieuws · ${n} bronnen` : soort === 'meer' ? `${n} bronnen schrijven erover` : REDEN[soort][0])
 export const reden = (n) => (n >= 5 ? 'Groot nieuws' : n >= 2 ? `${n} bronnen schrijven erover` : 'Ook het lezen waard')
 
 const bron = (x, wanneer, metAantal = true) =>
@@ -24,19 +39,21 @@ const bron = (x, wanneer, metAantal = true) =>
 const kick = (nr, desk) => (label(desk) ? `<div class="k-kick">${nr ? `<span class="k-nr">${nr}</span>` : ''}${label(desk)}</div>` : nr ? `<div class="k-kick k-kick--los"><span class="k-nr">${nr}</span></div>` : '')
 
 export function fragmenten(b) {
+  if (!b?.selectie?.velden?.length) throw new Error('landing/bewaard.json heeft geen Selectie; ververs met node landing/bewaar.mjs.')
   const { kort, lang } = datum(b.date)
   const slot = SLOT[b.slot] || 'Editie'
   const [v1, v2] = b.voorpagina.entries
   const v3 = b.voorpagina.bubble || b.voorpagina.entries[2]
   const ns = [v1, v2, v3].map((x) => x.sourceCount || 1)
+  const rds = redenen(ns, !!b.voorpagina.bubble)
+  if (!rds) throw new Error('landing/bewaard.json: Hoot kiest heeft geen drie verschillende redenen; ververs met node landing/bewaar.mjs.')
   // Hoot kiest: de drie plekken met hun waarom-markering. De bubbel heeft geen nummer.
   const rd = (x, i, ipad) => {
     const w = `w${i + 1}`
     const nr = i < 2 ? `0${i + 1}` : ''
-    // zelfde regel als redenen() in hoot.js: plek 2 is nooit ook Groot nieuws
-    const mark = i === 2 ? (b.voorpagina.bubble ? 'Buiten je bubbel' : 'Ook het lezen waard') : i === 0 && ns[0] >= 5 ? `Groot nieuws · ${ns[0]} bronnen` : ns[i] >= 2 ? `${ns[i]} bronnen schrijven erover` : 'Ook het lezen waard'
+    const mark = markering(rds[i], ns[i])
     const beeld = ipad && i > 0 ? `<svg class="k-beeld2" viewBox="0 0 320 160"><use href="#${i === 1 ? 'il-c' : 'il-iris'}"/></svg>` : ''
-    return `<div class="rd-item ${ipad && i === 0 ? 'k-lead' : 'k'}">${kick(nr, x.desk)}<div class="k-why"><mark data-w="${w}">${esc(mark)}</mark></div><div class="k-kop${ipad && i === 0 ? ' k-kop--lead' : ''}">${esc(x.title)}</div>${beeld}${bron(x, kort, i < 2)}</div>`
+    return `<div class="rd-item ${ipad && i === 0 ? 'k-lead' : 'k'}">${kick(nr, x.desk)}<div class="k-why"><mark data-w="${w}">${esc(mark)}</mark></div><div class="k-kop${ipad && i === 0 ? ' k-kop--lead' : ''}">${esc(x.title)}</div>${beeld}${bron(x, kort, false)}</div>`
   }
   const lijst = [v1, v2, v3]
   const ed = b.editie
@@ -47,13 +64,16 @@ export function fragmenten(b) {
     // De held: het hoofdverhaal zonder rubriek, alleen het nummer (besluit Alex).
     BW_HELD: `<div class="k-kick k-kick--los"><span class="k-nr">01</span></div><div class="k-why">${esc(reden(ns[0]))}</div><div class="k-kop k-kop--lead">${esc(v1.title)}</div>${bron(v1, kort)}`,
     BW_RD_N: ns.join(' '),
+    BW_RD_BUBBEL: b.voorpagina.bubble ? 'ja' : 'nee',
+    BW_RD_UITLEG: rds.map((r, i) => `<li class="${i === 1 ? 'l' : 'r'}" data-bij="w${i + 1}"><b>${REDEN[r][0]}</b>${REDEN[r][1]}</li>`).join('\n      '),
     BW_RD_IPAD_TOP: rd(v1, 0, true),
     BW_RD_IPAD_KOL: rd(v2, 1, true) + rd(v3, 2, true),
     BW_RD_TEL: lijst.map((x, i) => rd(x, i, false)).join('\n        '),
     BW_ED_LEAD: `${kick('01', ed[0].desk)}<div class="k-why">${esc(reden(ed[0].sourceCount))}</div><div class="k-kop k-kop--lead">${esc(ed[0].title)}</div>${bron(ed[0], kort)}`,
     BW_ED_TWEE: `${kick('02', ed[1].desk)}<div class="k-why">${esc(reden(ed[1].sourceCount))}</div><div class="k-kop">${esc(ed[1].title)}</div><svg class="k-beeld2" viewBox="0 0 320 160"><use href="#il-iris"/></svg>${bron(ed[1], kort)}`,
     BW_ED_REST: ed.slice(2, 10).map((x, i) => `<li><span class="sc-nr">${String(i + 3).padStart(2, '0')}</span>${esc(x.title)}</li>`).join(''),
-    BW_ED_BUBBEL: b.bubbel ? `${kick('', b.bubbel.desk)}<div class="k-why">Buiten je bubbel</div><div class="k-kop">${esc(b.bubbel.title)}</div>${bron(b.bubbel, kort, false)}` : '',
+    // Geen bubbel in deze Editie: dan ook geen leeg bubbelblok.
+    BW_ED_BUBBEL: b.bubbel ? `<div class="sc-bubbel"><div class="k">${kick('', b.bubbel.desk)}<div class="k-why">Buiten je bubbel</div><div class="k-kop">${esc(b.bubbel.title)}</div>${bron(b.bubbel, kort, false)}</div></div>` : '',
     BW_SEL_WEEK: `Week ${b.selectie.week}`,
     BW_SEL_LEDE: `${b.selectie.velden.reduce((n, v) => n + v.count, 0)} stukken in ${b.selectie.velden.length} onderwerpen`,
     BW_SEL_INHOUD: b.selectie.velden.map((v) => `<div class="sc-irij"><span><b>${esc(v.label)}</b><small>${v.count} stukken</small></span><svg viewBox="0 0 24 24"><use href="#i-neer"/></svg></div>`).join('\n            '),

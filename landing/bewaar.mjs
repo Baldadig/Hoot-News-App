@@ -9,15 +9,20 @@ import path from 'node:path'
 import { extract, rubriek, isHeavy, isDutch } from '../netlify/functions/voorpagina.mjs'
 import { desksOf, primaryDesk } from '../netlify/lib/desks.mjs'
 import { signatures, sameSubject } from '../netlify/lib/stories.mjs'
+import { redenen } from './bewaard.mjs'
 
 const HIER = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname))
 const lees = async (arg, url) => (arg ? JSON.parse(fs.readFileSync(arg, 'utf8')) : (await fetch(url, { headers: { accept: 'application/json' } })).json())
 
-export function bewaar(feed, vak) {
+// vorige: het bestaande bewaard.json. Geeft /api/vak niets bruikbaars, dan blijft de Selectie van de vorige keer staan
+// (echte onderwerpen met hun eigen week). Is er ook geen vorige, dan weigert bewaar() en wordt er niets geschreven.
+export function bewaar(feed, vak, vorige = null) {
   const ed = feed?.edition
   if (!ed?.entries?.length) throw new Error('Geen Editie in de feed.')
   const vp = extract(feed)
   if (!vp) throw new Error('De voorpagina gaf niets voor deze Editie; kies een andere.')
+  const ns = [vp.entries[0], vp.entries[1], vp.bubble || vp.entries[2]].map((x) => x?.sourceCount || 1)
+  if (!redenen(ns, !!vp.bubble)) throw new Error('Hoot kiest krijgt geen drie verschillende redenen uit deze Editie; het oude bestand blijft staan.')
   const srcs = new Map((feed.sources || []).map((s) => [s.id, s]))
   const stories = new Map((feed.stories || []).map((s) => [s.id, s]))
   const byId = new Map([...(ed.items || []), ...(feed.items || [])].map((i) => [i.id, i]))
@@ -72,13 +77,17 @@ export function bewaar(feed, vak) {
       selectie = { week: vak.week, velden: velden.map((f) => ({ label: f.label, count: f.top.length })), kaart: { title: stuk.title, source: stuk.sourceName || stuk.source } }
     }
   }
+  if (!selectie) selectie = vorige?.selectie?.velden?.length ? vorige.selectie : null
+  if (!selectie) throw new Error('Geen Selectie: /api/vak gaf geen twee bruikbare onderwerpen en er is geen vorige; het oude bestand blijft staan.')
   return { slot: ed.slot, date: ed.date, voorpagina: { entries: vp.entries, bubble: vp.bubble || null }, editie, bubbel, stroom, selectie }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.join(HIER, 'bewaar.mjs')) {
   const feed = await lees(process.argv[2], 'https://gethoot.app/api/feed')
   const vak = await lees(process.argv[3], 'https://gethoot.app/api/vak').catch(() => null)
-  const uit = bewaar(feed, vak)
+  let vorige = null
+  try { vorige = JSON.parse(fs.readFileSync(path.join(HIER, 'bewaard.json'), 'utf8')) } catch {}
+  const uit = bewaar(feed, vak, vorige)
   fs.writeFileSync(path.join(HIER, 'bewaard.json'), JSON.stringify(uit, null, 1) + '\n')
   console.log(`bewaard: ${uit.slot} ${uit.date}, ${uit.editie.length} koppen in de Editie`)
 }

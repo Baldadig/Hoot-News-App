@@ -351,10 +351,13 @@
       eigen: ['Ook het lezen waard', 'Eén bron schrijft erover, en het is de moeite waard.'],
       bubbel: ['Buiten je bubbel', 'Iets wat je anders niet had gelezen.']
     };
-    function redenen(ns) {
+    /* Zelfde regel als redenen() in landing/bewaard.mjs. Plek 3 heet alleen 'Buiten je bubbel' als er echt een bubbel is;
+       anders 'Ook het lezen waard'. Geeft null als twee plekken dezelfde reden krijgen. */
+    function redenen(ns, bubbel) {
       var s0 = ns[0] >= 5 ? 'groot' : (ns[0] >= 2 ? 'meer' : 'eigen');
       var s1 = ns[1] >= 2 && s0 !== 'meer' ? 'meer' : 'eigen';
-      return s0 === s1 ? null : [s0, s1, 'bubbel'];
+      var s2 = bubbel ? 'bubbel' : 'eigen';
+      return s0 === s1 || s0 === s2 || s1 === s2 ? null : [s0, s1, s2];
     }
     function markering(soort, n) { return soort === 'groot' ? 'Groot nieuws · ' + n + ' bronnen' : (soort === 'meer' ? n + ' bronnen schrijven erover' : REDEN[soort][0]); }
     function zetRedenen(ns, r) {
@@ -366,7 +369,7 @@
       });
     }
     if (pod) {
-      var ns0 = String(pod.getAttribute('data-n') || '').split(/\s+/).map(Number), r0 = ns0.length === 3 && redenen(ns0);
+      var ns0 = String(pod.getAttribute('data-n') || '').split(/\s+/).map(Number), r0 = ns0.length === 3 && redenen(ns0, pod.getAttribute('data-bubbel') === 'ja');
       if (r0) zetRedenen(ns0, r0); /* het voorbeeld uit dezelfde regel */
       lijn(); addEventListener('resize', lijn);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(lijn);
@@ -408,7 +411,7 @@
       var sp = $('span', b); sp.textContent = bron;
       var sm = document.createElement('small'); sm.textContent = dag; sp.appendChild(sm);
       var kn = $('.k-n', b);
-      if (n >= 2 && !$('mark[data-w="w3"]', it)) { if (!kn) { kn = document.createElement('b'); kn.className = 'k-n'; sp.parentNode.insertBefore(kn, sp.nextSibling); } kn.textContent = n + ' bronnen'; } else weg(kn);
+      if (n >= 2 && !$('mark', it)) { if (!kn) { kn = document.createElement('b'); kn.className = 'k-n'; sp.parentNode.insertBefore(kn, sp.nextSibling); } kn.textContent = n + ' bronnen'; } else weg(kn); /* in Hoot kiest staat het aantal al in de markering */
     }
     function zetNaam(sel, slot) { $$(sel).forEach(function (s) { s.textContent = slot; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); }); }
     if (LIVE && window.fetch) {
@@ -427,9 +430,8 @@
             if (en.length < 3) throw 0;
             /* plek 1 en 2 uit de Editie; plek 3 is de echte 'Buiten je bubbel' als die er is */
             var lijst = en.slice(0, 2).concat([ed.bubble && ed.bubble.title ? ed.bubble : en[2]]);
-            var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns);
-            if (!rd) throw 0;
-            if (!ed.bubble) { if (rd[1] === 'eigen') throw 0; rd[2] = 'eigen'; } /* geen bubbel: dan ook niet zo noemen */
+            var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns, !!(ed.bubble && ed.bubble.title));
+            if (!rd) throw 0; /* geen drie verschillende redenen (ook zonder bubbel): de bewaarde Editie blijft staan */
             var dag = '', wn = wanneer(ed.date);
             try { dag = new Date(ed.date + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
             /* held: het hoofdverhaal */

@@ -124,7 +124,7 @@
           <div class="k-regel"></div>
           <div class="k">{{BW_ED_TWEE}}</div>
           <ol class="sc-rest">{{BW_ED_REST}}</ol>
-          <div class="sc-bubbel"><div class="k">{{BW_ED_BUBBEL}}</div></div>
+          {{BW_ED_BUBBEL}}
           <div class="sc-blok"><svg viewBox="0 0 82.15 72"><use href="#mark"/></svg><strong>Je bent bij.</strong><p>Dit was de <span class="js-editie">Ochtendeditie</span>. De volgende staat <span class="js-volgende">vanmiddag</span> voor je klaar.</p><u>Lees verder in de Stroom</u></div>
         </div></div></div>
       </figure>
@@ -191,11 +191,9 @@
     <p class="lead">Bij elk verhaal zie je waarom.</p>
   </div>
 
-  <div class="podium" data-live data-n="{{BW_RD_N}}">
+  <div class="podium" data-live data-n="{{BW_RD_N}}" data-bubbel="{{BW_RD_BUBBEL}}">
     <ul class="uitleg">
-      <li class="r" data-bij="w1"><b>Groot nieuws</b>Veel bronnen schrijven erover. Dit wil je weten.</li>
-      <li class="l" data-bij="w2"><b>Meerdere bronnen</b>Niet één krant, maar meerdere vinden het belangrijk.</li>
-      <li class="r" data-bij="w3"><b>Buiten je bubbel</b>Iets wat je anders niet had gelezen.</li>
+      {{BW_RD_UITLEG}}
     </ul>
     <figure class="toestel ipad" aria-label="De Editie op iPad, met bij elk verhaal de reden waarom het erin staat">
       <div class="scherm" aria-hidden="true"><div class="sc-in">

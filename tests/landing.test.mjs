@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { INLINE } from '../landing/inline.mjs'
 import { appStore, APP_URL } from '../landing/appstore.mjs'
-import { vulBewaard } from '../landing/bewaard.mjs'
+import { vulBewaard, fragmenten, redenen } from '../landing/bewaard.mjs'
 
 // Voert het inline script van de landing uit met een nagebootste adresbalk; geeft het doel of null.
 const run = (search, hash) => {
@@ -206,4 +206,62 @@ test('landing: de held toont het hoofdverhaal zonder rubriek, alleen het nummer'
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
   assert.match(js, /vul\(lead, lijst\[0\], [^;]*, false, wn\)/) // live: ook dan geen rubriek in de held
   assert.match(js, /if \(iso && iso === vandaagIso\(\)\) return 'Vandaag'/) // 'Vandaag' alleen voor de Editie van vandaag
+})
+
+// Keuring 1, herstel: de terugval zegt nooit 'Buiten je bubbel' zonder bubbel, en een verversing zonder Selectie breekt de build niet.
+const zonderBubbel = () => {
+  const b = JSON.parse(JSON.stringify(BEWAARD))
+  b.voorpagina.bubble = null
+  b.bubbel = null
+  b.voorpagina.entries[0].sourceCount = 6
+  b.voorpagina.entries[1].sourceCount = 3
+  b.voorpagina.entries[2] = { ...b.voorpagina.entries[1], title: 'Een gewoon derde verhaal', sourceCount: 1 }
+  return b
+}
+const hootRedenen = () => {
+  const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+  return new Function(js.match(/function redenen\(ns, bubbel\) \{[\s\S]*?\n    \}/)[0] + '; return redenen;')()
+}
+
+test('herstel 1: zonder bubbel heet plek 3 "Ook het lezen waard", en de Editie-demo heeft geen leeg bubbelblok', () => {
+  const html = vulBewaard(SRC, zonderBubbel())
+  assert.doesNotMatch(html, /Buiten je bubbel/)
+  assert.doesNotMatch(html, /class="sc-bubbel"/)
+  assert.match(html, /data-bubbel="nee"/)
+  assert.match(html, /<li class="r" data-bij="w3"><b>Ook het lezen waard<\/b>/)
+  assert.match(html, /<mark data-w="w3">Ook het lezen waard<\/mark>/)
+  // met bubbel blijft het zoals het was
+  const met = vulBewaard(SRC, BEWAARD)
+  assert.match(met, /data-bubbel="ja"/)
+  assert.match(met, /<li class="r" data-bij="w3"><b>Buiten je bubbel<\/b>/)
+})
+
+test('herstel 1 en 3: één beslisregel in hoot.js en bewaard.mjs; zonder bubbel nooit twee keer dezelfde reden', () => {
+  const r = hootRedenen()
+  const gevallen = [[[6, 3, 1], true], [[6, 3, 1], false], [[1, 3, 1], false], [[1, 3, 1], true], [[3, 3, 1], false], [[3, 1, 1], false], [[1, 1, 1], true], [[6, 1, 2], false]]
+  for (const [ns, bub] of gevallen) assert.deepEqual(r(ns, bub), redenen(ns, bub), `${ns} ${bub}`)
+  assert.deepEqual(redenen([6, 3, 1], true), ['groot', 'meer', 'bubbel'])
+  assert.deepEqual(redenen([6, 3, 1], false), ['groot', 'meer', 'eigen'])
+  assert.equal(redenen([1, 3, 1], false), null) // plek 1 één bron, plek 2 meer: zonder bubbel zou plek 3 ook 'eigen' zijn
+  assert.equal(redenen([3, 1, 1], false), null)
+  for (const [ns, bub] of gevallen) { const x = redenen(ns, bub); if (x) assert.equal(new Set(x).size, 3) }
+  const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+  assert.match(js, /redenen\(ns0, pod\.getAttribute\('data-bubbel'\) === 'ja'\)/) // de terugval kijkt of er een bubbel is
+  assert.match(js, /redenen\(ns, !!\(ed\.bubble && ed\.bubble\.title\)\)/) // live ook
+})
+
+test('herstel 2: zonder Selectie een duidelijke melding in plaats van een TypeError; bewaar() houdt de vorige Selectie', () => {
+  assert.throws(() => fragmenten({ ...BEWAARD, selectie: null }), /geen Selectie; ververs/)
+  const src = readFileSync(new URL('../landing/bewaar.mjs', import.meta.url), 'utf8')
+  assert.match(src, /if \(!selectie\) selectie = vorige\?\.selectie\?\.velden\?\.length \? vorige\.selectie : null/)
+  assert.match(src, /if \(!selectie\) throw new Error/)
+  assert.match(src, /if \(!redenen\(ns, !!vp\.bubble\)\) throw new Error/)
+  // het schrijven gebeurt pas na bewaar(): een weigering laat het oude bestand staan
+  assert.ok(src.indexOf('const uit = bewaar(feed, vak, vorige)') < src.indexOf('fs.writeFileSync'))
+})
+
+test('klein: in Hoot kiest staat het aantal bronnen één keer, in de markering', () => {
+  const rd = vulBewaard(SRC, BEWAARD).match(/<div class="podium"[\s\S]*?<\/section>/)[0]
+  assert.doesNotMatch(rd, /class="k-n"/)
+  assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /if \(n >= 2 && !\$\('mark', it\)\)/)
 })
