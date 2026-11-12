@@ -207,8 +207,9 @@
     }
     $$('.dag').forEach(function (b) { b.addEventListener('click', function () { kiesDag(b.getAttribute('data-dag')); }); });
     window.hootDagdeel = function (d) {
-      $$('.held .js-editie').forEach(function (s) { s.textContent = TXT[d][0]; });
-      $$('.js-rd-editie').forEach(function (s) { if (!s.hasAttribute('data-live')) s.textContent = TXT[d][0]; });
+      /* de held en De Redacteur tonen een echte Editie (live of bewaard, data-vast): die naam blijft staan */
+      $$('.held .js-editie').forEach(function (s) { if (!s.hasAttribute('data-live') && !s.hasAttribute('data-vast')) s.textContent = TXT[d][0]; });
+      $$('.js-rd-editie').forEach(function (s) { if (!s.hasAttribute('data-live') && !s.hasAttribute('data-vast')) s.textContent = TXT[d][0]; });
       if (!gekozen && !(kE && kE.bezig())) { zetTekst(d); plaats(T[d]); }
     };
     window.hootDagdeel(R.getAttribute('data-dagdeel') || 'ochtend');
@@ -350,10 +351,13 @@
       eigen: ['Ook het lezen waard', 'Eén bron schrijft erover, en het is de moeite waard.'],
       bubbel: ['Buiten je bubbel', 'Iets wat je anders niet had gelezen.']
     };
-    function redenen(ns) {
+    /* Zelfde regel als redenen() in landing/bewaard.mjs. Plek 3 heet alleen 'Buiten je bubbel' als er echt een bubbel is;
+       anders 'Ook het lezen waard'. Geeft null als twee plekken dezelfde reden krijgen. */
+    function redenen(ns, bubbel) {
       var s0 = ns[0] >= 5 ? 'groot' : (ns[0] >= 2 ? 'meer' : 'eigen');
-      var s1 = ns[1] >= 2 && s0 !== 'meer' ? 'meer' : 'eigen';
-      return s0 === s1 ? null : [s0, s1, 'bubbel'];
+      var s1 = ns[1] >= 2 ? (s0 !== 'meer' ? 'meer' : null) : 'eigen'; /* 'eigen' ("Eén bron") alleen bij echt één bron */
+      var s2 = bubbel ? 'bubbel' : (ns[2] >= 2 ? null : 'eigen');
+      return !s1 || !s2 || s0 === s1 || s0 === s2 || s1 === s2 ? null : [s0, s1, s2];
     }
     function markering(soort, n) { return soort === 'groot' ? 'Groot nieuws · ' + n + ' bronnen' : (soort === 'meer' ? n + ' bronnen schrijven erover' : REDEN[soort][0]); }
     function zetRedenen(ns, r) {
@@ -365,16 +369,52 @@
       });
     }
     if (pod) {
-      var ns0 = String(pod.getAttribute('data-n') || '').split(/\s+/).map(Number), r0 = ns0.length === 3 && redenen(ns0);
+      var ns0 = String(pod.getAttribute('data-n') || '').split(/\s+/).map(Number), r0 = ns0.length === 3 && redenen(ns0, pod.getAttribute('data-bubbel') === 'ja');
       if (r0) zetRedenen(ns0, r0); /* het voorbeeld uit dezelfde regel */
       lijn(); addEventListener('resize', lijn);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(lijn);
     }
 
-    /* de echte Editie van vandaag in dezelfde vorm: alleen de koppen, rubrieken en bronnen wisselen. Faalt het ophalen, dan blijft het voorbeeld staan. */
-    /* De voorpagina-API selecteert uitsluitend drie rustige, actuele koppen. */
-    var LIVE = false; // Vaste, herkenbare voorbeelden tot de nieuwsclassificatie opnieuw is gekeurd.
-    if (LIVE && pod && window.fetch) {
+    /* Live: de echte Editie van vandaag in dezelfde vorm (held en De Redacteur). Alleen kop, bron, rubriek en
+       aantal bronnen wisselen; geen beeld van uitgevers, geen intro, geen tijdstip. Weet de server de rubriek
+       niet zeker (deskLabel null), dan staat er alleen het nummer. Faalt het ophalen, of zijn er geen drie
+       verschillende redenen, dan blijft de bewaarde Editie staan (echte koppen, met haar eigen datum). */
+    var LIVE = true;
+    var SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' };
+    function ini(b) { return b.replace(/^(de|het|the)\s+/i, '').charAt(0).toUpperCase(); }
+    function weg(el) { if (el && el.parentNode) el.parentNode.removeChild(el); }
+    /* Zelfde woorden als de app; Buitenland heet op de landing Wereld (zoals de Stroom-tab). Zie landing/bewaard.mjs. */
+    var LABEL = { binnenland: 'Binnenland', buitenland: 'Wereld', cultuur: 'Cultuur', tech: 'Tech', wetenschap: 'Wetenschap', sport: 'Sport', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne' };
+    var MND = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    function vandaagIso() {
+      try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); } catch (e) { return ''; }
+    }
+    /* 'Vandaag' alleen als de Editie van vandaag is; anders de dag zelf ("11 november"). Nooit een tijdstip. */
+    function wanneer(iso) {
+      if (iso && iso === vandaagIso()) return 'Vandaag';
+      var p = String(iso || '').split('-'); return p.length === 3 ? Number(p[2]) + ' ' + MND[Number(p[1]) - 1] : '';
+    }
+    /* metRubriek: false in de held (besluit Alex: de grote kop zonder rubriek). Rubriek alleen als de server hem zeker weet. */
+    function vul(it, x, why, metRubriek, dag) {
+      var kick = $('.k-kick', it), nr = kick && $('.k-nr', kick), rub = metRubriek && x.desk ? LABEL[x.desk] || '' : '';
+      if (!kick) { kick = document.createElement('div'); kick.className = 'k-kick'; it.insertBefore(kick, $('.k-why', it) || $('.k-kop', it)); }
+      kick.textContent = ''; if (nr) kick.appendChild(nr);
+      if (rub) { kick.classList.remove('k-kick--los'); kick.appendChild(document.createTextNode(rub)); } else kick.classList.add('k-kick--los');
+      kick.hidden = !nr && !rub;
+      $('.k-kop', it).textContent = x.title;
+      weg($('.k-intro', it));
+      if (why != null) { var w = $('.k-why', it); if (w) w.textContent = why; }
+      var b = $('.k-bron', it), bron = String(x.source || '').trim(), n = Number(x.sourceCount) || 0;
+      if (!b) return;
+      if (!bron) { weg(b); return; }
+      $('i', b).textContent = ini(bron);
+      var sp = $('span', b); sp.textContent = bron;
+      var sm = document.createElement('small'); sm.textContent = dag; sp.appendChild(sm);
+      var kn = $('.k-n', b);
+      if (n >= 2 && !$('mark', it)) { if (!kn) { kn = document.createElement('b'); kn.className = 'k-n'; sp.parentNode.insertBefore(kn, sp.nextSibling); } kn.textContent = n + ' bronnen'; } else weg(kn); /* in Hoot kiest staat het aantal al in de markering */
+    }
+    function zetNaam(sel, slot) { $$(sel).forEach(function (s) { s.textContent = slot; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); }); }
+    if (LIVE && window.fetch) {
       var haal = function () {
         var ac = window.AbortController ? new AbortController() : null;
         var to = setTimeout(function () { if (ac) ac.abort(); }, 5000);
@@ -384,61 +424,42 @@
             return r.json();
           })
           .then(function (d) {
-            var ed = d && d.edition, en = ed && ed.entries;
-            if (!en || !en.length) throw 0;
+            var ed = d && d.edition, en = ed && ed.entries, slot = ed && SLOT[ed.slot];
+            if (!slot || !en) throw 0;
             en = en.filter(function (x) { return x && typeof x.title === 'string' && x.title; });
             if (en.length < 3) throw 0;
-            /* het verhaal met de meeste bronnen bovenaan */
-            var top = en.slice().sort(function (a, b) { return (Number(b.sourceCount) || 0) - (Number(a.sourceCount) || 0); })[0];
-            /* Ook drie rustige koppen met minder bronnen zijn een geldige live voorpagina. */
-            var rest = en.filter(function (x) { return x !== top; }).slice(0, 2), lijst = [top].concat(rest);
-            var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns);
-            if (!rd) throw 0; /* geen drie verschillende redenen te geven: dan blijft het voorbeeld staan */
-            $$('.toestel', pod).forEach(function (fig) { /* iPad (vanaf 720) en telefoon (mobiel) krijgen dezelfde verhalen */
-            var items = $$('.rd-item', fig).filter(function (it) { return $('mark', it); }); /* alleen de drie plekken met een waarom-markering */
-            lijst.forEach(function (x, i) {
-              var it = items[i]; if (!it) return;
-              var desk = String(x.deskLabel || x.desk || 'Nieuws'); desk = desk.charAt(0).toUpperCase() + desk.slice(1);
-              var n = Number(x.sourceCount) || 0, bron = String(x.source || '').trim();
-              $('.sc-rub', it).textContent = desk;
-              $('.sc-kg,.sc-k', it).textContent = x.title;
-              var dek = $('.sc-dek', it);
-              if (dek) { var s = x.summary || x.description || ''; if (typeof s === 'string' && s) dek.textContent = s; else { dek.textContent = ''; dek.style.visibility = 'hidden'; } }
-              var b = $('.sc-bron', it);
-              if (bron) {
-                $('i', b).textContent = bron.replace(/^(de|het|the)\s+/i, '').split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase();
-                $('span', b).innerHTML = ''; $('span', b).appendChild(document.createTextNode(bron));
-                var sm = document.createElement('small'); sm.textContent = 'Vandaag'; $('span', b).appendChild(sm);
-              } else b.remove();
-              var vgl = b && $('.sc-vgl', b);
-              if (vgl) { if (n >= 2) vgl.textContent = 'Vergelijk ' + n + ' bronnen'; else vgl.remove(); }
-            });
-            });
-            var slot = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }[ed.slot];
-            if (slot) $$('.js-rd-editie', pod).forEach(function (s) { s.textContent = slot; s.setAttribute('data-live', ''); });
-            zetRedenen(ns, rd);
-            pod.setAttribute('data-bron', 'live');
-            lijn();
+            /* plek 1 en 2 uit de Editie; plek 3 is de echte 'Buiten je bubbel' als die er is */
+            var lijst = en.slice(0, 2).concat([ed.bubble && ed.bubble.title ? ed.bubble : en[2]]);
+            var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns, !!(ed.bubble && ed.bubble.title));
+            if (!rd) throw 0; /* geen drie verschillende redenen (ook zonder bubbel): de bewaarde Editie blijft staan */
+            var dag = '', wn = wanneer(ed.date);
+            try { dag = new Date(ed.date + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+            /* held: het hoofdverhaal */
+            var lead = $('.js-held-lead');
+            if (lead) {
+              vul(lead, lijst[0], ns[0] >= 5 ? 'Groot nieuws' : (ns[0] >= 2 ? ns[0] + ' bronnen schrijven erover' : 'Ook het lezen waard'), false, wn);
+              zetNaam('.held .js-editie', slot);
+              $$('.held .js-datum').forEach(function (s) { if (dag) s.textContent = dag; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); });
+              var fig = $('.js-held-toestel'); if (fig) fig.setAttribute('aria-label', 'De ' + slot + ' van ' + (wn === 'Vandaag' ? 'vandaag' : dag) + ' op iPhone, met het hoofdverhaal: ' + lijst[0].title);
+            }
+            /* De Redacteur: iPad en telefoon krijgen dezelfde drie verhalen */
+            if (pod) {
+              $$('.toestel', pod).forEach(function (fig) {
+                var items = $$('.rd-item', fig).filter(function (it) { return $('mark', it); });
+                lijst.forEach(function (x, i) { if (items[i]) vul(items[i], x, null, true, wn); });
+              });
+              zetNaam('.js-rd-editie', slot);
+              $$('.sc-sub[data-vast]', pod).forEach(function (s) { if (dag) s.textContent = dag; s.removeAttribute('data-vast'); });
+              zetRedenen(ns, rd);
+              pod.setAttribute('data-bron', 'live');
+              lijn();
+            }
           })
-          .catch(function () { pod.setAttribute('data-bron', 'voorbeeld'); })
+          .catch(function () { if (pod) pod.setAttribute('data-bron', 'bewaard'); })
           .then(function () { clearTimeout(to); });
       };
-      if (IO) {
-        var io3 = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io3.disconnect(); haal(); } }, { rootMargin: '800px 0px' });
-        io3.observe(pod);
-      } else haal();
+      haal(); /* de held staat bovenaan: meteen ophalen, de API is klein en wordt gecachet */
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-})();
-
-/* Held: de datum van vandaag onder de Editie-titel in de telefoon (alleen in de held) */
-/* Het script staat in de <head>: pas na het inlezen van de pagina bestaat de held. */
-(function () {
-  function zet() {
-    var el = document.querySelector('.held .js-datum');
-    if (!el) return;
-    try { el.textContent = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zet); else zet();
 })();

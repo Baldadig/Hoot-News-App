@@ -35,7 +35,7 @@ export const HEAVY_WORDS = [
   'rellen', 'verkracht', 'misbruik', 'executie', 'geëxecuteerd', 'gijzel', 'terreur', 'terroris', 'zelfmoord', 'suïcide',
   'kanker', 'ziek', 'slachtoffer', 'schietpartij', 'neergeschoten', 'doodgeschoten', 'steekpartij', 'neergestoken',
   'bombardement', 'gewond', 'opgepakt', 'aangehouden', 'ontvoer', 'mishandel', 'mensensmokkel', 'migrant', 'vluchteling', 'brand', 'kinderporno', 'zedenzaak', 'zedendelict',
-  'aanhouding', 'relschopper', 'ongeregeld', 'plunder', 'oprui',
+  'aanhouding', 'relschopper', 'ongeregeld', 'plunder', 'oprui', 'vermist', 'verdronk', 'verdrink',
 ]
 const HEAVY_RE = new RegExp(`(?<![\\p{L}])(?:${HEAVY_WORDS.map(w => w === 'brand' ? 'brand(?!weer)' : w).join('|')})`, 'iu')
 const UNREST = new Set(['misdaad', 'rellen', 'geweld', 'ramp', 'rampen', 'oorlog', 'terrorisme'])
@@ -61,17 +61,40 @@ const INTEREST_RUBRIEK = { cultuur: 'cultuur', tech: 'tech', wetenschap: 'wetens
 const TOPIC_RUBRIEK = Object.fromEntries(INTERESTS.flatMap((i) => (INTEREST_RUBRIEK[i.id] ? i.topics.map((t) => [t, INTEREST_RUBRIEK[i.id]]) : [])))
 TOPIC_RUBRIEK.nederland = 'binnenland'
 
-// Rubriek van een plek: de rubriek van de Editie zelf, anders afgeleid uit de bron en de onderwerpen.
-// null = geen duidelijke rubriek (nog altijd welkom, na de rustige rubrieken).
-export function rubriek(item, desk, srcCat) {
-  // Een vakonderwerp gaat vóór een oude geografische stempel. Een film- of showbizzbericht
-  // wordt niet Binnenland enkel omdat de uitgever Nederlands is.
-  const kind = contentKind(item)
-  if (kind) return kind
-  if (desk && (CALM_WEIGHT[desk] || HEAVY_DESKS.has(desk))) return desk
+// Rubriek van een plek, alleen als die zeker is (schets landing-schets, 12 november). Eerder won een
+// trefwoord uit de intro het van de rubriek van de Editie ("Iraanse actor" werd Cultuur via film,
+// "walvis" in een autotest werd Wetenschap). Nu: harde signalen eerst (rubriek in de URL of sectie,
+// categorie van de bron), dan de rubriek die de Redacteur in de Editie gaf. Een trefwoord alleen
+// beslist nooit. null = niet zeker: de landing toont dan geen rubriek, alleen het nummer.
+// Alleen hele mappen in de URL tellen (nooit woorden uit de slug: "sociale-media" is geen Cultuur,
+// "voetbal-geweld" geen Sport), plus de sectie die de uitgever zelf meegeeft.
+const SPORT_DIR = /^(?:sport[\w-]*|voetbal[\w-]*|darts|tennis|wielrennen|wielersport|formule-?1|f1|schaatsen|hockey)$/i
+const CULTUUR_DIR = /^(?:cultuur[\w-]*|media-en-cultuur|film|films|muziek|boeken|kunst|theater)$/i
+// Showbizz is niet zeker Cultuur: ook een incident bij de koning of een rechtszaak staat soms onder /boulevard/.
+const SHOWBIZZ_DIR = /^(?:entertainment|showbizz|boulevard|bv-en-co|celebrities|media)$/i
+function mappen(url) {
+  try { return new URL(url).pathname.split('/').filter(Boolean).slice(0, -1) } catch { return [] }
+}
+export function strongKind(item, srcCat) {
+  const delen = [...mappen(item.url || ''), String(item.section || '').trim().toLowerCase().replace(/\s*&\s*/g, '-').replace(/\s+/g, '-')].filter(Boolean)
+  if (delen.some((d) => SPORT_DIR.test(d))) return 'sport'
+  if (delen.some((d) => CULTUUR_DIR.test(d))) return 'cultuur'
   if (['sport', 'tech', 'cultuur'].includes(srcCat)) return srcCat
-  for (const t of [...(item.mainTopics || []), ...(item.topics || []), ...keywordTopics(`${item.title || ''} ${item.summary || ''}`)]) if (TOPIC_RUBRIEK[t]) return TOPIC_RUBRIEK[t]
-  if (srcCat === 'nl' && (item.topics || []).some((t) => ['wonen', 'zorg', 'onderwijs', 'migratie', 'verkeer'].includes(t))) return 'binnenland'
+  if (delen.some((d) => SHOWBIZZ_DIR.test(d))) return 'showbizz'
+  return null
+}
+const GEO = new Set(['binnenland', ...HEAVY_DESKS])
+export function rubriek(item, desk, srcCat, editieDesk = null) {
+  const strong = strongKind(item, srcCat)
+  // Showbizz telt alleen als Cultuur als de Editie het zelf ook Cultuur noemt; anders geen rubriek.
+  if (strong === 'showbizz') return editieDesk === 'cultuur' ? 'cultuur' : null
+  if (strong) return strong
+  if (editieDesk && editieDesk !== 'bubbel' && LABEL[editieDesk]) return editieDesk
+  // Het hoofdonderwerp van het bericht (niet een trefwoord uit de intro) mag Cultuur geven. Tech alleen via de bron (Tweakers e.d.).
+  const main = (item.mainTopics || []).some((t) => ['muziek', 'film', 'boeken', 'kunst'].includes(t)) ? 'cultuur' : null // 'media' en 'games' zijn niet zeker Cultuur
+  if (main) return main
+  // Uit de pool: alleen de geografische indeling (Nederland of niet) is hard genoeg om te tonen.
+  if (desk && GEO.has(desk)) return desk
   return null
 }
 
@@ -85,14 +108,14 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   const stories = new Map((start.stories || []).map((s) => [s.id, s]))
   const storyOf = new Map((start.stories || []).flatMap(s => (s.itemIds || [s.leadId]).filter(Boolean).map(id => [id, s.id])))
 
-  const make = (item, desk, sourceCount, order, storyId = null) => {
+  const make = (item, desk, sourceCount, order, storyId = null, editieDesk = null) => {
     if (!item?.title) return null
     const src = srcs.get(item.source)
-    const sport = src?.cat === 'sport' || desk === 'sport' || contentKind(item) === 'sport'
+    const sport = src?.cat === 'sport' || desk === 'sport' || contentKind(item) === 'sport' || strongKind(item, src?.cat) === 'sport'
     if (!isDutch(item, src?.lang) || isHeavy(item, desk) || sport) return null
     // Een bericht uit de voorpagina-pool draagt zijn rubriek al (uitgerekend met URL en rubriek van de bron).
     const resolvedDesk = CALM_WEIGHT[desk] || HEAVY_DESKS.has(desk) ? desk : 'desk' in item ? item.desk : primaryDesk([desksOf(item)])
-    const r = rubriek(item, resolvedDesk, src?.cat)
+    const r = rubriek(item, resolvedDesk, src?.cat, editieDesk)
     const heavy = HEAVY_DESKS.has(r)
     if (heavy && (sourceCount || 1) < 5) return null
     return { item, storyId: storyId || item.storyId || storyOf.get(item.id), rubriek: r, sourceCount: sourceCount || 1, order, heavy }
@@ -100,10 +123,20 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
 
   const cands = []
   const used = new Set()
+  let bubble = null
   ed.entries.forEach((e, idx) => {
+    if (e.desk === 'bubbel') { // de echte 'Buiten je bubbel' van deze Editie, apart (de landing labelt er plek 3 mee)
+      const it = byId.get(e.kind === 'story' ? e.leadId || stories.get(e.id)?.leadId : e.id)
+      // Geen zware-rubriekregel hier: de bubbel is per definitie ver weg (vaak Buitenland), wel geen zwaar nieuws of sport.
+      const src = it && srcs.get(it.source)
+      if (it?.title && isDutch(it, src?.lang) && !isHeavy(it) && src?.cat !== 'sport' && contentKind(it) !== 'sport') {
+        bubble = { item: it, storyId: it.storyId || null, rubriek: rubriek(it, 'desk' in it ? it.desk : primaryDesk([desksOf(it)]), src?.cat), sourceCount: e.sourceCount || 1, order: idx }
+      }
+      return
+    }
     const story = e.kind === 'story' ? stories.get(e.id) : null
     const item = byId.get(e.kind === 'story' ? e.leadId || story?.leadId : e.id)
-    const c = make(item, e.desk || null, e.kind === 'story' ? e.sourceCount || story?.sourceCount || 1 : 1, idx, story?.id)
+    const c = make(item, e.desk || null, e.kind === 'story' ? e.sourceCount || story?.sourceCount || 1 : 1, idx, story?.id, e.desk || null)
     if (e.kind === 'story') used.add(e.id)
     if (c) cands.push(c)
   })
@@ -138,12 +171,13 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   // plekken, en alleen als het dan nog geen drie zijn de zwaardere rubrieken.
   const rank = (a, b) => (CALM_WEIGHT[b.rubriek] || 0) - (CALM_WEIGHT[a.rubriek] || 0) || a.order - b.order || b.sourceCount - a.sourceCount
   const picked = []
-  const sig = signatures([...new Map(cands.map(c => [c.item.id, c.item])).values()])
+  const sig = signatures([...new Map([...cands, ...(bubble ? [bubble] : [])].map(c => [c.item.id, c.item])).values()])
   const duplicate = (a, b) => a.item.id === b.item.id ||
     (a.storyId && a.storyId === b.storyId) ||
     a.item.title.trim().toLocaleLowerCase('nl') === b.item.title.trim().toLocaleLowerCase('nl') ||
     sameSubject(sig.get(a.item.id), sig.get(b.item.id))
-  const available = c => !picked.some(p => duplicate(p, c))
+  // de bubbel blijft de bubbel: niet ook nog als gewone plek
+  const available = c => !picked.some(p => duplicate(p, c)) && !(bubble && duplicate(bubble, c))
   const pickFrom = (list) => {
     const sorted = [...list].sort(rank)
     for (const c of sorted) if (picked.length < places && available(c) && !picked.some((p) => p.rubriek === c.rubriek)) picked.push(c)
@@ -157,12 +191,15 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
 
   // Volgorde: eerst de hoogste in de Editie, dan op aantal bronnen.
   picked.sort((a, b) => a.order - b.order || b.sourceCount - a.sourceCount)
-  const entries = picked.map(({ item, rubriek: r, sourceCount }) => {
+  const plek = ({ item, rubriek: r, sourceCount }) => {
     const out = { desk: r, deskLabel: r ? LABEL[r] || null : null, title: item.title, source: item.sourceName || item.source, sourceCount }
     if (openImageSources.has(item.source) && /^https:\/\//.test(item.image || '')) out.imageUrl = item.image
     return out
-  })
-  return entries.length === places ? { slot: ed.slot, date: ed.date, entries } : null
+  }
+  const entries = picked.map(plek)
+  if (entries.length !== places) return null
+  const b = bubble ? plek(bubble) : null
+  return b ? { slot: ed.slot, date: ed.date, entries, bubble: b } : { slot: ed.slot, date: ed.date, entries }
 }
 
 // KEYS.start heeft `items: []`; de berichten voor het aanvullen komen uit de voorpagina-pool.
