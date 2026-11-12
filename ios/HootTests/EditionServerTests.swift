@@ -9,12 +9,14 @@ import XCTest
 final class ServerEditionStub: URLProtocol {
     nonisolated(unsafe) static var response = Data()
     nonisolated(unsafe) static var status = 200
+    nonisolated(unsafe) static var queue: [Int] = []
     nonisolated(unsafe) static var requests: [URLRequest] = []
     nonisolated(unsafe) static var bodies: [[String: Any]] = []
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
         Self.requests.append(request)
+        if !Self.queue.isEmpty { Self.status = Self.queue.removeFirst() } // een reeks antwoorden (1.3.1: opnieuw proberen)
         var data = request.httpBody
         if data == nil, let stream = request.httpBodyStream {
             stream.open()
@@ -50,6 +52,8 @@ final class EditionServerTests: XCTestCase {
         ServerEditionStub.status = 200
         ServerEditionStub.requests = []
         ServerEditionStub.bodies = []
+        ServerEditionStub.queue = []
+        HootStore.retryPause = .milliseconds(10)
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [ServerEditionStub.self]
         HootAPI.editionTransport = URLSession(configuration: config)
@@ -125,6 +129,65 @@ final class EditionServerTests: XCTestCase {
         XCTAssertTrue(body.contains("Self.readingSummary(of: affinity)"), "wel de samenvatting")
         XCTAssertTrue(src.contains("personalProvisional = Self.decodeEdition(raw)"), "het vangnet blijft in het geheugen")
         XCTAssertTrue(src.contains("previous: prior, reading: true)"), "het vangnet rekent met dezelfde samenvatting")
+    }
+
+    // 1.3.1: 20 s wachten in plaats van 8.
+    func testServerWaitsTwentySeconds() async throws {
+        XCTAssertEqual(HootAPI.editionTimeout, 20)
+        _ = await HootAPI.serverEdition(Data(#"{"v":2}"#.utf8), token: nil)
+        XCTAssertEqual(ServerEditionStub.requests.first?.timeoutInterval, 20)
+    }
+
+    // 1.3.1: bij een time-out, 429 of 503 één stille nieuwe poging; daarna wint de server als hij antwoordt.
+    func testRetriesOnceOnBusyOrSlow() async throws {
+        let payload = Data(#"{"v":2}"#.utf8)
+        for first in [503, 429] {
+            ServerEditionStub.requests = []
+            ServerEditionStub.queue = [first, 200]
+            let r = await HootStore.requestServer(payload, token: nil, renew: { nil })
+            XCTAssertEqual(ServerEditionStub.requests.count, 2, "één nieuwe poging bij \(first)")
+            XCTAssertEqual(r.status, 200, "het antwoord van de tweede poging telt")
+            XCTAssertEqual(ServerEditionStub.requests.last?.timeoutInterval, HootStore.retryTimeout)
+        }
+        // Blijft het mislukken: precies twee pogingen, dan het vangnet (status blijft de fout).
+        ServerEditionStub.requests = []
+        ServerEditionStub.queue = [503, 503, 503]
+        let bad = await HootStore.requestServer(payload, token: nil, renew: { nil })
+        XCTAssertEqual(ServerEditionStub.requests.count, 2)
+        XCTAssertEqual(bad.status, 503)
+        // Een gewoon antwoord of een andere fout: niet opnieuw.
+        ServerEditionStub.requests = []
+        ServerEditionStub.queue = [200]
+        _ = await HootStore.requestServer(payload, token: nil, renew: { nil })
+        XCTAssertEqual(ServerEditionStub.requests.count, 1)
+        ServerEditionStub.requests = []
+        ServerEditionStub.queue = [400]
+        _ = await HootStore.requestServer(payload, token: nil, renew: { nil })
+        XCTAssertEqual(ServerEditionStub.requests.count, 1)
+        XCTAssertTrue(HootStore.retriesServer(0))
+        XCTAssertFalse(HootStore.retriesServer(401))
+    }
+
+    // 1.3.1: het vangnet neemt de Edities van het toestel mee als previous (de server-Editie én het bewaarde
+    // vangnet van een eerder dagdeel) en bewaart zichzelf voor het volgende dagdeel; de server wint.
+    func testFallbackKeepsEarlierEditionsOfTheDevice() async throws {
+        let g = try Self.golden()
+        var server = try XCTUnwrap((g["response"] as? [String: Any])?["edition"] as? [String: Any])
+        let owner = try XCTUnwrap(server["owner"] as? String)
+        server["id"] = "2026-11-12-ochtend"; server["builtAt"] = "2026-11-12T04:00:00Z"; server["history"] = []
+        var kept = server
+        kept["id"] = "2026-11-12-middag"; kept["builtAt"] = "2026-11-12T10:00:00Z"; kept["provisional"] = true
+        let data = { (o: Any?) -> String in o.flatMap { try? JSONSerialization.data(withJSONObject: $0) }.map { String(decoding: $0, as: UTF8.self) } ?? "null" }
+        let out = try await EditionEngine.shared.earlier(local: data(server), account: data(kept), id: "2026-11-12-avond", owner: owner)
+        let ids = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(out.utf8)) as? [[String: Any]]).compactMap { $0["id"] as? String }
+        XCTAssertEqual(ids, ["2026-11-12-middag", "2026-11-12-ochtend"], "nieuwste eerst, allebei erin")
+        let src = try String(contentsOf: Self.repo.appending(path: "ios/Hoot/HootStore.swift"), encoding: .utf8)
+        XCTAssertTrue(src.contains("Self.writeRaw(raw, to: Self.provisionalFile)"), "het vangnet wordt bewaard")
+        XCTAssertTrue(src.contains("account: Self.json(provisionalKept(owner: owner))"), "en meegenomen als previous")
+        let store = HootStore(defaults: UserDefaults(suiteName: "EditionServerTests")!)
+        store.keepServer(server, task: "x|\(owner)|y")
+        XCTAssertNil(store.personalProvisional, "de server wint")
+        XCTAssertNil(store.provisionalKept(owner: "iemand-anders"), "een vangnet van een andere lezer telt niet")
     }
 
     // Leesprofiel meesturen (besluit Alex, 11 november 2026): voor elk profiel stuurt de app precies de samenvatting

@@ -4,6 +4,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **iOS 1.3.1 (app)**: de app wacht langer op de server voor jouw Editie (20 in plaats van 8 seconden, met bij een time-out of een drukke server één stille nieuwe poging), en het vangnet neemt de Edities van dit toestel mee als "eerder gezien" en onthoudt zichzelf voor het volgende dagdeel, zodat ochtend, middag en avond niet meer dezelfde Editie lijken; zodra de server antwoordt, wint de server. Na de derde uitgelezen Editie, op "Je bent bij." of "Je weet genoeg.", vraagt de app via het venster van Apple om een beoordeling: hooguit één keer per appversie, nooit tijdens het lezen en nooit bij de eerste twee Edities.
 - **iOS 1.3 (build 53)** is de app-kant van: Hoot-widgets (beginscherm, vergrendelscherm, StandBy, iPad), Uitleg bij begrippen en Begrippen in het verhaal, achttien beelden bij stukken zonder foto, grote beelden van o.a. Volkskrant, Parool, Trouw, NU.nl en FD, de nieuwe rubrieknamen (Games onder Cultuur, Hacks & privacy) en Meten zonder volgen. Zie ios/CHANGELOG.md.
 
 - **Uitleg bij begrippen, ook in de app** (app in 1.3; web gelijk): onder een bericht met een begrip als formateur of midterms staat nu ook in de app de pil "Uitleg: formateur". Een tik opent een half blad met de uitleg en een knop naar Wikipedia; omlaag vegen sluit het. Onderaan een verhaal staan alle Begrippen bij elkaar, uitklapbaar. Web en app gebruiken dezelfde lijst van 32 begrippen (shared/glossary.json) en vinden er precies dezelfde.

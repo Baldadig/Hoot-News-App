@@ -103,7 +103,10 @@ enum HootAPI {
     // haar als lid zelf vast. Met je token als je lid bent. Uitkomst: de status (0 = geen verbinding of te
     // traag) en het antwoord, dat de app letterlijk bewaart. Nooit uit een cache: het kan van je account zijn.
     nonisolated(unsafe) static var editionTransport: URLSession = session // alleen tests zetten hem (EditionServerTests)
-    static func serverEdition(_ payload: Data, token: String?) async -> (status: Int, data: Data?) {
+    // Wachttijd op de server: 20 s (1.3.1; was 8). Een lid-aanvraag doet tokencheck, rij, quotum en alle bron-delen
+    // en kan bij een koude start over de 8 s gaan; het vangnet is dan een slechter antwoord dan wachten.
+    nonisolated(unsafe) static var editionTimeout: TimeInterval = 20
+    static func serverEdition(_ payload: Data, token: String?, timeout: TimeInterval? = nil) async -> (status: Int, data: Data?) {
         guard !DebugLaunch.offline else { return (0, nil) }
         var request = URLRequest(url: base.appendingPathComponent("api/edition"))
         request.httpMethod = "POST"
@@ -111,7 +114,7 @@ enum HootAPI {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         request.httpBody = payload
-        request.timeoutInterval = 8
+        request.timeoutInterval = timeout ?? editionTimeout
         guard let (data, response) = try? await editionTransport.data(for: request) else { return (0, nil) }
         return ((response as? HTTPURLResponse)?.statusCode ?? 0, data)
     }

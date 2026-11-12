@@ -266,6 +266,7 @@ struct RootView: View {
         .tabBarMinimizeBehavior(.onScrollDown)
         // Meten zonder volgen (Telling.swift): welk tabblad opent. De Editie telt één keer per dagdeel, ook als hij pas laadt.
         .onChange(of: tab, initial: true) { _, t in
+            krant.tab = t
             switch t {
             case .editie: store.tel(.editieOpen)
             case .stroom: store.tel(.stroomOpen)
