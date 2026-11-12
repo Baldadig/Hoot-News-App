@@ -3820,7 +3820,7 @@ var HootCore = (() => {
   var OPEN_CITAAT = /^[‘’“'"„«‚]/u;
   var SLUIT_CITAAT = /[’”'"»]$/u;
   var woorden = (s) => s.split(" ").filter(Boolean).length;
-  var schoon = (s) => String(s ?? "").replace(/[\u200B-\u200D\uFEFF]/gu, "").replace(/\s+/g, " ").trim();
+  var schoon = (s) => String(s ?? "").replace(/[\u200B-\u200D\uFEFF]/gu, "").replace(/[\s\u0085]+/gu, " ").trim();
   var staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, "");
   var kern = (s, min) => s.length >= KERN_MIN2 && woorden(s) >= min;
   var hoofdletter = (s) => /^\p{Ll}\p{Ll}/u.test(s) ? s[0].toLocaleUpperCase("nl") + s.slice(1) : s;
@@ -3848,7 +3848,15 @@ var HootCore = (() => {
     "wij",
     "ik",
     "dat",
-    "zo"
+    "zo",
+    "dan",
+    "daar",
+    "daarom",
+    "dus",
+    "toch",
+    "then",
+    "there",
+    "thus"
   ]);
   var opent = (s) => OPENERS.has(letters(s.split(" ")[0] || ""));
   var BIJZIN = /* @__PURE__ */ new Set([
@@ -3890,6 +3898,17 @@ var HootCore = (() => {
     "yet"
   ]);
   var zinsbegin = (alle, i) => i > 0 && i < alle.length && (/[,;:.?!]$/u.test(alle[i - 1]) || /^[–—-]$/u.test(alle[i]) || BIJZIN.has(letters(alle[i])));
+  var TEGEN = /* @__PURE__ */ new Set(["maar", "al", "terwijl", "hoewel", "ofschoon", "doch", "echter", "but", "though", "yet", "whereas", "although", "however"]);
+  var haakBewering = (alle, i) => {
+    if (!/^\(/u.test(alle[i])) return false;
+    for (let j = i; j < alle.length; j++) if (/\)/u.test(alle[j])) return j - i + 1 >= 3;
+    return alle.length - i >= 3;
+  };
+  var bewering = (alle, i) => {
+    const vorige = alle[i - 1];
+    const w = alle[i];
+    return i >= 2 && (/;[’”'"»)]*$/u.test(vorige) || /[.?!][’”'"»)]*$/u.test(vorige) && /^[‘’“'"„«‚(]?(?:\p{Lu}|\d)/u.test(w) || /^[–—-]$/u.test(w) || haakBewering(alle, i) || /,$/u.test(vorige) && TEGEN.has(letters(w)));
+  };
   var sleutel = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}\p{N}]/gu, "");
   function gelegd(alle, kort2) {
     const idx = [];
@@ -3933,6 +3952,15 @@ var HootCore = (() => {
     const mee = gelegd(alle, kort2);
     if (!mee) return false;
     for (let p = 0; p < alle.length; p++) if (!mee.has(p) && ontkenning(alle[p])) return false;
+    const begin = alle.findIndex((w, p) => mee.has(p));
+    if (begin > 0 && VOORNAAMWOORD.has(letters(alle[begin]))) return false;
+    let stuk = 0;
+    let eerste = -1;
+    for (let p = 0; p < alle.length; p++) {
+      if (p > 0 && bewering(alle, p)) stuk++;
+      if (mee.has(p) && eerste < 0) eerste = stuk;
+      if (eerste >= 0 && stuk > eerste && sleutel(alle[p]) && !mee.has(p)) return false;
+    }
     return true;
   }
   function zonderLosEinde(delen, set = LOSSE_EINDES) {
@@ -4007,7 +4035,7 @@ var HootCore = (() => {
         if (!wilB || !titleCase(b)) {
           const k = wilB ? alsB() : kort(a, max, kop);
           if (k) return k;
-          const ander = wilB ? kort(a, max, kop) : toevoegingB ? null : alsB();
+          const ander = wilB ? kort(a, max, kop) : toevoegingB || !benoemd(b, true) ? null : alsB();
           if (ander) return ander;
         }
       }

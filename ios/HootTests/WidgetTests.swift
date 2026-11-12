@@ -83,6 +83,24 @@ import WidgetKit
         for w in ["nietig", "nobel", "notaris", "canteen", "Seldenrijk"] { XCTAssertFalse(KortKop.ontkenning(w), w) }
     }
 
+    // Keuring 7: een eigen bewering (na ";", een zinseinde, een gedachtestreep of ", maar") valt nooit weg, ook zonder
+    // ontkenningswoord; een uitwijk naar een B die terugverwijst ("dan …") ook niet. Dan staat de kop heel.
+    func testTrapLaatGeenEigenBeweringWeg() {
+        let gevallen = [
+            ("Kabinet is gevallen na urenlang crisisberaad, meldt De Telegraaf, maar premier Schoof weerspreekt dat bericht", "Kabinet is gevallen na urenlang crisisberaad…"),
+            ("Kabinet is gevallen na urenlang crisisberaad, meldt De Telegraaf; premier Schoof noemt het bericht onzin", "Kabinet is gevallen na urenlang crisisberaad…"),
+            ("Prime minister resigns after crisis talks, BBC reports. Downing Street: far from it, he is staying on as leader", "Prime minister resigns after crisis talks, BBC reports."),
+            ("Rutte noemt de NAVO-top in Den Haag een groot succes – allesbehalve, zeggen diplomaten in Brussel achteraf", "Rutte noemt de NAVO-top in Den Haag een groot succes"),
+            ("Nieuwe wet maakt thuiswerken een recht, behalve als je werkgever bezwaar maakt: dan geldt het recht dus nergens", "Dan geldt het recht dus nergens"),
+        ]
+        for (kop, fout) in gevallen {
+            XCTAssertFalse(KortKop.veilig(kop, fout), kop)
+            XCTAssertEqual(KortKop.trap(kop, kort: fout), [kop], kop)
+        }
+        // U+0085 is witruimte, net als op het web.
+        XCTAssertEqual(KortKop.kort("Kop met\u{0085}teken"), "Kop met teken")
+    }
+
     // MARK: Dagdelen en tijdlijn
 
     func testDagdelenGelijkAanServerSeintjesEnNamen() throws {

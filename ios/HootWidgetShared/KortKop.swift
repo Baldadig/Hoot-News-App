@@ -49,8 +49,14 @@ enum KortKop {
         "and", "or", "but", "if", "because", "while", "although", "though", "unless", "whether",
     ]
     // Een B die zo begint, is geen kop op zichzelf ("it will not be the last", "that is not true"); "Dit is …" wel.
+    // Ook een terugverwijzend woord ("dan geldt het recht dus nergens"): dat deel hangt af van wat ervoor staat.
     static let voornaamwoord: Set<String> = [
         "it", "he", "she", "they", "we", "i", "that", "which", "so", "hij", "zij", "ze", "wij", "ik", "dat", "zo",
+        "dan", "daar", "daarom", "dus", "toch", "then", "there", "thus",
+    ]
+    // Na een komma begint met deze woorden een eigen bewering (keuring 7).
+    static let tegen: Set<String> = [
+        "maar", "al", "terwijl", "hoewel", "ofschoon", "doch", "echter", "but", "though", "yet", "whereas", "although", "however",
     ]
     // Woorden waarmee een nieuwe (bij)zin begint; geen "en", "of", "and" of "or".
     static let bijzin: Set<String> = [
@@ -88,7 +94,7 @@ enum KortKop {
 
     private static func woorden(_ s: String) -> Int { delen(s).filter { !$0.isEmpty }.count }
     private static func schoon(_ s: String) -> String {
-        vervang("^ +| +$", vervang("\\s+", vervang("[\\u200B-\\u200D\\uFEFF]", s, ""), " "), "")
+        vervang("^ +| +$", vervang("[\\s\\u0085]+", vervang("[\\u200B-\\u200D\\uFEFF]", s, ""), " "), "")
     }
     private static func staart(_ s: String) -> String { vervang("[\\s,;:–—\\-‘“'\"(]+$", s, "") }
     private static func kern(_ s: String, _ min: Int) -> Bool { lengte(s) >= kernMin && woorden(s) >= min }
@@ -115,6 +121,22 @@ enum KortKop {
     }
     // MARK: De bewaking (zie veilig in kort-kop.mjs)
 
+    // Begint bij woord `i` een eigen bewering: na een puntkomma, na een zinseinde voor een hoofdletter, cijfer of
+    // citaat, bij een gedachtestreep, bij haakjes met minstens drie woorden, of na ", maar"/", but" (tegen). Eén woord
+    // vooraan is een label ("VIDEO – …").
+    private static func haakBewering(_ alle: [String], _ i: Int) -> Bool {
+        guard alle[i].hasPrefix("(") else { return false }
+        for j in i ..< alle.count where alle[j].contains(")") { return j - i + 1 >= 3 }
+        return alle.count - i >= 3
+    }
+    private static func bewering(_ alle: [String], _ i: Int) -> Bool {
+        let vorige = alle[i - 1], w = alle[i]
+        return i >= 2 && (test(";[’”'\"»)]*$", vorige)
+            || (test("[.?!][’”'\"»)]*$", vorige) && test("^[‘’“'\"„«‚(]?(?:\\p{Lu}|\\d)", w))
+            || test("^[–—-]$", w)
+            || haakBewering(alle, i)
+            || (test(",$", vorige) && tegen.contains(letters(w))))
+    }
     private static func sleutel(_ w: String) -> String { vervang("[^\\p{L}\\p{N}]", zonderAccent(w.lowercased()), "") }
     private static func gelijk(_ a: String, _ b: String) -> Bool { ns(a).isEqual(to: b) }
     // Welke woorden van de kop (index in `alle`) staan in de korte kop, met zo weinig mogelijk weggevallen stukken?
@@ -158,7 +180,17 @@ enum KortKop {
         guard let kort else { return false }
         let alle = delen(schoon(kop))
         guard let mee = gelegd(alle, kort) else { return false }
-        return !alle.indices.contains { !mee.contains($0) && ontkenning(alle[$0]) }
+        if alle.indices.contains(where: { !mee.contains($0) && ontkenning(alle[$0]) }) { return false }
+        // Valt het begin weg, dan begint de korte kop niet met een verwijswoord ("Dan geldt het recht dus nergens").
+        if let begin = alle.indices.first(where: { mee.contains($0) }), begin > 0, voornaamwoord.contains(letters(alle[begin])) { return false }
+        // Geen eigen bewering weg (keuring 7): na het eerste stuk waar de korte kop uit put, valt niets meer weg.
+        var stuk = 0, eerste = -1
+        for p in alle.indices {
+            if p > 0 && bewering(alle, p) { stuk += 1 }
+            if mee.contains(p) && eerste < 0 { eerste = stuk }
+            if eerste >= 0 && stuk > eerste && !sleutel(alle[p]).isEmpty && !mee.contains(p) { return false }
+        }
+        return true
     }
 
     private static let openCitaat = "^[‘’“'\"„«‚]"
@@ -254,7 +286,8 @@ enum KortKop {
                 // B in Title Case: twijfel, de hele kop inkorten.
                 if !wilB || !titleCase(b) {
                     if let k = wilB ? alsB() : kort(a, max, kop) { return k }
-                    if let k = wilB ? kort(a, max, kop) : (toevoegingB ? nil : alsB()) { return k }
+                    // B als uitwijk alleen als B zelf iets benoemt; anders hangt B van A af (keuring 7).
+                    if let k = wilB ? kort(a, max, kop) : (toevoegingB || !benoemd(b, metEerste: true) ? nil : alsB()) { return k }
                 }
             }
             // Een titel over de dubbele punt: de hele kop inkorten.

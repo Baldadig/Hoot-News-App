@@ -106,7 +106,7 @@ test('korte kop: na een dubbele punt nooit een deel zonder onderwerp, en geen on
   assert.match(k, /^‘Young/u)
   assert.equal(kortKop('Kop met\u200B onzichtbaar\uFEFF teken'), 'Kop met onzichtbaar teken')
 })
-const schoonKop = (s) => s.replace(/[\u200B-\u200D\uFEFF]/gu, '').replace(/\s+/g, ' ').trim()
+const schoonKop = (s) => s.replace(/[\u200B-\u200D\uFEFF]/gu, '').replace(/[\s\u0085]+/gu, ' ').trim()
 
 test('korte kop: hooguit 60 tekens, en een kop die past blijft precies zo', () => {
   for (const c of fx.gevallen) assert.ok((kortKop(c.kop) ?? '').length <= KORT_MAX, c.kop)
@@ -133,9 +133,11 @@ test('korte kop: afkappen op een woordgrens, met een beletselteken en zonder los
 test('korte kop: een spreker voor de dubbele punt blijft, een uitwerking erna valt weg', () => {
   assert.match(kortKop('Raad van State: minister van Asiel moet veiligheid Syrië opnieuw beoordelen na nieuwe berichten uit Damascus'), /^Raad van State: /)
   assert.equal(kortKop('Emma Heesters is de nieuwe Bachelorette: ‘Geloof nog steeds in de liefde’ en meer woorden'), 'Emma Heesters is de nieuwe Bachelorette')
-  assert.equal(kortKop('Kabinet valt over stikstof – oppositie wil nu snel verkiezingen in het voorjaar van volgend jaar'), 'Kabinet valt over stikstof')
-  // Te korte kern voor de streep: dan niet weglaten maar afkappen.
-  assert.match(kortKop('Kabinet valt – oppositie wil nu snel verkiezingen in het voorjaar van volgend jaar en daarna'), /^Kabinet valt – .+…$/)
+  // Na een gedachtestreep staat een eigen bewering: die valt niet weg (keuring 7), dus de hele kop.
+  assert.equal(kortKop('Kabinet valt over stikstof – oppositie wil nu snel verkiezingen in het voorjaar van volgend jaar'), null)
+  assert.equal(kortKop('Kabinet valt – oppositie wil nu snel verkiezingen in het voorjaar van volgend jaar en daarna'), null)
+  // Eén woord vooraan is een label: daarna gewoon inkorten.
+  assert.equal(kortKop('Achtergrond – Dit wil de EU veranderen aan lootboxes, dark patterns en proefabonnementen'), 'Achtergrond – Dit wil de EU veranderen aan lootboxes…')
 })
 
 test('metKorteKoppen: per plek de kop van het hoofdstuk ingekort, de rest ongemoeid', () => {
@@ -172,10 +174,11 @@ test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt,
   // Maar is het deel ervoor het nieuws (met een naam of getal), dan blijft dat.
   assert.equal(kortKop('Geen bezorgverbod voor Uber Eats in Amsterdam: onvoldoende nagedacht over gevolgen, oordeelt Raad van State'), 'Geen bezorgverbod voor Uber Eats in Amsterdam')
   assert.equal(kortKop('Amsterdamse ict-blunder kost zeker 30 miljoen euro: ambtenaren komen weg met ’stevig gesprek’'), 'Amsterdamse ict-blunder kost zeker 30 miljoen euro')
-  // c. Afkappen op een zinsgrens.
-  assert.equal(kortKop('Wat wil jij weten van de klimaattop in Turkije? Stel je vragen aan onze verslaggever'), 'Wat wil jij weten van de klimaattop in Turkije?')
+  // c. Een tweede zin is een eigen bewering en valt niet weg (keuring 7): de hele kop.
+  assert.equal(kortKop('Wat wil jij weten van de klimaattop in Turkije? Stel je vragen aan onze verslaggever'), null)
   // d. Geen los voorzetsel of bijvoeglijk naamwoord aan het eind; een zelfstandig naamwoord op -e blijft.
-  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan pas over een paar jaar'), 'Sluiting dreigt voor verouderde laboratoria RIVM…')
+  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan pas over een paar jaar'), null)
+  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM en verhuizen kan pas over een paar jaar'), 'Sluiting dreigt voor verouderde laboratoria RIVM…')
   // Met een ontkenning in de bijzin zonder eigen, benoemd onderwerp: geen korte kop (keuring 5).
   assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet'), null)
   assert.equal(kortKop('Manon Bakker ploetert in crossweer naar eerste grote zege in 3 jaar, Lucinda Brand misstapt zich en valt uit in Niel'), 'Manon Bakker ploetert in crossweer naar eerste grote zege…')
@@ -216,4 +219,33 @@ test('korte kop: een weggevallen ontkenning is altijd onveilig, ook in een eigen
   }
   assert.equal(veilig('Het kabinet valt over stikstof. Premier Schoof denkt van niet', 'Het kabinet valt over stikstof.'), false)
   assert.equal(veilig('Prime minister resigns after crisis talks: ‘Prime minister has not resigned at all’', 'Prime minister resigns after crisis talks'), false)
+})
+
+test('korte kop: een eigen bewering valt nooit weg, ook zonder ontkenningswoord (keuring 7)', () => {
+  // Na een puntkomma, een zinseinde, een gedachtestreep of ", maar"/", but": geen korte vorm die dat deel kwijt is.
+  const koppen = [
+    ['Kabinet is gevallen na urenlang crisisberaad, meldt De Telegraaf, maar premier Schoof weerspreekt dat bericht', 'Kabinet is gevallen na urenlang crisisberaad…'],
+    ['Kabinet is gevallen na urenlang crisisberaad, meldt De Telegraaf; premier Schoof noemt het bericht onzin', 'Kabinet is gevallen na urenlang crisisberaad…'],
+    ['Prime minister resigns after crisis talks, BBC reports. Downing Street: far from it, he is staying on as leader', 'Prime minister resigns after crisis talks, BBC reports.'],
+    ['The crisis is over, says the finance minister in Berlin. Economists in Frankfurt: on the contrary, it has just begun', 'The crisis is over, says the finance minister in Berlin.…'],
+    ['Rutte noemt de NAVO-top in Den Haag een groot succes – allesbehalve, zeggen diplomaten in Brussel achteraf', 'Rutte noemt de NAVO-top in Den Haag een groot succes'],
+    ['Ajax wint met 3-0 van PSV in Eindhoven; KNVB verklaart de uitslag achteraf ongeldig na protest van de club', 'Ajax wint met 3-0 van PSV in Eindhoven…'],
+  ]
+  for (const [kop, fout] of koppen) {
+    assert.equal(veilig(kop, fout), false, `${kop} → ${fout}`)
+    for (const max of [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]) assert.equal(kortKop(kop, max), null, `${kop} (${max})`)
+  }
+  // Wat ervoor staat mag wel worden ingekort, zolang alles erna heel blijft.
+  assert.equal(veilig('Kabinet is na een lange nacht gevallen; premier treedt af', 'Kabinet is gevallen; premier treedt af'), true)
+  // Een uitwijk naar B die terugverwijst ("dan …") hangt van A af: nooit alleen B.
+  const b = 'Nieuwe wet maakt thuiswerken een recht, behalve als je werkgever bezwaar maakt: dan geldt het recht dus nergens'
+  for (const max of [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]) assert.equal(kortKop(b, max), null, `${b} (${max})`)
+  assert.equal(veilig(b, 'Dan geldt het recht dus nergens'), false)
+})
+
+test('korte kop: U+0085 (NEL) is witruimte, net als op iOS (keuring 7)', () => {
+  assert.equal(kortKop('Kop met\u0085teken'), 'Kop met teken')
+  const kop = 'Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer dat\u0085niet doet deze week'
+  for (const max of [60, 52, 44, 28]) assert.equal(kortKop(kop, max), null, `${max}`)
+  assert.equal(veilig(kop, 'Kamer stemt in met nieuwe asielwet van minister Faber…'), false)
 })

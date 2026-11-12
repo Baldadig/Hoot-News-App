@@ -38,10 +38,14 @@
 //   De bewaking (`veilig`) geldt voor elke uitkomst, welke stap ook: valt er een ontkenning weg (ook "amper",
 //   "nauwelijks", "zelden", "evenmin", "zonder", "hardly", "rarely", "without", "niet-", "non-"), waar ook in de
 //   kop, dan telt die uitkomst niet en volgt de volgende stap. Geen uitzondering: een weggevallen ontkenning is
-//   altijd onveilig, ook in een bijzin of citaat die helemaal wegvalt. Blijft er
+//   altijd onveilig, ook in een bijzin of citaat die helemaal wegvalt. En een eigen bewering valt nooit weg, ook
+//   zonder ontkenningswoord (keuring 7): na een puntkomma, een zinseinde, een gedachtestreep of ", maar"/", but"
+//   (zie `bewering`) moet alles heel blijven. Stap 2, 4 en 5 leveren daardoor vaak niets meer op; dan de hele kop.
+//   Uitwijken naar het deel na een dubbele punt (stap 3) alleen als dat zelf iets benoemt en niet terugverwijst
+//   ("dan geldt het recht dus nergens"). Blijft er
 //   niets veiligs over, dan is er op deze maat geen korte kop (null) en kiest de widget een andere maat; is er
 //   op geen enkele maat een, dan krijgt de kop in de widget de regels die hij nodig heeft (WidgetZet.pas).
-//   Onzichtbare tekens (U+200B–U+200D, U+FEFF) vallen vooraf weg.
+//   Onzichtbare tekens (U+200B–U+200D, U+FEFF) vallen vooraf weg; U+0085 telt als spatie, zoals op iOS.
 // iOS spiegelt dit in KortKop (ios/HootWidgetShared/KortKop.swift) en draait dezelfde gevallen uit
 // tests/fixtures/kort-kop.json; verander je hier iets, dan daar ook.
 
@@ -100,7 +104,8 @@ const SLUIT_CITAAT = /[’”'"»]$/u
 
 const woorden = (s) => s.split(' ').filter(Boolean).length
 // Onzichtbare tekens (zero-width space, joiner, BOM) eruit; witruimte wordt één spatie.
-const schoon = (s) => String(s ?? '').replace(/[\u200B-\u200D\uFEFF]/gu, '').replace(/\s+/g, ' ').trim()
+// U+0085 (NEL) telt mee als witruimte, zoals in ICU (iOS): JavaScript rekent hem niet tot `\s` (keuring 7).
+const schoon = (s) => String(s ?? '').replace(/[\u200B-\u200D\uFEFF]/gu, '').replace(/[\s\u0085]+/gu, ' ').trim()
 // Leestekens die aan het eind van een ingekorte kop niets meer doen.
 const staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, '')
 // Een eigen kop: lang genoeg en een paar woorden.
@@ -120,8 +125,11 @@ export const ontkenning = (w) => {
 const heeftOntkenning = (s) => s.split(' ').some(ontkenning)
 // Een deel dat met een persoonlijk voornaamwoord of verwijswoord begint ("it will not be the last", "that is not
 // true"), is geen kop op zichzelf: waar het naar verwijst, staat ervoor. "Dit is …" wel: dat wijst vooruit.
+// Ook een terugverwijzend woord ("dan geldt het recht dus nergens", "then …", "there …"): dat deel hangt af van wat
+// ervoor staat (keuring 7).
 const VOORNAAMWOORD = new Set([
   'it', 'he', 'she', 'they', 'we', 'i', 'that', 'which', 'so', 'hij', 'zij', 'ze', 'wij', 'ik', 'dat', 'zo',
+  'dan', 'daar', 'daarom', 'dus', 'toch', 'then', 'there', 'thus',
 ])
 // Begint dit deel met een voorzetsel of voegwoord?
 const opent = (s) => OPENERS.has(letters(s.split(' ')[0] || ''))
@@ -141,6 +149,30 @@ const zinsbegin = (alle, i) => i > 0 && i < alle.length && (/[,;:.?!]$/u.test(al
 // tegenspreken ("Het kabinet valt over stikstof. Premier Schoof denkt van niet", "…, maar premier Schoof ontkent
 // dat", "…: ‘Premier Schoof treedt niet af’"). Raden of ze dat doet, lekt; dan liever de hele kop (de widget geeft
 // hem de regels die hij nodig heeft).
+// Een eigen bewering mag ook niet wegvallen, met of zonder ontkenningswoord (keuring 7): "…, maar premier Schoof
+// weerspreekt dat bericht", "…; premier noemt het bericht onzin", "…. Economen: integendeel", "… – allesbehalve,
+// zeggen diplomaten". Een woordenlijst wordt nooit af; daarom op de bouw van de kop. Een nieuwe bewering begint na
+// een puntkomma, na een zinseinde (". ", "? ", "! " voor een hoofdletter, cijfer of citaat), bij een gedachtestreep,
+// bij haakjes met minstens drie woorden erin, en na ", maar", ", al", ", terwijl", ", hoewel", ", but", ", though",
+// ", yet", ", whereas", ", although". Het eerste stuk waar de korte kop
+// uit put, mag worden ingekort (of een stuk ervoor wegvallen); alles erna moet er heel in staan. Eén woord vooraan
+// is een label, geen bewering ("VIDEO – …", "KIJK. …", "Achtergrond – …").
+const TEGEN = new Set(['maar', 'al', 'terwijl', 'hoewel', 'ofschoon', 'doch', 'echter', 'but', 'though', 'yet', 'whereas', 'although', 'however'])
+// Haakjes vanaf woord `i` met minstens drie woorden erin ("(premier Schoof weerspreekt dat)"); "(90)" niet.
+const haakBewering = (alle, i) => {
+  if (!/^\(/u.test(alle[i])) return false
+  for (let j = i; j < alle.length; j++) if (/\)/u.test(alle[j])) return j - i + 1 >= 3
+  return alle.length - i >= 3
+}
+const bewering = (alle, i) => {
+  const vorige = alle[i - 1]
+  const w = alle[i]
+  return i >= 2 && (/;[’”'"»)]*$/u.test(vorige)
+    || (/[.?!][’”'"»)]*$/u.test(vorige) && /^[‘’“'"„«‚(]?(?:\p{Lu}|\d)/u.test(w))
+    || /^[–—-]$/u.test(w)
+    || haakBewering(alle, i)
+    || (/,$/u.test(vorige) && TEGEN.has(letters(w))))
+}
 const sleutel = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}\p{N}]/gu, '')
 // Welke woorden van de kop (index in `alle`) staan in de korte kop? null als hij er niet op past.
 function gelegd(alle, kort) {
@@ -186,6 +218,18 @@ export function veilig(kop, kort) {
   const mee = gelegd(alle, kort)
   if (!mee) return false
   for (let p = 0; p < alle.length; p++) if (!mee.has(p) && ontkenning(alle[p])) return false
+  // Valt het begin weg, dan begint de korte kop niet met een verwijswoord ("Dan geldt het recht dus nergens"): dat
+  // deel hangt af van wat wegviel (keuring 7).
+  const begin = alle.findIndex((w, p) => mee.has(p))
+  if (begin > 0 && VOORNAAMWOORD.has(letters(alle[begin]))) return false
+  // Geen eigen bewering weg: na het eerste stuk waar de korte kop uit put, valt niets meer weg.
+  let stuk = 0
+  let eerste = -1
+  for (let p = 0; p < alle.length; p++) {
+    if (p > 0 && bewering(alle, p)) stuk++
+    if (mee.has(p) && eerste < 0) eerste = stuk
+    if (eerste >= 0 && stuk > eerste && sleutel(alle[p]) && !mee.has(p)) return false
+  }
   return true
 }
 
@@ -304,7 +348,8 @@ function kort(t, max, kop) {
         const k = wilB ? alsB() : kort(a, max, kop)
         if (k) return k
         // B als uitwijk alleen als B een eigen kop is, geen toevoeging, citaat of vraag zonder spreker.
-        const ander = wilB ? kort(a, max, kop) : toevoegingB ? null : alsB()
+        // En alleen als B zelf iets benoemt (een naam, getal of afkorting): anders hangt B van A af (keuring 7).
+        const ander = wilB ? kort(a, max, kop) : toevoegingB || !benoemd(b, true) ? null : alsB()
         if (ander) return ander
       }
     }
