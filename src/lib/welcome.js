@@ -13,6 +13,19 @@ export function sourceLine(names = []) {
   return `${names[0]}, ${names[1]} en ${names.length - 2} meer`
 }
 
+// Het bewijs op de rode intro (Week · 1): de eerste kop van de huidige algemene Editie, met bron. Geen
+// Editie of geen kop (offline, feed nog niet binnen): null, en de intro toont zijn gewone ondertitel.
+export function proofHeadline(edition) {
+  const byId = new Map((edition?.items || []).map((i) => [i.id, i]))
+  for (const e of edition?.entries || []) {
+    if (e.desk === 'bubbel') continue
+    const item = byId.get(e.leadId || e.id)
+    const title = (item?.title || '').trim()
+    if (title) return { title, source: item.sourceName || '' }
+  }
+  return null
+}
+
 // Wat je per interesse aantikte, uit de lijst onderwerpen die je volgt (resolveTopics): volg je
 // alle onderwerpen van een interesse, dan koos je er niet een paar maar 'Alles'.
 export function pickedFrom(topics = [], interests = [], all = []) {

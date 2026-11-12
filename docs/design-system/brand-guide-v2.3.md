@@ -1,3 +1,5 @@
+> **Achterhaald (12 november 2026):** Brand Guide v2.4 geldt, zie [`brand-guide-v2.4.md`](brand-guide-v2.4.md). Deze v2.3 blijft staan als geschiedenis.
+
 # Hoot · Brand guide v2.3
 
 Donderdag 5 november 2026, voor versie 1.1.0 (build 48). Vervangt v2.2 en gaat erboven waar ze verschillen; v2.2 blijft als [`brand-guide-v2.2.md`](brand-guide-v2.2.md) staan. Register: `tokens.json` (versie 3). Code: web `src/styles.css` en `src/styles/kaart.css`, iOS `ios/Hoot/Views/Letters.swift`, `Components.swift` (`Theme`), `Layout.swift`, `ios/Hoot/Theme/NachtThema.swift` en `Assets.xcassets`. Bij twijfel is de code leidend.

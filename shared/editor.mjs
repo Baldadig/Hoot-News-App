@@ -134,7 +134,7 @@ export const P = {
   FAVORITE: 8, // voorkeursbron; gelijk aan FAVORITE_BONUS in netlify/lib/stories.mjs
   SOURCE_READ: 4, // × hoe vaak je de bron leest, als dat meer is dan SOURCE_READ_MIN
   MINE: 3, // per extra eigen bron die erover schrijft, tot MINE_MAX
-  FOLLOW_UP: 10, // vervolg: je las het en er kwamen ≥ FOLLOW_UP_MIN nieuwe stukken bij
+  FOLLOW_UP: 10, // vervolg: je las het en er is een nieuw feit (ctx.newFacts; zonder: ≥ FOLLOW_UP_MIN nieuwe stukken)
 }
 export const CROSS_MIN = 0.35
 export const SOURCE_READ_MIN = 0.2
@@ -245,7 +245,9 @@ export function geoOf(item, desk = null, foreign = false) {
 // Al gelezen zonder nieuws is geen punt maar een filter: dan staat er `seen` (0 punten), en de
 // selectie slaat de kandidaat over. `story`: wat voor iedereen gelijk is aan het verhaal, als de
 // selectie dat weet: zijn rubriek (`desk`, st.desk) en of het vooral buitenlandse bronnen heeft
-// (`foreign`); anders kijken we naar de berichten zelf.
+// (`foreign`); anders kijken we naar de berichten zelf. `story.whole`: alle berichten van het verhaal die het toestel kent
+// (ook van andere bronnen), voor de toets op een nieuw feit (`ctx.newFacts`); `story.keyAt`, `story.pubAt` en `story.pubs`: de kenmerken, de laatste stukken per uitgever en
+// het aantal uitgevers van het hele verhaal (van de server), zodat die toets ook telt wat het toestel niet kent.
 export function personalParts(items = [], prof, ctx = {}, story = {}) {
   const parts = {}
   if (!items.length) return parts
@@ -295,11 +297,24 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
   const mine = new Set(items.map((i) => i.source)).size
   if (mine >= 2) parts.mine = { pts: P.MINE * Math.min(MINE_MAX, mine - 1), n: mine }
   // Wat je al las. Er is geen leestijdstip: "nieuw" is gepubliceerd ruim na het laatste stuk dat je las.
-  const read = ctx.readIds ? items.filter((i) => ctx.readIds.has(i.id)) : []
+  // Eén toets voor "nieuw feit" (13 november, redacteur-2026-11-13-nieuw-feit): kent de selectie de kenmerken
+  // (`ctx.newFacts`, newFactIn in netlify/lib/stories.mjs), dan is het pas een vervolg als de stukken van ná wat je las een
+  // nieuw feit brengen, geteld over het hele verhaal (`story.whole`), en er minstens één nieuw stuk uit je eigen bronnen is
+  // om als kop te tonen (`heads`: bij voorkeur met het nieuwe feit in de kop). Meer stukken alleen is nog geen nieuws: een
+  // verhaal dat elk uur groeit, kreeg zo elk dagdeel +10. Zonder `ctx.newFacts` (oude aanroepen, losse toetsen) zoals
+  // vroeger: minstens FOLLOW_UP_MIN nieuwe stukken.
+  const whole = ctx.newFacts && story.whole?.length ? story.whole : items
+  const read = ctx.readIds ? whole.filter((i) => ctx.readIds.has(i.id)) : []
   if (read.length) {
     const last = Math.max(...read.map((i) => Date.parse(i.publishedAt) || 0))
-    const fresh = items.filter((i) => !ctx.readIds.has(i.id) && Date.parse(i.publishedAt) > last + FOLLOW_UP_GAP).length
-    if (fresh >= FOLLOW_UP_MIN) parts.followUp = { pts: P.FOLLOW_UP, n: fresh }
+    const after = (i) => !ctx.readIds.has(i.id) && Date.parse(i.publishedAt) > last + FOLLOW_UP_GAP
+    const fresh = items.filter(after)
+    if (ctx.newFacts) {
+      const freshAll = whole.filter(after)
+      const fact = fresh.length ? ctx.newFacts(freshAll, whole.filter((i) => !after(i)), fresh, { keyAt: story.keyAt, pubAt: story.pubAt, pubs: story.pubs, cutoff: last + FOLLOW_UP_GAP }) : null
+      if (fact) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length, heads: fact.heads.map((i) => i.id) }
+      else parts.seen = { pts: 0 }
+    } else if (fresh.length >= FOLLOW_UP_MIN) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length }
     else parts.seen = { pts: 0 }
   }
   return parts

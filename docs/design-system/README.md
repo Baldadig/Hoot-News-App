@@ -130,7 +130,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 - **Leeg:** wat er komt en wat je kunt doen ("Nog niets bewaard. Tik op het bladwijzericoon bij een bericht om het hier te bewaren.").
 - **Geen verbinding:** de laatst bewaarde versie, met "Verversen lukt nu niet. Je ziet de laatste versie." en "Opnieuw". Zonder eerdere versie een melding met de knop "Probeer opnieuw".
-- **Het einde van de editie:** een kaart in merkrood met de opkomende zon, "Je bent bij.", "Dit was de Avondeditie van zaterdag 31 oktober. De volgende staat morgenochtend klaar." (dagdelen, nooit kloktijden: na de ochtend "in de middag", na de middag "in de vroege avond") en "Of lees verder in de Stroom".
+- **Het einde van de editie:** een kaart in merkrood met de opkomende zon, "Je bent bij.", "Dit was de Avondeditie van zaterdag 31 oktober. De volgende staat morgenochtend klaar." (dagdelen, nooit kloktijden: na de ochtend "in de middag", na de middag "in de vroege avond") (zonder link verder: het einde is een einde).
 - **Gelezen:** de kop in `ink-3` in plaats van `ink`.
 - **Verwijderen:** één ding (een bewaard bericht) gaat meteen, met daarna zes seconden "Ongedaan maken" (web: melding; iOS: balk onderaan, ook voorgelezen door VoiceOver). Alles tegelijk wissen ("Bewaarde artikelen verwijderen", "Alles als ongelezen markeren") vraagt bevestiging, met een zichtbare "Annuleer" en precies wat er verdwijnt.
 

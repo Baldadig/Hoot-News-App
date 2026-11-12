@@ -159,6 +159,19 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos"]).first?.source, "NOS")
     }
 
+    // ---- Week · 2: de intro toont de eerste kop van de huidige algemene Editie als bewijs ----
+
+    func testIntroBewijsIsDeEersteKopMetBron() throws {
+        let json = #"{"id":"2026-11-12-ochtend","slot":"ochtend","entries":[{"kind":"story","id":"s0","leadId":"i0","desk":"bubbel"},{"kind":"story","id":"s1","leadId":"i1"},{"kind":"story","id":"s2","leadId":"i2"}],"items":[{"id":"i0","source":"nos","sourceName":"NOS","title":"Buiten je bubbel","url":"https://x/0"},{"id":"i1","source":"nrc","sourceName":"NRC","title":" Eerste kop ","url":"https://x/1"},{"id":"i2","source":"nos","sourceName":"NOS","title":"Tweede","url":"https://x/2"}]}"#
+        let edition = try JSONDecoder().decode(Edition.self, from: Data(json.utf8))
+        let proof = WelcomeView.proof(edition: edition, items: [:])
+        XCTAssertEqual(proof?.title, "Eerste kop", "de bubbel telt niet; spaties weg")
+        XCTAssertEqual(proof?.source, "NRC")
+        XCTAssertNil(WelcomeView.proof(edition: nil, items: [:]), "offline of zonder feed: geen kop, de intro valt terug op zijn ondertitel")
+        let leeg = try JSONDecoder().decode(Edition.self, from: Data(#"{"id":"x","entries":[]}"#.utf8))
+        XCTAssertNil(WelcomeView.proof(edition: leeg, items: [:]))
+    }
+
     // ---- Het voorstel ----
 
     @MainActor func testSuggestionStartsWithFreeDutchSources() {

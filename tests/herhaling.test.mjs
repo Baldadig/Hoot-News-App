@@ -33,6 +33,13 @@ const pool = [...stewart, extra, ...fresh6, ...small.flatMap((s) => s.its)]
 const stories = [stStewart, stFresh, ...small.map((s) => s.st)]
 const prof = profileOf({ interests: [], topics: [], affinity: null, taste: null, favorites: [], followed: FOLLOWED, sources: SOURCES, supply: {} })
 const select = (sts, items, opts) => selectForReader(sts, items, { mainIds: FOLLOWED, now: NOW, prof, ctx: {}, seed: 't', ...opts })
+// Nieuw feit (13 november): een groot verhaal (HOLD_PUBS uitgevers) uit je vorige Editie zonder nieuw feit dat je niet las,
+// verdwijnt niet meteen maar zakt één keer (`held`: geen voorpagina, geen vervolg; composePersonal zet het onder de top 5).
+// "Komt niet terug" is dus: niet als gewone plek.
+const notBack = (sel, id) => {
+  const e = sel.find((x) => x.id === id)
+  return !e || (e.held === true && !e.front && !e.vervolg)
+}
 
 // De Ochtend-Editie had het Stewart-verhaal als hoofdverhaal (lead pw0), met de volledige itemIds en kop (H4).
 const ochtend = {
@@ -43,9 +50,13 @@ const ochtend = {
   ],
 }
 
-test('T1 H1: één nieuw stuk van een andere bron is geen ontwikkeling — het verhaal komt niet terug', () => {
+test('T1 H1: één nieuw stuk van een andere bron is geen ontwikkeling — het verhaal komt niet terug (hooguit één keer gezakt)', () => {
   const sel = select(stories, pool, { previous: previousOf(ochtend) })
-  assert.ok(!sel.some((e) => e.id === 'st-stewart'), `Stewart kwam terug (lead ${sel.find((e) => e.id === 'st-stewart')?.leadId}); er was één nieuw stuk bij 10 oude`)
+  assert.ok(notBack(sel, 'st-stewart'), `Stewart kwam terug (lead ${sel.find((e) => e.id === 'st-stewart')?.leadId}); er was één nieuw stuk bij 10 oude`)
+  // Gezakt met het nieuwe stuk als kop, en maar één keer: stond het al zo in de vorige Editie (heldIds), of las je het, dan weg.
+  assert.equal(sel.find((e) => e.id === 'st-stewart')?.leadId, 'pw-extra')
+  assert.ok(!select(stories, pool, { previous: { ...previousOf(ochtend), heldIds: new Set(['st-stewart']) } }).some((e) => e.id === 'st-stewart'), 'twee keer gezakt')
+  assert.ok(!select(stories, pool, { previous: previousOf(ochtend), ctx: { readIds: new Set(['pw0']) } }).some((e) => e.id === 'st-stewart'), 'gelezen en geen nieuw feit: weg')
   assert.equal(seenBefore(stStewart, [...stewart, extra], previousOf(ochtend)), true)
   assert.equal(developedSince(stStewart, [...stewart, extra], previousOf(ochtend), signatures(pool)), null)
 })
@@ -55,7 +66,7 @@ test('T2 H1: de voorpagina slaat een gezien verhaal over, ook als het de enige g
   assert.ok(!sel.some((e) => e.id === 'st-stewart' && e.front), 'Stewart staat weer op de voorpagina')
   assert.ok(sel.some((e) => e.id === 'st-fresh'), 'het verse grote verhaal staat erin')
   const seen = previousOf(ochtend).storyIds
-  assert.ok(!sel.some((e) => seen.has(e.id)), 'niets uit de Ochtend komt zonder ontwikkeling terug')
+  assert.ok(sel.filter((e) => seen.has(e.id)).every((e) => notBack(sel, e.id)), 'niets uit de Ochtend komt zonder ontwikkeling terug (hooguit gezakt)')
   assert.ok(sel.length >= 4, 'de verhalen die niet in de Ochtend stonden vullen aan')
 })
 
@@ -133,7 +144,7 @@ test('T3b H2: een vertaalde kop (zelfde namen, andere taal) is geen ontwikkeling
   const { st, pool: p } = developed(vertaald)
   assert.equal(developedSince(st, p.filter((i) => st.itemIds.includes(i.id)), previousOf(ochtend), signatures(p)), null)
   const sel = select([st, stFresh, ...small.map((s) => s.st)], p, { previous: previousOf(ochtend) })
-  assert.ok(!sel.some((e) => e.id === 'st-stewart'), 'Stewart kwam terug met een vertaalde kop')
+  assert.ok(notBack(sel, 'st-stewart'), 'Stewart kwam terug met een vertaalde kop')
 })
 
 // De Middag had Stewart niet (de filter werkte); met alleen de Middag als previous zou de Avond hem niet kennen.
@@ -151,12 +162,12 @@ test('T4 H3: previous over de laatste drie Edities — wat in de Ochtend stond, 
   // Ochtend en Middag samen: niet terug, in welke volgorde ze ook worden meegegeven.
   for (const list of [[ochtendMetId, middag], [middag, ochtendMetId]]) {
     const sel = select(sts, p, { now: AVOND, previous: previousOf(list) })
-    assert.ok(!sel.some((e) => e.id === 'st-stewart'), 'Stewart (Ochtend) komt in de Avond terug omdat previous alleen de Middag kent')
-    assert.ok(!sel.some((e) => previousOf(list).storyIds.has(e.id)), 'niets uit Ochtend of Middag komt zonder ontwikkeling terug')
+    assert.ok(notBack(sel, 'st-stewart'), 'Stewart (Ochtend) komt in de Avond terug omdat previous alleen de Middag kent')
+    assert.ok(sel.filter((e) => previousOf(list).storyIds.has(e.id)).every((e) => notBack(sel, e.id)), 'niets uit Ochtend of Middag komt zonder ontwikkeling terug')
   }
   // Ook als de Ochtend alleen nog als samenvatting uit het account bekend is (H5).
   const sel = select(sts, p, { now: AVOND, previous: previousOf([historyOf(ochtendMetId), middag]) })
-  assert.ok(!sel.some((e) => e.id === 'st-stewart'))
+  assert.ok(notBack(sel, 'st-stewart'))
 })
 
 test('H3: previousOf over meer Edities verenigt verhalen, stukken, koppen en hoofdverhalen; at per verhaal is de laatste Editie waarin het stond', () => {
@@ -314,8 +325,13 @@ test('H2 keys: twee Nederlandse stukken over Wall Street zijn geen Vervolg als h
   // Met keys in de uitgebreide stand (de regressie van H6) was het wél een vals Vervolg.
   const extKeys = storyKeys(all, signatures(all, [], { extended: true }))
   assert.ok(!extKeys.includes('wall'), 'uitgebreid: Wallstreet is zwak en staat niet in keys')
-  const dev = developedSince(st, nl, { ...previous, keysOf: new Map([[st.id, extKeys]]) }, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known })
+  // Zonder de kenmerken van het hele verhaal (`keyAt`, een oudere kern): de regressie die deze toets vastlegt.
+  const { keyAt, ...zonderKeyAt } = st
+  const dev = developedSince(zonderKeyAt, nl, { ...previous, keysOf: new Map([[st.id, extKeys]]) }, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known })
   assert.ok(dev && dev.newSig >= 2, 'de regressie die deze toets vastlegt')
+  // Met `keyAt` (keuring 1 van nieuw feit) weet het toestel dat Wall Street er in de Ochtend al stond: geen vals Vervolg.
+  assert.ok(keyAt && keyAt.wall)
+  assert.equal(developedSince(st, nl, { ...previous, keysOf: new Map([[st.id, extKeys]]) }, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known }), null)
 })
 
 test('T7 H1: de aanvulling uit de algemene Editie en "Waar iedereen over schrijft" respecteren previous', () => {
@@ -351,9 +367,11 @@ test('T9 H4: een tweede verhaal over dezelfde gebeurtenis (ander id) komt niet t
   assert.ok(previous.titles.has(stewart[0].title), 'previousOf neemt de koppen mee')
   const sel = select(sts, p, { previous })
   assert.ok(!sel.some((e) => e.id === 'st-stewart2'), 'het tweede verhaal over Stewart kwam terug via een ander verhaal-id')
-  // Zonder de koppen van toen (oude Editie zonder `title` en zonder `items`) is er niets om op te toetsen.
+  // Zonder de koppen van toen (oude Editie zonder `title` en zonder `items`) is er niets om op te toetsen: het onderwerp
+  // krijgt één plek, het tweede verhaal of (nieuw feit, 13 november) het grote verhaal zelf, gezakt.
   const kaal = { ...previous, titles: new Set() }
-  assert.ok(select(sts, p, { previous: kaal }).some((e) => e.id === 'st-stewart2'))
+  const k = select(sts, p, { previous: kaal })
+  assert.ok(k.some((e) => e.id === 'st-stewart2') || k.some((e) => e.id === 'st-stewart' && e.held))
 })
 
 test('previousOf leest de koppen uit `title` of uit de getoonde berichten', () => {

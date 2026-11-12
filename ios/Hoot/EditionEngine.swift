@@ -138,9 +138,10 @@ final class EditionEngine: @unchecked Sendable {
     // een korte reden. Nil zonder interesses: dan de vaste Basis. Dezelfde regels als het web.
     // `on`: alvast gevolgd. Alleen een gratis bron (keuze r5-voorstel-betaald); een betaalde staat erbij, uit.
     struct VoorstelBron: Codable, Hashable, Sendable { let id: String; let why: String; var on: Bool = true }
-    func voorstel(sources: [Source], interests: [String], topics: [String]) async throws -> [VoorstelBron]? {
-        struct In: Encodable { let sources: [Source]; let interests: [String]; let topics: [String] }
-        let json = String(decoding: try JSONEncoder().encode(In(sources: sources, interests: interests, topics: topics)), as: UTF8.self)
+    // `english`: de lezer volgt al een Engelstalige bron (opnieuw kiezen); anders alleen Nederlandse bronnen (Week · 4).
+    func voorstel(sources: [Source], interests: [String], topics: [String], english: Bool = false) async throws -> [VoorstelBron]? {
+        struct In: Encodable { let sources: [Source]; let interests: [String]; let topics: [String]; let english: Bool }
+        let json = String(decoding: try JSONEncoder().encode(In(sources: sources, interests: interests, topics: topics, english: english)), as: UTF8.self)
         let out = try await call("voorstelJSON", [json])
         return try JSONDecoder().decode([VoorstelBron]?.self, from: Data(out.utf8))
     }

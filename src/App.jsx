@@ -816,7 +816,7 @@ export default function App() {
         </div>
         {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome sources={sources} items={data?.items} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} />
+            <Welcome sources={sources} items={data?.items} edition={data?.edition} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} />
           </Suspense>
         ) : null}
       </div>

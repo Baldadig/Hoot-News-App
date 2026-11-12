@@ -1,0 +1,370 @@
+{
+ "uitleg": "Keuring 3 (bevinding B): verhaal s156yr6m uit de Ochtend van 6 november (ijkset), met per stuk de kenmerken zoals signatures() ze over de hele feed gaf. \"nasdaq\" valt bij 3 van de 11 uitgevers met nieuwe stukken.",
+ "bron": "feed-2026-11-06-ochtend-0633Z.json.gz",
+ "editie": "2026-11-06-ochtend",
+ "builtAt": "2026-11-06T04:30:15.697Z",
+ "story": "s156yr6m",
+ "publisherCount": 28,
+ "cutoff": 1793917815697,
+ "items": [
+  {
+   "id": "r3fi6i",
+   "source": "volkskrant",
+   "publishedAt": "2026-11-06T04:00:13.000Z",
+   "title": "Alaska en Mississippi zijn de grote vraagtekens op weg naar de installatie van een nieuw Congres",
+   "keys": [
+    "mississippi",
+    "election"
+   ]
+  },
+  {
+   "id": "vx1erz",
+   "source": "nyt",
+   "publishedAt": "2026-11-06T03:35:27.000Z",
+   "title": "Nithya Raman Wins Los Angeles Mayoral Race, Defeating Karen Bass",
+   "keys": [
+    "nithya",
+    "raman",
+    "angeles",
+    "karen",
+    "bass",
+    "council",
+    "child",
+    "award"
+   ]
+  },
+  {
+   "id": "ichhkq",
+   "source": "nyt",
+   "publishedAt": "2026-11-06T02:47:36.000Z",
+   "title": "Trump Tried to Undermine the Nation’s Elections. It Didn’t Work.",
+   "keys": [
+    "election"
+   ]
+  },
+  {
+   "id": "1i8gs84",
+   "source": "scmp",
+   "publishedAt": "2026-11-06T02:31:40.000Z",
+   "title": "Post-US midterms AI worries pummel shares in Japan, South Korea",
+   "keys": [
+    "derail",
+    "election"
+   ]
+  },
+  {
+   "id": "1b9k1p3",
+   "source": "nyt",
+   "publishedAt": "2026-11-06T02:25:16.000Z",
+   "title": "The Many Meanings of James Talarico’s Winning Cowboy Boots",
+   "keys": [
+    "james",
+    "talarico",
+    "election"
+   ]
+  },
+  {
+   "id": "1w7k42l",
+   "source": "bbc",
+   "publishedAt": "2026-11-06T02:08:57.000Z",
+   "title": "White House denies Hegseth and Rubio to leave jobs after Republican election losses",
+   "keys": [
+    "hegseth",
+    "rubio",
+    "pete",
+    "mark",
+    "impeach",
+    "election"
+   ]
+  },
+  {
+   "id": "fhnmwl",
+   "source": "independent",
+   "publishedAt": "2026-11-06T01:46:09.000Z",
+   "title": "Texas went so blue Talarico got more early votes than Paxton got in total",
+   "keys": [
+    "talarico",
+    "paxton",
+    "senator",
+    "james",
+    "governor",
+    "gina",
+    "hinojosa",
+    "election"
+   ]
+  },
+  {
+   "id": "1wir9nt",
+   "source": "lemonde",
+   "publishedAt": "2026-11-06T01:26:47.000Z",
+   "title": "On Wall Street, Democrats’ midterm victory bursts the AI bubble",
+   "keys": [
+    "wall",
+    "street",
+    "nasdaq",
+    "election"
+   ]
+  },
+  {
+   "id": "ub46qt",
+   "source": "nyt",
+   "publishedAt": "2026-11-06T00:48:29.000Z",
+   "title": "Stocks Erase Post-Midterm Elections Rally, Dragged Down by Tech",
+   "keys": [
+    "tech",
+    "nasdaq",
+    "election"
+   ]
+  },
+  {
+   "id": "1plez6d",
+   "source": "theverge",
+   "publishedAt": "2026-11-06T00:37:56.000Z",
+   "title": "OpenAI is stepping back from NDAs for data center projects",
+   "keys": [
+    "openai",
+    "election"
+   ]
+  },
+  {
+   "id": "1t90cei",
+   "source": "independent",
+   "publishedAt": "2026-11-06T00:34:31.000Z",
+   "title": "Abdul El-Sayed has already found something he wants to work with Trump on",
+   "keys": [
+    "abdul",
+    "sayed",
+    "middle",
+    "eastern"
+   ]
+  },
+  {
+   "id": "5ubxaa",
+   "source": "nyt",
+   "publishedAt": "2026-11-06T00:28:41.000Z",
+   "title": "Elon Musk’s Very Bad Night",
+   "keys": [
+    "silicon",
+    "valley",
+    "election"
+   ]
+  },
+  {
+   "id": "12sqgxq",
+   "source": "npr",
+   "publishedAt": "2026-11-06T00:16:53.000Z",
+   "title": "Fears of an AI crackdown after midterms spark $2 trillion rout in tech stocks",
+   "keys": [
+    "nasdaq",
+    "election"
+   ]
+  },
+  {
+   "id": "z7lb5e",
+   "source": "aljazeera",
+   "publishedAt": "2026-11-05T23:46:52.000Z",
+   "title": "Nithya Raman wins LA mayoral race, becoming city’s first South Asian mayor",
+   "keys": [
+    "nithya",
+    "raman",
+    "asian",
+    "dsa",
+    "award"
+   ]
+  },
+  {
+   "id": "qcy8zm",
+   "source": "nyt",
+   "publishedAt": "2026-11-05T23:30:30.000Z",
+   "title": "Hegseth Lashes Out at Critics Calling for His Firing",
+   "keys": [
+    "hegseth",
+    "some",
+    "election"
+   ]
+  },
+  {
+   "id": "1nituf9",
+   "source": "atlantic",
+   "publishedAt": "2026-11-05T23:22:00.000Z",
+   "title": "Democrats Have No Coherent Plan for AI",
+   "keys": [
+    "election"
+   ]
+  },
+  {
+   "id": "18lx4dc",
+   "source": "politico",
+   "publishedAt": "2026-11-05T23:12:00.000Z",
+   "title": "How Abdul El-Sayed actually did with Jewish voters",
+   "keys": [
+    "abdul",
+    "sayed",
+    "jewish"
+   ]
+  },
+  {
+   "id": "t0bg9u",
+   "source": "nyt",
+   "publishedAt": "2026-11-05T22:50:58.000Z",
+   "title": "National Guard to Expand Patrols in Washington With Military Vehicles and Boats",
+   "keys": [
+    "pete",
+    "hegseth",
+    "election",
+    "military"
+   ]
+  },
+  {
+   "id": "15jk7yl",
+   "source": "independent",
+   "publishedAt": "2026-11-05T22:42:01.000Z",
+   "title": "Hegseth promises ‘not to back down’ in pushing out Trump’s agenda as his seat gets warmer after midterm losses",
+   "keys": [
+    "hegseth",
+    "dei",
+    "election"
+   ]
+  },
+  {
+   "id": "accwda",
+   "source": "wired",
+   "publishedAt": "2026-11-05T22:18:42.000Z",
+   "title": "How Elon Musk and Big Tech Poured Millions Into the Midterms, and Lost",
+   "keys": [
+    "tech",
+    "into",
+    "uncanny",
+    "valley",
+    "election"
+   ]
+  },
+  {
+   "id": "9nb9al",
+   "source": "nd",
+   "publishedAt": "2026-11-05T22:05:04.000Z",
+   "title": "Democraat Nithya Raman wordt burgemeester van Los Angeles",
+   "keys": [
+    "nithya",
+    "raman",
+    "angeles",
+    "karen",
+    "bass"
+   ]
+  },
+  {
+   "id": "w6ibxt",
+   "source": "theverge",
+   "publishedAt": "2026-11-05T21:55:00.000Z",
+   "title": "The midterms proved once and for all that X is not real life",
+   "keys": [
+    "vice",
+    "news",
+    "jesse",
+    "watters",
+    "election"
+   ]
+  },
+  {
+   "id": "o80a80",
+   "source": "volkskrant",
+   "publishedAt": "2026-11-05T21:25:00.000Z",
+   "title": "Aandelen zwaar onderuit op Amerikaanse beurs; 3,2 biljoen dollar aan waarde in rook opgegaan",
+   "keys": [
+    "election"
+   ]
+  },
+  {
+   "id": "1ddpcc4",
+   "source": "nrc",
+   "publishedAt": "2026-11-05T21:23:25.000Z",
+   "title": "‘Democraten maken een grote fout als ze denken dat Amerikaanse kiezers ineens verliefd op ze zijn geworden’",
+   "keys": [
+    "election"
+   ]
+  },
+  {
+   "id": "1yt4p0l",
+   "source": "ft",
+   "publishedAt": "2026-11-05T21:15:09.000Z",
+   "title": "Los Angeles elects democratic socialist Nithya Raman as mayor",
+   "keys": [
+    "angeles",
+    "nithya",
+    "raman",
+    "zohran",
+    "mamdani",
+    "york",
+    "providence"
+   ]
+  },
+  {
+   "id": "1hhbglf",
+   "source": "atlantic",
+   "publishedAt": "2026-11-05T20:43:19.000Z",
+   "title": "This Won’t Be Easy for Democrats",
+   "keys": [
+    "james",
+    "talarico"
+   ]
+  },
+  {
+   "id": "19tgp1z",
+   "source": "wired",
+   "publishedAt": "2026-11-05T19:55:24.000Z",
+   "title": "The Blue Tsunami Swept Doctors and Scientists Into Office",
+   "keys": [
+    "blue",
+    "into",
+    "office",
+    "pac",
+    "action",
+    "abdul",
+    "sayed"
+   ]
+  },
+  {
+   "id": "u69jpg",
+   "source": "dw",
+   "publishedAt": "2026-11-05T19:08:00.000Z",
+   "title": "Pete Hegseth under fire as Republicans trade blame for midterm debacle",
+   "keys": [
+    "pete",
+    "hegseth",
+    "election"
+   ]
+  },
+  {
+   "id": "1r0ca46",
+   "source": "nos",
+   "publishedAt": "2026-11-05T19:00:01.000Z",
+   "title": "Van rode naar blauwe golf: welke kiezers in de VS maakten het verschil?",
+   "keys": [
+    "democratisch",
+    "election"
+   ]
+  },
+  {
+   "id": "1b0yquu",
+   "source": "volkskrant",
+   "publishedAt": "2026-11-05T18:28:00.000Z",
+   "title": "De kop van oorlogsminister Pete Hegseth ligt op het hakblok. Wat maakt hem zo’n aantrekkelijk offer na de Congresverkiezingen?",
+   "keys": [
+    "pete",
+    "hegseth",
+    "congresverkiezingen",
+    "election"
+   ]
+  },
+  {
+   "id": "hxbyxn",
+   "source": "wired",
+   "publishedAt": "2026-11-04T19:32:01.000Z",
+   "title": "Knives Are Out in the White House",
+   "keys": [
+    "pete",
+    "hegseth"
+   ]
+  }
+ ]
+}

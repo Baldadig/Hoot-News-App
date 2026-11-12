@@ -41,7 +41,8 @@
 // plekken), zodat "ontwikkeld" niet afhangt van welke stukken het toestel kende.
 import { createHash } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
-import { readDoc, KEYS, kvGet, kvSet, kvTake } from '../lib/kv.mjs'
+import { readDoc, readDocIf, KEYS, kvGet, kvSet, kvTake } from '../lib/kv.mjs'
+import { feedMemory } from '../lib/feed-geheugen.mjs'
 import { refresh } from '../lib/refresh.mjs'
 import { previousOf, historyOf, recentEditions, HISTORY_MAX } from '../lib/stories.mjs'
 import { composePersonal, withoutDebug, editionBasis, earlierEditions } from '../../src/lib/personal.js'
@@ -299,36 +300,59 @@ export async function claimOver(client, uid, stamped, seen) {
   return { won: false, theirs: await readAccountEdition(client, uid) }
 }
 
+// De kern en de delen uit het geheugen van deze instantie, of uit Blobs als ze nieuw zijn (netlify/lib/feed-geheugen.mjs).
+const memory = feedMemory({ readStart: (tag) => readDocIf(KEYS.start, tag), readPart: (id) => readDoc(KEYS.part(id)) })
 async function loadStart() {
-  let doc = await readDoc(KEYS.start)
-  if (!doc) {
-    await refresh()
-    doc = await readDoc(KEYS.start)
-  }
-  return doc ? JSON.parse(doc.body) : null
+  const s = await memory.loadStart()
+  if (s) return s
+  await refresh()
+  return memory.loadStart()
 }
-async function loadItems(start, followed) {
-  const parts = start.meta?.parts || {}
-  const lists = await Promise.all(followed.filter((id) => parts[id]).map((id) => readDoc(KEYS.part(id)).then((d) => (d ? JSON.parse(d.body).items || [] : []), () => [])))
-  return lists.flat()
+const loadItems = (start, followed) => memory.loadItems(start, followed)
+
+// Hoe lang elke stap duurde, als `Server-Timing`-kop (B7): alleen namen en milliseconden, nooit profiel, account of
+// afdruk. Zo zien we in de browser en in een meting precies waar de tijd van een vraag zit.
+export function stopwatch(clock = () => performance.now()) {
+  const steps = []
+  const time = (name, work) => {
+    const t = clock()
+    const done = () => steps.push([name, clock() - t])
+    return Promise.resolve()
+      .then(work)
+      .then(
+        (v) => (done(), v),
+        (e) => {
+          done()
+          throw e
+        }
+      )
+  }
+  const header = () => steps.map(([n, ms]) => `${n};dur=${ms.toFixed(1)}`).join(', ')
+  return { time, header }
 }
 
-const ok = (edition, source) => Response.json({ edition, source, revision: EDITOR_REVISION }, { headers: { 'Cache-Control': 'private, no-store' } })
+const ok = (edition, source, watch = null) => Response.json({ edition, source, revision: EDITOR_REVISION }, { headers: { 'Cache-Control': 'private, no-store', ...(watch ? { 'Server-Timing': watch.header() } : {}) } })
 
 // De Editie van v2 (zie boven). `deps` alleen voor de tests: nep-kern, nep-database, nep-opslag.
+// Sneller (Hoot-design/editie-sneller/METING.md): wat niet op elkaar hoeft te wachten, loopt tegelijk (B3): je token
+// en de kern; het quotum en het lezen van de delen. Het bewaren in de cache zonder account houdt het antwoord niet
+// op (B2, `waitUntil`). Wat er gekozen wordt, verandert niet: dezelfde stappen, dezelfde invoer.
 export async function editionV2(req, body, deps = {}) {
-  const { start: startOf = loadStart, items: itemsOf = loadItems, verify = verifyToken, clientFor = clientForToken, kv = { get: kvGet, set: kvSet, take: kvTake } } = deps
+  const { start: startOf = loadStart, items: itemsOf = loadItems, verify = verifyToken, clientFor = clientForToken, kv = { get: kvGet, set: kvSet, take: kvTake }, waitUntil = null } = deps
+  const watch = stopwatch()
   const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim()
+  const starting = watch.time('kern', startOf)
+  starting.catch(() => {}) // een fout komt hieronder alsnog boven; nooit een onafgehandelde belofte
   let uid = null
   if (token) {
     try {
-      uid = await verify(token)
+      uid = await watch.time('token', () => verify(token))
     } catch {
       return fail2(503, 'Je account is nu niet bereikbaar.')
     }
     if (!uid) return fail2(401, 'Je sessie is verlopen.')
   }
-  const start = await startOf()
+  const start = await starting
   if (!start?.edition?.id) return fail2(503, 'De feed is er nog niet.')
   const global = start.edition
   const id = global.id
@@ -337,43 +361,65 @@ export async function editionV2(req, body, deps = {}) {
   // herkennen dezelfde Editie. Echt andere bronnen of interesses: geen enkele afdruk past, een nieuwe Editie.
   const bases = basesOf(p)
   const fits = (e) => fitsAny(e, id, bases)
+  const compose = (items, opts) => watch.time('rekenen', () => composeFor(start, items, p, opts))
 
   if (uid) {
     const client = clientFor(token)
     let row
     try {
-      row = await accountEdition(client, uid)
+      row = await watch.time('account', () => accountEdition(client, uid))
     } catch {
       return fail2(503, 'Je account is nu niet bereikbaar.')
     }
     // Al vastgelegd voor dit dagdeel en deze afdruk (door de server, het web of app 1.2): ongewijzigd terug.
-    if (fits(row)) return ok(forAsker(row, bases), 'account')
+    if (fits(row)) return ok(forAsker(row, bases), 'account', watch)
     // Staat er al een Editie van een later dagdeel (ons startbestand uit Blobs loopt tot een minuut achter, en
     // een ander toestel had de kern van nu al): nooit daaroverheen schrijven (accountAhead, keuring P0 ronde 2
     // §4; keuring server 1). Die Editie gaat terug; het web bewaart haar als 'ahead', iOS toont tot de kern
     // bij is het vangnet.
-    if (accountAhead(row, global)) return ok(row, 'account')
-    if ((await kv.take(`pe-quota:${sha(uid)}:${id}`, MEMBER_PER_SLOT)) == null) return fail2(429, 'Even te veel tegelijk.', { 'Retry-After': String(TIMEOUT_HINT_S) })
+    if (accountAhead(row, global)) return ok(row, 'account', watch)
+    // Het quotum en de delen tegelijk; rekenen pas als het quotum ja zegt.
+    const reading = watch.time('delen', () => itemsOf(start, p.followed))
+    reading.catch(() => {})
+    if ((await watch.time('quotum', () => kv.take(`pe-quota:${sha(uid)}:${id}`, MEMBER_PER_SLOT))) == null) return fail2(429, 'Even te veel tegelijk.', { 'Retry-After': String(TIMEOUT_HINT_S) })
     const earlier = earlierEditions({ local: null, account: row, id, owner: uid })
-    const mine = composeFor(start, await itemsOf(start, p.followed), p, { owner: uid, earlier })
+    const mine = await compose(await reading, { owner: uid, earlier })
     if (!mine) return fail2(503, 'Er is nog geen editie.')
-    const r = await claimOver(client, uid, mine, row)
+    const r = await watch.time('vastleggen', () => claimOver(client, uid, mine, row))
     if (r.error) return fail2(503, 'Je account is nu niet bereikbaar.')
-    if (r.won) return ok(mine, 'claimed')
+    if (r.won) return ok(mine, 'claimed', watch)
     // Een ander toestel (of een gelijktijdige aanvraag) was net eerder: die Editie, voor iedereen dezelfde.
-    if (fits(r.theirs)) return ok(forAsker(r.theirs, bases), 'account')
-    if (accountAhead(r.theirs, global)) return ok(r.theirs, 'account')
-    return ok(mine, 'composed') // geen rij in user_state, of net een andere afdruk: niets om in vast te leggen
+    if (fits(r.theirs)) return ok(forAsker(r.theirs, bases), 'account', watch)
+    if (accountAhead(r.theirs, global)) return ok(r.theirs, 'account', watch)
+    return ok(mine, 'composed', watch) // geen rij in user_state, of net een andere afdruk: niets om in vast te leggen
   }
 
   const earlier = cleanEarlier(body.earlier)
   const key = anonKey(id, p, earlier)
-  const hit = await kv.get(key).catch(() => null)
-  if (hit && hit.id === id) return ok(hit, 'cache')
-  const mine = composeFor(start, await itemsOf(start, p.followed), p, { owner: 'anon', earlier })
+  const hit = await watch.time('cache', () => kv.get(key)).catch(() => null)
+  if (hit && hit.id === id) return ok(hit, 'cache', watch)
+  const mine = await compose(await watch.time('delen', () => itemsOf(start, p.followed)), { owner: 'anon', earlier })
   if (!mine) return fail2(503, 'Er is nog geen editie.')
-  await kv.set(key, mine).catch(() => {})
-  return ok(mine, 'composed')
+  // Bewaren zonder het antwoord op te houden (B2): Netlify laat de functie dit afmaken na het antwoord.
+  const saving = Promise.resolve()
+    .then(() => kv.set(key, mine))
+    .catch(() => {})
+  if (waitUntil) waitUntil(saving)
+  return ok(mine, 'composed', watch)
+}
+
+// Warmhouden (na een feedronde met een nieuw dagdeel, feed-refresh.mjs): de kern en alle delen in het geheugen van
+// deze instantie, en één keer rekenen zodat de code warm is. Geen profiel, niets bewaard, niets terug; dezelfde
+// kosten als een gewone vraag met alle bronnen (en dus onder dezelfde rate limit).
+export async function warmUp(deps = {}) {
+  const { start: startOf = loadStart, items: itemsOf = loadItems } = deps
+  const watch = stopwatch()
+  const start = await watch.time('kern', startOf)
+  if (!start?.edition?.id) return new Response(null, { status: 503, headers: { 'Cache-Control': 'no-store' } })
+  const p = profileOf(start, { followed: (start.sources || []).map((s) => s.id), rubrieken: RUBRIEKEN })
+  const items = await watch.time('delen', () => itemsOf(start, p.followed))
+  await watch.time('rekenen', () => composeFor(start, items, p, { owner: 'anon', earlier: [] }))
+  return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store', 'Server-Timing': watch.header() } })
 }
 
 export async function handle(req, deps = {}) {
@@ -387,6 +433,7 @@ export async function handle(req, deps = {}) {
     return fail(400, 'Geen geldige JSON.')
   }
   if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'Verwacht een object.') // "null" gaf anders een 500
+  if (body.v === 2 && body.warm === true) return warmUp(deps)
   if (body.v === 2) return editionV2(req, body, deps)
   return editionV1(body, deps)
 }
@@ -401,7 +448,7 @@ async function editionV1(body, deps = {}) {
   return Response.json({ edition }, { headers: { 'Cache-Control': 'no-store' } })
 }
 
-export default (req) => handle(req)
+export default (req, context) => handle(req, { waitUntil: context?.waitUntil ? (p) => context.waitUntil(p) : null })
 
 // 30 aanvragen per minuut per IP (Netlify); daarboven 429 en toont het toestel zijn vangnet.
 export const config = { path: '/api/edition', rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ['ip', 'domain'] } }

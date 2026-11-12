@@ -240,7 +240,10 @@ export async function askServer(body, { fetchImpl = fetch, token = null, refresh
 // Uitkomst { edition, source, keep }: `keep` = bewaren als Editie van de server (alleen bij 1 en 2).
 // Een antwoord van een later dagdeel dan de kern op dit toestel (de kern loopt achter) heet 'ahead': bewaren,
 // en tonen zodra de kern bij is; tot dan het vangnet.
-export async function serverFirst({ global, owner, basis, local = null, localFromServer = false, online = true, mayAsk = true, ask, request, compose = null, ready = false, stuck = false }) {
+// `localServed`: `local` kwam van de server voor zijn eigen dagdeel (servedLocal). Na een dagdeelwissel is `localFromServer`
+// (voor dít dagdeel) altijd false; de Editie van het vorige dagdeel hoort dan toch in `previous` van het vangnet, anders
+// stelt het vangnet samen zonder herhaalregel (nieuw feit, 13 november).
+export async function serverFirst({ global, owner, basis, local = null, localFromServer = false, localServed = localFromServer, online = true, mayAsk = true, ask, request, compose = null, ready = false, stuck = false }) {
   if (!global) return null
   const id = global.id
   const fits = (e) => fitsEdition(e, { id, basis }) && e.owner === owner
@@ -254,13 +257,42 @@ export async function serverFirst({ global, owner, basis, local = null, localFro
   }
   const out = (x) => (ahead ? { ...x, ahead } : x)
   if (ready && compose) {
-    const earlier = earlierEditions({ local: localFromServer ? local : null, account: null, id, owner })
+    const earlier = earlierEditions({ local: localFromServer || localServed ? local : null, account: null, id, owner })
     const mine = await compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
     if (mine) return out({ edition: { ...withoutDebug(mine), owner, basis, provisional: true }, source: 'provisional', keep: false })
   }
   if (stuck) return out({ edition: { ...global, brief: null, fallback: true, owner }, source: 'global', keep: false })
   return ahead ? { edition: null, source: 'ahead', keep: false, ahead } : null
 }
+
+// Eén vraag aan de server per ronde (`key`: dagdeel, lezer, afdruk, of je mag vragen, en de `nonce` van weer online of
+// terug in de app; Editie sneller C2). Loopt de vraag nog (`busy`), dan wacht een nieuwe stand (de berichten kwamen
+// binnen) op haar antwoord in plaats van het weg te gooien en opnieuw te vragen. Is ze beantwoord zonder Editie
+// (offline, fout, te traag), dan rekent een volgende stand alleen het vangnet (`start` geeft false).
+export function askGate() {
+  let asking = ''
+  let asked = ''
+  return {
+    busy: (key) => asking === key,
+    start(key, may) {
+      const now = !!may && asked !== key
+      if (now) asking = key
+      return now
+    },
+    done(key) {
+      if (asking === key) asking = ''
+      asked = key
+    },
+    fail(key) {
+      if (asking === key) asking = ''
+    },
+  }
+}
+
+// Kwam `local` (de laatst bewaarde Editie op dit toestel) van de server, voor zijn eigen dagdeel, deze lezer en zijn afdruk?
+// `serverTask`: wat onder SERVER_KEY staat (dagdeel|lezer|afdruk). Dan telt hij als vorige Editie, ook na een
+// dagdeelwissel. Het vangnet staat onder een eigen sleutel en telt nooit.
+export const servedLocal = (local, serverTask, owner) => !!local && typeof local === 'object' && local.owner === owner && typeof local.id === 'string' && serverTask === `${local.id}|${owner}|${local.basis}`
 
 // Zonder account: de history-regels van je vorige Edities van de server op dit toestel (nooit het vangnet).
 export const earlierForServer = (local, { id, owner }) => earlierEditions({ local, account: null, id, owner }).map(historyOf).filter(Boolean)

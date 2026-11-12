@@ -11,24 +11,24 @@ const block = (sel) => {
   return css.slice(at, css.indexOf('}', at))
 }
 
-test('eindkaart: op de leesbreedte, één rustige link, gedempt in Nacht (E8, E9)', () => {
+test('eindkaart: op de leesbreedte, geen link meer (Week · 1), gedempt in Nacht (E8, E9)', () => {
   const ed = read('src/views/Edition.jsx')
   const end = ed.slice(ed.indexOf('<div className="endcap">'), ed.indexOf('</div>) : null}'))
-  assert.equal(end.match(/<a /g)?.length, 1, 'één link')
-  assert.match(end, /Lees verder in de Stroom/)
+  assert.equal(end.match(/<a /g)?.length ?? 0, 0, 'het einde is een einde: geen link')
+  assert.doesNotMatch(end, /Lees verder in de Stroom/)
   assert.match(block('.endcap'), /max-inline-size: var\(--measure\)/)
   assert.match(block('.endcap'), /background: var\(--endcap-bg, var\(--brand-red\)\)/)
   const night = css.slice(css.indexOf('/* Nacht Zacht papier:'))
   assert.match(night, /--endcap-bg: color-mix\(in srgb, var\(--brand-red\) 42%, #000000\)/)
   assert.match(night, /--endcap-on: var\(--ink\)/)
-  // iOS: ook één link, en geen seintje meer in de kaart.
+  // iOS: ook geen link, en geen seintje meer in de kaart.
   const swift = read('ios/Hoot/Views/EditionView.swift')
   assert.ok(!swift.includes('Seintje als hij klaarligt?'), 'het seintje staat niet meer in de eindkaart')
   // Wel na de eerste Editie, als los moment onder de Editie (keuze van Alex), één keer.
   assert.ok(swift.includes('struct AlertOffer'), 'het seintje na de eerste Editie bestaat')
   assert.match(swift, /onChange\(of: endVisible\)[\s\S]{0,200}offerAfterEdition/)
   assert.match(swift, /offerAfterEdition[\s\S]{0,300}alertOffered = true[\s\S]{0,250}alertAsk = true/, 'gesteld zodra de kaart in beeld komt')
-  assert.match(swift, /Text\("Lees verder in de Stroom"\)/)
+  assert.ok(!swift.includes('Lees verder in de Stroom'), 'geen link naar de Stroom in de eindkaart')
   assert.match(swift, /\.frame\(maxWidth: Layout\.readable\)/)
 })
 

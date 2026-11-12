@@ -1385,7 +1385,7 @@ var HootCore = (() => {
     MINE: 3,
     // per extra eigen bron die erover schrijft, tot MINE_MAX
     FOLLOW_UP: 10
-    // vervolg: je las het en er kwamen ≥ FOLLOW_UP_MIN nieuwe stukken bij
+    // vervolg: je las het en er is een nieuw feit (ctx.newFacts; zonder: ≥ FOLLOW_UP_MIN nieuwe stukken)
   };
   var CROSS_MIN = 0.35;
   var SOURCE_READ_MIN = 0.2;
@@ -1472,11 +1472,18 @@ var HootCore = (() => {
     if (rs > SOURCE_READ_MIN) parts.sourceRead = { pts: Math.round(P.SOURCE_READ * rs) };
     const mine = new Set(items.map((i) => i.source)).size;
     if (mine >= 2) parts.mine = { pts: P.MINE * Math.min(MINE_MAX, mine - 1), n: mine };
-    const read = ctx.readIds ? items.filter((i) => ctx.readIds.has(i.id)) : [];
+    const whole = ctx.newFacts && story.whole?.length ? story.whole : items;
+    const read = ctx.readIds ? whole.filter((i) => ctx.readIds.has(i.id)) : [];
     if (read.length) {
       const last = Math.max(...read.map((i) => Date.parse(i.publishedAt) || 0));
-      const fresh = items.filter((i) => !ctx.readIds.has(i.id) && Date.parse(i.publishedAt) > last + FOLLOW_UP_GAP).length;
-      if (fresh >= FOLLOW_UP_MIN) parts.followUp = { pts: P.FOLLOW_UP, n: fresh };
+      const after = (i) => !ctx.readIds.has(i.id) && Date.parse(i.publishedAt) > last + FOLLOW_UP_GAP;
+      const fresh = items.filter(after);
+      if (ctx.newFacts) {
+        const freshAll = whole.filter(after);
+        const fact = fresh.length ? ctx.newFacts(freshAll, whole.filter((i) => !after(i)), fresh, { keyAt: story.keyAt, pubAt: story.pubAt, pubs: story.pubs, cutoff: last + FOLLOW_UP_GAP }) : null;
+        if (fact) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length, heads: fact.heads.map((i) => i.id) };
+        else parts.seen = { pts: 0 };
+      } else if (fresh.length >= FOLLOW_UP_MIN) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length };
       else parts.seen = { pts: 0 };
     }
     return parts;
@@ -2926,23 +2933,87 @@ var HootCore = (() => {
   var otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ""));
   var DEVELOPED_FRESH = 2;
   var DEVELOPED_SIG = 2;
+  var previousAt = (st, previous) => previous.atOf?.get(st.id) ?? previous.at ?? 0;
+  var isNewSince = (st, previous) => {
+    const at = previousAt(st, previous);
+    return (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at;
+  };
+  var newSincePrevious = (st, items, previous) => items.filter(isNewSince(st, previous));
   function developedSince(st, items, previous, sig, { mainIds = /* @__PURE__ */ new Set(), preferred = null, now = null, known = null } = {}) {
-    const at = previous.atOf?.get(st.id) ?? previous.at ?? 0;
-    const isNew = (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at;
+    const isNew = isNewSince(st, previous);
     const fresh = items.filter(isNew);
-    if (fresh.length < DEVELOPED_FRESH) return null;
-    const keysOf = (i) => {
-      const s = sig.get(i.id);
-      return s ? [...s.strong, ...s.concepts] : [];
-    };
+    if (!fresh.length) return null;
+    const keysOf = keysWith(sig);
+    const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items;
+    const whole = [.../* @__PURE__ */ new Set([...all, ...items])];
+    const freshAll = whole.filter(isNew);
+    if (!keyAtOf(st) && freshAll.length < DEVELOPED_FRESH) return null;
     const then = /* @__PURE__ */ new Set();
     for (const id of [st.id, ...st.formerIds || []]) for (const k of previous.keysOf?.get(id) || []) then.add(k);
-    const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items;
-    for (const i of [...all, ...items]) if (!isNew(i)) for (const k of keysOf(i)) then.add(k);
-    const lead = leadCandidates(fresh, mainIds, preferred, now)[0];
-    const others = fresh.filter((i) => i !== lead).map(keysOf);
-    const newSig = keysOf(lead).filter((k) => !then.has(k) && others.some((ks) => ks.includes(k))).length;
-    return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null;
+    for (const i of whole) if (!isNew(i)) for (const k of keysOf(i)) then.add(k);
+    const fact = newFact(freshAll, then, keysOf, { keyAt: keyAtOf(st), pubAt: st.pubAt, cutoff: previousAt(st, previous), pubs: st.publisherCount });
+    if (!fact) return null;
+    const heads = factHeads(fresh, fact, sig);
+    const lead = leadCandidates(heads, mainIds, preferred, now)[0];
+    return { fresh, heads, lead, newSig: fact.keys.length, facts: fact.keys };
+  }
+  var NEW_FACT_PUBS = 2;
+  var NEW_FACT_SIG = DEVELOPED_SIG;
+  var NEW_FACT_BROAD = 3;
+  var NEW_FACT_SHARE = 3;
+  var keysWith = (sig) => (i) => {
+    const s = sig.get(i?.id);
+    return s ? [...s.strong, ...s.concepts] : [];
+  };
+  var stemCount = (keys) => {
+    const kept = [];
+    for (const k of [...new Set(keys)].sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0))) if (!kept.some((x) => x.length >= 4 && k.startsWith(x))) kept.push(k);
+    return kept.length;
+  };
+  var keyAtOf = (st) => st?.keyAt && typeof st.keyAt === "object" && !Array.isArray(st.keyAt) ? st.keyAt : null;
+  var pubAtOf = (st) => st?.pubAt && typeof st.pubAt === "object" && !Array.isArray(st.pubAt) ? st.pubAt : null;
+  function newFact(fresh, then, keysOf, story = null) {
+    const keyAt = keyAtOf(story);
+    const pubAt = pubAtOf(story);
+    const cutoff = story?.cutoff ?? 0;
+    const known = (k) => keyAt && Array.isArray(keyAt[k]) && keyAt[k].length === 2;
+    const old = (k) => then.has(k) || known(k) && keyAt[k][0] <= cutoff;
+    const pubs = /* @__PURE__ */ new Map();
+    const pieces = /* @__PURE__ */ new Map();
+    for (const i of fresh) for (const k of new Set(keysOf(i))) if (!old(k)) {
+      ;
+      (pubs.get(k) || pubs.set(k, /* @__PURE__ */ new Set()).get(k)).add(publisherOf(i.source));
+      pieces.set(k, (pieces.get(k) || 0) + 1);
+    }
+    const freshPubs = new Set(fresh.map((i) => publisherOf(i.source))).size;
+    const thin = !keyAt && freshPubs < NEW_FACT_PUBS && (story?.pubs ?? 0) >= NEW_FACT_PUBS;
+    const reach = (k) => Math.max(pubs.get(k).size, known(k) ? keyAt[k][1] : 0);
+    const wide = new Set([...pubs].filter(([k]) => reach(k) >= NEW_FACT_PUBS || thin && pieces.get(k) >= NEW_FACT_PUBS).map(([k]) => k));
+    const after = pubAt ? Object.values(pubAt).filter((t) => typeof t === "number" && t > cutoff).length : 0;
+    const newPubs = Math.max(freshPubs, after, ...[...wide].map(reach));
+    const broad = pubAt ? new Set([...wide].filter((k) => reach(k) >= NEW_FACT_BROAD && reach(k) * NEW_FACT_SHARE >= newPubs)) : /* @__PURE__ */ new Set();
+    const factsOf = (i) => {
+      const ks = keysOf(i).filter((k) => wide.has(k));
+      return stemCount(ks) >= NEW_FACT_SIG ? ks : ks.filter((k) => broad.has(k));
+    };
+    const carriers = fresh.filter((i) => factsOf(i).length);
+    if (!carriers.length) return null;
+    const keys = [...new Set(carriers.flatMap(factsOf))];
+    return { keys, carriers };
+  }
+  function factHeads(fresh, fact, sig) {
+    const facts = new Set(fact.keys);
+    const named = fresh.filter((i) => {
+      const s = sig.get(i.id);
+      return !!s && [...s.strong, ...s.concepts].some((k) => facts.has(k));
+    });
+    return newsHeads(named.length ? named : fresh);
+  }
+  var newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || "") && !isLive(i));
+  function newFactIn(fresh, old, sig, own = fresh, story = null) {
+    const keysOf = keysWith(sig);
+    const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story);
+    return fact ? { keys: fact.keys, heads: own.length ? factHeads(own, fact, sig) : [] } : null;
   }
   var LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]));
   var dutchTier = (i) => LANG_OF.get(i.source) !== "nl" || detectLang(i) === "en" ? 2 : VL_HOME.has(i.source) ? 1 : 0;
@@ -3099,6 +3170,14 @@ var HootCore = (() => {
     if (out.length) entries.splice(Math.min(to - out.length + 1, entries.length), 0, ...out);
     return entries;
   }
+  function heldDown(entries, { top = 5 } = {}) {
+    const down = entries.slice(0, top).filter((e) => e.held);
+    if (!down.length) return entries;
+    const rest = entries.filter((e) => !down.includes(e));
+    rest.splice(Math.min(top, rest.length), 0, ...down);
+    entries.splice(0, entries.length, ...rest);
+    return entries;
+  }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   var DESK_MIN_PUBS = 3;
   var SPREAD_MIN = 3;
@@ -3187,16 +3266,21 @@ var HootCore = (() => {
       let straf = 0;
       let held = false;
       const recent = since !== null ? sinceLast(st, items) : null;
+      let heads = recent;
       if (seenBefore(st, items, previous)) {
         dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known });
         const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id));
         if (!dev) {
-          if (!(recent?.length && holdable(st, items, previous))) {
+          if (since === null) heads = ctx.readIds?.size && st.itemIds.some((id) => ctx.readIds.has(id)) ? [] : newsHeads(newSincePrevious(st, items, previous).filter(titled));
+          if (!(heads?.length && holdable(st, items, previous))) {
             reject("story", st.id, st.itemIds, "eerder-getoond-zonder-ontwikkeling");
             continue;
           }
           held = true;
-        } else straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0);
+        } else {
+          straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0);
+          heads = dev.heads;
+        }
       } else if (recent && !recent.length) {
         reject("story", st.id, st.itemIds, "geen-nieuw-stuk-sinds-vorige-Editie");
         continue;
@@ -3210,9 +3294,10 @@ var HootCore = (() => {
       const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId2.get(id)).filter(Boolean) : items;
       const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : items;
       const intl = internationalNews(whole, desk, st);
-      const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl });
+      const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl, whole, keyAt: st.keyAt, pubAt: st.pubAt, pubs: st.publisherCount });
+      if (!dev && !held && parts.followUp?.heads?.length) heads = parts.followUp.heads.map((id) => items.find((i) => i.id === id)).filter(Boolean);
       const tie = general && curioStory(st, items) ? weight({ sourceCount: 0, ownCount: 0, latestAt: st.latestAt }, now) + CURIO_TIE : 0;
-      cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads: dev ? dev.fresh : recent, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
+      cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
     }
     for (const it of pool) {
       if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
@@ -3236,7 +3321,8 @@ var HootCore = (() => {
         continue;
       }
       const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null;
-      if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId2.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) {
+      const mateItems = mates ? mates.itemIds.map((id) => ctx.own?.get(id) || byId2.get(id)).filter(Boolean) : [];
+      if (mates && personalParts(mateItems, prof, { readIds: ctx.readIds, newFacts: ctx.newFacts }, { whole: ctx.known ? mates.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : mateItems, keyAt: mates.keyAt, pubAt: mates.pubAt, pubs: mates.publisherCount }).seen) {
         reject("item", it.id, [it.id], "verhaal-al-gelezen");
         continue;
       }
@@ -3373,9 +3459,10 @@ var HootCore = (() => {
       const byFront = (a, b) => frontOf(b) - frontOf(a) || heaviest(a, b);
       const worldReader = worldChosen(prof);
       const domesticReader = (prof?.family?.binnenland || 0) > 0 || !worldReader && Object.keys(prof?.family || {}).length === 0;
-      const front = cands.filter((c) => c.kind === "story" && (c.sc >= FRONT_MIN || majorNews(c.st, c.items)) && !c.parts.seen).sort(byFront);
+      const frontable = (c) => !c.parts.seen && (general || !c.held);
+      const front = cands.filter((c) => c.kind === "story" && (c.sc >= FRONT_MIN || majorNews(c.st, c.items)) && frontable(c)).sort(byFront);
       const dutch2 = (c) => homeNews(c);
-      const home = !domesticReader ? [] : cands.filter((c) => !c.parts.seen && !c.parts.less && dutch2(c)).sort(byFront);
+      const home = !domesticReader ? [] : cands.filter((c) => frontable(c) && !c.parts.less && dutch2(c)).sort(byFront);
       let hasHome = false;
       const room = () => Math.min(FRONT_MAX, size) - (hasHome || !home.length ? 0 : 1);
       for (const c of front) {
@@ -3637,7 +3724,7 @@ var HootCore = (() => {
     const storyDesk = new Map(mineStories.map((st) => [st.id, st.desk]));
     const itemAny = new Map([...items, ...global.items || [], ...[...global.wide || [], ...global.near || []].map((w) => w?.item).filter(Boolean)].map((i) => [i.id, i]));
     const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== "post"));
-    const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])) };
+    const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])), newFacts: (fresh, old, own2, whole) => newFactIn(fresh, old, sigAll, own2, whole) };
     if (_memoSignatures) {
       const memo2 = /* @__PURE__ */ new WeakMap();
       const coreMemo = /* @__PURE__ */ new WeakMap();
@@ -3676,7 +3763,8 @@ var HootCore = (() => {
       const st = storyById.get(sid || storyOfItem.get(id) || itemAny.get(id)?.storyId);
       const ids = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || []])];
       if (!ids.some((x) => readIds.has(x))) return {};
-      const { seen, followUp } = personalParts(ids.map((x) => itemAny.get(x)).filter(Boolean), prof, { readIds });
+      const members = ids.map((x) => itemAny.get(x)).filter(Boolean);
+      const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members, keyAt: st?.keyAt, pubAt: st?.pubAt, pubs: st?.publisherCount });
       return followUp ? { followUp } : { seen: seen || { pts: 0 } };
     };
     const preferred = new Set(favorites.filter((id) => followed.has(id)));
@@ -3898,11 +3986,12 @@ var HootCore = (() => {
     if (prof.interests.has("binnenland")) {
       const first = entries.findIndex((e) => {
         const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
-        return e.desk !== "bubbel" && !p.abroad && ["binnenland", "regio"].includes(p.desk) && hasNews(e);
+        return e.desk !== "bubbel" && !e.held && !p.abroad && ["binnenland", "regio"].includes(p.desk) && hasNews(e);
       });
       if (first > 0) entries.unshift(...entries.splice(first, 1));
     }
     curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => e.kind === "story" ? storyById.get(e.id) : null });
+    heldDown(entries);
     openWithNews(entries, {
       itemsOf: knownOf,
       pick: (xs, all) => {
@@ -4009,10 +4098,10 @@ var HootCore = (() => {
     const names = INTERESTS.filter((i) => ids.includes(i.id)).map((i) => i.label);
     return names.length > 1 ? `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}` : names[0] || "";
   };
-  function voorstel(sources = [], interests = [], topics = []) {
+  function voorstel(sources = [], interests = [], topics = [], { english = false } = {}) {
     const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)));
     if (!chosen.length) return null;
-    const news = sources.filter((s) => s.kind !== "sociaal");
+    const news = sources.filter((s) => s.kind !== "sociaal" && (english || !s.lang || s.lang === "nl"));
     const out = [];
     const has = (id) => out.some((o) => o.id === id);
     const add = (s, why2) => s && !has(s.id) && out.length < VOORSTEL_MAX && out.push({ id: s.id, why: why2 });
@@ -4048,12 +4137,21 @@ var HootCore = (() => {
       const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0];
       if (next) add(next, why(next, i));
     }
+    if (!english) {
+      const alleenNl = chosen.every((i) => NL_NIEUWS.has(i.id));
+      for (const id of ALGEMEEN) {
+        if (out.length >= 3) break;
+        if (id === "rtl" && alleenNl) continue;
+        const s = news.find((x) => x.id === id);
+        if (s && free(s)) add(s, "Ook het nieuws van de dag");
+      }
+    }
     const paidOf = new Set(news.filter((s) => s.paid).map((s) => s.id));
     return out.map((o) => ({ ...o, on: !paidOf.has(o.id) })).sort((a, b) => (b.on ? 1 : 0) - (a.on ? 1 : 0));
   }
   function voorstelJSON(jsonIn) {
-    const { sources = [], interests = [], topics = [] } = JSON.parse(jsonIn || "{}");
-    return JSON.stringify(voorstel(sources, interests, topics));
+    const { sources = [], interests = [], topics = [], english = false } = JSON.parse(jsonIn || "{}");
+    return JSON.stringify(voorstel(sources, interests, topics, { english: !!english }));
   }
 
   // src/lib/editionCore.js

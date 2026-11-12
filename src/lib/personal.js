@@ -14,7 +14,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale } from '../../netlify/lib/stories.mjs'
+import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
@@ -212,7 +212,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== 'post'))
   // `own`: al je eigen berichten, zodat de punten van een verhaal ook tellen wat je ervan leest in
   // sport of cultuur (de dood van Patrick Stewart is Film voor wie Cultuur koos).
-  const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])) }
+  // `newFacts`: de toets op een nieuw feit voor wat je las (personalParts), met dezelfde kenmerken als developedSince.
+  const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])), newFacts: (fresh, old, own, whole) => newFactIn(fresh, old, sigAll, own, whole) }
   // Rekentijd: binnen deze samenstelling (dezelfde onveranderlijke pool en vorige Editie) dezelfde kenmerken en kern hergebruiken.
   if (_memoSignatures) {
     const memo = new WeakMap()
@@ -275,7 +276,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const st = storyById.get(sid || storyOfItem.get(id) || itemAny.get(id)?.storyId)
     const ids = [...new Set([id, ...(st?.itemIds || [])])]
     if (!ids.some((x) => readIds.has(x))) return {}
-    const { seen, followUp } = personalParts(ids.map((x) => itemAny.get(x)).filter(Boolean), prof, { readIds })
+    const members = ids.map((x) => itemAny.get(x)).filter(Boolean)
+    const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members, keyAt: st?.keyAt, pubAt: st?.pubAt, pubs: st?.publisherCount })
     return followUp ? { followUp } : { seen: seen || { pts: 0 } } // gelezen maar onbekend bericht: ook gezien
   }
   const preferred = new Set(favorites.filter((id) => followed.has(id)))
@@ -582,12 +584,16 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (prof.interests.has('binnenland')) {
     const first = entries.findIndex(e => {
       const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
-      return e.desk !== 'bubbel' && !p.abroad && ['binnenland','regio'].includes(p.desk) && hasNews(e)
+      return e.desk !== 'bubbel' && !e.held && !p.abroad && ['binnenland','regio'].includes(p.desk) && hasNews(e)
     })
     if (first > 0) entries.unshift(...entries.splice(first, 1))
   }
   // Curiosa nooit in de top 3 (Redacteur 3b · 5): een kuriositeit of licht verhaal schuift naar plek 6.
   curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => (e.kind === 'story' ? storyById.get(e.id) : null) })
+  // Wat zonder nieuw feit één Editie langer blijft (alleen in je vorige Editie, niet gelezen), zakt onder de top 5
+  // (ronde 7 · 3c, nieuw feit 13 november), zoals in de algemene Editie. Na curiosaDown: die zet een curiosum op plek 6 en
+  // schuift zo wat eronder stond één op.
+  heldDown(entries)
   // Plek 01 opent met nieuws, met een nieuwskop; liefst uit je eigen bronnen (keuring 6 november 2026).
   // Alleen een leesbare kop (de taalregel), in de rubriek van de huidige kop van plek 01.
   openWithNews(entries, {

@@ -1,0 +1,26 @@
+/* ==========================================================================
+   Welkom (Week · 2): de eerste kop van de huidige Editie onder "Nieuws met een einde.", met zijn bron.
+   Eigen bestand, want styles.css is vastgelegd tot het Nacht-blok (tests/zacht-papier.test.mjs).
+   Gelijk aan WelcomeView.swift (introStep). Zonder feed staat er geen kop: de intro toont dan .ob__lede.
+   ========================================================================== */
+.ob__proof {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  max-inline-size: 20em;
+  margin-top: var(--s3);
+}
+.ob__prooftitle {
+  font-family: var(--serif);
+  font-size: var(--t4);
+  line-height: var(--lh-tight);
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ob__proofsrc {
+  font-size: var(--t2);
+  color: var(--on-brand-red-2);
+}
