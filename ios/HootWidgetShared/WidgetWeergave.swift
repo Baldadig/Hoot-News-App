@@ -40,7 +40,8 @@ struct HootWidgetInhoud: View {
                 switch family {
                 case .accessoryRectangular:
                     // Op het vergrendelscherm de marges van iOS zelf.
-                    VergrendelRechthoek(editie: editie, stand: stand, maat: CGSize(width: maat.width - systeemMarges.leading - systeemMarges.trailing, height: maat.height))
+                    VergrendelRechthoek(editie: editie, stand: stand, maat: CGSize(width: maat.width - systeemMarges.leading - systeemMarges.trailing,
+                                                                                    height: maat.height - systeemMarges.top - systeemMarges.bottom))
                         .padding(systeemMarges)
                 case .accessoryCircular: VergrendelRond(editie: editie, stand: stand).padding(systeemMarges)
                 case .accessoryInline: VergrendelRegel(editie: editie, stand: stand)
@@ -70,16 +71,36 @@ struct HootWidgetInhoud: View {
 
 // MARK: - Onderdelen
 
-// "MIDDAGEDITIE" in de kicker; met het nummer ervoor bij Kop 01.
+// "MIDDAGEDITIE" in de kicker; met het nummer ervoor bij Kop 01. Vooraf gemeten in de breedte die er is: past
+// de hele naam niet, dan zonder "editie" ("01 OCHTEND"), anders alleen het nummer. Nooit afgekapt (keuring 11).
 private struct WKopregel: View {
     let naam: String
     var nummer: Int? = nil
     var gelezen = false
+    let breedte: CGFloat
     var body: some View {
+        let ruimte = breedte - (nummer.map { WidgetZet.nummerBreedte($0) + WidgetRuimte.s2 } ?? 0)
+        let tekst = WidgetZet.kicker(naam, breedte: ruimte)
         HStack(alignment: .firstTextBaseline, spacing: WidgetRuimte.s2) {
             if let nummer { WNummer(nummer: nummer, gelezen: gelezen) }
-            Text(naam).widgetKicker().foregroundStyle(WidgetKleur.ink3)
+            if !tekst.isEmpty { Text(tekst).widgetKicker().foregroundStyle(WidgetKleur.ink3).widgetMeting(.kicker(tekst)) }
         }
+    }
+}
+
+// De kopregel van Middel · Top 3 en Groot: de naam links, de stand rechts ("4 van 10"). De naam krijgt wat de
+// stand overlaat; de stand zelf is kort en past altijd.
+private struct WKopregelMetStand: View {
+    let naam: String
+    let stand: String
+    let breedte: CGFloat
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            WKopregel(naam: naam, breedte: breedte - WidgetZet.metaBreedte(stand) - WidgetRuimte.s2)
+            Spacer(minLength: WidgetRuimte.s2)
+            Text(stand).font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3).fixedSize().widgetMeting(.stand(stand))
+        }
+        .frame(height: 16)
     }
 }
 
@@ -113,17 +134,25 @@ private struct WKop: View {
         Text(gezet.tekst).widgetKop(m, regels: gezet.regels)
             .multilineTextAlignment(.leading)
             .foregroundStyle(gelezen ? WidgetKleur.ink3 : WidgetKleur.ink)
+            // De kop breekt in dezelfde breedte als gemeten (WidgetZet.regels: twee punt speling), zodat een letter
+            // aan het eind van een regel (de "f") niet over de kantlijn uitsteekt (keuring 11).
+            .padding(.trailing, WidgetRuimte.s0)
             .frame(maxWidth: .infinity, alignment: .leading)
             .widgetMeting(gezet, m)
     }
 }
 
 // De bronregel: hoort bij zijn rij. Past de rij niet met bronregel, dan valt de hele rij weg (nooit alleen de bron).
+// Geen lineLimit: een lange naam loopt door op een volgende regel (WidgetZet.bronRegels rekent die mee), iOS kapt
+// hem nooit af (keuring 11).
 private struct WBron: View {
     let naam: String
     var body: some View {
-        Text(naam).font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3).lineLimit(1)
-            .frame(height: 16, alignment: .leading)
+        Text(naam).font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3)
+            .lineHeight(.exact(points: WidgetZet.bronRegel))
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .widgetMeting(.bron(naam))
     }
 }
@@ -203,12 +232,7 @@ struct MiddelTop3: View {
             // De kopregel bovenaan, de koppen er direct onder; wat overblijft, valt rustig onderaan.
             VStack(alignment: .leading, spacing: 0) {
                 Link(destination: HootLink.editie) {
-                    HStack(alignment: .firstTextBaseline) {
-                        WKopregel(naam: editie.naam)
-                        Spacer(minLength: WidgetRuimte.s2)
-                        Text(stand.label).font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3).lineLimit(1)
-                    }
-                    .frame(height: 16)
+                    WKopregelMetStand(naam: editie.naam, stand: stand.label, breedte: maat.width - 2 * marge)
                 }
                 ForEach(Array(plekken.enumerated()), id: \.element.index) { i, p in
                     let v = editie.verhalen[p.index]
@@ -246,15 +270,16 @@ struct KleinKop: View {
     static func zet(_ editie: WidgetEditie, maat: CGSize, marge: CGFloat, metBeeld: Bool) -> Zet? {
         let breedte = maat.width - 2 * marge
         let onderBeeld = maat.height - beeldHoogte - WidgetRuimte.s3 - 16 - WidgetRuimte.s1 - marge
-        let metBron = maat.height - 2 * marge - 16 - WidgetRuimte.s2 - WidgetRuimte.s2 - 16
+        let metBron = maat.height - 2 * marge - 16 - WidgetRuimte.s2 - WidgetRuimte.s2 - WidgetZet.bronRegel
         for (i, v) in editie.verhalen.enumerated() {
+            let bronExtra = WidgetZet.bronExtra(v.bron, breedte: breedte)
             if metBeeld {
                 let g = WidgetZet.pas(v.kop, kort: v.kortKop, WidgetLetter.widgetKop, breedte: breedte, max: .max)
                 if CGFloat(g.regels) * WidgetLetter.widgetKop.regel <= onderBeeld { return Zet(index: i, gezet: g, m: WidgetLetter.widgetKop, metBeeld: true) }
             }
             for m in WidgetZet.trap(WidgetLetter.widgetKop) {
                 let g = WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: breedte, max: .max)
-                if CGFloat(g.regels) * m.regel <= metBron { return Zet(index: i, gezet: g, m: m, metBeeld: false) }
+                if CGFloat(g.regels) * m.regel + bronExtra <= metBron { return Zet(index: i, gezet: g, m: m, metBeeld: false) }
             }
         }
         return nil
@@ -270,7 +295,7 @@ struct KleinKop: View {
                         .frame(width: maat.width, height: Self.beeldHoogte)
                         .clipped()
                     VStack(alignment: .leading, spacing: WidgetRuimte.s1) {
-                        WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees).frame(height: 16)
+                        WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees, breedte: maat.width - 2 * marge).frame(height: 16)
                         WKop(gezet: z.gezet, m: z.m, gelezen: lees)
                     }
                     .padding(.horizontal, marge)
@@ -282,7 +307,7 @@ struct KleinKop: View {
                 .accessibilityElement(children: .combine)
             } else {
                 VStack(alignment: .leading, spacing: 0) {
-                    WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees).frame(height: 16)
+                    WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees, breedte: maat.width - 2 * marge).frame(height: 16)
                     WKop(gezet: z.gezet, m: z.m, gelezen: lees).padding(.top, WidgetRuimte.s2)
                     Spacer(minLength: WidgetRuimte.s2)
                     WBron(naam: v.bron)
@@ -309,11 +334,16 @@ struct KleinVoortgang: View {
         let n = editie.verhalen.count
         let g = editie.aantalGelezen
         VStack(alignment: .leading, spacing: 0) {
-            WKopregel(naam: editie.naam).frame(height: 16)
+            WKopregel(naam: editie.naam, breedte: maat.width - 2 * marge).frame(height: 16)
             Spacer(minLength: WidgetRuimte.s2)
             Group {
                 if g >= n {
-                    Text(editie.eindzin).widgetKop(WidgetLetter.item, regels: 2)
+                    // De eindzin heel, in de ruimte die er is: zo nodig kleiner (iPad mini, keuring 11).
+                    let ruimte = maat.height - 2 * marge - 16 - WidgetRuimte.s2 - WidgetRuimte.s3 - WidgetRuimte.s1 - WidgetRuimte.s2 - WidgetZet.bronRegel
+                    let m = WidgetZet.trap(WidgetLetter.item).first {
+                        CGFloat(WidgetZet.regels(editie.eindzin, $0, breedte: maat.width - 2 * marge)) * $0.regel <= ruimte
+                    } ?? WidgetLetter.widgetKop.op(WidgetZet.ondergrens)
+                    Text(editie.eindzin).widgetKop(m, regels: 2)
                 } else if g == 0 {
                     Text("Ligt klaar").widgetKop(WidgetLetter.item, regels: 1)
                 } else {
@@ -324,8 +354,14 @@ struct KleinVoortgang: View {
             }
             .foregroundStyle(WidgetKleur.ink)
             WStreepjes(gelezen: g, van: n).padding(.top, WidgetRuimte.s3)
-            Text(voet(n: n, g: g))
-                .font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3).lineLimit(1).minimumScaleFactor(0.85)
+            // Vooraf gemeten, zonder lineLimit: past "Tik voor de Ochtendeditie" niet op één regel, dan zonder "editie"
+            // ("Tik voor de Ochtend"), net als de kicker. iOS kapt hem nooit af (keuring 11).
+            let tekst = WidgetZet.voet(voet(n: n, g: g), breedte: maat.width - 2 * marge)
+            Text(tekst)
+                .font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3)
+                .lineHeight(.exact(points: WidgetZet.bronRegel))
+                .fixedSize(horizontal: false, vertical: true)
+                .widgetMeting(.voet(tekst))
                 .padding(.top, WidgetRuimte.s2)
         }
         .padding(marge)
@@ -364,7 +400,7 @@ struct MiddelKop: View {
             for (m, beeld) in vormen {
                 let breedte = maat.width - 2 * marge - (beeld ? beeldBreedte : 0)
                 let g = WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: breedte, max: .max)
-                if CGFloat(g.regels) * m.regel <= hoogte { return Zet(index: i, gezet: g, m: m, metBeeld: beeld) }
+                if CGFloat(g.regels) * m.regel + WidgetZet.bronExtra(v.bron, breedte: breedte) <= hoogte { return Zet(index: i, gezet: g, m: m, metBeeld: beeld) }
             }
         }
         return nil
@@ -376,7 +412,7 @@ struct MiddelKop: View {
             let lees = v.gelezen(in: editie.leesSet)
             HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
-                    WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees).frame(height: 16)
+                    WKopregel(naam: editie.naam, nummer: v.nummer, gelezen: lees, breedte: maat.width - 2 * marge - (z.metBeeld ? Self.beeldBreedte : 0)).frame(height: 16)
                     WKop(gezet: z.gezet, m: z.m, gelezen: lees).padding(.top, WidgetRuimte.s2)
                     Spacer(minLength: WidgetRuimte.s2)
                     WBron(naam: v.bron)
@@ -417,10 +453,13 @@ struct GrootEditie: View {
     static func zet(_ editie: WidgetEditie, maat: CGSize, marge: CGFloat) -> Zet? {
         let kolom = maat.width - 2 * marge - MiddelTop3.nummerKolom - WidgetRuimte.s2
         let binnen = maat.height - 2 * marge
-        guard let held = WidgetZet.vul(editie.verhalen, WidgetLetter.item, breedte: kolom, hoogte: binnen - vast, tussen: 0, max: 1).first else { return nil }
-        let over = binnen - vast - held.hoogte
+        // Een bronregel die op twee regels doorloopt, telt mee (keuring 11).
+        let bronExtra: (WidgetVerhaal) -> CGFloat = { WidgetZet.bronExtra($0.bron, breedte: kolom) }
+        guard let held = WidgetZet.vul(editie.verhalen, WidgetLetter.item, breedte: kolom, hoogte: binnen - vast, tussen: 0,
+                                       extraPer: bronExtra, max: 1).first else { return nil }
+        let over = binnen - vast - held.hoogte - bronExtra(editie.verhalen[held.index])
         let rijen = WidgetZet.vul(editie.verhalen, WidgetLetter.widgetKop, breedte: kolom, hoogte: over, tussen: 0, extra: rij,
-                                  vanaf: held.index + 1, eersteKleiner: false)
+                                  extraPer: bronExtra, vanaf: held.index + 1, eersteKleiner: false)
         return Zet(held: held, rijen: rijen)
     }
 
@@ -431,12 +470,7 @@ struct GrootEditie: View {
             let eerste = editie.verhalen[z.held.index]
             VStack(alignment: .leading, spacing: 0) {
                 Link(destination: HootLink.editie) {
-                    HStack(alignment: .firstTextBaseline) {
-                        WKopregel(naam: editie.naam)
-                        Spacer(minLength: WidgetRuimte.s2)
-                        Text(stand.label).font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3).lineLimit(1)
-                    }
-                    .frame(height: 16)
+                    WKopregelMetStand(naam: editie.naam, stand: stand.label, breedte: breedte)
                 }
                 Link(destination: HootLink.verhaal(eerste.itemId)) {
                     VStack(alignment: .leading, spacing: WidgetRuimte.s1) {
@@ -518,12 +552,16 @@ struct VergrendelRechthoek: View {
     // ("4 van 10"). Nooit afgekapt.
     struct Zet { let verhaal: WidgetVerhaal; let gezet: WidgetZet.Gezet; let m: WidgetLetter.Maat; let metNaam: Bool }
     static let naamHoogte: CGFloat = 16 + WidgetRuimte.s0
+    // Onder de laatste regel blijft de daalhoogte vrij (de staarten van g, j en y vallen onder de regelhoogte):
+    // anders steken ze 1 tot 2 punt onder de rand van het vergrendelscherm uit (keuring 11).
+    static let daal = WidgetRuimte.s1
     static func zet(_ editie: WidgetEditie, maat: CGSize) -> Zet? {
+        let naam = !WidgetZet.kicker(editie.naam, breedte: maat.width).isEmpty
         for v in editie.verhalen {
             for m in WidgetZet.trap(WidgetLetter.widgetKop) {
                 let g = WidgetZet.pas(v.kop, kort: v.kortKop, m, breedte: maat.width, max: .max)
-                let h = CGFloat(g.regels) * m.regel
-                if naamHoogte + h <= maat.height { return Zet(verhaal: v, gezet: g, m: m, metNaam: true) }
+                let h = CGFloat(g.regels) * m.regel + daal
+                if naam, naamHoogte + h <= maat.height { return Zet(verhaal: v, gezet: g, m: m, metNaam: true) }
                 if h <= maat.height { return Zet(verhaal: v, gezet: g, m: m, metNaam: false) }
             }
         }
@@ -533,7 +571,10 @@ struct VergrendelRechthoek: View {
     var body: some View {
         if let z = Self.zet(editie, maat: maat) {
             VStack(alignment: .leading, spacing: WidgetRuimte.s0) {
-                if z.metNaam { Text(editie.naam).widgetKicker().foregroundStyle(.secondary).widgetAccentable().frame(height: 16) }
+                if z.metNaam {
+                    let naam = WidgetZet.kicker(editie.naam, breedte: maat.width)
+                    Text(naam).widgetKicker().foregroundStyle(.secondary).widgetAccentable().frame(height: 16).widgetMeting(.kicker(naam))
+                }
                 Text(z.gezet.tekst).widgetKop(z.m, regels: z.gezet.regels).multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .widgetMeting(z.gezet, z.m)
@@ -543,7 +584,7 @@ struct VergrendelRechthoek: View {
             .accessibilityElement(children: .combine)
         } else {
             VStack(alignment: .leading, spacing: WidgetRuimte.s0) {
-                Text(editie.naam).widgetKicker().foregroundStyle(.secondary).widgetAccentable().frame(height: 16)
+                Text(WidgetZet.kicker(editie.naam, breedte: maat.width)).widgetKicker().foregroundStyle(.secondary).widgetAccentable().frame(height: 16)
                 Text(stand.label).font(WidgetLetter.kop(WidgetLetter.widgetKop)).fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

@@ -109,7 +109,8 @@ enum WidgetZet {
     // niet heel past, wordt overgeslagen; een latere die wel past, schuift op. Alleen op de eerste plek mag een kop
     // kleiner (tot de ondergrens), zodat de widget niet leeg blijft als een kop er kleiner wel in past.
     static func vul(_ verhalen: [WidgetVerhaal], _ m: WidgetLetter.Maat, breedte: CGFloat, hoogte: CGFloat, tussen: CGFloat,
-                    extra: CGFloat = 0, max aantal: Int = .max, vanaf: Int = 0, eersteKleiner: Bool = true) -> [Plek] {
+                    extra: CGFloat = 0, extraPer: ((WidgetVerhaal) -> CGFloat)? = nil,
+                    max aantal: Int = .max, vanaf: Int = 0, eersteKleiner: Bool = true) -> [Plek] {
         var plekken: [Plek] = []
         var gebruikt: CGFloat = 0
         for i in verhalen.indices where i >= vanaf && plekken.count < aantal {
@@ -117,7 +118,7 @@ enum WidgetZet {
             let voor = plekken.isEmpty ? 0 : tussen
             for mm in (plekken.isEmpty && eersteKleiner ? trap(m) : [m]) {
                 let g = pas(v.kop, kort: v.kortKop, mm, breedte: breedte, max: .max)
-                let h = CGFloat(g.regels) * mm.regel + extra
+                let h = CGFloat(g.regels) * mm.regel + extra + (extraPer?(v) ?? 0)
                 if gebruikt + voor + h <= hoogte {
                     plekken.append(Plek(index: i, gezet: g, m: mm))
                     gebruikt += voor + h
@@ -127,6 +128,57 @@ enum WidgetZet {
         }
         return plekken
     }
+
+    // MARK: Kicker en bronregel (keuring 11): ook die kapt iOS nooit af. Ze worden vooraf gemeten, net als een kop.
+
+    // De breedte van een tekst op één regel, met letterafstand.
+    static func breedte(_ tekst: String, _ font: UIFont, kern: CGFloat = 0) -> CGFloat {
+        let a = NSAttributedString(string: tekst, attributes: [.font: font, .kern: kern])
+        return ceil(a.boundingRect(with: CGSize(width: 10_000, height: 100), options: [.usesLineFragmentOrigin], context: nil).width)
+    }
+    static let kickerFont = UIFont(name: "SchibstedGrotesk-ExtraBold", size: 12) ?? .systemFont(ofSize: 12, weight: .heavy)
+    static let metaFont = UIFont(name: "SchibstedGrotesk-Regular", size: 13) ?? .systemFont(ofSize: 13)
+    static func kickerBreedte(_ tekst: String) -> CGFloat { breedte(tekst.uppercased(), kickerFont, kern: 12 * 0.06) }
+    static func metaBreedte(_ tekst: String) -> CGFloat { breedte(tekst, metaFont) }
+    // Het nummer in de kopregel (edition-number, 16 pt).
+    static func nummerBreedte(_ nummer: Int) -> CGFloat {
+        breedte(String(format: "%02d", nummer), UIFont(name: WidgetLetter.kopNaam, size: 16) ?? .systemFont(ofSize: 16, weight: .heavy))
+    }
+
+    // De naam in de kicker, in de breedte die er is: de hele naam ("OCHTENDEDITIE"), anders zonder "editie"
+    // ("OCHTEND"), anders niets (dan staat alleen het nummer er). Twee punt speling, zoals bij de koppen.
+    static func kicker(_ naam: String, breedte: CGFloat) -> String {
+        var vormen = [naam]
+        if naam.lowercased().hasSuffix("editie"), naam.count > 6 { vormen.append(String(naam.dropLast(6))) }
+        return vormen.first { kickerBreedte($0) <= breedte - 2 } ?? ""
+    }
+
+    // De voet van Voortgang op één regel: zo nodig zonder "editie" ("Morgen de Ochtend"), en in de smalste Klein
+    // (iPad mini) alleen de naam van de volgende Editie ("Ochtendeditie"). Nooit afgekapt.
+    static func voet(_ tekst: String, breedte: CGFloat) -> String {
+        var vormen = [tekst]
+        if tekst.contains("editie") {
+            vormen.append(tekst.replacingOccurrences(of: "editie", with: ""))
+            if let laatste = tekst.split(separator: " ").last { vormen.append(String(laatste)) }
+        }
+        return vormen.first { metaBreedte($0) <= breedte - 2 } ?? vormen.last!
+    }
+
+    // De bronregel (t1-meta, 16 pt per regel): zoveel regels als de naam in deze breedte nodig heeft. Een lange
+    // naam ("Het Financieele Dagblad" in Klein) loopt door op een tweede regel en wordt nooit afgekapt; de rij
+    // rekent die regel mee, en past hij dan niet, dan valt de hele rij weg.
+    static let bronRegel: CGFloat = 16
+    static func bronRegels(_ naam: String, breedte: CGFloat) -> Int {
+        let p = NSMutableParagraphStyle()
+        p.minimumLineHeight = bronRegel
+        p.maximumLineHeight = bronRegel
+        p.lineBreakMode = .byWordWrapping
+        let a = NSAttributedString(string: naam, attributes: [.font: metaFont, .paragraphStyle: p])
+        let r = a.boundingRect(with: CGSize(width: max(1, breedte - 2), height: 10_000), options: [.usesLineFragmentOrigin], context: nil)
+        return max(1, Int((r.height / bronRegel - 0.05).rounded(.up)))
+    }
+    // Wat de bronregel meer nodig heeft dan één regel.
+    static func bronExtra(_ naam: String, breedte: CGFloat) -> CGFloat { CGFloat(bronRegels(naam, breedte: breedte) - 1) * bronRegel }
 
     // De hoogte van gevulde rijen (voor toetsen en de rekensom van een widget).
     static func totaal(_ p: [Plek], tussen: CGFloat, extra: CGFloat = 0) -> CGFloat {
@@ -168,8 +220,9 @@ extension Text {
             .lineHeight(.exact(points: m.regel))
             .fixedSize(horizontal: false, vertical: true)
     }
+    // De kicker: vooraf gemeten (WidgetZet.kicker), zonder lineLimit, dus nooit "…" (keuring 11).
     func widgetKicker() -> some View {
-        self.font(WidgetLetter.kicker).tracking(12 * 0.06).textCase(.uppercase).lineLimit(1)
+        self.font(WidgetLetter.kicker).tracking(12 * 0.06).textCase(.uppercase).fixedSize()
     }
 }
 
@@ -177,7 +230,7 @@ extension Text {
 // echt kreeg), zodat een toets kan nagaan dat een kop in zijn regels past, dat elke rij zijn bronregel heeft en
 // dat de eerste rij bovenaan staat. In de app en de extensie nil.
 enum WidgetZetMeting {
-    enum Soort { case kop(WidgetZet.Gezet, WidgetLetter.Maat), bron(String) }
+    enum Soort { case kop(WidgetZet.Gezet, WidgetLetter.Maat), bron(String), kicker(String), stand(String), voet(String) }
     static let ruimte = "hoot-widget"
     nonisolated(unsafe) static var opname: ((Soort, CGRect) -> Void)?
 }

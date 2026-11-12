@@ -80,7 +80,20 @@ import WidgetKit
         .init(naam: "ipad-klein-kop01", family: .systemSmall, maat: iPad.klein, toon: .kop01, beeld: false),
         .init(naam: "ipad-groot", family: .systemLarge, maat: iPad.groot, toon: .top3, beeld: false),
         .init(naam: "vergrendelscherm", family: .accessoryRectangular, maat: rechthoek, toon: .top3, beeld: false),
+        // Keuring 11: de kleinste maten (iPad mini, iPad 10"), Klein · Voortgang en meer maten van het vergrendelscherm.
+        .init(naam: "mini-klein-voortgang", family: .systemSmall, maat: mini.klein, toon: .voortgang, beeld: false),
+        .init(naam: "ipadmini-klein-kop01", family: .systemSmall, maat: ipadMini.klein, toon: .kop01, beeld: false),
+        .init(naam: "ipadmini-klein-kop01-beeld", family: .systemSmall, maat: ipadMini.klein, toon: .kop01, beeld: true),
+        .init(naam: "ipadmini-klein-voortgang", family: .systemSmall, maat: ipadMini.klein, toon: .voortgang, beeld: false),
+        .init(naam: "ipadmini-middel-top3", family: .systemMedium, maat: ipadMini.middel, toon: .top3, beeld: false),
+        .init(naam: "ipadmini-middel-kop01", family: .systemMedium, maat: ipadMini.middel, toon: .kop01, beeld: false),
+        .init(naam: "ipadmini-groot", family: .systemLarge, maat: ipadMini.groot, toon: .top3, beeld: false),
+        .init(naam: "ipad10-klein-kop01", family: .systemSmall, maat: CGSize(width: 146, height: 146), toon: .kop01, beeld: false),
+        .init(naam: "vergrendelscherm-160", family: .accessoryRectangular, maat: CGSize(width: 160, height: 72), toon: .top3, beeld: false),
+        .init(naam: "vergrendelscherm-157", family: .accessoryRectangular, maat: CGSize(width: 157, height: 67), toon: .top3, beeld: false),
+        .init(naam: "vergrendelscherm-153", family: .accessoryRectangular, maat: CGSize(width: 153, height: 64), toon: .top3, beeld: false),
     ]
+    static let ipadMini = (klein: CGSize(width: 141, height: 141), middel: CGSize(width: 305.5, height: 141), groot: CGSize(width: 305.5, height: 305.5))
 
     // Wat een widget toonde: de nummers van de koppen (van boven naar onder) en wat er mis was.
     struct Uitslag { var nummers: [Int] = []; var fouten: [String] = [] }
@@ -115,11 +128,15 @@ import WidgetKit
     func keur(_ e: WidgetEditie, _ f: Formaat) throws -> Uitslag {
         var koppen: [String: (WidgetZet.Gezet, WidgetLetter.Maat, CGRect)] = [:]
         var bronnen: [String: CGRect] = [:]
+        var kickers: [(String, CGRect)] = [], standen: [(String, CGRect)] = [], voeten: [(String, CGRect)] = []
         WidgetZetMeting.opname = { soort, r in
             MainActor.assumeIsolated {
                 switch soort {
                 case let .kop(g, m): koppen[g.tekst] = (g, m, r)
                 case let .bron(naam): bronnen["\(naam)|\(Int(r.minY.rounded()))"] = r
+                case let .kicker(t): kickers.append((t, r))
+                case let .stand(t): standen.append((t, r))
+                case let .voet(t): voeten.append((t, r))
                 }
             }
         }
@@ -134,7 +151,9 @@ import WidgetKit
         let binnen = CGRect(x: rand, y: rand, width: f.maat.width - 2 * rand, height: f.maat.height - 2 * rand)
         func binnenMarge(_ r: CGRect, speling: CGFloat) -> Bool { binnen.insetBy(dx: -speling, dy: -speling).contains(r) }
         // Inkt: niet bij een beeld tot de rand (dat hoort daar); dan tellen de kaders van kop en bron.
-        if !f.beeld, let inkt = inktRuim(beeld), !binnenMarge(inkt, speling: 1) { u.fouten.append("inkt \(inkt) buiten \(binnen)") }
+        // Op het vergrendelscherm geen speling naar buiten: wat daar onder de rand valt, snijdt iOS af (keuring 11).
+        let inktSpeling: CGFloat = f.family == .accessoryRectangular ? 0 : 1
+        if !f.beeld, let inkt = inktRuim(beeld), !binnenMarge(inkt, speling: inktSpeling) { u.fouten.append("inkt \(inkt) buiten \(binnen)") }
         let opVolgorde = koppen.values.sorted { $0.2.minY < $1.2.minY }
         for (g, m, kader) in opVolgorde {
             guard let v = e.verhalen.first(where: { $0.kop == g.tekst }) else { u.fouten.append("geen hele kop: \(g.tekst)"); continue }
@@ -146,6 +165,28 @@ import WidgetKit
             if !binnenMarge(kader, speling: 1) { u.fouten.append("kop \(kader) buiten \(binnen): \(g.tekst)") }
         }
         for kader in bronnen.values where !binnenMarge(kader, speling: 1) { u.fouten.append("bron \(kader) buiten \(binnen)") }
+        // Keuring 11: een bronregel staat in de regels die vooraf gemeten zijn (een lange naam loopt door, nooit "…").
+        for (sleutel, kader) in bronnen {
+            let naam = String(sleutel.split(separator: "|").first ?? "")
+            let getekend = Int((kader.height / WidgetZet.bronRegel).rounded())
+            if getekend > WidgetZet.bronRegels(naam, breedte: kader.width) { u.fouten.append("bron \(naam) in \(getekend) regels, gemeten minder") }
+            // Minder regels dan de naam nodig heeft: dan heeft iOS hem afgekapt.
+            if getekend < WidgetZet.bronRegels(naam, breedte: kader.width + 2) { u.fouten.append("bron \(naam) afgekapt (\(kader))") }
+        }
+        // De kicker en de stand ernaast staan op één regel, heel (zo breed als de tekst) en binnen de marge.
+        for (t, kader, breed) in kickers.map({ ($0.0, $0.1, WidgetZet.kickerBreedte($0.0)) }) + standen.map({ ($0.0, $0.1, WidgetZet.metaBreedte($0.0)) }) {
+            if !binnenMarge(kader, speling: 1) { u.fouten.append("kicker \(t) \(kader) buiten \(binnen)") }
+            if kader.height > 17 { u.fouten.append("kicker \(t) op meer regels") }
+            if kader.width + 1 < breed { u.fouten.append("kicker \(t) afgekapt (\(kader.width) < \(breed))") }
+        }
+        // De voet van Voortgang ("Tik voor de Ochtendeditie"): heel, binnen de marge, nooit afgekapt.
+        for (t, kader) in voeten {
+            if !binnenMarge(kader, speling: 1) { u.fouten.append("voet \(t) \(kader) buiten \(binnen)") }
+            if Int((kader.height / WidgetZet.bronRegel).rounded()) < WidgetZet.bronRegels(t, breedte: kader.width + 2) { u.fouten.append("voet \(t) afgekapt") }
+        }
+        if f.family != .accessoryRectangular, kickers.isEmpty, standen.isEmpty, !koppen.isEmpty, f.toon != .kop01 || f.family != .systemSmall {
+            u.fouten.append("geen kopregel gemeten")
+        }
         // Een bronregel bij elke rij: Groot (01 en elke rij) en Kop 01 zonder beeld bovenaan (Klein met beeld heeft
         // er geen; Middel · Top 3 heeft er nooit een gehad).
         let metBron: Bool
@@ -184,11 +225,18 @@ import WidgetKit
         let url = WidgetTests.fixture.deletingLastPathComponent().appending(path: "widget-live-koppen.json")
         return try JSONDecoder().decode(Bestand.self, from: Data(contentsOf: url)).koppen.map { ($0.kop, $0.bron) }
     }
-    static func editie(_ koppen: [(kop: String, bron: String)]) -> WidgetEditie {
+    // `dagdeel`: ook de Ochtend- en Middageditie (keuring 11: "01 OCHTENDEDITIE" is de breedste kicker). Die staan
+    // dan op het avondmoment als oud ("Tik voor de Avondeditie", de langste stand).
+    static func editie(_ koppen: [(kop: String, bron: String)], dagdeel: String? = nil) -> WidgetEditie {
         let nu = WidgetDagdeel.op(WidgetTests.moment("2026-11-11T17:41:00Z"))
+        let d = dagdeel ?? nu.dagdeel
         let stenen = koppen.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k.kop, bron: k.bron) }
-        return WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
+        return WidgetEditie.bouw(id: "\(nu.datum)-\(d)", datum: nu.datum, dagdeel: d, stenen: stenen, gelezen: [], vraag: .algemeen)
     }
+    static let dagdelen = WidgetDagdeel.volgorde
+    // De langste bronnamen (live feed, 12 november) en een nog langere.
+    static let langeBronnen = ["Het Financieele Dagblad", "South China Morning Post", "Het Belang van Limburg", "Voetbal International",
+                               "Gazet van Antwerpen", "Frankfurter Allgemeine Zeitung"]
     static let uiterst: [(String, String)] = {
         let k149 = "Rijkswaterstaat sluit de Afsluitdijk dit weekend voor al het verkeer vanwege onderhoud aan de sluizen bij Den Oever en Kornwerderzand, meldt de NOS"
         let k200 = "Kabinet is gevallen na urenlang crisisberaad in het Catshuis over de asielwet van minister Faber, maar premier Schoof spreekt het bericht van De Telegraaf tegen en noemt het volstrekte onzin vanavond"
@@ -206,8 +254,20 @@ import WidgetKit
     func testGeenTekstTegenDeRand() async throws {
         for gelezen in [0, 4, 10] { try keurAlles(try await editie(gelezen: gelezen), "fixture \(gelezen)") }
         let lang = try Self.liveKoppen().sorted { $0.kop.count > $1.kop.count }.prefix(30)
-        for start in stride(from: 0, to: 30, by: 5) { try keurAlles(Self.editie(Array(lang.dropFirst(start).prefix(10))), "lang vanaf \(start)") }
+        for (n, start) in stride(from: 0, to: 30, by: 5).enumerated() {
+            try keurAlles(Self.editie(Array(lang.dropFirst(start).prefix(10)), dagdeel: Self.dagdelen[n % 3]), "lang vanaf \(start)")
+        }
         for (naam, kop) in Self.uiterst { try keurAlles(Self.uitersteEditie(kop), "uiterst \(naam)") }
+        // Keuring 11: elk dagdeel, met de langste bronnamen, in elk formaat (ook iPad mini).
+        let korte = ["Kabinet stelt asielwet uit", "Storm raast over het noorden", "Ajax wint van PSV", "Rente blijft gelijk"]
+        for d in Self.dagdelen {
+            for gelezen in [0, 4] {
+                var e = Self.editie((0..<10).map { (korte[$0 % korte.count] + " \($0 + 1)", Self.langeBronnen[$0 % Self.langeBronnen.count]) }, dagdeel: d)
+                e.gelezen = Array(e.verhalen.prefix(gelezen).map(\.itemId))
+                try keurAlles(e, "\(d) bronnen \(gelezen)")
+            }
+            for b in Self.langeBronnen { try keurAlles(Self.editie((1...10).map { ("Kabinet stelt asielwet uit \($0)", b) }, dagdeel: d), "\(d) \(b)") }
+        }
     }
 
     // De overloop-toets, op de live feed: elke reeks van tien opeenvolgende koppen als Editie (zoals keuring 10),
@@ -217,7 +277,9 @@ import WidgetKit
         let live = try Self.liveKoppen()
         var edities: [WidgetEditie] = []
         var start = 0
-        while start + 10 <= live.count { edities.append(Self.editie(Array(live[start..<(start + 10)]))); start += 3 }
+        while start + 10 <= live.count {
+            edities.append(Self.editie(Array(live[start..<(start + 10)]), dagdeel: Self.dagdelen[(start / 3) % 3])); start += 3
+        }
         XCTAssertGreaterThanOrEqual(edities.count, 100)
         var regels = ["\(edities.count) Edities van tien opeenvolgende live koppen (\(live.count) koppen, langste \(live.map(\.kop.count).max() ?? 0) tekens)",
                       "formaat: gemiddeld koppen | verdeling (0,1,2,3,4+) | met sprong | voortgang | overloop"]
@@ -314,6 +376,23 @@ import WidgetKit
         try beginscherm(vier)
         try vergrendelscherm(vier)
         try langeKoppen()
+        try kopregelEnBron()
+    }
+
+    // Keuring 11: de breedste kicker ("01 OCHTENDEDITIE") en lange bronnamen in Klein, op de grootste iPhone en de
+    // iPad mini; het vergrendelscherm op de kleinste maat. Nooit afgekapt.
+    private func kopregelEnBron() throws {
+        let koppen = (1...10).map { ("Kabinet stelt asielwet uit na kritiek van de Raad van State \($0)", $0 == 1 ? "Het Financieele Dagblad" : "South China Morning Post") }
+        for d in Self.dagdelen {
+            let e = Self.editie(koppen, dagdeel: d)
+            _ = try png(widget(entry(e, .kop01, beeld: false), .systemSmall, Self.iPhone.klein, .light), "k11-klein-\(d)")
+            _ = try png(widget(entry(e, .kop01, beeld: false), .systemSmall, Self.ipadMini.klein, .light), "k11-ipadmini-klein-\(d)")
+            _ = try png(widget(entry(e, .voortgang), .systemSmall, Self.ipadMini.klein, .light), "k11-ipadmini-voortgang-\(d)")
+            _ = try png(widget(entry(e), .systemMedium, Self.ipadMini.middel, .light), "k11-ipadmini-middel-top3-\(d)")
+        }
+        let live = Self.editie(Array(try Self.liveKoppen().prefix(10)))
+        _ = try png(HootWidgetInhoud(entry: entry(live), family: .accessoryRectangular, maat: CGSize(width: 153, height: 64))
+            .frame(width: 153, height: 64).padding(8).background(Color(white: 0.2)).environment(\.colorScheme, .dark), "k11-vergrendelscherm-153")
     }
 
     // Lange koppen: altijd heel (nooit ingekort, nooit afgekapt); wat niet heel past, valt weg en een latere kop die
