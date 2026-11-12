@@ -78,6 +78,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | `t5-screen` (`head-5`) | serif 800, 27/32 px | `Theme.headline(.title)` = `.kop(.title)`; in de balk Newsreader 800 op `.headline`/`.largeTitle` (UIKit) | Schermtitel (Middageditie, Stroom, Selectie …) |
 | `head-lg-item` | serif 800, 22/26 px (`lh-head-lg`) | `.kop(.title2)` | Grote itemkop: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel |
 | `t4-item` | serif 800, 18/22 px (`lh-4`) | `.kop(.title3)` | Kop van een bericht |
+| `widget-kop` | — (alleen iOS) | Newsreader 800, 16/18,4 vast (`WidgetLetter.widgetKop`) | Koppen in de widgets: Middel · Top 3, Klein · Kop 01, 02 en 03 van Groot, vergrendelscherm. Een kop wordt nooit ingekort (besluit "korte kop dicht", keuring 9): de hele kop, met de regels die hij nodig heeft. `kortKop` is de kop zelf als hij in 60 tekens past. Nooit afgekapt |
 | `intro` | lees 400, 17/24 (1,42), Nacht 430 | `.leestekst(.body)` | De intro van elk verhaal (ook in een lijst), de tekst van een post, in `ink-2` |
 | `lees-proza` | lees 400, 17/28 | lezer: Newsreader Tekst, 1.6 | Proza, De Editie in één minuut, de lezer |
 | `t2-ui` | sans 600, 15 px, 1.3 | `.ui(.subheadline, .semibold)` | Bronnaam (600), knoppen, chips |
@@ -85,6 +86,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | `kicker` | sans 800, 13 px, kapitalen, +0.06em, 1.3 | `.ui(.caption, .heavy)`, kapitalen | Rubriek; de punt tussen twee labels in `ink-3`; bij heel grote tekst zonder kapitalen |
 
 - **Het verhaal wint van de schermtitel** (C7). De schermtitel (`head-5`, 27/32) zegt waar je bent; het oog landt op het nieuws: de kop van het hoofdverhaal (`head-6`, 30/36, vanaf 720 px 34/40) is altijd groter. Op het web staat dit zo; iOS volgt (I5): schermtitel `Theme.headline(.title)`, hoofdverhaal `.largeTitle` serif.
+- **Widgets** (iOS, sinds 11 november 2026): achtergrond `paper`, koppen in `widget-kop` (16/18,4) en 01 groot in `t4-item`, labels in `kicker`, bron en voortgang in `t1-meta`, het enige rood is het nummer 01. Binnenmarge minstens `s4` (16) en nooit minder dan de marge van iOS; lucht tussen koppen minstens `s3`. Past een kop niet, dan krijgt hij meer regels of valt de kop eronder weg; een kop wordt nooit ingekort (shared/kort-kop.mjs). Liever minder koppen dan krap.
 - **Koppen** krijgen `text-wrap: balance` (hoofdverhaal) of `pretty` (berichten) en breken nooit af met "…".
 - **Intro's:** bij het hoofdverhaal hele zinnen (4–6 regels). In een lijst kies je zelf 1–3 regels of de hele intro; een ingekorte intro eindigt met "…", zodat je ziet dat er meer is.
 - **De lezer** zet lopende tekst in Newsreader Tekst (met echt vet en cursief): 1,12rem × je tekstgrootte (was 1,06 in New York; Newsreader oogt op dezelfde maat kleiner), regelafstand 1.6, hooguit `readable` breed; de kop in Newsreader 800, kicker, bronregel en bijschriften in Schibsted Grotesk.

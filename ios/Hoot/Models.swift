@@ -330,6 +330,7 @@ struct EditionEntry: Codable, Hashable {
     var itemIds: [String]?
     var title: String?
     var keys: [String]? // de kenmerken van het hele verhaal toen (aanvulling H2), voor "ontwikkeld"
+    var kortKop: String? // de korte kop van de server (shared/kort-kop.mjs), voor de widgets
 }
 
 // De samenvatting van een vastgelegde Editie in `user_state.edition.history` (bouwspec-aanvulling H5):

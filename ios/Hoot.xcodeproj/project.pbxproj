@@ -6,8 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1000000000000000000010C /* HootWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A10000000000000000000100 /* HootWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A1000000000000000000010B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A1000000000000000000010C /* HootWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* Hoot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hoot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000100 /* HootWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HootWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000010 /* HootTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HootTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -25,6 +44,19 @@
 			);
 			target = A10000000000000000000006 /* Hoot */;
 		};
+		A10000000000000000000103 /* Exceptions for "Hoot" folder in "HootWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Resources/Fonts/NewsreaderKop-800.ttf",
+				"Resources/Fonts/SchibstedGrotesk-400.ttf",
+				"Resources/Fonts/SchibstedGrotesk-600.ttf",
+				"Resources/Fonts/SchibstedGrotesk-800.ttf",
+				BeeldOpMaat.swift,
+				Views/PlaceholderBeelden.swift,
+				Views/PlaceholderVormen.swift,
+			);
+			target = A10000000000000000000104 /* HootWidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +64,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				A100000000000000000000F0 /* Exceptions for "Hoot" folder in "Hoot" target */,
+				A10000000000000000000103 /* Exceptions for "Hoot" folder in "HootWidgetExtension" target */,
 			);
 			path = Hoot;
 			sourceTree = "<group>";
@@ -39,6 +72,16 @@
 		A10000000000000000000011 /* HootTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = HootTests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000101 /* HootWidgetShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HootWidgetShared;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000102 /* HootWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HootWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -50,6 +93,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = A10000000000000000000006;
 			remoteInfo = Hoot;
+		};
+		A1000000000000000000010E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000000000000000000000A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000104;
+			remoteInfo = HootWidgetExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -68,6 +118,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000106 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -75,6 +132,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000002 /* Hoot */,
+				A10000000000000000000101 /* HootWidgetShared */,
+				A10000000000000000000102 /* HootWidget */,
 				A10000000000000000000011 /* HootTests */,
 				A10000000000000000000005 /* Products */,
 			);
@@ -85,6 +144,7 @@
 			children = (
 				A10000000000000000000001 /* Hoot.app */,
 				A10000000000000000000010 /* HootTests.xctest */,
+				A10000000000000000000100 /* HootWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -99,13 +159,16 @@
 				A10000000000000000000008 /* Sources */,
 				A10000000000000000000003 /* Frameworks */,
 				A10000000000000000000009 /* Resources */,
+				A1000000000000000000010B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				A1000000000000000000010D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A10000000000000000000002 /* Hoot */,
+				A10000000000000000000101 /* HootWidgetShared */,
 			);
 			name = Hoot;
 			packageProductDependencies = (
@@ -137,6 +200,29 @@
 			productReference = A10000000000000000000010 /* HootTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A10000000000000000000104 /* HootWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000108 /* Build configuration list for PBXNativeTarget "HootWidgetExtension" */;
+			buildPhases = (
+				A10000000000000000000105 /* Sources */,
+				A10000000000000000000106 /* Frameworks */,
+				A10000000000000000000107 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000101 /* HootWidgetShared */,
+				A10000000000000000000102 /* HootWidget */,
+			);
+			name = HootWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = HootWidgetExtension;
+			productReference = A10000000000000000000100 /* HootWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -153,6 +239,9 @@
 					A10000000000000000000017 = {
 						CreatedOnToolsVersion = 27.1;
 						TestTargetID = A10000000000000000000006;
+					};
+					A10000000000000000000104 = {
+						CreatedOnToolsVersion = 27.2;
 					};
 				};
 			};
@@ -172,6 +261,7 @@
 			targets = (
 				A10000000000000000000006 /* Hoot */,
 				A10000000000000000000017 /* HootTests */,
+				A10000000000000000000104 /* HootWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -185,6 +275,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A10000000000000000000013 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000107 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -208,6 +305,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000105 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -215,6 +319,11 @@
 			isa = PBXTargetDependency;
 			target = A10000000000000000000006 /* Hoot */;
 			targetProxy = A10000000000000000000015 /* PBXContainerItemProxy */;
+		};
+		A1000000000000000000010D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000104 /* HootWidgetExtension */;
+			targetProxy = A1000000000000000000010E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -373,6 +482,62 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000109 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = HootWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 52;
+				DEVELOPMENT_TEAM = HSBZ66VRTZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "HootWidget-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hoot;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.hootnews.Hoot.HootWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A1000000000000000000010A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = HootWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 52;
+				DEVELOPMENT_TEAM = HSBZ66VRTZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "HootWidget-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hoot;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.2.1;
+				PRODUCT_BUNDLE_IDENTIFIER = nl.hootnews.Hoot.HootWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -399,6 +564,15 @@
 			buildConfigurations = (
 				A10000000000000000000018 /* Debug */,
 				A10000000000000000000019 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000108 /* Build configuration list for PBXNativeTarget "HootWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000109 /* Debug */,
+				A1000000000000000000010A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.widgetkit-extension</string>
+	</dict>
+	<!-- Dezelfde letters als de app (Resources/Fonts, via het lidmaatschap in project.pbxproj): Newsreader 800 en Schibsted Grotesk. -->
+	<key>UIAppFonts</key>
+	<array>
+		<string>NewsreaderKop-800.ttf</string>
+		<string>SchibstedGrotesk-400.ttf</string>
+		<string>SchibstedGrotesk-600.ttf</string>
+		<string>SchibstedGrotesk-800.ttf</string>
+	</array>
+</dict>
+</plist>

@@ -42,6 +42,7 @@ import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { withoutCopies, titleKey } from '../../shared/dedupe.mjs'
 import { visibleFor, READER_LANG } from '../../shared/lang.mjs'
 import { inStroom, forEdition } from '../../shared/stroom.mjs'
+import { metKorteKoppen } from '../../shared/kort-kop.mjs'
 
 const MIN = 6e4
 const DAY = 864e5
@@ -1129,7 +1130,8 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   return {
     snapshot: stored,
     archive,
-    public: {
+    // Met `kortKop` per plek (shared/kort-kop.mjs): de korte kop voor de widgets.
+    public: metKorteKoppen({
       id: slot.id,
       slot: slot.slot,
       date: slot.date,
@@ -1144,7 +1146,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       wide: widelyCovered(stories, byId, { isFree, isDutch: dutch, isSport }),
       // Actueel: waaruit de persoonlijke Editie "Naast je bubbel" kiest als geen trend buiten je profiel valt.
       near: nearStories(stories, byId, { isFree, isDutch: dutch, isSport, isLive, now }),
-    },
+    }),
   }
 }
 

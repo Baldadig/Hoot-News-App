@@ -165,7 +165,7 @@ test('DPG: Het Parool en Trouw krijgen net als de Volkskrant het grote beeld van
   const ad = 'https://images.ad.nl/NWY0ODcxOTZjZGU1YmEwMjc0ZTAvZGlvLzI3NDMwMzI5MC9maXQtd2lkdGgvNDAw/a'
   assert.deepEqual(imgProps(ad, 'thumb'), { src: ad })
   // Eén lijst voor web en app.
-  const swift = readFileSync(new URL('../ios/Hoot/ImageURL.swift', import.meta.url), 'utf8')
+  const swift = readFileSync(new URL('../ios/Hoot/BeeldOpMaat.swift', import.meta.url), 'utf8')
   const set = swift.match(/static let dpgHosts: Set<String> = \[([^\]]*)\]/)
   assert.ok(set, 'ImageURL.dpgHosts staat in de app')
   assert.deepEqual([...set[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort(), [...DPG_HOSTS].sort())

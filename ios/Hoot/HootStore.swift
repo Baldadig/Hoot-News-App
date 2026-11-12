@@ -962,7 +962,7 @@ final class HootStore {
     func setFavorite(_ id: String, _ on: Bool) { favorites = on ? Array(Set(favorites + [id])).sorted() : favorites.filter { $0 != id } }
 
     // Van wie jouw Editie is: je gebruikers-id als lid, anders "anon" (die gaat nooit naar je account).
-    private var ownerNow: String { account?.uid ?? "anon" }
+    var ownerNow: String { account?.uid ?? "anon" }
     private var personalTask: Task<Void, Never>?
     func refreshPersonal() {
         guard edition != nil else { return }
@@ -1049,7 +1049,11 @@ final class HootStore {
         if r.status == 401, token != nil, let fresh = await account?.editionToken(renew: true) {
             r = await HootAPI.serverEdition(payload, token: fresh)
         }
-        return Self.acceptServer(r.data, status: r.status, id: global.id, owner: owner)
+        let accepted = Self.acceptServer(r.data, status: r.status, id: global.id, owner: owner)
+        // De widget mag bij een nieuw dagdeel zelf dezelfde vraag stellen (WidgetOphalen), maar alleen zonder
+        // account: met account is je token nodig, en dat blijft in de app.
+        if accepted != nil { WidgetSchrijver.bewaarVraag(token == nil ? payload : nil) }
+        return accepted
     }
 
     // De vraag van v2 zoals het web hem stelt (serverRequest in src/lib/editionSync.js): dezelfde velden, en

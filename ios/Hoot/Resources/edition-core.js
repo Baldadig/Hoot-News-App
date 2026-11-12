@@ -3472,6 +3472,26 @@ var HootCore = (() => {
   var forEdition = (it) => !it?.streamOnly;
   var INTRO_WINDOW_MS = 6 * 3600 * 1e3;
 
+  // shared/kort-kop.mjs
+  var KORT_MAX = 60;
+  var schoon = (s) => String(s ?? "").replace(/[​-‍﻿]/gu, "").replace(/[\s\u0085]+/gu, " ").trim();
+  function kortKop(title, max = KORT_MAX) {
+    const t = schoon(title);
+    return t.length <= max ? t : null;
+  }
+  function metKorteKoppen(edition) {
+    if (!edition || !Array.isArray(edition.entries)) return edition;
+    const byId2 = new Map((edition.items || []).map((i) => [i.id, i]));
+    return {
+      ...edition,
+      entries: edition.entries.map((e) => {
+        const kop = byId2.get(e.kind === "story" ? e.leadId || e.id : e.id)?.title || e.title;
+        const kort = kop ? kortKop(kop) : null;
+        return kort ? { ...e, kortKop: kort } : e;
+      })
+    };
+  }
+
   // src/lib/personal.js
   var EXTERN = "extern";
   var WIDE = "breed";
@@ -3919,7 +3939,7 @@ var HootCore = (() => {
       supply = { target: EDITION_SIZE, auditBelow: EDITION_AUDIT_BELOW, floor: EDITION_FLOOR, selected: regularCount, totalSlots: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: regularCount >= EDITION_FLOOR && unresolved.length === 0 };
     }
     const shown2 = [...new Set(out.map((e) => e.leadId || e.id))];
-    return {
+    return metKorteKoppen({
       id: global.id,
       slot: global.slot,
       date: global.date,
@@ -3934,7 +3954,7 @@ var HootCore = (() => {
       brief: null,
       _plan: sel.deskOrder,
       ...supply ? { _supply: supply } : {}
-    };
+    });
   }
   function withoutDebug(edition) {
     if (!edition) return edition;
