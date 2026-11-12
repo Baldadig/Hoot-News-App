@@ -576,7 +576,7 @@ export function signatures(articles, extra = [], { extended = false } = {}) {
   try {
     const vocab = nameVocabulary(articles, extended)
     const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
-    sigVocab.set(out, { vocab, extended, heads: new Map() })
+    sigVocab.set(out, { vocab, extended, heads: new Map(), articles })
     return out
   } finally {
     wordMemo = outer
@@ -598,6 +598,31 @@ function headSignature(sig, item) {
   if (!v || !item) return null
   let h = v.heads.get(item.id)
   if (!h) v.heads.set(item.id, (h = signature({ ...item, text: '', summary: '' }, v.vocab, v.extended)))
+  return h
+}
+// Het kenmerk van alleen de kop voor het cluster (sameCluster), altijd in de uitgebreide stand (landen en hun
+// bijvoeglijke vormen zijn zwak, "Spaanse" is geen naam; `titleRuns` voor voor- en achternaam). De woordenschat: die van
+// de pool plus de woorden die in een gewone kop van de pool midden in een zin met een hoofdletter staan (een kleine pool,
+// zoals die van jouw bronnen, noemt "Olesjky" soms alleen in de kop). Een kop In Titelkast (NYT, Wired, vaak ook de BBC)
+// zegt niets over wat een naam is ("Album", "Black"): daar telt een woord alleen als naam als het in geen enkele kop van
+// de pool met een kleine letter staat.
+function clusterHead(sig, item) {
+  const v = sigVocab.get(sig)
+  if (!v || !item) return null
+  const memo = (v.cheads ||= new Map())
+  let h = memo.get(item.id)
+  if (h) return h
+  if (!v.cvocab) {
+    const titles = (v.articles || []).map((a) => String(a.title || '')).filter(Boolean)
+    const lower = new Set()
+    for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm(w))
+    v.cvocab = new Set([...v.vocab, ...nameVocabulary(titles.filter((t) => !isTitleCase(t)).map((title) => ({ title })), true)])
+    // Dezelfde naam in de Engelse spelling ("Olesjky", "Oleshky"; zie translit).
+    for (const w of [...v.cvocab]) if (w.includes('sj')) v.cvocab.add(translit(w))
+    v.tvocab = new Set([...v.cvocab].filter((w) => !lower.has(w)))
+  }
+  h = signature({ ...item, text: '', summary: '' }, isTitleCase(item.title) ? v.tvocab : v.cvocab, true)
+  memo.set(item.id, h)
   return h
 }
 // Eén plek per onderwerp: gaat een kandidaat over iets wat al een plek heeft (`placed`: kenmerken)?
@@ -1709,6 +1734,122 @@ function familyRoom(c, placedC, wide = false, now = null) {
   return !(c.voteFrom && timeOf({ publishedAt: c.st.latestAt }) < c.voteFrom) // geen voorbeschouwing na de uitslag
 }
 
+// ---------- Eén onderwerp op één dag, één plek (Redacteur · cluster, lijst van Alex 12 november) ----------
+// Op een dag met één crisis of één gebeurtenis met veel invalshoeken staan de invalshoeken als losse verhalen in de pool:
+// de spionagezaak rond Nvidia en "What we know so far about Jensen Huang's affair", de ontslagronde bij KLM en het
+// interview met de topvrouw, de G20-foto zonder Rusland en "G20 photocall cancelled". Wat sameSubject en sameHeadEvent
+// per stuk vergelijken, laat zulke verhalen soms door, vooral langs de routes na de selectie (aanvulling, breed nieuws).
+// Een cluster: verhalen (of losse stukken) van dezelfde dag die over hetzelfde gaan. Ze krijgen samen één plek: wie het
+// eerst een plek krijgt, is in de volgorde van de Redacteur het sterkste (voorpagina, dan rubrieken, dan gewicht). De
+// rest blijft in de Stroom en bij Vergelijken staan.
+// Hetzelfde onderwerp, zonder namen of onderwerpen in de code, alleen uit de koppen:
+// - De kern van een plek: de eigen namen (sterk, niet BROAD) in de koppen van minstens een derde van haar uitgevers
+//   (CLUSTER_SHARE; bij één of twee uitgevers dus elke naam in een kop). Een naam uit de tekst telt niet: een
+//   achtergrondstuk noemt van alles.
+// - Twee plekken delen een cluster als hun laatste stukken hooguit CLUSTER_HOURS uit elkaar liggen (dezelfde dag) en
+//   hun kern twee verschillende namen deelt (twee namen in één reeks, "Jensen Huang", zijn één naam), of één naam
+//   die bij elk van beide in de koppen van minstens twee uitgevers of van meer dan de helft staat (geen naam uit één
+//   verdwaald stuk), waarbij een kop van de ene plek en
+//   een kop van de andere met die naam dezelfde gebeurtenis melden (sameHeadEvent: een gedeeld begrip of kernwoord naast
+//   de naam). Eén gedeelde naam alleen is geen cluster: "KLM-vlucht vast in Boekarest na bommelding" en "KLM schrapt
+//   5000 banen" zijn twee verhalen. Een gebeurtenis-woord ("Election" in een kop In Titelkast) is geen naam.
+// - Wat dit bewust niet vangt: twee invalshoeken die alleen een dossiernaam delen ("Belastingplan wankelt: veel hangt af
+//   van ChristenUnie" naast "Kabinet ontraadt deal met Pro en Volt"). Uit de koppen alleen is dat niet te scheiden van
+//   twee echte verhalen over één organisatie (KLM); daarvoor is er het Haagse dossier (dossiers.mjs, in schaduw).
+// - Een stembusfamilie (familyRoom, met de tweede plek op een uitzonderlijke dag) gaat voor: tussen twee verhalen van
+//   dezelfde stembus beslist familyRoom, niet het cluster.
+export const CLUSTER_SHARE = 3
+export const CLUSTER_HOURS = 24
+// Een sleutel die een gebeurtenis-woord is ("Election" in een kop), is geen naam.
+const conceptKeys = new Map()
+const conceptWord = (k) => {
+  if (!conceptKeys.has(k)) conceptKeys.set(k, CONCEPTS_EXT.some(([, re]) => re.test(k)))
+  return conceptKeys.get(k)
+}
+// De kern van een plek uit haar stukken (alleen de koppen), één keer per lijst stukken.
+function clusterCore(sig, items) {
+  const v = sigVocab.get(sig)
+  if (!v) return null
+  const memo = (v.cores ||= new WeakMap())
+  let core = memo.get(items)
+  if (core) return core
+  const names = new Map() // naam → { pubs: Set van uitgevers, heads: koppen met die naam }
+  const runs = []
+  let latest = 0
+  for (const i of items) {
+    if (!i || !titled(i)) continue
+    latest = Math.max(latest, timeOf(i))
+    const h = clusterHead(sig, i)
+    if (!h) continue
+    for (const k of h.strong) {
+      if (BROAD.has(k) || conceptWord(k)) continue
+      const n = names.get(k) || names.set(k, { pubs: new Set(), heads: [] }).get(k)
+      n.pubs.add(publisherOf(i.source))
+      n.heads.push(h)
+    }
+    for (const run of h.titleRuns || []) if (run.length > 1) runs.push(run)
+  }
+  const pubs = coverageOf(items.filter(Boolean)).publisherCount
+  const need = Math.max(1, Math.ceil(pubs / CLUSTER_SHARE))
+  const central = new Map([...names].filter(([, n]) => n.pubs.size >= need))
+  memo.set(items, (core = { central, runs, latest, pubs }))
+  return core
+}
+// De kern als lijst ({ naam, uitgevers }), voor de meting en de toetsen.
+export function clusterNames(sig, items = []) {
+  const core = clusterCore(sig, items)
+  return core ? [...core.central].map(([naam, n]) => ({ naam, uitgevers: n.pubs.size })).sort((a, b) => b.uitgevers - a.uitgevers || textOrder(a.naam, b.naam)) : []
+}
+// Horen de stukken `a` en `b` (van twee plekken) bij één cluster? `sig`: kenmerken uit signatures(). `clusterMatch` geeft
+// ook waarom ({ namen, via: 'namen' | 'kop' }, of null): voor de meting.
+export const sameCluster = (sig, a = [], b = []) => !!clusterMatch(sig, a, b)
+export function clusterMatch(sig, a = [], b = []) {
+  if (a === b) return null
+  const ca = clusterCore(sig, a)
+  const cb = clusterCore(sig, b)
+  if (!ca || !cb || !ca.central.size || !cb.central.size) return null
+  if (!ca.latest || !cb.latest || Math.abs(ca.latest - cb.latest) > CLUSTER_HOURS * 36e5) return null
+  const shared = [...ca.central.keys()].filter((k) => cb.central.has(k)).sort(textOrder)
+  if (!shared.length) return null
+  // Verschillende namen: twee namen die in een kop van een van beide plekken in één reeks staan ("Jensen Huang", "Pete
+  // Hegseth"), zijn één naam.
+  const parent = new Map(shared.map((k) => [k, k]))
+  const find = (k) => {
+    while (parent.get(k) !== k) k = parent.get(k)
+    return k
+  }
+  for (const run of [...ca.runs, ...cb.runs]) {
+    const ks = run.filter((k) => parent.has(k))
+    for (let j = 1; j < ks.length; j++) parent.set(find(ks[j]), find(ks[0]))
+  }
+  if (new Set(shared.map(find)).size >= 2) return { namen: shared, via: 'namen' }
+  // Eén naam: die staat bij elke plek in de koppen van minstens twee uitgevers of van meer dan de helft (geen naam uit
+  // één verdwaald stuk), en een kop van elke plek met die naam meldt dezelfde gebeurtenis.
+  const most = (c, k) => c.central.get(k).pubs.size >= 2 || c.central.get(k).pubs.size * 2 > c.pubs
+  for (const k of shared) {
+    if (!most(ca, k) || !most(cb, k)) continue
+    for (const x of ca.central.get(k).heads) for (const y of cb.central.get(k).heads) if (sameHeadEvent(x, y)) return { namen: shared, via: 'kop' }
+  }
+  return null
+}
+// Mag kandidaat `c` nog een plek, of heeft zijn cluster er al een? `placedC`: de kandidaten met een plek. Een stembusmaat
+// laat het aan familyRoom over. Rekentijd: `placedC` groeit alleen, dus per kandidaat onthouden tot waar er vergeleken is.
+function clusterTaken(sig, c, placedC) {
+  let m = c.clu
+  if (!m || m.placed !== placedC) m = c.clu = { placed: placedC, n: 0, hit: null }
+  if (m.hit || m.n >= placedC.length) return !!m.hit
+  for (; m.n < placedC.length; m.n++) {
+    const x = placedC[m.n]
+    if (x === c || (c.vote && x.vote === c.vote)) continue
+    if (sameCluster(sig, c.items, x.items)) {
+      m.hit = x
+      m.n++
+      break
+    }
+  }
+  return !!m.hit
+}
+
 // De kandidaten voor de kop van een plek, na de vaste volgorde van leadCandidates: elke voorkeur alleen als
 // er iets overblijft. `own` (optioneel): eigen bronnen eerst, vóór de kern (de persoonlijke Editie).
 const prefer = (xs, f) => {
@@ -2467,7 +2608,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const r = c.nr !== undefined ? c.nr : (c.nr = newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight }))
     return r === null || (open && r === 'internationaal-niet-groot-genoeg')
   }
-  const admissible = (c, open = false) => !used.has(c) && newsOk(c, open) && !clashes(c) && familyRoom(c, placedC, general, now) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && worldPlaced() >= INT_MAX)) && !headTaken(c)
+  const admissible = (c, open = false) => !used.has(c) && newsOk(c, open) && !clashes(c) && familyRoom(c, placedC, general, now) && !clusterTaken(sig, c, placedC) && (open || !(plan && !worldChosen(prof) && cappedWorld(c) && worldPlaced() >= INT_MAX)) && !headTaken(c)
   // De spreiding van een kandidaat: het aantal onafhankelijke uitgevers van het hele verhaal (een los stuk: één).
   const spread = (c) => (c.kind === 'item' ? 1 : c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount)
   // Is er nog een vers verhaal van minstens SPREAD_MIN uitgevers dat een plek mag? Eén keer per stand van de Editie.
@@ -2676,7 +2817,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // `counted`: alle internationale plekken, inclusief voorpagina en kernrubrieken.
   const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id))
   if (audit) for (const c of cands) {
-    const reason = used.has(c) ? 'gekozen-in-route' : c.parts.seen ? 'verhaal-al-gelezen' : clashes(c) ? 'zelfde-onderwerp-gekozen-of-eerder' : !allowedNews(prof, c.st || {sourceCount:1}, c.items, c.desk) ? newsRejection(prof,c.st || {sourceCount:1},c.items,c.desk) : capped(c) ? 'internationaal-plafond' : entries.length >= size ? 'route-vol' : 'onverklaard'
+    const reason = used.has(c) ? 'gekozen-in-route' : c.parts.seen ? 'verhaal-al-gelezen' : clashes(c) ? 'zelfde-onderwerp-gekozen-of-eerder' : clusterTaken(sig, c, placedC) ? 'zelfde-onderwerp-zelfde-dag' : !allowedNews(prof, c.st || {sourceCount:1}, c.items, c.desk) ? newsRejection(prof,c.st || {sourceCount:1},c.items,c.desk) : capped(c) ? 'internationaal-plafond' : entries.length >= size ? 'route-vol' : 'onverklaard'
     reject(c.kind, c.id, c.ids, reason)
   }
   // De kenmerken (met de woordenschat van deze pool en de koppen van de vorige Editie) gaan niet-opsombaar mee, zodat wie
