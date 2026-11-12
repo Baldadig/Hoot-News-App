@@ -227,7 +227,8 @@ export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i,
 // Ook vaste rubrieken met een datum in de kop ("New Ecommerce Tools: October 21, 2026",
 // "Freebies, Sales, and Charity Bundles for October 19, 2026") en vaste linklijsten
 // ("… – This Week's Links", "News Digest …", "RPG Print News – …", "RPG Crowdfunding News – …").
-const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
+// En uitzendoverzichten van een programma ("12/11 in Nieuwsuur: Cruciaal debat • Hybride oorlog • …").
+const ROUNDUP = /^\s*\d{1,2}\/\d{1,2}(\/\d{2,4})? in [^:]{2,40}:|^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
 // Een vast programmalabel van een podcast in de kop, naast "Podcast:" vooraan (hardMark). De Selectie heeft geen AI die
 // twijfel beoordeelt, dus hier ook de vormen die vakbronnen gebruiken, en alleen als label (gescheiden door een pijp of
 // streep), nooit als woord in een zin: "… | The PetaPixel Podcast", "… – All Things Product Podcast with Teresa Torres",

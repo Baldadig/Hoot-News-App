@@ -19,7 +19,7 @@ test('leesvoer: de vijf onderwerpen met veel nieuws', () => {
 
 test('nieuwsfeeds van kranten en Belgisch nieuws zijn uit de Selectie, en staan in het archief', () => {
   const ids = new Set(VAK_SOURCES.map((s) => s.id))
-  const weg = ['nos-politiek', 'vk-politiek', 'trouw-politiek', 'knack-politiek', 'nos-sport', 'vk-sport', 'trouw-sport', 'demorgen-sport', 'knack-sport', 'sporza', 'guardian-sport', 'vi', 'wielerflits', 'vk-economie', 'fd', 'tijd']
+  const weg = ['nos-politiek', 'vk-politiek', 'trouw-politiek', 'knack-politiek', 'nos-sport', 'vk-sport', 'trouw-sport', 'demorgen-sport', 'knack-sport', 'sporza', 'guardian-sport', 'vi', 'wielerflits', 'athletic', 'vk-economie', 'fd', 'tijd']
   for (const id of weg) {
     assert.ok(!ids.has('vak:' + id), id + ' hoort niet meer in de Selectie')
     assert.ok(ARCHIVED_SOURCES.some((s) => s.id === 'vak:' + id), id + ' staat in het archief')
@@ -112,6 +112,10 @@ test('geen liveblog, kijkwijzer of audio van een tekstbron in de Selectie', () =
   assert.equal(isReading({ title: 'How to watch Louisville vs. Ball State: TV channel and streaming options' }), false)
   assert.equal(isReading({ title: 'Minnesota Wild vs. Toronto Maple Leafs: The latest from Michael Russo' }), false)
   assert.equal(isReading({ title: 'Live Event with Heather Cox Richardson' }), false)
+  // Uitzendoverzichten van Nieuwsuur zijn een programma, geen leesvoer.
+  assert.equal(isReading({ title: '12/11 in Nieuwsuur: Cruciaal debat over de begroting • Hybride oorlog • Zelda' }), false)
+  assert.equal(isReading({ title: '7/11 in Nieuwsuur: De toekomst van het minderheidskabinet • Hybride oorlog' }), false)
+  assert.equal(isReading({ title: 'Waarom het minderheidskabinet in Nieuwsuur onder vuur ligt: een analyse' }), true)
   assert.equal(isReading({ title: 'Het leven na de topsport: een interview met Femke Kok' }), true)
   const krugman = VAK_SOURCES.find((s) => s.id === 'vak:krugman')
   assert.equal(isReading({ title: 'Climates of Treason', mediaType: 'audio/mpeg', summary: 'Intro' }, krugman), false)

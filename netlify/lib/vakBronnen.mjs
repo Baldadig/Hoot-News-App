@@ -279,12 +279,12 @@ export const MORE_SOURCES = [
   V('nyt-travel', 'The New York Times Travel', 'vakblad', ['reizen'], 'https://rss.nytimes.com/services/xml/rss/nyt/Travel.xml'),
   V('bbc-travel', 'BBC Travel', 'vakblad', ['reizen'], 'https://www.bbc.com/travel/feed.rss'),
   V('cntraveller', 'Condé Nast Traveller', 'vakblad', ['reizen'], 'https://www.cntraveller.com/feed/rss'),
-  V('athletic', 'The Athletic', 'vakblad', ['sport'], 'https://www.nytimes.com/athletic/rss/news/'),
   // Leesvoer, geen nieuws van de week (Selectie · fase 3): interviews, achtergrond en analyse. Sporza alleen voor
   // wielrennen (dat brengt het beter dan de Nederlandse bronnen).
   V('helden', 'Helden', 'vakblad', ['sport'], 'https://www.helden.media/feed/', { about: 'Sportmagazine met lange interviews en portretten' }),
   V('sportgeschiedenis', 'Sportgeschiedenis', 'vakblad', ['sport'], 'https://www.sportgeschiedenis.nl/feed/', { about: 'Verhalen achter sporters en sportgeschiedenis' }),
   V('guardian-sportblog', 'The Guardian Sport', 'vakblad', ['sport'], 'https://www.theguardian.com/sport/blog/rss', { about: 'Analyse en commentaar van de sportredactie' }),
+  V('guardian-tactics', 'The Guardian Football Tactics', 'vakblad', ['sport'], 'https://www.theguardian.com/football/football-tactics/rss', { about: 'Tactische analyse van het Europese voetbal' }),
   V('inrng', 'The Inner Ring', 'expert', ['sport'], 'https://inrng.com/feed/', { about: 'Kenner van het profwielrennen: koersen, ploegen en regels uitgelegd' }),
   V('sporza-wielrennen', 'Sporza Wielrennen', 'vakblad', ['sport'], 'https://sporza.be/nl/categorie/wielrennen.rss.xml'),
 ]
@@ -294,6 +294,8 @@ export const MORE_SOURCES = [
 // meer gebruikt: de Selectie is leesvoer, geen nieuws van de week. Bewust bewaard, niet weggegooid: niet in VAK_SOURCES, dus niet opgehaald en niet getoond. Terug
 // in gebruik? Zet de regel weer in MORE_SOURCES. NOS en NU.nl Economie staan er nog, alleen niet meer bij Economie.
 export const ARCHIVED_SOURCES = [
+  // The Athletic: de feed is nieuws (blessures, transfers, fantasy-waarden), en Amerikaans.
+  V('athletic', 'The Athletic', 'vakblad', ['sport'], 'https://www.nytimes.com/athletic/rss/news/'),
   V('vk-economie', 'de Volkskrant Economie', 'vakblad', ['economie'], 'https://www.volkskrant.nl/economie/rss.xml'),
   V('fd', 'Het Financieele Dagblad', 'vakblad', ['economie'], 'https://fd.nl/?rss', { filter: true }),
   V('tijd', 'De Tijd', 'vakblad', ['economie'], 'https://www.tijd.be/rss/nieuws.xml', { filter: true }),
