@@ -89,6 +89,12 @@ final class HootStore {
     // Het vangnet (De Redacteur op de server, 1.2.1): zelf samengesteld omdat de server niet antwoordde.
     // Alleen in het geheugen; nooit in edition.json, je account of je geschiedenis.
     private(set) var personalProvisional: Edition?
+    // Het laatste vangnet, bewaard in edition-provisional.json (1.3.1): alleen als geheugen voor `previous` en
+    // `earlier` van het volgende dagdeel. Het wordt nooit getoond na een herstart, nooit naar je account
+    // gestuurd, en de server wint altijd zodra hij antwoordt.
+    private var provisionalRaw: [String: Any]?
+    static let provisionalFile = "edition-provisional.json"
+    func provisionalKept(owner: String) -> [String: Any]? { provisionalRaw?["owner"] as? String == owner ? provisionalRaw : nil }
     // Je account (Account.swift), voor de eigenaar van je Editie en user_state.edition.
     weak var account: Account?
     // Bluesky als eigen tabblad, met de vaste accounts van Hoot en wie je zelf toevoegt.
@@ -224,6 +230,7 @@ final class HootStore {
         rewrite("hoot.less", storedLess, migratedLess)
         personal = Self.read("edition.json")
         personalRaw = Self.readRaw("edition.json")
+        provisionalRaw = Self.readRaw(Self.provisionalFile)
         bluesky = load("hoot.bluesky") ?? false
         let keptSocial: [BlueskyAccount] = load("hoot.ownBluesky") ?? []
         ownBluesky = keptSocial
@@ -1035,7 +1042,8 @@ final class HootStore {
         var token: String?
         if owner == "anon" {
             let mine = personalServerTask.hasSuffix("|anon|\(personal?.basis ?? "")") && personalRaw?["owner"] as? String == "anon" ? personalRaw : nil
-            if let prior = try? await EditionEngine.shared.earlier(local: Self.json(mine), account: "null", id: global.id, owner: owner),
+            // Ook het vangnet van een vorig dagdeel telt mee (1.3.1): het stond op dit toestel in beeld.
+            if let prior = try? await EditionEngine.shared.earlier(local: Self.json(mine), account: Self.json(provisionalKept(owner: owner)), id: global.id, owner: owner),
                let rows = try? await EditionEngine.shared.nextHistory(prior: prior, edition: Self.json(["id": global.id])) {
                 let earlier = Self.rows(rows)
                 if !earlier.isEmpty { body["earlier"] = earlier }
@@ -1045,16 +1053,34 @@ final class HootStore {
             token = t
         }
         guard JSONSerialization.isValidJSONObject(body), let payload = try? JSONSerialization.data(withJSONObject: body) else { return nil }
-        var r = await HootAPI.serverEdition(payload, token: token)
-        if r.status == 401, token != nil, let fresh = await account?.editionToken(renew: true) {
-            r = await HootAPI.serverEdition(payload, token: fresh)
-        }
+        let r = await Self.requestServer(payload, token: token, renew: { await self.account?.editionToken(renew: true) })
         let accepted = Self.acceptServer(r.data, status: r.status, id: global.id, owner: owner)
         // De widget mag bij een nieuw dagdeel zelf dezelfde vraag stellen (WidgetOphalen), maar alleen zonder
         // account: met account is je token nodig, en dat blijft in de app.
         if accepted != nil { WidgetSchrijver.bewaarVraag(token == nil ? payload : nil) }
         return accepted
     }
+
+    // De vraag aan de server met alles wat mislukken mag: 401 vernieuwt het token één keer; een time-out, 429 of 503
+    // geeft één stille nieuwe poging (1.3.1), met de laadweergave gewoon aan.
+    static func requestServer(_ payload: Data, token: String?, renew: () async -> String?) async -> (status: Int, data: Data?) {
+        var token = token
+        var r = await HootAPI.serverEdition(payload, token: token)
+        if r.status == 401, token != nil, let fresh = await renew() {
+            token = fresh
+            r = await HootAPI.serverEdition(payload, token: fresh)
+        }
+        if retriesServer(r.status), !DebugLaunch.offline {
+            try? await Task.sleep(for: retryPause)
+            r = await HootAPI.serverEdition(payload, token: token, timeout: retryTimeout)
+        }
+        return r
+    }
+
+    // Wanneer de server nog één keer gevraagd wordt: geen antwoord binnen de tijd (0), te druk (429) of even weg (503).
+    static func retriesServer(_ status: Int) -> Bool { status == 0 || status == 429 || status == 503 }
+    nonisolated(unsafe) static var retryPause: Duration = .seconds(1.5) // tests zetten hem kort
+    static let retryTimeout: TimeInterval = 12
 
     // De vraag van v2 zoals het web hem stelt (serverRequest in src/lib/editionSync.js): dezelfde velden, en
     // `reading` alleen als lezen al meetelt.
@@ -1096,8 +1122,11 @@ final class HootStore {
         guard let basis, !itemsById.isEmpty, Self.itemsCurrent(itemsEdition: itemsEdition, loading: partsLoading, edition: global.id) else { return }
         let followedIds = followed.map(\.id)
         do {
+            // `previous` uit alles wat dit toestel van deze lezer liet zien: de Editie van de server én het vangnet
+            // van een eerder dagdeel (1.3.1), samen, ontdubbeld op id; niet alleen de laatste van de server.
             let mine = personalServerTask.hasPrefix("\(personal?.id ?? "-")|\(owner)|") ? personalRaw : nil
-            let prior = Self.rows(try await EditionEngine.shared.earlier(local: Self.json(mine), account: "null", id: global.id, owner: owner))
+            let priorJSON = try await EditionEngine.shared.earlier(local: Self.json(mine), account: Self.json(provisionalKept(owner: owner)), id: global.id, owner: owner)
+            let prior = Self.rows(priorJSON)
             forced.insert(global.id)
             let input = try composeInput(global: global, owner: owner, previous: prior, reading: true)
             let out = try await EditionEngine.shared.compose(input: input)
@@ -1107,6 +1136,10 @@ final class HootStore {
             raw["basis"] = basis
             raw["provisional"] = true
             if force { keep(raw); return } // gedwongen samengesteld (Debug): tonen, niet naar je account
+            // Het vangnet onthouden voor het volgende dagdeel: met zijn history, zoals het web elke Editie vastlegt.
+            if let rows = try? await EditionEngine.shared.nextHistory(prior: priorJSON, edition: Self.json(["id": global.id])) { raw["history"] = Self.rows(rows) }
+            provisionalRaw = raw
+            Self.writeRaw(raw, to: Self.provisionalFile)
             personalProvisional = Self.decodeEdition(raw)
         } catch {
             Self.log.error("rekenkern faalt: \(error.localizedDescription, privacy: .public)")
