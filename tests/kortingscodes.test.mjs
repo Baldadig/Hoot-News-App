@@ -310,3 +310,46 @@ test('kortingscodes: een kortingscode-pagina neemt geen plek in het venster in',
   const got = await viaFeed(wired, [...live.slice(0, 5), ...news], 3)
   assert.deepEqual(got.map((i) => i.title), news.map((x) => x.title))
 })
+
+// Kortingscodes · 4: alleen links met /story/ in het pad, en alleen met een aanbod in de kop of de merknaam uit de slug vooraan.
+test('kortingscodes: Wired-nieuws uit 2006 met een codewoord in de slug blijft; zonder /story/ valt niets weg', () => {
+  const blijft = [
+    { title: 'Google Adds Local Coupons', url: 'https://www.wired.com/2006/08/google-adds-local-coupons/' },
+    { title: 'RHCP Promo Codes Finally Getting Out', url: 'https://www.wired.com/2006/05/rhcp-promo-code/' },
+    // zelfs met aanbod in de kop: geen /story/ in het pad
+    { title: 'Nike Promo Codes: 30% Off November 2026', url: 'https://www.wired.com/2026/11/nike-promo-code/' },
+  ]
+  for (const it of blijft) {
+    assert.equal(couponPage(it, wired), false, it.title)
+    assert.equal(noiseReason({ title: it.title, link: it.url }, [], wired), null, it.title)
+  }
+})
+
+test('kortingscodes: onder /story/ vraagt de regel ook een aanbod of de merknaam vooraan in de kop', () => {
+  const u = (slug) => `https://www.wired.com/story/${slug}/`
+  // aanbod: getal, percentage, Off, Save, Deals, Free Shipping of een maandnaam
+  assert.equal(couponPage({ title: 'Nike Promo Codes and Discounts: 30% for November 2026', url: u('nike-promo-code') }, wired), true)
+  assert.equal(couponPage({ title: 'NordVPN Coupons', url: u('nordvpn-coupon') }, wired), true) // merk vooraan
+  assert.equal(couponPage({ title: 'Squarespace Promo Codes in November', url: u('squarespace-promo-code') }, wired), true) // maandnaam
+  assert.equal(couponPage({ title: 'Vitamix Promo Codes and Deals', url: u('vitamix-promo-code') }, wired), true)
+  // een verzonnen nieuwskop zonder aanbod en zonder merk vooraan blijft
+  const nieuws = { title: 'Why Promo Codes Keep Fooling Shoppers Every Season', url: u('why-promo-codes-keep-fooling-shoppers-promo-code') }
+  assert.equal(couponPage(nieuws, wired), false)
+  assert.equal(couponPage({ title: 'Inside the Murky World of Coupons', url: u('murky-world-coupons') }, wired), false)
+  // de merknaam moet vooraan staan en het codewoord moet er direct achter volgen, zonder zin erachter
+  assert.equal(couponPage({ title: 'The Sneaky Business Behind Honey Coupons', url: u('honey-coupons') }, wired), false)
+  assert.equal(couponPage({ title: 'RHCP Promo Codes Finally Getting Out', url: u('rhcp-promo-code') }, wired), false)
+  // bij andere bronnen nooit
+  assert.equal(couponPage({ title: 'NordVPN Coupons: 75% Off', url: u('nordvpn-coupon') }, nos), false)
+})
+
+test('kortingscodes: alle 144 /story/-codepagina\'s van Wired (keuring 3) vallen nog weg; de andere 4 blijven zoals voorheen', () => {
+  const f = new URL('./fixtures/kortingscodes-wired-story-titels.tsv', import.meta.url)
+  const rows = readFileSync(f, 'utf8').trim().split('\n').map((l) => l.split('\t'))
+  const story = rows.filter(([url]) => url.includes('/story/'))
+  assert.equal(story.length, 148)
+  const weg = story.filter(([url, title]) => couponPage({ title, url }, wired))
+  assert.equal(weg.length, 144)
+  // geen enkele link zonder /story/ valt weg
+  assert.equal(rows.filter(([url]) => !url.includes('/story/')).filter(([url, title]) => couponPage({ title, url }, wired)).length, 0)
+})
