@@ -1,5 +1,6 @@
 import { recordCorrection } from './lib/corrections.mjs'
-import { tel } from './lib/tel.js'
+import { tel, telVia } from './lib/tel.js'
+import { slotIdNow } from '../shared/tel.mjs'
 import { selectionOwnerReady } from './lib/selection-fold.js'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
@@ -359,8 +360,14 @@ export default function App() {
   // vanaf de tik. Eén keer; bij opnieuw kiezen niet.
   const [tienStart, setTienStart] = useState(null)
   const endTien = useCallback(() => setTienStart(null), [])
+  // Gemeten (Meten · 6, achter NIEUWE_TELLERS): de stappen van het eerste welkom als dagtotalen.
+  const eersteEditie = useRef(false)
   const finishOnboarding = useCallback(
     (choice) => {
+      if (!prefs.onboarded) {
+        tel(choice?.quick ? 'liever-meteen-lezen' : 'bronnen-gekozen', dagdeelRef.current || slotIdNow())
+        eersteEditie.current = true
+      }
       if (!prefs.onboarded) setTienStart(typeof performance !== 'undefined' ? performance.now() : Date.now())
       setPrefs((p) => applyWelcome(p, choice))
       route.go('editie', {}, { replace: true })
@@ -393,7 +400,19 @@ export default function App() {
   // Gemeten: de Editie opent (één keer per dagdeel op dit toestel; tel.js), de Stroom en de Selectie openen.
   useEffect(() => {
     if (!showWelcome && path === 'editie') tel('editie-open', dagdeel)
+    if (!showWelcome && path === 'editie' && dagdeel && eersteEditie.current) {
+      eersteEditie.current = false
+      tel('eerste-editie', dagdeel)
+    }
   }, [path, showWelcome, dagdeel])
+  // Het eerste welkom gaat open (niet bij opnieuw kiezen), en de herkomst (?via) bij binnenkomst.
+  const welkomEerst = showWelcome && !prefs.onboarded
+  useEffect(() => {
+    if (welkomEerst) tel('welkom-open', dagdeelRef.current || slotIdNow())
+  }, [welkomEerst])
+  useEffect(() => {
+    telVia()
+  }, [])
   useEffect(() => {
     if (showWelcome) return
     if (path === 'stroom') tel('stroom-open', dagdeelRef.current)

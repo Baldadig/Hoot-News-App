@@ -13,7 +13,10 @@ for (const d of ['assets', 'fonts', 'img', 'icons']) fs.mkdirSync(path.join(OUT,
 
 // css en js, geminimaliseerd, met hash in de naam
 const css = esbuild.transformSync(rd('hoot.css'), { loader: 'css', minify: true }).code;
-const js = esbuild.transformSync(rd('hoot.js'), { loader: 'js', minify: true, target: 'es2019' }).code;
+// Meten zonder volgen (landing/tel.mjs): gebundeld met het gedeelde vocabulaire en achter hoot.js gezet. De landing wordt
+// alleen voor productie gebouwd, dus PROD is hier true (dezelfde regel als import.meta.env.PROD in /lees).
+const tel = esbuild.buildSync({ entryPoints: [path.join(SRC, 'tel.mjs')], bundle: true, write: false, minify: true, format: 'iife', target: 'es2019', define: { 'import.meta.env': '{"PROD":true}' }, logLevel: 'error' }).outputFiles[0].text;
+const js = esbuild.transformSync(rd('hoot.js'), { loader: 'js', minify: true, target: 'es2019' }).code + tel;
 const CSSFILE = `hoot.${sha(css, 8)}.css`, JSFILE = `hoot.${sha(js, 8)}.js`;
 fs.writeFileSync(path.join(OUT, 'assets', CSSFILE), css); fs.writeFileSync(path.join(OUT, 'assets', JSFILE), js);
 

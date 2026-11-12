@@ -272,3 +272,165 @@ test('iOS-spiegel: dezelfde zeven gebeurtenissen als shared/tel.mjs', () => {
   for (const e of EVENTS) assert.ok(swift.includes(`"${e}"`), e)
   assert.match(swift, new RegExp(`nMax = ${N_MAX}\\b`))
 })
+
+// ---- Meten · 6: herkomst, App Store-tik en welkom (achter NIEUWE_TELLERS, standaard uit) ----
+import { NIEUWE_TELLERS, NIEUW, VIA_LABELS, VIA_EVENTS, WELKOM_STAPPEN, APPSTORE_TIK, viaEvent, slotIdNow, eventsFor } from '../shared/tel.mjs'
+import { telVia } from '../src/lib/tel.js'
+import { startTel } from '../landing/tel.mjs'
+
+const AAN = { nieuw: true }
+test('Meten · 6: één constante, standaard uit, met TODO-vlag; uit betekent dat de server de nieuwe tellers negeert', () => {
+  assert.equal(NIEUWE_TELLERS, false)
+  const src = readFileSync(new URL('../shared/tel.mjs', import.meta.url), 'utf8')
+  assert.equal(src.match(/export const NIEUWE_TELLERS = (true|false)/g).length, 1)
+  assert.match(src, /TODO\(privacybeleid\)[\s\S]*export const NIEUWE_TELLERS = false/)
+  for (const e of NIEUW) {
+    assert.equal(parseTel(ok({ e }), NOW), null, e + ' uit')
+    assert.ok(parseTel(ok({ e }), NOW, AAN), e + ' aan')
+  }
+  assert.deepEqual(eventsFor(false), EVENTS)
+  assert.deepEqual(eventsFor(true), [...EVENTS, ...NIEUW])
+})
+test('Meten · 6: gesloten vocabulaire; geen leeftijd op het web', () => {
+  assert.deepEqual(VIA_LABELS, ['ig', 'x', 'bsky', 'mail', 'nb', 'qr'])
+  assert.deepEqual(VIA_EVENTS, ['via:ig', 'via:x', 'via:bsky', 'via:mail', 'via:nb', 'via:qr', 'via:anders'])
+  assert.deepEqual(WELKOM_STAPPEN, ['welkom-open', 'bronnen-gekozen', 'liever-meteen-lezen', 'eerste-editie'])
+  assert.equal(APPSTORE_TIK, 'appstore-tik')
+  assert.ok(!NIEUW.some((e) => /leeftijd|age|install|dag-\d/.test(e)))
+  for (const e of ['via:fb', 'via:', 'via:IG', 'via:anders2', 'welkom', 'appstore', 'leeftijd']) assert.equal(parseTel(ok({ e }), NOW, AAN), null, e)
+  // herkomst en welkom tellen één keer, de App Store-tik mag n dragen
+  assert.equal(parseTel(ok({ e: 'via:ig', n: 5 }), NOW, AAN).n, 1)
+  assert.equal(parseTel(ok({ e: 'welkom-open', n: 5 }), NOW, AAN).n, 1)
+  assert.equal(parseTel(ok({ e: APPSTORE_TIK, n: 2 }), NOW, AAN).n, 2)
+  assert.equal(parseTel(ok({ e: 'via:ig', n: N_MAX + 1 }), NOW, AAN), null)
+  assert.equal(parseTel(ok({ e: 'via:ig', id: 'x' }), NOW, AAN), null)
+})
+test('viaEvent: alleen bekende labels, de rest wordt via:anders', () => {
+  assert.equal(viaEvent('ig'), 'via:ig')
+  assert.equal(viaEvent(' BSKY '), 'via:bsky')
+  assert.equal(viaEvent('facebook'), 'via:anders')
+  assert.equal(viaEvent(''), 'via:anders')
+  assert.equal(viaEvent('<script>'), 'via:anders')
+  assert.equal(viaEvent('x'.repeat(500)), 'via:anders')
+  assert.equal(viaEvent(null), null)
+  assert.equal(viaEvent(undefined), null)
+})
+test('slotIdNow: het dagdeel op de klok in Amsterdam; vóór de ochtend nog de avond van gisteren', () => {
+  assert.equal(slotIdNow(new Date('2026-11-11T05:00:00Z')), '2026-11-10-avond') // 06:00
+  assert.equal(slotIdNow(new Date('2026-11-11T06:00:00Z')), '2026-11-11-ochtend') // 07:00
+  assert.equal(slotIdNow(new Date('2026-11-11T12:00:00Z')), '2026-11-11-middag') // 13:00
+  assert.equal(slotIdNow(new Date('2026-11-11T17:00:00Z')), '2026-11-11-avond') // 18:00
+  assert.equal(slotIdNow(new Date('2026-07-01T10:30:00Z')), '2026-07-01-middag') // zomertijd 12:30
+  assert.ok(parseTel(ok({ d: slotIdNow(NOW) }), NOW))
+})
+test('Meten · 6 op de server: uit genegeerd, aan geteld; in de opslag alleen het aggregaat, geen IP, UA of cookie', async () => {
+  const mem = new Map()
+  const up = async (k, fn) => { const n = fn(mem.get(k) ?? null); mem.set(k, n); return n }
+  const write = (p) => record(p, up)
+  const kop = { 'x-forwarded-for': '203.0.113.9', 'user-agent': 'Zeer Uniek/1', cookie: 'id=42', 'x-nf-client-connection-ip': '198.51.100.7' }
+  assert.equal((await handle(post(ok({ e: 'via:ig' }), kop), { now: NOW, write })).status, 204)
+  assert.equal(mem.size, 0) // vlag uit: niets
+  for (const e of ['via:ig', 'via:anders', APPSTORE_TIK, APPSTORE_TIK, ...WELKOM_STAPPEN]) assert.equal((await handle(post(ok({ e }), kop), { now: NOW, write, nieuw: true })).status, 204)
+  assert.equal((await handle(post(ok({ e: 'via:onbekend' }), kop), { now: NOW, write, nieuw: true })).status, 204)
+  const doc = mem.get('tel:2026-11-11')
+  assert.deepEqual(Object.keys(doc).sort(), ['c', 'v'])
+  assert.deepEqual(doc.v, {})
+  assert.deepEqual(doc.c, { 'via:ig|web|ochtend': 1, 'via:anders|web|ochtend': 1, 'appstore-tik|web|ochtend': 2, 'welkom-open|web|ochtend': 1, 'bronnen-gekozen|web|ochtend': 1, 'liever-meteen-lezen|web|ochtend': 1, 'eerste-editie|web|ochtend': 1 })
+  assert.doesNotMatch(JSON.stringify([...mem.entries()]), /203\.0\.113|198\.51\.100|Uniek|id=42/)
+  const d = shapeDay('2026-11-11', doc)
+  assert.deepEqual(d.herkomst, { ig: 1, x: 0, bsky: 0, mail: 0, nb: 0, qr: 0, anders: 1 })
+  assert.equal(d.appstore_tik, 2)
+  assert.deepEqual(d.welkom, { 'welkom-open': 1, 'bronnen-gekozen': 1, 'liever-meteen-lezen': 1, 'eerste-editie': 1 })
+  assert.equal(d.lezers.dag.open, 0) // de nieuwe tellers lopen niet door de lezers heen
+  const t = overzicht({ van: '2026-11-11', tot: '2026-11-11', dagen: [d] })
+  assert.match(t, /Herkomst.*ig 1.*anders 1/)
+  assert.match(t, /App Store-tik op de landing: 2/)
+  assert.match(t, /welkom-open 1, bronnen-gekozen 1, liever-meteen-lezen 1, eerste-editie 1/)
+})
+test('Meten · 6 op het web: uit stuurt niets en onthoudt niets; aan één keer per dagdeel (herkomst, welkom), App Store-tik elke keer', async () => {
+  const storage = fakeStore()
+  const a = beacon()
+  for (const e of NIEUW) assert.equal(tel(e, D, { nav: a, prod: true, storage }), false, e)
+  assert.equal(a.sent.length, 0)
+  assert.equal(storage.m.size, 0)
+  const go = (e) => tel(e, D, { nav: a, prod: true, storage, nieuw: true, version: '1.2.0' })
+  assert.equal(go('via:ig'), true)
+  assert.equal(go('via:ig'), false)
+  assert.equal(go('welkom-open'), true)
+  assert.equal(go('welkom-open'), false)
+  assert.equal(go(APPSTORE_TIK), true)
+  assert.equal(go(APPSTORE_TIK), true)
+  assert.equal(go('via:fb'), false) // niet in het vocabulaire
+  assert.equal(a.sent.length, 4)
+  assert.deepEqual(JSON.parse(await a.sent[0][1].text()), { e: 'via:ig', d: D, p: 'web', v: '1.2' })
+  assert.deepEqual(JSON.parse(storage.m.get(KEY)), { 'via:ig': D, 'welkom-open': D })
+  // DNT en GPC: ook de nieuwe tellers niet
+  const b = beacon()
+  const s2 = fakeStore()
+  assert.equal(tel('via:ig', D, { nav: { ...b, doNotTrack: '1' }, prod: true, storage: s2, nieuw: true }), false)
+  assert.equal(tel(APPSTORE_TIK, D, { nav: { ...b, globalPrivacyControl: true }, prod: true, storage: s2, nieuw: true }), false)
+  assert.equal(b.sent.length, 0)
+  assert.equal(s2.m.size, 0)
+})
+const nepAdres = (search, hash = '#/editie') => {
+  const calls = []
+  return { loc: { pathname: '/lees/', search, hash }, hist: { state: { a: 1 }, replaceState: (st, t, url) => calls.push([st, url]) }, calls }
+}
+test('telVia: uit raakt de adresbalk niet aan; aan telt via:<label> en haalt ?via weg, de rest van het adres blijft', async () => {
+  const a = beacon()
+  const uit = nepAdres('?via=ig')
+  assert.equal(telVia({ ...uit, nav: a, prod: true, storage: fakeStore() }), null)
+  assert.equal(uit.calls.length, 0)
+  assert.equal(a.sent.length, 0)
+  const storage = fakeStore()
+  const aan = nepAdres('?uitnodiging=abc&via=IG')
+  assert.equal(telVia({ ...aan, nav: a, prod: true, storage, nieuw: true, dagdeel: D }), 'via:ig')
+  assert.deepEqual(aan.calls, [[{ a: 1 }, '/lees/?uitnodiging=abc#/editie']])
+  assert.deepEqual(JSON.parse(await a.sent[0][1].text()), { e: 'via:ig', d: D, p: 'web' })
+  const nog = nepAdres('?via=ig', '')
+  assert.equal(telVia({ ...nog, nav: a, prod: true, storage, nieuw: true, dagdeel: D }), 'via:ig')
+  assert.deepEqual(nog.calls[0][1], '/lees/')
+  assert.equal(a.sent.length, 1) // zelfde dagdeel: niet opnieuw geteld
+  const vreemd = nepAdres('?via=tiktok')
+  assert.equal(telVia({ ...vreemd, nav: a, prod: true, storage: fakeStore(), nieuw: true, dagdeel: D }), 'via:anders')
+  assert.equal(a.sent.length, 2)
+  const geen = nepAdres('?q=1')
+  assert.equal(telVia({ ...geen, nav: a, prod: true, storage: fakeStore(), nieuw: true, dagdeel: D }), null)
+  assert.equal(geen.calls.length, 0)
+  // DNT: opgeschoond, niet geteld, niets onthouden
+  const s3 = fakeStore()
+  const dnt = nepAdres('?via=mail')
+  telVia({ ...dnt, nav: { ...a, doNotTrack: '1' }, prod: true, storage: s3, nieuw: true, dagdeel: D })
+  assert.equal(dnt.calls.length, 1)
+  assert.equal(a.sent.length, 2)
+  assert.equal(s3.m.size, 0)
+  // nooit een uitzondering
+  assert.equal(telVia({ loc: { get search() { throw new Error('x') } }, nieuw: true }), null)
+})
+test('landing: uit doet niets; aan telt een tik op een App Store-link als appstore-tik', async () => {
+  let listener = null
+  const doc = { addEventListener: (t, fn) => { listener = fn } }
+  assert.equal(startTel({ doc }), false)
+  assert.equal(listener, null)
+  const a = beacon()
+  const adres = nepAdres('')
+  assert.equal(startTel({ doc, nieuw: true, nav: a, prod: true, storage: fakeStore(), ...adres }), true)
+  listener({ target: { closest: (sel) => (sel.includes('apps.apple.com') ? {} : null) } })
+  listener({ target: { closest: () => null } })
+  assert.equal(a.sent.length, 1)
+  assert.equal(JSON.parse(await a.sent[0][1].text()).e, APPSTORE_TIK)
+})
+test('Meten · 6: geen IP, user-agent, cookie of log in de nieuwe bronnen; de landing bundelt het gedeelde vocabulaire', () => {
+  for (const f of ['landing/tel.mjs', 'src/lib/tel.js']) {
+    const src = readFileSync(new URL('../' + f, import.meta.url), 'utf8').replace(/\/\/.*$/gm, '')
+    assert.doesNotMatch(src, /console\.|document\.cookie|userAgent|Date\.now\(/, f)
+  }
+  const build = readFileSync(new URL('../landing/build.mjs', import.meta.url), 'utf8')
+  assert.match(build, /entryPoints: \[path\.join\(SRC, 'tel\.mjs'\)\], bundle: true/)
+})
+test('Meten · 6: de tellers gaan pas aan samen met het aangepaste privacybeleid', () => {
+  const privacy = readFileSync(new URL('../src/views/Privacy.jsx', import.meta.url), 'utf8')
+  const nieuweZin = /via welke link je binnenkwam/
+  if (NIEUWE_TELLERS) assert.match(privacy, nieuweZin, 'NIEUWE_TELLERS staat aan, maar het privacybeleid zegt het nog niet')
+  else assert.doesNotMatch(privacy, nieuweZin, 'het beleid noemt de herkomst al, terwijl de tellers uit staan')
+})

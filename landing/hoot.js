@@ -1,4 +1,4 @@
-/* gethoot.app · v4. Geen trackers, geen cookies, geen opslag. Eén bestand:
+/* gethoot.app · v4. Geen trackers, geen cookies. Opslag alleen voor de eigen dagteller (landing/tel.mjs, als die aan staat). Eén bestand:
    1. het ritueel (kleuren per dagdeel, vóór de eerste weergave)  2. de gang van de zon, de rustige, herhalende demo’s van Editie, Stroom en Selectie, parallax, De Redacteur met de echte Editie, de stuiterende punt. */
 (function () {
   'use strict';
