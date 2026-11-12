@@ -1,0 +1,1718 @@
+{
+ "opgehaald": "2026-11-12",
+ "herkomst": "GET https://gethoot.app/api/feed?deel=kern, verhalen en start: de koppen in feedvolgorde (Editie, dan de verhalen), elk één keer",
+ "koppen": [
+  {
+   "kop": "België: aanwijzingen voor Iraanse betrokkenheid bij hack koelsystemen",
+   "bron": "NRC"
+  },
+  {
+   "kop": "Zes doden bij aanval Israël op ziekenhuis in zuiden van Gaza",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Zelensky zegt dat snelheid Amerikaanse Starshield-verbinding weer wordt beperkt",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "128.000 e-mailadressen van Vrienden van Amstel op straat door datalek",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Aanlegplaats Grave niet diep genoeg voor stoomboot Sinterklaas, Defensie schiet te hulp",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Climate action must work for ‘people on all incomes,’ Burnham tells COP31",
+   "bron": "Politico Europe"
+  },
+  {
+   "kop": "‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe techwet tegen manipulatieve trucs van big tech",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Nvidia’s Board Is Weighing Jensen Huang’s Future",
+   "bron": "NYT"
+  },
+  {
+   "kop": "Scott Colom Will Be Mississippi’s Third Black Senator. Who Were the First Two?",
+   "bron": "NYT"
+  },
+  {
+   "kop": "US envoys arrive in Moscow for Ukraine talks with Vladimir Putin",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Wanneer sociale media het gerecht voorbijsteken: juristen waarschuwen na zaak rond ‘Bruine Mehdi’",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Niet alleen voor kinderen: dit is het geheim achter het Sinterklaasjournaal",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Sinterklaasjournaal weer best bekeken programma, geen record",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Meta verwijdert Instagram- en Facebookaccount Russell Brand: ‘Volgens Meta heb ik nooit bestaan’",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Wekdienst 12/11: Erop of eronder voor kabinet • Hoger beroep tegen Erasmusschutter",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Nieuwsuur-presentator Jeroen Wollaars is biseksueel: ‘Heeft me lang verward’",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Two men set to be executed in Texas and Oklahoma today over child beheadings and a deadly affair plot",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Ook ander kindje kwam met bloedingen thuis van ’t Sloeberhuisje: “Toen we vroegen naar de letsels, ging de deur van de crèche toe”",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "12 jaar celstraf en tbs geëist voor online misbruik van 245 meisjes",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Amy Hennig’s Marvel 1943: Rise of Hydra hasn’t been cancelled, Skydance reportedly says, as rumours swirl to the contrary",
+   "bron": "Eurogamer"
+  },
+  {
+   "kop": "De ‘vloek’ van Matthijs de Ligt gaat door: verdediger (27) krijgt voor de twaalfde keer een nieuwe trainer",
+   "bron": "AD"
+  },
+  {
+   "kop": "Voor meer voetbalplezier, maar vooral voor zijn Michèle en de kindjes: waarom Kevin De Bruyne naar PSV wil gaan",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Liam Lawson blijft toch in de F1: Racing Bulls kondigt line-up voor 2027 aan",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "8 jaar cel voor roofmoordenaar (40) die stiefdochter (17) verkrachtte, moeder greep niet in en krijgt 2 jaar cel",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "Nvidia board to decide Jensen Huang’s fate",
+   "bron": "Financial Times"
+  },
+  {
+   "kop": "Autistic teen found alive after six days lost in bushland: ‘He’s never leaving the house again’",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Prévot nuanceert uitspraken Quintin: “Onvoldoende info om Iran officieel verantwoordelijk te stellen voor cyberaanvallen”",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Nederland moet bestuurd worden. Als Yeşilgöz dat wil, kan het ook met de VVD op de strafbank",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Lawson to stay in F1 as Racing Bulls announces 2027 driver pairing",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Musk says it would be ‘an honor’ to hire scandal-struck Nvidia CEO Jensen Huang",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Greta Thunberg duikt weer op klimaattop op na jarenlange afwezigheid",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Bommelding bij Calais zorgt voor vertragingen treinen Eurostar",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Scott Colom, de Democratische advocaat die tegen alle verwachtingen in Mississippi veroverde",
+   "bron": "De Tijd"
+  },
+  {
+   "kop": "Gas afgesloten in woonzorgcentrum door Fluvius: “Er is geen gevaar en niemand zit in de kou”",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "A Second Affair Revelation Rocks Nvidia, and a Democrat Wins Mississippi in a Major Senate Upset",
+   "bron": "NYT"
+  },
+  {
+   "kop": "Bommelding in station bij Calais veroorzaakt vertragingen bij Eurostar: treinverkeer weer hervat",
+   "bron": "De Morgen"
+  },
+  {
+   "kop": "Grote politieactie tegen Gremium MC in Duitsland: huiszoekingen bij leden en in clubhuizen",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "“Nog altijd bang als ik Frans hoor”: Noord-Franse zwemmer veroordeeld nadat hij twee redsters verwondt",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "De duurste liefdesaffaire ooit",
+   "bron": "Het Financieele Dagblad"
+  },
+  {
+   "kop": "Zelensky: Starlink-satellietnetwerk Oekraïne weer ingeperkt",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Ukraine says Starlink restrictions are back as US envoys land in Moscow",
+   "bron": "Financial Times"
+  },
+  {
+   "kop": "Maasmechelaar krijgt 8 maanden cel voor slaan van echtgenote en minderjarige dochter: “Ik wil respect afdwingen”",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Wat staat er eigenlijk in het door de VVD gehate belastingvoorstel?",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Dimitri Van den Bergh past voor het WK: Belg gooit de handdoek en is profstatus als darter kwijt",
+   "bron": "AD"
+  },
+  {
+   "kop": "China warns US not to use Nvidia scandal as pretext for tech curbs",
+   "bron": "Financial Times"
+  },
+  {
+   "kop": "Manchester United ontslaat trainer Carrick na slechte resultaten",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Desperate search for British woman missing after ‘falling from cruise ship’ in Atlantic",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "België jaagt op twee Nederlanders na gewelddadige overval op bejaard echtpaar: ’Opa Herman zegt nog steeds niet veel’",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "China says US ‘fabricating’ Nvidia spy claims to justify tech ‘blockade’",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "Paternotte wilde BBB tegemoetkomen over geld, maar niet stikstof",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "PSV wil De Bruyne in januari halen – Carrick ontslagen bij Manchester United",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "Schmeichel hekelt ‘respectloze behandeling’ Carrick, dringend advies voor Poch",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Man Utd-leiding grijpt in en stuurt clublegende Carrick de laan uit",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Ook D66’er Paternotte vindt dat samenwerking coalitie anders moet",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Bontenbal: moeten praten over wat een ‘fundamentele reset’ is",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Xi Jinping calls for dialogue on Taiwan reunification with ‘people of vision’",
+   "bron": "South China Morning Post"
+  },
+  {
+   "kop": "‘I have a lot to offer’: 44-year-old Jimmy Anderson joins Surrey for 2027",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "FT: geen Russische diesel in VS ondanks deal Trump met Poetin",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Nvidia’s Board Is Weighing Jensen Huang’s Future After Second Affair Revelation",
+   "bron": "GameSpot"
+  },
+  {
+   "kop": "Ook België heeft aanwijzingen dat Iran achter cyberaanval op koelsystemen zit",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Klaver: belastingdeal is compromis, ook wij hebben ingeleverd",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Opnieuw bommelding uit onbekende hoek: ditmaal in station van Calais, internationaal treinverkeer ondervindt hinder",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "New York building collapse kills at least two, officials say",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Six matches that defined Carrick’s Man Utd tenure",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "Wat goudhamsters tijdens hun winterslaap doen, kan helpen om ziekte van Alzheimer te begrijpen",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Onverbiddelijk Manchester United stuurt manager Michael Carrick de laan uit",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Plek in degradatiezone kost Carrick de kop bij Manchester United",
+   "bron": "NOS Sport"
+  },
+  {
+   "kop": "Megaspeed, firm central to Nvidia CEO Jensen Huang’s scandal, pledges to cooperate with US probe",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Paternotte: wij hebben de VVD niet overvallen met deal",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Nieuwe coach voor Senne Lammens en Youri Tielemans: Michael Carrick dan toch ontslagen bij Manchester United, opvolger staat al klaar",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Na tweede vermeende affaire en dalende beurskoers: kan Nvidia zonder Jensen Huang, of is de CEO ‘too big to fail’?",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Opnieuw bomaanslag op Russische kolonel in Sint-Petersburg: man komt om nadat auto ontploft",
+   "bron": "AD"
+  },
+  {
+   "kop": "D66 vond samenwerking met JA21, BBB en SGP ‘ingewikkeld’",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Parket eist 7 jaar cel tegen hoofdbeklaagde in proces over overleden baby in kinderdagverblijf ’t Sloeberhuisje",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "‘Opa Sloeber’ riskeert 7 jaar cel voor doodschudden van baby Billie in crèche: “Hij heeft haar 10 tot 25 keer geschud”",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Vertraging voor treinreizigers van en naar Londen door bommelding op Frans station",
+   "bron": "Het Parool"
+  },
+  {
+   "kop": "OM eist 12 jaar en tbs voor onlinemisbruik 245 minderjarigen",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Weer trainersontslag bij Manchester United: crisis kost Michael Carrick de kop",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Manchester United sack Michael Carrick as manager",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "Engelse media: Coach Carrick ontslagen bij Manchester United",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Russische officier dood door explosie auto in Sint-Petersburg",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Fouad L.: mogelijk geen beroep als ik verhaal had kunnen doen",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Van golfbaan tot chipdeals: het geheime leven van Nvidia-spion Alice Huang",
+   "bron": "AD"
+  },
+  {
+   "kop": "Loyalty vs accountability: a look at the Nvidia board deciding CEO Jensen Huang’s fate",
+   "bron": "South China Morning Post"
+  },
+  {
+   "kop": "China beschuldigt VS van ‘verzinnen spionageverhalen’ in rel rond Nvidia-topman Huang",
+   "bron": "AD"
+  },
+  {
+   "kop": "Nvidia-klokkenluider speculeerde op drama rond overspelige topman en heeft waarschijnlijk vermogen verdiend",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Alex Karp Said He’s a ‘Progressive.’ OK! Here’s Some Other Stuff He’s Said Recently",
+   "bron": "Wired"
+  },
+  {
+   "kop": "Alles voor de veiligheid: Verenigde Staten trekken zich terug voor WK voetbal U17 in Qatar",
+   "bron": "Gazet van Antwerpen"
+  },
+  {
+   "kop": "Michael Carrick sacked by Manchester United with Pochettino poised to take over",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "Rode Duivels Senne Lammens en Youri Tielemans krijgen nieuwe coach: Michael Carrick ontslagen bij Manchester United, opvolger Mauricio Pochettino staat klaar",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Oekraïne klaagt weer over inperken Starlink-satellietcommunicatie",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "▶ Autobom doodt Russische kolonel aan zijn woning in buitenwijk van Sint-Petersburg",
+   "bron": "De Morgen"
+  },
+  {
+   "kop": "België ziet mogelijke rol Iran bij cyberaanval koelinstallaties",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Michael Carrick vertrokken bij Manchester United: ‘Hij blijft voor altijd een legende van de club’",
+   "bron": "AD"
+  },
+  {
+   "kop": "Nu hij definitief past voor WK darts: Dimitri Van den Bergh gooit de handdoek en is zijn profstatuut als darter kwijt",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Groot datalek bij Vrienden van Amstel LIVE, persoonsgegevens op straat",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Celstraf met uitstel voor Franse zwemmer die 2 redsters aanvalt in Lago Kortrijk: ‘Nog altijd bang als ik Frans hoor’",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "The chaos that took Carrick from two-year deal to sacked within 15 games",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "Jensen Huang’s recklessness leaves Nvidia with no good options",
+   "bron": "The Economist"
+  },
+  {
+   "kop": "China boos over ‘spionagecomplot’ Nvidia: “Smoes van VS voor techblokkade tegen China”",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "‘Aanwijzingen dat Iran betrokken was bij cyberaanvallen in ons land’, zegt minister Quintin",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "In Mississippi, Scott Colom Supporters Celebrate Historic Senate Win",
+   "bron": "NYT"
+  },
+  {
+   "kop": "Vertraging voor Eurostar-reizigers door bommelding op Frans station",
+   "bron": "AD"
+  },
+  {
+   "kop": "Oekraïne meldt weer beperkingen met Starlink",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Britse premier presenteert speciale gezant voor klimaatveiligheid",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Wat wil jij weten over de ontstane politieke crisis in Den Haag?",
+   "bron": "AD"
+  },
+  {
+   "kop": "Het aanvallende voetbal, dicht bij huis en het Belgenverleden in Eindhoven: daarom kan PSV perfect passen bij De Bruyne",
+   "bron": "Gazet van Antwerpen"
+  },
+  {
+   "kop": "Waarom een overgang van Napoli naar PSV op papier meer dan ooit steek houdt voor Kevin De Bruyne",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "British woman missing from cruise ship in Atlantic",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Braziliaanse rechter beboet Meta, maar ziet geen opzet in Bolsonaro-voorkeur",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "Eindronde, handhaving óf play-offs: de Nations League-scenario’s voor Oranje",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Strike on Gaza Hospital Kills at Least 6 and Injures 20, Rescuers Say",
+   "bron": "NYT"
+  },
+  {
+   "kop": "België zet voortvluchtige broers uit Weert op Europese opsporingslijst",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Zelensky: weer problemen met Starlink, lastiger om Russische drones te onderscheppen",
+   "bron": "NRC"
+  },
+  {
+   "kop": "Datalek bij Vrienden van Amstel LIVE treft 128.000 e-mailadressen",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "William (17) overleeft zes dagen in Australische wildernis zonder eten en drinken",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Wat wil jij weten over de kabinetscrisis? Kijk hier live en stel je vragen aan onze politiek verslaggever",
+   "bron": "AD"
+  },
+  {
+   "kop": "Klaver hoopt dat kabinet coalitiecrisis overleeft",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Paternotte over verzet VVD: ‘We wisten van tevoren dat coalitiepartijen er verdeeld in konden staan’",
+   "bron": "NRC"
+  },
+  {
+   "kop": "Greta Thunberg op klimaattop: de planeet wordt vermoord",
+   "bron": "Nederlands Dagblad"
+  },
+  {
+   "kop": "Democrat Scott Colom makes history as Mississippi’s first black senator since 19th Century",
+   "bron": "BBC"
+  },
+  {
+   "kop": "How Scott Colom defied the odds to go from district attorney to Mississippi’s Democratic US Senator",
+   "bron": "NPR"
+  },
+  {
+   "kop": "OM eist twaalf jaar en tbs tegen man voor online misbruik van 245 meisjes",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Watch moment Pete Hegseth reprimanded by guard at Tomb of Unknown Soldier",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Minister Quintin: ‘Veiligheidsdiensten hebben aanwijzingen van Iraanse link bij cyberaanvallen’",
+   "bron": "De Tijd"
+  },
+  {
+   "kop": "IJzige stilte tussen D66-premier Jetten en VVD-minister Heinen bij begin debat",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "“Wat een f*cking loser”: toptennisster Aryna Sabalenka is bijzonder scherp voor zichzelf na afstraffing op WTA Finals",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Pete Hegseth and staff reprimanded by guard at Tomb of the Unknown Soldier",
+   "bron": "Le Monde in English"
+  },
+  {
+   "kop": "Starlink-verbinding in Oekraïne weer vertraagd, problemen bij luchtverdediging",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Waarom zou Iran koelinstallaties in Frankrijk en België viseren?",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Oud-VVD-minister vol ongeloof over blije Jesse Klaver na ‘linkse list’: ‘Bijna orgastisch!’",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Greta Thunberg voor het eerst in vijf jaar op klimaattop: “De planeet wordt vermoord”",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Israeli strike on Gaza hospital kills six Palestinians, health ministry says",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Paniek in Downing Street: bekende kat Larry even dood gewaand na post over Wapenstilstand",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "Zak geld en EK-vangnet: dit staat er op het spel voor Oranje in de Nations League",
+   "bron": "NOS Sport"
+  },
+  {
+   "kop": "Vertragingen bij Eurostar door bommelding in internationaal treinstation in Calais",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Wie zijn de winnaars en verliezers van de affaire-Huang?",
+   "bron": "De Tijd"
+  },
+  {
+   "kop": "‘He is never leaving the house again’: mother reunites with son missing for six days in Victorian bushland",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "Premier Jetten houdt ondanks crisis vol: ‘We werken heel goed samen’",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Twee jaar geleden won hij nog een major: Dimitri Van den Bergh past voor WK-qualifiers en verliest profstatuut eind dit jaar",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "Ook België ziet mogelijke rol Iran bij cyberaanval koelinstallaties",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "12 jaar cel en tbs geëist tegen Bas P. (40) voor onlinemisbruik van 245 meisjes",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "England legend Anderson, 44, joins Surrey",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "In China’s Spy Operations, Romance Can Be a Long Game",
+   "bron": "NYT"
+  },
+  {
+   "kop": "Johnny Depp onherkenbaar na transformatie voor nieuwe film Ebenezer",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Israeli strike on a Gaza hospital kills 6 people, health authorities say",
+   "bron": "NPR"
+  },
+  {
+   "kop": "Starlink schroeft snelheid voor Oekraïense drones opnieuw terug, zegt Zelensky: ‘Dit helpt Russen bij dodelijke aanvallen’",
+   "bron": "AD"
+  },
+  {
+   "kop": "Aanlegplaats in Grave te ondiep voor stoomboot Sint, Defensie schiet te hulp",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "België ziet toch aanwijzingen voor rol Iran bij cyberaanvallen op koelinstallaties",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Minister Quintin: “Aanwijzingen voor Iraanse betrokkenheid” bij aanvallen op koelinstallaties in ons land",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "Geen ernstige schade bij Lucinda Brand na misstap in Niel",
+   "bron": "WielerFlits"
+  },
+  {
+   "kop": "Video | Jetten voor cruciaal belastingdebat: ‘We werken heel goed samen’",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Oranje bezorgt kinderen onvergetelijke middag in Prinses Máxima Centrum",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Van paleisrevolutie tot ultiem pardon: drie scenario’s voor opgejaagde Nvidia-baas Jensen Huang",
+   "bron": "De Tijd"
+  },
+  {
+   "kop": "België ziet toch mogelijke rol Iran bij cyberaanvallen op koelinstallaties supermarkten",
+   "bron": "AD"
+  },
+  {
+   "kop": "Israeli strike on Gaza hospital kills 6, and other Mideast news",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Selectie Nederlands elftal bezoekt Prinses Máxima Centrum: ’Die kinderen inspireren ons enorm’",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Gelach bij oorlogsmonument in de VS: bewaker roept gezelschap defensieminister Hegseth tot de orde",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Pregnant woman rescued from rubble after Brooklyn building collapse kills two",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Nederlandse broers die bejaard echtpaar met geweld overvielen op Europese opsporingslijst",
+   "bron": "AD"
+  },
+  {
+   "kop": "Australian teen found alive after six days in the bush",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "Minister Quintin: ”Ook in ons land aanwijzingen voor Iraanse betrokkenheid bij cyberaanvallen op koelinstallaties\"",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "DNB: duurdere hypotheek voor bijna miljoen huishoudens",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Grootste Nvidia-fan Jim Cramer in zak en as: ‘Ik dacht dat ik Jensen kende’",
+   "bron": "De Tijd"
+  },
+  {
+   "kop": "Bij hoger beroep spreekt Erasmusschutter weer over partitie in zijn hoofd: ‘Ik mocht niet van plan afwijken’",
+   "bron": "AD"
+  },
+  {
+   "kop": "Scott Colom, a Democrat, Wins Mississippi Senate Election",
+   "bron": "NYT"
+  },
+  {
+   "kop": "Trump-Xi-Putin summit under discussion as US allies watch on",
+   "bron": "South China Morning Post"
+  },
+  {
+   "kop": "Friese munt uit 1580 brengt recordbedrag van bijna 4 ton op bij veiling",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "US envoys arrive in Moscow for Russia-Ukraine talks with Putin",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "Spaanse WK-winnaars maken zich geen zorgen over speeltijd bij Arsenal",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Ze vreesden voor zijn leven, maar William (17) werd na zes dagen levend teruggevonden in Australische wildernis",
+   "bron": "AD"
+  },
+  {
+   "kop": "Johnny Depp is terug in Hollywood, maar moet het met flink minder salaris doen",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Russische militair gedood door explosief onder auto in Sint-Petersburg",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Crisis engulfs Dutch government ahead of crucial tax vote",
+   "bron": "Politico Europe"
+  },
+  {
+   "kop": "Winterslaap van goudhamsters biedt nieuwe inzichten in ziekte van Alzheimer",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "Honderden agenten voeren huiszoekingen uit bij leden van motorbende in Duitsland",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "Datalek bij Vrienden van Amstel LIVE: 128.000 e-mailadressen getroffen",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Brand bij café aan het Spui onder controle",
+   "bron": "Het Parool"
+  },
+  {
+   "kop": "Indonesia’s vice-president resigns amid signs ruling alliance is fraying",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Exact één week voor de start: Verenigde Staten trekt zich om veiligheidsredenen terug voor WK Onder 17 in Qatar",
+   "bron": "AD"
+  },
+  {
+   "kop": "Bestuur Nvidia beslist vandaag over lot van topman na uitkomen tweede affaire",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "Nvidia moves to oust spy-tainted CEO Jensen Huang after word of affair with subordinate: report",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Australische jongen (17) overleeft zes dagen in de bush op chips en water",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Xi Jinping says Taiwan ‘reunification’ with China must happen",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "Geen centrale verwarming in woonzorgcentrum Edouard Remy in Leuven: ‘Uit voorzorg gastoevoer afgesloten’",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Russell Brand Documentary From ‘Jimmy Savile: A British Horror Story’ Producers Set at Netflix Days After Rape Sentencing",
+   "bron": "Variety"
+  },
+  {
+   "kop": "Doden en gewonden bij Israëlische luchtaanval op ziekenhuis Khan Younis",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Umicore investeert 450 miljoen euro in Hoboken en schrapt tot 350 banen wereldwijd",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Estonia wants Costa and Kallas to speak for Europe in Ukraine peace talks",
+   "bron": "Politico Europe"
+  },
+  {
+   "kop": "Umicore schrapt mogelijk 350 banen en investeert 450 miljoen in Hoboken",
+   "bron": "De Tijd"
+  },
+  {
+   "kop": "Nvidia’s Jensen Huang affair revives China Initiative concerns in Silicon Valley",
+   "bron": "South China Morning Post"
+  },
+  {
+   "kop": "Help Xavi: welke spelers zet jij in de basis tegen de Grieken?",
+   "bron": "AD"
+  },
+  {
+   "kop": "VS trekt zich vanwege onrust in Midden-Oosten terug voor WK Onder-17",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Vermiste tiener overleeft zes nachten in Australische wildernis",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Mississippi elects first Black Senator since 1874",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "US envoys in Moscow for meeting with Putin following talks in Abu Dhabi",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Ontslag dreigt voor Nvidia-topman Huang na vermeende tweede affaire",
+   "bron": "RTL Nieuws"
+  },
+  {
+   "kop": "Marsh dodges Khawaja claims as Cummins vows to ‘respond properly’",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "Harry Kane’s England caps record: an illustrious career in numbers and charts",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "Paternotte (D66) probeert te sussen, Wilders (PVV) noemt coalitie dood: ‘Alleen de begrafenis moet nog plaatsvinden’",
+   "bron": "AD"
+  },
+  {
+   "kop": "Who could run Nvidia after Jensen Huang?",
+   "bron": "Financial Times"
+  },
+  {
+   "kop": "Dezelfde daders achter twee dodelijke schietpartijen in Brussel: eerst Albanese man, daarna agent Nordine El Talbi",
+   "bron": "De Morgen"
+  },
+  {
+   "kop": "USA withdraw from U17 World Cup over armed conflict risk",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "Chanan Hertzberger van het Centraal Joods Overleg sprak in een toespraak over de ‘genocideleugen’ bij de Rode Lijn-demonstratie. Waarom deed hij dat?",
+   "bron": "Trouw"
+  },
+  {
+   "kop": "Sportende Nederlanders liepen niet eerder zo veel schouderblessures op",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Pope Leo welcomed by millions in his second ‘homeland’ of Peru",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "Onderzoek naar crackgebruik in publieke ruimtes in Brussel: ‘Aanpak lijkt op gedoogbeleid’",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Doctor among six Palestinians killed in Israeli airstrike on Gaza hospital",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "VI Discussie: de verdediging van Oranje tegen Griekenland",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "New York City building collapse kills two people and injures 17",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "NVIDIA overweegt ontslag topman Jensen Huang, aandeel keldert opnieuw",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "‘I’ve moved on’: Mitch Marsh plays flat bat to Khawaja’s sandpaper allegations",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "▶ Opvallend incident tijdens Wapenstilstand: wachter maant defensieminister Hegseth tot respect aan graf van onbekende soldaat",
+   "bron": "De Morgen"
+  },
+  {
+   "kop": "Telenet Superprestige Aardbeiencross Merksplas 2026: Programma en uitslagen",
+   "bron": "WielerFlits"
+  },
+  {
+   "kop": "Nijstad op voorpagina in Spanje: ‘Maar wordt lastige operatie voor Barça’",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Na woensdag is duidelijk: het gaat niet meer om percentages en miljoenen, het zit veel dieper",
+   "bron": "Het Parool"
+  },
+  {
+   "kop": "Hogere maandlasten voor veel huiseigenaren door stijgende hypotheekrente",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Gebouw ingestort in New York: twee doden en zeker zeventien gewonden",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Thursday briefing: What we do (and don’t) know about Alice Huang and the Nvidia affair",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "How ‘Barca way’ continues despite big-name exits",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "Indonesia vice president resigns amid dispute over eligibility",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "Nvidia-bestuur zou ontslag van ceo Jensen Huang overwegen na tweede affaire",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "Nvidia beraadt zich over ontslag ceo Jensen Huang na berichten over tweede affaire",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "‘Amerikaanse bond gaat voor Guardiola bij vertrek Pochettino’",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Curry injures abdomen, heads for MRI with Warriors’ concern level ‘high’",
+   "bron": "ESPN"
+  },
+  {
+   "kop": "Cousins: O’Connell convinced me to accept trade to Vikings, ‘Kevin knows me’",
+   "bron": "ESPN"
+  },
+  {
+   "kop": "Giant cruise liner SS United States is sunk to create world’s biggest artificial reef",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Bestuur Nvidia zou zich beraden op ontslag van Jensen Huang: CEO zou ook tweede affaire hebben gehad",
+   "bron": "De Morgen"
+  },
+  {
+   "kop": "Niet eerder zo veel schouderblessures bij sportende Nederlanders",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Indonesian VP officially resigns, leaving Prabowo with tough choice over successor",
+   "bron": "South China Morning Post"
+  },
+  {
+   "kop": "Week 10 buzz: Jonathan Taylor, Kirk Cousins, more trade deadline fallout",
+   "bron": "ESPN"
+  },
+  {
+   "kop": "Does Cousins fix the Vikings’ offense? Barnwell on the trade deadline",
+   "bron": "ESPN"
+  },
+  {
+   "kop": ".Geek – Nvidia-thrillers, wasmachineliedjes en GTA-framerates – Tweakers Podcast #452",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "Autistic teen missing in Australian bushland for 6 days rescued alive",
+   "bron": "South China Morning Post"
+  },
+  {
+   "kop": "Historische overwinning voor zwarte democraat in ‘dieprode’ staat Mississippi",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Why exactly did Palantir CEO Alex Karp buy a Swedish forest?",
+   "bron": "Le Monde in English"
+  },
+  {
+   "kop": "Ukraine and Russia agree to large-scale prisoner exchange after second day of talks",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Ukraine frontline mapped: The land in dispute as peace talks end without breakthrough",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Pope Leo XIV returns to Peru to a big welcome, calls it his ‘homeland’",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "‘Nvidia neemt snel besluit over ontslag topman Huang na nieuws over tweede affaire’",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Twee doden en zeker zeventien gewonden door instorting gebouw in New York",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Famed ship SS United States deliberately sunk off Florida coast to become a reef",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Chanan Hertzberger: ‘Het woord genocideleugen zou ik morgen gewoon weer gebruiken’",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "Belastingplan splijt kabinet-Jetten",
+   "bron": "Het Financieele Dagblad"
+  },
+  {
+   "kop": "Erop of eronder voor kabinet-Jetten: alle ogen gericht op D66, CDA en VVD",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Fireworks launched at riot police as Spain strike over housing crisis descends into violence",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Friese munt uit Tachtigjarige Oorlog brengt recordbedrag op bij veiling",
+   "bron": "NOS"
+  },
+  {
+   "kop": "Zeker twee doden bij instorten gebouw in New York",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "Building collapse in Brooklyn kills two, injures more than a dozen",
+   "bron": "Al Jazeera"
+  },
+  {
+   "kop": "Who could replace Jensen Huang? A highly unscientific list of possible successors",
+   "bron": "TechCrunch"
+  },
+  {
+   "kop": "World’s fastest ocean liner is sunk to break another record: largest artificial reef",
+   "bron": "NPR"
+  },
+  {
+   "kop": "Australian teen missing in bush for six days rescued alive",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Nvidia’s Stock Price Plummets as Board Is Said to Consider Jensen Huang’s Future as CEO",
+   "bron": "NYT"
+  },
+  {
+   "kop": "The Best Early Black Friday MacBook Air Deal: $200 Off",
+   "bron": "Wired"
+  },
+  {
+   "kop": "WSJ: Bestuur Nvidia beraadt zich op ontslag van topman Jensen Huang",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "Building collapses in Brooklyn, killing 2 and trapping people in wreckage",
+   "bron": "Le Monde in English"
+  },
+  {
+   "kop": "Oekraïens defensiebedrijf Fire Point bouwt met Europese partners alternatief voor Amerikaans Patriot-systeem",
+   "bron": "De Morgen"
+  },
+  {
+   "kop": "Jensen Huang Said to Have Had Relationship With Nvidia Executive Who Reports to Him",
+   "bron": "NYT"
+  },
+  {
+   "kop": "Walking Pad Deals to Shop Ahead of Black Friday (2026)",
+   "bron": "Wired"
+  },
+  {
+   "kop": "Nvidia CEO faces allegations of second affair with employee after ties to Chinese woman suspected of espionage",
+   "bron": "Le Monde in English"
+  },
+  {
+   "kop": "Long-Dated US Treasuries Rise as Nvidia Woes Revive Haven Demand",
+   "bron": "Bloomberg"
+  },
+  {
+   "kop": "Soldier Shouts Toward Hegseth to Show ‘Respect’ at Tomb of the Unknown Soldier",
+   "bron": "NYT"
+  },
+  {
+   "kop": "Andreeva wins 11 games in a row to thrash Sabalenka at WTA Finals",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "Scott Colom wins historic Senate race in Mississippi",
+   "bron": "Financial Times"
+  },
+  {
+   "kop": "Spain’s nationwide strike erupts amid housing crisis and anger over shrinking purchasing power",
+   "bron": "Le Monde in English"
+  },
+  {
+   "kop": "Nvidia board reportedly weighs ousting Huang amid alleged affairs with exec and suspected Chinese spy",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "The unfolding Jensen Huang scandal: a timeline",
+   "bron": "TechCrunch"
+  },
+  {
+   "kop": "‘Nvidia overweegt ceo Huang te ontslaan na onthullingen over nog een affaire’",
+   "bron": "Het Financieele Dagblad"
+  },
+  {
+   "kop": "Democraten blijven winnen en veroveren nog een Senaatszetel in Mississippi",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "Schools in Italy, Scotland and Ireland targeted by bomb threats",
+   "bron": "Le Monde in English"
+  },
+  {
+   "kop": "Democrat Scott Colom wins the closest Senate race in the country",
+   "bron": "NPR"
+  },
+  {
+   "kop": "Democraat Scott Colom wint senaatszetel voor Mississippi",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "Mississippi Senate race: Democrat Scott Colom defeats Republican Cindy Hyde-Smith",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "Nvidia’s stock drops as board reportedly preps to oust CEO Jensen Huang",
+   "bron": "TechCrunch"
+  },
+  {
+   "kop": "Marvel 1943: Rise of Hydra Is Reportedly ‘Close to Done,’ Though at the Cost of Cutting Back on Content and Length",
+   "bron": "IGN"
+  },
+  {
+   "kop": "AMC App Experiences Slowdown as Marvel Fans Rush to Buy Doomsday Tickets After VisionQuest Finale",
+   "bron": "IGN"
+  },
+  {
+   "kop": "Nvidia Board Is Preparing to Potentially Oust CEO Jensen Huang",
+   "bron": "IGN"
+  },
+  {
+   "kop": "Jensen Huang accused of having another affair — with an Nvidia exec",
+   "bron": "TechCrunch"
+  },
+  {
+   "kop": "CEO Jensen Huang’s job is suddenly on the line at Nvidia",
+   "bron": "Ars Technica"
+  },
+  {
+   "kop": "Trump’s Stance on Jensen Huang Is a Tell",
+   "bron": "The Atlantic"
+  },
+  {
+   "kop": "Democrat Scott Colom wins Mississippi Senate race",
+   "bron": "NPR"
+  },
+  {
+   "kop": "Defensieminister Hegseth krijgt standje voor respectloos gedrag bij monument",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Mississippi elects Democrat Scott Colom to Senate in massive upset",
+   "bron": "Politico"
+  },
+  {
+   "kop": "De onwerkelijke week van Carrick: ‘Zo groot is de shitshow bij Man Utd’",
+   "bron": "Voetbal International"
+  },
+  {
+   "kop": "Eén miljoen Fransen krijgen zender CNews, de “propagandamachine van extreemrechts”, niet uit de ether",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "Moordenaars neergeschoten agent Nordine El Talbi hadden luttele uren voordien al iemand doodgeschoten",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "Energieke Andrejeva halvefinalist op WTA Finals na comeback tegen Sabalenka",
+   "bron": "NOS Sport"
+  },
+  {
+   "kop": "Nvidia Sinks as Analyst Downgrades Start to Come In: Street Wrap",
+   "bron": "Bloomberg"
+  },
+  {
+   "kop": "Lewis Hamilton demands Israel allows aid into Gaza after Rafah visit: ‘No excuse’",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Pope Leo XIV begins emotional Peru homecoming amid huge celebrations",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "A Death Metal Guitarist Is So Into WoW Forever, He Took it Onstage With a Steam Deck",
+   "bron": "IGN"
+  },
+  {
+   "kop": "Nvidia is reportedly preparing to fire Jensen Huang",
+   "bron": "The Verge"
+  },
+  {
+   "kop": "Stephen Curry attacks treatment of women after former players criticize wife Ayesha’s movie kiss",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "Stocks Fall as Nvidia Slides 6% on CEO Turmoil: Markets Wrap",
+   "bron": "Bloomberg"
+  },
+  {
+   "kop": "Clashes erupt in Barcelona after thousands join Spain general strike",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Hands on with Home Assistant’s new ‘smart home multi-tool’",
+   "bron": "The Verge"
+  },
+  {
+   "kop": "Pete Hegseth Is About to Get His Ass Kicked",
+   "bron": "Wired"
+  },
+  {
+   "kop": "Spain: Housing crisis prompts general strike, mass nighttime protests",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "There has never been a scandal like the Jensen Huang affair",
+   "bron": "The Economist"
+  },
+  {
+   "kop": "All Bomb Bag upgrade locations in Ocarina of Time",
+   "bron": "Polygon"
+  },
+  {
+   "kop": "US withdraw from U-17 World Cup in Qatar due to safety concerns",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "Marvel Makes VisionQuest’s First Episode Free To Stream",
+   "bron": "Polygon"
+  },
+  {
+   "kop": "Hegseth and advisers reprimanded by guard at Tomb of the Unknown Soldier",
+   "bron": "BBC"
+  },
+  {
+   "kop": "D66 en CDA houden vast aan deal met Pro en Volt, ook na dreigement VVD",
+   "bron": "NRC"
+  },
+  {
+   "kop": "Meeting of two lost souls: can Pochettino make it work at Manchester United? | Barney Ronay",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "Flinke piek in dataverkeer door nachtelijk downloaden van GTA VI",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Democrats’ strategy for ending the war in Iran",
+   "bron": "The Economist"
+  },
+  {
+   "kop": "Grand Theft Auto Has Broken So Much Ground, What Else Can GTA 6 Do?",
+   "bron": "GameSpot"
+  },
+  {
+   "kop": "Kabinetscrisis: VVD zegt D66 en CDA de wacht aan wegens hun akkoord met Pro en Volt",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "Review – Home Assistant Connect AUX-2 – Veel meer dan een audiostreamer",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "Ajax Vrouwen in kwartfinale Europa Cup na spectaculaire comeback tegen Malmö",
+   "bron": "Het Parool"
+  },
+  {
+   "kop": "Mirakel in Malmö: Ajax door in Europa door twee goals in slotfase, PSV uitgeschakeld",
+   "bron": "NOS Sport"
+  },
+  {
+   "kop": "Coalitie ten dode opgeschreven: D66 en CDA zwichten niet na powerplay VVD",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Laatste tanker met Russische diesel wijzigt koers: geen lading meer naar VS",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "CEO Iryna Terech: ‘Mijn vriend Denys belde en zei: laten we een dronefabriek bouwen’",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "Don’t expect more information on The Elder Scrolls 6: Sentinel ‘for some time,’ Bethesda says",
+   "bron": "Eurogamer"
+  },
+  {
+   "kop": "Congress to call Jensen Huang in to answer for alleged Chinese spy affair",
+   "bron": "TechCrunch"
+  },
+  {
+   "kop": "Dilan Yesilgöz reageert op Belastingplan: ‘Wij zijn overvallen door deze deal’",
+   "bron": "NRC"
+  },
+  {
+   "kop": "Ex-member of radical Marxist group scales balcony, escapes house arrest in Argentina",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "‘I’ve had to prove people wrong’: Kane still striving before record England cap",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "Woedende VVD twijfelt aan toekomst kabinet om belastingdeal met Pro en Volt",
+   "bron": "Het Financieele Dagblad"
+  },
+  {
+   "kop": "‘The world we know is over’ without urgent climate action, leaders tell Cop31",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "Millions join Spain’s first general strike in 14 years in protest at housing costs",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "Indonesia’s vice-president resigns, escalating a destabilising feud",
+   "bron": "The Economist"
+  },
+  {
+   "kop": "Schools in Italy, Scotland and Northern Ireland hit by threats in suspected bomb hoax",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Loot boxes, influencers, and addictive features face an EU crackdown",
+   "bron": "The Verge"
+  },
+  {
+   "kop": "The blood-brain barrier may contribute to cognitive function",
+   "bron": "The Economist"
+  },
+  {
+   "kop": "The European Commission’s new Digital Fairness Act could change monetisation in games forever – and not just in Europe",
+   "bron": "Eurogamer"
+  },
+  {
+   "kop": "Tot vreugde van Trump hoeft defensieminister Hegseth voorlopig nog geen afzetting te vrezen",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": ".Geek – The Elder Scrolls V: Skyrim is 15 jaar oud",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "Marco Rubio reportedly spent over $1.2m of taxpayer money traveling to son’s football games",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "US Treasury Secretary Scott Bessent relocated after alleged Iranian threats",
+   "bron": "BBC"
+  },
+  {
+   "kop": "‘Thursday is a deserved occasion to celebrate’ – how Kane’s fairytale came true",
+   "bron": "BBC Sport"
+  },
+  {
+   "kop": "Does M John Harrison’s Booker win mean science fiction is finally accepted by a ‘snobby’ literary establishment?",
+   "bron": "The Guardian Cultuur"
+  },
+  {
+   "kop": "Kenya’s last Ebola patient leaves hospital",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "Jimmy Kimmel on Hegseth’s press conference amid impeachment attempt: ‘doozy of a performance’",
+   "bron": "The Guardian Cultuur"
+  },
+  {
+   "kop": "Top four teams in Fifa rankings set to be kept apart until semi-finals at 2027 Women’s World Cup",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "‘Wij zijn over onze schaduw heen gestapt’, zegt CDA-leider Bontenbal. Nu is het ‘aan de VVD om te reageren’",
+   "bron": "NRC"
+  },
+  {
+   "kop": "The best early Black Friday deals you can already shop",
+   "bron": "The Verge"
+  },
+  {
+   "kop": "Achtergrond – Dit wil de EU veranderen aan lootboxes, dark patterns en proefabonnementen",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "China’s Nvidia Honeypot Isn’t Surprising. Jensen Huang Fell for It Anyway",
+   "bron": "Wired"
+  },
+  {
+   "kop": "Brazil electoral court fines Meta, sees no deliberate election bias",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "Ocarina of Time is even better if you use a smartphone app",
+   "bron": "The Verge"
+  },
+  {
+   "kop": "Kidnapper, 74, escapes from house arrest in Argentina by abseiling from balcony",
+   "bron": "BBC"
+  },
+  {
+   "kop": "Before GTA Online, GTA 4 Free Mode Was The Best Playground",
+   "bron": "GameSpot"
+  },
+  {
+   "kop": "Ocarina of Time-remake verkoopt in vier dagen meer dan 5 miljoen stuks",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "Duolingo, Strava, and Ticketmaster Are All Caught Up in EU’s New Digital Fairness Rules",
+   "bron": "Wired"
+  },
+  {
+   "kop": "Europees kampioene Brand geeft geblesseerd op in veldrit Niel, zege naar Bakker",
+   "bron": "NOS Sport"
+  },
+  {
+   "kop": "Europese Commissie wil pay-to-win bij kinderen verbieden in Digital Fairness Act",
+   "bron": "Tweakers"
+  },
+  {
+   "kop": "Kenya discharges last Ebola patient in major milestone towards virus-free status",
+   "bron": "BBC"
+  },
+  {
+   "kop": "World of Warcraft: Forever secret hunters have found the MMO’s first hidden treasure",
+   "bron": "Eurogamer"
+  },
+  {
+   "kop": "The Perverse Reason Health-Care Costs Are About to Surge",
+   "bron": "The Atlantic"
+  },
+  {
+   "kop": "World of Warcraft: Forever’s magical opening week reminds us all about the power of the MMO, and the threat it poses to your free time",
+   "bron": "Eurogamer"
+  },
+  {
+   "kop": "The Legend of Zelda: Ocarina of Time remake sells in huge numbers, becoming the fastest-selling Switch 2 game",
+   "bron": "Eurogamer"
+  },
+  {
+   "kop": "Jonathan Ross ‘horrified’ by David Walliams and Russell Brand revelations",
+   "bron": "The Guardian Cultuur"
+  },
+  {
+   "kop": "US Treasury chief Scott Bessent is reportedly latest Trump official to move to military base",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "NFL trade deadline winners and losers: Vikings go full dadcore with Kirk Cousins in Super Bowl quest",
+   "bron": "The Guardian Sport"
+  },
+  {
+   "kop": "‘We are dream-walking into a desperate situation’: the Booker prize winner on his sci-fi alien invasion wakeup call",
+   "bron": "The Guardian Cultuur"
+  },
+  {
+   "kop": "Nvidia-topman Jensen Huang zat midden in de American dream, totdat hij viel voor een vermeende Chinese spion",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "New culprit in early Alzheimer’s: Blood–brain barrier blocks protective proteins",
+   "bron": "Nature"
+  },
+  {
+   "kop": "Can green technologies deliver energy security in an unstable world?",
+   "bron": "Nature"
+  },
+  {
+   "kop": "Did China Play Jensen Huang?",
+   "bron": "Foreign Policy"
+  },
+  {
+   "kop": "Druk neemt toe na spionageschandaal, kan de chipgigant zonder ‘Mister Nvidia’?",
+   "bron": "NOS Economie"
+  },
+  {
+   "kop": "GTA 6: What Will Review Scores Be? You Can Win A $500 Gift Card For Getting It Right",
+   "bron": "GameSpot"
+  },
+  {
+   "kop": "U.S.-Mediated Russia-Ukraine Talks Make Little Headway",
+   "bron": "Foreign Policy"
+  },
+  {
+   "kop": "Heineken-directeur Maarten Schuurman (57) overleden",
+   "bron": "NOS Economie"
+  },
+  {
+   "kop": "‘Deze verkiezingen geven een enorme klap op de politiek in het Amerikaanse Zuiden’",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "Is Jensen Huang’s Affair a Crisis for the A.I. Boom?",
+   "bron": "The New Yorker"
+  },
+  {
+   "kop": "Eerste poging tot afzetting tegen Pete ‘geen vetzakken’ Hegseth mislukt, maar hij heeft nog veel vijanden",
+   "bron": "de Volkskrant"
+  },
+  {
+   "kop": "American workers face a surge in health costs",
+   "bron": "The Economist"
+  },
+  {
+   "kop": "Why Pete Hegseth Faces Impeachment",
+   "bron": "The Atlantic"
+  },
+  {
+   "kop": "Heinekendirecteur Maarten Schuurman overleden op 57-jarige leeftijd",
+   "bron": "Het Parool"
+  },
+  {
+   "kop": "Grand Theft Auto 6 becomes the most pre-ordered game in PlayStation Store history",
+   "bron": "Eurogamer"
+  },
+  {
+   "kop": "Lewis Hamilton visits Egypt’s Rafah crossing and Gaza aid facilities",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "Megaspeed and the battle to go high-end Nvidia chips into China",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "US and rest of world must follow China’s lead on green energy, says John Kerry",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "5 things to know going into the COP31 climate meeting",
+   "bron": "Scientific American"
+  },
+  {
+   "kop": "Miljoen Fransen eisen ingrijpen tegen invloedrijke nieuwszender CNews",
+   "bron": "NOS Cultuur & Media"
+  },
+  {
+   "kop": "Booker Prize gaat naar M. John Harrison, oudste winnaar ooit",
+   "bron": "NOS Cultuur & Media"
+  },
+  {
+   "kop": "Een zwarte leren jas en AI-visionair: wie is Nvidia-topman Jensen Huang?",
+   "bron": "NOS Economie"
+  },
+  {
+   "kop": "What’s behind Piastri’s split with Webber – and what it means for his F1 career",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Koers Nvidia hard omlaag op Amerikaanse beurs na spionnen-affaire van ceo",
+   "bron": "NOS Economie"
+  },
+  {
+   "kop": "Affaire met spionne en andere geruchten doen Nvidia-topman Jensen Huang wankelen: dit moet je over hem weten",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "Nvidia opens investigation after report CEO Jensen Huang was target of foreign intelligence",
+   "bron": "The Guardian"
+  },
+  {
+   "kop": "Nvidia start onderzoek naar spionnen-affaire ceo, topman erkent vreemdgaan",
+   "bron": "NOS Economie"
+  },
+  {
+   "kop": "Leclerc penalised for Lawson clash; Antonelli and Oliver Bearman also punished after F1 Brazilian GP",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Lando Norris wins chaotic Sao Paulo Grand Prix but F1 season is fizzling out",
+   "bron": "The Telegraph"
+  },
+  {
+   "kop": "Antonelli explains ‘weird’ spin and car instability which cost F1 Brazilian GP win",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "F1 Brazilian GP: Norris wins in mixed conditions, Mercedes clinch constructors’ title",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Can Hamilton and Verstappen fight back for F1 Brazilian GP victory?",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "The wet-weather challenges thrown up by Brazilian GP qualifying",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Why Russell was so angry in Brazilian GP qualifying despite already having a grid penalty",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Hamilton insists Ferrari tensions with Leclerc are over: ‘We’ve squashed it’",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "F1 Brazilian GP: Norris splashes to pole from Russell",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Hamilton set for new penalty, will start F1 Brazilian GP from back of grid",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "F1 Brazilian GP: Verstappen edges out Antonelli to top FP3 as Hamilton hits mechanical trouble",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Hamilton, Leclerc and Verstappen hit with F1 grid penalties for Brazilian GP",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "F1 retains Brazilian GP until 2035 with fresh Sao Paulo deal",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Ocon axing ‘surprised everybody at Haas’",
+   "bron": "Autosport"
+  },
+  {
+   "kop": "Amerikaanse ambassadeur Bill White komt terug op gesprek met kolonel Roger Housen in de ‘Tafel van Ruben’: “Een onjuiste en onbezonnen uitspraak”",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Israel targets senior Hamas member in Gaza hospital strike",
+   "bron": "Deutsche Welle"
+  },
+  {
+   "kop": "Na huwelijk van 15 jaar: Anthony Kumpen en Griet Vanhees gaan scheiden",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Racing Bulls ook volgend jaar met Liam Lawson en Arvid Lindblad in Formule 1",
+   "bron": "AD"
+  },
+  {
+   "kop": "Lagere school in Lier dicht na zwaar vandalisme: “Vloeren, muren en meubilair beschadigd en met verf besmeurd”",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Russia attacks Ukraine hours after Abu Dhabi peace talks end",
+   "bron": "Politico Europe"
+  },
+  {
+   "kop": "Scandal-hit Jensen Huang loses his shine in his birthplace Taiwan",
+   "bron": "The Independent"
+  },
+  {
+   "kop": "Brand aan huis waarschijnlijk aangestoken",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Prévot fluit Quintin terug na uitspraak over cyberaanval op koelinstallaties: ”Gegevens volstaan niet om Iran verantwoordelijk te stellen\"",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Manchester United fires Carrick; sources say deal with USMNT’s Pochettino close",
+   "bron": "ESPN"
+  },
+  {
+   "kop": "Formule 1-team Racing Bulls gaat na ’historisch seizoen’ door met Liam Lawson en Arvid Lindblad",
+   "bron": "De Telegraaf"
+  },
+  {
+   "kop": "Nog maar net veroordeeld voor verkrachting en aanranding, maar Netflix komt al met documentaire over Russell Brand",
+   "bron": "Het Belang van Limburg"
+  },
+  {
+   "kop": "Geen glamourkoppel meer: Anthony Kumpen en Griet Vanhees gaan scheiden",
+   "bron": "Het Nieuwsblad"
+  },
+  {
+   "kop": "Amerikaans ambassadeur Bill White laat zijn oog vallen op ambtswoning van Brusselse minister-president",
+   "bron": "Gazet van Antwerpen"
+  },
+  {
+   "kop": "Prévot fluit Quintin terug: “Onvoldoende info om Iran officieel verantwoordelijk te stellen voor cyberaanvallen”",
+   "bron": "Het Laatste Nieuws"
+  },
+  {
+   "kop": "Geen WK, weg profstatuut: Dimitri Van den Bergh trekt streep onder dartsseizoen, wat brengt zijn toekomst?",
+   "bron": "Sporza"
+  },
+  {
+   "kop": "Greta Thunberg duikt weer op bij klimaattop na jarenlange afwezigheid",
+   "bron": "NU.nl"
+  },
+  {
+   "kop": "Bevreemdend moment was een veeg teken: komt het nog goed met bekritiseerde Romelu Lukaku in Turkije of lonkt terugkeer naar Anderlecht?",
+   "bron": "Sporza"
+  },
+  {
+   "kop": "Luis Oliveira scoorde 29 jaar geleden een hattrick tegen Turkije: “Ik ben al 27 jaar niet meer in België geweest. Anderlecht nodigde me niet meer uit”",
+   "bron": "Gazet van Antwerpen"
+  },
+  {
+   "kop": "Wat wil jij weten over de coalitiecrisis? Kijk mee en stel hier je vragen aan ons",
+   "bron": "AD"
+  },
+  {
+   "kop": "Amper 20.000 plekjes, maar ook veel pluspunten: waarom ontvangt Turkije de Rode Duivels in zo’n klein stadion?",
+   "bron": "Sporza"
+  },
+  {
+   "kop": "Onduidelijkheid in regering na uitspraken Quintin over mogelijke Iraanse link cyberaanvallen",
+   "bron": "De Tijd"
+  },
+  {
+   "kop": "Het onvermijdelijke is gebeurd bij Man. United: Michael Carrick ontslagen na dramatisch rapport, ‘Pochettino volgt hem op’",
+   "bron": "Sporza"
+  },
+  {
+   "kop": "Basisschool in Lier gesloten na vandalisme: klaslokalen beschadigd en besmeurd",
+   "bron": "VRT NWS"
+  },
+  {
+   "kop": "VS willen ambtswoning Brusselse minister-president kopen, Bill White ‘behoorlijk geïnteresseerd’",
+   "bron": "De Morgen"
+  },
+  {
+   "kop": "Een geheim nummer, één gemiste vlucht en zijn gekste opdracht ooit: Peter Vandenbempt geeft antwoord op 20 (ongewone) vragen",
+   "bron": "Sporza"
+  },
+  {
+   "kop": "Opvallend bericht uit Nederland: ‘PSV hoopt Kevin De Bruyne deze winter naar Nederland te halen’",
+   "bron": "Sporza"
+  },
+  {
+   "kop": "Nog steeds onder vuur bij Fenerbahçe, maar door blessure kan Romelu Lukaku zijn Turkse critici de mond niet snoeren",
+   "bron": "De Standaard"
+  },
+  {
+   "kop": "Opmerkelijke ontwikkeling vlak voor WK U17 in Qatar: Verenigde Staten trekken zich ‘om veiligheidsredenen’ terug uit toernooi",
+   "bron": "Sporza"
+  }
+ ]
+}
