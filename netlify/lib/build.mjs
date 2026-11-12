@@ -19,7 +19,7 @@ import { tabsVan, stroomTabsFeed } from '../../shared/stroom-tabs.mjs'
 import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
-import { verschillenAan, verschillenVoorEditie, metVerschillen } from './verschillen.mjs'
+import { verschillenAan, verschillenUitKV, metVerschillen } from './verschillen.mjs'
 import { crossLanguagePairs } from './taalgrens.mjs'
 import { freeDutchFill, morningTopUp, OCHTEND_AANVULLING } from './aanvulling.mjs'
 import { haagsDossier } from './dossiers.mjs'
@@ -55,9 +55,10 @@ const inStories = (it) => it.kind === 'article' && SOURCE.get(it.source)?.cat !=
 const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
 const inEdition = (it) => !excludedFromEdition(it) && EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source) && !keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
 
-export async function buildFeed({ now = Date.now() } = {}) {
+// `anthropic`: alleen voor toetsen (een nepmodel); anders de client uit ANTHROPIC_API_KEY.
+export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const apiKey = process.env.ANTHROPIC_API_KEY
-  const anthropic = apiKey ? new Anthropic({ apiKey, timeout: 25000, maxRetries: 1 }) : null
+  const anthropic = client !== undefined ? client : apiKey ? new Anthropic({ apiKey, timeout: 25000, maxRetries: 1 }) : null
 
   // 1. Ophalen — alles tegelijk; een bron die uitvalt houdt de rest niet op.
   const avatars = remember('avatars-v1', DAY, loadSourceAvatars, { now, valid: (m) => Object.values(m).some(Boolean) })
@@ -123,15 +124,14 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const ai = await aiExclusions({ pool: editionOut, stories, now, client: anthropic, kv: { get: kvGet, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }) } })
   const kept = (i) => !ai.weg.has(i.id)
   const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition).filter(kept), pool: editionOut.filter(kept), anthropic })
-  // Waar media verschillen (achter HOOT_VERSCHILLEN=aan): loopt naast het meten van de beelden, met een
-  // eigen tijdsbudget; met de vlag uit raakt het niets aan en verandert de feed niet.
+  // Waar media verschillen (achter HOOT_VERSCHILLEN=aan): de feed wacht nooit op een model. Hier alleen lezen
+  // wat al gekeurd in KV staat (kort leesbudget, naast het meten van de beelden); schrijven en keuren doet een
+  // eigen geplande functie (functions/verschillen-refresh.mjs). Met de vlag uit raakt het niets aan.
   const verschillen = verschillenAan()
-    ? verschillenVoorEditie({
-        client: anthropic,
+    ? verschillenUitKV({
         entries: edition.public.entries,
         storyById: new Map([...edition.snapshot.stories, ...stories].map((st) => [st.id, st])),
         itemsById: new Map([...edition.snapshot.items, ...articlePool].map((i) => [i.id, i])),
-        now,
       })
     : Promise.resolve(new Map())
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.

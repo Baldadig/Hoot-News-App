@@ -27,17 +27,56 @@ export const PREFIX = 'filter-ai:'
 // niets weren (ook niet uit de cache). Aanzetten pas na een meting met scripts/meet-filters-ai.mjs.
 export const SWITCH = 'HOOT_EDITIE_AI'
 export const aiEnabled = (env = process.env) => String(env?.[SWITCH] || '').trim().toLowerCase() === 'aan'
-// Plausibiliteit (herstel AI-keuring 2). Wil het model in één batch meer dan de helft zeker weren (VERIFY_SHARE), dan is de
-// batch verdacht: niet meteen weg (dan legt één echte deal, of een dealrijke Black Friday-batch, B stil), maar een tweede,
-// kleinere aanroep met alleen die stukken, in een andere volgorde, met CONTROLS gewone stukken uit de pool ertussen (geen zwak
-// signaal, vaak de koppen van de grootste verhalen). Alleen wat beide keren zeker weg is, gaat weg. Noemt het model een
-// controlestuk zeker een aanbieding of aankondiging, dan is het ontspoord en telt niets uit de batch. Zonder controlestukken
-// geldt de harde grens: vanaf HARD_MIN stukken en meer dan HARD_SHARE zeker weg = ontspoord. Een gemiste deal is acceptabel.
-export const VERIFY_SHARE = 0.5
-export const HARD_MIN = 8
-export const HARD_SHARE = 0.7
+// Controle (herstel AI-keuring 2, aangescherpt in filters-b na ruis-keuring 1). ELKE batch waarin het model iets zeker wil
+// weren, wordt gecontroleerd met een tweede, kleinere aanroep: alleen de zekere stukken, in omgekeerde volgorde, met daartussen
+// controlestukken waarvan we wéten dat het nieuws is:
+//   - ANKERS: vaste, generieke nieuwskoppen mét een zwak signaal (Black Friday-toezicht, een prijsdaling, een koopdag, een
+//     podcastprijs …), zelf geschreven als neutrale voorbeeldzinnen, niet uit het nieuws overgenomen. Per controle de
+//     ANCHORS_PER die het meest op de zekere stukken lijken (zelfde signaalwoorden, zelfde woorden). Zo valt ook een model op
+//     dat op het ONDERWERP ontspoort ("elke kop met Black Friday of een koopdag is een aanbieding");
+//   - tot CONTROLS gewone stukken uit dezelfde pool zonder zwak signaal (dan valt een model op dat op alles ontspoort).
+// Alleen wat beide keren zeker weg is, gaat weg. Noemt het model één controlestuk zeker een aanbieding of aankondiging, dan is
+// het ontspoord: niets uit de batch telt (ook het nieuws-oordeel niet) en niets wordt bewaard. Geeft het model niet voor
+// elk controlestuk een geldig oordeel, of mislukt de controle, of is er geen tijd meer, dan telt alleen het veilige deel
+// (nieuws en twijfel). Zonder controlestukken gaat er nooit iets weg. Ook een kleine batch (1 tot 7 stukken) heeft dus altijd
+// controlestukken: nooit 5 van 5 weg zonder dat de ankers het nieuws noemden. Een gemiste deal is acceptabel.
 export const CONTROLS = 3
+export const ANCHORS_PER = 5
 export const VERIFY_TIMEOUT_MS = 4000
+// De ankers. Generiek en neutraal; geen echte koppen, geen bronnamen. Elk heeft een zwak signaal (toets), en samen dekken ze
+// de signaalwoorden (prijs, korting, deal, Black Friday, koopdag, podcast, video, gratis, …), in het Nederlands en het Engels.
+export const ANKERS = [
+  ['Toezichthouder onderzoekt misleidende kortingen rond Black Friday', 'De toezichthouder kreeg tientallen klachten over prijzen die vlak voor de actiedagen omhoog gingen.'],
+  ['Winkeliers melden minder omzet op koopdag en tijdens uitverkoop', 'Volgens de brancheorganisatie kopen consumenten vaker online en letten ze scherper op de prijs.'],
+  ['Webwinkel beboet voor nepaanbiedingen en valse kortingscodes', 'De boete loopt op tot een half miljoen euro; de winkel gaat in beroep.'],
+  ['Prijs van benzine daalt voor de derde week op rij', 'Een liter kost gemiddeld vier cent minder dan een maand geleden.'],
+  ['Streamingdienst verhoogt prijs van abonnement met 2 euro per maand', 'De dienst wijst op hogere kosten voor series en sportrechten.'],
+  ['Podcastmaker wint prijs voor onderzoeksjournalistiek', 'De jury prijst de serie over misstanden in de zorg; de laatste aflevering verscheen vorige week.'],
+  ['Omroep stopt met uitzending van talkshow na dalende kijkcijfers', 'Het programma verdwijnt na zes seizoenen van tv.'],
+  ['Kabinet wil gratis kinderopvang later invoeren', 'Het plan schuift twee jaar op door tegenvallers in de begroting.'],
+  ['Handelsdeal tussen EU en VS na nachtelijk overleg', 'De afspraken gaan over importheffingen op staal en auto\'s.'],
+  ['Supermarkten verlagen prijs van zuivel, actie van consumentenbond werkt', 'Een pak melk is gemiddeld 8 procent goedkoper dan in de zomer.'],
+  ['Politie waarschuwt voor nepwinkels die goedkope cadeaus beloven', 'Kopers betalen vooraf en krijgen niets; er zijn al honderden aangiften.'],
+  ['Inflatie loopt op: boodschappen kosten 4 procent meer dan vorig jaar', 'Vooral koffie, vlees en groente werden duurder.'],
+  ['Documentaire over stikstofcrisis trekt recordaantal kijkers', 'Ruim twee miljoen mensen keken; de video wordt online veel gedeeld.'],
+  ['Live: kabinet presenteert plannen voor de woningmarkt', 'Volg de persconferentie en de reacties uit de Kamer.'],
+  ['Bestellingen bij webwinkels lopen vast door staking bij pakketdienst', 'Klanten moeten rekening houden met dagen vertraging.'],
+  ['Aldi en Lidl in prijzenoorlog om koopjesjagers', 'Beide ketens verlagen deze week de prijs van honderden producten.'],
+  ['Regulator fines retailer over fake Black Friday discounts', 'The watchdog said prices were raised days before the sale to inflate the advertised savings.'],
+  ['Shoppers spend less on Cyber Monday as prices rise', 'Online sales fell for the first time in a decade, an industry group said.'],
+  ['Warehouse workers strike on Prime Day over pay', 'The union says staff were asked to work double shifts during the sales event.'],
+  ['Streaming service raises subscription price by $2 a month', 'The company blamed rising costs for sports rights and new shows.'],
+  ['Podcast network lays off a third of its staff', 'Advertising revenue for audio shows has dropped sharply; the final episode of its flagship series aired last week.'],
+  ['Bitcoin falls 10% from its record high', 'The cryptocurrency slid after regulators announced new rules for exchanges.'],
+  ['TV network cancels morning show after ratings slump', 'The programme will air its final episode next month.'],
+  ['Video shows extent of flood damage, officials say', 'Rescue teams are still searching for missing residents.'],
+  ['Amazon faces EU inquiry over free delivery promotions', 'Regulators want to know whether the offers squeeze out smaller shops.'],
+  ['Retailers cut prices on toys as holiday gift sales slow', 'Stores are left with large stockpiles of unsold goods, analysts say.'],
+  ['Watchdog warns of coupon code scams aimed at bargain hunters', 'Fraudsters send fake promo codes that steal payment details.'],
+  ['Game maker delays console as pre-orders fall short', 'The company said costs for chips had risen sharply this year.'],
+  ['Pharmacy chain to stop selling cheap cold medicines', 'Health officials said the products did not work as advertised.'],
+  ['Union calls on shoppers not to buy at stores that cut staff', 'The boycott starts on the busiest shopping weekend of the year.'],
+].map(([title, summary], k) => ({ id: `anker-${k + 1}`, kind: 'article', anker: true, sourceName: 'Nieuwsdienst', title, summary, url: `https://nieuws.example/${k < 16 ? 'binnenland' : 'world'}/${k + 1}` }))
 // Herhaalpogingen (herstel AI-keuring 2): een stuk dat geen bewaard oordeel kreeg (geen geldig oordeel, ontspoord, niet
 // bevestigd, fout), wordt per UTC-dag hooguit MAX_TRIES keer gevraagd; daarna blijft het die dag staan (= nieuws).
 export const MAX_TRIES = 2
@@ -58,6 +97,44 @@ const WORD = [
 ]
 const WEAK = new RegExp(`(?:${PART.join('|')})\\b|\\b(?:${WORD.join('|')})\\b|[$€£]\\s?\\d|\\d\\s?(?:%|procent|percent|euro|dollar)`, 'i')
 export const weakSignal = (item = {}) => WEAK.test(`${item.title || ''} ${item.summary || item.text || ''}`) || WEAK.test(String(item.url || '').replace(/[-_/]/g, ' '))
+
+// Woorden voor de keuze van de ankers: de signaalwoorden (genormaliseerd op hun eerste 4 tekens, zodat "deal" en "deals" of
+// "korting" en "kortingen" gelijk zijn) en de gewone woorden van 4+ letters ("koopdag", "toezicht").
+const WEAK_G = new RegExp(WEAK.source, 'gi')
+const sigOf = (t) => new Set([...String(t).matchAll(WEAK_G)].map((m) => (/^[$€£\d]/.test(m[0]) ? '#bedrag' : m[0].toLowerCase().slice(0, 4))))
+const wordsOf = (t) => new Set(String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').match(/[a-z0-9]{4,}/g) || [])
+const textOf = (i) => `${i.title || ''} ${i.summary || i.text || ''}`
+// De `max` ankers die het best passen bij deze stukken. Om de beurt: het signaalwoord (of gewone woord) dat in de meeste
+// stukken staat en nog door geen gekozen anker gedekt is, krijgt het anker dat het het vaakst noemt. Zo zit bij een batch
+// vol "deal"-koppen een anker met "deal" in de controle, en bij "koopdag" een anker met "koopdag".
+export function anchorsFor(items, { anchors = ANKERS, max = ANCHORS_PER } = {}) {
+  const count = new Map()
+  for (const i of items) {
+    for (const x of sigOf(textOf(i))) count.set('s:' + x, (count.get('s:' + x) || 0) + 2)
+    for (const x of wordsOf(i.title)) count.set('w:' + x, (count.get('w:' + x) || 0) + 1)
+  }
+  const feats = anchors.map((a) => new Set([...[...sigOf(textOf(a))].map((x) => 's:' + x), ...[...wordsOf(a.title)].map((x) => 'w:' + x)]))
+  const chosen = []
+  const covered = new Set()
+  const wanted = [...count.entries()].sort((x, y) => y[1] - x[1] || (x[0] < y[0] ? -1 : 1)).map(([f]) => f)
+  for (const f of wanted) {
+    if (chosen.length >= max) break
+    if (covered.has(f)) continue
+    let best = -1, bestN = 0
+    anchors.forEach((a, k) => {
+      if (chosen.includes(k) || !feats[k].has(f)) return
+      let n = 0
+      for (const g of feats[k]) n += count.get(g) || 0
+      if (n > bestN) [best, bestN] = [k, n]
+    })
+    if (best < 0) continue
+    chosen.push(best)
+    for (const g of feats[best]) covered.add(g)
+  }
+  // Aanvullen in de volgorde van de lijst.
+  for (let k = 0; k < anchors.length && chosen.length < max; k++) if (!chosen.includes(k)) chosen.push(k)
+  return chosen.map((k) => anchors[k])
+}
 
 export const cacheKeyOf = (item) => `${item.id}:${hash(String(item.title || ''))}`
 // De code per stuk (herstel AI-keuring 2): door de server berekend uit id en kop, en door het model per oordeel terug te geven
@@ -151,6 +228,8 @@ export function promptOf(items, codes = codesFor(items)) {
 
 // Het antwoord van het model nalopen. Alleen geldige oordelen tellen; een onbekend of ontbrekend oordeel = nieuws, niet bewaard.
 // `codes` (optioneel): de codes op volgorde; dan moet elk oordeel precies de code van het stuk op zijn nummer teruggeven.
+// Twee geldige oordelen over hetzelfde nummer die elkaar tegenspreken (andere soort of andere zekerheid) vervallen samen,
+// en elk volgend oordeel over dat nummer ook: het stuk blijft staan (filters-b, na ruis-keuring 1). Een gelijk dubbel telt één keer.
 export function readVerdicts(text, n, codes = null) {
   let data
   try {
@@ -159,10 +238,19 @@ export function readVerdicts(text, n, codes = null) {
     return new Map()
   }
   const out = new Map()
+  const conflict = new Set()
   for (const o of Array.isArray(data?.oordelen) ? data.oordelen : []) {
-    if (!o || !Number.isInteger(o.nr) || o.nr < 1 || o.nr > n || out.has(o.nr)) continue
+    if (!o || !Number.isInteger(o.nr) || o.nr < 1 || o.nr > n || conflict.has(o.nr)) continue
     if (!['nieuws', 'aanbieding', 'aankondiging'].includes(o.soort) || typeof o.zeker !== 'boolean') continue
     if (codes && (typeof o.code !== 'string' || o.code.trim().toLowerCase() !== String(codes[o.nr - 1]).toLowerCase())) continue
+    const prev = out.get(o.nr)
+    if (prev) {
+      if (prev.soort !== o.soort || prev.zeker !== o.zeker) {
+        out.delete(o.nr)
+        conflict.add(o.nr)
+      }
+      continue
+    }
     out.set(o.nr, { soort: o.soort, zeker: o.zeker === true, reden: clip(o.reden, 160) })
   }
   return out
@@ -171,7 +259,7 @@ export function readVerdicts(text, n, codes = null) {
 export const excludes = (v) => !!v && v.zeker === true && (v.soort === 'aanbieding' || v.soort === 'aankondiging')
 
 // Eén aanroep: Map(nr -> oordeel) en het gebruik. Gooit bij een fout (de aanroeper weert dan niets nieuws).
-async function askOnce(client, items, timeoutMs) {
+export async function askOnce(client, items, timeoutMs = TIMEOUT_MS) {
   const codes = codesFor(items)
   const t0 = Date.now()
   const res = await client.messages.create(
@@ -194,9 +282,9 @@ async function askOnce(client, items, timeoutMs) {
 const addUsage = (a, b) => (b ? { input_tokens: (a?.input_tokens || 0) + (b.input_tokens || 0), output_tokens: (a?.output_tokens || 0) + (b.output_tokens || 0) } : a)
 
 // De hele batch: Map(id -> oordeel) en het gebruik, of gooit (de aanroeper weert dan niets nieuws).
-// `controls`: gewone stukken uit de pool (geen kandidaat) voor de controle van een verdachte batch; hun oordeel wordt nooit
+// `controls`: gewone stukken uit de pool (geen kandidaat); `anchors`: de vaste ankers (zie ANKERS). Hun oordeel wordt nooit
 // bewaard. `deadline` (ms sinds epoch): na die tijd geen tweede aanroep meer.
-export async function judge(client, items, { timeoutMs = TIMEOUT_MS, controls = [], verifyTimeoutMs = VERIFY_TIMEOUT_MS, deadline = Infinity } = {}) {
+export async function judge(client, items, { timeoutMs = TIMEOUT_MS, controls = [], anchors = ANKERS, verifyTimeoutMs = VERIFY_TIMEOUT_MS, deadline = Infinity } = {}) {
   if (!items.length) return { verdicts: new Map(), usage: null }
   const first = await askOnce(client, items, timeoutMs)
   let usage = first.usage
@@ -208,14 +296,17 @@ export async function judge(client, items, { timeoutMs = TIMEOUT_MS, controls = 
   }
   const out = { verdicts, usage, ms: [first.ms], verdacht: false, ontspoord: false, bevestigd: 0 }
   if (!sure.length) return out
-  if (sure.length <= Math.floor(items.length * VERIFY_SHARE)) {
-    for (const i of sure) verdicts.set(i.id, first.byNr.get(items.indexOf(i) + 1))
-    return out
-  }
-  // Verdacht: controleren met een tweede, kleinere aanroep.
+  // Iets zou weggaan: altijd controleren, hoe klein of groot de batch ook is.
   out.verdacht = true
-  const ctrl = controls.filter((c) => c?.id && !items.some((i) => i.id === c.id)).slice(0, CONTROLS)
-  if (!ctrl.length && items.length >= HARD_MIN && sure.length > items.length * HARD_SHARE) return { ...out, verdicts: new Map(), ontspoord: true }
+  const ids = new Set(items.map((i) => i.id))
+  const pc = controls.filter((c) => c?.id && !ids.has(c.id)).slice(0, CONTROLS)
+  const an = anchorsFor(sure, { anchors: anchors.filter((a) => a?.id && !ids.has(a.id)) })
+  const ctrl = []
+  for (let k = 0; k < Math.max(pc.length, an.length); k++) {
+    if (an[k]) ctrl.push(an[k])
+    if (pc[k]) ctrl.push(pc[k])
+  }
+  if (!ctrl.length) return out // geen controle mogelijk: de zekere stukken gaan niet weg
   const left = deadline - Date.now() - 250
   if (left < 1000) return out // geen tijd meer: de zekere stukken deze ronde niet (ze komen terug, begrensd door MAX_TRIES)
   // Andere volgorde (omgekeerd) en de controlestukken verspreid ertussen.
@@ -232,6 +323,7 @@ export async function judge(client, items, { timeoutMs = TIMEOUT_MS, controls = 
   const again = new Map()
   for (const [nr, v] of second.byNr) again.set(mixed[nr - 1].id, v)
   if (ctrl.some((c) => excludes(again.get(c.id)))) return { ...out, verdicts: new Map(), ontspoord: true }
+  if (!ctrl.every((c) => again.has(c.id))) return out // de controle is onvolledig: niet bevestigd
   for (const i of sure) {
     const v2 = again.get(i.id)
     if (excludes(v2)) {

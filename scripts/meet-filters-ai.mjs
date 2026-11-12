@@ -10,15 +10,18 @@
 //   - vangst: echte deals/aankondigingen door A, en door A+B;
 //   - gedrag: aanroepen, verdachte batches, ontspoord, fouten en time-outs, looptijd per aanroep (p50 en max);
 //   - kosten (Haiku 5.5: $0,10 / $0,50 per miljoen tokens), en voor de live kern per dagdeel;
+//   - aanvallen op het vangnet (filters-b): de ankers bij het echte model (moeten allemaal nieuws zijn), en het echte model
+//     met een vervalst antwoord: alles weg (40 en 5 stukken), per onderwerp ontspoord (Black Friday, koopdag, korting, prijs,
+//     podcast, deal, video, percentages; 40 en 3 stukken) en tegenstrijdige oordelen. Eis: overal 0 nieuws weg. Niet met --set;
 //   - het oordeel: mag HOOT_EDITIE_AI=aan, ja of nee.
 // Zonder ANTHROPIC_API_KEY: een droge telling (kandidaten, aanroepen, geschatte kosten). Vult nooit zelf een sleutel in.
 // Gebruik:
 //   ANTHROPIC_API_KEY=… node scripts/meet-filters-ai.mjs [--labels pad.json]... [--live] [--set naam] [--rapport pad.md]
 //   node scripts/meet-filters-ai.mjs --proef   (rookproef van het script zelf, met een nep-model; geen sleutel, geen netwerk)
-// Afsluitcode 1 als er met een sleutel nieuws onterecht wegvalt, of als aanroepen mislukken.
+// Afsluitcode 1 als er met een sleutel nieuws onterecht wegvalt (ook in een aanval), of als aanroepen mislukken.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { hardMark } from '../shared/editie-filter.mjs'
-import { judge, weakSignal, excludes, MAX_BATCH, MODEL, TIMEOUT_MS, CONTROLS } from '../netlify/lib/editie-ai.mjs'
+import { judge, askOnce, weakSignal, excludes, ANKERS, ANCHORS_PER, MAX_BATCH, MODEL, TIMEOUT_MS, CONTROLS } from '../netlify/lib/editie-ai.mjs'
 
 const args = process.argv.slice(2)
 const labelFiles = args.flatMap((a, k) => (a === '--labels' ? [args[k + 1]] : []))
@@ -33,8 +36,10 @@ const items = [...fixture('editie-filters-sets.json'), ...fixture('ruis-labels.j
 for (const f of labelFiles) {
   const d = JSON.parse(readFileSync(f, 'utf8'))
   // Twee vormen: { items: [{ set, label, title, url, summary }] } of { nieuws_moet_blijven: [[kop, link, intro]], weg_hoort_eruit, grens_telt_niet_mee }.
-  if (Array.isArray(d.items)) items.push(...d.items, ...(d.rand || []).map((x) => ({ ...x, set: x.set || `${f}-rand` })))
-  for (const [key, label] of [['nieuws_moet_blijven', 'N'], ['weg_hoort_eruit', 'W'], ['grens_telt_niet_mee', 'G']]) for (const [title, url, summary] of d[key] || []) items.push({ set: f.split('/').pop(), label, title, url, summary })
+  // Zonder `set`-veld heet de set naar het bestand (niet "undefined").
+  const base = f.split('/').pop().replace(/\.json$/, '')
+  if (Array.isArray(d.items)) items.push(...d.items.map((x) => ({ ...x, set: x.set || base })), ...(d.rand || []).map((x) => ({ ...x, set: x.set || `${base}-rand` })))
+  for (const [key, label] of [['nieuws_moet_blijven', 'N'], ['weg_hoort_eruit', 'W'], ['grens_telt_niet_mee', 'G']]) for (const [title, url, summary] of d[key] || []) items.push({ set: base, label, title, url, summary })
 }
 // Dubbele stukken (dezelfde set, kop en link) één keer.
 const seenItem = new Set()
@@ -99,10 +104,19 @@ for (const [name, xs] of sets) {
     if (!client) {
       tin += 700 + 95 * batch.length // schatting: systeemprompt + per stuk bron/kop/intro/link/code
       tout += 30 * batch.length
+      // Elke batch waarin iets weg zou gaan, krijgt een controle: de zekere stukken plus ankers en gewone stukken (schatting:
+      // de gelabelde deals/aankondigingen in de batch, plus ANCHORS_PER + CONTROLS controlestukken).
+      const zeker = batch.filter((i) => i.label === 'W').length
+      if (zeker) {
+        calls++
+        tin += 700 + 95 * (zeker + ANCHORS_PER + CONTROLS)
+        tout += 30 * (zeker + ANCHORS_PER + CONTROLS)
+      }
       continue
     }
     try {
       const r = await judge(client, batch, { controls, deadline: Date.now() + 10000 })
+      if (r.ms?.length > 1) calls++
       tin += r.usage?.input_tokens || 0
       tout += r.usage?.output_tokens || 0
       ms.push(...(r.ms || []))
@@ -129,12 +143,12 @@ for (const [name, xs] of sets) {
 
 const pct = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : '-')
 const usd = (x) => `$${x.toFixed(4)}`
-say('| Set | Stukken | Naar model | Aanroepen | Nieuws | Nieuws weg door B | door A | Deals/aank. | A | A+B | Verdacht | Ontspoord | Fout | Kosten |')
+say('| Set | Stukken | Naar model | Aanroepen | Nieuws | Nieuws weg door B | door A | Deals/aank. | A | A+B | Gecontroleerd | Ontspoord | Fout | Kosten |')
 say('| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |')
 for (const r of rows) say(`| ${r.set} | ${r.stukken} | ${r.naarModel} | ${r.aanroepen} | ${r.nieuws} | ${client ? (r.nieuwsWeg ? `**${r.nieuwsWeg}**` : 0) : '-'} | ${r.nieuwsWegA} | ${r.deals} | ${r.A} | ${client ? r.AB : '-'} | ${r.verdacht} | ${r.ontspoord} | ${r.fout} | ${usd(r.kosten)}${client ? '' : '*'} |`)
 say()
 const cost = total.tin * IN + total.tout * OUT
-say(`**Samen:** nieuws onterecht weg door B **${client ? total.Nweg : '-'} van ${total.N}** (eis 0); door A ${total.NwegA} (alleen de bekende randgevallen van A, sets *-rand); deals/aankondigingen door A ${total.Wa} van ${total.W} (${pct(total.Wa, total.W)})${client ? `, door A+B ${total.Wb} (${pct(total.Wb, total.W)})` : ''}; ${total.naarModel} stukken naar het model in ${total.calls} aanroepen; tokens ${total.tin}/${total.tout}; kosten ${usd(cost)}${client ? '' : ' (geschat)'}; verdacht ${total.verdacht}, ontspoord ${total.ontspoord}, fout ${total.fout} (waarvan time-out ${total.timeout}).`)
+say(`**Samen:** nieuws onterecht weg door B **${client ? total.Nweg : '-'} van ${total.N}** (eis 0); door A ${total.NwegA} (alleen de bekende randgevallen van A, sets *-rand); deals/aankondigingen door A ${total.Wa} van ${total.W} (${pct(total.Wa, total.W)})${client ? `, door A+B ${total.Wb} (${pct(total.Wb, total.W)})` : ''}; ${total.naarModel} stukken naar het model in ${total.calls} aanroepen; tokens ${total.tin}/${total.tout}; kosten ${usd(cost)}${client ? '' : ' (geschat)'}; gecontroleerd ${total.verdacht}, ontspoord ${total.ontspoord}, fout ${total.fout} (waarvan time-out ${total.timeout}).`)
 if (ms.length) {
   const s = [...ms].sort((a, b) => a - b)
   say(`**Looptijd per aanroep:** p50 ${s[Math.floor(s.length / 2)]} ms, max ${s.at(-1)} ms (grens ${TIMEOUT_MS} ms).`)
@@ -152,11 +166,86 @@ if (liveWeg.length) {
   for (const w of liveWeg) say(`- ${w.source}: ${w.title} · ${w.soort}${w.reden ? `: ${w.reden}` : ''}`)
   say()
 }
-const ok = client && total.Nweg === 0 && total.fout === 0 && total.ontspoord === 0
+// Aanvallen (filters-b): het vangnet om het echte model heen. Met een sleutel krijgt het model de echte vragen, en een
+// omhulsel vervalst daarna het antwoord zoals een ontspoord model zou doen. Eis: in elke aanval 0 nieuws weg.
+//   - ankers: de vaste controlekoppen alleen; het echte model hoort ze allemaal nieuws te noemen (anders legt de controle
+//     B stil, of ontspoort het model op die onderwerpen);
+//   - alles-weg: elk oordeel wordt "aanbieding, zeker" (groot en klein: 40 en 5 nieuwsstukken);
+//   - onderwerp: elk stuk met het meest voorkomende signaalwoord van de batch wordt "aanbieding, zeker" (koopdag, Black Friday …);
+//   - tegenstrijdig: na elk oordeel komt een tweede over hetzelfde nummer dat het tegendeel zegt.
+const attacks = []
+if (client && !only) {
+  const newsPool = []
+  for (const [name, xs] of sets) if (name !== 'live-kern') newsPool.push(...xs.filter((i) => i.label === 'N' && !hardMark(i) && weakSignal(i)))
+  const plain = []
+  for (const [name, xs] of sets) if (name !== 'live-kern') plain.push(...xs.filter((i) => !hardMark(i) && !weakSignal(i)))
+  const controls = plain.slice(0, CONTROLS)
+  const TOPICS = [/black friday|cyber monday|prime day/i, /koopdag|uitverkoop|koopje/i, /korting|discount|aanbieding/i, /prijs|price/i, /podcast|aflevering|episode/i, /deal/i, /video|kijk|watch|stream/i, /\d\s?(%|procent|percent)/i]
+  const kopsOf = (params) => [...params.messages[0].content.matchAll(/^ {3}kop: (.*)$/gm)].map((m) => m[1])
+  const codesOf = (params) => [...params.messages[0].content.matchAll(/^ {3}code: (.*)$/gm)].map((m) => m[1])
+  const wrap = (rewrite) => ({ messages: { create: async (params, opts) => {
+    const res = await client.messages.create(params, opts)
+    let data = { oordelen: [] }
+    try { data = JSON.parse((res.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')) } catch {}
+    const oordelen = rewrite(Array.isArray(data?.oordelen) ? data.oordelen : [], kopsOf(params), codesOf(params))
+    return { ...res, stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ oordelen }) }] }
+  } } })
+  const zeker = (nr, code) => ({ nr, code, soort: 'aanbieding', zeker: true, reden: 'aanval' })
+  const run = async (naam, batch, c) => {
+    const row = { naam, stukken: batch.length, weg: 0, ontspoord: false, fout: null }
+    try {
+      const r = await judge(c, batch, { controls, deadline: Date.now() + 10000 })
+      row.weg = batch.filter((i) => excludes(r.verdicts.get(i.id))).length
+      row.ontspoord = !!r.ontspoord
+      tinA += r.usage?.input_tokens || 0
+      toutA += r.usage?.output_tokens || 0
+    } catch (e) {
+      row.fout = e?.constructor?.name || 'fout'
+    }
+    attacks.push(row)
+  }
+  let tinA = 0, toutA = 0
+  // ankers
+  try {
+    const r = await askOnce(client, ANKERS)
+    tinA += r.usage?.input_tokens || 0
+    toutA += r.usage?.output_tokens || 0
+    const weg = [...r.byNr.values()].filter(excludes).length
+    attacks.push({ naam: 'ankers (echt model, eis: alle nieuws)', stukken: ANKERS.length, weg, ontspoord: false, fout: r.byNr.size === ANKERS.length ? null : `${ANKERS.length - r.byNr.size} zonder oordeel` })
+  } catch (e) {
+    attacks.push({ naam: 'ankers (echt model, eis: alle nieuws)', stukken: ANKERS.length, weg: 0, ontspoord: false, fout: e?.constructor?.name || 'fout' })
+  }
+  const big = newsPool.slice(0, MAX_BATCH)
+  await run('alles-weg, 40 nieuws', big, wrap((os, kops, codes) => kops.map((_, k) => zeker(k + 1, codes[k]))))
+  await run('alles-weg, 5 nieuws', newsPool.slice(-5), wrap((os, kops, codes) => kops.map((_, k) => zeker(k + 1, codes[k]))))
+  // Elk onderwerp met minstens 3 nieuwskoppen: een batch met (tot) 20 daarvan en de rest ander nieuws; plus een kleine batch van 3.
+  for (const topic of TOPICS) {
+    const onTopic = newsPool.filter((i) => topic.test(i.title))
+    if (onTopic.length < 3) continue
+    const naam = topic.source.replace(/\\d\\s\?/g, 'getal ').replace(/[()]/g, '').replace(/\|/g, ' / ')
+    const topicBatch = [...onTopic.slice(0, 20), ...newsPool.filter((i) => !topic.test(i.title)).slice(0, MAX_BATCH - Math.min(20, onTopic.length))]
+    const skew = wrap((os, kops, codes) => kops.map((k, j) => (topic.test(k) ? zeker(j + 1, codes[j]) : os.find((o) => o?.nr === j + 1) || { nr: j + 1, code: codes[j], soort: 'nieuws', zeker: false, reden: 'aanval' })))
+    await run(`onderwerp ${naam}, 40`, topicBatch, skew)
+    await run(`onderwerp ${naam}, 3`, onTopic.slice(-3), skew)
+  }
+  await run('tegenstrijdig', big, wrap((os) => os.flatMap((o) => [o, excludes(o) ? { ...o, soort: 'nieuws' } : { ...o, soort: 'aanbieding', zeker: true }])))
+  total.tin += tinA
+  total.tout += toutA
+  say('## Aanvallen op het vangnet (eis: 0 nieuws weg)')
+  say()
+  say('| Aanval | Stukken | Nieuws weg | Ontspoord gezien | Fout |')
+  say('| --- | ---: | ---: | --- | --- |')
+  for (const a of attacks) say(`| ${a.naam} | ${a.stukken} | ${a.weg ? `**${a.weg}**` : 0} | ${a.ontspoord ? 'ja' : '-'} | ${a.fout || '-'} |`)
+  say()
+  say(`Kosten van de aanvallen: ${usd(tinA * IN + toutA * OUT)}.`)
+  say()
+}
+const attacksOk = attacks.every((a) => a.weg === 0 && !a.fout)
+const ok = client && total.Nweg === 0 && total.fout === 0 && total.ontspoord === 0 && attacksOk
 say('## Oordeel')
 if (args.includes('--proef')) say('Rookproef: het script werkt; over het echte model zegt dit niets. HOOT_EDITIE_AI blijft uit.')
 else if (!client) say('Niet gemeten (geen sleutel). HOOT_EDITIE_AI blijft uit.')
-else if (ok) say(`Eis gehaald: B weert 0 van ${total.N} nieuwskoppen, geen fouten, niets ontspoord. HOOT_EDITIE_AI=aan mag${liveWeg.length ? ', nadat de live lijst hierboven is nagelezen' : ''}.`)
-else say(`Eis NIET gehaald: ${total.Nweg} nieuws weg, ${total.fout} fouten (${total.timeout} time-outs), ${total.ontspoord} ontspoord. HOOT_EDITIE_AI blijft uit.`)
+else if (ok) say(`Eis gehaald: B weert 0 van ${total.N} nieuwskoppen, geen fouten, niets ontspoord${attacks.length ? `, ${attacks.length} aanvallen zonder nieuws weg` : ''}. HOOT_EDITIE_AI=aan mag${liveWeg.length ? ', nadat de live lijst hierboven is nagelezen' : ''}.`)
+else say(`Eis NIET gehaald: ${total.Nweg} nieuws weg, ${total.fout} fouten (${total.timeout} time-outs), ${total.ontspoord} ontspoord, ${attacks.filter((a) => a.weg || a.fout).length} aanvallen mislukt. HOOT_EDITIE_AI blijft uit.`)
 if (reportPath) writeFileSync(reportPath, lines.join('\n') + '\n')
 if (client && !ok) process.exitCode = 1

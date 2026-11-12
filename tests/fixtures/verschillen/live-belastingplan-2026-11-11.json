@@ -1,0 +1,173 @@
+{
+ "uitleg": "Het verhaal Belastingplan (sts2z5a) uit de live Editie van 11 november, avond (GET /api/feed?deel=kern, opgehaald 17.40 UTC): alleen bron, kop, intro en tijd. Voor de randgevallen uit keuring 2.",
+ "verhaal": {
+  "id": "sts2z5a",
+  "sourceNames": [
+   "NU.nl",
+   "Nederlands Dagblad",
+   "Gazet van Antwerpen",
+   "NOS",
+   "RTL Nieuws",
+   "Het Parool",
+   "Het Laatste Nieuws",
+   "NRC",
+   "AD",
+   "De Telegraaf",
+   "Het Financieele Dagblad"
+  ],
+  "items": [
+   {
+    "id": "t4sxai",
+    "source": "nu",
+    "sourceName": "NU.nl",
+    "title": "VVD-top bijeen na belastingdeal D66 en CDA met links blok, kabinetscrisis dreigt",
+    "summary": "De top van de VVD zit in overleg over de belastingdeal die coalitiepartners D66 en CDA eerder op de dag hebben gesloten met PRO en Volt.",
+    "publishedAt": "2026-11-11T17:09:48.000Z"
+   },
+   {
+    "id": "14xrl9p",
+    "source": "nd",
+    "sourceName": "Nederlands Dagblad",
+    "title": "Paternotte: geen crisis in coalitie na deal met PRO",
+    "summary": "Volgens D66-fractieleider Jan Paternotte is er geen sprake van een coalitiecrisis, nadat zijn partij en het CDA een deal hebben gesloten met de linkse oppositie zonder dat de VVD daarmee akkoord ging.",
+    "publishedAt": "2026-11-11T17:01:10.000Z"
+   },
+   {
+    "id": "djrci4",
+    "source": "gva",
+    "sourceName": "Gazet van Antwerpen",
+    "title": "Akkoord rond vermogentaks in Nederland, maar niet alle regeringspartijen doen mee",
+    "summary": "In Nederland hebben regeringspartijen D66 en CDA een akkoord gesloten met oppositiepartijen PRO en Volt voor een belastinghervorming, met onder meer een vermogenstaks in.",
+    "publishedAt": "2026-11-11T16:38:05.000Z"
+   },
+   {
+    "id": "1r0cz31",
+    "source": "nos",
+    "sourceName": "NOS",
+    "title": "Hoogspanning in coalitie over belastingplan: ‘dit geeft krassen’",
+    "summary": "De verhoudingen in de coalitie van D66, VVD en CDA staan onder hoogspanning na de deal van twee van de drie partijen met de linkse oppositiepartijen Pro en Volt.",
+    "publishedAt": "2026-11-11T16:33:28.000Z"
+   },
+   {
+    "id": "o162l3",
+    "source": "rtl",
+    "sourceName": "RTL Nieuws",
+    "title": "Paternotte ziet geen crisis, maar ‘perspectief’ na compromis met PRO en Volt",
+    "summary": "D66-fractievoorzitter Jan Paternotte ziet kansen om een meerderheid te vinden voor het belastingplan, na een compromis met PRO en Volt.",
+    "publishedAt": "2026-11-11T16:29:38.000Z"
+   },
+   {
+    "id": "1buv2fs",
+    "source": "parool",
+    "sourceName": "Het Parool",
+    "title": "Deze tijdbom over het geld van miljonairs tikte al sinds juli binnen het kabinet",
+    "summary": "D66 en CDA lijken op een harde clash met de VVD aan te koersen. Hun deal over een miljonairsbelasting is tegen het zere been van de liberalen.",
+    "publishedAt": "2026-11-11T16:14:00.000Z"
+   },
+   {
+    "id": "9d6ir0",
+    "source": "hln",
+    "sourceName": "Het Laatste Nieuws",
+    "title": "Ook bij onze noorderburen spanning rond begroting: miljonairsbelasting zet Nederlandse regering onder druk",
+    "summary": "Niet alleen in België vinden de begrotingsgesprekken onder hoogspanning plaats.",
+    "publishedAt": "2026-11-11T16:10:00.000Z"
+   },
+   {
+    "id": "1demdsr",
+    "source": "rtl",
+    "sourceName": "RTL Nieuws",
+    "title": "Hoogspanning in de coalitie, VVD-top voor overleg bijeen op ministerie van Defensie",
+    "summary": "De spanning in politiek Den Haag loopt op nadat coalitiepartijen D66 en CDA een deal hebben gesloten met PRO en Volt voor een aanpassing van het belastingplan: in ruil voor steun voor het plan worden vermogenden zwaarder belast.",
+    "publishedAt": "2026-11-11T16:02:10.000Z"
+   },
+   {
+    "id": "64um8i",
+    "source": "nd",
+    "sourceName": "Nederlands Dagblad",
+    "title": "Bontenbal: linkse partijen meer bereid tot concessies dan rechtse",
+    "summary": "CDA-leider Henri Bontenbal zag bij de linkse oppositiepartijen PRO en Volt meer bereidheid om samen te werken dan bij het rechtse verbond van JA21, BBB en SGP.",
+    "publishedAt": "2026-11-11T16:01:29.000Z"
+   },
+   {
+    "id": "mfqa6v",
+    "source": "nrc",
+    "sourceName": "NRC",
+    "title": "‘Wij zijn over onze schaduw heen gestapt’, zegt CDA-leider Bontenbal. Nu is het ‘aan de VVD om te reageren’",
+    "summary": "CDA-leider Henri Bontenbal is blij met de overeenkomst die zijn partij en D66 hebben weten te sluiten met Pro en Volt.",
+    "publishedAt": "2026-11-11T15:57:18.000Z"
+   },
+   {
+    "id": "1p93gi1",
+    "source": "rtl",
+    "sourceName": "RTL Nieuws",
+    "title": "Bontenbal heeft na akkoord met PRO ‘goede hoop’ dat VVD met aanpassingen kan leven",
+    "summary": "CDA-leider Henri Bontenbal prijst PRO-leider Jesse Klaver, die volgens hem ‘heel veel heeft weggegeven’ om tot een akkoord te komen.",
+    "publishedAt": "2026-11-11T15:32:30.000Z"
+   },
+   {
+    "id": "6vrrgq",
+    "source": "ad",
+    "sourceName": "AD",
+    "title": "Belastingplan: ‘Wat de VVD ook kiest, de partij is altijd de helft van haar kiezers kwijt’",
+    "summary": "In de podcast Praat mee met AD bespreken we elke dag een kwestie. Vandaag: de VVD moet PRO tegemoetkomen om het belastingplan te redden.",
+    "publishedAt": "2026-11-11T15:26:27.000Z"
+   },
+   {
+    "id": "119mt1a",
+    "source": "ad",
+    "sourceName": "AD",
+    "title": "Deze tijdbom over het geld tikte al sinds juli binnen het kabinet",
+    "summary": "D66 en CDA lijken op een harde clash met de VVD aan te koersen. Hun deal over een miljonairsbelasting is tegen het zere been van de liberalen.",
+    "publishedAt": "2026-11-11T15:15:00.000Z"
+   },
+   {
+    "id": "10w32zf",
+    "source": "telegraaf",
+    "sourceName": "De Telegraaf",
+    "title": "Wouter de Winther over ’chaotische’ belastingdeal: ’Dit is duidelijke breuk binnen de coalitie’",
+    "summary": "Coalitiepartijen D66 en CDA hebben zonder de VVD een deal gesloten met Pro en Volt over de vermogenstaks. Dat hebben ze gedaan in ruil voor steun aan het belastingplan.",
+    "publishedAt": "2026-11-11T15:14:00.000Z"
+   },
+   {
+    "id": "bv6ulq",
+    "source": "nrc",
+    "sourceName": "NRC",
+    "title": "Spanning in Den Haag: D66 en CDA sluiten deal met Pro en Volt over Belastingplan met ‘miljonairsbelasting’ – positie VVD is nog onduidelijk",
+    "summary": "Het is nog onduidelijk wat de positie is van coalitiepartij VVD. Deze partij gaf eerder aan weinig voor een ‘miljonairsbelasting’ te voelen.",
+    "publishedAt": "2026-11-11T13:26:03.000Z"
+   },
+   {
+    "id": "1tk1ju6",
+    "source": "fd",
+    "sourceName": "Het Financieele Dagblad",
+    "title": "Spanning in coalitie na deal links met D66 en CDA over belastingplan",
+    "summary": "De linkse oppositiepartijen Pro en Volt hebben een akkoord gesloten met D66 en CDA over steun aan het belastingplan.",
+    "publishedAt": "2026-11-11T13:22:02.000Z"
+   },
+   {
+    "id": "h4ltpr",
+    "source": "parool",
+    "sourceName": "Het Parool",
+    "title": "D66 en CDA sluiten deal ‘over links’ met PRO en Volt, maar vraag is of VVD miljonairstaks gaat pruimen",
+    "summary": "Coalitiepartijen D66 en CDA gaan voor steun voor de belastingplannen ‘over links’. Dat betekent ook dat er een miljonairsbelasting komt.",
+    "publishedAt": "2026-11-11T13:17:00.000Z"
+   },
+   {
+    "id": "1r0cz5j",
+    "source": "nos",
+    "sourceName": "NOS",
+    "title": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD",
+    "summary": "Coalitiepartijen D66 en CDA hebben een deal gesloten met oppositiepartijen Pro en Volt over een belastingverhoging voor vermogenden en een belastingverlaging op loon.",
+    "publishedAt": "2026-11-11T13:15:18.000Z"
+   },
+   {
+    "id": "1shclhk",
+    "source": "nu",
+    "sourceName": "NU.nl",
+    "title": "D66 en CDA sluiten akkoord met links over belastingplan, geen reactie VVD",
+    "summary": "PRO en Volt hebben een akkoord gesloten met coalitiepartijen D66 en CDA over hun voorstel voor een verhoging van de belasting op vermogen.",
+    "publishedAt": "2026-11-11T13:14:28.000Z"
+   }
+  ]
+ }
+}

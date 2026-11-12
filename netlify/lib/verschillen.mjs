@@ -13,8 +13,17 @@
 //
 // Achter de vlag HOOT_VERSCHILLEN=aan (standaard uit). Gecachet per verhaal-versie (verhaal-id + de
 // gesorteerde bronnen) in KV, zonder persoonsgegevens. Een nieuwe bronnenset toont geen oud blok (de telwoorden
-// zouden niet meer kloppen). Met een tijdsbudget per ronde: de Editie wacht hooguit dat budget en faalt nooit;
-// wat niet af is, komt een volgende ronde (een al geschreven antwoord wordt bewaard en alleen nog gecontroleerd).
+// zouden niet meer kloppen).
+//
+// Buiten de kritieke route: de feed-build leest alleen wat al gekeurd in KV staat (verschillenUitKV, zonder model,
+// met een kort leesbudget). Schrijven en keuren gebeurt los, in een eigen geplande functie
+// (functions/verschillen-refresh.mjs → verschillenRonde → schrijfVerschillen), met een dagplafond, hooguit N per
+// ronde, hooguit drie pogingen per dag en een tijdsbudget; wat niet af is, komt een volgende ronde (een al
+// geschreven antwoord wordt bewaard en alleen nog gecontroleerd).
+//
+// Taal volgt bronkeuze: het blok wordt alleen uit Nederlandstalige koppen en intro's geschreven en noemt alleen
+// Nederlandstalige bronnen. Zo ziet een lezer die geen Engelse bronnen koos er nooit een Engelse bron in, en is
+// het blok voor iedereen (web en app) hetzelfde.
 import { SOURCES } from './sources.mjs'
 import { kvGet, kvSet } from './kv.mjs'
 import { hash } from '../../shared/util.mjs'
@@ -23,7 +32,7 @@ import { coverageOf } from '../../shared/edition-policy.mjs'
 export const VERSCHILLEN_SCHRIJVER = 'claude-sonnet-5-5'
 export const VERSCHILLEN_CONTROLE = 'claude-haiku-5-5'
 // Versie van de regels: hoort bij de cachesleutel, zodat betere regels opnieuw schrijven.
-export const VERSCHILLEN_VERSIE = 2
+export const VERSCHILLEN_VERSIE = 3
 export const MIN_UITGEVERS = 3
 export const MAX_WOORDEN = 75 // hard plafond in code; de schrijver krijgt hooguit 70 mee
 export const MAX_ZINNEN = { gedeeld: 1, verschil: 1, onbekend: 1 } // één scherp verschil
@@ -31,6 +40,7 @@ const MAX_RIJEN = 20
 const OUDER = 48 * 36e5 // een stuk van twee dagen vóór het nieuwste is achtergrond, geen melding
 const DAG_PLAFOND = 60 // nieuwe blokken per dag (kosten)
 const POGINGEN = 3 // per verhaal-versie per dag
+export const BLOK_TAAL = 'nl' // taal volgt bronkeuze: alleen Nederlandstalige bronnen in het blok
 
 export const verschillenAan = (env = process.env) => env?.HOOT_VERSCHILLEN === 'aan'
 
@@ -46,6 +56,7 @@ Wat telt als verschil:
 - Dat de ene bron iets noemt en de andere er niets over zegt, is géén verschil. Dat mag alleen als "alleen X noemt …", en dat moet dan kloppen voor álle regels.
 - Noem je een groep ("NOS en NU.nl melden …"), kijk dan of andere bronnen hetzelfde zeggen. Zo ja: noem ze ook, of laat de tegenstelling weg. Een bron staat nooit aan beide kanten: zegt hij ook wat de andere kant zegt, dan hoort hij niet in de tegenstelling.
 - Twee dingen die allebei waar kunnen zijn ("Democraten afwezig" en "Republikeinen blokkeerden") zijn geen tegenstelling. Hooguit een andere nadruk, en schrijf het dan ook zo.
+- Een verschil noemt beide kanten eerlijk. Zeggen meer bronnen hetzelfde als één kant, noem ze dan ook; anders vertekent het beeld. Drie koppen die allemaal hetzelfde zeggen ("spanning", "crisis") zijn één kant, geen verschil.
 - Twijfel je, of is er geen echt verschil: oordeel "geen" en geef geen zinnen. Liever niets dan iets vaags.
 
 Regels:
@@ -54,14 +65,16 @@ Regels:
 - Elk getal (ook in woorden: "driehonderd", "elf") staat bij de bron die je ervoor noemt.
 - Citaten tussen ‘ ’ alleen letterlijk uit een Nederlandstalige kop of intro van de bron die je ervoor noemt, hooguit vijf woorden. Engels vertaal je, nooit tussen aanhalingstekens.
 - Bronnamen precies zoals in de lijst, zonder bijvoeglijk naamwoord. Noem geen andere media of persbureaus (ANP, Reuters) dan die in de lijst.
-- Beschrijf, beoordeel niet: geen oordeel over media (eenzijdig, sensationeel, misleidend, terecht, framing), geen motieven (wil, probeert), geen kloktijden.
+- Beschrijf, beoordeel niet: zeg wat de bronnen schrijven, niet wat je ervan vindt. Geen oordeel over media of hun toon (eenzijdig, sensationeel, alarmistisch, overtrokken, dramatisch, kiest voor drama, genuanceerd, misleidend, terecht, framing), geen motieven (wil, probeert, bewust), geen kloktijden.
+- Elke zin staat los: hij moet kloppen als de andere zinnen wegvallen. Dus geen "ook", "eveneens", "daarnaast", "bovendien", "net als", en geen zin die begint met "die", "dat", "deze", "ze" of "maar" en zo naar een andere zin verwijst.
 - Nederlands, neutraal, kort.
 
 Citeerplicht per zin:
 - "bronnen": de nummers van álle regels die de zin draagt of noemt.
 - "fragmenten": per bron uit "bronnen" minstens één letterlijk stuk (een paar woorden, exact gekopieerd, zelfde spelling en hoofdletters) uit die kop of intro dat de zin draagt.
 - "uniek": bij "alleen …" of "als enige" de woorden die alleen in die regels staan; anders leeg.
-- "afwezig": bij "geen van de bronnen …" of "nergens" de woorden die in geen enkele regel staan; anders leeg.`
+- "afwezig": bij "geen van de bronnen …" of "nergens" de woorden die in geen enkele regel staan; anders leeg.
+- "kanten": alleen bij soort "verschil" (anders leeg). Precies twee kanten; alleen bij "alleen X …" mag het er één zijn. Per kant: "bronnen", de nummers van álle regels die zeggen wat die kant zegt (ook die je liever niet noemt: dan noem je ze toch, of je kiest een ander verschil), en "kenmerk", een paar woorden die letterlijk bij elke bron van die kant staan en bij geen enkele andere bron. Een bron staat nooit aan beide kanten.`
 
 const CONTROLE = `Je controleert een korte vergelijking van media tegen de bronregels waaruit hij is geschreven. Je krijgt de genummerde bronregels (bron, datum, kop, intro) en de genummerde zinnen, elk met zijn soort en de regels die hij aanhaalt.
 
@@ -71,7 +84,10 @@ Per zin:
   - het alleen gaat om de ene die iets noemt en de andere die zwijgt (tenzij de zin zegt "alleen X" en dat klopt voor alle regels);
   - een bron aan de ene kant staat, terwijl zijn kop of intro ook zegt wat de andere kant zegt;
   - bronnen buiten de genoemde groep hetzelfde zeggen als die groep, maar niet genoemd worden;
-  - de twee kanten elkaar niet uitsluiten (allebei waar kunnen zijn) en de zin ze toch als tegenstelling brengt.
+  - de twee kanten elkaar niet uitsluiten (allebei waar kunnen zijn) en de zin ze toch als tegenstelling brengt;
+  - de zin maar één kant noemt (een opsomming van bronnen die hetzelfde zeggen is geen verschil), of een kant eenzijdig neerzet doordat bronnen die hetzelfde zeggen ontbreken.
+- "beschrijft": zegt de zin alleen wat de bronnen schrijven? Onwaar bij elk oordeel over media of hun toon, ook in andere woorden dan deze: alarmistisch, overtrokken, sensationeel, dramatisch, "kiest voor drama", genuanceerd, eenzijdig, misleidend, terecht; en bij motieven (wil, probeert, bewust).
+- "los": klopt de zin als enige zin, zonder de andere? Onwaar bij "ook", "eveneens", "daarnaast", of een verwijzing ("die", "dat", "deze", "ze") naar een andere zin.
 - "reden": één korte zin.`
 
 const SCHRIJF_SCHEMA = {
@@ -92,8 +108,12 @@ const SCHRIJF_SCHEMA = {
           },
           uniek: { type: 'array', items: { type: 'string' } },
           afwezig: { type: 'array', items: { type: 'string' } },
+          kanten: {
+            type: 'array',
+            items: { type: 'object', properties: { bronnen: { type: 'array', items: { type: 'integer' } }, kenmerk: { type: 'string' } }, required: ['bronnen', 'kenmerk'], additionalProperties: false },
+          },
         },
-        required: ['soort', 'tekst', 'bronnen', 'fragmenten', 'uniek', 'afwezig'],
+        required: ['soort', 'tekst', 'bronnen', 'fragmenten', 'uniek', 'afwezig', 'kanten'],
         additionalProperties: false,
       },
     },
@@ -109,8 +129,8 @@ const CONTROLE_SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { zin: { type: 'integer' }, gedragen: { type: 'boolean' }, echt_verschil: { type: 'boolean' }, reden: { type: 'string' } },
-        required: ['zin', 'gedragen', 'echt_verschil', 'reden'],
+        properties: { zin: { type: 'integer' }, gedragen: { type: 'boolean' }, echt_verschil: { type: 'boolean' }, beschrijft: { type: 'boolean' }, los: { type: 'boolean' }, reden: { type: 'string' } },
+        required: ['zin', 'gedragen', 'echt_verschil', 'beschrijft', 'los', 'reden'],
         additionalProperties: false,
       },
     },
@@ -125,15 +145,16 @@ const LANG_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.lang]))
 const langOf = (it) => it.lang || SOURCE.get(it.source)?.lang || LANG_BY_NAME.get(it.sourceName) || 'nl'
 const dag = (iso) => (iso ? String(iso).slice(0, 10) : '?')
 
-// De regels voor het model: één per stuk, nieuwste eerst, zonder achtergrondstukken van eerder.
-// `alle`: elk stuk van het verhaal (ook de oudere), voor het natellen van "alleen" en "geen van".
-export function verschillenRows(story, itemsById) {
+// De regels voor het model: één per stuk, nieuwste eerst, zonder achtergrondstukken van eerder, en alleen in de
+// taal van het blok (Nederlands: taal volgt bronkeuze). `alle`: elk stuk van het verhaal (ook de oudere en de
+// anderstalige), voor het natellen van "alleen", "geen van" en wie aan welke kant staat.
+export function verschillenRows(story, itemsById, { taal = BLOK_TAAL } = {}) {
   const alle = (story?.itemIds || []).map((id) => itemsById.get(id)).filter((i) => i && i.title)
   alle.sort((a, b) => String(b.publishedAt || '').localeCompare(String(a.publishedAt || '')))
   const nieuwste = Date.parse(alle[0]?.publishedAt || '') || 0
   const vers = alle.filter((i) => !nieuwste || !Date.parse(i.publishedAt || '') || nieuwste - Date.parse(i.publishedAt) <= OUDER)
-  const rows = vers.slice(0, MAX_RIJEN).map((i, k) => ({ n: k + 1, id: i.id, sourceName: i.sourceName, source: i.source, lang: langOf(i), datum: dag(i.publishedAt), title: i.title, summary: i.summary || '' }))
-  return { rows, alle: alle.map((i) => ({ id: i.id, sourceName: i.sourceName, title: i.title, summary: i.summary || '' })) }
+  const rows = vers.filter((i) => !taal || langOf(i) === taal).slice(0, MAX_RIJEN).map((i, k) => ({ n: k + 1, id: i.id, sourceName: i.sourceName, source: i.source, lang: langOf(i), datum: dag(i.publishedAt), title: i.title, summary: i.summary || '' }))
+  return { rows, alle: alle.map((i) => ({ id: i.id, sourceName: i.sourceName, lang: langOf(i), title: i.title, summary: i.summary || '' })) }
 }
 
 export const rowsInput = (rows) => rows.map((r) => `[${r.n}] ${r.sourceName} · ${r.datum} · ${r.title}${r.summary ? ` — ${r.summary}` : ''}`).join('\n')
@@ -180,7 +201,25 @@ const VERBODEN = [
   /\beenzijdig/i, /\bsensatio/i, /\bmisleid/i, /\b(on)?terecht(e)?\b/i, /\bframing\b/i, /\bframe[nt]?\b/i, /\btendentieu/i, /\bpropaganda/i,
   /\boverdrijf|\boverdrijv|\boverdreven/i, /\bbevooroordeeld/i, /\bgekleurd/i, /\bclickbait/i, /\bwil(len|t)?\b/i, /\bprobe(er|ert|erde|erden)\b/i,
   /\b\d{1,2}[:.]\d{2}\s*uur\b/i, /\b\d{1,2}\s*uur\b/i, /\bhoudt op\b/i, /\bomdat je\b/i,
+  // Oordelen over toon, ook in andere woorden (keuring 2): "alarmistisch", "overtrokken", "kiest voor drama".
+  /\balarm(is|erend)/i, /\bovertrokken/i, /\bopgeklopt/i, /\bopgeblazen/i, /\bhysteri/i, /\bpaniekzaai/i, /\bbangmakerij/i,
+  /\bstemmingmak/i, /\bdrama/i, /\bsensatie/i, /\bspektakel/i, /\bschreeuwerig/i, /\bsmeuïg/i, /\bhype/i, /\bonheilspellend/i,
+  /\bkie(st|zen)\s+voor\s+(drama|sensatie|spektakel|het\s+drama)/i, /\bkoos\s+voor\s+(drama|sensatie)/i, /\bspeelt?\s+in\s+op\b/i,
+  /\bpopulistisch/i, /\bpartijdig/i, /\bsuggestief/i, /\b(on)?genuanceerd/i, /\bnuance/i, /\bnuchter/i, /\bobjectie[fv]/i, /\bneutra(al|le)\b/i,
+  /\beerlijk(er|e)?\b/i, /\bkritiekloos/i, /\bbagatellis/i, /\b(doel)?bewust\b/i,
+  // Engels (alleen ter verdediging: het blok is Nederlands en citeert geen Engelse bron).
+  /\balarmist/i, /\bsensationalis/i, /\boverblown/i, /\boverhyped/i, /\bhyperbol/i, /\bexaggerat/i, /\bbiased\b/i, /\bone-sided/i,
+  /\bmisleading/i, /\bfearmonger/i, /\bspin\b/i, /\bslant(ed)?\b/i, /\bpartisan/i, /\bdownplay/i, /\bplay(s|ed)?\s+up\b/i,
 ]
+// Elke zin staat los (keuring 2): geen verwijzing naar een zin die kan wegvallen.
+const VERWIJST = /(?<![\p{L}])(ook|eveneens|daarnaast|bovendien|tevens|evenzo|evenmin|evenals|net als|nog een|een ander(e)? verschil|hetzelfde geldt|zelfde geldt)(?![\p{L}])/iu
+const VERWIJST_BEGIN = /^(die|dat|dit|deze|ze|zij|hij|daar\p{L}*|wel|toch|maar|en|dus|daarentegen|anderzijds)(?![\p{L}])/iu
+// De tekst zonder citaten: wat tussen aanhalingstekens staat, is (nagezocht) de bron, niet ons oordeel.
+const zonderCitaten = (t) => {
+  let uit = String(t)
+  for (const c of citatenIn(t).reverse()) uit = uit.slice(0, c.start) + ' … ' + uit.slice(c.end)
+  return uit
+}
 
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 // Elke bekende bronnaam, ook de korte vorm zonder lidwoord ("Telegraaf") en met een klein lidwoord midden
@@ -394,16 +433,27 @@ export function toetsZin(zin, { rows, alle, storyNames = [] }) {
     }
   }
 
-  // 8. Verboden woorden.
-  for (const re of VERBODEN) if (re.test(tekst)) fouten.push(`verboden woord: ${tekst.match(re)[0]}`)
+  // 8. Verboden woorden (beschrijft, oordeelt niet), buiten de nagezochte citaten.
+  const eigen = zonderCitaten(tekst)
+  for (const re of VERBODEN) if (re.test(eigen)) fouten.push(`verboden woord: ${eigen.match(re)[0]}`)
+  // 8b. Elke zin staat los: geen "ook", "daarnaast" of "die …" naar een andere zin.
+  const verwijst = eigen.match(VERWIJST) || eigen.trim().match(VERWIJST_BEGIN)
+  if (verwijst) fouten.push(`verwijst naar een andere zin ("${verwijst[0]}"): elke zin staat los`)
+  // 8c. Taal volgt bronkeuze: alleen bronnen in de taal van het blok.
+  for (const r of refs) if (r.lang && r.lang !== BLOK_TAAL) fouten.push(`anderstalige bron in het blok: ${r.sourceName} (taal volgt bronkeuze)`)
 
   // 9. Per soort: gedeeld door minstens de helft; een verschil heeft twee kanten (of een nagetelde "alleen").
-  if (zin.soort === 'gedeeld' && telBronnen * 2 < totaal) fouten.push(`gedeeld maar ${telBronnen} van ${totaal} bronnen`)
+  // "Gedeeld" telt tegen de bronnen in de taal van het blok (de anderstalige kan het blok niet noemen).
+  const totaalTaal = new Set([...rows.map((r) => r.sourceName), ...alle.filter((i) => (i.lang || BLOK_TAAL) === BLOK_TAAL).map((i) => i.sourceName)]).size || totaal
+  if (zin.soort === 'gedeeld' && telBronnen * 2 < totaalTaal) fouten.push(`gedeeld maar ${telBronnen} van ${totaalTaal} bronnen`)
   if (zin.soort === 'verschil') {
     const kanten = new Set(frags.filter((f) => byN.has(f.bron)).map((f) => `${byN.get(f.bron).sourceName}|${norm(f.tekst)}`))
     const verschillend = new Set([...kanten].map((k) => k.split('|')[1])).size >= 2 && refNames.size >= 2
     const alleenOk = ALLEEN_RE.test(tekst) && uniek.length > 0
     if (!verschillend && !alleenOk) fouten.push('verschil zonder twee kanten (vals contrast)')
+    // Beide kanten eerlijk (keuring 2): precies twee kanten, elk genoemd in de zin, geen bron aan beide kanten, en
+    // wie hetzelfde zegt als een kant (het letterlijke kenmerk), staat ook aan die kant.
+    if (!alleenOk) for (const f of toetsKanten(zin, { tekst, bronnen, byN, rows, alle, storyNames })) fouten.push(f)
     if (ZWIJG_RE.test(tekst)) fouten.push('noemen tegenover zwijgen is geen verschil (vals contrast)')
     // Geen bron aan beide kanten: wat de ene groep zegt (getal of citaat), mag niet ook bij een bron van de andere
     // groep staan. En wat één groep tussen aanhalingstekens zegt, staat bij geen enkele andere bron van het verhaal.
@@ -423,6 +473,31 @@ export function toetsZin(zin, { rows, alle, storyNames = [] }) {
   }
   if (!['gedeeld', 'verschil', 'onbekend'].includes(zin.soort)) fouten.push(`onbekende soort ${zin.soort}`)
   return [...new Set(fouten)]
+}
+
+function toetsKanten(zin, { tekst, bronnen, byN, rows, alle, storyNames }) {
+  const fouten = []
+  const kanten = (zin.kanten || [])
+    .map((k) => ({ rijen: [...new Set((k?.bronnen || []).filter((n) => byN.has(n)))].map((n) => byN.get(n)), kenmerk: norm(k?.kenmerk) }))
+    .filter((k) => k.rijen.length)
+  if (kanten.length !== 2) return [kanten.length < 2 ? 'verschil met één kant: niet beide kanten genoemd (eenzijdig)' : 'verschil met meer dan twee kanten']
+  const genoemd = new Set(namenIn(tekst, storyNames))
+  const namen = kanten.map((k) => new Set(k.rijen.map((r) => r.sourceName)))
+  for (const naam of namen[0]) if (namen[1].has(naam)) fouten.push(`${naam} staat aan beide kanten (vals contrast)`)
+  for (const r of kanten.flatMap((k) => k.rijen)) if (!bronnen.includes(r.n)) fouten.push(`kant met [${r.n}] die de zin niet aanhaalt`)
+  for (const n of bronnen) if (!kanten.some((k) => k.rijen.some((r) => r.n === n))) fouten.push(`[${n}] staat aan geen van beide kanten`)
+  const stukken = [...rows, ...alle]
+  kanten.forEach((k, i) => {
+    for (const naam of namen[i]) if (!genoemd.has(naam)) fouten.push(`kant noemt ${naam} niet (eenzijdig)`)
+    if (k.kenmerk.length < 3) return fouten.push('kant zonder kenmerk')
+    for (const naam of namen[i]) if (!k.rijen.some((r) => r.sourceName === naam && textOf(r).includes(k.kenmerk))) fouten.push(`kenmerk ‘${k.kenmerk}’ staat niet bij ${naam}`)
+    const ook = [...new Set(stukken.filter((r) => !namen[i].has(r.sourceName) && textOf(r).includes(k.kenmerk)).map((r) => r.sourceName))]
+    for (const naam of ook.filter((n) => namen[1 - i].has(n))) fouten.push(`${naam} zegt ook ‘${k.kenmerk}’ (vals contrast)`)
+    const elders = ook.filter((n) => !namen[1 - i].has(n))
+    if (elders.length) fouten.push(`‘${k.kenmerk}’ staat ook bij ${elders.join(', ')}, die niet bij die kant staat (eenzijdig)`)
+  })
+  if (kanten[0].kenmerk && kanten[0].kenmerk === kanten[1].kenmerk) fouten.push('twee kanten met hetzelfde kenmerk')
+  return fouten
 }
 
 // ---------- Samenstellen ----------
@@ -493,7 +568,8 @@ export async function maakVerschillen(client, { rows, alle, storyNames = [] }, {
   }
 
   // Tweede controle (Haiku 5.5): gedragen, en geen vals contrast.
-  const lijst = over.map((z, k) => `${k + 1}. (${z.soort}; regels ${z.bronnen.join(', ')}) ${z.tekst}`).join('\n')
+  const kantTekst = (z) => (z.soort === 'verschil' && z.kanten?.length ? `; ${z.kanten.map((k, i) => `kant ${'AB'[i] || i + 1}: regels ${(k.bronnen || []).join(', ')}`).join('; ')}` : '')
+  const lijst = over.map((z, k) => `${k + 1}. (${z.soort}; regels ${z.bronnen.join(', ')}${kantTekst(z)}) ${z.tekst}`).join('\n')
   const check = await client.messages.create(
     {
       model: VERSCHILLEN_CONTROLE,
@@ -508,7 +584,17 @@ export async function maakVerschillen(client, { rows, alle, storyNames = [] }, {
   const oordelen = new Map((JSON.parse(textBlocks(check)).zinnen || []).map((v) => [v.zin, v]))
   over = over.filter((z, k) => {
     const v = oordelen.get(k + 1)
-    const reden = !v ? 'controle gaf geen oordeel' : !v.gedragen ? `niet gedragen: ${v.reden}` : z.soort === 'verschil' && !v.echt_verschil ? `vals contrast: ${v.reden}` : null
+    const reden = !v
+      ? 'controle gaf geen oordeel'
+      : !v.gedragen
+        ? `niet gedragen: ${v.reden}`
+        : z.soort === 'verschil' && !v.echt_verschil
+          ? `vals contrast: ${v.reden}`
+          : v.beschrijft === false
+            ? `oordeelt: ${v.reden}`
+            : v.los === false
+              ? `staat niet los: ${v.reden}`
+              : null
     if (reden) verslag.weg.push({ ...z, reden: [reden], stap: 'controle' })
     return !reden
   })
@@ -530,23 +616,50 @@ export const verschillenKey = (story, rows) => `verschillen-v${VERSCHILLEN_VERSI
 const dagKey = (now) => `verschillen-v${VERSCHILLEN_VERSIE}-dag:${new Date(now).toISOString().slice(0, 10)}`
 
 // Welke verhalen in de Editie een blok kunnen krijgen: verhalen (geen losse stukken), niet vastgehouden
-// (`held`), met drie of meer uitgevers (zusterkranten tellen als één).
+// (`held`), met drie of meer Nederlandstalige uitgevers (zusterkranten tellen als één).
 export function kandidaten(entries = [], storyById = new Map(), itemsById = new Map()) {
   const out = []
   for (const e of entries) {
     if (e?.kind !== 'story' || e.held) continue
     const st = storyById.get(e.id)
     if (!st || out.some((s) => s.id === st.id)) continue
-    const items = st.itemIds.map((id) => itemsById.get(id)).filter(Boolean)
+    // Taal volgt bronkeuze: drie of meer uitgevers in de taal van het blok.
+    const items = st.itemIds.map((id) => itemsById.get(id)).filter((i) => i && langOf(i) === BLOK_TAAL)
     if (coverageOf(items).publisherCount >= MIN_UITGEVERS) out.push(st)
   }
   return out
 }
 
-// Voor de verhalen van de Editie: een Map verhaal-id → blok. Met de vlag uit: meteen een lege Map,
-// zonder KV of model aan te raken. Nooit een fout naar buiten; na `budget` ms houdt het op (wat niet af
-// is, wordt afgebroken en komt een volgende ronde).
-export async function verschillenVoorEditie({ aan = verschillenAan(), client, entries, storyById, itemsById, now = Date.now(), get = kvGet, set = kvSet, budget = 15000, maxNieuw = 6, dagPlafond = DAG_PLAFOND, timeout = 25000 } = {}) {
+// In de feed-build (kritieke route): alleen lezen wat al gekeurd in KV staat. Geen model, geen schrijven, nooit
+// een fout naar buiten, en na `budget` ms (KV traag) gewoon wat er dan is. Met de vlag uit: meteen een lege Map.
+export async function verschillenUitKV({ aan = verschillenAan(), entries, storyById, itemsById, get = kvGet, budget = 1500 } = {}) {
+  const uit = new Map()
+  if (!aan) return uit
+  try {
+    const lijst = kandidaten(entries, storyById, itemsById)
+    let timer
+    await Promise.race([
+      Promise.allSettled(
+        lijst.map(async (st) => {
+          const entry = await get(verschillenKey(st, verschillenRows(st, itemsById).rows)).catch(() => null)
+          if (entry?.status === 'klaar' && entry.resultaat) uit.set(st.id, entry.resultaat)
+        }),
+      ),
+      new Promise((r) => (timer = setTimeout(r, budget))),
+    ])
+    clearTimeout(timer)
+    return new Map(uit)
+  } catch (e) {
+    console.error('verschillen', String(e?.message || e))
+    return new Map()
+  }
+}
+
+// Los van de feed (functions/verschillen-refresh.mjs): schrijven en keuren voor de verhalen van de Editie.
+// Geeft een Map verhaal-id → blok (ook wat al klaar was). Met de vlag uit: meteen een lege Map, zonder KV of
+// model aan te raken. Nooit een fout naar buiten; na `budget` ms stopt het (wat niet af is, wordt afgebroken en
+// komt een volgende ronde).
+export async function schrijfVerschillen({ aan = verschillenAan(), client, entries, storyById, itemsById, now = Date.now(), get = kvGet, set = kvSet, budget = 15000, maxNieuw = 6, dagPlafond = DAG_PLAFOND, timeout = 25000 } = {}) {
   const uit = new Map()
   if (!aan) return uit
   try {
@@ -604,6 +717,23 @@ export async function verschillenVoorEditie({ aan = verschillenAan(), client, en
   } catch (e) {
     console.error('verschillen', String(e?.message || e))
     return uit
+  }
+}
+
+// Eén ronde van de geplande functie: de Editie uit de laatst weggeschreven feed (KEYS.core), en daarvoor
+// schrijven wat nog ontbreekt. Raakt de feed zelf niet aan: de volgende feed-build leest het gekeurde blok uit KV.
+export async function verschillenRonde({ aan = verschillenAan(), client, readCore, now = Date.now(), budget = 20000, ...rest } = {}) {
+  if (!aan || !client) return new Map()
+  try {
+    const doc = await readCore()
+    const kern = JSON.parse(doc?.body || '{}')
+    if (!kern.edition?.entries) return new Map()
+    const itemsById = new Map((kern.related || []).map((i) => [i.id, i]))
+    const storyById = new Map((kern.stories || []).map((s) => [s.id, s]))
+    return await schrijfVerschillen({ aan, client, entries: kern.edition.entries, storyById, itemsById, now, budget, ...rest })
+  } catch (e) {
+    console.error('verschillen-ronde', String(e?.message || e))
+    return new Map()
   }
 }
 
