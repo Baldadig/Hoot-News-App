@@ -55,7 +55,7 @@ enum WidgetLetter {
 }
 
 // Koppen zetten zonder dat iOS midden in een woord afkapt: per plek de langste versie (de korte kop van de
-// server, dan steeds korter op een woordgrens, KortKop.trap) die in het aantal regels past.
+// server, KortKop.trap: sinds keuring 9 altijd de hele kop) en het aantal regels dat hij nodig heeft.
 enum WidgetZet {
     // Hoeveel regels een kop nodig heeft in deze breedte (gemeten met de letter van de widget).
     static func regels(_ tekst: String, _ m: WidgetLetter.Maat, breedte: CGFloat) -> Int {

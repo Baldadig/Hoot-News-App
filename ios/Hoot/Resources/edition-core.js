@@ -117,7 +117,7 @@ var HootCore = (() => {
   var headlineFit = (title) => ({ large: 0.25, medium: 0.125, compact: 0 })[headlineTier(title)];
 
   // src/lib/topics.js
-  var T = (id, label3) => ({ id, label: label3 });
+  var T = (id, label2) => ({ id, label: label2 });
   var TOPICS = [
     T("nederland", "Den Haag"),
     T("europa", "Europa"),
@@ -1453,8 +1453,8 @@ var HootCore = (() => {
       const vak = (h) => h.t.startsWith("bron:");
       const coverOf = (l) => hits.filter((hs) => hs.some((h) => h.t === l.t || vak(h) && !vak(l) && h.f === l.f)).length / items.length;
       const seenPos = pos.filter((h) => h.seen);
-      const label3 = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()].map((h) => ({ ...h, c: coverOf(h) * h.v })).sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0];
-      parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label3.t, f: label3.f, origin: prof.origin?.[label3.t] || "gekozen", cov: coverOf(label3), ...seenPos.length ? {} : { shown: false } };
+      const label2 = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()].map((h) => ({ ...h, c: coverOf(h) * h.v })).sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0];
+      parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label2.t, f: label2.f, origin: prof.origin?.[label2.t] || "gekozen", cov: coverOf(label2), ...seenPos.length ? {} : { shown: false } };
       const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)];
       const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && (!famCat(h) || famCat(h) === h.f)));
       const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length;
@@ -3455,12 +3455,12 @@ var HootCore = (() => {
     const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
     if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
     const media = String(item.mediaType || "");
-    const label3 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
+    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
     if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
     if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
-    if (label3 === "podcast") return { soort: "aankondiging", grond: "label" };
-    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label3 === "luister" || label3 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label3 === "luister" || label3 === "listen" ? "label" : "rubriek" };
+    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
+    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
     return null;
   }
   var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null);
@@ -3471,343 +3471,10 @@ var HootCore = (() => {
 
   // shared/kort-kop.mjs
   var KORT_MAX = 60;
-  var LOSSE_EINDES = /* @__PURE__ */ new Set([
-    "de",
-    "het",
-    "een",
-    "en",
-    "of",
-    "maar",
-    "van",
-    "in",
-    "op",
-    "aan",
-    "met",
-    "voor",
-    "naar",
-    "bij",
-    "om",
-    "te",
-    "tot",
-    "door",
-    "over",
-    "uit",
-    "na",
-    "als",
-    "dat",
-    "die",
-    "dit",
-    "deze",
-    "wie",
-    "wat",
-    "is",
-    "zijn",
-    "wordt",
-    "worden",
-    "heeft",
-    "hebben",
-    "moet",
-    "moeten",
-    "kan",
-    "kunnen",
-    "wil",
-    "willen",
-    "zal",
-    "zullen",
-    "gaat",
-    "gaan",
-    "nog",
-    "zo",
-    "zó",
-    "er",
-    "ook",
-    "want",
-    "omdat",
-    "toen",
-    "tegen",
-    "onder",
-    "tussen",
-    "zonder",
-    "via",
-    "per",
-    "sinds",
-    "rond",
-    "rondom",
-    "langs",
-    "binnen",
-    "buiten",
-    "nabij",
-    "jegens",
-    "achter",
-    "boven",
-    "naast",
-    "vanaf",
-    "volgens",
-    "tijdens",
-    "wegens",
-    "vanwege",
-    "zoals",
-    "dan",
-    "hoe",
-    "waar",
-    "waarom",
-    "wanneer",
-    "nadat",
-    "terwijl",
-    "doordat",
-    "zodat",
-    "opdat",
-    "hoewel",
-    "indien",
-    "waarna",
-    "waardoor",
-    "zich",
-    "hun",
-    "ze",
-    "zij",
-    "hij",
-    "we",
-    "wij",
-    "je",
-    "jij",
-    "ik",
-    "mijn",
-    "onze",
-    "ons",
-    "jouw",
-    "uw",
-    "meer",
-    "minder",
-    "vol",
-    "wel",
-    "heel",
-    "zeer",
-    "zelfs",
-    "the",
-    "a",
-    "an",
-    "and",
-    "or",
-    "but",
-    "of",
-    "to",
-    "for",
-    "on",
-    "at",
-    "by",
-    "with",
-    "from",
-    "as",
-    "is",
-    "are",
-    "was",
-    "were",
-    "be",
-    "has",
-    "have",
-    "will",
-    "can",
-    "that",
-    "this",
-    "its",
-    "his",
-    "her",
-    "their",
-    "into",
-    "after",
-    "over",
-    "about",
-    "amid",
-    "against",
-    "than",
-    "who",
-    "what",
-    "which",
-    "how",
-    "why",
-    "when",
-    "where",
-    "more",
-    "our",
-    "your",
-    "my",
-    "could",
-    "would",
-    "should",
-    "may",
-    "might",
-    "must",
-    "does",
-    "do",
-    "did",
-    "had",
-    "been",
-    "being",
-    "if",
-    "he",
-    "she",
-    "they",
-    "you",
-    "it",
-    "there",
-    "i"
-  ]);
-  var ONTKENNINGEN = /* @__PURE__ */ new Set([
-    "niet",
-    "geen",
-    "nooit",
-    "niets",
-    "niks",
-    "niemand",
-    "nergens",
-    "nee",
-    "noch",
-    "nimmer",
-    "geenszins",
-    "allerminst",
-    "amper",
-    "nauwelijks",
-    "zelden",
-    "evenmin",
-    "zonder",
-    "non",
-    "allesbehalve",
-    "not",
-    "no",
-    "never",
-    "nothing",
-    "none",
-    "nobody",
-    "nowhere",
-    "neither",
-    "nor",
-    "cannot",
-    "hardly",
-    "barely",
-    "scarcely",
-    "rarely",
-    "seldom",
-    "without",
-    "cant",
-    "dont",
-    "doesnt",
-    "didnt",
-    "wont",
-    "isnt",
-    "arent",
-    "wasnt",
-    "werent",
-    "hasnt",
-    "havent",
-    "hadnt",
-    "shouldnt",
-    "wouldnt",
-    "couldnt",
-    "aint",
-    "mustnt",
-    "neednt",
-    "shant",
-    "mightnt",
-    "oughtnt",
-    // Ontkennen zonder ontkenningswoord.
-    "ontkent",
-    "ontkennen",
-    "ontkende",
-    "ontkenden",
-    "onwaar",
-    "onjuist",
-    "deny",
-    "denies",
-    "denied",
-    "false",
-    // Bijna, ten onrechte, vals (keuring 8). "op een haar na" staat in `inkortbaar`.
-    "bijna",
-    "vrijwel",
-    "haast",
-    "tevergeefs",
-    "almost",
-    "nearly",
-    "onrechte",
-    "onterecht",
-    "onterechte",
-    "wrongly",
-    "falsely",
-    "vals",
-    "valse"
-  ]);
-  var VOORWAARDEN = /* @__PURE__ */ new Set([
-    "tenzij",
-    "behalve",
-    "als",
-    "mits",
-    "indien",
-    "zolang",
-    "unless",
-    "except",
-    "if",
-    "provided",
-    "providing"
-  ]);
-  var TEGENWOORDEN = /* @__PURE__ */ new Set([
-    "maar",
-    "terwijl",
-    "hoewel",
-    "ofschoon",
-    "doch",
-    "echter",
-    "but",
-    "while",
-    "whereas",
-    "although",
-    "though",
-    "yet",
-    "however"
-  ]);
-  var woorden = (s) => s.split(" ").filter(Boolean).length;
-  var schoon = (s) => String(s ?? "").replace(/[\u200B-\u200D\uFEFF]/gu, "").replace(/[\s\u0085]+/gu, " ").trim();
-  var staart = (s) => s.replace(/[\s,;:–—\-‘“'"(]+$/u, "");
-  var zonderAccent = (w) => w.normalize("NFD").replace(/\p{M}/gu, "");
-  var letters = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}]/gu, "");
-  var APOSTROF = /[’ʼ`´＇‘]/gu;
-  var ontkenning = (w) => {
-    const a = w.toLowerCase().replace(APOSTROF, "'");
-    return ONTKENNINGEN.has(letters(a)) || a.split(/[-‐‑–—]/u).some((d) => ONTKENNINGEN.has(letters(d))) || /\p{L}n't(?![\p{L}])/u.test(a);
-  };
-  var GRENS_OVERAL = /[…\/\[\]()–—]/u;
-  var GRENS_EIND = /[.?!;:,][^\p{L}\p{N}]*$/u;
-  var grens = (w) => GRENS_OVERAL.test(w) || GRENS_EIND.test(w) || /^-+$/u.test(w);
-  var zwaar = (blijft, laatste) => (w, p) => grens(w) || VOORWAARDEN.has(letters(w)) || TEGENWOORDEN.has(letters(w)) || p >= blijft && ontkenning(w) || p >= blijft - 1 && p < laatste && /[’”»"'][^\p{L}\p{N}]*$/u.test(w);
-  var label = (alle) => alle.length > 2 && /^\p{L}[\p{L}\p{N}-]*:$/u.test(alle[0]) ? 1 : alle.length > 3 && /^\p{L}[\p{L}\p{N}-]*$/u.test(alle[0]) && /^[–—-]$/u.test(alle[1]) ? 2 : 0;
-  function inkortbaar(alle, n) {
-    const l = label(alle);
-    if (n - l < 2 || n >= alle.length) return false;
-    if (alle.slice(l).some(zwaar(n - l, alle.length - 1 - l))) return false;
-    return !/(?:^| )op een haar na(?: |$)/u.test(alle.slice(Math.max(0, n - 3)).map(letters).join(" "));
-  }
-  function zonderLosEinde(delen) {
-    const d = [...delen];
-    while (d.length > 1 && /\p{L}$/u.test(d[d.length - 1]) && LOSSE_EINDES.has(letters(d[d.length - 1]))) d.pop();
-    return d;
-  }
+  var schoon = (s) => String(s ?? "").replace(/[​-‍﻿]/gu, "").replace(/[\s\u0085]+/gu, " ").trim();
   function kortKop(title, max = KORT_MAX) {
     const t = schoon(title);
-    if (t.length <= max) return t;
-    const alle = t.split(" ");
-    let n = 0;
-    let lengte = -1;
-    while (n < alle.length && lengte + 1 + alle[n].length <= max - 1) lengte += 1 + alle[n++].length;
-    let delen = zonderLosEinde(alle.slice(0, n));
-    for (; ; ) {
-      const laatste = delen[delen.length - 1] || "";
-      const volgende = alle[delen.length] || "";
-      if (delen.length <= 2 || !/^\p{Ll}[\p{L}-]{2,}e$/u.test(laatste) || !/^[(‘’“'"]?\p{L}/u.test(volgende) || LOSSE_EINDES.has(letters(volgende))) break;
-      const korter = zonderLosEinde(delen.slice(0, -1));
-      if (korter.join(" ").length < (max - 1) / 3) break;
-      delen = korter;
-    }
-    const uit = staart(delen.join(" "));
-    if (!inkortbaar(alle, woorden(uit))) return null;
-    return `${uit}…`;
+    return t.length <= max ? t : null;
   }
   function metKorteKoppen(edition) {
     if (!edition || !Array.isArray(edition.entries)) return edition;
@@ -4331,7 +3998,7 @@ var HootCore = (() => {
     if (s.forTopic && !topics.length && i.topics.includes(s.forTopic)) n += 1;
     return n;
   }
-  var label2 = (ids) => {
+  var label = (ids) => {
     const names = INTERESTS.filter((i) => ids.includes(i.id)).map((i) => i.label);
     return names.length > 1 ? `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}` : names[0] || "";
   };
@@ -4359,7 +4026,7 @@ var HootCore = (() => {
       const paid = best(fits.filter((s) => aanrader(s, i)));
       if (paid) picks.push({ s: paid, i });
     }
-    if (dominant) add(dominant, `Past bij ${label2(covers(dominant))}`);
+    if (dominant) add(dominant, `Past bij ${label(covers(dominant))}`);
     const why = (s, i) => s.id === SNEL ? `Snel het ${i.id === "politiek" ? "politieke" : "binnenlandse"} nieuws` : `Past bij ${i.label}`;
     for (const { s, i } of picks) add(s, why(s, i));
     for (const i of chosen) {

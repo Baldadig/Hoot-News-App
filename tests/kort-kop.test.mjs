@@ -1,192 +1,108 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { kortKop, metKorteKoppen, veilig, ontkenning, KORT_MAX } from '../shared/kort-kop.mjs'
+import { kortKop, metKorteKoppen, veilig, KORT_MAX } from '../shared/kort-kop.mjs'
 
-// tests/fixtures/kort-kop.json wordt ook door iOS gelezen (KortKopTests): dezelfde korte kop op beide.
+// tests/fixtures/kort-kop.json wordt ook door iOS gelezen (KortKopTests): dezelfde uitkomst op beide.
 const fx = JSON.parse(readFileSync(new URL('./fixtures/kort-kop.json', import.meta.url), 'utf8'))
 const MATEN = [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]
 const schoonKop = (s) => s.replace(/[​-‍﻿]/gu, '').replace(/[\s\u0085]+/gu, ' ').trim()
 
-// Een eigen controle van de dichte regel (keuring 8), los van de code: de korte kop is de kop zelf, of de eerste
-// woorden ervan met "…". Dat laatste alleen als er (na een label van één woord) nergens een leesteken als grens,
-// een voorwaarde of een tegenwoord staat, en als er in wat wegvalt geen ontkenning of bijna-ontkenning staat.
-const L = (w) => w.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}]/gu, '')
-const ZWAAR = new Set('tenzij behalve als mits indien zolang unless except if provided providing maar terwijl hoewel ofschoon doch echter but while whereas although though yet however'.split(' '))
-const BIJNA = new Set('bijna vrijwel haast tevergeefs almost nearly onrechte onterecht wrongly falsely vals valse'.split(' '))
-function dicht(kop, k) {
-  const t = schoonKop(kop)
-  if (k === t) return t.length <= 60 || 'kop zelf, maar te lang'
-  if (!k.endsWith('…')) return 'geen beletselteken'
-  const a = t.split(' ')
-  const b = k.slice(0, -1).split(' ')
-  if (b.some((w, i) => (i < b.length - 1 ? w !== a[i] : !a[i].startsWith(w)))) return 'niet het begin van de kop'
-  const l = /^\p{L}[\p{L}\p{N}-]*:$/u.test(a[0]) ? 1 : /^[–—-]$/u.test(a[1] || '') && /^\p{L}+$/u.test(a[0]) ? 2 : 0
-  const rest = a.slice(l).join(' ')
-  if (/[…/[\]()–—]/u.test(rest) || /[.?!;:,](?=[^\p{L}\p{N}]*( |$))/u.test(rest) || / - /u.test(` ${rest} `)) return 'grens'
-  if (a.slice(l).some((w) => ZWAAR.has(L(w)))) return 'voorwaarde of tegenwoord'
-  if (a.slice(b.length).some((w) => ontkenning(w) || BIJNA.has(L(w)))) return 'ontkenning valt weg'
-  if (a.slice(b.length - 1, -1).some((w) => /[’”»"'][^\p{L}\p{N}]*$/u.test(w))) return 'citaat met toeschrijving valt weg'
-  if (b.length - l < 2) return 'te kort'
-  return true
-}
-
 test('korte kop: dezelfde uitkomst als de gedeelde gevallen', () => {
   assert.equal(fx.max, KORT_MAX)
-  assert.ok(fx.gevallen.length >= 400)
-  // `max` per geval: de kortere stappen van de widget. `verwacht: null`: op die maat geen korte vorm.
+  assert.ok(fx.gevallen.length >= 600)
+  // `max` per geval: de kortere stappen van vroeger. `verwacht: null`: de kop past niet, hij staat heel.
   for (const c of fx.gevallen) assert.equal(kortKop(c.kop, c.max ?? KORT_MAX), c.verwacht, `${c.kop} (${c.max ?? KORT_MAX})`)
 })
 
-test('korte kop: alleen binnen één bewering, op elke maat (keuring 8)', () => {
+test('korte kop: nooit ingekort, op elke maat (besluit "korte kop dicht", keuring 9)', () => {
+  // Een eigen controle, los van de code: de uitkomst is de kop zelf (die past), of null. Nooit een beletselteken
+  // dat de kop niet zelf had, nooit een woord minder.
   for (const c of fx.gevallen) {
+    const t = schoonKop(c.kop)
     for (const max of MATEN) {
       const k = kortKop(c.kop, max)
-      if (k === null) continue
-      assert.ok(k.length <= max, k)
-      assert.equal(dicht(c.kop, k), true, `${c.kop} (${max}) → ${k}`)
-      assert.ok(veilig(c.kop, k), `${c.kop} (${max}) → ${k}`)
+      if (t.length <= max) assert.equal(k, t, `${c.kop} (${max})`)
+      else assert.equal(k, null, `${c.kop} (${max}) → ${k}`)
+      if (k !== null) assert.ok(veilig(c.kop, k), `${c.kop} (${max})`)
     }
   }
 })
 
-test('korte kop: wat keuring 8 vond, staat heel (tegenspraak, voorwaarde, bijna)', () => {
+test('korte kop: wat keuring 9 vond, staat heel', () => {
   const heel = [
-    // 1. Een tegenspraak via een leesteken of tegenwoord.
-    'Kabinet-Schoof gevallen na crisisberaad volgens RTL Nieuws: premier noemt het bericht onzin',
-    'Kabinet is gevallen na urenlang crisisberaad in Den Haag: premier spreekt het tegen',
-    'Ajax wint met 3-0 van PSV in Eindhoven volgens de KNVB: uitslag achteraf ongeldig verklaard',
-    'Concert van Taylor Swift in Amsterdam gaat door: gemeente blaast het af vanwege veiligheidsrisico',
-    'Tax cuts take effect next year, says Treasury in Washington: Senate votes them down hours later',
-    'Kabinet is gevallen na urenlang crisisberaad, premier Schoof weerspreekt dat bericht',
-    'Prime minister resigns after crisis talks, BBC reports, Downing Street disputes the report',
-    'Kabinet is gevallen na urenlang crisisberaad, meldde De Telegraaf ten onrechte op zondagavond',
-    'Prime minister resigns after crisis talks, reports wrongly claimed on Sunday evening in London',
-    'Kabinet-Schoof valt na urenlang crisisberaad in Den Haag, aldus een vals bericht op X',
-    'Kabinet is gevallen na urenlang crisisberaad maar premier Schoof weerspreekt dat bericht',
-    'Prime minister resigns after crisis talks but Downing Street disputes the report entirely',
-    'Ajax wint met 3-0 van PSV in Eindhoven terwijl de KNVB de uitslag ongeldig verklaart',
-    'Kabinet is gevallen na urenlang crisisberaad… Premier Schoof weerspreekt dat bericht',
-    'Prime minister resigns after crisis talks—Downing Street calls the report untrue and wrong',
-    'Kabinet is gevallen na urenlang crisisberaad, meldt De Telegraaf. ’s Avonds spreekt de premier het tegen',
-    'Kabinet is gevallen na urenlang crisisberaad in Den Haag [update: bericht ingetrokken door krant]',
-    'Kabinet is gevallen na urenlang crisisberaad in Den Haag (premier: ‘nepnieuws’)',
-    'Kabinet is gevallen na urenlang crisisberaad / premier Schoof weerspreekt het bericht',
-    // 2. Een voorwaarde of uitzondering.
-    'Kabinet valt deze week over de asielwet van minister Faber, tenzij de PVV alsnog instemt',
-    'Government will collapse this week over the asylum bill unless the coalition partner backs down',
-    'Gemeente Amsterdam verbiedt vuurwerk in de hele stad, behalve op het Museumplein en de Dam',
-    'Ajax wordt kampioen van de eredivisie als PSV zondag verliest en Feyenoord gelijkspeelt',
-    'Fed cuts interest rates by half a point in December if inflation keeps falling, says Powell',
-    'Supermarkten verhogen prijzen voor zuivel en brood per 1 januari, mits de btw stijgt',
-    // 3. Bijna-ontkenningen.
-    'Ajax wint in de slotfase van de topper tegen PSV in het Philips Stadion bijna',
-    'Government meets its 2030 climate targets according to the watchdog report, almost',
-    'Kabinet haalt de klimaatdoelen voor 2030 volgens het PBL op een haar na',
+    // 1. Een tweede bewering met en/and, ook een die de eerste tegenspreekt.
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag en premier noemt dat bericht nepnieuws',
+    'Prime minister resigns after crisis talks in Downing Street and then withdraws his resignation',
+    'Ajax wint in de slotfase van de topper tegen PSV desondanks verliest de club de titel',
+    // 2. Scheidingstekens buiten elke lijst.
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag | De Speld',
+    'Prime minister resigns after crisis talks in Downing Street | The Onion',
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag：premier spreekt het tegen',
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag， premier weerspreekt dat bericht',
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag ‒ premier weerspreekt dat bericht',
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag • premier weerspreekt dat bericht',
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag--premier weerspreekt dat bericht',
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag 【bericht ingetrokken door krant】',
+    // 3. Voorwaarde of uitzondering zonder woord uit een lijst.
+    'Gemeente Amsterdam verbiedt vuurwerk in de hele stad met uitzondering van het Museumplein',
+    'Kabinet valt deze week over de asielwet van minister Faber mocht de PVV toch tegenstemmen',
+    'Merger of KLM and Air France goes ahead next spring pending approval from the European Commission',
+    'Fed cuts interest rates by half a point in December as long as inflation keeps falling',
+    // 4. Bijna-ontkenningen.
+    'Ajax haalt na een rampzalige seizoensstart de Europese plaatsen in de eredivisie ternauwernood',
+    'Government meets its 2030 climate targets according to the watchdog report virtually',
+    // 5. Een bron die de bewering ontkracht.
+    'Prime minister resigns after crisis talks in Downing Street according to a fake BBC report',
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag volgens satirische site De Speld',
+    'Vaccines cause autism in young children according to a debunked study from 1998',
+    // 6. Een combinerend teken na een spatie (web en iOS gelijk).
+    'Kabinet is gevallen na urenlang crisisberaad in Den Haag en premier treedt ́niet af vandaag',
+    // 7. Het eind van één bewering draagt de betekenis (ook live).
+    'Autistic teen missing in Australian bushland for 6 days rescued alive',
+    'Rechter wijst de eis van Greenpeace tegen Shell over de uitstoot in hoger beroep af',
+    'Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit',
+    // Ook een label vooraan maakt geen uitzondering meer.
+    'Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet',
   ]
   for (const kop of heel) for (const max of MATEN) assert.equal(kortKop(kop, max), null, `${kop} (${max})`)
-  // Zonder komma telt een voorwaarde net zo goed ("Fed cuts … if inflation keeps falling").
-  assert.equal(kortKop('Fed cuts interest rates by half a point in December if inflation keeps falling'), null)
-  assert.equal(kortKop('Kabinet haalt de klimaatdoelen voor 2030 volgens het Planbureau bijna helemaal', 40), null)
-  // Een citaat met een toeschrijving erna: de toeschrijving valt niet weg ("‘…’ zegt de oppositie").
-  for (const max of MATEN) assert.equal(kortKop('‘Premier Schoof treedt deze week af na het crisisberaad’ zegt de oppositie in de Tweede Kamer', max), null, `${max}`)
+  // Ook een ingekorte kop van een oudere server telt niet.
+  assert.equal(veilig('Autistic teen missing in Australian bushland for 6 days rescued alive', 'Autistic teen missing in Australian bushland for 6 days…'), false)
+  assert.equal(veilig('Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis', 'Iraanse dreiging is zó groot dat Amerikaanse minister…'), false)
 })
 
-test('korte kop: geen uitwijk naar een deel na de dubbele punt, en geen keuze tussen delen (keuring 8)', () => {
-  // Wat vroeger B of A werd, staat nu heel.
-  for (const kop of [
-    'Meteen twee seizoenen tegelijk besteld: Netflix blaast vampierensaga ‘Twilight’ nieuw leven in',
-    'Geen bezorgverbod voor Uber Eats in Amsterdam: onvoldoende nagedacht over gevolgen, oordeelt Raad van State',
-    '“Ongekende heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi bestrijden zedenfeiten',
-    'PSV aast op enorme transferstunt: landskampioen legt contact met Kevin De Bruyne, die in januari weg mag',
-    'Wat wil jij weten van de klimaattop in Turkije? Stel je vragen aan onze verslaggever',
-    'Kabinet valt over stikstof – oppositie wil nu snel verkiezingen in het voorjaar van volgend jaar',
-    'Raad van State: minister van Asiel moet veiligheid Syrië opnieuw beoordelen na nieuwe berichten uit Damascus',
-  ]) for (const max of MATEN) assert.equal(kortKop(kop, max), null, `${kop} (${max})`)
-  // Een oude korte vorm van de server (deel na de dubbele punt, of het deel ervoor) telt niet meer.
-  assert.equal(veilig('Meteen twee seizoenen tegelijk besteld: Netflix blaast vampierensaga ‘Twilight’ nieuw leven in', 'Netflix blaast vampierensaga ‘Twilight’ nieuw leven in'), false)
-  assert.equal(veilig('Groot onderzoek naar werking antidepressiva: verrassende uitkomst voor miljoenen gebruikers', 'Groot onderzoek naar werking antidepressiva'), false)
-  assert.equal(veilig('Kabinet is na een lange nacht gevallen en premier treedt af na beraad in Den Haag', 'Kabinet is gevallen en premier treedt af…'), false)
-})
-
-test('korte kop: een label van één woord vooraan blijft staan; een langer begin is geen label', () => {
-  assert.equal(kortKop('Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet'), 'Nepnieuws: kabinet is gevallen na urenlang crisisberaad…')
-  assert.equal(kortKop('Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet', 40), 'Nepnieuws: kabinet is gevallen…')
-  assert.equal(kortKop('Gerucht: Ajax ontslaat trainer Francesco Farioli na de nederlaag tegen PSV in Eindhoven', 24), 'Gerucht: Ajax ontslaat…')
-  assert.equal(kortKop('VIDEO – Kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet'), 'VIDEO – Kabinet is gevallen na urenlang crisisberaad in Den…')
-  // Na het label minstens twee woorden, anders geen korte vorm.
-  assert.equal(kortKop('Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet', 24), null)
-  // Zonder ruimte voor het label en twee woorden, of met een langer begin: de hele kop.
-  for (const kop of ['Fact check: prime minister resigned after crisis talks in Downing Street last night', 'Satire van De Speld: kabinet is gevallen na urenlang crisisberaad in Den Haag']) {
-    for (const max of MATEN) assert.equal(kortKop(kop, max), null, `${kop} (${max})`)
-  }
-  for (const max of MATEN) {
-    const k = kortKop('Hoax over het kabinet: premier Schoof treedt af na urenlang crisisberaad in Den Haag', max)
-    assert.equal(k, null, `${max}`)
-  }
-})
-
-test('korte kop: een ontkenning met accent, streepje of op n\'t wordt herkend, ook bijna', () => {
-  for (const w of ['níét', 'géén', 'nóóit', 'mustn’t', "needn't", 'shan’t', "mightn't", 'oughtn’t', "won't", 'can＇t', 'won‘t']) assert.ok(ontkenning(w), w)
-  for (const w of ['zelden', 'evenmin', 'noch', 'rarely', 'seldom', 'neither', 'nor', 'niet-ontvankelijk', 'non-profit', 'not-guilty', 'canʼt']) assert.ok(ontkenning(w), w)
-  for (const w of ['bijna', 'almost', 'nearly', 'vrijwel', 'tevergeefs', 'wrongly', 'vals', 'allesbehalve', 'onrechte']) assert.ok(ontkenning(w), w)
-  for (const w of ['nietig', 'nobel', 'notaris', 'canteen', 'Seldenrijk']) assert.ok(!ontkenning(w), w)
-  // Een ontkenning in wat blijft staan, mag; in wat wegvalt nooit.
-  assert.equal(kortKop('De Tweede Kamer steunt het belastingplan niet in de stemming van dinsdagavond laat'), 'De Tweede Kamer steunt het belastingplan niet…')
-  assert.equal(kortKop('Tweede Kamer steunt het nieuwe belastingplan van minister Heinen niet in de stemming van dinsdag'), null)
-  assert.equal(kortKop('De VVD steunt het nieuwe plan voor de verkoop van zorgverzekeraars écht níét'), null)
-  assert.equal(veilig('Government says British schools mustn’t reopen on Monday after the storm damage', 'Government says British schools…'), false)
-})
-
-test('korte kop: hooguit de maat, en een kop die past blijft precies zo', () => {
-  for (const c of fx.gevallen) assert.ok((kortKop(c.kop) ?? '').length <= KORT_MAX, c.kop)
+test('korte kop: een kop die past blijft precies zo', () => {
   const past = 'Een kop van precies zestig tekens die nog net past, wel fijn'
   assert.equal(past.length, 60)
   assert.equal(kortKop(past), past)
   assert.equal(veilig(past, past), true)
+  assert.equal(kortKop(`${past}!`), null)
+  assert.equal(kortKop('Kop die eindigt op een eigen beletselteken…'), 'Kop die eindigt op een eigen beletselteken…')
+  assert.equal(veilig('Korte kop', null), false)
   assert.equal(kortKop(''), '')
   assert.equal(kortKop(null), '')
-})
-
-test('korte kop: afkappen op een woordgrens, met een beletselteken en zonder los lidwoord of voorzetsel', () => {
-  assert.equal(kortKop('Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis'), 'Iraanse dreiging is zó groot dat Amerikaanse minister…')
-  assert.equal(kortKop('Sluiting dreigt voor verouderde laboratoria RIVM en verhuizen kan pas over een paar jaar'), 'Sluiting dreigt voor verouderde laboratoria RIVM…')
-  assert.equal(kortKop('Topfavoriete Lucinda Brand stapt uit met blessure in Superprestige Niel'), 'Topfavoriete Lucinda Brand stapt uit met blessure…')
-  for (const c of fx.gevallen) {
-    const out = kortKop(c.kop, c.max ?? KORT_MAX)
-    if (!out || !out.endsWith('…')) continue
-    const delen = out.slice(0, -1).split(' ')
-    // Elk woord staat zo in de kop: nooit een half woord.
-    assert.ok(schoonKop(c.kop).startsWith(`${delen.join(' ')} `), out)
-    const laatste = delen.pop().toLowerCase()
-    assert.ok(!['de', 'het', 'een', 'van', 'met', 'in', 'op', 'naar', 'en', 'the', 'of', 'to', 'rond', 'langs', 'nadat'].includes(laatste), out)
-  }
 })
 
 test('korte kop: onzichtbare tekens vallen weg, U+0085 (NEL) is witruimte, net als op iOS', () => {
   assert.equal(kortKop('Kop met​ onzichtbaar﻿ teken'), 'Kop met onzichtbaar teken')
   assert.equal(kortKop('Kop met\u0085teken'), 'Kop met teken')
-  const kop = 'Kamer stemt in met nieuwe asielwet van minister Faber en de Eerste Kamer dat\u0085niet doet deze week'
-  for (const max of [60, 52, 44, 28]) assert.equal(kortKop(kop, max), null, `${max}`)
-  assert.equal(veilig(kop, 'Kamer stemt in met nieuwe asielwet van minister Faber…'), false)
+  assert.equal(veilig('Kop met\u0085teken', 'Kop met teken'), true)
 })
 
-test('metKorteKoppen: per plek de kop van het hoofdstuk ingekort, de rest ongemoeid', () => {
+test('metKorteKoppen: per plek de kop als hij past, de rest ongemoeid', () => {
   const lang = 'Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis'
-  const twee = 'Kabinet is gevallen na urenlang crisisberaad in Den Haag: premier spreekt het tegen'
   const ed = {
     id: '2026-11-11-middag',
-    entries: [{ kind: 'story', id: 's1', leadId: 'a' }, { kind: 'item', id: 'b' }, { kind: 'item', id: 'zonder' }, { kind: 'story', id: 's2', leadId: 'x', title: 'Getoonde kop van De Redacteur' }, { kind: 'item', id: 'c' }],
-    items: [{ id: 'a', title: lang }, { id: 'b', title: 'Korte kop' }, { id: 'c', title: twee }],
+    entries: [{ kind: 'story', id: 's1', leadId: 'a' }, { kind: 'item', id: 'b' }, { kind: 'item', id: 'zonder' }, { kind: 'story', id: 's2', leadId: 'x', title: 'Getoonde kop van De Redacteur' }],
+    items: [{ id: 'a', title: lang }, { id: 'b', title: 'Korte kop' }],
   }
   const uit = metKorteKoppen(ed)
-  assert.equal(uit.entries[0].kortKop, 'Iraanse dreiging is zó groot dat Amerikaanse minister…')
+  // Past niet: geen korte kop, de widget toont de hele kop.
+  assert.equal('kortKop' in uit.entries[0], false)
   assert.equal(uit.entries[1].kortKop, 'Korte kop')
   assert.equal('kortKop' in uit.entries[2], false)
   assert.equal(uit.entries[3].kortKop, 'Getoonde kop van De Redacteur')
-  // Meer dan één bewering: geen korte kop, de widget toont de hele kop.
-  assert.equal('kortKop' in uit.entries[4], false)
   assert.equal(uit.items, ed.items)
-  assert.equal(ed.entries[0].kortKop, undefined) // het origineel blijft zoals het was
+  assert.equal(ed.entries[1].kortKop, undefined) // het origineel blijft zoals het was
   assert.equal(metKorteKoppen(null), null)
 })

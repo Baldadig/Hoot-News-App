@@ -3,11 +3,11 @@
   "gevallen": [
     {
       "kop": "Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis",
-      "verwacht": "Iraanse dreiging is zó groot dat Amerikaanse minister…"
+      "verwacht": null
     },
     {
       "kop": "‘Kabinet toont weinig interesse in beheer van de Nederlandse wateren’",
-      "verwacht": "‘Kabinet toont weinig interesse in beheer…"
+      "verwacht": null
     },
     {
       "kop": "Raad van State: minister van Asiel moet veiligheid Syrië opnieuw beoordelen",
@@ -51,7 +51,7 @@
     },
     {
       "kop": "OM vermoedt dat verdachte zorgmedewerker nog meer slachtoffers heeft gemaakt",
-      "verwacht": "OM vermoedt dat verdachte zorgmedewerker…"
+      "verwacht": null
     },
     {
       "kop": "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough",
@@ -63,7 +63,7 @@
     },
     {
       "kop": "Verdachten explosie Tarwekamp betuigen spijt na dagen vol emotionele verklaringen",
-      "verwacht": "Verdachten explosie Tarwekamp betuigen spijt na dagen…"
+      "verwacht": null
     },
     {
       "kop": "Kort: het weer",
@@ -83,7 +83,7 @@
     },
     {
       "kop": "Het kabinet wil dat de gemeenten meer doen aan de opvang van de asielzoekers in het",
-      "verwacht": "Het kabinet wil dat de gemeenten meer doen aan de opvang…"
+      "verwacht": null
     },
     {
       "kop": "Meteen twee seizoenen tegelijk besteld: Netflix blaast vampierensaga ‘Twilight’ nieuw leven in",
@@ -103,7 +103,7 @@
     },
     {
       "kop": "Russische ambassadeur in VS Aleksandr Dartsjiev onverwacht overleden",
-      "verwacht": "Russische ambassadeur in VS Aleksandr Dartsjiev onverwacht…"
+      "verwacht": null
     },
     {
       "kop": "Russische ambassadeur in VS overleden, doodsoorzaak nog onbekend",
@@ -115,7 +115,7 @@
     },
     {
       "kop": "RIVM dreigt laboratoria te moeten sluiten wegens uitbraakgevaar",
-      "verwacht": "RIVM dreigt laboratoria te moeten sluiten…"
+      "verwacht": null
     },
     {
       "kop": "Geen bezorgverbod voor Uber Eats in Amsterdam: onvoldoende nagedacht over gevolgen, oordeelt Raad van State",
@@ -143,7 +143,7 @@
     },
     {
       "kop": "‘Romanticus’ Emma Heesters gaat op zoek naar de liefde in nieuw seizoen De Bachelorette",
-      "verwacht": "‘Romanticus’ Emma Heesters gaat op zoek naar de liefde…"
+      "verwacht": null
     },
     {
       "kop": "‘Thuisrijder’ Cameron Mason verrast in Niel en wint zijn allereerste klassementscross, knieval nekt Vanthourenhout",
@@ -163,15 +163,15 @@
     },
     {
       "kop": "Topfavoriete Lucinda Brand stapt uit met blessure in Superprestige Niel",
-      "verwacht": "Topfavoriete Lucinda Brand stapt uit met blessure…"
+      "verwacht": null
     },
     {
       "kop": "Oranje-international Ian Maatsen werkt aan campagne tegen femicide en geweld tegen vrouwen",
-      "verwacht": "Oranje-international Ian Maatsen werkt aan campagne…"
+      "verwacht": null
     },
     {
       "kop": "Missing 11-month-old baby found buried alive in a crate in South Carolina",
-      "verwacht": "Missing 11-month-old baby found buried alive in a crate…"
+      "verwacht": null
     },
     {
       "kop": "Manon Bakker ploetert in crossweer naar eerste grote zege in 3 jaar, Lucinda Brand misstapt zich en valt uit in Niel",
@@ -195,7 +195,7 @@
     },
     {
       "kop": "F1-kampioen Antonelli komt zijn woord na en verft haar in Italiaanse driekleur",
-      "verwacht": "F1-kampioen Antonelli komt zijn woord na en verft haar…"
+      "verwacht": null
     },
     {
       "kop": "Russische ambassadeur (66) in VS plots overleden, doodsoorzaak niet bekendgemaakt",
@@ -287,7 +287,7 @@
     },
     {
       "kop": "Uber Eats krijgt ondanks werken met ongedocumenteerden geen bezorgverbod",
-      "verwacht": "Uber Eats krijgt ondanks werken met ongedocumenteerden geen…"
+      "verwacht": null
     },
     {
       "kop": "Uber Eats krijgt ondanks werken met ongedocumenteerden geen bezorgverbod",
@@ -352,7 +352,7 @@
     },
     {
       "kop": "‘Little Britain’ Star David Walliams Accused of Sexual Misconduct and Grooming",
-      "verwacht": "‘Little Britain’ Star David Walliams Accused of Sexual…"
+      "verwacht": null
     },
     {
       "kop": "Eén miljoen Fransen krijgen zender CNews, de “propagandamachine van extreemrechts”, niet uit de ether",
@@ -406,21 +406,21 @@
     },
     {
       "kop": "Acht maanden durfden D66 en CDA amper over de grenzen van hun eigen coalitie heen te kijken",
-      "verwacht": "Acht maanden durfden D66 en CDA amper over de grenzen…"
+      "verwacht": null
     },
     {
       "kop": "Oppositie kan nauwelijks iets beginnen tegen de nieuwe meerderheid in de Eerste Kamer",
-      "verwacht": "Oppositie kan nauwelijks iets…",
+      "verwacht": null,
       "max": 32
     },
     {
       "kop": "Oppositie kan nauwelijks iets beginnen tegen de nieuwe meerderheid in de Eerste Kamer",
-      "verwacht": "Oppositie kan nauwelijks iets beginnen…",
+      "verwacht": null,
       "max": 40
     },
     {
       "kop": "Investors can hardly believe the rally in chip stocks keeps going after another record week",
-      "verwacht": "Investors can hardly believe the rally…",
+      "verwacht": null,
       "max": 40
     },
     {
@@ -740,11 +740,11 @@
     },
     {
       "kop": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren na kritiek Raad van State",
-      "verwacht": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren…"
+      "verwacht": null
     },
     {
       "kop": "Kabinet zegt dat het de asielwet nu echt níét gaat invoeren na kritiek Raad van State",
-      "verwacht": "Kabinet zegt dat het de asielwet nu echt níét…",
+      "verwacht": null,
       "max": 52
     },
     {
@@ -759,16 +759,16 @@
     },
     {
       "kop": "Government says British schools mustn’t reopen on Monday after the storm damage",
-      "verwacht": "Government says British schools mustn’t reopen on Monday…"
+      "verwacht": null
     },
     {
       "kop": "Government says British schools mustn’t reopen on Monday after the storm damage",
-      "verwacht": "Government says British schools mustn’t reopen…",
+      "verwacht": null,
       "max": 52
     },
     {
       "kop": "Government says British schools mustn’t reopen on Monday after the storm damage",
-      "verwacht": "Government says British schools mustn’t…",
+      "verwacht": null,
       "max": 40
     },
     {
@@ -1104,11 +1104,11 @@
     },
     {
       "kop": "D66 en CDA durfden de afgelopen acht maanden zelden over de grenzen van hun partij te kijken",
-      "verwacht": "D66 en CDA durfden de afgelopen acht maanden zelden…"
+      "verwacht": null
     },
     {
       "kop": "D66 en CDA durfden de afgelopen acht maanden zelden over de grenzen van hun partij te kijken",
-      "verwacht": "D66 en CDA durfden de afgelopen acht maanden zelden…",
+      "verwacht": null,
       "max": 52
     },
     {
@@ -1142,16 +1142,16 @@
     },
     {
       "kop": "Court finds former minister not-guilty of fraud after three-year investigation into party funds",
-      "verwacht": "Court finds former minister not-guilty of fraud…"
+      "verwacht": null
     },
     {
       "kop": "Court finds former minister not-guilty of fraud after three-year investigation into party funds",
-      "verwacht": "Court finds former minister not-guilty of fraud…",
+      "verwacht": null,
       "max": 52
     },
     {
       "kop": "Court finds former minister not-guilty of fraud after three-year investigation into party funds",
-      "verwacht": "Court finds former minister not-guilty…",
+      "verwacht": null,
       "max": 40
     },
     {
@@ -1161,7 +1161,7 @@
     },
     {
       "kop": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk in de zaak tegen oud-wethouder",
-      "verwacht": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk…"
+      "verwacht": null
     },
     {
       "kop": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk in de zaak tegen oud-wethouder",
@@ -1180,16 +1180,16 @@
     },
     {
       "kop": "Government says British schools canʼt reopen on Monday after the storm damage in the north",
-      "verwacht": "Government says British schools canʼt reopen on Monday…"
+      "verwacht": null
     },
     {
       "kop": "Government says British schools canʼt reopen on Monday after the storm damage in the north",
-      "verwacht": "Government says British schools canʼt reopen…",
+      "verwacht": null,
       "max": 52
     },
     {
       "kop": "Government says British schools canʼt reopen on Monday after the storm damage in the north",
-      "verwacht": "Government says British schools canʼt…",
+      "verwacht": null,
       "max": 40
     },
     {
@@ -2117,21 +2117,21 @@
     },
     {
       "kop": "Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet",
-      "verwacht": "Nepnieuws: kabinet is gevallen na urenlang crisisberaad…"
+      "verwacht": null
     },
     {
       "kop": "Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet",
       "max": 40,
-      "verwacht": "Nepnieuws: kabinet is gevallen…"
+      "verwacht": null
     },
     {
       "kop": "Gerucht: Ajax ontslaat trainer Francesco Farioli na de nederlaag tegen PSV in Eindhoven",
-      "verwacht": "Gerucht: Ajax ontslaat trainer Francesco Farioli…"
+      "verwacht": null
     },
     {
       "kop": "Gerucht: Ajax ontslaat trainer Francesco Farioli na de nederlaag tegen PSV in Eindhoven",
       "max": 40,
-      "verwacht": "Gerucht: Ajax ontslaat trainer…"
+      "verwacht": null
     },
     {
       "kop": "Fact check: prime minister resigned after crisis talks in Downing Street last night",
@@ -2207,12 +2207,12 @@
     },
     {
       "kop": "Kabinet​ is gevallen na urenlang crisisberaad in Den Haag over de nieuwe asielwet van minister",
-      "verwacht": "Kabinet is gevallen na urenlang crisisberaad in Den Haag…"
+      "verwacht": null
     },
     {
       "kop": "Kabinet​ is gevallen na urenlang crisisberaad in Den Haag over de nieuwe asielwet van minister",
       "max": 40,
-      "verwacht": "Kabinet is gevallen na urenlang…"
+      "verwacht": null
     },
     {
       "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag over de nieuwe asielwet\u0085niet",
@@ -2270,30 +2270,30 @@
     },
     {
       "kop": "Café résumé naïve über die neue Regierung in Berlin während der langen Krisengespräche jetzt",
-      "verwacht": "Café résumé naïve über die neue Regierung in Berlin während…"
+      "verwacht": null
     },
     {
       "kop": "Café résumé naïve über die neue Regierung in Berlin während der langen Krisengespräche jetzt",
       "max": 40,
-      "verwacht": "Café résumé naïve über…"
+      "verwacht": null
     },
     {
       "kop": "Emoji 🎉🎉🎉 feest in Amsterdam na winst van Ajax op PSV in de topper van de eredivisie dit jaar",
-      "verwacht": "Emoji 🎉🎉🎉 feest in Amsterdam na winst van Ajax op PSV…"
+      "verwacht": null
     },
     {
       "kop": "Emoji 🎉🎉🎉 feest in Amsterdam na winst van Ajax op PSV in de topper van de eredivisie dit jaar",
       "max": 40,
-      "verwacht": "Emoji 🎉🎉🎉 feest in Amsterdam…"
+      "verwacht": null
     },
     {
       "kop": "Kabinet valt na beraad in Den Haag over de asielwet van minister Faber haar na een lange nacht",
-      "verwacht": "Kabinet valt na beraad in Den Haag over de asielwet…"
+      "verwacht": null
     },
     {
       "kop": "Kabinet valt na beraad in Den Haag over de asielwet van minister Faber haar na een lange nacht",
       "max": 40,
-      "verwacht": "Kabinet valt na beraad in Den Haag…"
+      "verwacht": null
     },
     {
       "kop": "Kabinet haalt de klimaatdoelen voor 2030 volgens het Planbureau voor de Leefomgeving op een haar na",
@@ -2306,39 +2306,39 @@
     },
     {
       "kop": "VIDEO – Kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet vandaag",
-      "verwacht": "VIDEO – Kabinet is gevallen na urenlang crisisberaad in Den…"
+      "verwacht": null
     },
     {
       "kop": "VIDEO – Kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet vandaag",
       "max": 40,
-      "verwacht": "VIDEO – Kabinet is gevallen na urenlang…"
+      "verwacht": null
     },
     {
       "kop": "VIDEO - Kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet vandaag",
-      "verwacht": "VIDEO - Kabinet is gevallen na urenlang crisisberaad in Den…"
+      "verwacht": null
     },
     {
       "kop": "VIDEO - Kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet vandaag",
       "max": 40,
-      "verwacht": "VIDEO - Kabinet is gevallen na urenlang…"
+      "verwacht": null
     },
     {
       "kop": "Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet vandaag",
-      "verwacht": "Nepnieuws: kabinet is gevallen na urenlang crisisberaad…"
+      "verwacht": null
     },
     {
       "kop": "Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet vandaag",
       "max": 40,
-      "verwacht": "Nepnieuws: kabinet is gevallen…"
+      "verwacht": null
     },
     {
       "kop": "Ajax wint met 3,5 doelpunt per wedstrijd gemiddeld van iedereen in de eredivisie dit seizoen ruim",
-      "verwacht": "Ajax wint met 3,5 doelpunt per wedstrijd gemiddeld…"
+      "verwacht": null
     },
     {
       "kop": "Ajax wint met 3,5 doelpunt per wedstrijd gemiddeld van iedereen in de eredivisie dit seizoen ruim",
       "max": 40,
-      "verwacht": "Ajax wint met 3,5 doelpunt…"
+      "verwacht": null
     },
     {
       "kop": "U.S. troops arrive in Poland after long talks between Washington and Warsaw on the new base there",
@@ -2378,12 +2378,12 @@
     },
     {
       "kop": "Kabinet   is    gevallen\tna urenlang crisisberaad in Den Haag over de asielwet van minister Faber",
-      "verwacht": "Kabinet is gevallen na urenlang crisisberaad in Den Haag…"
+      "verwacht": null
     },
     {
       "kop": "Kabinet   is    gevallen\tna urenlang crisisberaad in Den Haag over de asielwet van minister Faber",
       "max": 40,
-      "verwacht": "Kabinet is gevallen na urenlang…"
+      "verwacht": null
     },
     {
       "kop": "Ajax wint de topper van PSV in het Philips Stadion in Eindhoven met drie tegen nul, almost",
@@ -2414,12 +2414,462 @@
     },
     {
       "kop": "‘Premier Schoof treedt deze week af na het urenlange crisisberaad in Den Haag over de asielwet’",
-      "verwacht": "‘Premier Schoof treedt deze week af…"
+      "verwacht": null
     },
     {
       "kop": "‘Premier Schoof treedt deze week af na het urenlange crisisberaad in Den Haag over de asielwet’",
       "max": 40,
-      "verwacht": "‘Premier Schoof treedt deze week af…"
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag en premier noemt dat bericht nepnieuws",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag en premier noemt dat bericht nepnieuws",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is na urenlang crisisberaad in Den Haag gevallen en toch weer opgestaan",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is na urenlang crisisberaad in Den Haag gevallen en toch weer opgestaan",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street and then withdraws his resignation",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street and then withdraws his resignation",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Ajax wint in de slotfase van de topper tegen PSV desondanks verliest de club de titel",
+      "verwacht": null
+    },
+    {
+      "kop": "Ajax wint in de slotfase van de topper tegen PSV desondanks verliest de club de titel",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag | De Speld",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag | De Speld",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street | The Onion",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street | The Onion",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag | premier spreekt het bericht tegen",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag | premier spreekt het bericht tegen",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag：premier spreekt het tegen",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag：premier spreekt het tegen",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag， premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag， premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag； premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag； premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag． premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag． premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag ‒ premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag ‒ premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag ― premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag ― premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag − premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag − premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag • premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag • premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag · premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag · premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag → premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag → premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag ‥ premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag ‥ premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag--premier weerspreekt dat bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag--premier weerspreekt dat bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag 【bericht ingetrokken door krant】",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag 【bericht ingetrokken door krant】",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Gemeente Amsterdam verbiedt vuurwerk in de hele stad met uitzondering van het Museumplein",
+      "verwacht": null
+    },
+    {
+      "kop": "Gemeente Amsterdam verbiedt vuurwerk in de hele stad met uitzondering van het Museumplein",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Gemeente Amsterdam verbiedt vuurwerk in de hele stad op het Museumplein en de Dam na",
+      "verwacht": null
+    },
+    {
+      "kop": "Gemeente Amsterdam verbiedt vuurwerk in de hele stad op het Museumplein en de Dam na",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Alle treinen tussen Amsterdam en Utrecht rijden weer volgens dienstregeling behoudens de nacht",
+      "verwacht": null
+    },
+    {
+      "kop": "Alle treinen tussen Amsterdam en Utrecht rijden weer volgens dienstregeling behoudens de nacht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Alle scholen in Noord-Holland gaan maandag weer open uitgezonderd die in Alkmaar en Den Helder",
+      "verwacht": null
+    },
+    {
+      "kop": "Alle scholen in Noord-Holland gaan maandag weer open uitgezonderd die in Alkmaar en Den Helder",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet valt deze week over de asielwet van minister Faber mocht de PVV toch tegenstemmen",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet valt deze week over de asielwet van minister Faber mocht de PVV toch tegenstemmen",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet valt deze week over de asielwet van minister Faber zodra de PVV haar steun intrekt",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet valt deze week over de asielwet van minister Faber zodra de PVV haar steun intrekt",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet valt deze week over de asielwet van minister Faber op voorwaarde dat de PVV tegenstemt",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet valt deze week over de asielwet van minister Faber op voorwaarde dat de PVV tegenstemt",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Merger of KLM and Air France goes ahead next spring pending approval from the European Commission",
+      "verwacht": null
+    },
+    {
+      "kop": "Merger of KLM and Air France goes ahead next spring pending approval from the European Commission",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "All flights from Schiphol resume normal schedule on Monday excluding those to the United States",
+      "verwacht": null
+    },
+    {
+      "kop": "All flights from Schiphol resume normal schedule on Monday excluding those to the United States",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Fed cuts interest rates by half a point in December as long as inflation keeps falling",
+      "verwacht": null
+    },
+    {
+      "kop": "Fed cuts interest rates by half a point in December as long as inflation keeps falling",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Supermarkten verhogen prijzen voor zuivel en brood per 1 januari in geval de btw stijgt",
+      "verwacht": null
+    },
+    {
+      "kop": "Supermarkten verhogen prijzen voor zuivel en brood per 1 januari in geval de btw stijgt",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Ajax haalt na een rampzalige seizoensstart de Europese plaatsen in de eredivisie ternauwernood",
+      "verwacht": null
+    },
+    {
+      "kop": "Ajax haalt na een rampzalige seizoensstart de Europese plaatsen in de eredivisie ternauwernood",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet haalt de klimaatdoelen voor 2030 volgens het Planbureau voor de Leefomgeving nagenoeg",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet haalt de klimaatdoelen voor 2030 volgens het Planbureau voor de Leefomgeving nagenoeg",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Government meets its 2030 climate targets according to the watchdog report virtually",
+      "verwacht": null
+    },
+    {
+      "kop": "Government meets its 2030 climate targets according to the watchdog report virtually",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street according to a fake BBC report",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street according to a fake BBC report",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag volgens een nepbericht op X",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag volgens een nepbericht op X",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag volgens satirische site De Speld",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag volgens satirische site De Speld",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street in a parody video on TikTok",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street in a parody video on TikTok",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Vaccines cause autism in young children according to a debunked study from 1998",
+      "verwacht": null
+    },
+    {
+      "kop": "Vaccines cause autism in young children according to a debunked study from 1998",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag meldt RTL in een ingetrokken bericht",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag meldt RTL in een ingetrokken bericht",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street claims a hoax account on X",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street claims a hoax account on X",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag volgens een gerucht op sociale media",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag volgens een gerucht op sociale media",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street says untrue report from Russia",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks in Downing Street says untrue report from Russia",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag beweert een complotdenker op Telegram",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag beweert een complotdenker op Telegram",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag en premier treedt ́niet af vandaag",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag en premier treedt ́niet af vandaag",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Autistic teen missing in Australian bushland for 6 days rescued alive",
+      "verwacht": null
+    },
+    {
+      "kop": "Autistic teen missing in Australian bushland for 6 days rescued alive",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Rechter wijst de eis van Greenpeace tegen Shell over de uitstoot in hoger beroep af",
+      "verwacht": null
+    },
+    {
+      "kop": "Rechter wijst de eis van Greenpeace tegen Shell over de uitstoot in hoger beroep af",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Minister zegt het staatsbezoek aan China van volgende week op het laatste moment af",
+      "verwacht": null
+    },
+    {
+      "kop": "Minister zegt het staatsbezoek aan China van volgende week op het laatste moment af",
+      "verwacht": null,
+      "max": 40
+    },
+    {
+      "kop": "Kabinet trekt de belastingverlaging voor middeninkomens in 2027 na kritiek weer in",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet trekt de belastingverlaging voor middeninkomens in 2027 na kritiek weer in",
+      "verwacht": null,
+      "max": 40
     }
   ]
 }
