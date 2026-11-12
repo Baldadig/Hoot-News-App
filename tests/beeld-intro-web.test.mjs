@@ -83,7 +83,7 @@ test('beeldloos: zonder beeld, of te klein voor de plek, het placeholderbeeld in
   assert.equal(render({ item, kind: 'tijdlijn', className: 'media' }), `<div class="media media--tl ph ph--${n}" data-ph="${n}" aria-hidden="true"></div>`)
   const klein = { ...item, image: 'https://www.bing.com/th?id=ONUT.k&pid=News&w=1200&h=675&c=7' }
   assert.match(render({ item: klein, kind: 'tijdlijn', fits: fitsLarge, className: 'media', imgKind: 'lead' }), /^<div class="media media--tl ph ph--\d+" data-ph="\d+" aria-hidden="true"><\/div>$/)
-  assert.match(render({ item: klein, kind: 'lead', fits: fitsHero, className: 'media' }), /^<div class="media media--lead ph ph--\d"/)
+  assert.match(render({ item: klein, kind: 'lead', fits: fitsHero, className: 'media' }), /^<div class="media media--lead ph ph--\d+"/)
   // De miniatuur: hetzelfde element als het beeld (een span in de Editie), met de kleine tekening.
   assert.equal(render({ item, kind: 'krant', as: 'span', className: 'thumb' }), `<span class="thumb ph ph--${n} ph--klein" data-ph="${n}" aria-hidden="true"></span>`)
   const groot = { ...item, image: 'https://www.bing.com/th?id=ONUT.g&pid=News&w=700&h=393' }

@@ -34,6 +34,7 @@ final class PlaceholderTests: XCTestCase {
             buren(rows, plan, l["naam"] as? String ?? "")
         }
         // Drie verder valt altijd in een andere set.
+        XCTAssertEqual(Placeholder.count, PlaceholderBeelden.beelden.count)
         for k in 0 ..< Placeholder.count { XCTAssertNotEqual(Placeholder.set((k + Placeholder.shift) % Placeholder.count), Placeholder.set(k), "beeld \(k + 1)") }
     }
 
@@ -46,19 +47,19 @@ final class PlaceholderTests: XCTestCase {
         }
     }
 
-    // Een lange reeks: nooit twee gelijke beelden of sets naast elkaar, en alle tien komen geregeld voor.
+    // Een lange reeks: nooit twee gelijke beelden of sets naast elkaar, en alle achttien komen geregeld voor.
     func testLangeReeksNooitTweeGelijkeNaastElkaar() {
         let rows = (0 ..< 5000).map { (id: "https://www.nrc.nl/nieuws/2026/11/05/stuk-\($0)-a\(($0 * 7919) % 1000)", bare: true) }
         let plan = Placeholder.plan(ids: rows)
         buren(rows, plan, "lange reeks")
         var telling = [Int](repeating: 0, count: Placeholder.count)
         for k in plan.values { telling[k] += 1 }
-        for (k, n) in telling.enumerated() { XCTAssertTrue(n > 200 && n < 650, "beeld \(k + 1): \(n)") }
+        for (k, n) in telling.enumerated() { XCTAssertTrue(n > 125 && n < 375, "beeld \(k + 1): \(n)") }
     }
 
-    func testTienBeeldenElkMetKleineTekening() {
-        XCTAssertEqual(PlaceholderBeelden.beelden.count, 10)
-        XCTAssertEqual(PlaceholderBeelden.beelden.map(\.familie), ["zon", "zon", "zon", "iris", "iris", "iris", "lijn", "raster", "raster", "stapel"])
+    func testAchttienBeeldenElkMetKleineTekening() {
+        XCTAssertEqual(PlaceholderBeelden.beelden.count, 18)
+        XCTAssertEqual(PlaceholderBeelden.beelden.map(\.familie), ["zon", "zon", "zon", "iris", "iris", "iris", "lijn", "raster", "raster", "stapel", "kop", "vouw", "baan", "eclips", "walsen", "zetsel", "rij", "koepels"])
         for b in PlaceholderBeelden.beelden {
             XCTAssertNotNil(b.klein, b.familie)
             XCTAssertEqual(b.klein?.w, 96)
@@ -72,7 +73,7 @@ final class PlaceholderTests: XCTestCase {
         }
         // Beeld 2: de zon klein (r 16), zodat het rood een accent blijft.
         XCTAssertEqual(PlaceholderBeelden.beelden[1].groot.vormen.first?.c, 16)
-        for fam in ["zon", "iris", "lijn", "raster", "stapel"] { XCTAssertEqual(PlaceholderBeelden.palettes[fam]?.keys.sorted(), ["donker", "licht", "nacht"]) }
+        for fam in ["zon", "iris", "lijn", "raster", "stapel", "kop", "vouw", "baan", "eclips", "walsen", "zetsel", "rij", "koepels"] { XCTAssertEqual(PlaceholderBeelden.palettes[fam]?.keys.sorted(), ["donker", "licht", "nacht"]) }
     }
 
     func testBeeldloosAlleenWaarGeenPassendBeeldIs() {
@@ -104,7 +105,7 @@ final class PlaceholderTests: XCTestCase {
 
     @MainActor
     func testTekentOpDeMaatVanHetVak() throws {
-        for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64)), (6, CGSize(width: 344, height: 172)), (8, CGSize(width: 96, height: 64)), (9, CGSize(width: 344, height: 229))] {
+        for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64)), (6, CGSize(width: 344, height: 172)), (8, CGSize(width: 96, height: 64)), (9, CGSize(width: 344, height: 229)), (11, CGSize(width: 344, height: 172)), (11, CGSize(width: 96, height: 64)), (12, CGSize(width: 344, height: 229)), (16, CGSize(width: 344, height: 172)), (17, CGSize(width: 96, height: 64))] {
             let renderer = ImageRenderer(content: PlaceholderBeeld(index: i, klein: size.width < 100).frame(width: size.width, height: size.height))
             let image = try XCTUnwrap(renderer.uiImage)
             XCTAssertEqual(image.size, size)
