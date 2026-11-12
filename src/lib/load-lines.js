@@ -39,7 +39,7 @@ export const LL = {
   settleMax: 800,
   errIn: 240,
   errDelay: 160,
-  reduceFade: 240,
+  reduceFade: 200,
   rise: 8,
   ruleH: 2,
 }
@@ -62,7 +62,7 @@ export function bezier(x1, y1, x2, y2) {
     return ((ay * t + by) * t + cy) * t
   }
 }
-export const CURVE = { inOut: [0.4, 0, 0.2, 1], glide: [0.2, 0.8, 0.2, 1], ease: [0.2, 0.7, 0.2, 1] }
+export const CURVE = { inOut: [0.4, 0, 0.2, 1], glide: [0.2, 0.8, 0.2, 1], ease: [0.2, 0.8, 0.2, 1] }
 export const E = { inOut: bezier(...CURVE.inOut), glide: bezier(...CURVE.glide), ease: bezier(...CURVE.ease) }
 
 const clamp = (v) => Math.min(1, Math.max(0, v))

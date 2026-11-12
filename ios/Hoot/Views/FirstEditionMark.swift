@@ -13,19 +13,19 @@ import UIKit
 // inkt (140), één zachte tik. Negen lossen op, punt 10 stapt 24 pt naar buiten en wordt rood (280).
 // 400 stil. De iris: r 48 → 200 in 560, weg na 400. De Editie komt per blok binnen (200, om de 80,
 // 8 pt omhoog) vanaf iris + 280. Fout: punten terug (140, om de 80), lijn terug (400), dan "Geen
-// verbinding" (200), geen rood. Verminder beweging: stilstaande kring; 350 naar het eindbeeld, 800
-// stil, 350 naar de Editie. Tijden in ms na de tik; R = de Editie is er, F = het laden mislukte.
+// verbinding" (200), geen rood. Verminder beweging: stilstaande kring; 200 naar het eindbeeld, 800
+// stil, 200 naar de Editie. Tijden in ms na de tik; R = de Editie is er, F = het laden mislukte.
 enum Tien {
     static let w: CGFloat = 240, h: CGFloat = 128, cx: CGFloat = 120, cy: CGFloat = 72
     static let r: CGFloat = 48, out: CGFloat = 72, dot: CGFloat = 8, hair: CGFloat = 1, iris: CGFloat = 200, nudge: CGFloat = 4
-    static let first: Double = 200, fast: Double = 120, slow: Double = 600
+    static let first: Double = 240, fast: Double = 120, slow: Double = 600
     static let dotIn: Double = 140, lineIn: Double = 200, close: Double = 260, shut: Double = 140, merge: Double = 280, still: Double = 400
     static let irisMs: Double = 560, irisGone: Double = 400, redAfter: Double = 200, redOut: Double = 140
     static let edAfter: Double = 280, block: Double = 200, blockStep: Double = 80, rise: CGFloat = 8
     static let sentenceAt: Double = 120, sentence: Double = 200, slowNote: Double = 6000, breath: Double = 2750
     static let failDot: Double = 140, failStep: Double = 80, failLine: Double = 400, errAfter: Double = 480, errIn: Double = 200
-    static let reduceFade: Double = 350, reduceHold: Double = 800, reduceMin: Double = 600
-    static let welcomeFade: Double = 200, gap: CGFloat = 16, line: CGFloat = 24, area: CGFloat = 400
+    static let reduceFade: Double = 200, reduceHold: Double = 800, reduceMin: Double = 600
+    static let welcomeFade: Double = 240, gap: CGFloat = 16, line: CGFloat = 24, area: CGFloat = 400
 
     static let line1 = "Je eerste Editie"
     static let line2 = "Even kijken bij je bronnen"
@@ -35,7 +35,7 @@ enum Tien {
 
     static let glide = LoadLines.bezier(0.2, 0.8, 0.2, 1)
     static let irisCurve = LoadLines.bezier(0.6, 0, 0.2, 1)
-    static let ease = LoadLines.bezier(0.2, 0.7, 0.2, 1)
+    static let ease = LoadLines.bezier(0.2, 0.8, 0.2, 1) // = glide
 
     struct Plan: Equatable { var a: [Double]; var ready, fail, close, merge, open, ed: Double; var last: Int }
     struct StillPlan: Equatable { var ready, fail, end, out: Double }

@@ -185,10 +185,10 @@ struct WelcomeView: View {
         guard !turning else { return }
         turning = true
         Task {
-            withAnimation(.easeOut(duration: 0.08)) { fade = 0 }
+            withAnimation(Beweging.bediening(0.08)) { fade = 0 }
             try? await Task.sleep(for: .seconds(0.08))
             change()
-            withAnimation(.easeIn(duration: 0.12)) { fade = 1 }
+            withAnimation(Beweging.kortAnim) { fade = 1 }
             turning = false
         }
     }
@@ -203,21 +203,21 @@ struct WelcomeView: View {
         step = next
         Task {
             guard !still else {
-                withAnimation(.easeOut(duration: 0.35)) { red = false }
+                withAnimation(Beweging.minderAnim) { red = false }
                 return
             }
             // Wachten tot het woordmerk op papier zijn plek heeft (een beeld of twee).
             let begin = Date.now
             while iris.dot == nil && Date.now.timeIntervalSince(begin) < 0.3 { try? await Task.sleep(for: .milliseconds(16)) }
             guard iris.dot != nil else {
-                withAnimation(.easeOut(duration: 0.35)) { red = false }
+                withAnimation(Beweging.minderAnim) { red = false }
                 return
             }
-            let duration = 0.7 * slow
-            withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { closed = true }
-            withAnimation(.easeOut(duration: duration * 0.35)) { dotGone = true }
+            let duration = Beweging.merk * slow
+            withAnimation(Beweging.iris(duration)) { closed = true }
+            withAnimation(Beweging.bediening(duration * 0.35)) { dotGone = true }
             try? await Task.sleep(for: .seconds(duration * 0.6))
-            withAnimation(.easeInOut(duration: duration * 0.4)) { tinted = true }
+            withAnimation(Beweging.bediening(duration * 0.4)) { tinted = true }
             // Een tiende langer dan de curve, zoals bij het opstarten: anders springt de punt op het eind.
             try? await Task.sleep(for: .seconds(duration * 0.4 + 0.1))
             red = false
@@ -232,9 +232,9 @@ struct WelcomeView: View {
             closed = false
             tinted = false
             dotGone = false
-            withAnimation(.easeOut(duration: 0.35)) { red = true }
+            withAnimation(Beweging.minderAnim) { red = true }
             Task {
-                try? await Task.sleep(for: .seconds(0.35))
+                try? await Task.sleep(for: .seconds(Beweging.minder))
                 step = .intro
             }
             return
@@ -247,13 +247,13 @@ struct WelcomeView: View {
             dotGone = true
             red = true
         }
-        let duration = 0.7 * slow
+        let duration = Beweging.merk * slow
         Task {
             try? await Task.sleep(for: .milliseconds(32)) // eerst gesloten in beeld
-            withAnimation(.timingCurve(0.8, 0, 0.4, 1, duration: duration)) { closed = false }
-            withAnimation(.easeInOut(duration: duration * 0.4)) { tinted = false }
+            withAnimation(Beweging.iris(duration)) { closed = false }
+            withAnimation(Beweging.bediening(duration * 0.4)) { tinted = false }
             try? await Task.sleep(for: .seconds(duration * 0.65))
-            withAnimation(.easeIn(duration: duration * 0.35)) { dotGone = false }
+            withAnimation(Beweging.bediening(duration * 0.35)) { dotGone = false }
             try? await Task.sleep(for: .seconds(duration * 0.35 + 0.05))
             step = .intro
         }
@@ -644,7 +644,7 @@ struct WelcomeView: View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
                 Button {
-                    withAnimation(still ? nil : .easeOut(duration: 0.2)) { fold[id] = !open }
+                    withAnimation(still ? nil : Beweging.gewoonAnim) { fold[id] = !open }
                 } label: {
                     HStack(alignment: .center, spacing: Space.s2) {
                         GroupTitle(text: title, tone: Theme.ink)
@@ -738,7 +738,7 @@ struct WelcomeView: View {
         let on = mine.contains(s.id)
         return Button {
             sourcesEdited = true
-            withAnimation(still ? nil : .easeOut(duration: 0.14)) { chosen = toggled(mine, s.id) }
+            withAnimation(still ? nil : Beweging.kortAnim) { chosen = toggled(mine, s.id) }
         } label: {
             HStack(spacing: Space.s1) {
                 if on { Image(systemName: "checkmark").font(.caption.weight(.heavy)).accessibilityHidden(true) }

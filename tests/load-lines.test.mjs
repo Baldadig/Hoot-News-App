@@ -115,12 +115,12 @@ test('fout: beweging maakt af, strepen 320 uit, foutblok 240 in (160 later)', ()
   assert.equal(frame(st, 1640 + 400).text, 0)
 })
 
-test('Verminder beweging: vier stilstaande strepen; klaar en fout 240 ms overvloeien', () => {
+test('Verminder beweging: vier stilstaande strepen; klaar en fout 200 ms overvloeien', () => {
   for (const t of [0, 500, 1320, 7777]) assert.deepEqual(frame({ t0: 0, reduce: true, box: BOX }, t).lines, stackAt(0, BOX, true))
-  const ok = frame({ t0: 0, reduce: true, doneAt: 5000, box: BOX, targets: TARGETS }, 5120)
+  const ok = frame({ t0: 0, reduce: true, doneAt: 5000, box: BOX, targets: TARGETS }, 5100)
   near(ok.text, 0.5); assert.ok(ok.lines.every((l) => Math.abs(l.o - 0.5) < 0.01 && l.accent === 0))
-  assert.equal(frame({ t0: 0, reduce: true, doneAt: 5000, box: BOX }, 5240).done, true)
-  near(frame({ t0: 0, reduce: true, failAt: 5000, box: BOX }, 5240).err, 1)
+  assert.equal(frame({ t0: 0, reduce: true, doneAt: 5000, box: BOX }, 5200).done, true)
+  near(frame({ t0: 0, reduce: true, failAt: 5000, box: BOX }, 5200).err, 1)
 })
 
 test('kopregels uit de rechthoeken van een Range: per regel van kantlijn tot eind, op de basislijn', () => {
@@ -178,7 +178,7 @@ test('web gelijk aan de app: dezelfde maten en tijden in LoadLines.swift', () =>
     if (k === 'offs') { assert.ok(swift.includes('static let offs: [CGFloat] = [-4, 0, 4, -2]'), 'offs'); continue }
     assert.ok(new RegExp(`static let ${k}: (CGFloat|Double) = ${v}\\b`).test(swift), `${k} = ${v}`)
   }
-  for (const c of ['(0.4, 0, 0.2, 1)', '(0.2, 0.8, 0.2, 1)', '(0.2, 0.7, 0.2, 1)']) assert.ok(swift.includes(`bezier${c}`), c)
+  for (const c of ['(0.4, 0, 0.2, 1)', '(0.2, 0.8, 0.2, 1)']) assert.ok(swift.includes(`bezier${c}`), c)
   assert.ok(swift.includes(`"${LABEL}"`))
 })
 
@@ -198,8 +198,8 @@ test('fixture voor iOS: web en app rekenen hetzelfde', () => {
   for (const t of [300, 301]) add(`vroeg-${t}`, { t0: 0, doneAt: 300, box, targets }, t)
   for (const t of [1200, 1640, 1800, 1960]) add(`vervaag-${t}`, { t0: 0, doneAt: 1200, box, targets: null }, t)
   for (const t of [2600, 3640, 3800, 3900, 4040]) add(`fout-${t}`, { t0: 0, failAt: 2600, box }, t)
-  for (const t of [5000, 5120, 5240]) add(`rust-klaar-${t}`, { t0: 0, reduce: true, doneAt: 5000, box, targets }, t)
-  for (const t of [5000, 5120, 5240]) add(`rust-fout-${t}`, { t0: 0, reduce: true, failAt: 5000, box }, t)
+  for (const t of [5000, 5100, 5200]) add(`rust-klaar-${t}`, { t0: 0, reduce: true, doneAt: 5000, box, targets }, t)
+  for (const t of [5000, 5100, 5200]) add(`rust-fout-${t}`, { t0: 0, reduce: true, failAt: 5000, box }, t)
   const settle = [0, 100, 359, 360, 999, 1000, 1200, 1639, 1640, 2999, 3000, 3100, 19000].map((t) => [t, settleAt(t)])
   const curves = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map((x) => [x, E.inOut(x), E.glide(x), E.ease(x)].map((v) => Math.round(v * 1e6) / 1e6))
   const text = JSON.stringify({ cases, settle, curves }, null, 1) + '\n'

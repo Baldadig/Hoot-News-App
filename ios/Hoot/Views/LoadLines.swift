@@ -33,7 +33,7 @@ enum LoadLines {
     static let settleMax: Double = 800
     static let errIn: Double = 240
     static let errDelay: Double = 160
-    static let reduceFade: Double = 240
+    static let reduceFade: Double = 200
     static let rise: CGFloat = 8
     static let ruleH: CGFloat = 2
     static let label = "Even kijken bij je bronnen"
@@ -56,10 +56,10 @@ enum LoadLines {
     }
     static let inOut = bezier(0.4, 0, 0.2, 1)
     static let glide = bezier(0.2, 0.8, 0.2, 1)
-    static let ease = bezier(0.2, 0.7, 0.2, 1)
+    static let ease = bezier(0.2, 0.8, 0.2, 1) // = glide: één bedieningscurve
     // Dezelfde curves als SwiftUI-animatie, voor de inhoud.
-    static func easeAnimation(_ ms: Double) -> Animation { .timingCurve(0.2, 0.7, 0.2, 1, duration: ms / 1000) }
-    static func glideAnimation(_ ms: Double) -> Animation { .timingCurve(0.2, 0.8, 0.2, 1, duration: ms / 1000) }
+    static func easeAnimation(_ ms: Double) -> Animation { Beweging.bediening(ms / 1000) }
+    static func glideAnimation(_ ms: Double) -> Animation { Beweging.bediening(ms / 1000) }
 
     struct Line: Equatable { var n: Int; var x, y, w: CGFloat; var h: CGFloat = 1; var o: Double = 1; var accent: Double = 0; var ink: Double = 0 }
     struct Target: Equatable { var x, y, w: CGFloat }

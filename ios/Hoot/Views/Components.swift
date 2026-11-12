@@ -98,7 +98,7 @@ struct InkSwitch: ToggleStyle {
             }.frame(minHeight: Space.tap).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .animation(still ? nil : .easeOut(duration: 0.14), value: configuration.isOn)
+        .animation(still ? nil : Beweging.kortAnim, value: configuration.isOn)
         .accessibilityRepresentation { Toggle(isOn: configuration.$isOn) { configuration.label }.toggleStyle(.switch) }
     }
 }
@@ -1593,7 +1593,7 @@ struct EmptyState: View {
                     guard !still else { presented = true; return }
                     try? await Task.sleep(for: .milliseconds(540))
                     guard !Task.isCancelled else { return }
-                    withAnimation(.easeOut(duration: 0.2)) { presented = true }
+                    withAnimation(Beweging.gewoonAnim) { presented = true }
                 }
         } else {
         ContentUnavailableView {

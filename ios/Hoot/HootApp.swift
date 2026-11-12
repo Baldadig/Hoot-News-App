@@ -32,9 +32,9 @@ struct HootApp: App {
         store.welcomeAgain = false
         store.onboarded = true
     }
-    // Het welkom vervaagt over de Editie: 0,45 s, en de eerste keer 200 ms (dur-2; Verminder beweging 350).
+    // Het welkom vervaagt over de Editie: een merkduur (0,7 s), en de eerste keer 240 ms (gewoon; Verminder beweging 200).
     private var welcomeFade: Double {
-        guard store.tienStart != nil else { return 0.45 }
+        guard store.tienStart != nil else { return Beweging.merk }
         return UIAccessibility.isReduceMotionEnabled ? Tien.reduceFade / 1000 : Tien.welcomeFade / 1000
     }
 
@@ -54,7 +54,7 @@ struct HootApp: App {
             .modifier(HootWeergave())
             .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
             .environment(\.brandHandoff, handoff)
-            .animation(.easeInOut(duration: welcomeFade), value: store.onboarded)
+            .animation(Beweging.bediening(welcomeFade), value: store.onboarded)
             .environment(store)
             .environment(account)
             .environment(alerts)
@@ -135,12 +135,12 @@ struct HootApp: App {
             duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash"))
             #endif
             handoff.duration = duration
-            withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
+            withAnimation(Beweging.iris(duration)) { handoff.leaving = true }
             // Het woord landt in 0,55 van die tijd (SplashView); dan ligt het precies op de intro, in
             // dezelfde kleuren. Het opstartscherm vervaagt: woordmerk en rood blijven gelijk, alleen de
             // tekst van de intro komt rustig op.
             try? await Task.sleep(for: .seconds(duration * 0.55 + 0.1))
-            await fadeSplash(0.3)
+            await fadeSplash(Beweging.gewoon)
             splash = false
             handoff.landed = true
             return
@@ -165,15 +165,15 @@ struct HootApp: App {
             #endif
             let duration = IrisTimes.travel * slow
             handoff.duration = duration
-            withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
+            withAnimation(Beweging.iris(duration)) { handoff.leaving = true }
             // Een paar beelden marge: de curve begint later dan de klok, en het rood krimpt van
             // schermgroot tot een paar punt, dus ook het laatste procent is nog zichtbaar.
             try? await Task.sleep(for: .seconds((IrisTimes.delay + IrisTimes.travel) * slow + 0.05))
             // Op de punt: het rood wordt de kleur van de punt (in Donker en Nacht lichter), dan neemt de
             // echte punt het over. Nooit twee punten tegelijk: de iris ligt precies op de echte.
-            withAnimation(.easeInOut(duration: IrisTimes.tint * slow)) { handoff.tinted = true }
+            withAnimation(Beweging.bediening(IrisTimes.tint * slow)) { handoff.tinted = true }
             try? await Task.sleep(for: .seconds(IrisTimes.tint * slow + 0.05))
-            if !lands { await fadeSplash(0.15) }
+            if !lands { await fadeSplash(Beweging.kort) }
         } else {
             await fadeSplash(IrisTimes.reduced)
         }
@@ -184,7 +184,7 @@ struct HootApp: App {
     // Vervagen en dan pas weghalen. Via `handoff`, dat SplashView zelf leest: een animatie op staat
     // van de App zelf (`.transition(.opacity)` bij het weghalen) kwam niet aan en werd een harde knip.
     private func fadeSplash(_ duration: Double) async {
-        withAnimation(.easeOut(duration: duration)) { handoff.fading = true }
+        withAnimation(Beweging.bediening(duration)) { handoff.fading = true }
         try? await Task.sleep(for: .seconds(duration))
     }
 }

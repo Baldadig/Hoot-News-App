@@ -24,8 +24,8 @@ enum Horizon {
 
     enum Ms {
         static let close = 400.0, ringOut = 200.0, arcIn = 200.0, leg = 800.0, breath = 2750.0
-        static let set = 600.0, out = 140.0, outAt = 440.0, back = 600.0, sink = 400.0, hold = 2000.0
-        static let reduced = 350.0
+        static let set = 600.0, out = 120.0, outAt = 440.0, back = 600.0, sink = 400.0, hold = 2000.0
+        static let reduced = 200.0
     }
     static let noon = 400 + Ms.leg // de zon staat op de middag, gemeten vanaf loslaten (1,2 s)
 
@@ -48,9 +48,9 @@ enum Horizon {
             return ((ay * t + by) * t + cy) * t
         }
     }
-    static let glide = bezier(0.2, 0.8, 0.2, 1) // ease-glide
+    static let glide = bezier(0.2, 0.8, 0.2, 1) // ease-bediening
     static let iris = bezier(0.6, 0, 0.2, 1) // ease-iris
-    static let ease = bezier(0.2, 0.7, 0.2, 1) // ease
+    static let ease = bezier(0.2, 0.8, 0.2, 1) // ease-bediening (glide en ease zijn dezelfde)
     static func io(_ p: Double) -> Double { p < 0.5 ? 4 * p * p * p : 1 - pow(-2 * p + 2, 3) / 2 } // landing
     static func sine(_ t: Double) -> Double { 0.5 - 0.5 * cos(.pi * t) }
     static func c01(_ v: Double) -> Double { min(1, max(0, v)) }

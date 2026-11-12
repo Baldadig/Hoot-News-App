@@ -38,12 +38,12 @@ test('iOS-monogram en -logo krijgen de dunne ring van het web (--hairline: inkt 
     assert.doesNotMatch(swift(file), /Circle\(\)\.strokeBorder\(Theme\.rule/, file)
   }
 })
-test('pull-strook sluit in 400 ms met ease-glide, de h. vervaagt in 140 ms (bewegingsschaal)', () => {
+test('pull-strook sluit in 400 ms met ease-bediening (eigen choreografie), de h. vervaagt in 120 ms (kort)', () => {
   const motion = swift('Views/QuietMotion.swift')
-  assert.match(motion, /static let fadeOut: Double = 0\.14/)
+  assert.match(motion, /static let fadeOut: Double = Beweging\.kort/)
   assert.match(motion, /static let close: Double = 0\.4/)
-  assert.match(motion, /timingCurve\(0\.2, 0\.8, 0\.2, 1, duration: close\)/) // = --ease-glide
-  assert.match(css, /--ease-glide: cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/)
+  assert.match(motion, /Beweging\.bediening\(close\)/) // = --ease-bediening
+  assert.match(css, /--ease-bediening: cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/)
   assert.doesNotMatch(motion, /easeOut\(duration: 0\.3\)|milliseconds\(150\)/)
 })
 test('leesbreedte vastgelegd: web 720 (--measure) voor elk leesblok, iOS 680', () => {
@@ -93,7 +93,7 @@ test('design system v2.4: register, gids en beeldtaal bestaan en kloppen met de 
   const all = Object.values(tokens).flatMap(g => g?.tokens || [])
   const v = name => all.find(t => t.name === name)?.value
   assert.equal(v('measure'), '720px'); assert.equal(v('readable'), '680px'); assert.equal(v('measure-prose'), '28.8em')
-  assert.equal(v('dur-pull-close'), '400ms'); assert.equal(v('dur-2'), '200ms'); assert.equal(v('dur-iris'), '700ms')
+  assert.equal(v('dur-pull-close'), '400ms'); assert.equal(v('dur-gewoon'), '240ms'); assert.equal(v('dur-iris'), '700ms')
   assert.equal(v('mark-share'), '28px')
   assert.equal(v('baseline-nudge-sans'), '1px'); assert.equal(v('account-mark'), '48px')
   assert.equal(v('shadow-float').light, '0 6px 18px rgba(26, 24, 20, 0.20)')

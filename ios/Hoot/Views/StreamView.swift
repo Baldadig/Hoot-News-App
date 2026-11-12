@@ -351,7 +351,7 @@ struct SourcesList: View {
                         if !list.isEmpty {
                             let isOpen = open.contains(cat)
                             Button {
-                                withAnimation(.easeOut(duration: 0.2)) { if isOpen { open.remove(cat) } else { open.insert(cat) } }
+                                withAnimation(Beweging.gewoonAnim) { if isOpen { open.remove(cat) } else { open.insert(cat) } }
                             } label: {
                                 HStack(spacing: Space.s2) {
                                     Text(label).foregroundStyle(Theme.ink)
@@ -478,7 +478,7 @@ struct SavedView: View {
                     }
                 }
             }
-            .animation(.easeOut(duration: 0.2), value: removed?.item.id)
+            .animation(Beweging.gewoonAnim, value: removed?.item.id)
             .background(Theme.paper)
             .navigationTitle("Bewaard")
             .hootKopScreen() // de kopregel met je account, zoals Editie, Stroom en Selectie

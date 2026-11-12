@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { TIEN, TEXT, frame, block, nextTien } from '../lib/tien.js'
+import { EASE } from '../lib/motion.js'
 
 // "Tien en de bubbel" (src/lib/tien.js, iOS FirstEditionMark.swift): het wachtteken van je eerste
 // Editie, één keer, na het welkom. `useTien` volgt het laden vanaf de tik; <TienLayer> tekent de tien
@@ -113,7 +114,7 @@ export function TienLayer({ tien, host, onDone }) {
           {
             duration: reduce.current ? TIEN.reduceFade : TIEN.block,
             delay: (reduce.current ? 0 : TIEN.blockStep * Math.min(i, 8)) - late,
-            easing: 'cubic-bezier(0.2,0.7,0.2,1)',
+            easing: EASE.bediening,
             fill: 'both',
           },
         )))

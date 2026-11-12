@@ -2010,6 +2010,132 @@ var HootCore = (() => {
   // shared/editor-version.mjs
   var BASIS_REVISION = "redacteur-2026-11-07-taalregel";
 
+  // shared/edition-history.mjs
+  var isHistoryRow = (x) => Array.isArray(x?.storyIds);
+  function previousOfOne(x) {
+    if (!x) return null;
+    if (isHistoryRow(x)) {
+      const keysOf2 = /* @__PURE__ */ new Map();
+      if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf2.set(id, new Set(ks));
+      else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === "object" ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf2.set(id, new Set(ks));
+      return {
+        id: typeof x.id === "string" ? x.id : "",
+        keysOf: keysOf2,
+        storyIds: new Set(x.storyIds),
+        itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
+        leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
+        leadStoryId: typeof x.leadStoryId === "string" ? x.leadStoryId : null,
+        at: Date.parse(x.builtAt) || Number(x.at) || 0,
+        titles: new Set(Array.isArray(x.titles) ? x.titles : []),
+        shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === "string") : [],
+        heldIds: new Set(Array.isArray(x.heldIds) ? x.heldIds : [])
+      };
+    }
+    const edition = x;
+    if (!edition.entries?.length) return null;
+    const stories = edition.entries.filter((e) => e.kind === "story");
+    const lead = edition.entries[0];
+    const byId2 = new Map((edition.items || []).map((i) => [i.id, i]));
+    const shown2 = edition.entries.map((e) => byId2.get(e.leadId || e.id)).filter((i) => i?.title);
+    const keysOf = /* @__PURE__ */ new Map();
+    for (const e of [...stories, ...edition.stories || []]) if (Array.isArray(e.keys) && e.keys.length) for (const id of [e.id, e.formerId, ...e.formerIds || []].filter(Boolean)) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...e.keys]));
+    return {
+      id: typeof edition.id === "string" ? edition.id : "",
+      keysOf,
+      storyIds: new Set(stories.flatMap((e) => [e.id, e.formerId].filter(Boolean))),
+      itemIds: /* @__PURE__ */ new Set([...edition.entries.map((e) => e.leadId || e.id), ...stories.flatMap((e) => e.itemIds || []), ...(edition.stories || []).flatMap((st) => st.itemIds || [])]),
+      leadIds: /* @__PURE__ */ new Set([lead.leadId || lead.id]),
+      leadStoryId: lead.kind === "story" ? lead.id : null,
+      at: Date.parse(edition.builtAt) || 0,
+      titles: new Set(edition.entries.map((e) => e.title || byId2.get(e.leadId || e.id)?.title).filter(Boolean)),
+      shown: shown2.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt })),
+      // Verhalen die zonder nieuwe ontwikkeling één Editie langer bleven (ronde 7 · 3, `held`): niet nog een keer.
+      heldIds: new Set(stories.filter((e) => e.held).map((e) => e.id))
+    };
+  }
+  function previousOf(editions) {
+    const ps = (Array.isArray(editions) ? editions : [editions]).map(previousOfOne).filter(Boolean);
+    if (!ps.length) return null;
+    ps.sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    const u = (k) => new Set(ps.flatMap((p) => [...p[k]]));
+    const atOf = /* @__PURE__ */ new Map();
+    const keysOf = /* @__PURE__ */ new Map();
+    for (const p of ps) {
+      for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at));
+      for (const [id, ks] of p.keysOf) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...ks]));
+    }
+    const last = ps[ps.length - 1];
+    return {
+      keysOf,
+      storyIds: u("storyIds"),
+      itemIds: u("itemIds"),
+      leadIds: u("leadIds"),
+      leadStoryId: last.leadStoryId,
+      leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)),
+      at: last.at,
+      atOf,
+      titles: u("titles"),
+      shown: ps.flatMap((p) => p.shown),
+      heldIds: u("heldIds")
+    };
+  }
+  var HISTORY_MAX = 3;
+  function historyOf(edition) {
+    if (!edition) return null;
+    if (isHistoryRow(edition)) return edition;
+    const p = previousOfOne(edition);
+    if (!p) return null;
+    return {
+      id: edition.id,
+      builtAt: edition.builtAt,
+      storyIds: [...p.storyIds],
+      itemIds: [...p.itemIds],
+      leadIds: [...p.leadIds],
+      leadStoryId: p.leadStoryId,
+      titles: [...p.titles],
+      shown: p.shown,
+      ...p.heldIds.size ? { heldIds: [...p.heldIds] } : {},
+      keys: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]]))
+    };
+  }
+  function recentEditions(list = [], n = HISTORY_MAX) {
+    const seen = /* @__PURE__ */ new Set();
+    const out = [];
+    for (const e of list) {
+      if (!e || typeof e.id !== "string" || !e.id || seen.has(e.id) || !(Date.parse(e.builtAt) > 0)) continue;
+      seen.add(e.id);
+      out.push(e);
+    }
+    out.sort((a, b) => Date.parse(b.builtAt) - Date.parse(a.builtAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    return out.slice(0, n);
+  }
+
+  // src/lib/personal-basis.js
+  function withoutDebug(edition) {
+    if (!edition) return edition;
+    const strip = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => !k.startsWith("_")));
+    return { ...strip(edition), entries: (edition.entries || []).map(strip) };
+  }
+  function earlierEditions({ local = null, account = null, id = null, owner = null } = {}) {
+    const rows = [];
+    const add = (e) => {
+      if (!e || typeof e !== "object") return;
+      if (Array.isArray(e.history)) rows.push(...e.history);
+      if (e.id !== id) rows.push(e);
+    };
+    if (local && (!owner || local.owner === owner)) add(local);
+    add(account);
+    return recentEditions(rows);
+  }
+  function editionBasis(followed = [], interests = [], topics = [], favorites = []) {
+    const parts = [[...followed].sort().join(","), [...interests].sort().join(","), [...topics].sort().join(",")];
+    if (favorites.length) parts.push([...favorites].sort().join(","));
+    const text = [BASIS_REVISION, ...parts].join("|");
+    let h = 5381;
+    for (let i = 0; i < text.length; i++) h = (h * 33 ^ text.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+
   // shared/lang.mjs
   var NL = new Set(
     "de het een en op met voor niet dat die dit deze zijn wordt worden werd er ook naar bij aan om nog maar uit als dan wel geen meer zo hoe wat wie waar waarom hij zij ze je jij jouw uw haar hun ons onze mijn zich kan kunnen moet moeten wil willen gaat gaan heeft hebben tegen tussen na toch nu tot sinds vanaf onder zonder omdat want daar hier veel alle iets niets nieuwe eerste jaar jaren krijgt komt blijkt zegt vindt weer al ik mensen zou zouden".split(/\s+/)
@@ -2801,104 +2927,6 @@ var HootCore = (() => {
   var voteGroup = (items) => items.filter((i) => voteKind(i) >= 1).length * 2 > items.length;
   var EDITION_SIZE = EDITION_TARGET;
   var MAX_LEADS_PER_SOURCE = 3;
-  var isHistoryRow = (x) => Array.isArray(x?.storyIds);
-  function previousOfOne(x) {
-    if (!x) return null;
-    if (isHistoryRow(x)) {
-      const keysOf2 = /* @__PURE__ */ new Map();
-      if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf2.set(id, new Set(ks));
-      else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === "object" ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf2.set(id, new Set(ks));
-      return {
-        id: typeof x.id === "string" ? x.id : "",
-        keysOf: keysOf2,
-        storyIds: new Set(x.storyIds),
-        itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
-        leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
-        leadStoryId: typeof x.leadStoryId === "string" ? x.leadStoryId : null,
-        at: Date.parse(x.builtAt) || Number(x.at) || 0,
-        titles: new Set(Array.isArray(x.titles) ? x.titles : []),
-        shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === "string") : [],
-        heldIds: new Set(Array.isArray(x.heldIds) ? x.heldIds : [])
-      };
-    }
-    const edition = x;
-    if (!edition.entries?.length) return null;
-    const stories = edition.entries.filter((e) => e.kind === "story");
-    const lead = edition.entries[0];
-    const byId2 = new Map((edition.items || []).map((i) => [i.id, i]));
-    const shown2 = edition.entries.map((e) => byId2.get(e.leadId || e.id)).filter((i) => i?.title);
-    const keysOf = /* @__PURE__ */ new Map();
-    for (const e of [...stories, ...edition.stories || []]) if (Array.isArray(e.keys) && e.keys.length) for (const id of [e.id, e.formerId, ...e.formerIds || []].filter(Boolean)) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...e.keys]));
-    return {
-      id: typeof edition.id === "string" ? edition.id : "",
-      keysOf,
-      storyIds: new Set(stories.flatMap((e) => [e.id, e.formerId].filter(Boolean))),
-      itemIds: /* @__PURE__ */ new Set([...edition.entries.map((e) => e.leadId || e.id), ...stories.flatMap((e) => e.itemIds || []), ...(edition.stories || []).flatMap((st) => st.itemIds || [])]),
-      leadIds: /* @__PURE__ */ new Set([lead.leadId || lead.id]),
-      leadStoryId: lead.kind === "story" ? lead.id : null,
-      at: Date.parse(edition.builtAt) || 0,
-      titles: new Set(edition.entries.map((e) => e.title || byId2.get(e.leadId || e.id)?.title).filter(Boolean)),
-      shown: shown2.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt })),
-      // Verhalen die zonder nieuwe ontwikkeling één Editie langer bleven (ronde 7 · 3, `held`): niet nog een keer.
-      heldIds: new Set(stories.filter((e) => e.held).map((e) => e.id))
-    };
-  }
-  function previousOf(editions) {
-    const ps = (Array.isArray(editions) ? editions : [editions]).map(previousOfOne).filter(Boolean);
-    if (!ps.length) return null;
-    ps.sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-    const u = (k) => new Set(ps.flatMap((p) => [...p[k]]));
-    const atOf = /* @__PURE__ */ new Map();
-    const keysOf = /* @__PURE__ */ new Map();
-    for (const p of ps) {
-      for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at));
-      for (const [id, ks] of p.keysOf) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...ks]));
-    }
-    const last = ps[ps.length - 1];
-    return {
-      keysOf,
-      storyIds: u("storyIds"),
-      itemIds: u("itemIds"),
-      leadIds: u("leadIds"),
-      leadStoryId: last.leadStoryId,
-      leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)),
-      at: last.at,
-      atOf,
-      titles: u("titles"),
-      shown: ps.flatMap((p) => p.shown),
-      heldIds: u("heldIds")
-    };
-  }
-  var HISTORY_MAX = 3;
-  function historyOf(edition) {
-    if (!edition) return null;
-    if (isHistoryRow(edition)) return edition;
-    const p = previousOfOne(edition);
-    if (!p) return null;
-    return {
-      id: edition.id,
-      builtAt: edition.builtAt,
-      storyIds: [...p.storyIds],
-      itemIds: [...p.itemIds],
-      leadIds: [...p.leadIds],
-      leadStoryId: p.leadStoryId,
-      titles: [...p.titles],
-      shown: p.shown,
-      ...p.heldIds.size ? { heldIds: [...p.heldIds] } : {},
-      keys: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]]))
-    };
-  }
-  function recentEditions(list = [], n = HISTORY_MAX) {
-    const seen = /* @__PURE__ */ new Set();
-    const out = [];
-    for (const e of list) {
-      if (!e || typeof e.id !== "string" || !e.id || seen.has(e.id) || !(Date.parse(e.builtAt) > 0)) continue;
-      seen.add(e.id);
-      out.push(e);
-    }
-    out.sort((a, b) => Date.parse(b.builtAt) - Date.parse(a.builtAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-    return out.slice(0, n);
-  }
   var DEVELOPING_PENALTY = 25;
   var REPEAT_LEAD_PENALTY = 30;
   function seenBefore(st, items, previous) {
@@ -4142,30 +4170,6 @@ var HootCore = (() => {
       _plan: sel.deskOrder,
       ...supply ? { _supply: supply } : {}
     });
-  }
-  function withoutDebug(edition) {
-    if (!edition) return edition;
-    const strip = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => !k.startsWith("_")));
-    return { ...strip(edition), entries: (edition.entries || []).map(strip) };
-  }
-  function earlierEditions({ local = null, account = null, id = null, owner = null } = {}) {
-    const rows = [];
-    const add = (e) => {
-      if (!e || typeof e !== "object") return;
-      if (Array.isArray(e.history)) rows.push(...e.history);
-      if (e.id !== id) rows.push(e);
-    };
-    if (local && (!owner || local.owner === owner)) add(local);
-    add(account);
-    return recentEditions(rows);
-  }
-  function editionBasis(followed = [], interests = [], topics = [], favorites = []) {
-    const parts = [[...followed].sort().join(","), [...interests].sort().join(","), [...topics].sort().join(",")];
-    if (favorites.length) parts.push([...favorites].sort().join(","));
-    const text = [BASIS_REVISION, ...parts].join("|");
-    let h = 5381;
-    for (let i = 0; i < text.length; i++) h = (h * 33 ^ text.charCodeAt(i)) >>> 0;
-    return h.toString(36);
   }
 
   // shared/voorstel.mjs

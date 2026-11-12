@@ -507,7 +507,7 @@ struct LoginWebView: View {
                     .overlay(alignment: .bottom) { Rule() }
                     .accessibilityElement(children: .combine)
                     .accessibilityAddTraits(.updatesFrequently)
-                    .animation(.easeInOut(duration: 0.3), value: done)
+                    .animation(Beweging.gewoonAnim, value: done)
                 }
                 .sensoryFeedback(.success, trigger: done) { _, now in now }
                 .onChange(of: done) { _, now in

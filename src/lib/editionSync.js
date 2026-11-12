@@ -10,8 +10,8 @@
 //      andere toestel over, en legt die hier vast met de Edities van toen van beide toestellen als
 //      `history` (adoptEdition), zodat beide hetzelfde `previous` hebben voor het volgende dagdeel.
 // Zonder account stelt het toestel anoniem samen (owner 'anon') en raakt het `user_state` nooit aan.
-import { withoutDebug, earlierEditions } from './personal.js'
-import { previousOf, historyOf } from '../../netlify/lib/stories.mjs'
+import { withoutDebug, earlierEditions } from './personal-basis.js'
+import { previousOf, historyOf } from '../../shared/edition-history.mjs'
 import { RUBRIEKEN } from './topics.js'
 
 export const TABLE = 'user_state'
@@ -123,7 +123,7 @@ export async function settleEdition({ client = null, uid = null, owner = 'anon',
   const earlier = earlierEditions({ local, account: theirs, id, owner })
   let stamped = fits(local) && local.owner === owner ? local : null
   if (!stamped) {
-    const mine = compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
+    const mine = await compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
     if (!mine) return null
     stamped = { ...withoutDebug(mine), owner, basis, history: earlier.map(historyOf).filter(Boolean) }
   }
@@ -258,7 +258,7 @@ export async function serverFirst({ global, owner, basis, local = null, localFro
   const out = (x) => (ahead ? { ...x, ahead } : x)
   if (ready && compose) {
     const earlier = earlierEditions({ local: localFromServer || localServed ? local : null, account: null, id, owner })
-    const mine = compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
+    const mine = await compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
     if (mine) return out({ edition: { ...withoutDebug(mine), owner, basis, provisional: true }, source: 'provisional', keep: false })
   }
   if (stuck) return out({ edition: { ...global, brief: null, fallback: true, owner }, source: 'global', keep: false })

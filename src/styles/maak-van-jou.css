@@ -12,16 +12,11 @@
   border-radius: var(--radius-card);
   background: var(--surface);
   box-shadow: 0 0 0 1px var(--elev-edge), var(--shadow-float);
-  animation: rise var(--dur-2) var(--ease);
+  animation: rise var(--dur-gewoon) var(--ease-bediening);
 }
 @media (min-width: 960px) {
   .maakjou {
     bottom: calc(var(--safe-b) + var(--s5));
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .maakjou {
-    animation: none;
   }
 }
 .maakjou__kop {

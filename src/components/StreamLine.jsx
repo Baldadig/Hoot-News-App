@@ -16,10 +16,10 @@ import { LOGO, SMALL, STEP, PEEK, STEP_OPEN, TAP, EDGE, PAD, STRIP_FADE, UITLOOP
 
 const ALL = '' // Alle bronnen in de rij (een bron heeft nooit een lege id)
 
-// Beweging: dezelfde duur en curve als de CSS (--dur-3, --ease-glide); bij Minder beweging direct.
+// Beweging: dezelfde duur en curve als de CSS (--dur-gewoon, --ease-bediening); bij Minder beweging direct.
 const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 const ms = (name, fallback) => (reduced() ? 0 : parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || fallback)
-const dur = () => ms('--dur-3', 400)
+const dur = () => ms('--dur-gewoon', 240)
 const cssPx = (el, name) => (el ? parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0 : 0)
 const EASE = bezier(0.2, 0.8, 0.2, 1)
 
@@ -61,7 +61,7 @@ function stopGlide(el) {
 function glide(el, to) {
   stopGlide(el)
   const from = el.scrollLeft
-  const d = reduced() ? 0 : timeMs(getComputedStyle(document.documentElement).getPropertyValue('--dur-2'))
+  const d = reduced() ? 0 : timeMs(getComputedStyle(document.documentElement).getPropertyValue('--dur-gewoon'))
   if (!d || Math.abs(to - from) < 1) {
     el.scrollLeft = to
     return
@@ -366,7 +366,7 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
         fadeT.current = 0
         chrome()
         rubEdges()
-      }, ms('--dur-2', 200))
+      }, ms('--dur-gewoon', 240))
     place()
     chrome()
     rubEdges()

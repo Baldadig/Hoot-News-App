@@ -14,7 +14,7 @@ enum IrisTimes {
     static let delay = 0.14 // de iris vertrekt als het woord half weg is
     static let travel = 0.7 // de iris sluit en reist, curve 0,6 0 0,2 1
     static let tint = 0.21 // op de punt: het rood wordt de kleur van de punt
-    static let reduced = 0.35 // Verminder beweging: niets reist, één vervaging
+    static let reduced = Beweging.minder // Verminder beweging: niets reist, één vervaging
     static var total: Double { delay + travel + tint }
 }
 
@@ -59,7 +59,7 @@ struct SplashView: View {
             ZStack {
                 disc.fill(handoff?.tinted == true ? Theme.accent : Theme.brandRed)
                     // Eerst vervagen, dan sluiten: de iris vertrekt als het woord half weg is.
-                    .transaction { if $0.animation != nil, !stays, leaving, !tinting { $0.animation = .timingCurve(0.6, 0, 0.2, 1, duration: time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
+                    .transaction { if $0.animation != nil, !stays, leaving, !tinting { $0.animation = Beweging.iris(time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
                 mark(leaving: leaving, stays: stays, time: time)
                     // Naar de rode intro: het woordmerk landt precies op "hoot." in het welkom (punt op
                     // punt). Naar de app beweegt het niet en wordt het niet kleiner: het vervaagt.
@@ -68,10 +68,10 @@ struct SplashView: View {
                     .opacity(leaving && !stays ? 0 : 1)
                     .transaction {
                         guard $0.animation != nil else { return }
-                        $0.animation = stays ? .timingCurve(0.3, 0, 0.1, 1, duration: time * 0.55) : .easeOut(duration: IrisTimes.fade * time / IrisTimes.travel)
+                        $0.animation = stays ? Beweging.iris(time * 0.55) : Beweging.bediening(IrisTimes.fade * time / IrisTimes.travel)
                     }
                     .mask {
-                        disc.transaction { if $0.animation != nil, !stays, leaving, !tinting { $0.animation = .timingCurve(0.6, 0, 0.2, 1, duration: time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
+                        disc.transaction { if $0.animation != nil, !stays, leaving, !tinting { $0.animation = Beweging.iris(time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
                     }
             }
         }
@@ -126,7 +126,7 @@ struct SplashView: View {
             }
             // Anders gaat de witte punt op in het rood: aan het eind is de rode punt de enige.
             .opacity(leaving && !stays ? 0 : 1)
-            .transaction { if $0.animation != nil { $0.animation = .easeOut(duration: time * 0.35) } }
+            .transaction { if $0.animation != nil { $0.animation = Beweging.bediening(time * 0.35) } }
         }
         .frame(width: Self.size.width, height: Self.size.height)
     }

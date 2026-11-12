@@ -10,7 +10,7 @@ import { voorstel } from '../../shared/voorstel.mjs'
 import { INTERESTS, resolveTopics } from '../lib/topics.js'
 import { sourcesOn, pickedFrom, sourceLine, proofHeadline } from '../lib/welcome.js'
 import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines, chosenIn, startsOpen, foldCount } from '../lib/follow-welcome.js'
-import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
+import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Welkom (1.1.0), gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Vier schermen:
 //   1. welkom (rood)   de zon komt op achter de horizon; Begin. Account klein rechtsboven.
@@ -143,9 +143,9 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
     const o = openTimes(IRIS_MS)
     const timers = [
       setTimeout(() => {
-        irisOpen(layer, { ...geo, duration: IRIS_MS, easing: IRIS_BACK })
+        irisOpen(layer, { ...geo, duration: IRIS_MS, easing: IRIS })
         tint(layer, accent, brandRed, { duration: o.tintDur })
-        timers.push(setTimeout(() => dot && fade(dot, o.dotDur, 0, 1, 'ease-in'), o.dotStart))
+        timers.push(setTimeout(() => dot && fade(dot, o.dotDur, 0, 1), o.dotStart))
         timers.push(setTimeout(done, o.end))
       }, o.delay),
     ]
@@ -180,7 +180,7 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
       const t = tintTimes(IRIS_MS)
       irisClose(layer, { ...at, w: innerWidth, h: innerHeight, duration: IRIS_MS, easing: IRIS })
       const dot = layer.querySelector('.ob__brand .brand__dot')
-      if (dot) fade(dot, t.dotEnd, 1, 0, 'ease-out')
+      if (dot) fade(dot, t.dotEnd, 1, 0)
       tint(layer, rootColor('--brand-red'), rootColor('--accent'), { delay: t.tintStart, duration: t.tintDur })
       await sleep(t.end)
     }
@@ -197,9 +197,9 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
   const go = async (apply) => {
     const col = paperCol.current
     const moves = !reduced() && !!col?.animate
-    if (moves) await fade(col, STEP_OUT_MS, 1, 0, 'ease-out').finished.catch(() => {})
+    if (moves) await fade(col, STEP_OUT_MS, 1, 0).finished.catch(() => {})
     apply()
-    if (moves) fade(col, STEP_IN_MS, 0, 1, 'ease-in').finished.then(() => clear(col)).catch(() => {})
+    if (moves) fade(col, STEP_IN_MS, 0, 1).finished.then(() => clear(col)).catch(() => {})
   }
   const show = (v) =>
     go(() => {

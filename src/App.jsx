@@ -13,10 +13,6 @@ const ShareGlyph = () => (
 )
 import { Nav } from './components/Shell.jsx'
 import Edition from './views/Edition.jsx'
-import Stream from './views/Stream.jsx'
-import Saved from './views/Saved.jsx'
-import Sources from './views/Sources.jsx'
-import Story, { StoryIndex } from './views/Story.jsx'
 import { useFeed } from './hooks/useFeed.js'
 import { useRoute } from './hooks/useRoute.js'
 import { useOnline } from './hooks/useOnline.js'
@@ -30,7 +26,6 @@ import { learn, forgetTopic, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
 import { webStream, addSocialProfile, removeSocialProfile, orphanBlueskyIds, adoptLegacySocial } from './lib/social-stream.js'
 import { resolveLegacy } from './lib/bluesky.js'
-import Vak from './views/Vak.jsx'
 import { useVak } from './hooks/useVak.js'
 import { mutedSet, toggleSource } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
@@ -58,6 +53,21 @@ const Privacy = lazy(() => import('./views/Privacy.jsx'))
 const Over = lazy(() => import('./views/Over.jsx'))
 const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
 const Welcome = lazy(() => import('./views/Welcome.jsx'))
+// De Stroom, de Selectie, Bewaard, de bronnen en Vergelijken zijn niet nodig voor de eerste Editie: een eigen
+// bestand, dat vlak na het tekenen van de Editie stil klaarkomt (Snel · 2). De schermen bouwen zich pas op als je er
+// voor het eerst komt (`was`), dus er verspringt niets: het bestand ligt dan al klaar.
+const loadStream = () => import('./views/Stream.jsx')
+const loadVak = () => import('./views/Vak.jsx')
+const loadSaved = () => import('./views/Saved.jsx')
+const loadSources = () => import('./views/Sources.jsx')
+const loadStory = () => import('./views/Story.jsx')
+const Stream = lazy(loadStream)
+const Vak = lazy(loadVak)
+const Saved = lazy(loadSaved)
+const Sources = lazy(loadSources)
+const Story = lazy(loadStory)
+const StoryIndex = lazy(() => loadStory().then((m) => ({ default: m.StoryIndex })))
+const preloadViews = () => [loadStream, loadVak, loadSaved, loadSources, loadStory].forEach((load) => load().catch(() => {}))
 
 // Het opstartscherm staat al in index.html (koude lading, of op het beginscherm): dan neemt
 // components/Splash.jsx het over tot er iets te lezen is.
@@ -541,6 +551,14 @@ export default function App() {
     onRetry: reloadAll,
   }
   const loading = status === 'loading' && !data
+  // Als de Editie getekend is, komen de andere schermen stil op de achtergrond binnen (preloadViews).
+  useEffect(() => {
+    if (loading) return
+    const idle = typeof requestIdleCallback === 'function' ? requestIdleCallback : (fn) => setTimeout(fn, 800)
+    const cancel = typeof cancelIdleCallback === 'function' ? cancelIdleCallback : clearTimeout
+    const h = idle(preloadViews, { timeout: 4000 })
+    return () => cancel(h)
+  }, [loading])
   const failedLoad = status === 'error' && !data
 
   // Twee standen op breed scherm: lezen (geen paneel, de leeskolom staat in het midden) en
@@ -696,6 +714,7 @@ export default function App() {
               refreshing={refreshing}
             />
           ) : null}
+          <Suspense fallback={null}>
           {was('stroom') ? (
             <Stream
               active={shown === 'stroom'}
@@ -737,6 +756,7 @@ export default function App() {
               onFavorite={(id, on) => setPref('favorites', on ? [...new Set([...prefs.favorites, id])] : prefs.favorites.filter((f) => f !== id))}
             />
           ) : null}
+          </Suspense>
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
             {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} {...(route.params.blad ? bladBack : backTo)} /> : null}
@@ -747,11 +767,13 @@ export default function App() {
           </Suspense>
         </main>
         <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Vergelijken" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
+          <Suspense fallback={null}>
           {story ? (
             <Story key={story.story.id} story={story.story} items={story.items} tappedId={tapped[storyParam] || null} overlay={overlay} onClose={overlay ? closeStory : closePanel} onBack={backToIndex} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} />
           ) : (
             <StoryIndex stories={data?.stories} onClose={togglePanel} lastId={lastStory} />
           )}
+          </Suspense>
         </aside>
         <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
         <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />

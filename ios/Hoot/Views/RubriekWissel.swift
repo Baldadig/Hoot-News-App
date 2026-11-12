@@ -1,9 +1,9 @@
 import SwiftUI
 
-// Bestaande dur-2 en ease-glide; geen verticale beweging bij een rubriekwissel.
+// dur-gewoon en ease-bediening; geen verticale beweging bij een rubriekwissel.
 enum RubriekWissel {
-    static let duration = 0.2
-    static var animation: Animation { .timingCurve(0.2, 0.8, 0.2, 1, duration: duration) }
+    static let duration = Beweging.gewoon
+    static var animation: Animation { Beweging.bediening(duration) }
     static func images(_ items:[Item],enabled:Bool,kind:ImageURL.Kind)->[URL] {
         guard enabled else {return []}
         var seen=Set<URL>()
