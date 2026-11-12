@@ -238,12 +238,16 @@ test('herstel 1: zonder bubbel heet plek 3 "Ook het lezen waard", en de Editie-d
 
 test('herstel 1 en 3: één beslisregel in hoot.js en bewaard.mjs; zonder bubbel nooit twee keer dezelfde reden', () => {
   const r = hootRedenen()
-  const gevallen = [[[6, 3, 1], true], [[6, 3, 1], false], [[1, 3, 1], false], [[1, 3, 1], true], [[3, 3, 1], false], [[3, 1, 1], false], [[1, 1, 1], true], [[6, 1, 2], false]]
+  const gevallen = [[[6, 3, 1], true], [[6, 3, 1], false], [[1, 3, 1], false], [[1, 3, 1], true], [[3, 3, 1], false], [[3, 1, 1], false], [[1, 1, 1], true], [[6, 1, 2], false], [[5, 3, 3], false], [[3, 4, 1], true]]
   for (const [ns, bub] of gevallen) assert.deepEqual(r(ns, bub), redenen(ns, bub), `${ns} ${bub}`)
   assert.deepEqual(redenen([6, 3, 1], true), ['groot', 'meer', 'bubbel'])
   assert.deepEqual(redenen([6, 3, 1], false), ['groot', 'meer', 'eigen'])
   assert.equal(redenen([1, 3, 1], false), null) // plek 1 één bron, plek 2 meer: zonder bubbel zou plek 3 ook 'eigen' zijn
   assert.equal(redenen([3, 1, 1], false), null)
+  // 'Eén bron schrijft erover' alleen bij echt één bron (keuring 2, punt 1)
+  assert.equal(redenen([5, 3, 3], false), null) // plek 3 heeft drie bronnen: geen 'eigen'
+  assert.equal(redenen([3, 4, 1], true), null) // plek 2 heeft vier bronnen maar plek 1 is al 'meer'
+  assert.deepEqual(redenen([6, 3, 1], false), ['groot', 'meer', 'eigen']) // plek 3 echt één bron: wel 'eigen'
   for (const [ns, bub] of gevallen) { const x = redenen(ns, bub); if (x) assert.equal(new Set(x).size, 3) }
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
   assert.match(js, /redenen\(ns0, pod\.getAttribute\('data-bubbel'\) === 'ja'\)/) // de terugval kijkt of er een bubbel is

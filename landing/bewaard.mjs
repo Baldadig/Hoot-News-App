@@ -27,9 +27,9 @@ export const REDEN = {
 }
 export function redenen(ns, bubbel) {
   const s0 = ns[0] >= 5 ? 'groot' : ns[0] >= 2 ? 'meer' : 'eigen'
-  const s1 = ns[1] >= 2 && s0 !== 'meer' ? 'meer' : 'eigen'
-  const s2 = bubbel ? 'bubbel' : 'eigen'
-  return new Set([s0, s1, s2]).size === 3 ? [s0, s1, s2] : null
+  const s1 = ns[1] >= 2 ? (s0 !== 'meer' ? 'meer' : null) : 'eigen' // 'eigen' ("Eén bron") alleen bij echt één bron
+  const s2 = bubbel ? 'bubbel' : ns[2] >= 2 ? null : 'eigen'
+  return s1 && s2 && new Set([s0, s1, s2]).size === 3 ? [s0, s1, s2] : null
 }
 const markering = (soort, n) => (soort === 'groot' ? `Groot nieuws · ${n} bronnen` : soort === 'meer' ? `${n} bronnen schrijven erover` : REDEN[soort][0])
 export const reden = (n) => (n >= 5 ? 'Groot nieuws' : n >= 2 ? `${n} bronnen schrijven erover` : 'Ook het lezen waard')

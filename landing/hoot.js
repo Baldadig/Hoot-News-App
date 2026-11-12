@@ -355,9 +355,9 @@
        anders 'Ook het lezen waard'. Geeft null als twee plekken dezelfde reden krijgen. */
     function redenen(ns, bubbel) {
       var s0 = ns[0] >= 5 ? 'groot' : (ns[0] >= 2 ? 'meer' : 'eigen');
-      var s1 = ns[1] >= 2 && s0 !== 'meer' ? 'meer' : 'eigen';
-      var s2 = bubbel ? 'bubbel' : 'eigen';
-      return s0 === s1 || s0 === s2 || s1 === s2 ? null : [s0, s1, s2];
+      var s1 = ns[1] >= 2 ? (s0 !== 'meer' ? 'meer' : null) : 'eigen'; /* 'eigen' ("Eén bron") alleen bij echt één bron */
+      var s2 = bubbel ? 'bubbel' : (ns[2] >= 2 ? null : 'eigen');
+      return !s1 || !s2 || s0 === s1 || s0 === s2 || s1 === s2 ? null : [s0, s1, s2];
     }
     function markering(soort, n) { return soort === 'groot' ? 'Groot nieuws · ' + n + ' bronnen' : (soort === 'meer' ? n + ' bronnen schrijven erover' : REDEN[soort][0]); }
     function zetRedenen(ns, r) {
