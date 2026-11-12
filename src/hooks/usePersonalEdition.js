@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
+import { personalRows, editionBasis } from '../lib/personal-basis.js'
 import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
 import { readingSummary } from '../lib/affinity.js'
@@ -114,7 +114,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       request,
       ready,
       stuck,
-      compose: ({ previous, now }) => composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: reading, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
+      compose: async ({ previous, now }) => (await import('../lib/personal.js')).composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: reading, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
     })
       .then((r) => {
         if (!r || pending.current !== run) return
