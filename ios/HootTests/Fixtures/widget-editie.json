@@ -7,22 +7,20 @@
    "kind": "story",
    "id": "sts2z5a",
    "leadId": "1r0cz5j",
-   "desk": "binnenland",
-   "kortKop": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan…"
+   "desk": "binnenland"
   },
   {
    "kind": "story",
    "id": "s11wahg9",
    "leadId": "1kwpmfa",
    "desk": "buitenland",
-   "kortKop": "Honderden scholen in Europa doelwit van bommeldingen…"
+   "kortKop": "Honderden scholen in Europa krijgen een bommelding…"
   },
   {
    "kind": "story",
    "id": "s14i41n",
    "leadId": "1r0cgda",
-   "desk": "binnenland",
-   "kortKop": "Sluiting dreigt voor verouderde laboratoria RIVM…"
+   "desk": "binnenland"
   },
   {
    "kind": "story",
@@ -35,15 +33,13 @@
    "kind": "story",
    "id": "s1nkjbl7",
    "leadId": "8up9m",
-   "desk": "oekraine",
-   "kortKop": "Russia, Ukraine agree on prisoner exchange as talks end…"
+   "desk": "oekraine"
   },
   {
    "kind": "story",
    "id": "sxiay2m",
    "leadId": "1cybvol",
-   "desk": "buitenland",
-   "kortKop": "Brussel presenteert nieuwe techwet…"
+   "desk": "buitenland"
   },
   {
    "kind": "story",
@@ -56,8 +52,7 @@
    "kind": "story",
    "id": "s1hogiw1",
    "leadId": "1gvyg5o",
-   "desk": "middenoosten",
-   "kortKop": "Three Iran-backed suspects plotted attacks including RAF…"
+   "desk": "middenoosten"
   },
   {
    "kind": "story",
@@ -76,8 +71,7 @@
   {
    "kind": "item",
    "id": "1is8ixz",
-   "desk": "bubbel",
-   "kortKop": "Emma Heesters is de nieuwe Bachelorette"
+   "desk": "bubbel"
   }
  ],
  "items": [
@@ -92,7 +86,7 @@
    "id": "1kwpmfa",
    "source": "nrc",
    "sourceName": "NRC",
-   "title": "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
+   "title": "Honderden scholen in Europa krijgen een bommelding per e-mail vanuit het buitenland",
    "image": "https://images.nrc.nl/RUy-K9vpKGxMRQT0ToNtPqA4Dyc=/1280x/filters:no_upscale()/s3/static.nrc.nl/wp-content/uploads/2026/11/11132551/111126VER_2038483187_italie-1.jpg"
   },
   {

@@ -184,6 +184,37 @@ import WidgetKit
 
         try beginscherm(vier)
         try vergrendelscherm(vier)
+        try langeKoppen()
+    }
+
+    // Keuring 8: lange koppen, met en zonder korte vorm door elkaar. 01 en 03 zijn één bewering (korte vorm), 02 en
+    // 04 niet (de hele kop, met de regels die hij nodig heeft; iOS kapt nooit af).
+    private func langeKoppen() throws {
+        let koppen = [
+            "Rijkswaterstaat sluit de Afsluitdijk dit weekend voor al het verkeer vanwege onderhoud aan de sluizen bij Den Oever en Kornwerderzand",
+            "Kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet: premier spreekt het bericht van de krant tegen",
+            "Honderden scholen in Europa doelwit van een golf bommeldingen per e-mail vanuit het buitenland",
+            "Fed verlaagt de rente in december met een halve procentpunt als de inflatie in de Verenigde Staten verder daalt, zegt Powell",
+            "Storm trekt vanavond over het hele land met windstoten tot honderd kilometer per uur langs de kust",
+        ]
+        let nu = WidgetDagdeel.op(WidgetTests.moment("2026-11-11T17:41:00Z"))
+        let stenen = koppen.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
+        let e = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
+        _ = try png(widget(entry(e), .systemMedium, Self.iPhone.middel, .light), "lang-middel-top3")
+        _ = try png(widget(entry(e), .systemLarge, Self.iPhone.groot, .light), "lang-groot")
+        _ = try png(widget(entry(e, .kop01, beeld: false), .systemSmall, Self.iPhone.klein, .light), "lang-klein-kop01")
+        // Vergrendelscherm: links 01 met een korte vorm. Rechts een 01 zonder korte vorm (twee beweringen) die ook
+        // heel niet in vier regels past: dan schuift de volgende kop op (bestaand gedrag).
+        let heel = ["Kabinet is gevallen na urenlang crisisberaad, premier Schoof weerspreekt dat bericht"] + koppen
+        let h = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: heel.enumerated().map { i, k in
+            WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }, gelezen: [], vraag: .algemeen)
+        let rij = HStack(spacing: 14) {
+            HootWidgetInhoud(entry: entry(e), family: .accessoryRectangular, maat: Self.rechthoek).frame(width: 172, height: 76)
+            HootWidgetInhoud(entry: entry(h), family: .accessoryRectangular, maat: Self.rechthoek).frame(width: 172, height: 76)
+        }
+        .padding(20).background(achtergrond(.dark)).foregroundStyle(.white)
+        .environment(\.colorScheme, .dark).environment(\.widgetRenderingMode, .vibrant)
+        _ = try png(rij, "lang-vergrendelscherm", schaal: 2)
     }
 
     private func achtergrond(_ scheme: ColorScheme) -> some View {

@@ -76,7 +76,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | `t5-screen` (`head-5`) | serif 800, 27/32 px | `Theme.headline(.title)` = `.kop(.title)`; in de balk Newsreader 800 op `.headline`/`.largeTitle` (UIKit) | Schermtitel (Middageditie, Stroom, Selectie …) |
 | `head-lg-item` | serif 800, 22/26 px (`lh-head-lg`) | `.kop(.title2)` | Grote itemkop: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel |
 | `t4-item` | serif 800, 18/22 px (`lh-4`) | `.kop(.title3)` | Kop van een bericht |
-| `widget-kop` | — (alleen iOS) | Newsreader 800, 16/18,4 vast (`WidgetLetter.widgetKop`) | Koppen in de widgets: Middel · Top 3, Klein · Kop 01, 02 en 03 van Groot, vergrendelscherm. Altijd de korte kop (`kortKop`), op een woordgrens ingekort; nooit midden in een woord afgekapt |
+| `widget-kop` | — (alleen iOS) | Newsreader 800, 16/18,4 vast (`WidgetLetter.widgetKop`) | Koppen in de widgets: Middel · Top 3, Klein · Kop 01, 02 en 03 van Groot, vergrendelscherm. De korte kop (`kortKop`): alleen als de kop één bewering is, aan het eind op een woordgrens ingekort met "…"; anders de hele kop, met de regels die hij nodig heeft. Nooit midden in een woord afgekapt |
 | `intro` | lees 400, 17/24 (1,42), Nacht 430 | `.leestekst(.body)` | De intro van elk verhaal (ook in een lijst), de tekst van een post, in `ink-2` |
 | `lees-proza` | lees 400, 17/28 | lezer: Newsreader Tekst, 1.6 | Proza, De Editie in één minuut, de lezer |
 | `t2-ui` | sans 600, 15 px, 1.3 | `.ui(.subheadline, .semibold)` | Bronnaam (600), knoppen, chips |

@@ -22,11 +22,10 @@ import WidgetKit
     func testKorteKopGelijkAanHetWeb() throws {
         // `max`: de kortere stappen van de widget; `verwacht` nil: op die maat geen veilige korte kop.
         struct Geval: Decodable { let kop: String; let verwacht: String?; let max: Int? }
-        struct Fixture: Decodable { let max: Int; let kernMin: Int; let gevallen: [Geval] }
+        struct Fixture: Decodable { let max: Int; let gevallen: [Geval] }
         let fx = try JSONDecoder().decode(Fixture.self, from: Data(contentsOf: Self.root.appending(path: "tests/fixtures/kort-kop.json")))
         XCTAssertEqual(fx.max, KortKop.max)
-        XCTAssertEqual(fx.kernMin, KortKop.kernMin)
-        XCTAssertGreaterThanOrEqual(fx.gevallen.count, 20)
+        XCTAssertGreaterThanOrEqual(fx.gevallen.count, 400)
         for g in fx.gevallen { XCTAssertEqual(KortKop.kort(g.kop, max: g.max ?? KortKop.max), g.verwacht, "\(g.kop) (\(g.max ?? KortKop.max))") }
     }
 
@@ -46,11 +45,9 @@ import WidgetKit
 
     // Keuring 3: een maat waarop een ontkenning zou wegvallen, slaat de trap over; nooit "D66 en CDA zwichten…".
     func testTrapLaatNooitEenOntkenningWeg() {
+        // Keuring 8: geen uitwijk meer naar het deel na de dubbele punt; twee beweringen, dus de hele kop.
         let kop = "Coalitie ten dode opgeschreven: D66 en CDA zwichten niet na powerplay VVD"
-        let trap = KortKop.trap(kop, kort: nil)
-        XCTAssertEqual(trap.first, "D66 en CDA zwichten niet na powerplay VVD")
-        // Staat het werkwoord er, dan ook de ontkenning (op de kleinste maat blijft alleen het deel voor de dubbele punt).
-        for t in trap where t.contains("zwichten") { XCTAssertTrue(t.contains("niet"), t) }
+        XCTAssertEqual(KortKop.trap(kop, kort: nil), [kop])
         let tweede = KortKop.trap("Tweede Kamer steunt het nieuwe belastingplan niet, coalitie in zwaar weer na lange nacht van onderhandelen", kort: nil)
         XCTAssertFalse(tweede.isEmpty)
         for t in tweede where t.contains("steunt") { XCTAssertTrue(t.contains("niet"), t) }
@@ -97,6 +94,26 @@ import WidgetKit
             XCTAssertFalse(KortKop.veilig(kop, fout), kop)
             XCTAssertEqual(KortKop.trap(kop, kort: fout), [kop], kop)
         }
+        // Keuring 8: de regel is dicht. Elke grens, voorwaarde, tegenwoord of bijna-ontkenning: de hele kop.
+        for kop in [
+            "Kabinet is gevallen na urenlang crisisberaad in Den Haag: premier spreekt het tegen",
+            "Kabinet is gevallen na urenlang crisisberaad, premier Schoof weerspreekt dat bericht",
+            "Prime minister resigns after crisis talks but Downing Street disputes the report entirely",
+            "Prime minister resigns after crisis talks—Downing Street calls the report untrue and wrong",
+            "Kabinet is gevallen na urenlang crisisberaad in Den Haag (premier: ‘nepnieuws’)",
+            "Kabinet is gevallen na urenlang crisisberaad / premier Schoof weerspreekt het bericht",
+            "Fed cuts interest rates by half a point in December if inflation keeps falling, says Powell",
+            "Ajax wordt kampioen van de eredivisie als PSV zondag verliest en Feyenoord gelijkspeelt",
+            "Ajax wint in de slotfase van de topper tegen PSV in het Philips Stadion bijna",
+            "Kabinet haalt de klimaatdoelen voor 2030 volgens het PBL op een haar na",
+        ] {
+            XCTAssertNil(KortKop.kort(kop), kop)
+            XCTAssertEqual(KortKop.trap(kop, kort: nil), [kop], kop)
+        }
+        // Een label van één woord blijft staan; een oude korte kop van de server met een deel na de dubbele punt telt niet.
+        XCTAssertEqual(KortKop.kort("Nepnieuws: kabinet is gevallen na urenlang crisisberaad in Den Haag over de asielwet"), "Nepnieuws: kabinet is gevallen na urenlang crisisberaad…")
+        let b = "Meteen twee seizoenen tegelijk besteld: Netflix blaast vampierensaga ‘Twilight’ nieuw leven in"
+        XCTAssertEqual(KortKop.trap(b, kort: "Netflix blaast vampierensaga ‘Twilight’ nieuw leven in"), [b])
         // U+0085 is witruimte, net als op het web.
         XCTAssertEqual(KortKop.kort("Kop met\u{0085}teken"), "Kop met teken")
     }
@@ -208,10 +225,13 @@ import WidgetKit
         XCTAssertEqual(e.verhalen.map(\.nummer), Array(1...10))
         XCTAssertFalse(e.verhalen.contains { $0.kop.hasPrefix("Emma Heesters") }, "Buiten je bubbel staat niet in de widget")
         // De korte kop van de server, de kop zelf blijft voor VoiceOver.
-        XCTAssertEqual(e.verhalen[0].kortKop, "D66 en CDA sluiten deal met Pro en Volt rond belastingplan…")
+        // 01 is meer dan één bewering (komma): geen korte vorm, de hele kop (keuring 8). 02 is één bewering.
+        XCTAssertEqual(e.verhalen[0].kortKop, e.verhalen[0].kop)
         XCTAssertTrue(e.verhalen[0].kop.hasSuffix("nog geen reactie VVD"))
+        XCTAssertEqual(e.verhalen[1].kortKop, "Honderden scholen in Europa krijgen een bommelding…")
         XCTAssertEqual(e.verhalen[0].bron.isEmpty, false)
-        for v in e.verhalen { XCTAssertLessThanOrEqual(v.kortKop.utf16.count, 60) }
+        // Een korte kop past in 60 tekens; zonder korte vorm is het de hele kop.
+        for v in e.verhalen { XCTAssertTrue(v.kortKop.utf16.count <= 60 || v.kortKop == v.kop, v.kortKop) }
     }
 
     func testZonderKorteKopVanDeServerRekentDeAppHemZelf() {
@@ -456,9 +476,10 @@ import WidgetKit
     // een andere kop anders bijna alles kwijtraakt ("Sluiting dreigt…").
     func testWieEenRegelInlevertVerliestHetMinst() {
         let nu = WidgetDagdeel.op(Self.moment("2026-11-11T17:41:00Z"))
-        let koppen = ["D66 en CDA sluiten deal met Pro en Volt rond belastingplan, VVD wacht met een reactie tot morgen",
-                      "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
-                      "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet"]
+        // Keuring 8: alle drie één bewering, zodat ze een korte vorm hebben.
+        let koppen = ["D66 en CDA sluiten deal met Pro en Volt rond belastingplan en de VVD wacht met een reactie tot morgen",
+                      "Honderden scholen in Europa doelwit van een golf bommeldingen per e-mail vanuit het buitenland",
+                      "Sluiting dreigt voor verouderde laboratoria RIVM en verhuizen kan pas over een paar jaar"]
         let stenen = koppen.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
         let e = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
         let gezet = MiddelTop3.zet(e, maat: CGSize(width: 364, height: 170), marge: WidgetRuimte.s4).gezet
@@ -471,7 +492,7 @@ import WidgetKit
         XCTAssertEqual(gezet.map(\.regels), [2, 2])
         // Besluit Alex (12 november 2026): 01 en 02 zijn volle koppen. Ook als 03 een regel kan missen, levert 01 of
         // 02 daarvoor niets in; past 03 dan niet, dan valt 03 weg.
-        let k3 = [koppen[0], koppen[1], "RIVM-laboratoria in Bilthoven gaan dicht, het nieuwe gebouw komt er pas over vijf jaar"]
+        let k3 = [koppen[0], koppen[1], "RIVM-laboratoria in Bilthoven gaan dicht en het nieuwe gebouw komt er pas over vijf jaar"]
         let s3 = k3.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
         let e3 = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: s3, gelezen: [], vraag: .algemeen)
         let g3 = MiddelTop3.zet(e3, maat: CGSize(width: 364, height: 170), marge: WidgetRuimte.s4).gezet
@@ -533,9 +554,9 @@ import WidgetKit
     // geen ruimte is.
     func testTop3TweeVolleKoppen() {
         let nu = WidgetDagdeel.op(Self.moment("2026-11-11T17:41:00Z"))
-        let koppen = ["Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
+        let koppen = ["Honderden scholen in Europa doelwit van een golf bommeldingen per e-mail vanuit het buitenland",
                       "Kabinet presenteert plan voor tienduizenden nieuwe woningen in de randstad en het oosten",
-                      "Storm trekt vanavond over het hele land, code oranje voor de kust en het IJsselmeergebied"]
+                      "Storm trekt vanavond over het hele land met code oranje voor de kust en het IJsselmeergebied"]
         let stenen = koppen.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
         let e = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
         for maat in [CGSize(width: 364, height: 170), CGSize(width: 329, height: 155)] {
