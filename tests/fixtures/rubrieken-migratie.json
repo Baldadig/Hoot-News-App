@@ -5,7 +5,7 @@
  },
  { "name": "Tech: alleen Games aangetikt", "from": { "interests": ["tech"], "topics": ["games"] }, "to": { "interests": ["cultuur"], "topics": ["games"] }
  },
- { "name": "Tech: Techbedrijven en Hacks & privacy, zonder Games", "from": { "interests": ["tech"], "topics": ["tech", "privacy"] }, "to": { "interests": ["tech"], "topics": ["tech", "privacy"] }
+ { "name": "Tech: Big Tech en Hacks & privacy, zonder Games", "from": { "interests": ["tech"], "topics": ["tech", "privacy"] }, "to": { "interests": ["tech"], "topics": ["tech", "privacy"] }
  },
  { "name": "Tech: alleen Hacks & privacy", "from": { "interests": ["tech"], "topics": ["privacy"] }, "to": { "interests": ["tech"], "topics": ["privacy"] }
  },

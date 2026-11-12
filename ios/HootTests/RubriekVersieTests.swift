@@ -11,7 +11,7 @@ import XCTest
         XCTAssertEqual(Rubriek.byId["cultuur"]?.topics, ["muziek", "film", "boeken", "kunst", "media", "games"])
         XCTAssertEqual(Rubriek.byId["cultuur"]?.cats, ["cultuur", "games"])
         XCTAssertEqual(Rubriek.alle.map(\.id), ["politiek", "binnenland", "wereld", "economie", "tech", "wetenschap", "cultuur", "sport"])
-        XCTAssertEqual(Taste.label("tech"), "Techbedrijven")
+        XCTAssertEqual(Taste.label("tech"), "Big Tech")
         XCTAssertEqual(Taste.label("privacy"), "Hacks & privacy")
         XCTAssertEqual(Taste.label("games"), "Games")
         // Elk onderwerp hoort bij precies één rubriek en heeft een naam.
@@ -42,7 +42,7 @@ import XCTest
         }
     }
 
-    // Een bestaande lezer met Games, Hacks & privacy en Techbedrijven onder Tech: na het opstarten precies die
+    // Een bestaande lezer met Games, Hacks & privacy en Big Tech onder Tech: na het opstarten precies die
     // keuzes, Games nu onder Cultuur; één keer omgezet, ook in de opslag.
     func testOpgeslagenProfielHoudtZijnKeuzes() throws {
         let d = UserDefaults.standard

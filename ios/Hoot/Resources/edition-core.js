@@ -141,7 +141,7 @@ var HootCore = (() => {
     T("energie", "Energie"),
     T("geld", "Geld & sparen"),
     T("ai", "AI"),
-    T("tech", "Techbedrijven"),
+    T("tech", "Big Tech"),
     T("gadgets", "Gadgets"),
     T("privacy", "Hacks & privacy"),
     T("ev", "Elektrisch rijden"),

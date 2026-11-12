@@ -8,7 +8,7 @@ export const TOPICS = [
   T('wonen', 'Wonen'), T('zorg', 'Zorg'), T('onderwijs', 'Onderwijs'), T('misdaad', 'Misdaad & recht'), T('migratie', 'Asiel & migratie'), T('verkeer', 'Verkeer & OV'),
   T('oekraine', 'Oekraïne & Rusland'), T('middenoosten', 'Midden-Oosten'), T('azie', 'China & Azië'), T('afrika', 'Afrika'), T('latam', 'Latijns-Amerika'), T('geopolitiek', 'Defensie & NAVO'),
   T('economie', 'Markten & beurs'), T('werk', 'Werk & inkomen'), T('bedrijven', 'Bedrijven'), T('energie', 'Energie'), T('geld', 'Geld & sparen'),
-  T('ai', 'AI'), T('tech', 'Techbedrijven'), T('gadgets', 'Gadgets'), T('privacy', 'Hacks & privacy'), T('ev', 'Elektrisch rijden'), T('games', 'Games'),
+  T('ai', 'AI'), T('tech', 'Big Tech'), T('gadgets', 'Gadgets'), T('privacy', 'Hacks & privacy'), T('ev', 'Elektrisch rijden'), T('games', 'Games'),
   T('klimaat', 'Klimaat'), T('gezondheid', 'Gezondheid'), T('ruimte', 'Ruimte'), T('natuur', 'Natuur & dieren'), T('brein', 'Psychologie & brein'),
   T('muziek', 'Muziek'), T('film', 'Film & series'), T('boeken', 'Boeken'), T('kunst', 'Kunst & musea'), T('media', 'Media'),
   T('voetbal', 'Voetbal'), T('f1', 'Formule 1'), T('wielrennen', 'Wielrennen'), T('tennis', 'Tennis'), T('wintersport', 'Schaatsen & wintersport'), T('olympisch', 'Olympische sporten'),

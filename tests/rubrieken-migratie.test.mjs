@@ -28,8 +28,8 @@ test('de nieuwe indeling: Games onder Cultuur, Tech zonder Games, dezelfde id\'s
   assert.equal(TOPICS.length, 43)
 })
 
-test('de namen: Techbedrijven, Hacks & privacy; in de Selectie Games, Hacks & privacy en Gadgets', () => {
-  assert.equal(topicById('tech').label, 'Techbedrijven')
+test('de namen: Big Tech blijft, Hacks & privacy; in de Selectie Games, Hacks & privacy en Gadgets', () => {
+  assert.equal(topicById('tech').label, 'Big Tech')
   assert.equal(topicById('privacy').label, 'Hacks & privacy')
   assert.equal(topicById('games').label, 'Games')
   assert.equal(topicById('gadgets').label, 'Gadgets')
@@ -42,7 +42,7 @@ test('de namen: Techbedrijven, Hacks & privacy; in de Selectie Games, Hacks & pr
   assert.equal(vak.klimaat, 'Klimaat & energie')
   assert.equal(vak.vastgoed, 'Wonen & vastgoed')
   assert.equal(vak.geld, 'Geld & beleggen')
-  const old = /Big Tech|Privacy & veiligheid|Security & privacy|Tech & gadgets|^Gaming$/
+  const old = /Privacy & veiligheid|Security & privacy|Tech & gadgets|^Gaming$/
   for (const l of [...TOPICS.map((t) => t.label), ...VAK_FIELDS.map((f) => f.label)]) assert.doesNotMatch(l, old)
 })
 
@@ -117,7 +117,7 @@ test('Tech zonder keuze blijft Tech, ook in de Stroom-tabs; Games alleen via Cul
   assert.equal(prof.topicP.games, undefined)
 })
 
-test('een bewaard profiel met Games, Hacks & privacy en Techbedrijven houdt precies die keuzes', () => {
+test('een bewaard profiel met Games, Hacks & privacy en Big Tech houdt precies die keuzes', () => {
   const p = normalizePrefs({ interests: ['tech'], topics: ['tech', 'privacy', 'games'], pinned: ['games', 'privacy'], taste: { topics: { games: 4 }, sources: {} } })
   assert.deepEqual(p.interests, ['tech', 'cultuur'])
   assert.deepEqual(p.topics, ['tech', 'privacy', 'games'])
