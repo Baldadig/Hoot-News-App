@@ -4,7 +4,7 @@
 //
 // Versie 2 (body `v: 2`; het web en app 1.2.1):
 //  - Als lid (header `Authorization: Bearer <token>`): de Editie in je account (`user_state.edition`) is de
-//    enige waarheid. Past die bij dit dagdeel en je bronnen en interesses (fitsEdition), dan gaat zij
+//    enige waarheid. Past die bij dit dagdeel en je bronnen en interesses (fitsAny), dan gaat zij
 //    ongewijzigd terug (`account`), ook als app 1.2 haar schreef. Anders stelt de server samen, met wat er
 //    in je vorige Edities stond (de Editie en haar `history` uit je account), en legt haar vast met jouw
 //    token: de eerste schrijver wint (claimFilter, zoals het web en app 1.2), en alleen over de rij die hij las
@@ -46,7 +46,7 @@ import { feedMemory } from '../lib/feed-geheugen.mjs'
 import { refresh } from '../lib/refresh.mjs'
 import { previousOf, historyOf, recentEditions, HISTORY_MAX } from '../lib/stories.mjs'
 import { composePersonal, withoutDebug, editionBasis, earlierEditions } from '../../src/lib/personal.js'
-import { fitsEdition, accountAhead, claimFilter, readAccountEdition, TABLE } from '../../src/lib/editionSync.js'
+import { accountAhead, claimFilter, readAccountEdition, TABLE } from '../../src/lib/editionSync.js'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 import { readingSummary } from '../../src/lib/affinity.js'
 import { currentChoice, RUBRIEKEN } from '../../src/lib/topics.js'
@@ -91,6 +91,32 @@ export const READ_MAX = 1500 // zoveel gelezen berichten gaan ook mee in de sync
 export function choiceOf(body) {
   const asked = { interests: ids(body.interests, 20), topics: ids(body.topics, 60) }
   return { asked, ...(body.rubrieken === RUBRIEKEN ? asked : currentChoice(asked.interests, asked.topics)) }
+}
+
+// De afdrukken waaronder deze vraag een Editie in je account herkent (Editie vast, 12 november 2026: "Mijn
+// avondeditie is nu al 3x gewijzigd"). Eerst die van de vraag zelf (`basis`, wat het toestel zelf rekent), dan,
+// als de keuze werd omgezet (choiceOf: app 1.2.1 zonder `rubrieken`), die van de keuze zoals de Redacteur hem
+// leest. Het web (indeling van nu) en app 1.2.1 (oude indeling) vragen met dezelfde bronnen en interesses, maar
+// in een andere indeling: de afdruk van de vraag verschilt, die van de omgezette keuze niet. Zonder deze tweede
+// afdruk stelde de server bij elke wissel van toestel opnieuw samen en schreef hij over de Editie heen.
+export function basesOf(p) {
+  const asked = p.asked || p
+  const own = editionBasis(p.followed, asked.interests, asked.topics, p.favorites)
+  const read = editionBasis(p.followed, p.interests, p.topics, p.favorites)
+  return own === read ? [own] : [own, read]
+}
+// Alle afdrukken van een vastgelegde Editie: haar `basis` en, als de server haar voor een omgezette keuze
+// samenstelde, haar `bases` (zie composeFor).
+const marksOf = (e) => [e.basis, ...(Array.isArray(e.bases) ? e.bases : [])].filter((b) => typeof b === 'string' && b)
+// Past de Editie in je account bij dit dagdeel en bij één van de afdrukken van deze vraag?
+export const fitsAny = (e, id, bases) => !!e && typeof e === 'object' && e.id === id && marksOf(e).some((b) => bases.includes(b))
+// Dezelfde Editie, met de afdruk die het vragende toestel zelf rekent: zo herkent het haar de volgende keer
+// zonder te vragen (app 1.2.1 en het web toetsen hun bewaarde Editie op hun eigen afdruk). Alleen het antwoord;
+// de rij in je account blijft staan. `bases` draagt de afdruk van de rij mee (het web legt zijn samenvatting
+// daarop vast, writeBrief). Met dezelfde afdruk: ongewijzigd, byte voor byte.
+export function forAsker(e, bases) {
+  if (e.basis === bases[0]) return e
+  return { ...e, basis: bases[0], bases: [...new Set([...marksOf(e), ...bases])] }
 }
 
 // Alleen nieuwsbronnen die bestaan, in de volgorde van de aanvraag.
@@ -211,6 +237,7 @@ export function anonKey(globalId, p, earlier) {
 // history-regels) als wat er al stond. Gestempeld zoals het web vastlegt: owner, afdruk, history.
 export function composeFor(start, items, p, { owner, earlier = [] }) {
   const global = start.edition
+  const bases = basesOf(p)
   const edition = composePersonal({
     global,
     stories: start.stories || [],
@@ -231,7 +258,8 @@ export function composeFor(start, items, p, { owner, earlier = [] }) {
   return {
     ...withoutDebug(edition),
     owner,
-    basis: editionBasis(p.followed, (p.asked || p).interests, (p.asked || p).topics, p.favorites),
+    basis: bases[0],
+    ...(bases.length > 1 ? { bases } : {}), // omgezette keuze: ook de afdruk zoals de Redacteur hem leest (basesOf)
     history: earlier.map(historyOf).filter(Boolean),
     revision: EDITOR_REVISION,
     server: true,
@@ -329,7 +357,10 @@ export async function editionV2(req, body, deps = {}) {
   const global = start.edition
   const id = global.id
   const p = profileOf(start, body)
-  const basis = editionBasis(p.followed, p.asked.interests, p.asked.topics, p.favorites)
+  // Alle afdrukken van deze vraag (basesOf): dezelfde bronnen en interesses in de oude of de nieuwe indeling
+  // herkennen dezelfde Editie. Echt andere bronnen of interesses: geen enkele afdruk past, een nieuwe Editie.
+  const bases = basesOf(p)
+  const fits = (e) => fitsAny(e, id, bases)
   const compose = (items, opts) => watch.time('rekenen', () => composeFor(start, items, p, opts))
 
   if (uid) {
@@ -341,7 +372,7 @@ export async function editionV2(req, body, deps = {}) {
       return fail2(503, 'Je account is nu niet bereikbaar.')
     }
     // Al vastgelegd voor dit dagdeel en deze afdruk (door de server, het web of app 1.2): ongewijzigd terug.
-    if (fitsEdition(row, { id, basis })) return ok(row, 'account', watch)
+    if (fits(row)) return ok(forAsker(row, bases), 'account', watch)
     // Staat er al een Editie van een later dagdeel (ons startbestand uit Blobs loopt tot een minuut achter, en
     // een ander toestel had de kern van nu al): nooit daaroverheen schrijven (accountAhead, keuring P0 ronde 2
     // §4; keuring server 1). Die Editie gaat terug; het web bewaart haar als 'ahead', iOS toont tot de kern
@@ -358,7 +389,7 @@ export async function editionV2(req, body, deps = {}) {
     if (r.error) return fail2(503, 'Je account is nu niet bereikbaar.')
     if (r.won) return ok(mine, 'claimed', watch)
     // Een ander toestel (of een gelijktijdige aanvraag) was net eerder: die Editie, voor iedereen dezelfde.
-    if (fitsEdition(r.theirs, { id, basis })) return ok(r.theirs, 'account', watch)
+    if (fits(r.theirs)) return ok(forAsker(r.theirs, bases), 'account', watch)
     if (accountAhead(r.theirs, global)) return ok(r.theirs, 'account', watch)
     return ok(mine, 'composed', watch) // geen rij in user_state, of net een andere afdruk: niets om in vast te leggen
   }
