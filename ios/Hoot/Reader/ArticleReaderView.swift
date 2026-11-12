@@ -54,7 +54,7 @@ struct ArticleReaderView: View {
                         .safeAreaInset(edge: .bottom) {
                             if loginPanelVisible && shouldOfferLogin {
                                 ReaderLoginPanel(sourceName: sourceName, login: {
-                                    login = LoginTarget(name: sourceName, url: loginURL)
+                                    login = LoginTarget(name: sourceName, url: loginURL, article: item.link)
                                 }, close: closeLoginPanel)
                             }
                         }
@@ -116,6 +116,27 @@ struct ArticleReaderView: View {
             .toolbar(tafel ? .hidden : .automatic, for: .navigationBar)
             // Na inloggen: bevestigen en het artikel opnieuw laden, nu met je abonnement.
             .sheet(item: $login, onDismiss: afterLogin) { target in LoginWebView(target: target) }
+            // Een inlog-pop-up op de pagina van de uitgever (stand "visit"), of het blad over Google.
+            .sheet(item: Binding(get: { loader.popups.sheet }, set: { if $0 == nil { loader.popups.dismissSheet() } })) { sheet in
+                switch sheet {
+                case let .popup(popup):
+                    LoginPopupSheet(popup: popup) { loader.popups.dismissSheet() }
+                case .google:
+                    GoogleLoginSheet(sourceName: sourceName, makePassword: PublisherLogin.passwordPage(domain).map { page in
+                        {
+                            loader.popups.google = false
+                            // Eerst dit blad weg, dan het inlogvel op de pagina om een wachtwoord te maken.
+                            Task {
+                                try? await Task.sleep(for: .milliseconds(450))
+                                login = LoginTarget(name: sourceName, url: loginURL, start: page, article: item.link)
+                            }
+                        }
+                    }, readInSafari: {
+                        loader.popups.google = false
+                        if let url = item.link { openURL(url) }
+                    })
+                }
+            }
             .overlay(alignment: .top) {
                 if welcome {
                     Label("Ingelogd bij \(sourceName)", systemImage: "checkmark.circle.fill")
@@ -141,10 +162,11 @@ struct ArticleReaderView: View {
             }
         }
         .onChange(of: loader.state) { _, state in if case let .ready(a) = state { reader?.bewaar(a, voor: item.id) } }
+        .onAppear { loader.popups.sourceName = sourceName }
         .task {
             signedIn = await isSignedIn()
             #if DEBUG
-            if DebugLaunch.screen("inloggen") { login = LoginTarget(name: sourceName, url: loginURL) }
+            if DebugLaunch.screen("inloggen") { login = LoginTarget(name: sourceName, url: loginURL, article: item.link) }
             #endif
         }
         .task(id: loader.state == .loading) {
@@ -411,8 +433,15 @@ struct WebPage: UIViewRepresentable {
 struct LoginTarget: Identifiable {
     var name: String
     var url: URL?
-    var id: String { url?.absoluteString ?? name }
+    // Waar het vel begint, als dat niet de inlogpagina is (de pagina om een wachtwoord te maken).
+    var start: URL? = nil
+    // Het artikel waar je vandaan kwam: "Lees in Safari" opent dat.
+    var article: URL? = nil
+    var id: String { (start ?? url)?.absoluteString ?? name }
     static func home(_ article: URL) -> URL? { article.host().flatMap { URL(string: "https://\($0)/") } }
+
+    // Wat "Lees {bron} in Safari" opent: het artikel, en anders de voorpagina van de uitgever.
+    @MainActor var safari: URL? { article ?? url.flatMap { PublisherLogin.domain(of: $0) }.flatMap { URL(string: "https://\($0)/") } }
 }
 
 struct LoginWebView: View {
@@ -432,6 +461,9 @@ struct LoginWebView: View {
         return view
     }()
     @State private var watcher: LoginWatcher?
+    // Echte pop-ups ("Log in met Apple") en Google eerlijk (LoginPopups).
+    @State private var popups = LoginPopups()
+    @Environment(\.openURL) private var openURL
     private var done: Bool { watcher?.confirmed == true } // we zien echt dat je bent ingelogd
 
     var body: some View {
@@ -481,18 +513,53 @@ struct LoginWebView: View {
                 .onChange(of: done) { _, now in
                     if now { UIAccessibility.post(notification: .announcement, argument: "Je bent ingelogd bij \(target.name).") }
                 }
+                // De pop-up van een inlogdienst als vel boven de pagina, of het blad over Google.
+                .sheet(item: Binding(get: { popups.sheet }, set: { if $0 == nil { popups.dismissSheet() } })) { sheet in
+                    switch sheet {
+                    case let .popup(popup):
+                        LoginPopupSheet(popup: popup) { popups.dismissSheet() }
+                    case .google:
+                        GoogleLoginSheet(sourceName: target.name, makePassword: passwordPage.map { page in
+                            { popups.google = false; webView.load(URLRequest(url: page)) }
+                        }, readInSafari: {
+                            popups.google = false
+                            if let url = target.safari { openURL(url) }
+                        })
+                    }
+                }
         }
         .task { await start() }
+        #if DEBUG
+        // `-HootInlogWachtwoord YES`: bij het Google-blad zelf "Maak een wachtwoord" kiezen (toets in de simulator).
+        .task(id: popups.google) {
+            guard popups.google, UserDefaults.standard.bool(forKey: "HootInlogWachtwoord"), let page = passwordPage else { return }
+            try? await Task.sleep(for: .seconds(3))
+            popups.google = false
+            webView.load(URLRequest(url: page))
+        }
+        #endif
+        .onDisappear { Task { await LoginDiaryBook.look() } } // na het inloggen meteen in het dagboek
     }
+
+    // Waar je bij deze uitgever een wachtwoord maakt (alleen waar die pagina bestaat).
+    private var passwordPage: URL? { PublisherLogin.passwordPage(target.url.flatMap(PublisherLogin.domain(of:))) }
 
     // Eerst het script, het dimmen (Donker en Nacht) en de berichten, dan de pagina; daarna meekijken.
     private func start() async {
-        guard let url = target.url else { return }
+        guard let login = target.url else { return }
+        let url = target.start ?? login
+        popups.sourceName = target.name
+        webView.uiDelegate = popups
+        webView.navigationDelegate = popups
+        #if DEBUG
+        webView.isInspectable = true
+        LoginDebug.run(on: webView, popups: popups) // wacht zelf tot de pagina er is
+        #endif
         let content = webView.configuration.userContentController
         if scheme == .dark {
             content.addUserScript(WKUserScript(source: LoginPageScript.dimScript(night: nacht), injectionTime: .atDocumentStart, forMainFrameOnly: true))
         }
-        guard let domain = PublisherLogin.domain(of: url) else { webView.load(URLRequest(url: url)); return }
+        guard let domain = PublisherLogin.domain(of: login) else { webView.load(URLRequest(url: url)); return }
         let watcher = LoginWatcher(domain: domain)
         watcher.attach(to: webView)
         self.watcher = watcher
