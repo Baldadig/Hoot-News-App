@@ -1480,7 +1480,7 @@ var HootCore = (() => {
       const fresh = items.filter(after);
       if (ctx.newFacts) {
         const freshAll = whole.filter(after);
-        const fact = fresh.length ? ctx.newFacts(freshAll, whole.filter((i) => !after(i)), fresh, { keyAt: story.keyAt, pubs: story.pubs, cutoff: last + FOLLOW_UP_GAP }) : null;
+        const fact = fresh.length ? ctx.newFacts(freshAll, whole.filter((i) => !after(i)), fresh, { keyAt: story.keyAt, pubAt: story.pubAt, pubs: story.pubs, cutoff: last + FOLLOW_UP_GAP }) : null;
         if (fact) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length, heads: fact.heads.map((i) => i.id) };
         else parts.seen = { pts: 0 };
       } else if (fresh.length >= FOLLOW_UP_MIN) parts.followUp = { pts: P.FOLLOW_UP, n: fresh.length };
@@ -2923,7 +2923,7 @@ var HootCore = (() => {
     const then = /* @__PURE__ */ new Set();
     for (const id of [st.id, ...st.formerIds || []]) for (const k of previous.keysOf?.get(id) || []) then.add(k);
     for (const i of whole) if (!isNew(i)) for (const k of keysOf(i)) then.add(k);
-    const fact = newFact(freshAll, then, keysOf, { keyAt: keyAtOf(st), cutoff: previousAt(st, previous), pubs: st.publisherCount });
+    const fact = newFact(freshAll, then, keysOf, { keyAt: keyAtOf(st), pubAt: st.pubAt, cutoff: previousAt(st, previous), pubs: st.publisherCount });
     if (!fact) return null;
     const heads = factHeads(fresh, fact, sig);
     const lead = leadCandidates(heads, mainIds, preferred, now)[0];
@@ -2943,8 +2943,10 @@ var HootCore = (() => {
     return kept.length;
   };
   var keyAtOf = (st) => st?.keyAt && typeof st.keyAt === "object" && !Array.isArray(st.keyAt) ? st.keyAt : null;
+  var pubAtOf = (st) => st?.pubAt && typeof st.pubAt === "object" && !Array.isArray(st.pubAt) ? st.pubAt : null;
   function newFact(fresh, then, keysOf, story = null) {
     const keyAt = keyAtOf(story);
+    const pubAt = pubAtOf(story);
     const cutoff = story?.cutoff ?? 0;
     const known = (k) => keyAt && Array.isArray(keyAt[k]) && keyAt[k].length === 2;
     const old = (k) => then.has(k) || known(k) && keyAt[k][0] <= cutoff;
@@ -2959,8 +2961,9 @@ var HootCore = (() => {
     const thin = !keyAt && freshPubs < NEW_FACT_PUBS && (story?.pubs ?? 0) >= NEW_FACT_PUBS;
     const reach = (k) => Math.max(pubs.get(k).size, known(k) ? keyAt[k][1] : 0);
     const wide = new Set([...pubs].filter(([k]) => reach(k) >= NEW_FACT_PUBS || thin && pieces.get(k) >= NEW_FACT_PUBS).map(([k]) => k));
-    const newPubs = Math.max(freshPubs, ...[...wide].map(reach));
-    const broad = new Set([...wide].filter((k) => reach(k) >= NEW_FACT_BROAD && reach(k) * NEW_FACT_SHARE >= newPubs));
+    const after = pubAt ? Object.values(pubAt).filter((t) => typeof t === "number" && t > cutoff).length : 0;
+    const newPubs = Math.max(freshPubs, after, ...[...wide].map(reach));
+    const broad = pubAt ? new Set([...wide].filter((k) => reach(k) >= NEW_FACT_BROAD && reach(k) * NEW_FACT_SHARE >= newPubs)) : /* @__PURE__ */ new Set();
     const factsOf = (i) => {
       const ks = keysOf(i).filter((k) => wide.has(k));
       return stemCount(ks) >= NEW_FACT_SIG ? ks : ks.filter((k) => broad.has(k));
@@ -3263,7 +3266,7 @@ var HootCore = (() => {
       const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId2.get(id)).filter(Boolean) : items;
       const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : items;
       const intl = internationalNews(whole, desk, st);
-      const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl, whole, keyAt: st.keyAt, pubs: st.publisherCount });
+      const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl, whole, keyAt: st.keyAt, pubAt: st.pubAt, pubs: st.publisherCount });
       if (!dev && !held && parts.followUp?.heads?.length) heads = parts.followUp.heads.map((id) => items.find((i) => i.id === id)).filter(Boolean);
       const tie = general && curioStory(st, items) ? weight({ sourceCount: 0, ownCount: 0, latestAt: st.latestAt }, now) + CURIO_TIE : 0;
       cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
@@ -3291,7 +3294,7 @@ var HootCore = (() => {
       }
       const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null;
       const mateItems = mates ? mates.itemIds.map((id) => ctx.own?.get(id) || byId2.get(id)).filter(Boolean) : [];
-      if (mates && personalParts(mateItems, prof, { readIds: ctx.readIds, newFacts: ctx.newFacts }, { whole: ctx.known ? mates.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : mateItems, keyAt: mates.keyAt, pubs: mates.publisherCount }).seen) {
+      if (mates && personalParts(mateItems, prof, { readIds: ctx.readIds, newFacts: ctx.newFacts }, { whole: ctx.known ? mates.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : mateItems, keyAt: mates.keyAt, pubAt: mates.pubAt, pubs: mates.publisherCount }).seen) {
         reject("item", it.id, [it.id], "verhaal-al-gelezen");
         continue;
       }
@@ -3733,7 +3736,7 @@ var HootCore = (() => {
       const ids = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || []])];
       if (!ids.some((x) => readIds.has(x))) return {};
       const members = ids.map((x) => itemAny.get(x)).filter(Boolean);
-      const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members, keyAt: st?.keyAt, pubs: st?.publisherCount });
+      const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members, keyAt: st?.keyAt, pubAt: st?.pubAt, pubs: st?.publisherCount });
       return followUp ? { followUp } : { seen: seen || { pts: 0 } };
     };
     const preferred = new Set(favorites.filter((id) => followed.has(id)));

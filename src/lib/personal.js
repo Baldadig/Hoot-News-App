@@ -277,7 +277,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const ids = [...new Set([id, ...(st?.itemIds || [])])]
     if (!ids.some((x) => readIds.has(x))) return {}
     const members = ids.map((x) => itemAny.get(x)).filter(Boolean)
-    const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members, keyAt: st?.keyAt, pubs: st?.publisherCount })
+    const { seen, followUp } = personalParts(members, prof, { readIds, newFacts: ctx.newFacts }, { whole: members, keyAt: st?.keyAt, pubAt: st?.pubAt, pubs: st?.publisherCount })
     return followUp ? { followUp } : { seen: seen || { pts: 0 } } // gelezen maar onbekend bericht: ook gezien
   }
   const preferred = new Set(favorites.filter((id) => followed.has(id)))
