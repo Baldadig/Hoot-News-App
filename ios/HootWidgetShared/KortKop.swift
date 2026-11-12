@@ -26,11 +26,12 @@ enum KortKop {
         "they", "you", "it", "there", "i",
     ]
     static let voegwoorden: Set<String> = ["en", "of", "maar", "want", "dus", "and", "or", "but"]
-    // Een ontkenning is nooit een los einde, en valt nooit weg als ze het deel raakt dat blijft (veilig). Ook wat
-    // bijna ontkent ("amper", "hardly") en "zonder"/"without".
+    // Een ontkenning is nooit een los einde, en valt nooit weg (veilig). Ook wat bijna ontkent ("amper", "zelden",
+    // "evenmin", "hardly", "rarely") en "zonder"/"without"; "non" voor samenstellingen ("non-profit").
     static let ontkenningen: Set<String> = [
         "niet", "geen", "nooit", "niets", "niks", "niemand", "nergens", "nee", "noch", "nimmer", "geenszins", "allerminst",
-        "amper", "nauwelijks", "zonder",
+        "amper", "nauwelijks", "zelden", "evenmin", "zonder", "non",
+        "rarely", "seldom",
         "not", "no", "never", "nothing", "none", "nobody", "nowhere", "neither", "nor", "cannot", "hardly", "barely", "scarcely",
         "without", "cant", "dont", "doesnt", "didnt", "wont", "isnt", "arent", "wasnt", "werent", "hasnt", "havent", "hadnt",
         "shouldnt", "wouldnt", "couldnt", "aint", "mustnt", "neednt", "shant", "mightnt", "oughtnt",
@@ -47,13 +48,6 @@ enum KortKop {
         "as", "than", "through", "since", "until", "under", "between", "despite", "without", "during", "towards", "toward",
         "and", "or", "but", "if", "because", "while", "although", "though", "unless", "whether",
     ]
-    // Verwijswoorden en persoonlijke voornaamwoorden: een zin die zo begint, zegt iets terug over wat ervoor staat.
-    static let verwijs: Set<String> = [
-        "dat", "dit", "die", "deze", "het", "er", "zo", "hij", "zij", "ze", "ik", "wij", "we", "jij", "je", "u",
-        "that", "this", "these", "those", "it", "which", "so", "he", "she", "they", "i", "you",
-    ]
-    // Een voorwaarde of tegenstelling zet iets bij het blijvende deel: nooit een losse zin.
-    static let voorwaarde: Set<String> = ["als", "tenzij", "indien", "mits", "zolang", "if", "unless", "yet", "provided"]
     // Een B die zo begint, is geen kop op zichzelf ("it will not be the last", "that is not true"); "Dit is …" wel.
     static let voornaamwoord: Set<String> = [
         "it", "he", "she", "they", "we", "i", "that", "which", "so", "hij", "zij", "ze", "wij", "ik", "dat", "zo",
@@ -105,8 +99,14 @@ enum KortKop {
     // Accenten tellen niet ("níét" is "niet"): NFD, dan de tekens zonder eigen letter eruit, zoals het web.
     private static func zonderAccent(_ w: String) -> String { vervang("\\p{M}", w.decomposedStringWithCanonicalMapping, "") }
     private static func letters(_ w: String) -> String { vervang("[^\\p{L}]", zonderAccent(w.lowercased()), "") }
-    // Een woord uit ontkenningen, of een Engelse samentrekking op n't ("mustn't", "needn’t").
-    static func ontkenning(_ w: String) -> Bool { ontkenningen.contains(letters(w)) || test("\\p{L}n['’]t(?![\\p{L}])", w.lowercased()) }
+    // Een woord uit ontkenningen, ook als deel van een samenstelling met een streepje ("niet-ontvankelijk",
+    // "not-guilty"), of een Engelse samentrekking op n't ("mustn't", "needn’t", "canʼt" met U+02BC).
+    static func ontkenning(_ w: String) -> Bool {
+        let a = vervang("[’ʼ`´]", w.lowercased(), "'")
+        return ontkenningen.contains(letters(a))
+            || a.components(separatedBy: CharacterSet(charactersIn: "-‐‑–—")).contains { ontkenningen.contains(letters($0)) }
+            || test("\\p{L}n't(?![\\p{L}])", a)
+    }
     private static func heeftOntkenning(_ s: String) -> Bool { delen(s).contains { ontkenning($0) } }
     private static func opent(_ s: String) -> Bool { openers.contains(letters(delen(s).first ?? "")) }
     // Begint bij woord `i` een nieuwe zin of bijzin: na een leesteken, bij een gedachtestreep of een bijzinswoord.
@@ -152,47 +152,13 @@ enum KortKop {
         }
         return nil
     }
-    // Een citaat na een dubbele punt dat helemaal wegvalt, met een eigen onderwerp vooraan.
-    private static func citaatWeg(_ alle: [String], _ p: Int, _ mee: Set<Int>) -> Bool {
-        var q = p
-        while q >= 0, !test(openCitaat, alle[q]) {
-            if q < p, test(sluitCitaat, alle[q]) { return false }
-            q -= 1
-        }
-        var r = p
-        while r < alle.count, !test(sluitCitaat, alle[r]) { r += 1 }
-        if q < 1 || r >= alle.count || p - q < 2 || !test(":$", alle[q - 1]) { return false }
-        let eerste = letters(alle[q])
-        if openers.contains(eerste) || ontkenningen.contains(eerste) || verwijs.contains(eerste) { return false }
-        return !(q ... r).contains { mee.contains($0) }
-    }
-    // Een losse (bij)zin die niets terugzegt over het blijvende deel: begint met een bijzinswoord of na . ? !, niet met
-    // een voorwaarde of verwijswoord (ook niet direct na het bijzinswoord), en met een benoemd onderwerp (naam of getal).
-    private static func losseZin(_ alle: [String], _ s: Int, _ p: Int) -> Bool {
-        let eerste = letters(alle[s])
-        let opBijzin = bijzin.contains(eerste)
-        if !opBijzin && !(s > 0 && test("[.?!]$", alle[s - 1])) { return false }
-        if voorwaarde.contains(eerste) || verwijs.contains(eerste) { return false }
-        if opBijzin && verwijs.contains(letters(s + 1 < alle.count ? alle[s + 1] : "")) { return false }
-        let acroniem = test("^[‘’“'\"„«‚(]?\\p{Lu}[\\p{Lu}\\d]+(?![\\p{L}\\p{N}])", alle[s])
-        return acroniem || (s + 1 < p && alle[(s + 1) ..< p].contains { test("^[‘’“'\"„«‚(]?(?:\\p{Lu}|\\d)", $0) })
-    }
-    // Valt er een ontkenning weg die het deel raakt dat blijft? Dan is deze korte kop niet veilig.
+    // Valt er een ontkenning weg, waar ook in de kop? Dan is deze korte kop niet veilig. Geen uitzondering: ook een
+    // bijzin, zin of citaat die helemaal wegvalt, kan het blijvende deel tegenspreken (keuring 6).
     static func veilig(_ kop: String, _ kort: String?) -> Bool {
         guard let kort else { return false }
         let alle = delen(schoon(kop))
         guard let mee = gelegd(alle, kort) else { return false }
-        for p in alle.indices where !mee.contains(p) && ontkenning(alle[p]) {
-            var s = p
-            while s > 0, !zinsbegin(alle, s) { s -= 1 }
-            var e = p + 1
-            while e < alle.count, !zinsbegin(alle, e) { e += 1 }
-            let heelWeg = !(s ..< e).contains { mee.contains($0) }
-            if s > 0, heelWeg, p - s >= 3, losseZin(alle, s, p) { continue }
-            if citaatWeg(alle, p, mee) { continue }
-            return false
-        }
-        return true
+        return !alle.indices.contains { !mee.contains($0) && ontkenning(alle[$0]) }
     }
 
     private static let openCitaat = "^[‘’“'\"„«‚]"

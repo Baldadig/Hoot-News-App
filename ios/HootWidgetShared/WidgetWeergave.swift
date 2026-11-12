@@ -399,21 +399,41 @@ struct GrootEditie: View {
     let marge: CGFloat
 
     static let beeldHoogte: CGFloat = 88
+    static let rij = 2 * WidgetRuimte.s2 + 1 + WidgetRuimte.s1 + 16 // haarlijn met lucht, ruimte en bronregel per rij
 
-    var body: some View {
+    // De kop van 01 en de rijen eronder (02 en 03), gemeten op de breedte die ze echt krijgen: naast de nummerkolom
+    // (keuring 1: anders kapt iOS midden in een woord af). Valt 03 weg (of 02), dan blijft de ruimte onderin rustig
+    // leeg, tenzij een volgende kop er heel in past, zonder in te korten (keuring 6): die schuift op, met zijn eigen
+    // nummer. Nooit een kop erin forceren.
+    static func zet(_ editie: WidgetEditie, maat: CGSize, marge: CGFloat) -> (g1: WidgetZet.Gezet, rijen: [(WidgetVerhaal, WidgetZet.Gezet)]) {
         let breedte = maat.width - 2 * marge
-        // De koppen staan naast de nummerkolom: meten op de breedte die ze echt krijgen (keuring 1: anders kapt
-        // iOS midden in een woord af).
         let kolom = breedte - MiddelTop3.nummerKolom - WidgetRuimte.s2
-        let gelezen = editie.leesSet
+        let m = WidgetLetter.widgetKop
         let eerste = editie.verhalen[0]
         let rest = Array(editie.verhalen.dropFirst().prefix(2))
         let g1 = WidgetZet.pas(eerste.kop, kort: eerste.kortKop, WidgetLetter.item, breedte: kolom, max: 2)
         // Wat er na 01 nog over is voor 02 en 03 (elk met een bronregel en een haarlijn ervoor).
-        let bovenaan = 16 + WidgetRuimte.s3 + Self.beeldHoogte + WidgetRuimte.s3 + CGFloat(g1.regels) * WidgetLetter.item.regel + WidgetRuimte.s1 + 16
+        let bovenaan = 16 + WidgetRuimte.s3 + beeldHoogte + WidgetRuimte.s3 + CGFloat(g1.regels) * WidgetLetter.item.regel + WidgetRuimte.s1 + 16
         let over = maat.height - 2 * marge - bovenaan
-        let rij = 2 * WidgetRuimte.s2 + 1 + WidgetRuimte.s1 + 16 // haarlijn met lucht, ruimte en bronregel per rij
-        let gezet = WidgetZet.rijen(rest, WidgetLetter.widgetKop, breedte: kolom, hoogte: over, tussen: 0, extra: rij)
+        let gezet = WidgetZet.rijen(rest, m, breedte: kolom, hoogte: over, tussen: 0, extra: rij)
+        var rijen = Array(zip(rest.prefix(gezet.count), gezet))
+        if rijen.count < rest.count {
+            var ruimte = over - rijen.reduce(0) { $0 + CGFloat($1.1.regels) * m.regel + rij }
+            for v in editie.verhalen.dropFirst(3) where rijen.count < 2 {
+                let n = WidgetZet.regels(v.kop, m, breedte: kolom)
+                guard n <= 2, CGFloat(n) * m.regel + rij <= ruimte else { continue }
+                rijen.append((v, WidgetZet.Gezet(tekst: v.kop, regels: n)))
+                ruimte -= CGFloat(n) * m.regel + rij
+            }
+        }
+        return (g1, rijen)
+    }
+
+    var body: some View {
+        let breedte = maat.width - 2 * marge
+        let gelezen = editie.leesSet
+        let eerste = editie.verhalen[0]
+        let (g1, rijen) = Self.zet(editie, maat: maat, marge: marge)
         VStack(alignment: .leading, spacing: 0) {
             Link(destination: HootLink.editie) {
                 HStack(alignment: .firstTextBaseline) {
@@ -438,7 +458,7 @@ struct GrootEditie: View {
                 }
             }
             .padding(.top, WidgetRuimte.s3)
-            ForEach(Array(zip(rest.prefix(gezet.count), gezet)), id: \.0.id) { v, g in
+            ForEach(rijen, id: \.0.id) { v, g in
                 let lees = v.gelezen(in: gelezen)
                 Rectangle().fill(WidgetKleur.rule).frame(height: 1).padding(.vertical, WidgetRuimte.s2)
                 Link(destination: HootLink.verhaal(v.itemId)) {

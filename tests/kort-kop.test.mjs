@@ -59,9 +59,9 @@ test('korte kop: een ontkenning valt nooit weg, via welke stap ook (keuring 4)',
   // Ook bij een komma (stap 5) en tussen haakjes.
   assert.equal(kortKop('Tweede Kamer steunt het nieuwe belastingplan niet, coalitie in zwaar weer na lange nacht van onderhandelen'), 'Tweede Kamer steunt het nieuwe belastingplan niet…')
   assert.match(kortKop('Kabinet stemt (niet) in met plan voor nieuwe kerncentrales in Borssele en op de Maasvlakte'), /\(niet\)/u)
-  // Een eigen bijzin mag alleen weg met een eigen, benoemd onderwerp (keuring 5); zonder blijft de kop heel.
+  // Een weggevallen ontkenning is altijd onveilig, ook in een eigen zin of bijzin (keuring 6): de kop blijft heel.
   assert.equal(kortKop('Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough'), null)
-  assert.equal(kortKop('Kruis over de knock-outfase? Vrouwen kunnen ook tegen Køge niet winnen en lijken uitgeteld in de Champions League'), 'Kruis over de knock-outfase?')
+  assert.equal(kortKop('Kruis over de knock-outfase? Vrouwen kunnen ook tegen Køge niet winnen en lijken uitgeteld in de Champions League'), null)
 })
 
 test('korte kop: een verwijzende zin of voorwaarde valt nooit weg met haar ontkenning (keuring 5)', () => {
@@ -85,6 +85,9 @@ test('korte kop: een verwijzende zin of voorwaarde valt nooit weg met haar ontke
 
 test('korte kop: een ontkenning met accent of op n\'t wordt herkend (keuring 5)', () => {
   for (const w of ['níét', 'géén', 'nóóit', 'mustn’t', "needn't", 'shan’t', "mightn't", 'oughtn’t', "won't"]) assert.ok(ontkenning(w), w)
+  // Keuring 6: bijna-ontkenningen, samenstellingen met een streepje en U+02BC.
+  for (const w of ['zelden', 'evenmin', 'noch', 'rarely', 'seldom', 'neither', 'nor', 'niet-ontvankelijk', 'non-profit', 'not-guilty', 'canʼt', 'won’t']) assert.ok(ontkenning(w), w)
+  for (const w of ['nietig', 'nobel', 'notaris', 'canteen', 'Seldenrijk']) assert.ok(!ontkenning(w), w)
   assert.equal(veilig('Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat', 'Kabinet stemt in met nieuwe asielwet van minister Faber…'), false)
   assert.match(kortKop('Kabinet stemt (níét) in met nieuwe asielwet van minister Faber na lang debat'), /\(níét\)/u)
   assert.equal(kortKop('De VVD steunt het nieuwe plan voor de verkoop van zorgverzekeraars écht níét'), null)
@@ -155,8 +158,9 @@ test('metKorteKoppen: per plek de kop van het hoofdstuk ingekort, de rest ongemo
 // Keuring 1: echte koppen uit de feed waar de korte kop het nieuws kwijtraakte.
 test('korte kop: het nieuws blijft staan (citaat, uitwerking na de dubbele punt, vraag, bijvoeglijk naamwoord)', () => {
   // a. Citaat vooraan: wat erna komt heeft spreker en onderwerp.
-  // (Op 60 valt "ontkennen" weg; dat telt sinds keuring 5 als ontkenning, dus pas op een ruimere maat.)
-  assert.equal(kortKop('“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten', 80), 'Advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten')
+  assert.equal(kortKop('“Ongekende heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi bestrijden zedenfeiten', 80), 'Advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi bestrijden zedenfeiten')
+  // Met "zelden" in het citaat (keuring 6) valt het citaat niet meer weg: de hele kop.
+  assert.equal(kortKop('“Zelden geziene heksenjacht”: advocaten van ‘Slimste Mens’-kandidaat Bruine Mehdi ontkennen zedenfeiten', 80), null)
   assert.equal(kortKop('‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe techwet tegen manipulatieve trucs van big tech').startsWith('Brussel presenteert'), true)
   // Een bijnaam is geen citaat.
   assert.ok(kortKop('‘Romanticus’ Emma Heesters gaat op zoek naar de liefde in nieuw seizoen De Bachelorette').startsWith('‘Romanticus’ Emma Heesters'))
@@ -199,4 +203,17 @@ test('korte kop: een dubbele punt in een titel of naam geeft nooit alleen het de
   assert.equal(kortKop('Stuntfietser, veganist, actief vlogger en liefhebber van… kringloopwinkels: dit is ‘Snorremans’ Cameron Mason'), 'Dit is ‘Snorremans’ Cameron Mason')
   // Een beletselteken in de kop komt bij afkappen niet dubbel.
   assert.equal(kortKop('Stuntfietser, veganist, actief vlogger en liefhebber van… kringloopwinkels, tweedehands spullen en meer'), 'Stuntfietser, veganist, actief vlogger en liefhebber…')
+})
+
+test('korte kop: een weggevallen ontkenning is altijd onveilig, ook in een eigen zin, bijzin of citaat (keuring 6)', () => {
+  // Elke kop in de fixtures, op elke maat: valt er een ontkenning weg, dan is er geen korte kop.
+  for (const c of fx.gevallen) {
+    const tel = (s) => s.split(' ').filter(ontkenning).length
+    for (const max of [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]) {
+      const k = kortKop(c.kop, max)
+      if (k !== null) assert.ok(tel(k.replace(/…$/u, '')) >= tel(schoonKop(c.kop)), `${c.kop} (${max}) → ${k}`)
+    }
+  }
+  assert.equal(veilig('Het kabinet valt over stikstof. Premier Schoof denkt van niet', 'Het kabinet valt over stikstof.'), false)
+  assert.equal(veilig('Prime minister resigns after crisis talks: ‘Prime minister has not resigned at all’', 'Prime minister resigns after crisis talks'), false)
 })

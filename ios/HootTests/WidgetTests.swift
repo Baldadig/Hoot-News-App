@@ -76,6 +76,11 @@ import WidgetKit
             for t in KortKop.trap(kop, kort: nil) { XCTAssertTrue(KortKop.veilig(kop, t) || t == kop, t) }
         }
         for w in ["níét", "géén", "mustn’t", "needn't", "shan’t"] { XCTAssertTrue(KortKop.ontkenning(w), w) }
+        // Keuring 6: bijna-ontkenningen, samenstellingen met een streepje en U+02BC.
+        for w in ["zelden", "evenmin", "noch", "rarely", "seldom", "neither", "nor", "niet-ontvankelijk", "non-profit", "not-guilty", "canʼt", "won’t"] {
+            XCTAssertTrue(KortKop.ontkenning(w), w)
+        }
+        for w in ["nietig", "nobel", "notaris", "canteen", "Seldenrijk"] { XCTAssertFalse(KortKop.ontkenning(w), w) }
     }
 
     // MARK: Dagdelen en tijdlijn
@@ -542,6 +547,27 @@ import WidgetKit
         XCTAssertTrue(kop.hasPrefix(String(een.tekst.dropLast())), een.tekst)
         let drie = WidgetZet.pas(kop, kort: nil, WidgetLetter.widgetKop, breedte: 300, max: 3)
         XCTAssertEqual(drie.tekst, "Iraanse dreiging is zó groot dat Amerikaanse minister…")
+    }
+
+    // Keuring 6: valt 03 in Groot weg, dan blijft de ruimte onderin rustig leeg. Alleen een volgende kop die er heel
+    // in past (niet ingekort), schuift op, met zijn eigen nummer. Nooit een kop erin forceren.
+    func testGrootLaatRuimteRustigTenzijEenVolgendeKopHeelPast() {
+        let nu = WidgetDagdeel.op(Self.moment("2026-11-11T17:41:00Z"))
+        let lang = "Kabinet valt over stikstof na een lange nacht van onderhandelen in het Catshuis, maar de premier zegt dat er geen crisis is en dat hij niet opstapt"
+        XCTAssertNil(KortKop.kort(lang, max: 24), "zonder veilige korte vorm")
+        func groot(_ koppen: [String]) -> [(WidgetVerhaal, WidgetZet.Gezet)] {
+            let stenen = koppen.enumerated().map { i, k in WidgetEditie.Bouwsteen(plek: "p\(i)", itemId: "i\(i)", kop: k, bron: "NOS") }
+            let e = WidgetEditie.bouw(id: nu.id, datum: nu.datum, dagdeel: nu.dagdeel, stenen: stenen, gelezen: [], vraag: .algemeen)
+            return GrootEditie.zet(e, maat: CGSize(width: 364, height: 382), marge: WidgetRuimte.s4).rijen
+        }
+        let begin = ["Honderden scholen in Europa doelwit van bommeldingen", "Storm raast over het noorden van het land", lang]
+        // 04 past heel: hij schuift op, als 04.
+        let met = groot(begin + ["Kabinet stelt asielwet uit"])
+        XCTAssertEqual(met.map(\.0.nummer), [2, 4])
+        XCTAssertEqual(met.last?.1.tekst, "Kabinet stelt asielwet uit")
+        // Geen volgende kop past heel: de ruimte blijft leeg, er wordt niets ingekort of geforceerd.
+        let zonder = groot(begin + [lang, lang])
+        XCTAssertEqual(zonder.map(\.0.nummer), [2])
     }
 }
 

@@ -471,7 +471,7 @@
     },
     {
       "kop": "Kruis over de knock-outfase? Vrouwen kunnen ook tegen Køge niet winnen en lijken uitgeteld in de Champions League",
-      "verwacht": "Kruis over de knock-outfase?"
+      "verwacht": null
     },
     {
       "kop": "Ukraine talks in Abu Dhabi bring progress on prisoners but not on peace",
@@ -818,6 +818,385 @@
       "kop": "Een vaste basisplaats bij Marokko zit er voor Ayoub Oufkir niet in, maar door blessure kan Romelu Lukaku vandaag ook niet spelen",
       "verwacht": null,
       "max": 40
+    },
+    {
+      "kop": "Het kabinet is gevallen. Dat klopt helemaal niet, zegt premier Schoof",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Schoof: kabinet valt over asiel. Dat zei hij gisteren in het debat in elk geval niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Rutte wordt de nieuwe secretaris-generaal van de NAVO: dat klopt dus niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Biden will run again in 2028: that is simply not true, says his campaign",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Rutte wordt secretaris-generaal van de NAVO, dat gaat dus niet gebeuren",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Asielwet gaat per 1 januari in, maar dat gebeurt nu toch niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Schiphol mag groeien naar 500.000 vluchten, maar dat mag van de rechter niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Tax cuts take effect next year, but that will now not happen after the vote",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet heeft een akkoord over de asielwet, die komt er toch niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet valt deze week, als het aan premier Schoof ligt in elk geval niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet valt over stikstof, tenzij de VVD alsnog niet instemt met het nieuwe plan",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er – als het aan de Kamer ligt niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Dat is absoluut niet waar’",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘That is absolutely not true’",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Rutte wordt nieuwe premier na de verkiezingen: ‘Dat ga ik zeker niet doen’",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Het kabinet valt over stikstof. Premier Schoof denkt van niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Het kabinet valt over stikstof. Premier Schoof denkt van niet",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Het kabinet valt over stikstof. Premier Schoof denkt van niet",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Het kabinet valt over stikstof. Premier Schoof denkt van niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Concert in de Ziggo Dome gaat door. Volgens de gemeente Amsterdam gaat het toch niet door",
+      "verwacht": null
+    },
+    {
+      "kop": "Concert in de Ziggo Dome gaat door. Volgens de gemeente Amsterdam gaat het toch niet door",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Concert in de Ziggo Dome gaat door. Volgens de gemeente Amsterdam gaat het toch niet door",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Concert in de Ziggo Dome gaat door. Volgens de gemeente Amsterdam gaat het toch niet door",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad, maar premier Schoof ontkent dat",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad, maar premier Schoof ontkent dat",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad, maar premier Schoof ontkent dat",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet is gevallen na urenlang crisisberaad, maar premier Schoof ontkent dat",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Tax cuts take effect next year, but the Senate will not pass them after the vote",
+      "verwacht": "Tax cuts take effect next year, but the Senate will not…"
+    },
+    {
+      "kop": "Tax cuts take effect next year, but the Senate will not pass them after the vote",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Tax cuts take effect next year, but the Senate will not pass them after the vote",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Tax cuts take effect next year, but the Senate will not pass them after the vote",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks, but Downing Street says he will not go",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks, but Downing Street says he will not go",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks, but Downing Street says he will not go",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks, but Downing Street says he will not go",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er, maar minister Hermans bouwt hem voorlopig niet",
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er, maar minister Hermans bouwt hem voorlopig niet",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er, maar minister Hermans bouwt hem voorlopig niet",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Nieuwe kerncentrale in Borssele komt er, maar minister Hermans bouwt hem voorlopig niet",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Eurocommissaris stapt op na fraudezaak, maar Ursula von der Leyen laat hem niet gaan",
+      "verwacht": null
+    },
+    {
+      "kop": "Eurocommissaris stapt op na fraudezaak, maar Ursula von der Leyen laat hem niet gaan",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Eurocommissaris stapt op na fraudezaak, maar Ursula von der Leyen laat hem niet gaan",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Eurocommissaris stapt op na fraudezaak, maar Ursula von der Leyen laat hem niet gaan",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Ajax ontslaat trainer na zware nederlaag, maar directeur Kroes wil daar niets van weten",
+      "verwacht": null
+    },
+    {
+      "kop": "Ajax ontslaat trainer na zware nederlaag, maar directeur Kroes wil daar niets van weten",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Ajax ontslaat trainer na zware nederlaag, maar directeur Kroes wil daar niets van weten",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Ajax ontslaat trainer na zware nederlaag, maar directeur Kroes wil daar niets van weten",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Kabinet is helemaal niet gevallen’",
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Kabinet is helemaal niet gevallen’",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Kabinet is helemaal niet gevallen’",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet gevallen na urenlang crisisberaad: ‘Kabinet is helemaal niet gevallen’",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Premier Schoof treedt af na crisisberaad over asiel: ‘Premier Schoof treedt niet af’",
+      "verwacht": null
+    },
+    {
+      "kop": "Premier Schoof treedt af na crisisberaad over asiel: ‘Premier Schoof treedt niet af’",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Premier Schoof treedt af na crisisberaad over asiel: ‘Premier Schoof treedt niet af’",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Premier Schoof treedt af na crisisberaad over asiel: ‘Premier Schoof treedt niet af’",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘Prime minister has not resigned at all’",
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘Prime minister has not resigned at all’",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘Prime minister has not resigned at all’",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Prime minister resigns after crisis talks: ‘Prime minister has not resigned at all’",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "D66 en CDA durfden de afgelopen acht maanden zelden over de grenzen van hun partij te kijken",
+      "verwacht": "D66 en CDA durfden de afgelopen acht maanden zelden…"
+    },
+    {
+      "kop": "D66 en CDA durfden de afgelopen acht maanden zelden over de grenzen van hun partij te kijken",
+      "max": 52,
+      "verwacht": "D66 en CDA durfden de afgelopen acht maanden zelden…"
+    },
+    {
+      "kop": "D66 en CDA durfden de afgelopen acht maanden zelden over de grenzen van hun partij te kijken",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "D66 en CDA durfden de afgelopen acht maanden zelden over de grenzen van hun partij te kijken",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Kabinet wil de asielwet evenmin uitstellen als de Eerste Kamer na het debat van vanavond",
+      "verwacht": "Kabinet wil de asielwet evenmin uitstellen als de Eerste…"
+    },
+    {
+      "kop": "Kabinet wil de asielwet evenmin uitstellen als de Eerste Kamer na het debat van vanavond",
+      "max": 52,
+      "verwacht": "Kabinet wil de asielwet evenmin uitstellen…"
+    },
+    {
+      "kop": "Kabinet wil de asielwet evenmin uitstellen als de Eerste Kamer na het debat van vanavond",
+      "max": 40,
+      "verwacht": "Kabinet wil de asielwet evenmin…"
+    },
+    {
+      "kop": "Kabinet wil de asielwet evenmin uitstellen als de Eerste Kamer na het debat van vanavond",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Court finds former minister not-guilty of fraud after three-year investigation into party funds",
+      "verwacht": "Court finds former minister not-guilty of fraud…"
+    },
+    {
+      "kop": "Court finds former minister not-guilty of fraud after three-year investigation into party funds",
+      "max": 52,
+      "verwacht": "Court finds former minister not-guilty of fraud…"
+    },
+    {
+      "kop": "Court finds former minister not-guilty of fraud after three-year investigation into party funds",
+      "max": 40,
+      "verwacht": "Court finds former minister not-guilty…"
+    },
+    {
+      "kop": "Court finds former minister not-guilty of fraud after three-year investigation into party funds",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk in de zaak tegen oud-wethouder",
+      "verwacht": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk…"
+    },
+    {
+      "kop": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk in de zaak tegen oud-wethouder",
+      "max": 52,
+      "verwacht": null
+    },
+    {
+      "kop": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk in de zaak tegen oud-wethouder",
+      "max": 40,
+      "verwacht": null
+    },
+    {
+      "kop": "Rechter verklaart het Openbaar Ministerie niet-ontvankelijk in de zaak tegen oud-wethouder",
+      "max": 28,
+      "verwacht": null
+    },
+    {
+      "kop": "Government says British schools canʼt reopen on Monday after the storm damage in the north",
+      "verwacht": "Government says British schools canʼt reopen on Monday…"
+    },
+    {
+      "kop": "Government says British schools canʼt reopen on Monday after the storm damage in the north",
+      "max": 52,
+      "verwacht": "Government says British schools canʼt reopen…"
+    },
+    {
+      "kop": "Government says British schools canʼt reopen on Monday after the storm damage in the north",
+      "max": 40,
+      "verwacht": "Government says British schools canʼt…"
+    },
+    {
+      "kop": "Government says British schools canʼt reopen on Monday after the storm damage in the north",
+      "max": 28,
+      "verwacht": null
     }
   ]
 }

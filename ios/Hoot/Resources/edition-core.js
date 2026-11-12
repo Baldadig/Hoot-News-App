@@ -3669,7 +3669,12 @@ var HootCore = (() => {
     "allerminst",
     "amper",
     "nauwelijks",
+    "zelden",
+    "evenmin",
     "zonder",
+    "non",
+    "rarely",
+    "seldom",
     "not",
     "no",
     "never",
@@ -3821,7 +3826,11 @@ var HootCore = (() => {
   var hoofdletter = (s) => /^\p{Ll}\p{Ll}/u.test(s) ? s[0].toLocaleUpperCase("nl") + s.slice(1) : s;
   var zonderAccent = (w) => w.normalize("NFD").replace(/\p{M}/gu, "");
   var letters = (w) => zonderAccent(w.toLowerCase()).replace(/[^\p{L}]/gu, "");
-  var ontkenning = (w) => ONTKENNINGEN.has(letters(w)) || /\p{L}n['’]t(?![\p{L}])/u.test(w.toLowerCase());
+  var APOSTROF = /[’ʼ`´]/gu;
+  var ontkenning = (w) => {
+    const a = w.toLowerCase().replace(APOSTROF, "'");
+    return ONTKENNINGEN.has(letters(a)) || a.split(/[-‐‑–—]/u).some((d) => ONTKENNINGEN.has(letters(d))) || /\p{L}n't(?![\p{L}])/u.test(a);
+  };
   var heeftOntkenning = (s) => s.split(" ").some(ontkenning);
   var VOORNAAMWOORD = /* @__PURE__ */ new Set([
     "it",
@@ -3918,78 +3927,12 @@ var HootCore = (() => {
     }
     return null;
   }
-  var VERWIJS = /* @__PURE__ */ new Set([
-    "dat",
-    "dit",
-    "die",
-    "deze",
-    "het",
-    "er",
-    "zo",
-    "hij",
-    "zij",
-    "ze",
-    "ik",
-    "wij",
-    "we",
-    "jij",
-    "je",
-    "u",
-    "that",
-    "this",
-    "these",
-    "those",
-    "it",
-    "which",
-    "so",
-    "he",
-    "she",
-    "they",
-    "i",
-    "we",
-    "you"
-  ]);
-  var VOORWAARDE = /* @__PURE__ */ new Set(["als", "tenzij", "indien", "mits", "zolang", "if", "unless", "yet", "provided"]);
-  function losseZin(alle, s, p) {
-    const eerste = letters(alle[s]);
-    const opBijzin = BIJZIN.has(eerste);
-    if (!opBijzin && !/[.?!]$/u.test(alle[s - 1] || "")) return false;
-    if (VOORWAARDE.has(eerste) || VERWIJS.has(eerste)) return false;
-    if (opBijzin && VERWIJS.has(letters(alle[s + 1] || ""))) return false;
-    const acroniem = /^[‘’“'"„«‚(]?\p{Lu}[\p{Lu}\d]+(?![\p{L}\p{N}])/u.test(alle[s]);
-    return acroniem || alle.slice(s + 1, p).some((x) => /^[‘’“'"„«‚(]?(?:\p{Lu}|\d)/u.test(x));
-  }
-  function citaatWeg(alle, p, mee) {
-    let q = p;
-    while (q >= 0 && !OPEN_CITAAT.test(alle[q])) {
-      if (q < p && SLUIT_CITAAT.test(alle[q])) return false;
-      q--;
-    }
-    let r = p;
-    while (r < alle.length && !SLUIT_CITAAT.test(alle[r])) r++;
-    if (q < 1 || r >= alle.length || p - q < 2 || !/:$/u.test(alle[q - 1])) return false;
-    const eerste = letters(alle[q]);
-    if (OPENERS.has(eerste) || ONTKENNINGEN.has(eerste) || VERWIJS.has(eerste)) return false;
-    for (let i = q; i <= r; i++) if (mee.has(i)) return false;
-    return true;
-  }
   function veilig(kop, kort2) {
     if (kort2 === null || kort2 === void 0) return false;
     const alle = schoon(kop).split(" ");
     const mee = gelegd(alle, kort2);
     if (!mee) return false;
-    for (let p = 0; p < alle.length; p++) {
-      if (mee.has(p) || !ontkenning(alle[p])) continue;
-      let s = p;
-      while (s > 0 && !zinsbegin(alle, s)) s--;
-      let e = p + 1;
-      while (e < alle.length && !zinsbegin(alle, e)) e++;
-      let heelWeg = true;
-      for (let i = s; i < e; i++) if (mee.has(i)) heelWeg = false;
-      if (s > 0 && heelWeg && p - s >= 3 && losseZin(alle, s, p)) continue;
-      if (citaatWeg(alle, p, mee)) continue;
-      return false;
-    }
+    for (let p = 0; p < alle.length; p++) if (!mee.has(p) && ontkenning(alle[p])) return false;
     return true;
   }
   function zonderLosEinde(delen, set = LOSSE_EINDES) {
