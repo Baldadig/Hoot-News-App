@@ -42,10 +42,10 @@ test('index B: alleen lege onderwerpen geeft "Nog niets voor X", nooit "0 in 0"'
   assert.equal(geen.state, 'leeg')
   assert.equal(geen.names, 'Fotografie')
   assert.equal(geen.unoffered, true)
-  const twee = selectionOverview([f('foto', 'Fotografie', 0), f('gaming', 'Gaming', 0)], new Set(['gaming']))
-  assert.equal(twee.names, 'Fotografie en Gaming')
+  const twee = selectionOverview([f('foto', 'Fotografie', 0), f('gaming', 'Games', 0)], new Set(['gaming']))
+  assert.equal(twee.names, 'Fotografie en Games')
   assert.equal(twee.unoffered, false)
-  assert.equal(joinNames(['AI', 'Fotografie', 'Gaming']), 'AI, Fotografie en Gaming')
+  assert.equal(joinNames(['AI', 'Fotografie', 'Games']), 'AI, Fotografie en Games')
   assert.equal(selectionOverview([], new Set()).state, 'kies')
 })
 

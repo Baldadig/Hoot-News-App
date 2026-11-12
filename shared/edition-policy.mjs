@@ -219,11 +219,15 @@ export function majorGeneralNews(story = {}, items = [], catOf = null) {
   const countries = new Set([...ids].map(publisherCountry).filter(Boolean))
   return ids.size >= LIGHT_MAJOR || (ids.size >= 5 && countries.size >= 2)
 }
+// Cultuur als soort (muziek, film, boeken, kunst, media): het gebied Cultuur zonder Games. Games staat sinds 1.3
+// onder Cultuur, maar is een eigen soort (lightKind, kindOf): wie alleen Games koos, krijgt geen cultuurstukken.
+const CULTUUR_KIND = ['muziek', 'film', 'boeken', 'kunst', 'media']
+export const cultuurChosen = (prof, min = 0.5) => Math.max(0, ...CULTUUR_KIND.map((t) => prof?.topicP?.[t] || 0)) >= min
 // Koos de lezer dit gebied? Games: het onderwerp games (scherp of uit lezen); cultuur: het gebied Cultuur;
 // consumententech: het onderwerp gadgets.
 export function lightChosen(prof, kind) {
   if (kind === 'games') return (prof?.topicP?.games || 0) >= 0.5
-  if (kind === 'cultuur') return (prof?.family?.cultuur || 0) >= 0.5
+  if (kind === 'cultuur') return cultuurChosen(prof)
   if (kind === 'consument') return (prof?.topicP?.gadgets || 0) >= 0.5
   return true
 }

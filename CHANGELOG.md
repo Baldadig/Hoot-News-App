@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Rubrieken, namen gelijk** (web en server; app in de volgende build): Games hoort nu bij Cultuur in plaats van bij Tech, met de gamesites erbij. Nieuwe namen: Techbedrijven (was Big Tech) en Hacks & privacy (was Privacy & veiligheid); in de Selectie Games, Hacks & privacy en Gadgets. Niemand verliest een keuze: wie Games koos, volgt het nu onder Cultuur; wie Tech zonder keuze volgde, houdt Tech, zonder Games.
+
 - **Wired-deals uit de Stroom** (server): een stuk dat Wired zelf alleen als deal indeelt (feedcategorie "Gear / Deals", zonder andere rubriek) komt niet meer in de Stroom: promocodes, kortingslijsten en Black Friday-overzichten. Wired-journalistiek over prijzen en koopjes blijft staan, net als elke andere bron met een rubriek "Deals".
 
 - **Geen nieuws meer weg bij het ophalen** (server): de ophaalfilter kijkt niet meer naar woorden in de kop. Nieuws over Black Friday, kortingen, een beursuitverkoop of een nieuwsbrief-aflevering staat weer in de Stroom en kan in de Editie. Alleen wat de uitgever zelf als reclame of geen bericht markeert (gesponsord, advertorial, partnercontent, aanmelden voor een nieuwsbrief, persberichten, puzzels, software-updates, eigen acties) en lege of dubbele items blijven weg. Een deal mag in de Stroom staan, maar neemt daar en in de Editie geen plek van het nieuws in. De AI-beoordeling (nog uit) is robuuster en klaar om te meten.

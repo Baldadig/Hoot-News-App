@@ -1,0 +1,32 @@
+[
+ { "name": "Tech zonder keuze (alles)", "from": { "interests": ["tech"], "topics": ["ai", "tech", "gadgets", "privacy", "ev", "games"] }, "to": { "interests": ["tech"], "topics": ["ai", "tech", "gadgets", "privacy", "ev"] }
+ },
+ { "name": "Tech: AI en Games aangetikt", "from": { "interests": ["tech"], "topics": ["ai", "games"] }, "to": { "interests": ["tech", "cultuur"], "topics": ["ai", "games"] }
+ },
+ { "name": "Tech: alleen Games aangetikt", "from": { "interests": ["tech"], "topics": ["games"] }, "to": { "interests": ["cultuur"], "topics": ["games"] }
+ },
+ { "name": "Tech: Techbedrijven en Hacks & privacy, zonder Games", "from": { "interests": ["tech"], "topics": ["tech", "privacy"] }, "to": { "interests": ["tech"], "topics": ["tech", "privacy"] }
+ },
+ { "name": "Tech: alleen Hacks & privacy", "from": { "interests": ["tech"], "topics": ["privacy"] }, "to": { "interests": ["tech"], "topics": ["privacy"] }
+ },
+ { "name": "Cultuur zonder keuze (alles)", "from": { "interests": ["cultuur"], "topics": ["muziek", "film", "boeken", "kunst", "media"] }, "to": { "interests": ["cultuur"], "topics": ["muziek", "film", "boeken", "kunst", "media", "games"] }
+ },
+ { "name": "Cultuur zonder onderwerpen", "from": { "interests": ["cultuur"], "topics": [] }, "to": { "interests": ["cultuur"], "topics": [] }
+ },
+ { "name": "Cultuur: alleen Film & series", "from": { "interests": ["cultuur"], "topics": ["film"] }, "to": { "interests": ["cultuur"], "topics": ["film"] }
+ },
+ { "name": "Tech met Games en Cultuur zonder keuze", "from": { "interests": ["tech", "cultuur"], "topics": ["ai", "games", "muziek", "film", "boeken", "kunst", "media"] }, "to": { "interests": ["tech", "cultuur"], "topics": ["ai", "muziek", "film", "boeken", "kunst", "media", "games"] }
+ },
+ { "name": "Tech met Games en Cultuur: Muziek", "from": { "interests": ["tech", "cultuur"], "topics": ["ai", "games", "muziek"] }, "to": { "interests": ["tech", "cultuur"], "topics": ["ai", "muziek", "games"] }
+ },
+ { "name": "Tech alleen Games en Cultuur zonder keuze", "from": { "interests": ["tech", "cultuur"], "topics": ["games", "muziek", "film", "boeken", "kunst", "media"] }, "to": { "interests": ["cultuur"], "topics": ["muziek", "film", "boeken", "kunst", "media", "games"] }
+ },
+ { "name": "Tech en Cultuur, beide alles", "from": { "interests": ["tech", "cultuur"], "topics": ["ai", "tech", "gadgets", "privacy", "ev", "games", "muziek", "film", "boeken", "kunst", "media"] }, "to": { "interests": ["tech", "cultuur"], "topics": ["ai", "tech", "gadgets", "privacy", "ev", "muziek", "film", "boeken", "kunst", "media", "games"] }
+ },
+ { "name": "Tech alles en Cultuur: Film & series", "from": { "interests": ["politiek", "tech", "cultuur"], "topics": ["nederland", "europa", "vs-politiek", "verkiezingen", "ai", "tech", "gadgets", "privacy", "ev", "games", "film"] }, "to": { "interests": ["politiek", "tech", "cultuur"], "topics": ["nederland", "europa", "vs-politiek", "verkiezingen", "ai", "tech", "gadgets", "privacy", "ev", "film"] }
+ },
+ { "name": "Zonder Tech en Cultuur", "from": { "interests": ["politiek", "sport"], "topics": ["nederland", "voetbal"] }, "to": { "interests": ["politiek", "sport"], "topics": ["nederland", "voetbal"] }
+ },
+ { "name": "Nog niets gekozen", "from": { "interests": [], "topics": [] }, "to": { "interests": [], "topics": [] }
+ }
+]

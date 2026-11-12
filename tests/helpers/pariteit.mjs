@@ -11,6 +11,7 @@
 //               een nep-PostgREST (tests/helpers/pgrest.mjs): na "de eerste schrijver wint" (settleEdition)
 //               tonen beide dezelfde Editie, in beide volgordes van aankomst. Gemeten: plekken anders en
 //               byte-gelijk (zonder `history`, die is per toestel de vereniging van eigen en overgenomen).
+import { RUBRIEKEN } from '../../src/lib/topics.js' // de persona's kozen in de indeling van nu (Games onder Cultuur)
 import { composePersonal, withoutDebug, editionBasis } from '../../src/lib/personal.js'
 import { editionFor } from '../../netlify/functions/edition.mjs'
 import { settleEdition } from '../../src/lib/editionSync.js'
@@ -55,7 +56,7 @@ export async function measureParity(snap, { personas = PERSONAS.map((p) => p.id)
     // Route: web zonder leesprofiel (dezelfde invoer als de terugval) en mét, tegen de server.
     const webKaal = withoutDebug(composePersonal({ ...base, items: webItems(setup.followed), affinity: null, readIds }))
     const webAff = withoutDebug(composePersonal({ ...base, items: webItems(setup.followed), affinity: setup.affinity, readIds }))
-    const { basis: sb, owner, fallback, ...server } = editionFor(start, serverItems(setup.followed), { followed: [...setup.followed], interests: setup.interests, topics: setup.topics, favorites: setup.favorites, taste: setup.taste, readIds: [...readIds] })
+    const { basis: sb, owner, fallback, ...server } = editionFor(start, serverItems(setup.followed), { followed: [...setup.followed], interests: setup.interests, topics: setup.topics, rubrieken: RUBRIEKEN, favorites: setup.favorites, taste: setup.taste, readIds: [...readIds] })
     const route = { anders: anders(webKaal, server), byte: JSON.stringify(webKaal) === JSON.stringify(server) && sb === basis, andersAffinity: anders(webAff, server) }
     // Toestellen: A had de Middag (lokaal, met previous), B niet; ander leesprofiel en geen gelezen-lijst.
     const mid = composePersonal({ ...base, global: midGlobal, stories: midStories, items: before(webItems(setup.followed), middag), now: middag, affinity: setup.affinity, readIds: new Set() })

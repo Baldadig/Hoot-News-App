@@ -97,7 +97,9 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(blocks.map(\.id), ["tech", "wetenschap"]) // vaste volgorde
         XCTAssertEqual(blocks[0].pick, "tweakers") // Nederlands en gratis gaat voor
         XCTAssertEqual(blocks[0].sources.first?.id, "tweakers")
-        XCTAssertEqual(Set(blocks[0].sources.map(\.id)), ["tweakers", "ars", "wired", "ign"])
+        XCTAssertEqual(Set(blocks[0].sources.map(\.id)), ["tweakers", "ars", "wired"])
+        // Gamesites horen sinds 1.3 bij Cultuur (rubrieken, fase 2), niet meer bij Tech.
+        XCTAssertEqual(FollowList.blocks(Self.niche, ["cultuur"]).first?.sources.map(\.id).contains("ign"), true)
         XCTAssertEqual(blocks[1].pick, "quanta") // aangeraden voor de interesse zelf
         XCTAssertTrue(blocks[1].sources.contains { $0.id == "carbonbrief" })
         let wp = FollowList.blocks(Self.niche, ["politiek", "wereld"])

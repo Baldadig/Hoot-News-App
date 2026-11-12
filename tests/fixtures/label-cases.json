@@ -443,7 +443,7 @@
         "cat": "games"
       },
       "expect": {
-        "kicker": "Tech · Games",
+        "kicker": "Cultuur · Games",
         "why": null,
         "outside": false
       }

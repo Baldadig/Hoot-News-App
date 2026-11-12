@@ -1,12 +1,14 @@
 // Onderwerpen (smal) en interesses (breed) — pure gegevens en functies (tests/topics.test.mjs).
 // De id's van de onderwerpen komen overeen met de trefwoorden op de server (netlify/lib/topics.mjs).
 const T = (id, label) => ({ id, label })
+// De volgorde hier is alleen die van de catalogus (en van de leesgeschiedenis van de testpersona's); de indeling per
+// interesse staat in INTERESTS. Games staat daarom nog op zijn oude plek, al hoort het sinds 1.3 bij Cultuur.
 export const TOPICS = [
   T('nederland', 'Den Haag'), T('europa', 'Europa'), T('vs-politiek', 'Verenigde Staten'), T('verkiezingen', 'Verkiezingen'),
   T('wonen', 'Wonen'), T('zorg', 'Zorg'), T('onderwijs', 'Onderwijs'), T('misdaad', 'Misdaad & recht'), T('migratie', 'Asiel & migratie'), T('verkeer', 'Verkeer & OV'),
   T('oekraine', 'Oekraïne & Rusland'), T('middenoosten', 'Midden-Oosten'), T('azie', 'China & Azië'), T('afrika', 'Afrika'), T('latam', 'Latijns-Amerika'), T('geopolitiek', 'Defensie & NAVO'),
   T('economie', 'Markten & beurs'), T('werk', 'Werk & inkomen'), T('bedrijven', 'Bedrijven'), T('energie', 'Energie'), T('geld', 'Geld & sparen'),
-  T('ai', 'AI'), T('tech', 'Big Tech'), T('gadgets', 'Gadgets'), T('privacy', 'Privacy & veiligheid'), T('ev', 'Elektrisch rijden'), T('games', 'Games'),
+  T('ai', 'AI'), T('tech', 'Techbedrijven'), T('gadgets', 'Gadgets'), T('privacy', 'Hacks & privacy'), T('ev', 'Elektrisch rijden'), T('games', 'Games'),
   T('klimaat', 'Klimaat'), T('gezondheid', 'Gezondheid'), T('ruimte', 'Ruimte'), T('natuur', 'Natuur & dieren'), T('brein', 'Psychologie & brein'),
   T('muziek', 'Muziek'), T('film', 'Film & series'), T('boeken', 'Boeken'), T('kunst', 'Kunst & musea'), T('media', 'Media'),
   T('voetbal', 'Voetbal'), T('f1', 'Formule 1'), T('wielrennen', 'Wielrennen'), T('tennis', 'Tennis'), T('wintersport', 'Schaatsen & wintersport'), T('olympisch', 'Olympische sporten'),
@@ -19,9 +21,10 @@ export const INTERESTS = [
   { id: 'binnenland', label: 'Binnenland', topics: ['wonen', 'zorg', 'onderwijs', 'misdaad', 'migratie', 'verkeer'], cats: ['regio'] },
   { id: 'wereld', label: 'Wereld', topics: ['oekraine', 'middenoosten', 'azie', 'afrika', 'latam', 'geopolitiek'], cats: [] },
   { id: 'economie', label: 'Economie', topics: ['economie', 'werk', 'bedrijven', 'energie', 'geld'], cats: ['economie'] },
-  { id: 'tech', label: 'Tech', topics: ['ai', 'tech', 'gadgets', 'privacy', 'ev', 'games'], cats: ['tech', 'games'] },
+  { id: 'tech', label: 'Tech', topics: ['ai', 'tech', 'gadgets', 'privacy', 'ev'], cats: ['tech'] },
   { id: 'wetenschap', label: 'Wetenschap', topics: ['klimaat', 'gezondheid', 'ruimte', 'natuur', 'brein'], cats: ['wetenschap'] },
-  { id: 'cultuur', label: 'Cultuur', topics: ['muziek', 'film', 'boeken', 'kunst', 'media'], cats: ['cultuur'] },
+  // Games hoort sinds 1.3 bij Cultuur (rubrieken, fase 2), niet meer bij Tech; zie currentChoice hieronder.
+  { id: 'cultuur', label: 'Cultuur', topics: ['muziek', 'film', 'boeken', 'kunst', 'media', 'games'], cats: ['cultuur', 'games'] },
   { id: 'sport', label: 'Sport', topics: ['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'], cats: ['sport'] },
 ]
 const INTEREST_OF = Object.fromEntries(INTERESTS.flatMap((i) => i.topics.map((t) => [t, i.id])))
@@ -51,6 +54,42 @@ export function currentTopicMap(map, cap = Infinity) {
     out[key] = key in out && Number.isFinite(out[key]) && Number.isFinite(v) ? Math.max(-cap, Math.min(cap, out[key] + v)) : v
   }
   return out
+}
+
+// De indeling van de rubrieken heeft een versie (`prefs.rubrieken`, ook in de vraag aan de server). Versie 2
+// (1.3): Games staat onder Cultuur in plaats van onder Tech. Bewaarde keuzes zonder versie zijn van de oude
+// indeling en gaan één keer door currentChoice; daarna draagt alles RUBRIEKEN mee, zodat een keuze van nu
+// (Cultuur zonder Games) nooit opnieuw als oude keuze wordt gelezen. Web: prefs.js; server: edition.mjs;
+// app: Models.swift (RubriekVersie). Tests: tests/rubrieken-migratie.test.mjs.
+export const RUBRIEKEN = 2
+const OLD_TECH = ['ai', 'tech', 'gadgets', 'privacy', 'ev', 'games']
+const OLD_CULTUUR = ['muziek', 'film', 'boeken', 'kunst', 'media']
+// Van de oude naar de nieuwe indeling, zodat niemand een keuze verliest:
+// - Tech met "Wat precies?" en Games aangetikt: Games blijft gekozen, nu onder Cultuur (Cultuur komt erbij,
+//   met alleen Games aangetikt). Koos je onder Tech alleen Games, dan valt Tech weg (anders kreeg je ineens
+//   heel Tech).
+// - Tech zonder keuze (alles): Tech blijft alles, zonder Games. Wie Tech koos, bedoelde AI en technologie
+//   (zo telde de Redacteur Games al niet mee voor het extra blok); Games is nu een keuze onder Cultuur.
+// - Cultuur zonder keuze (alles): blijft alles, en dat is nu met Games.
+// - Cultuur met een keuze: precies die keuze (plus Games als je dat onder Tech aantikte).
+export function currentChoice(interests = [], topics = []) {
+  const I = Array.isArray(interests) ? interests : []
+  const T = Array.isArray(topics) ? topics : []
+  const sharp = (old) => {
+    const n = old.filter((t) => T.includes(t)).length
+    return n > 0 && n < old.length
+  }
+  const games = I.includes('tech') && sharp(OLD_TECH) && T.includes('games')
+  const cultuurAll = I.includes('cultuur') && !sharp(OLD_CULTUUR)
+  const onlyGames = games && !OLD_TECH.some((t) => t !== 'games' && T.includes(t))
+  let nextI = I.filter((i) => !(onlyGames && i === 'tech'))
+  if (games && !nextI.includes('cultuur')) nextI = [...nextI, 'cultuur']
+  let nextT = T.filter((t) => t !== 'games')
+  const cultuur = INTERESTS.find((i) => i.id === 'cultuur').topics
+  // Cultuur "alles" bewaart het welkom als de hele lijst; zonder enig cultuuronderwerp blijft het ook alles.
+  if (cultuurAll && (OLD_CULTUUR.every((t) => T.includes(t)) || games)) nextT = [...nextT, ...cultuur.filter((t) => !nextT.includes(t))]
+  else if (games) nextT = [...nextT, 'games']
+  return { interests: nextI, topics: nextT }
 }
 
 // Wat je volgt: per gekozen interesse de onderwerpen die je aantikte, of alle als je er geen koos.

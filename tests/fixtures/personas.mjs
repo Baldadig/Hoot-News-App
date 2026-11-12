@@ -32,7 +32,7 @@ export const PERSONAS = [
   },
   {
     id: 'gamer', name: 'Gamer-student',
-    interests: ['tech', 'sport'], topics: ['games', 'voetbal'],
+    interests: ['sport', 'cultuur'], topics: ['games', 'voetbal'], // tot 1.3 Tech en Sport (Games stond onder Tech; currentChoice)
     enable: ['nu'], mute: ['nrc', 'volkskrant'], favorites: ['ign'],
     latent: { topics: ['games', 'voetbal', 'gadgets'], cats: ['games'] },
     reads: 40, noise: 0.3, more: ['games'], less: ['vs-politiek'],
