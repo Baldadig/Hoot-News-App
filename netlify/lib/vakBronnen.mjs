@@ -109,14 +109,14 @@ export const MORE_SOURCES = [
   // geld-wetenschap
   V('esb', 'ESB', 'vakblad', ['economie'], 'https://esb.nu/feed/'),
   V('mejudice', 'Me Judice', 'expert', ['economie'], 'https://www.mejudice.nl/artikelen?rss=generate', { about: 'Economen met naam schrijven over onderzoek en beleid' }),
-  V('nos-economie', 'NOS Economie', 'vakblad', ['vastgoed', 'geld', 'economie'], 'https://feeds.nos.nl/nosnieuwseconomie'),
-  V('nu-economie', 'NU.nl Economie', 'vakblad', ['vastgoed', 'geld', 'economie'], 'https://www.nu.nl/rss/Economie'),
-  V('vk-economie', 'de Volkskrant Economie', 'vakblad', ['economie'], 'https://www.volkskrant.nl/economie/rss.xml'),
-  V('fd', 'Het Financieele Dagblad', 'vakblad', ['economie'], 'https://fd.nl/?rss', { filter: true }),
+  V('nos-economie', 'NOS Economie', 'vakblad', ['vastgoed', 'geld'], 'https://feeds.nos.nl/nosnieuwseconomie'),
+  V('nu-economie', 'NU.nl Economie', 'vakblad', ['vastgoed', 'geld'], 'https://www.nu.nl/rss/Economie'),
   V('ftm', 'Follow the Money', 'vakblad', ['economie', 'politiek'], 'https://www.ftm.nl/feed', { filter: true }),
-  V('tijd', 'De Tijd', 'vakblad', ['economie'], 'https://www.tijd.be/rss/nieuws.xml', { filter: true }),
   V('economist-fe', 'The Economist', 'vakblad', ['economie'], 'https://www.economist.com/finance-and-economics/rss.xml'),
   V('noahpinion', 'Noah Smith', 'expert', ['economie'], 'https://www.noahpinion.blog/feed', { about: 'Econoom (Noahpinion), over economie, beleid en technologie' }),
+  // Leesvoer, geen nieuws van de week (Selectie · fase 3): achtergrond en analyse in plaats van de nieuwsfeeds van kranten.
+  V('krugman', 'Paul Krugman', 'expert', ['economie'], 'https://paulkrugman.substack.com/feed', { about: 'Econoom en Nobelprijswinnaar, over economie en beleid', textOnly: true }),
+  V('ft-bigread', 'FT Big Read', 'vakblad', ['economie'], 'https://www.ft.com/the-big-read?format=rss', { filter: true, paid: true }),
   V('ad-geld', 'AD Geld', 'vakblad', ['geld'], 'https://www.ad.nl/geld/rss.xml'),
   V('tijd-mijngeld', 'De Tijd Mijn Geld', 'vakblad', ['geld'], 'https://www.tijd.be/rss/netto.xml'),
   V('pensioenpro', 'Pensioen Pro', 'vakblad', ['geld'], 'https://www.pensioenpro.nl/feed/'),
@@ -160,14 +160,18 @@ export const MORE_SOURCES = [
   V('heatmap', 'Heatmap', 'vakblad', ['klimaat'], 'https://heatmap.news/feeds/feed.rss'),
   V('volts', 'David Roberts', 'expert', ['klimaat'], 'https://www.volts.wtf/feed', { about: 'Journalist (Volts), over de energietransitie' }),
   // maatschappij
-  V('nos-politiek', 'NOS Politiek', 'vakblad', ['politiek'], 'https://feeds.nos.nl/nosnieuwspolitiek'),
-  V('vk-politiek', 'de Volkskrant Politiek', 'vakblad', ['politiek'], 'https://www.volkskrant.nl/politiek/rss.xml'),
-  V('trouw-politiek', 'Trouw Politiek', 'vakblad', ['politiek'], 'https://www.trouw.nl/politiek/rss.xml'),
   V('binnenlandsbestuur', 'Binnenlands Bestuur', 'vakblad', ['politiek'], 'https://www.binnenlandsbestuur.nl/feeds/articles.rss'),
   V('gemeentenu', 'Gemeente.nu', 'vakblad', ['politiek'], 'https://www.gemeente.nu/feed/'),
   V('stukroodvlees', 'Stuk Rood Vlees', 'expert', ['politiek'], 'https://stukroodvlees.nl/feed/', { about: 'Politicologen over kiezers, partijen en democratie' }),
-  V('knack-politiek', 'Knack Politiek', 'vakblad', ['politiek'], 'https://www.knack.be/nieuws/belgie/politiek/feed/', { filter: true }),
   V('politico-eu', 'Politico Europe', 'vakblad', ['politiek'], 'https://www.politico.eu/feed/', { filter: true }),
+  // Leesvoer, geen nieuws van de week (Selectie · fase 3): achtergrond, analyse en interviews. Breed (filter): wat over
+  // economie gaat telt daar, de rest bij politiek.
+  V('nieuwsuur', 'Nieuwsuur', 'vakblad', ['economie', 'politiek'], 'https://feeds.nos.nl/nieuwsuuralgemeen', { about: 'De achtergrond bij het nieuws van de dag (NOS en NTR)', filter: true }),
+  V('groene', 'De Groene Amsterdammer', 'vakblad', ['economie', 'politiek'], 'https://www.groene.nl/rss.xml', { about: 'Weekblad met lange analyses, reportages en essays', filter: true }),
+  V('vn', 'Vrij Nederland', 'vakblad', ['politiek'], 'https://www.vn.nl/feed/', { filter: true }),
+  V('trouw-verdieping', 'Trouw Verdieping', 'vakblad', ['politiek'], 'https://www.trouw.nl/verdieping/rss.xml', { filter: true }),
+  V('investico', 'Investico', 'vakblad', ['politiek'], 'https://www.platform-investico.nl/feed/', { about: 'Onderzoeksjournalisten, over macht en beleid', filter: true }),
+  V('sargasso', 'Sargasso', 'community', ['politiek'], 'https://sargasso.nl/feed/', { about: 'Groepsblog met analyses van politiek en beleid', filter: true }),
   V('mr', 'Mr.', 'vakblad', ['recht'], 'https://www.mr-online.nl/juridisch-nieuws/feed/'),
   V('advocatenblad', 'Advocatenblad', 'vakblad', ['recht'], 'https://www.advocatenblad.nl/feed/'),
   V('njb', 'Nederlands Juristenblad', 'vakblad', ['recht'], 'https://www.njb.nl/feeds/news-feed'),
@@ -275,16 +279,37 @@ export const MORE_SOURCES = [
   V('nyt-travel', 'The New York Times Travel', 'vakblad', ['reizen'], 'https://rss.nytimes.com/services/xml/rss/nyt/Travel.xml'),
   V('bbc-travel', 'BBC Travel', 'vakblad', ['reizen'], 'https://www.bbc.com/travel/feed.rss'),
   V('cntraveller', 'Condé Nast Traveller', 'vakblad', ['reizen'], 'https://www.cntraveller.com/feed/rss'),
+  V('athletic', 'The Athletic', 'vakblad', ['sport'], 'https://www.nytimes.com/athletic/rss/news/'),
+  // Leesvoer, geen nieuws van de week (Selectie · fase 3): interviews, achtergrond en analyse. Sporza alleen voor
+  // wielrennen (dat brengt het beter dan de Nederlandse bronnen).
+  V('helden', 'Helden', 'vakblad', ['sport'], 'https://www.helden.media/feed/', { about: 'Sportmagazine met lange interviews en portretten' }),
+  V('sportgeschiedenis', 'Sportgeschiedenis', 'vakblad', ['sport'], 'https://www.sportgeschiedenis.nl/feed/', { about: 'Verhalen achter sporters en sportgeschiedenis' }),
+  V('guardian-sportblog', 'The Guardian Sport', 'vakblad', ['sport'], 'https://www.theguardian.com/sport/blog/rss', { about: 'Analyse en commentaar van de sportredactie' }),
+  V('inrng', 'The Inner Ring', 'expert', ['sport'], 'https://inrng.com/feed/', { about: 'Kenner van het profwielrennen: koersen, ploegen en regels uitgelegd' }),
+  V('sporza-wielrennen', 'Sporza Wielrennen', 'vakblad', ['sport'], 'https://sporza.be/nl/categorie/wielrennen.rss.xml'),
+]
+
+// ---- Archief (Selectie · fase 3, 12 november 2026) ----
+// Nieuwsfeeds van kranten (en van nieuwssites als VI en WielerFlits) en Belgische nieuwsbronnen die de Selectie niet
+// meer gebruikt: de Selectie is leesvoer, geen nieuws van de week. Bewust bewaard, niet weggegooid: niet in VAK_SOURCES, dus niet opgehaald en niet getoond. Terug
+// in gebruik? Zet de regel weer in MORE_SOURCES. NOS en NU.nl Economie staan er nog, alleen niet meer bij Economie.
+export const ARCHIVED_SOURCES = [
+  V('vk-economie', 'de Volkskrant Economie', 'vakblad', ['economie'], 'https://www.volkskrant.nl/economie/rss.xml'),
+  V('fd', 'Het Financieele Dagblad', 'vakblad', ['economie'], 'https://fd.nl/?rss', { filter: true }),
+  V('tijd', 'De Tijd', 'vakblad', ['economie'], 'https://www.tijd.be/rss/nieuws.xml', { filter: true }),
+  V('nos-politiek', 'NOS Politiek', 'vakblad', ['politiek'], 'https://feeds.nos.nl/nosnieuwspolitiek'),
+  V('vk-politiek', 'de Volkskrant Politiek', 'vakblad', ['politiek'], 'https://www.volkskrant.nl/politiek/rss.xml'),
+  V('trouw-politiek', 'Trouw Politiek', 'vakblad', ['politiek'], 'https://www.trouw.nl/politiek/rss.xml'),
+  V('knack-politiek', 'Knack Politiek', 'vakblad', ['politiek'], 'https://www.knack.be/nieuws/belgie/politiek/feed/', { filter: true }),
   V('nos-sport', 'NOS Sport', 'vakblad', ['sport'], 'https://feeds.nos.nl/nossportalgemeen'),
   V('vk-sport', 'de Volkskrant Sport', 'vakblad', ['sport'], 'https://www.volkskrant.nl/sport/rss.xml'),
   V('trouw-sport', 'Trouw Sport', 'vakblad', ['sport'], 'https://www.trouw.nl/sport/rss.xml'),
   V('demorgen-sport', 'De Morgen Sport', 'vakblad', ['sport'], 'https://www.demorgen.be/sport/rss.xml'),
   V('knack-sport', 'Knack Sport', 'vakblad', ['sport'], 'https://www.knack.be/sport/feed'),
-  V('vi', 'Voetbal International', 'vakblad', ['sport'], 'https://www.vi.nl/rss'),
-  V('wielerflits', 'WielerFlits', 'vakblad', ['sport'], 'https://www.wielerflits.nl/feed/'),
   V('sporza', 'Sporza', 'vakblad', ['sport'], 'https://sporza.be/nl.rss.xml'),
   V('guardian-sport', 'The Guardian Sport', 'vakblad', ['sport'], 'https://www.theguardian.com/sport/rss'),
-  V('athletic', 'The Athletic', 'vakblad', ['sport'], 'https://www.nytimes.com/athletic/rss/news/'),
+  V('vi', 'Voetbal International', 'vakblad', ['sport'], 'https://www.vi.nl/rss'),
+  V('wielerflits', 'WielerFlits', 'vakblad', ['sport'], 'https://www.wielerflits.nl/feed/'),
 ]
 
 // Bestaande bronnen die er een onderwerp bij krijgen (achteraan: het eerste passende onderwerp wint).
