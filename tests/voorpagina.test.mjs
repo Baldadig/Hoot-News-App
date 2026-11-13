@@ -429,3 +429,12 @@ test('voorpagina: breed geeft hooguit drie verhalen met minstens drie bekende br
   f.stories[1].sourceNames = ['NOS', 'NRC', 'de Volkskrant', 'Trouw', 'NYT']
   assert.ok(!extract(f).breed.some((x) => x.title === 'English headline'))
 })
+
+test('voorpagina: showbizz is op de landing nooit de bubbel (dan geen bubbel)', () => {
+  const f = feed()
+  f.edition.entries.push({ kind: 'item', id: 'bub', desk: 'bubbel' })
+  f.edition.items.push(it('bub', 'nos', 'NOS', 'Topmodel is weer vrijgezel', { url: 'https://www.nu.nl/achterklap/1/topmodel.html' }))
+  assert.equal('bubble' in extract(f), false)
+  f.edition.items.find((x) => x.id === 'bub').url = 'https://www.nu.nl/wetenschap/1/nieuwe-vondst.html'
+  assert.equal(extract(f).bubble.title, 'Topmodel is weer vrijgezel') // een gewone rubriek blijft wel de bubbel
+})

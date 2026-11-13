@@ -75,7 +75,7 @@ TOPIC_RUBRIEK.nederland = 'binnenland'
 const SPORT_DIR = /^(?:sport[\w-]*|voetbal[\w-]*|darts|tennis|wielrennen|wielersport|formule-?1|f1|schaatsen|hockey)$/i
 const CULTUUR_DIR = /^(?:cultuur[\w-]*|media-en-cultuur|film|films|muziek|boeken|kunst|theater)$/i
 // Showbizz is niet zeker Cultuur: ook een incident bij de koning of een rechtszaak staat soms onder /boulevard/.
-const SHOWBIZZ_DIR = /^(?:entertainment|showbizz|boulevard|bv-en-co|celebrities|media)$/i
+const SHOWBIZZ_DIR = /^(?:entertainment|showbizz|boulevard|bv-en-co|celebrities|celebrity|media|achterklap|sterren|royalty|show|people)$/i
 function mappen(url) {
   try { return new URL(url).pathname.split('/').filter(Boolean).slice(0, -1) } catch { return [] }
 }
@@ -133,7 +133,9 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
       const it = byId.get(e.kind === 'story' ? e.leadId || stories.get(e.id)?.leadId : e.id)
       // Geen zware-rubriekregel hier: de bubbel is per definitie ver weg (vaak Buitenland), wel geen zwaar nieuws of sport.
       const src = it && srcs.get(it.source)
-      if (it?.title && isDutch(it, src?.lang) && !isHeavy(it) && src?.cat !== 'sport' && contentKind(it) !== 'sport') {
+      // Geen showbizz als bubbel op de landing (Alex, 13 november: "Tyra Banks is weer vrijgezel" onder "Iets wat je anders
+      // niet had gelezen"). Dan is er hier geen bubbel en heet plek 3 gewoon "Ook het lezen waard".
+      if (it?.title && isDutch(it, src?.lang) && !isHeavy(it) && src?.cat !== 'sport' && contentKind(it) !== 'sport' && strongKind(it, src?.cat) !== 'showbizz') {
         bubble = { item: it, storyId: it.storyId || null, rubriek: rubriek(it, 'desk' in it ? it.desk : primaryDesk([desksOf(it)]), src?.cat), sourceCount: e.sourceCount || 1, order: idx }
       }
       return

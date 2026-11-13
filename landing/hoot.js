@@ -447,7 +447,9 @@
           var top = Array.isArray(ed.breed) && ed.breed[0] && typeof ed.breed[0].title === 'string' && ed.breed[0].title ? ed.breed[0] : null;
           if (top && (Number(top.sourceCount) || 0) > (Number(en[0].sourceCount) || 0)) en = [top].concat(en.filter(function (x) { return x.title !== top.title; }));
           /* plek 1 en 2; plek 3 is de echte 'Buiten je bubbel' als die er is */
-          var lijst = en.slice(0, 2).concat([bub || en[2]]);
+          /* zonder bubbel is plek 3 'Ook het lezen waard': de eerste plek daarna met precies één bron (zelfde regel als bewaard.mjs) */
+          var enkel = en.slice(2).filter(function (x) { return (Number(x.sourceCount) || 1) < 2; })[0];
+          var lijst = en.slice(0, 2).concat([bub || enkel || en[2]]);
           var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns, !!bub);
           /* Hoot kiest blijft bewaard als er geen drie verschillende redenen zijn, of als de bubbel over hetzelfde gaat
              als plek 01 (dan klopt "Iets wat je anders niet had gelezen" niet). De held toont hoe dan ook de Editie van nu. */

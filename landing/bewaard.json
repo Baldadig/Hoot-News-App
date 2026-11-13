@@ -60,14 +60,7 @@
     "sourceId": "nrc"
    }
   ],
-  "bubble": {
-   "desk": "binnenland",
-   "deskLabel": "Binnenland",
-   "title": "Topmodel Tyra Banks (52) is weer vrijgezel: ‘Ik omarm mijn vrouwelijkheid’",
-   "source": "NU.nl",
-   "sourceCount": 1,
-   "sourceId": "nu"
-  },
+  "bubble": null,
   "breed": [
    {
     "desk": "vs",
@@ -299,12 +292,7 @@
    "desk": "vs"
   }
  ],
- "bubbel": {
-  "title": "Topmodel Tyra Banks (52) is weer vrijgezel: ‘Ik omarm mijn vrouwelijkheid’",
-  "source": "NU.nl",
-  "sourceCount": 1,
-  "desk": "binnenland"
- },
+ "bubbel": null,
  "stroom": {
   "alles": [
    {
