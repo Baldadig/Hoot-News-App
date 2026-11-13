@@ -57,7 +57,11 @@ export function vhTekst(x) {
   return namen.length ? `${kop}: ${esc(namen.join(', '))}${rest > 0 ? ` en ${rest} andere` : ''}.` : `${kop}.`
 }
 export function verhaalVelden(b) {
-  const lijst = (b.voorpagina.breed?.length ? b.voorpagina.breed : [b.voorpagina.entries[0]]).map((x) => ({ title: x.title, sourceCount: x.sourceCount, sources: x.sources || [] }))
+  // Het breedste verhaal opent de held (zie fragmenten); in de kaart eronder komt het daarom als laatste.
+  const breed = b.voorpagina.breed || []
+  const inHeld = breed[0] && (breed[0].sourceCount || 0) > (b.voorpagina.entries[0].sourceCount || 0) ? breed[0].title : b.voorpagina.entries[0].title
+  const orde = [...breed.filter((x) => x.title !== inHeld), ...breed.filter((x) => x.title === inHeld)]
+  const lijst = (orde.length ? orde : [b.voorpagina.entries[0]]).map((x) => ({ title: x.title, sourceCount: x.sourceCount, sources: x.sources || [] }))
   const x = lijst[0], n = vhAantal(x), toon = x.sources.slice(0, VH_LOGOS)
   return {
     BW_VH_DATA: esc(JSON.stringify(lijst)),

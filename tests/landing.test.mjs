@@ -59,8 +59,11 @@ test('bronnenblok: één verhaal met de bronnen die erover schrijven; het getal 
   assert.doesNotMatch(SRC, /voordeel-lijst/) // de vier voordelen zijn weg
   // de kaart: een echte kop uit de bewaarde Editie, de logo's als eigen bestanden (CSP: alleen de eigen site)
   const kaart = html.match(/<div class="verhaal js-verhaal"[\s\S]*?<\/section>/)[0]
-  const eerste = (BEWAARD.voorpagina.breed?.[0]) || BEWAARD.voorpagina.entries[0]
-  assert.ok(tekst(kaart).includes(eerste.title))
+  // de kaart opent met een ander verhaal dan de held er vlak boven
+  const heldKop = html.match(/<div class="k-lead js-held-lead">[\s\S]*?<div class="k-kop k-kop--lead">([^<]*)</)[1]
+  const kaartKop = kaart.match(/<p class="vh-kop js-vh-kop">([^<]*)</)[1]
+  if ((BEWAARD.voorpagina.breed || []).length > 1) assert.notEqual(kaartKop, heldKop)
+  assert.ok([...(BEWAARD.voorpagina.breed || []), BEWAARD.voorpagina.entries[0]].some((x) => tekst(kaart).includes(x.title)))
   for (const m of kaart.matchAll(/<img src="([^"]+)"/g)) {
     assert.match(m[1], /^\/img\/bronnen\/[a-z0-9-]+\.webp$/)
     assert.ok(SOURCES.some((x) => m[1] === `/img/bronnen/${x.id}.webp`), m[1] + ' is een bron uit de catalogus')
@@ -78,7 +81,7 @@ test('bronnenblok: één verhaal met de bronnen die erover schrijven; het getal 
   assert.equal(kaal.BW_VH_KOP.replace(/&[a-z]+;/g, ''), BEWAARD.voorpagina.entries[0].title.replace(/[&<>"]/g, ''))
   // live neemt het over via ed.breed; er is voor elke bron uit de catalogus een logo
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
-  assert.match(js, /window\.hootVerhalen\(ed\.breed, vannu\)/)
+  assert.match(js, /window\.hootVerhalen\(ed\.breed, vannu, lijst\[0\]\.title\)/)
   for (const x of SOURCES) readFileSync(new URL(`../landing/bronnen/${x.id}.webp`, import.meta.url))
   const meta = html.match(/<meta name="description" content="([^"]+)"/)[1]
   assert.match(SRC, /<title>Hoot · Nieuws met een einde · Rustige nieuwslezer<\/title>/)
@@ -406,4 +409,11 @@ test('held: het breedste verhaal opent (niet de eerste rustige plek), en de bron
   const held = vul(true).match(/<div class="k-lead js-held-lead">([\s\S]*?)<\/a>/)[1]
   assert.match(held, /<div class="k-bron"><img src="\/img\/bronnen\/[a-z0-9-]+\.webp" alt=""/)
   assert.match(CSS, /\.k-bron img\{[^}]*border-radius:50%/)
+})
+
+test('nazorg: de App Store-pil onder Hoot kiest is ook op iPhone en iPad in inkt; afbreken alleen in de smalle kolommen', () => {
+  assert.match(CSS, /\.redacteur \.wacht,html\.ios \.redacteur \.wacht\{background:var\(--inkt\);color:var\(--papier\)/)
+  assert.match(CSS, /\.ip-kol \.k-kop\{hyphens:auto/)
+  assert.doesNotMatch(CSS, /\.ipad \.k-kop\{hyphens/)
+  assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /window\.hootVerhalen\(ed\.breed, vannu, lijst\[0\]\.title\)/)
 })
