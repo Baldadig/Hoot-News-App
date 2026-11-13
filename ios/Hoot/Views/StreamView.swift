@@ -326,7 +326,8 @@ struct SourcesView: View {
 struct SourcesList: View {
     @Environment(HootStore.self) private var store
     @State private var open: Set<String> = []
-    private static let cats: [(String, String)] = [("nl", "Nederland"), ("int", "Internationaal"), ("vl", "Vlaanderen"), ("regio", "Regio"), ("economie", "Economie"), ("tech", "Tech"), ("wetenschap", "Wetenschap"), ("sport", "Sport"), ("cultuur", "Cultuur"), ("games", "Games")]
+    // Dezelfde namen en volgorde als het web (SOURCE_CATS) en het welkom: FollowList.cats.
+    static var cats: [(String, String)] { FollowList.cats.map { ($0.id, $0.label) } }
 
     var body: some View {
         let mine = store.newsSources.filter { store.isOn($0) }

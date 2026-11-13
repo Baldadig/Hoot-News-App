@@ -159,6 +159,13 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos"]).first?.source, "NOS")
     }
 
+    // Nachttest 14 november (A13): Instellingen › Bronnen heeft dezelfde rubrieken, namen en volgorde als het welkom en het web.
+    @MainActor func testBronnenlijstRubriekenGelijkAanWelkom() {
+        XCTAssertEqual(SourcesList.cats.map(\.0), FollowList.cats.map(\.id))
+        XCTAssertEqual(SourcesList.cats.map(\.1), FollowList.cats.map(\.label))
+        XCTAssertTrue(SourcesList.cats.contains { $0.1 == "Regionaal" })
+    }
+
     // Nachttest 14 november (A6): opinie draagt geen plek in de Editie, dus ook niet in het voorbeeld (gelijk aan het web).
     @MainActor func testPreviewSkipsOpinion() {
         let items = [
