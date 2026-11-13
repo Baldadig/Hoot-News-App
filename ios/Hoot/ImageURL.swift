@@ -25,7 +25,17 @@ extension ImageURL {
             return q.first { $0.name == "w" }?.value.flatMap(Int.init) ?? 320
         }
         if host == "i.guim.co.uk" { return u.queryItems?.first { $0.name == "width" }?.value.flatMap(Int.init) }
+        // NU.nl: het origineel is hooguit zo breed als het vierkant uit de feed (shared/beeld.mjs).
+        if host == "images.nu.nl" { return nuVierkant(raw)?.zijde }
         return nil
+    }
+
+    // Een bekend klein vierkant uit de feed (het FD en The Guardian: 140 px): de echte maat van de grote variant
+    // weten we pas als de server die mat (imageMeta.lead). Gelijk aan smallSquare in src/lib/img.js.
+    static func smallSquare(_ raw: String?) -> Bool {
+        guard let raw, let u = URLComponents(string: raw), let host = u.host, host == "images.fd.nl" || host == "i.guim.co.uk" else { return false }
+        let w = u.queryItems?.first { $0.name == (host == "images.fd.nl" ? "w" : "width") }?.value.flatMap(Int.init) ?? 0
+        return w > 0 && w <= 200
     }
 
     // Hoe breed een groot beeld hooguit te krijgen is zonder op te rekken: de grootste variant van de uitgever
@@ -37,13 +47,39 @@ extension ImageURL {
         let measured = item.imageMeta.flatMap { $0.valid ? $0.w : nil }
         if measuredOriginal(item) { return measured }
         guard let raw = item.image, let u = URL(string: raw), let host = u.host() else { return nil }
-        if host == "images.cdn.nos.nl", raw.firstMatch(#"-1024x576\.webp$"#) != nil { return 1024 }
-        if let large = variant(raw, .large) {
+        var w: Double?
+        if host == "images.cdn.nos.nl", raw.firstMatch(#"-1024x576\.webp$"#) != nil { w = 1024 }
+        else if let large = variant(raw, .large) {
             // De beeld-CDN van Netlify rekt niet op: dan telt de meting (hooguit de gevraagde 1360).
-            if large.host() == HootAPI.base.host(), large.path() == "/.netlify/images", let measured { return min(measured, 1360) }
-            return 1024
-        }
-        return measured ?? knownWidth(raw).map(Double.init)
+            if large.host() == HootAPI.base.host(), large.path() == "/.netlify/images", let measured { w = min(measured, 1360) }
+            else { w = 1024 }
+        } else { w = measured }
+        // Nooit breder dan het adres verraadt (NU.nl: het vierkant uit de feed) of dan de server de grote variant
+        // werkelijk mat (imageMeta.lead). Gelijk aan sourceWidth in src/lib/img.js.
+        let caps = [w, knownWidth(raw).map(Double.init), item.imageMeta?.lead?.w].compactMap { $0 }
+        return caps.min()
+    }
+
+    // De verhouding van wat groot getoond wordt: de gemeten grote variant, anders het gemeten origineel als we dat
+    // (of de CDN-versie, die de verhouding houdt) tonen. NU.nl: altijd 16:9. Nil: onbekend. Gelijk aan shownRatio.
+    static func shownRatio(_ item: Item) -> Double? {
+        if let lead = item.imageMeta?.lead, lead.w > 0, lead.h > 0 { return lead.w / lead.h }
+        if nuVierkant(item.image) != nil { return 16 / 9 }
+        guard let m = item.imageMeta, m.valid else { return nil }
+        let cdn = variant(item.image, .large).map { $0.host() == HootAPI.base.host() && $0.path() == "/.netlify/images" } ?? false
+        return measuredOriginal(item) || cdn ? m.contentRatio : nil
+    }
+
+    // De poort (gelijk aan grootBeeldMag in shared/beeld.mjs): het getoonde beeld is echt minstens 600 breed en
+    // de verhouding ligt tussen 0,6 en 2,4, zodat het vak het bijsnijdend vult en er niets rekt. Bij twijfel geen
+    // groot beeld; onbekend blijft tonen, behalve een bekend klein vierkant zonder gemeten variant.
+    static let grootMinBreed = 600.0
+    static let grootVerhouding = (0.6, 2.4)
+    static func largeOk(_ item: Item) -> Bool {
+        guard item.image != nil, !(smallSquare(item.image) && item.imageMeta?.lead == nil) else { return false }
+        if let r = shownRatio(item), !(r >= grootVerhouding.0 && r <= grootVerhouding.1) { return false }
+        guard let w = sourceWidth(item) else { return true }
+        return w >= grootMinBreed
     }
 
     // Een andere maat dan het adres uit de feed (van de uitgever of via de beeld-CDN), of nil.
@@ -67,6 +103,7 @@ extension ImageURL {
     // 1,4). 1,4 en niet 1,5: de NOS levert hooguit 1024 breed en dat moet op 720 nog groot mogen (SHARP op het web).
     static let sharp = 1.4
     static func sharpEnough(_ item: Item, box: Double, scale: Double) -> Bool {
+        guard largeOk(item) else { return false }
         guard let w = sourceWidth(item) else { return true }
         return w >= box * max(1, min(scale, sharp))
     }

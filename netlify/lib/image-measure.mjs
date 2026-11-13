@@ -1,5 +1,6 @@
 // Alleen servercode: sharp hoort niet in de gedeelde editiekern voor JavaScriptCore.
 import { kvGet, kvSet } from './kv.mjs'
+import { largeVariant } from '../../src/lib/img.js'
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 const MAX_PIXELS = 20_000_000
@@ -65,11 +66,18 @@ export async function loadImageMeasure(url, { fetcher = fetch, signal = AbortSig
 
 // Alle beeldbronnen zijn al gevonden vóór deze stap. Cache ook mislukte metingen kort;
 // de begrensde wachtrij mag de periodieke feedopbouw nooit minuten ophouden.
+// Naast het beeld uit de feed meten we de grote variant die app en web werkelijk tonen (largeVariant,
+// dezelfde regel als candidates en ImageURL.url): de echte maat staat dan in imageMeta.lead = { w, h }, voor
+// de poort in shared/beeld.mjs (te klein of een verkeerde verhouding: geen groot beeld).
 export async function measureFeedImages(items, now, { load = loadImageMeasure, get = kvGet, set = kvSet } = {}) {
   try {
     const cache = await get('image-measure-v1') || {}
-    const urls = [...new Set(items.filter(i => i.kind === 'article' && i.image).map(i => i.image))]
-    const missing = urls.filter(url => !cache[url] || now - cache[url].at > (cache[url].value ? 7 * 864e5 : 36e5)).slice(0, 48)
+    const articles = items.filter(i => i.kind === 'article' && i.image)
+    const feedUrls = [...new Set(articles.map(i => i.image))]
+    const leadUrls = [...new Set(feedUrls.map(largeVariant).filter(Boolean))]
+    const stale = url => !cache[url] || now - cache[url].at > (cache[url].value ? 7 * 864e5 : 36e5)
+    // Eerst de feedbeelden (de weergave hangt ervan af), dan de grote varianten; samen hooguit 48.
+    const missing = [...feedUrls.filter(stale), ...leadUrls.filter(stale)].slice(0, 48)
     const signal = AbortSignal.timeout(8000)
     await Promise.all(Array.from({ length: 4 }, async () => {
       while (missing.length && !signal.aborted) {
@@ -79,7 +87,12 @@ export async function measureFeedImages(items, now, { load = loadImageMeasure, g
         cache[url] = { at: now, value }
       }
     }))
-    for (const it of items) if (cache[it.image]?.value) it.imageMeta = cache[it.image].value
+    for (const it of items) {
+      const value = cache[it.image]?.value
+      if (!value) continue
+      const lead = cache[largeVariant(it.image)]?.value
+      it.imageMeta = lead?.w > 0 && lead?.h > 0 ? { ...value, lead: { w: lead.w, h: lead.h } } : value
+    }
     await set('image-measure-v1', Object.fromEntries(Object.entries(cache).filter(([, v]) => now - v.at < 7 * 864e5)))
   } catch { /* De oude weergave blijft bij elke meet- of opslagfout beschikbaar. */ }
 }

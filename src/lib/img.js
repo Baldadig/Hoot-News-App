@@ -1,5 +1,6 @@
 // Beeld op maat — pure functies (getest in tests/img.test.mjs).
 import { imageMeta } from './image-meta.js'
+import { grootBeeldMag, nuVierkant, nuLiggend, NU_BREEDTES } from '../../shared/beeld.mjs'
 // De feeds leveren vaak één (te) groot beeld. Waar de uitgever zelf kleinere varianten
 // aanbiedt vragen we die op (alleen patronen die op de echte CDN's zijn nagelopen, okt. 2026).
 // Andere bekende bronnen gaan via de beeld-CDN van Netlify: op maat en als AVIF/WebP.
@@ -42,7 +43,26 @@ export function knownWidth(url) {
   }
   if (isBingThumb(u)) return bingWidth(u)
   if (u.hostname === 'i.guim.co.uk') return Number(u.searchParams.get('width')) || null
+  // NU.nl: het origineel is hooguit zo breed als het vierkant uit de feed (shared/beeld.mjs).
+  if (u.hostname === 'images.nu.nl') return nuVierkant(url)?.zijde ?? null
   return null
+}
+
+// Een bekend klein vierkant uit de feed (het FD: 140 px, The Guardian: 140): de echte maat van de grote
+// variant weten we pas als de server die heeft gemeten (imageMeta.lead). NU.nl hoort hier niet bij: daar
+// verraadt de uitsnede in het adres al hoe breed het origineel is (knownWidth).
+export function smallSquare(url) {
+  let u
+  try {
+    u = new URL(url)
+  } catch {
+    return false
+  }
+  if (u.hostname === 'images.fd.nl' || u.hostname === 'i.guim.co.uk') {
+    const w = Number(u.searchParams.get(u.hostname === 'images.fd.nl' ? 'w' : 'width'))
+    return w > 0 && w <= 200
+  }
+  return false
 }
 
 // Mag dit beeld groot (tijdlijn)? Niet als we weten dat het alleen klein bestaat.
@@ -99,12 +119,12 @@ export function candidates(url, kind) {
     return kind === 'thumb' ? [at(256)] : [at(512), at(768), at(1024)]
   }
   if (host === 'images.nu.nl') {
-    // NU.nl levert in de feed een vierkant van 256 px ("_sqr256/x/y/b/h/"). Liggend bestaan vaste
-    // breedtes (640, 854, 1280); met uitsnede 0/0/0/0 snijdt NU.nl zelf netjes 16:9 bij (met de
-    // vierkante uitsnede uit de feed zou het beeld worden uitgerekt).
-    const m = url.match(/^(https:\/\/images\.nu\.nl\/m\/[a-z0-9]+)_sqr256\/\d+\/\d+\/\d+\/\d+\/(.+)$/)
-    if (!m) return null
-    return kind === 'thumb' ? [[url, 256]] : [640, 854, 1280].map((w) => [`${m[1]}_wd${w}/0/0/0/0/${m[2]}`, w])
+    // NU.nl levert in de feed een vierkant van 256 px ("_sqr256/x/y/b/h/"). Liggend bestaan alleen vaste
+    // breedtes in 16:9 (640, 854, 1280), en NU.nl rekt elke uitsnede daarin, ook 0/0/0/0 (het hele beeld:
+    // een staand portret werd zo breed getrokken). Dus vragen we een 16:9-uitsnede binnen het vierkant
+    // uit de feed (shared/beeld.mjs, nuLiggend).
+    if (!nuVierkant(url)) return null
+    return kind === 'thumb' ? [[url, 256]] : NU_BREEDTES.map((w) => [nuLiggend(url, w), w])
   }
   if (host === 'images.fd.nl') {
     // Het FD (imgix) zet in de feed een vierkant van 140 px of een beeld van 640 breed. Op elke breedte
@@ -131,6 +151,16 @@ export function candidates(url, kind) {
   }
   if (CDN_HOSTS.includes(host)) return widths.map((w) => [viaCdn(url, w), w])
   return null
+}
+
+// De grote variant die de app en het web werkelijk tonen (de grootste uit candidates), als die bij de
+// uitgever zelf staat; de server meet die (netlify/lib/image-measure.mjs, imageMeta.lead). Via de
+// beeld-CDN van Netlify niet: die rekt niet op, daar telt de meting van het origineel.
+export function largeVariant(url) {
+  const list = candidates(url, 'lead')
+  if (!list?.length) return null
+  const [best] = [...list].sort((a, b) => b[1] - a[1])[0]
+  return /^https:\/\//.test(best) && best !== url ? best : null
 }
 
 // Attributen voor <img>: { src, srcSet?, sizes? }, plus `fallback` (het origineel) als we
@@ -173,11 +203,39 @@ export function sourceWidth(item) {
   const measured = Number(item.imageMeta?.w) > 0 ? Number(item.imageMeta.w) : null
   if (measuredOriginal(item)) return measured
   const list = candidates(url, 'lead')
+  let w
   if (list?.length) {
     const max = Math.max(...list.map(([, w]) => w))
-    return list[0][0].startsWith('/.netlify/images') ? (measured ? Math.min(measured, max) : max) : max
-  }
-  return measured ?? knownWidth(url)
+    w = list[0][0].startsWith('/.netlify/images') ? (measured ? Math.min(measured, max) : max) : max
+  } else w = measured
+  // Nooit breder dan het adres verraadt (NU.nl: het vierkant uit de feed) of dan de server de grote
+  // variant werkelijk mat (imageMeta.lead).
+  const caps = [w, knownWidth(url), leadSize(item)?.w].filter((n) => n != null)
+  return caps.length ? Math.min(...caps) : null
+}
+
+// De gemeten maat van de grote variant (imageMeta.lead, door de server), of null.
+function leadSize(item) {
+  const l = item?.imageMeta?.lead
+  return l && Number(l.w) > 0 && Number(l.h) > 0 ? { w: Number(l.w), h: Number(l.h) } : null
+}
+
+// De verhouding van wat groot getoond wordt: de gemeten grote variant, anders het gemeten origineel als
+// we dat (of een CDN-versie ervan, die de verhouding houdt) tonen. NU.nl en de NOS: altijd 16:9. Null: onbekend.
+export function shownRatio(item) {
+  const lead = leadSize(item)
+  if (lead) return lead.w / lead.h
+  if (nuVierkant(item?.image)) return 16 / 9
+  const m = imageMeta(item)
+  if (!m) return null
+  const list = candidates(item.image, 'lead')
+  return measuredOriginal(item) || list?.[0]?.[0].startsWith('/.netlify/images') ? m.ratio : null
+}
+
+// De poort (shared/beeld.mjs): echt breed genoeg en een verhouding die het vak zonder vervorming vult.
+export function largeOk(item) {
+  if (!item?.image) return false
+  return grootBeeldMag({ breedte: sourceWidth(item), verhouding: shownRatio(item), kleinVierkant: smallSquare(item.image) && !leadSize(item) })
 }
 
 // Een beeld is scherp genoeg als het minstens SHARP keer zo breed is als het vak waarin het staat, op een
@@ -185,6 +243,7 @@ export function sourceWidth(item) {
 // hooguit 1024 breed, en dat moet op 720 nog groot mogen (1,42); een beeld van 700 of 840 op 720 niet.
 export const SHARP = 1.4
 export function sharpEnough(item, boxWidth, dpr = 1) {
+  if (!largeOk(item)) return false
   const w = sourceWidth(item)
   if (w == null) return true
   return w >= boxWidth * Math.max(1, Math.min(dpr, SHARP))

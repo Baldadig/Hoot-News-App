@@ -396,7 +396,8 @@ private struct DigestCard: View {
     let rank: Int
     let feature: Bool
     var body: some View {
-        let showImage = store.showsImage(lead: feature) && (feature ? ImageURL.fitsHero(item.image) : ImageURL.fitsLarge(item.image))
+        // Groot alleen als het echt scherp genoeg is en de verhouding het vak vult (sharpHere, gelijk aan Vak.jsx).
+        let showImage = store.showsImage(lead: feature) && (feature ? ImageURL.fitsHero(item.image) : ImageURL.fitsLarge(item.image)) && ImageURL.sharpHere(item.asItem)
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: Space.s2) {
                 if showImage {

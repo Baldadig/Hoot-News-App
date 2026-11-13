@@ -6,6 +6,10 @@ struct ImageMeasure: Codable, Hashable {
     var h: Double
     var crop: Crop
     var ratio: Double
+    // De echte maat van de grote variant die we tonen (door de server gemeten, shared/beeld.mjs); ontbreekt bij
+    // oudere servers en bronnen zonder variant.
+    struct Size: Codable, Hashable { var w: Double; var h: Double }
+    var lead: Size? = nil
     var valid: Bool {
         [w, h, crop.l, crop.r, crop.t, crop.b].allSatisfy { $0.isFinite } &&
         min(crop.l, crop.r, crop.t, crop.b) >= 0 && w > crop.l + crop.r && h > crop.t + crop.b
@@ -47,7 +51,8 @@ struct MeasuredLeadImage: View {
                         // Dezelfde pixels als de meting; CDN-varianten kunnen zelf al bijsnijden.
                         AsyncImage(url: item.image.flatMap(URL.init(string:))) { phase in
                             if let image = phase.image {
-                                image.resizable().frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                                // Nooit uitrekken: wijkt het geladen beeld af van de meting, dan vult het bijsnijdend.
+                                image.resizable().aspectRatio(contentMode: .fill).frame(width: rect.width, height: rect.height).clipped().offset(x: rect.minX, y: rect.minY)
                             } else if case .failure = phase {
                                 Color.clear.onAppear { onFail?() }
                             } else { Rectangle().fill(.quaternary) }
