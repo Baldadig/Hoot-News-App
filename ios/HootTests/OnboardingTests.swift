@@ -159,6 +159,16 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos"]).first?.source, "NOS")
     }
 
+    // Nachttest 14 november (A6): opinie draagt geen plek in de Editie, dus ook niet in het voorbeeld (gelijk aan het web).
+    @MainActor func testPreviewSkipsOpinion() {
+        let items = [
+            Item(id: "a", source: "nos", kind: "article", title: "Nieuws", url: "https://example.org", publishedAt: "2026-11-04T06:00:00Z"),
+            Item(id: "b", source: "nos", kind: "article", title: "Column", url: "https://example.org", publishedAt: "2026-11-04T08:00:00Z", opinion: true),
+            Item(id: "c", source: "tweakers", kind: "article", title: "Oud type", url: "https://example.org", publishedAt: "2026-11-04T07:00:00Z", type: "opinie"),
+        ]
+        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos", "tweakers"]).map(\.id), ["a"])
+    }
+
     // ---- Week · 2: de intro toont de eerste kop van de huidige algemene Editie als bewijs ----
 
     func testIntroBewijsIsDeEersteKopMetBron() throws {

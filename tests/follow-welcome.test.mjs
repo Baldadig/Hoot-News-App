@@ -159,6 +159,16 @@ test('het voorbeeld: de nieuwste kop per gevolgde bron, nooit van een andere bro
   assert.equal(previewLines(items, catalog, ['nos', 'tweakers'], 1).length, 1)
 })
 
+// Nachttest 14 november (A6, W-03): opinie draagt geen plek in de Editie, dus ook niet in het voorbeeld ervan.
+test('het voorbeeld: geen opiniekop, ook niet als die de nieuwste is', () => {
+  const items = [
+    { id: 'a', source: 'nos', kind: 'article', title: 'Nieuws', publishedAt: '2026-11-04T06:00:00Z' },
+    { id: 'b', source: 'nos', kind: 'article', title: 'Column', opinion: true, publishedAt: '2026-11-04T08:00:00Z' },
+    { id: 'c', source: 'tweakers', kind: 'article', title: 'Oud type', type: 'opinie', publishedAt: '2026-11-04T07:00:00Z' },
+  ]
+  assert.deepEqual(previewLines(items, catalog, ['nos', 'tweakers']).map((l) => l.id), ['a'])
+})
+
 test('opslaan gebruikt bestaande voorkeuren; een geannuleerd concept wijzigt ze niet', () => {
   const all = [{ id: 'a' }, { id: 't' }, { id: 's' }]
   const original = { onboarded: true, interests: ['tech'], topics: ['ai'], muted: [], vak: ['ux'], saved: ['artikel'] }

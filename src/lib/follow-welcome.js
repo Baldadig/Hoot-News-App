@@ -6,6 +6,7 @@
 // als je Sport kiest. Zoeken vindt alles, ook sport: zoeken is ook een keuze.
 // Zelfde regels als de app (WelcomeView.swift, FollowList).
 import { INTERESTS, SOURCE_CATS, STARTER } from './topics.js'
+import { opinieInStroom } from '../../shared/opinie.mjs'
 
 export const FREE_START = ['nos', 'nu', 'rtl']
 export const SPORT = 'sport'
@@ -109,14 +110,14 @@ export const followedLine = (n) => (n ? `${n} ${n === 1 ? 'bron' : 'bronnen'} ge
 
 // Het meegroeiende voorbeeld: per bron die je volgt het nieuwste artikel, de nieuwste eerst.
 // Volg je nog niets, dan het gratis begin. Echte koppen uit de feed; geen kop van een bron die je
-// niet volgt.
+// niet volgt, en geen opinie: die draagt geen plek in de Editie (gelijk aan FollowList.preview in de app).
 export function previewLines(items = [], sources = [], followed = [], max = 4) {
   const ids = followed.length ? followed : FREE_START
   const byId = new Map(sources.map((s) => [s.id, s]))
   const newest = new Map()
   for (const it of items) {
     if (it.kind && it.kind !== 'article') continue
-    if (!ids.includes(it.source) || !it.title) continue
+    if (!ids.includes(it.source) || !it.title || opinieInStroom(it)) continue
     const prev = newest.get(it.source)
     if (!prev || (it.publishedAt || '') > (prev.publishedAt || '')) newest.set(it.source, it)
   }

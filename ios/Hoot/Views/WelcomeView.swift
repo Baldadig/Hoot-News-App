@@ -1086,10 +1086,11 @@ enum FollowList {
     struct Line: Identifiable, Equatable { let id: String; let title: String; let source: String }
 
     // Het voorbeeld: per gevolgde bron het nieuwste artikel, de nieuwste eerst; nog niets gevolgd: het gratis begin.
+    // Geen opinie: die draagt geen plek in de Editie (gelijk aan previewLines op het web).
     static func preview(_ items: [Item], _ sources: [Source], _ followed: [String], max: Int = 4) -> [Line] {
         let ids = Set(followed.isEmpty ? freeStart : followed)
         var newest: [String: Item] = [:]
-        for it in items where (it.kind ?? "article") == "article" && ids.contains(it.source) && !it.title.isEmpty {
+        for it in items where (it.kind ?? "article") == "article" && ids.contains(it.source) && !it.title.isEmpty && it.opinion != true && it.type != "opinie" {
             if let prev = newest[it.source], (prev.publishedAt ?? "") >= (it.publishedAt ?? "") { continue }
             newest[it.source] = it
         }
