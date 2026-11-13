@@ -3279,6 +3279,13 @@ var HootCore = (() => {
   var titled = (i) => !!String(i?.title ?? "").trim();
   var NL_TOP5_MIN = 2;
   var SOURCE_BY_ID = new Map(SOURCES.map((x) => [x.id, x]));
+  var NL_OPEN_MIN = 3;
+  function nlOpener(prof, general = false) {
+    if (general || (prof?.family?.binnenland || 0) > 0) return false;
+    let n = 0;
+    for (const id of prof?.followed || []) if ((prof?.catOf?.get?.(id) || SOURCE_BY_ID.get(id)?.cat) === "nl") n++;
+    return n >= NL_OPEN_MIN;
+  }
   function dutchSource(id, sources = SOURCES) {
     const s = sources === SOURCES ? SOURCE_BY_ID.get(id) : sources.find((x) => x.id === id);
     return !!s && ["nl", "regio"].includes(s.cat) && s.lang === "nl" && !VL_HOME.has(s.id);
@@ -3607,16 +3614,20 @@ var HootCore = (() => {
       fill();
     }
     entries.sort((a, b) => b.w - a.w || textOrder(a.id, b.id));
-    if (strictInt || prof.family.binnenland > 0) {
+    const nlOpen = nlOpener(prof, general);
+    if (strictInt || prof.family.binnenland > 0 || nlOpen) {
       const candOf = new Map([...used].map((c) => [c.id, c]));
       const isForeign = (e) => foreign(candOf.get(e.id));
       const lastHome = entries.reduce((k, e, i) => e.front && !isForeign(e) ? i : k, -1);
-      const late = entries.filter((e) => !e.front && unchosen(candOf.get(e.id)));
+      const late = strictInt || prof.family.binnenland > 0 ? entries.filter((e) => !e.front && unchosen(candOf.get(e.id))) : [];
       const moved = prof.family.binnenland > 0 ? entries.slice(0, Math.max(0, lastHome)).filter((e) => e.front && isForeign(e)) : [];
       const rest = entries.filter((e) => !moved.includes(e) && !late.includes(e));
       if (moved.length) rest.splice(rest.indexOf(entries[lastHome]) + 1, 0, ...moved);
       if (prof.family.binnenland > 0 && rest.length && !homeNews(candOf.get(rest[0].id))) {
         const first = rest.find((e) => e.front && homeNews(candOf.get(e.id))) || rest.find((e) => homeNews(candOf.get(e.id)));
+        if (first) rest.splice(0, 0, ...rest.splice(rest.indexOf(first), 1));
+      } else if (nlOpen && rest.length && !homeNews(candOf.get(rest[0].id))) {
+        const first = rest.find((e) => e.front && e.kind === "story" && homeNews(candOf.get(e.id)) && !!candOf.get(e.id)?.parts?.interest);
         if (first) rest.splice(0, 0, ...rest.splice(rest.indexOf(first), 1));
       }
       entries.splice(0, entries.length, ...rest, ...late);
