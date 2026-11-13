@@ -10,6 +10,7 @@ import { keywordTopics } from './topics.mjs'
 
 import { hash } from '../../shared/util.mjs'
 import { SOURCES } from './sources.mjs'
+import { opinieBron } from '../../shared/opinie.mjs'
 import { SLOT_START, hhmm, amsterdamClock } from '../../shared/slot-times.mjs'
 import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, chosenDesks, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
@@ -771,6 +772,11 @@ const coreDegree = (size) => (size >= 10 ? 3 : 2)
 // (iii) EU-landen en instituten als één naam, (iv) namen van drie letters. De server en de dagreeks
 // zetten dit aan; standaard uit, zodat de meetlat (buildStories + selectEdition) byte-gelijk blijft.
 export function buildStories(articles, registry = {}, { mainIds = new Set(), keys = false, extended = false } = {}) {
+  // Opiniebladen (`opinie` in de catalogus, 13 november 2026) bundelen niet mee: hun stukken leggen geen verbinding
+  // tussen twee gebeurtenissen en maken geen verhaal. Pas als de verhalen er zijn, komt een opiniestuk erbij dat over
+  // die gebeurtenis gaat (attachOpinie), als lid voor Vergelijken, zonder mee te tellen in de bronnen of de drempels.
+  const opinie = articles.filter((a) => opinieBron(a.source))
+  if (opinie.length) articles = articles.filter((a) => !opinieBron(a.source))
   const list = articles.filter((a) => !DIGEST.test(a.title || '') && !isLive(a)).sort(byRecency)
   const sig = signatures(list, [], { extended })
   // `keys` in de stand van het toestel (zie boven), met de woordenschat van álle aangeboden berichten:
@@ -926,10 +932,12 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
   if (extended) attachLoose(groups, list, sig)
   // 5. (H7, uitgebreide stand) De deeluitslagen van één stembusgang horen bij de uitslag.
   if (extended) mergeVoteResults(groups, sig)
+  // 6. Opinie over een verhaal hoort erbij (alleen als lid; zie boven).
+  const extra = opinie.length ? attachOpinie(groups, list, opinie, extended) : new Map()
 
   const stories = []
   const used = new Set()
-  for (const items of groups.values()) {
+  for (const [gid, items] of groups) {
     const sourceIds = new Set(items.map((i) => i.source))
     if (sourceIds.size < 2) continue
     const votes = {}
@@ -948,7 +956,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
       id,
       formerIds: known.slice(1).filter((x) => x !== id),
       leadId: leadCandidates(items, mainIds, null, now)[0].id,
-      itemIds: items.map((i) => i.id),
+      itemIds: [...items, ...(extra.get(gid) || [])].map((i) => i.id),
       sourceCount: sourceIds.size,
       ...coverageOf(items),
       ownCount: new Set(own.map((i) => i.source)).size,
@@ -970,6 +978,31 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
     last.light = (!last.sport && lightStory({}, items)) || false
   }
   return stories
+}
+
+// Opinie bij een verhaal (13 november 2026): een stuk van een opinieblad hoort bij het verhaal (≥ 2 bronnen) waarmee
+// het de meeste stukken deelt die over dezelfde gebeurtenis gaan (sameEvent), met minstens twee (bij een verhaal van
+// twee stukken: één). Het komt achteraan in `itemIds`: de kop, de tijden, de rubriek, de kenmerken, het aantal bronnen
+// en de uitgevers komen alleen uit het nieuws. Gelijke stand: het grootste verhaal, dan de laagste id.
+function attachOpinie(groups, list, opinie, extended) {
+  const out = new Map()
+  const own = opinie.filter((a) => !DIGEST.test(a.title || '') && !isLive(a))
+  const cands = [...groups].filter(([, items]) => new Set(items.map((i) => i.source)).size >= 2)
+  if (!own.length || !cands.length) return out
+  const sig = signatures([...list, ...own], [], { extended })
+  for (const o of own) {
+    const so = sig.get(o.id)
+    if (!so || (so.words.size < 3 && so.strong.size < 1)) continue
+    let best = null
+    for (const [gid, items] of cands) {
+      const n = items.filter((i) => sig.get(i.id) && sameEvent(so, sig.get(i.id), extended)).length
+      if (n < Math.min(2, items.length - 1)) continue
+      if (!best || n > best.n || (n === best.n && (items.length > best.size || (items.length === best.size && gid < best.gid)))) best = { gid, n, size: items.length }
+    }
+    if (best) (out.get(best.gid) || out.set(best.gid, []).get(best.gid)).push(o)
+  }
+  for (const xs of out.values()) xs.sort(byRecency)
+  return out
 }
 
 // H6 (ii): een los stuk (in geen enkele groep van twee of meer) dat minstens CORE_SHARED sterke namen

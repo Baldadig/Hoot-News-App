@@ -3,21 +3,25 @@ import { geoOf, isSport, FRONT_BIG, FAMILY_OF, personalParts } from './editor.mj
 import { storyForeignOf, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 import { keywordTopics } from '../netlify/lib/topics.mjs'
+import { opinieBron } from './opinie.mjs'
 
 // Expliciete uitgeverlanden; taal en het land in een artikel zijn nooit bewijs hiervoor.
 // Onbekende uitgevers leveren geen extra land op. Sectiefeeds blijven dezelfde uitgever.
-const ALIAS = { 'nos-sport':'nos', 'nos-cultuur':'nos', 'nos-economie':'nos', 'bbc-sport':'bbc', 'guardian-sport':'guardian', 'guardian-music':'guardian', 'guardian-culture':'guardian', 'npr-music':'npr' }
+// Een uitgever met meer bronnen in de catalogus zegt dat zelf (`publisher`, bijv. de regionale omroepen).
+const ALIAS = { 'nos-sport':'nos', 'nos-cultuur':'nos', 'nos-economie':'nos', 'bbc-sport':'bbc', 'guardian-sport':'guardian', 'guardian-music':'guardian', 'guardian-culture':'guardian', 'npr-music':'npr', ...Object.fromEntries(SOURCES.filter(s => s.publisher).map(s => [s.id, s.publisher])) }
 const COUNTRIES = Object.fromEntries(Object.entries({
-  NL: [...NL_HOME, 'tweakers','vi','wielerflits','3voor12'],
-  BE: [...VL_HOME],
+  NL: [...NL_HOME, 'tweakers','vi','wielerflits','3voor12','villamedia','mediacourant','nieuwemuze', ...new Set(SOURCES.filter(s => s.publisher && NL_HOME.has(s.id)).map(s => s.publisher))],
+  BE: [...VL_HOME, 'cuttingedge'],
   US: ['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','theverge','wired','ars','techcrunch','mittr','ign','gamespot','polygon','quanta','sciam','espn','pitchfork','rollingstone','stereogum','variety'],
   GB: ['guardian','bbc','economist','ft','independent','telegraph','eurogamer','nature','carbonbrief','autosport','quietus'],
   DE: ['dw'], FR: ['lemonde'], QA: ['aljazeera'], HK: ['scmp'],
 }).flatMap(([country, ids]) => ids.map(id => [id, country])))
 export const publisherOf = id => ALIAS[id] || id
 export const publisherCountry = id => COUNTRIES[publisherOf(id)] || null
+// Een opinieblad telt niet mee (shared/opinie.mjs, opinieBron): tien opiniebladen over één debat maken het nog geen
+// groot nieuws.
 export function coverageOf(items = []) {
-  const ids = [...new Set(items.map(i => publisherOf(i.source)).filter(Boolean))].sort()
+  const ids = [...new Set(items.filter(i => !opinieBron(i.source)).map(i => publisherOf(i.source)).filter(Boolean))].sort()
   return { publisherCount: ids.length, publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() }
 }
 // ---- Noodfix 2 november 2026: sport op niveau van het verhaal, en de galerij ----

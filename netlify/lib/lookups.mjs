@@ -104,7 +104,8 @@ export async function loadBskyCards(handle) {
   }
 }
 
-export async function loadSourceAvatars() {
-  const entries = await Promise.all(SOURCES.map(async (s) => [s.id, s.bsky ? await bskyAvatar(s.bsky) : null]))
+// `list`: standaard de catalogus; de Selectie geeft haar eigen bronnen mee (alleen wie een `bsky` heeft wordt opgevraagd).
+export async function loadSourceAvatars(list = SOURCES) {
+  const entries = await Promise.all(list.map(async (s) => [s.id, s.bsky && !s.logo ? await bskyAvatar(s.bsky) : null]))
   return Object.fromEntries(entries)
 }

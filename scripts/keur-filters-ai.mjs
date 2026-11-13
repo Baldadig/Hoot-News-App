@@ -22,7 +22,7 @@ export async function engines(ref = 'main') {
   const text = `export { composePersonal, languageRule } from './src/lib/personal.js';
     export { composeFor } from './netlify/functions/edition.mjs';
     export { generalEdition, streamItems } from './netlify/lib/build.mjs';
-    export { MAIN_IDS, MUSIC_IDS, SOURCES, EDITION_CATS } from './netlify/lib/sources.mjs';
+    export { MAIN_IDS, MUSIC_IDS, OPINIE_IDS, SOURCES, EDITION_CATS } from './netlify/lib/sources.mjs';
     export { keywordTopics } from './netlify/lib/topics.mjs';
     export { inStroom, forEdition } from './shared/stroom.mjs';`
   try {
@@ -77,7 +77,7 @@ export function edition(engine, feed, profile, extra = {}) {
   const source = new Map(engine.SOURCES.map(s => [s.id, s]))
   const sport = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
   const pool = feed.items.filter(engine.forEdition)
-  const newsPool = pool.filter(i => i.kind === 'article' && engine.EDITION_CATS.has(source.get(i.source)?.cat) && !engine.MUSIC_IDS.has(i.source) && !engine.keywordTopics(`${i.title} ${i.text || i.summary || ''}`).some(t => sport.has(t)))
+  const newsPool = pool.filter(i => i.kind === 'article' && engine.EDITION_CATS.has(source.get(i.source)?.cat) && !engine.MUSIC_IDS.has(i.source) && !engine.OPINIE_IDS?.has(i.source) && !engine.keywordTopics(`${i.title} ${i.text || i.summary || ''}`).some(t => sport.has(t)))
   const ids = new Set(newsPool.map(i => i.id))
   return { entries: engine.generalEdition({ stories: feed.stories, newsStories: feed.stories.filter(st => st.itemIds.some(id => ids.has(id))), pool, newsPool, now, sources: feed.sources, mainIds: engine.MAIN_IDS, ...extra }) }
 }

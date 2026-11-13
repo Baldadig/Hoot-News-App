@@ -11,7 +11,15 @@ export { BSKY_BRAND } from '../../shared/bluesky.mjs'
 // - `base`: hoort bij de oorspronkelijke set; staat aan voor wie de onboarding (nog) niet deed.
 //   Alle andere bronnen staan uit tot je ze kiest.
 // - `music`: alleen in de Stroom (onderwerp Muziek), niet in de Editie
+// - `opinie`: een opinieblad of -site (besluit Alex 13 november 2026): alles van deze bron is opinie
+//   (shared/opinie.mjs). In de Stroom (tab Opinie), in Vergelijken met het label Opinie en in de Selectie,
+//   nooit een plek in de Editie, en de bron telt niet mee in de drempels voor groot nieuws (coverageOf,
+//   het aantal bronnen van een verhaal). Alleen voor een bron met een actieve, bijna dagelijkse bijdrage.
+// - `publisher`: de uitgever als die meer bronnen in de catalogus heeft (shared/edition-policy.mjs, ALIAS):
+//   samen één uitgever in De Redacteur, zoals de secties van de NOS. Elke bron blijft apart te kiezen.
 // - `bsky` / `x`: account voor een mooie merk-avatar
+// - `logo`: het officiele beeld van de site zelf (apple-touch-icon, webmanifest), als Bluesky en X geen
+//   goed profielbeeld hebben; gaat voor `bsky` en `x`
 // - `login`: de inlogpagina van de uitgever, als er een abonnement of lidmaatschap is (ook als de
 //   meeste artikelen gratis zijn). De app opent hem in de lezer en toont of je er bent ingelogd.
 //   Bij een inlog in een venster op de site zelf (geen eigen pagina): de voorpagina.
@@ -31,6 +39,23 @@ export const SOURCES = [
   S('rtl', 'RTL Nieuws', 'nl', 'nl', 'Nieuws van RTL.', 'https://www.rtlnieuws.nl/rss.xml', { color: '#2B2D7C' , x: 'RTLnieuws' }),
   S('nd', 'Nederlands Dagblad', 'nl', 'nl', 'Christelijk dagblad, nieuws en duiding.', 'https://www.nd.nl/rss', { login: 'https://www.nd.nl/login', paid: true, color: '#E2001A' , bsky: 'nd.nl' }),
   S('ftm', 'Follow the Money', 'nl', 'nl', 'Onderzoeksjournalistiek over geld en macht.', 'https://www.ftm.nl/feed', { login: 'https://www.ftm.nl/inloggen', paid: true, color: '#E52521' , bsky: 'ftm.nl' }),
+  // Erbij op 13 november 2026 (bronnen-onderzoek, TOEVOEGEN.md): nieuws en onderzoek. Feeds opgehaald op die dag.
+  S('zembla', 'Zembla', 'nl', 'nl', 'Onderzoeksjournalistiek van BNNVARA.', 'https://www.bnnvara.nl/zembla/rss', { color: '#101010', bsky: 'zembla-bnnvara.bsky.social', x: 'ZEMBLA' }),
+  S('argos', 'Argos', 'nl', 'nl', 'Onderzoeksjournalistiek van VPRO en HUMAN.', 'https://argos.vpro.nl/rss.xml', { color: '#131947', logo: 'https://argos.vpro.nl/favicons/web-app-manifest-512x512.png' }),
+  S('rd', 'Reformatorisch Dagblad', 'nl', 'nl', 'Orthodox-christelijk dagblad: nieuws en duiding.', 'https://www.rd.nl/rss-feed', { login: 'https://www.rd.nl/login', paid: true, color: '#245BA7', bsky: 'rd.nl', x: 'refdag' }),
+  S('caribischnetwerk', 'Caribisch Netwerk', 'nl', 'nl', 'Nieuws uit Caribisch Nederland, Aruba, Curaçao en Sint Maarten (NTR).', 'https://caribischnetwerk.ntr.nl/feed/', { color: '#25B8CC', x: 'CaribischNet' }),
+  // Opinie (13 november 2026): in de Stroom en de Selectie, niet in de Editie (`opinie`). Allemaal minstens vijf
+  // stukken per week, gemeten in de feed. Links Joop, De Groene, Vrij Nederland en Sargasso; rechts Wynia's Week, TPO
+  // en GeenStijl; HP/De Tijd daartussen; Sociale Vraagstukken zonder partijkleur.
+  S('joop', 'Joop', 'nl', 'nl', 'Opinie en commentaar van BNNVARA, progressief.', 'https://www.joop.nl/feed', { opinie: true, color: '#FC3E28', bsky: 'joop.nl' }),
+  S('groene', 'De Groene Amsterdammer', 'nl', 'nl', 'Opinieweekblad met essays, analyses en reportages, links.', 'https://www.groene.nl/rss.xml', { opinie: true, login: 'https://www.groene.nl/', paid: true, color: '#E10005', bsky: 'groene.nl', x: 'DeGroene' }),
+  S('vn', 'Vrij Nederland', 'nl', 'nl', 'Opinieblad met essays en reportages, links-liberaal.', 'https://www.vn.nl/feed/', { opinie: true, login: 'https://www.vn.nl/inloggen/', paid: true, color: '#E20006', bsky: 'vn.nl', x: 'vrij_nederland' }),
+  S('sargasso', 'Sargasso', 'nl', 'nl', 'Groepsblog over politiek en beleid, links en genuanceerd.', 'https://sargasso.nl/feed/', { opinie: true, color: '#65C26A', bsky: 'sargassoblog.bsky.social' }),
+  S('hpdetijd', 'HP/De Tijd', 'nl', 'nl', 'Opinieblad: eigenzinnig, liberaal en kritisch.', 'https://www.hpdetijd.nl/rss', { opinie: true, login: 'https://www.hpdetijd.nl/login', paid: true, color: '#E40815', bsky: 'hpdetijd.bsky.social', x: 'HPdeTijdNL' }),
+  S('wyniasweek', "Wynia's Week", 'nl', 'nl', 'Opinie en analyse, rechts-liberaal.', 'https://www.wyniasweek.nl/feed/', { opinie: true, color: '#EC2027', x: 'wyniasweek' }),
+  S('tpo', 'TPO', 'nl', 'nl', 'Opinie en commentaar, conservatief.', 'https://tpo.nl/feed/', { opinie: true, login: 'https://tpo.nl/inloggen/', paid: true, color: '#0F4166', logo: 'https://tpo.nl/wp-content/uploads/2025/10/cropped-TPO_Logobox_New-02-192x192.jpg' }),
+  S('geenstijl', 'GeenStijl', 'nl', 'nl', 'Provocerend weblog, rechts-populistisch.', 'https://www.geenstijl.nl/feeds/recent.atom', { opinie: true, color: '#ED2690', bsky: 'geenstijlhq.bsky.social' }),
+  S('socialevraagstukken', 'Sociale Vraagstukken', 'nl', 'nl', 'Wetenschappers over de samenleving, zonder partijkleur.', 'https://www.socialevraagstukken.nl/feed/', { opinie: true, color: '#E63400', logo: 'https://socialevraagstukken.b-cdn.net/wp-content/uploads/cropped-favicon-192x192.png' }),
   // Regionaal
   S('haarlemsdagblad', 'Haarlems Dagblad', 'regio', 'nl', 'Haarlem en omgeving.', 'https://www.haarlemsdagblad.nl/rss', { login: 'https://www.haarlemsdagblad.nl/auth/login', paid: true, color: '#00539F' , bsky: 'haarlemsdagblad.nl' }),
   S('nhd', 'Noordhollands Dagblad', 'regio', 'nl', 'Noord-Holland.', 'https://www.noordhollandsdagblad.nl/rss', { login: 'https://www.noordhollandsdagblad.nl/auth/login', paid: true, color: '#00539F' , bsky: 'noordhollandsdagblad.nl' }),
@@ -45,6 +70,23 @@ export const SOURCES = [
   S('ed', 'Eindhovens Dagblad', 'regio', 'nl', 'Zuidoost-Brabant.', 'https://www.ed.nl/home/rss.xml', { login: 'https://www.ed.nl/login', paid: true, color: '#D7192D' }),
   S('bndestem', 'BN DeStem', 'regio', 'nl', 'West-Brabant.', 'https://www.bndestem.nl/home/rss.xml', { login: 'https://www.bndestem.nl/login', paid: true, color: '#D7192D' }),
   S('pzc', 'PZC', 'regio', 'nl', 'Zeeland.', 'https://www.pzc.nl/home/rss.xml', { login: 'https://www.pzc.nl/login', paid: true, color: '#D7192D' }),
+  // De regionale omroepen (13 november 2026): per provincie te kiezen, in De Redacteur samen één uitgever
+  // (`publisher`). Omroep Flevoland heeft geen feed.
+  S('nhnieuws', 'NH Nieuws', 'regio', 'nl', 'Noord-Holland, de regionale omroep.', 'https://rss.nhnieuws.nl/rss', { publisher: 'regionale-omroep', color: '#0A2EAF', bsky: 'nhnieuws.nl' }),
+  S('omroepwest', 'Omroep West', 'regio', 'nl', 'Den Haag, Leiden en omgeving, de regionale omroep.', 'https://www.omroepwest.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#234F9D', bsky: 'omroepwest.nl' }),
+  S('rijnmond', 'Rijnmond', 'regio', 'nl', 'Rotterdam en omgeving, de regionale omroep.', 'https://www.rijnmond.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#026BAD', bsky: 'rtvrijnmond.bsky.social' }),
+  S('rtvutrecht', 'RTV Utrecht', 'regio', 'nl', 'Utrecht, de regionale omroep.', 'https://www.rtvutrecht.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#EB3758', bsky: 'rtvutrecht.nl' }),
+  S('omroepgelderland', 'Omroep Gelderland', 'regio', 'nl', 'Gelderland, de regionale omroep.', 'https://www.omroepgelderland.nl/rss', { publisher: 'regionale-omroep', color: '#00BA45', bsky: 'gld.nl' }),
+  S('rtvoost', 'RTV Oost', 'regio', 'nl', 'Overijssel, de regionale omroep.', 'https://www.rtvoost.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#1362FF', bsky: 'oost.nl' }),
+  S('rtvnoord', 'RTV Noord', 'regio', 'nl', 'Groningen, de regionale omroep.', 'https://www.rtvnoord.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#194796', bsky: 'rtvnoord.nl' }),
+  S('rtvdrenthe', 'RTV Drenthe', 'regio', 'nl', 'Drenthe, de regionale omroep.', 'https://www.rtvdrenthe.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#E50135', bsky: 'rtvdrenthe.bsky.social' }),
+  S('omropfryslan', 'Omrop Fryslân', 'regio', 'nl', 'Friesland, de regionale omroep.', 'https://www.omropfryslan.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#0256A6', bsky: 'omropfryslan.nl' }),
+  S('omroepbrabant', 'Omroep Brabant', 'regio', 'nl', 'Noord-Brabant, de regionale omroep.', 'https://www.omroepbrabant.nl/rss', { publisher: 'regionale-omroep', color: '#F9BE02', bsky: 'omroepbrabant.nl' }),
+  S('l1', 'L1', 'regio', 'nl', 'Limburg, de regionale omroep.', 'https://www.l1.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#0F4B75', bsky: 'l1nieuws.nl' }),
+  S('omroepzeeland', 'Omroep Zeeland', 'regio', 'nl', 'Zeeland, de regionale omroep.', 'https://www.omroepzeeland.nl/rss/index.xml', { publisher: 'regionale-omroep', color: '#0399CC', bsky: 'omroepzeeland.nl' }),
+  // Lokaal, onafhankelijk (13 november 2026).
+  S('duic', 'DUIC', 'regio', 'nl', 'Utrecht: lokaal nieuws, onafhankelijk.', 'https://www.duic.nl/rss', { color: '#E40715', x: 'duicnl' }),
+  S('versbeton', 'Vers Beton', 'regio', 'nl', 'Rotterdam: verdiepende verhalen over de stad.', 'https://www.versbeton.nl/feed/', { color: '#0103E6', bsky: 'versbeton.nl' }),
   // Vlaanderen
   S('vrt', 'VRT NWS', 'vl', 'nl', 'Het publieke nieuws van Vlaanderen.', 'https://www.vrt.be/vrtnws/nl.rss.articles.xml', { color: '#1A1A1A' , bsky: 'vrtnws.be' }),
   S('standaard', 'De Standaard', 'vl', 'nl', 'Vlaamse kwaliteitskrant.', 'https://www.standaard.be/rss', { login: 'https://www.standaard.be/auth/login', paid: true, color: '#E2001A' , bsky: 'standaard.be' }),
@@ -54,6 +96,10 @@ export const SOURCES = [
   S('nieuwsblad', 'Het Nieuwsblad', 'vl', 'nl', 'Populaire Vlaamse krant.', 'https://www.nieuwsblad.be/rss', { login: 'https://www.nieuwsblad.be/auth/login', paid: true, color: '#E2001A' }),
   S('gva', 'Gazet van Antwerpen', 'vl', 'nl', 'Antwerpen en de wereld.', 'https://www.gva.be/rss', { login: 'https://www.gva.be/auth/login', paid: true, color: '#E2001A' }),
   S('hbvl', 'Het Belang van Limburg', 'vl', 'nl', 'Belgisch-Limburg.', 'https://www.hbvl.be/rss', { login: 'https://www.hbvl.be/auth/login', paid: true, color: '#E2001A' }),
+  // Erbij op 13 november 2026.
+  S('apache', 'Apache', 'vl', 'nl', 'Onderzoeksjournalistiek uit Vlaanderen.', 'https://www.apache.be/feed/artikels', { login: 'https://www.apache.be/login', paid: true, color: '#1A1A1A', bsky: 'apache.be' }),
+  S('bruzz', 'BRUZZ', 'vl', 'nl', 'Brussel: nieuws, cultuur en uitgaan.', 'https://www.bruzz.be/rss.xml', { color: '#FE0031', bsky: 'bruzzbe.bsky.social', x: 'bruzzbe' }),
+  S('humo', 'Humo', 'vl', 'nl', 'Vlaams weekblad: interviews, cultuur en tv.', 'https://www.humo.be/rss.xml', { login: 'https://www.humo.be/login', paid: true, color: '#E3010E', x: 'humo' }),
   // Internationaal (Engelstalig, met een wereldblik)
   S('nyt', 'NYT', 'int', 'en', 'The New York Times: wereldnieuws en Amerika.', 'https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml', { login: 'https://myaccount.nytimes.com/auth/login', paid: true, pick: true, for: ['politiek', 'wereld', 'economie'], base: true, bsky: 'nytimes.com', x: 'nytimes', color: '#1A1A1A' }),
   S('guardian', 'The Guardian', 'int', 'en', 'Brits, onafhankelijk, sterk in wereldnieuws.', 'https://www.theguardian.com/world/rss', { login: 'https://profile.theguardian.com/signin', pick: true, for: ['wereld'], x: 'guardian', color: '#052962' }),
@@ -115,6 +161,11 @@ export const SOURCES = [
   S('npr-music', 'NPR Music', 'cultuur', 'en', 'Tiny Desk en muziekverhalen.', 'https://feeds.npr.org/1039/rss.xml', { music: true, x: 'nprmusic', color: '#D62021' }),
   S('variety', 'Variety', 'cultuur', 'en', 'Film, series en de entertainmentindustrie.', 'https://variety.com/feed/', { login: 'https://variety.com/', forTopic: 'film', pick: true, topics: ['film'], color: '#1A1A1A' , bsky: 'variety.com' }),
   S('guardian-culture', 'The Guardian Cultuur', 'cultuur', 'en', 'Film, boeken, kunst en podium.', 'https://www.theguardian.com/culture/rss', { login: 'https://profile.theguardian.com/signin', color: '#052962' , bsky: 'theguardian.com' }),
+  // Nederlandstalige cultuur en media (13 november 2026).
+  S('villamedia', 'Villamedia', 'cultuur', 'nl', 'Journalistiek en media, van de NVJ.', 'https://www.villamedia.nl/feeds/nieuws', { color: '#ED111B', bsky: 'villamedia.nl' }),
+  S('mediacourant', 'MediaCourant', 'cultuur', 'nl', 'Medianieuws: tv, radio, omroepen en kijkcijfers.', 'https://www.mediacourant.nl/feed/', { color: '#6BD2F2', bsky: 'mediacourant.bsky.social', x: 'mediacourant' }),
+  S('cuttingedge', 'Cutting Edge', 'cultuur', 'nl', 'Vlaamse cultuurkritiek: film, muziek, boeken en podium.', 'https://www.cuttingedge.be/feed/', { color: '#E20006', logo: 'https://www.cuttingedge.be/wp-content/uploads/2020/10/cropped-logo2011_onlyCE_e3000f_w512.png' }),
+  S('nieuwemuze', 'De Nieuwe Muze', 'cultuur', 'nl', 'Klassieke muziek, opera en jazz.', 'https://www.denieuwemuze.nl/feed/', { music: true, color: '#2D7289', x: 'de_nieuwe_muze' }),
 ]
 export const BRAND = Object.fromEntries(SOURCES.map((s) => [s.id, s.color]))
 
@@ -137,6 +188,8 @@ export const BLUESKY_HOURS = STREAM_HOURS
 // De oorspronkelijke set: die krijgt voorrang bij het samenstellen van de editie.
 export const MAIN_IDS = new Set(SOURCES.filter((s) => s.base && !s.music).map((s) => s.id))
 export const MUSIC_IDS = new Set(SOURCES.filter((s) => s.music).map((s) => s.id))
+// Opiniebladen (`opinie`): in de Stroom en de Selectie, niet in de Editie (shared/opinie.mjs, opinieBron).
+export const OPINIE_IDS = new Set(SOURCES.filter((s) => s.opinie).map((s) => s.id))
 // Doet mee aan de editie: landelijk nieuws, internationaal, economie, tech en wetenschap.
 // Niet: regionaal (veel gedeelde stukken), Vlaanderen, sport, games en cultuur.
 export const EDITION_CATS = new Set(['nl', 'int', 'economie', 'tech', 'wetenschap'])
