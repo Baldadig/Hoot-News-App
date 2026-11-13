@@ -49,4 +49,17 @@ final class LabelTests: XCTestCase {
         XCTAssertEqual(Desk.plek(entry("breed", count: 9)), "Waar iedereen over schrijft") // het aantal staat in de bronregel (E6)
         XCTAssertEqual(Desk.plek(entry("binnenland")), "Binnenland")
     }
+
+    // Column-fix van 13 november, overgezet (nachttest 14 november, A5): geen "Nieuws" boven opinie, en opinie draagt
+    // het label "Opinie", zoals Edition.jsx.
+    @MainActor func testOpinieKrijgtGeenNieuwsLabel() {
+        let nieuws = Item(id: "a", source: "nos", kind: "article", title: "Kop", url: "https://example.org")
+        let column = Item(id: "b", source: "nrc", kind: "article", title: "Kop", url: "https://example.org", opinion: true)
+        let oud = Item(id: "c", source: "nrc", kind: "article", title: "Kop", url: "https://example.org", type: "opinie")
+        XCTAssertEqual(HootStore.rowLabel(kicker: nil, item: nieuws), "Nieuws")
+        XCTAssertEqual(HootStore.rowLabel(kicker: nil, item: column), "Opinie")
+        XCTAssertEqual(HootStore.rowLabel(kicker: nil, item: oud), "Opinie")
+        XCTAssertEqual(HootStore.rowLabel(kicker: "Binnenland", item: column), "Binnenland · Opinie")
+        XCTAssertEqual(HootStore.rowLabel(kicker: "Binnenland", item: nieuws), "Binnenland")
+    }
 }

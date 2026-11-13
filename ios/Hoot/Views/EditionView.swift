@@ -215,6 +215,12 @@ extension HootStore {
         #endif
         return rows(of: shownEdition)
     }
+    // Het label van een plek, gelijk aan Edition.jsx (column-fix van 13 november): zonder rubriek "Nieuws", behalve
+    // boven opinie; een opiniestuk draagt zelf het label "Opinie", achter de rubriek (kicker__type op het web).
+    static func rowLabel(kicker: String?, item: Item) -> String? {
+        let parts = [kicker ?? (item.isOpinie ? nil : "Nieuws"), item.isOpinie ? "Opinie" : nil].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
     // De plekken van een Editie (de getoonde, of voor de widget de nieuwste).
     func rows(of edition: Edition?) -> [EditionRowModel] {
         guard let edition else { return [] }
@@ -225,7 +231,7 @@ extension HootStore {
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
             let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
-            return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker ?? "Nieuws", desk: e.desk, why: l.why, outside: l.outside)
+            return EditionRowModel(id: e.id, item: item, story: story, label: Self.rowLabel(kicker: l.kicker, item: item), desk: e.desk, why: l.why, outside: l.outside)
         }
         // De redactionele volgorde blijft de leesvolgorde, ook zonder groot beeld bij de opening.
         return rows
@@ -974,11 +980,12 @@ struct StoryView: View {
         .onAppear { UserDefaults.standard.set(true, forKey: KantenTip.key) } // wie vergelijkt, kent het: geen tip meer
     }
 
-    // Wie het eerst had, en wat uit een bron komt die je niet volgt.
+    // Opinie, wie het eerst had, en wat uit een bron komt die je niet volgt (zelfde volgorde als Story.jsx).
     private func label(_ item: Item) -> String? {
+        let opinie = item.isOpinie ? "Opinie" : nil
         let first = items.count > 1 && item.id == items.last?.id ? "Eerste bericht" : nil
         let outside = store.isOn(store.source(item.source) ?? Source(id: item.source, name: "")) ? nil : "Buiten je bronnen"
-        let parts = [first, outside].compactMap { $0 }
+        let parts = [opinie, first, outside].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 }

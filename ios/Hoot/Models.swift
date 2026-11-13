@@ -125,11 +125,13 @@ struct Item: Codable, Identifiable, Hashable {
     }
     static func withVia(_ via: String?) -> (String) -> String { { intro in via.map { "\(intro) — via \($0)" } ?? intro } }
     var isPost: Bool { kind == "post" }
+    // Opinie volgens de server (shared/opinie.mjs, opinieInStroom op het web): `opinion`, of `type` bij een oudere feed.
+    var isOpinie: Bool { opinion == true || type == "opinie" }
     // Draagt dit bericht de Stroom-tab `id`? Met `tabs` van de server telt alleen die lijst; een bericht van
     // vóór dat veld valt voor Opinie terug op `opinion`/`type` (inTab in shared/stroom-tabs.mjs).
     func inTab(_ id: String) -> Bool {
         if let tabs { return tabs.contains(id) }
-        return id == "opinie" && (opinion == true || type == "opinie")
+        return id == "opinie" && isOpinie
     }
     // Rechtstreeks van Bluesky's video-CDN (het gewone adres stuurt daar alleen naartoe, en dat
     // reageerde eind oktober urenlang niet), ook voor berichten van vóór die omzetting.
