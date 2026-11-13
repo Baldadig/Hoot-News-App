@@ -371,7 +371,6 @@
             vul(lead, lijst[0], ns[0] >= 5 ? 'Groot nieuws' : (ns[0] >= 2 ? ns[0] + ' bronnen schrijven erover' : 'Ook het lezen waard'), false, wn);
             zetNaam('.held .js-editie', slot);
             $$('.held .js-datum').forEach(function (s) { s.textContent = dag; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); });
-            $$('.held .js-nu').forEach(function (s) { s.textContent = 'De ' + slot + (vannu ? ' van nu.' : '.'); });
             var a = $('.js-held-link'); if (a) a.setAttribute('aria-label', 'De ' + slot + (vannu ? ' van nu' : ' van ' + dag) + ', met het hoofdverhaal: ' + lijst[0].title + '. Lees verder in Hoot');
           });
           /* Hoot kiest: iPad en telefoon krijgen dezelfde drie verhalen */

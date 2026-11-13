@@ -34,13 +34,14 @@ export const APPSTORE_TIK = 'appstore-tik'
 //   landing-open   de landing geopend, één keer per dagdeel per browser (de noemer)
 //   web-tik:<plek> een tik op een link naar /lees/: de knop in de held, het toestel in de held, onder 01 Editie,
 //                  onder 04 Hoot kiest, de knop in het slot
-//   appstore-tik:<plek> een tik op een App Store-link: de pil in de held, de pil of regel in het slot, de vraag
+//   appstore-tik:<plek> een tik op een App Store-link: de pil in de held, de pil of regel in het slot, de pil onder
+//                  04 Hoot kiest, de vraag
 //   vraag-open     een vraag opengeklapt, één keer per dagdeel per browser (wie twijfelt en zoekt)
 // 'appstore-tik' zonder plek blijft geldig: een oude, gecachete pagina stuurt hem nog.
 export const LANDING_OPEN = 'landing-open'
 export const VRAAG_OPEN = 'vraag-open'
 export const WEB_PLEKKEN = ['held', 'toestel', 'editie', 'kiest', 'slot']
-export const APPSTORE_PLEKKEN = ['held', 'slot', 'vraag']
+export const APPSTORE_PLEKKEN = ['held', 'slot', 'kiest', 'vraag']
 export const WEB_TIK_EVENTS = WEB_PLEKKEN.map((p) => `web-tik:${p}`)
 export const APPSTORE_PLEK_EVENTS = APPSTORE_PLEKKEN.map((p) => `${APPSTORE_TIK}:${p}`)
 export const LANDING = [LANDING_OPEN, ...WEB_TIK_EVENTS, ...APPSTORE_PLEK_EVENTS, VRAAG_OPEN]

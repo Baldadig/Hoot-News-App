@@ -97,7 +97,7 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie me
 
 test('landing: de App Store staat klaar achter één regel in build.mjs', () => {
   assert.match(BUILD, /^const APP_STORE = true;$/m)
-  for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_SLOT', 'APPSTORE_OOK', 'APPSTORE_EINDE']) assert.ok(SRC.includes(`{{${k}}}`), k)
+  for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_SLOT', 'APPSTORE_KIEST', 'APPSTORE_OOK', 'APPSTORE_EINDE']) assert.ok(SRC.includes(`{{${k}}}`), k)
   const uit = vul(false), aan = vul(true)
   assert.doesNotMatch(uit, /apps\.apple\.com|apple-itunes-app/)
   assert.doesNotMatch(uit, /binnenkort/i)
@@ -115,9 +115,12 @@ test('landing: de App Store staat klaar achter één regel in build.mjs', () => 
   else assert.match(appUrl('held'), /\?pt=[^&]+&ct=landing-held/)
   assert.match(aan, /<summary>Is er een app\?<\/summary>\s*<p>Ja, voor iPhone en iPad, in de <a href="[^"]+" data-tel="as:vraag">App Store<\/a>/)
   assert.match(aan, /<span class="ook-tel">Ook voor iPhone en iPad\.<\/span>/)
-  // eigen pil zonder Apple-logo (Apple: "Don't use the standalone Apple logo"), en zonder het h.-merk
+  // eigen pil met het Apple-logo in plaats van het h.-merk (keuze Alex, 13 november); ook onder 04 Hoot kiest
   const pil = aan.match(/<a class="wacht"[\s\S]*?<\/a>/)[0]
-  assert.doesNotMatch(pil, /<svg|#mark/)
+  assert.match(pil, /<use href="#i-apple"\/>/)
+  assert.doesNotMatch(pil, /#mark/)
+  assert.match(aan, /<symbol id="i-apple"/)
+  assert.match(aan, /<a class="wacht" href="[^"]+" data-tel="as:kiest">/)
   const css = readFileSync(new URL('../landing/hoot.css', import.meta.url), 'utf8')
   assert.doesNotMatch(css, /(^|[^a])\.wacht:hover/)
   assert.match(css, /a\.wacht:hover\{box-shadow/)
@@ -135,7 +138,7 @@ test('review 13 november: de nieuwe tekst uit deel 5', () => {
     'Hier was je gebleven.',
     'De Stroom zet al je bronnen onder elkaar, nieuwste eerst, en onthoudt waar je was.',
     'Bijgepraat op maandag.',
-    'Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over. Niets gesponsord.',
+    'Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over.',
     'Hoot kiest elke Editie.',
     'Uit jouw bronnen. Bij elk verhaal zie je waarom, bij groot nieuws ook hoe elke bron het brengt.',
     'Goed om te weten.',
@@ -318,8 +321,7 @@ const JS = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
 import { PALET } from '../landing/inline.mjs'
 test('review 13 november: de held is de Editie van nu, aantikbaar, met een wissel van 1,5 s', () => {
   assert.match(SRC, /<a class="nu js-held-link" href="\/lees\/" data-tel="web:toestel"/)
-  assert.match(fragmenten(BEWAARD).BW_NU, /^De (Ochtend|Middag|Avond)editie\.$/) // terugval: zonder "van nu"
-  assert.match(JS, /'De ' \+ slot \+ \(vannu \? ' van nu\.' : '\.'\)/) // live: de naam uit edition.slot
+  assert.doesNotMatch(SRC, /nu-regel|van nu\. Lees verder/) // de regel bij het toestel is eruit (Alex, ronde 2)
   assert.match(JS, /setTimeout\(function \(\) \{ if \(ac\) ac\.abort\(\); \}, 1500\)/)
   assert.match(CSS, /\.held \.k-kop--lead\{min-height:3\.6em\}/)
   assert.match(CSS, /\.js-held-lead,\.podium \.toestel,\.podium \.uitleg\{transition:opacity \.2s ease\}/)

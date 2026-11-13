@@ -64,8 +64,6 @@ export function fragmenten(b) {
     BW_SLOT_ID: SLOT[b.slot] ? b.slot : 'avond',
     BW_DAG: lang,
     BW_DATUM: esc(b.date),
-    // De regel bij het toestel in de terugval: de naam van de bewaarde Editie, zonder "van nu" (live zet hoot.js dat erbij).
-    BW_NU: `De ${slot}.`,
     BW_VOLGENDE: VOLGENDE[b.slot] || 'morgenochtend',
     BW_HELD_LABEL: esc(`De ${slot} van ${lang}, met het hoofdverhaal: ${v1.title}. Lees verder in Hoot`),
     // De held: het hoofdverhaal zonder rubriek, alleen het nummer (besluit Alex).

@@ -428,7 +428,7 @@ test('landing: uit doet niets; aan telt het openen, de tik per plek, de oude App
   assert.deepEqual(es, [LANDING_OPEN, 'web-tik:held', 'appstore-tik:slot', APPSTORE_TIK, VRAAG_OPEN])
 })
 test('review 13 november: de landingstellers in het vocabulaire, op de server en in het overzicht', async () => {
-  assert.deepEqual(LANDING, ['landing-open', 'web-tik:held', 'web-tik:toestel', 'web-tik:editie', 'web-tik:kiest', 'web-tik:slot', 'appstore-tik:held', 'appstore-tik:slot', 'appstore-tik:vraag', 'vraag-open'])
+  assert.deepEqual(LANDING, ['landing-open', 'web-tik:held', 'web-tik:toestel', 'web-tik:editie', 'web-tik:kiest', 'web-tik:slot', 'appstore-tik:held', 'appstore-tik:slot', 'appstore-tik:kiest', 'appstore-tik:vraag', 'vraag-open'])
   for (const e of LANDING) { assert.ok(NIEUW.includes(e), e); assert.ok(parseTel(ok({ e }), NOW, AAN), e) }
   assert.equal(parseTel(ok({ e: LANDING_OPEN, n: 5 }), NOW, AAN).n, 1) // één keer per dagdeel
   assert.equal(parseTel(ok({ e: VRAAG_OPEN, n: 5 }), NOW, AAN).n, 1)
@@ -451,14 +451,14 @@ test('review 13 november: de landingstellers in het vocabulaire, op de server en
   for (const e of [APPSTORE_TIK, 'appstore-tik:held', 'appstore-tik:held', 'appstore-tik:slot', LANDING_OPEN, LANDING_OPEN, 'web-tik:held', 'web-tik:toestel', VRAAG_OPEN]) await handle(post(ok({ e })), { now: NOW, write, nieuw: true })
   const d = shapeDay('2026-11-11', mem.get('tel:2026-11-11'))
   assert.equal(d.appstore_tik, 4)
-  assert.deepEqual(d.appstore_plek, { held: 2, slot: 1, vraag: 0 })
+  assert.deepEqual(d.appstore_plek, { held: 2, slot: 1, kiest: 0, vraag: 0 })
   assert.equal(d.landing_open, 2)
   assert.deepEqual(d.web_tik, { held: 1, toestel: 1, editie: 0, kiest: 0, slot: 0 })
   assert.equal(d.vraag_open, 1)
   assert.equal(d.lezers.dag.open, 0)
   const t = overzicht({ van: '2026-11-11', tot: '2026-11-11', dagen: [d] })
   assert.match(t, /App Store-tik op de landing: 4/)
-  assert.match(t, /per plek: held 2, slot 1, vraag 0/)
+  assert.match(t, /per plek: held 2, slot 1, kiest 0, vraag 0/)
   assert.match(t, /Landing geopend \(één keer per dagdeel per browser\): 2; naar \/lees\/: 2 \(100 %\)/)
   assert.match(t, /Vraag opengeklapt \(één keer per dagdeel per browser\): 1/)
   void APPSTORE_PLEK_EVENTS

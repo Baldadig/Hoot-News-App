@@ -40,6 +40,7 @@
 <svg class="sym" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <symbol id="wm" viewBox="0 0 239.45 73.5"><path d="{{WM_D}}"/><circle class="wm-d" fill="var(--wm-dot,currentColor)" cx="231.75" cy="65.8" r="7.7"/></symbol>
   <symbol id="mark" viewBox="0 0 82.15 72"><path d="{{MARK_D}}"/><circle class="wm-d" fill="var(--wm-dot,currentColor)" cx="74.45" cy="64.3" r="7.7"/></symbol>
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
   <symbol id="i-bm" viewBox="0 0 14 18"><path d="M1.5 1.5h11v15L7 12.5l-5.5 4z"/></symbol>
   <symbol id="i-pijl" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-neer" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
@@ -76,7 +77,6 @@
     <div class="scene sc-held">
       <div class="zonplek zp-held" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="rg rg3"></i><i class="rg rg2"></i><i class="rg rg1"></i><i class="zon"></i></div></div></div>
       <a class="nu js-held-link" href="/lees/" data-tel="web:toestel" aria-label="{{BW_HELD_LABEL}}">
-        <span class="nu-regel" aria-hidden="true"><span class="js-nu">{{BW_NU}}</span> <u>Lees verder<svg viewBox="0 0 24 24"><use href="#i-pijl"/></svg></u></span>
         <div class="toestel js-held-toestel" aria-hidden="true">
           <div class="scherm"><div class="sc-in">
             <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
@@ -161,7 +161,7 @@
     <div class="tekst">
       <p class="label" id="lb-selectie"><span class="nr">03</span>Selectie</p>
       <h2 id="h-selectie"><span class="rgl">Bijgepraat</span> <span class="rgl">op maandag<span class="punt">.</span></span></h2>
-      <p class="lead">Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over. Niets gesponsord.</p>
+      <p class="lead">Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over.</p>
     </div>
     <div id="demo-selectie" class="scene sc-selectie" data-scene>
       <div class="zonplek zp-ring" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="rg rg3"></i><i class="rg rg2"></i><i class="rg rg1"></i><i class="zon"></i></div></div></div>
@@ -220,7 +220,10 @@
     </figure>
   </div>
   <div class="binnen kol rd-verder">
-    <p class="verder"><a href="/lees/" data-tel="web:kiest">Lees de Editie van nu<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a></p>
+    <div class="verder-rij">
+      <p class="verder"><a href="/lees/" data-tel="web:kiest">Lees de Editie van nu<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a></p>
+      {{APPSTORE_KIEST}}
+    </div>
   </div>
 </section>
 
