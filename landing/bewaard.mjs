@@ -49,12 +49,12 @@ const kick = (nr, desk) => (label(desk) ? `<div class="k-kick">${nr ? `<span cla
 
 // Het bronnenblok ("Eén verhaal, veel bronnen"): de breedste verhalen van de bewaarde Editie, of anders plek 01.
 // Zelfde opmaak als vhTeken() in hoot.js: hooguit VH_LOGOS logo's, daarna een schijf met de rest.
-export const VH_LOGOS = 8
+export const VH_LOGOS = 5 // Alex, 13 november: hooguit vijf logo's, daarna de rest als getal
 export const vhAantal = (x) => Math.max(Number(x.sourceCount) || 1, (x.sources || []).length)
 export function vhTekst(x) {
-  const n = vhAantal(x), namen = (x.sources || []).slice(0, 3).map((s) => s.name), rest = n - namen.length
-  const kop = `<b>${n === 1 ? '1 bron' : n + ' bronnen'}</b> ${n === 1 ? 'schrijft' : 'schrijven'} erover`
-  return namen.length ? `${kop}: ${esc(namen.join(', '))}${rest > 0 ? ` en ${rest} andere` : ''}.` : `${kop}.`
+  // Alleen het totaal: de logo's en "+N bronnen" erboven zeggen al wie (de namen staan in het aria-label van de rij).
+  const n = vhAantal(x)
+  return `<b>${n === 1 ? '1 bron' : n + ' bronnen'}</b> ${n === 1 ? 'schrijft' : 'schrijven'} erover.`
 }
 export function verhaalVelden(b) {
   // Het breedste verhaal opent de held (zie fragmenten); in de kaart eronder komt het daarom als laatste.
@@ -67,7 +67,7 @@ export function verhaalVelden(b) {
     BW_VH_DATA: esc(JSON.stringify(lijst)),
     BW_VH_KOP: esc(x.title),
     BW_VH_LABEL: esc(x.sources.length ? `De logo's van ${x.sources.slice(0, 3).map((s) => s.name).join(', ')}${n > 3 ? ` en ${n - 3} andere bronnen` : ''}` : 'De bronnen van dit verhaal'),
-    BW_VH_STAPEL: toon.map((s) => `<img src="/img/bronnen/${esc(s.id)}.webp" alt="" width="40" height="40">`).join('') + (n > toon.length && toon.length ? `<span class="vh-meer">+${n - toon.length}</span>` : ''),
+    BW_VH_STAPEL: toon.map((s) => `<img src="/img/bronnen/${esc(s.id)}.webp" alt="" width="40" height="40">`).join('') + (n > toon.length && toon.length ? `<span class="vh-meer">+${n - toon.length} ${n - toon.length === 1 ? 'bron' : 'bronnen'}</span>` : ''),
     BW_VH_TEL: vhTekst(x),
   }
 }
