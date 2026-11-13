@@ -2,8 +2,10 @@
 // de held en Hoot kiest tonen hem tot de live voorpagina (hoot.js) binnen is; de Editie-, Stroom- en Selectie-demo's
 // tonen hem altijd. Alleen kop, uitgever en datum; een rubriek alleen als die zeker is. Geen verzonnen kranten.
 import { SOURCES } from '../netlify/lib/sources.mjs'
+import SLOTS from '../shared/slots.json' with { type: 'json' }
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
-const VOLGENDE = { ochtend: 'vanmiddag', middag: 'vanavond', avond: 'morgenochtend' }
+// Zelfde woorden als web en app (shared/slots.json): "in de vroege avond", nooit "vanavond".
+const VOLGENDE = Object.fromEntries(Object.entries(SLOTS).map(([k, v]) => [k, v.volgende]))
 // Zelfde woorden als de app; Buitenland heet op de landing Wereld (de Stroom-tab).
 export const RUBRIEK = { binnenland: 'Binnenland', buitenland: 'Wereld', cultuur: 'Cultuur', tech: 'Tech', wetenschap: 'Wetenschap', sport: 'Sport', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne' }
 const MAAND = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']

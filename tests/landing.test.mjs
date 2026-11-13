@@ -278,7 +278,7 @@ test('landing: de held toont het hoofdverhaal zonder rubriek, alleen het nummer'
   for (const r of ['Binnenland', 'Wereld', 'Cultuur', 'Tech', 'Wetenschap']) assert.doesNotMatch(held.replace(/<div class="k-kop[^"]*">[^<]*<\/div>/, ''), new RegExp(r))
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
   assert.match(js, /vul\(lead, lijst\[0\], [^;]*, false, wn\)/) // live: ook dan geen rubriek in de held
-  assert.match(js, /if \(iso && iso === vandaagIso\(\)\) return 'Vandaag'/) // 'Vandaag' alleen voor de Editie van vandaag
+  assert.match(js, /if \(iso && \(iso === vandaagIso\(\) \|\| \(slot && iso \+ '-' \+ slot === nuSlotId\(\)\)\)\) return 'Vandaag'/) // 'Vandaag' voor de Editie van vandaag of die nu nog geldt
 })
 
 // Keuring 1, herstel: de terugval zegt nooit 'Buiten je bubbel' zonder bubbel, en een verversing zonder Selectie breekt de build niet.
@@ -422,4 +422,19 @@ test('nazorg: de App Store-pil onder Hoot kiest is ook op iPhone en iPad in inkt
   assert.match(CSS, /\.ip-kol \.k-kop\{hyphens:auto/)
   assert.doesNotMatch(CSS, /\.ipad \.k-kop\{hyphens/)
   assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /window\.hootVerhalen\(ed\.breed, vannu, lijst\[0\]\.title\)/)
+})
+
+// Nachttest 14 november (A18, A26): de landing zegt wat web en app zeggen, en na middernacht is de Avondeditie nog 'Vandaag'.
+test('landing: de volgende Editie in de woorden van shared/slots.json; geen vanavond of vanmiddag', async () => {
+  const slots = JSON.parse(readFileSync(new URL('../shared/slots.json', import.meta.url), 'utf8'))
+  const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+  for (const [k, v] of Object.entries(slots)) assert.match(js, new RegExp(`${k}: \\['${v.naam}', '${v.volgende}'\\]`))
+  const bw = readFileSync(new URL('../landing/bewaard.mjs', import.meta.url), 'utf8')
+  for (const f of [js, bw]) assert.doesNotMatch(f, /'vanavond'|'vanmiddag'/)
+})
+test('landing: de Editie die nu geldt volgt slotIdNow (zelfde grenzen als SLOT_START)', async () => {
+  const { SLOT_START } = await import('../shared/slot-times.mjs')
+  const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+  assert.match(js, new RegExp(`var OCHTEND = ${SLOT_START.ochtend}, MIDDAG = ${SLOT_START.middag}, AVOND = ${SLOT_START.avond};`))
+  assert.match(js, /wanneer\(ed\.date, ed\.slot\)/)
 })
