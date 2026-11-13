@@ -396,3 +396,13 @@ test('de rij bronnen boven de vragen: elk merk één keer, eigen logo-bestanden,
   assert.match(BUILD, /rijBronnen\.map\(\(x\) => pilR\(x, false\)\)\.join\(''\) \+ rijBronnen\.map\(\(x\) => pilR\(x, true\)\)/)
   assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /if \(!reduce && !brSleep && !document\.hidden\) brX -= 30 \* dt \* brRem/)
 })
+
+test('held: het breedste verhaal opent (niet de eerste rustige plek), en de bronregel toont het echte logo', () => {
+  const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+  assert.match(js, /if \(top && \(Number\(top\.sourceCount\) \|\| 0\) > \(Number\(en\[0\]\.sourceCount\) \|\| 0\)\) en = \[top\]\.concat\(en\.filter/)
+  assert.match(js, /lg\.src = '\/img\/bronnen\/' \+ sid \+ '\.webp'/)
+  // terugval: de bronregels in de toestellen dragen het logo uit de catalogus
+  const held = vul(true).match(/<div class="k-lead js-held-lead">([\s\S]*?)<\/a>/)[1]
+  assert.match(held, /<div class="k-bron"><img src="\/img\/bronnen\/[a-z0-9-]+\.webp" alt=""/)
+  assert.match(CSS, /\.k-bron img\{[^}]*border-radius:50%/)
+})

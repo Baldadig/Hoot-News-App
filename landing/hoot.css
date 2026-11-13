@@ -190,6 +190,7 @@ h2 .rgl{display:block}
 /* bronregel: logo, naam en tijd, dan bronnen, bewaren en meer */
 .k-bron{display:flex;align-items:center;gap:.5em;margin-top:.75em;font:500 .882em/1.2 var(--tekst);color:var(--s-ink)}
 .k-bron i{flex:none;width:1.75em;height:1.75em;border-radius:50%;display:grid;place-items:center;font:700 .6em/1 var(--tekst);font-style:normal;color:var(--s-bg);background:var(--s-ink2)}
+.k-bron img{flex:none;width:1.5em;height:1.5em;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(26,24,20,.12);object-fit:cover}
 .k-bron span{display:grid;min-width:0;line-height:1.2;white-space:nowrap}
 .k-bron small{font-weight:400;font-size:.87em;color:var(--s-ink3)}
 .k-n{margin-left:auto;font-weight:600;color:var(--s-ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
