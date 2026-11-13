@@ -1,3 +1,4 @@
+import { urlDelen } from './url-delen.mjs'
 // Taal per bericht. Een bron heeft een hoofdtaal (sources.mjs `lang`), maar brengt soms een stuk
 // in een andere taal: het Parool heeft Engelstalige rubrieken (amsterdam-news, guide), een
 // Engelstalige bron citeert een Nederlands stuk. Zo'n bericht hoort niet bij lezers van de
@@ -35,13 +36,10 @@ export const LANG_SHARE = 0.75 // en minstens dit aandeel van alle getelde funct
 const INTRO_CHARS = 300
 
 export function langFromUrl(url) {
-  try {
-    const u = new URL(url)
-    const host = u.hostname.replace(/^www\./, '')
-    for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.pathname)) return k.lang
-  } catch {
-    /* geen geldige link: geen signaal */
-  }
+  const u = urlDelen(url) // zonder URL-object: JavaScriptCore heeft er geen; geen geldige link: geen signaal
+  if (!u) return null
+  const host = u.host.replace(/^www\./, '')
+  for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.path)) return k.lang
   return null
 }
 

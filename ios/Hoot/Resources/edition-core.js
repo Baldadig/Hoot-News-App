@@ -365,6 +365,14 @@ var HootCore = (() => {
   var MUSIC_IDS = new Set(SOURCES.filter((s) => s.music).map((s) => s.id));
   var OPINIE_IDS = new Set(SOURCES.filter((s) => s.opinie).map((s) => s.id));
 
+  // shared/url-delen.mjs
+  var RE = /^[a-z][a-z0-9+.-]*:\/\/(?:[^@/?#]*@)?(\[[^\]]*\]|[^:/?#]*)(?::\d*)?([^?#]*)/i;
+  function urlDelen(raw) {
+    const m = RE.exec(String(raw ?? "").trim());
+    if (!m || !m[1]) return null;
+    return { host: m[1].toLowerCase(), path: m[2] || "/" };
+  }
+
   // shared/opinie.mjs
   var opinieBron = (id) => OPINIE_IDS.has(id);
   var DIR = /^(opinie[a-z-]*|opinies|opinion|opinions|[a-z]+-opinion|meningen|mening|columns?|columns-[a-z-]+|columnisten|commentaar|commentisfree|[a-z]+-commentary|opinion-and-essays|wat-u-zegt)$/i;
@@ -379,17 +387,13 @@ var HootCore = (() => {
   var TITLE_CAPS = /^\W*(OPINIE|COLUMN|COMMENTAAR)\.\s/;
   var plain = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
   function urlSignal(raw) {
-    let u;
-    try {
-      u = new URL(String(raw || ""));
-    } catch {
-      return false;
-    }
-    const parts = u.pathname.split("/").filter(Boolean);
+    const u = urlDelen(raw);
+    if (!u) return false;
+    const parts = u.path.split("/").filter(Boolean);
     if (!parts.length) return false;
     const dirs = parts.slice(0, -1);
     if (dirs.some((d) => DIR.test(d))) return true;
-    const host = u.hostname;
+    const host = u.host;
     if (HOST_DIR.some(([h, d]) => h.test(host) && dirs.some((x) => d.test(x)))) return true;
     return SLUG.test(parts[parts.length - 1]);
   }
@@ -1041,7 +1045,7 @@ var HootCore = (() => {
     "u\\.s\\."
   ]);
   var isNonEuropean = (it) => NON_EUROPE.test(it?.title || "");
-  var RE = {
+  var RE2 = {
     oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|olesjky|oleshky|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
     middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,
     vs: /\b(trump|biden|vance|witte huis|white house|washington|congres\w*|congress|senaat|senate|republikein\w*|republican\w*|democra(at|ten|tic|ts)|pentagon|hegseth|midterms?|tussentijdse verkiezingen|amerikaan\w*|american|verenigde staten|united states|u\.s\.|new york|california|californi\w*|texas|florida|chicago|supreme court|hooggerechtshof|fbi|ice)\b/i,
@@ -1360,7 +1364,7 @@ var HootCore = (() => {
   var NL_ANCHOR = W(["nederland\\p{L}*", "dutch", "holland\\p{L}*"]);
   function foreignHead(title = "") {
     const t = String(title || "");
-    if (!t || !(WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || countriesIn(t).some((c) => c !== "nl"))) return false;
+    if (!t || !(WORLD.test(t) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || countriesIn(t).some((c) => c !== "nl"))) return false;
     return !NL_ANCHOR.test(t) && !placeSignals({ title: t }).nl;
   }
   var NL_WEAK = W([
@@ -1399,7 +1403,7 @@ var HootCore = (() => {
   var NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)|\/(tech|economie|financiele-markten|bedrijfsleven|beurs|wetenschap|[\w-]*magazine|lifestyle|leven|boulevard|showbizz|opinie|columns?|columns-opinie|meningen|recepten|vacatures|partnercontent|varia|puzzels?|geld|vrouw|opmerkelijk|eten|ps|uit-in-[\w-]+|geloof|religie-filosofie|tijdgeest|samenleving|duurzaamheid-economie)\//;
   var textForeignOf = ({ title = "", summary = "", text = "", cats = "" }) => {
     const t = `${title} ${summary || text} ${cats}`;
-    return RE.oekraine.test(t) || RE.middenoosten.test(t) || usPoliticsIn(t) || RE.buitenland.test(t);
+    return RE2.oekraine.test(t) || RE2.middenoosten.test(t) || usPoliticsIn(t) || RE2.buitenland.test(t);
   };
   function isBinnenland(it, { storyForeign = false, foreign = textForeignOf(it) } = {}) {
     const home = NL_HOME.has(it.source);
@@ -1444,10 +1448,7 @@ var HootCore = (() => {
     if (fromHead.length) return { countries: fromHead, basis: "kop", text: head };
     if (usPoliticsIn(head)) return { countries: ["us"], basis: "kop-institutie", text: head };
     let path = "";
-    try {
-      path = new URL(it.url).pathname.replace(/[-_/]/g, " ");
-    } catch {
-    }
+    path = (urlDelen(it.url)?.path || "").replace(/[-_/]/g, " ");
     if (/\/us\//i.test(String(it.url || "").split("?")[0])) return { countries: ["us"], basis: "bronrubriek", text: `United States ${head}` };
     const fromPath = countriesIn(path);
     if (fromPath.length) return { countries: fromPath, basis: "url", text: `${head} ${path}` };
@@ -1464,22 +1465,22 @@ var HootCore = (() => {
     const headCountries = countriesIn(title.replace(/\bPalestine Action\b/gi, "activistengroep"));
     const headHome = placeSignals({ title }).home;
     const geoText = headHome ? title : place.text;
-    if (RE.oekraine.test(geoText)) out.add("oekraine");
-    if (RE.middenoosten.test(geoText)) out.add("middenoosten");
+    if (RE2.oekraine.test(geoText)) out.add("oekraine");
+    if (RE2.middenoosten.test(geoText)) out.add("middenoosten");
     const usSection = /\/us\//.test(sec);
     const path = String(url).split("?")[0].replace(/[-_/]/g, " ");
     if (usPoliticsIn(geoText) || !headCountries.length && !headHome && (usSection || usPoliticsIn(path)) || countriesIn(geoText).includes("us")) out.add("vs");
     const education = /\b(leraar|basisschool|docent|onderwijs)\b/i.test(title) && !/\b(onderzoek|studie|research|study)\b/i.test(title);
-    if (!education && (RE.wetenschap.test(title) || /wetenschap|\/science\/|\/health\//.test(sec) || /\b(journal article|scholarship|research finds|study finds)\b/i.test(t))) out.add("wetenschap");
+    if (!education && (RE2.wetenschap.test(title) || /wetenschap|\/science\/|\/health\//.test(sec) || /\b(journal article|scholarship|research finds|study finds)\b/i.test(t))) out.add("wetenschap");
     const specific = out.has("oekraine") || out.has("middenoosten") || out.has("vs");
-    const textForeign = specific || RE.buitenland.test(geoText) || headCountries.some((c) => c !== "nl");
+    const textForeign = specific || RE2.buitenland.test(geoText) || headCountries.some((c) => c !== "nl");
     if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
       out.add("binnenland");
     } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
       out.add("buitenland");
     }
     if (headHome && out.has("binnenland")) {
-      for (const d of ["buitenland", "vs", "middenoosten", "oekraine"]) if (!usPoliticsIn(title) && !RE[d]?.test(title)) out.delete(d);
+      for (const d of ["buitenland", "vs", "middenoosten", "oekraine"]) if (!usPoliticsIn(title) && !RE2[d]?.test(title)) out.delete(d);
     }
     if (out.has("vs") && /\b(senate races|senaatsverkiezingen|midterms)\b/i.test(title)) {
       out.delete("middenoosten");
@@ -2269,12 +2270,10 @@ var HootCore = (() => {
   var LANG_SHARE = 0.75;
   var INTRO_CHARS = 300;
   function langFromUrl(url) {
-    try {
-      const u = new URL(url);
-      const host = u.hostname.replace(/^www\./, "");
-      for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.pathname)) return k.lang;
-    } catch {
-    }
+    const u = urlDelen(url);
+    if (!u) return null;
+    const host = u.host.replace(/^www\./, "");
+    for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.path)) return k.lang;
     return null;
   }
   function langCounts(text) {

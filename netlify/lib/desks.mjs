@@ -1,4 +1,5 @@
 import { countriesIn, usPoliticsIn } from '../../shared/article-signals.mjs'
+import { urlDelen } from '../../shared/url-delen.mjs'
 // Rubrieken voor de editie — pure functies (getest in tests/desks.test.mjs).
 // Elke editie probeert per rubriek het belangrijkste verhaal van het moment te hebben:
 // binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap (plus, in feed.mjs,
@@ -284,7 +285,7 @@ export function subjectPlaceOf(it = {}) {
   if (fromHead.length) return {countries:fromHead,basis:'kop',text:head}
   if (usPoliticsIn(head)) return {countries:['us'],basis:'kop-institutie',text:head}
   let path = ''
-  try { path = new URL(it.url).pathname.replace(/[-_/]/g,' ') } catch {}
+  path = (urlDelen(it.url)?.path || '').replace(/[-_/]/g,' ') // zonder URL-object (shared/url-delen.mjs)
   if (/\/us\//i.test(String(it.url || '').split('?')[0])) return {countries:['us'],basis:'bronrubriek',text:`United States ${head}`}
   const fromPath = countriesIn(path)
   if (fromPath.length) return {countries:fromPath,basis:'url',text:`${head} ${path}`}
