@@ -32,7 +32,7 @@ struct WidgetVerhaal: Codable, Hashable, Identifiable, Sendable {
     var oudeIds: [String] = [] // eerdere ids van hetzelfde stuk (formerIds)
     var nummer: Int // 1 tot 10
     var kop: String
-    var kortKop: String
+    var kortKop: String // de korte kop (KortKop.voorWidget): de veilige korte kop, anders de hele kop
     var bron: String
     var beeld: String? = nil // bestandsnaam in WidgetGroep.beelden, verkleind tot widgetformaat
 

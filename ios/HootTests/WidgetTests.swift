@@ -22,11 +22,16 @@ import WidgetKit
     func testKorteKopGelijkAanHetWeb() throws {
         // `max`: de kortere stappen van vroeger; `verwacht` nil: de kop past niet, hij staat heel.
         struct Geval: Decodable { let kop: String; let verwacht: String?; let max: Int? }
-        struct Fixture: Decodable { let max: Int; let gevallen: [Geval] }
+        struct Herschreven: Decodable { let kop: String; let kort: String; let veilig: Bool; let waarom: String }
+        struct Fixture: Decodable { let max: Int; let gevallen: [Geval]; let herschreven: [Herschreven] }
         let fx = try JSONDecoder().decode(Fixture.self, from: Data(contentsOf: Self.root.appending(path: "tests/fixtures/kort-kop.json")))
         XCTAssertEqual(fx.max, KortKop.max)
+        XCTAssertEqual(KortKop.max, 45)
         XCTAssertGreaterThanOrEqual(fx.gevallen.count, 600)
         for g in fx.gevallen { XCTAssertEqual(KortKop.kort(g.kop, max: g.max ?? KortKop.max), g.verwacht, "\(g.kop) (\(g.max ?? KortKop.max))") }
+        // Een herschreven korte kop van de server (besluit 13 november): dezelfde controle als het web.
+        XCTAssertGreaterThanOrEqual(fx.herschreven.count, 20)
+        for h in fx.herschreven { XCTAssertEqual(KortKop.veilig(h.kop, h.kort), h.veilig, "\(h.kort) (\(h.waarom))") }
     }
 
     // Besluit "korte kop dicht", bij twijfel geen korte vorm (keuring 9): een kop wordt nooit ingekort. De trap is
@@ -37,7 +42,8 @@ import WidgetKit
         XCTAssertEqual(KortKop.trap(kop, kort: nil), [kop])
         XCTAssertEqual(KortKop.trap(kop, kort: "Iraanse dreiging is zó groot dat Amerikaanse minister…"), [kop])
         XCTAssertFalse(KortKop.veilig(kop, "Iraanse dreiging is zó groot dat Amerikaanse minister…"))
-        let past = "Een kop van precies zestig tekens die nog net past, wel fijn"
+        let past = "Een kop van 45 tekens die nog net past, fijn!"
+        XCTAssertEqual((past as NSString).length, 45)
         XCTAssertEqual(KortKop.kort(past), past)
         XCTAssertTrue(KortKop.veilig(past, past))
         XCTAssertEqual(KortKop.trap(past, kort: past), [past])
@@ -542,27 +548,167 @@ import WidgetKit
         XCTAssertEqual(oud.tekst, kop)
     }
 
-    // Keuring 10: Groot duwt nooit een rij in ruimte die er niet is. Past een rij niet heel (met bronregel), dan valt
-    // hij weg; een volgende die wel heel past, schuift op met zijn eigen nummer.
-    func testGrootForceertNooitEenRij() {
-        let lang = "Kabinet valt over stikstof na een lange nacht van onderhandelen in het Catshuis, maar de premier zegt dat er geen crisis is en dat hij niet opstapt"
-        XCTAssertNil(KortKop.kort(lang, max: 24), "zonder veilige korte vorm")
-        let maat = CGSize(width: 364, height: 382)
-        func groot(_ koppen: [String]) -> [Int] {
-            let e = Self.editie(koppen)
-            return (GrootEditie.zet(e, maat: maat, marge: WidgetRuimte.s4)?.rijen ?? []).map { e.verhalen[$0.index].nummer }
+    // MARK: Bladeren (13 november 2026)
+
+    // Voorbeelden van herschreven korte koppen bij de koppen van de fixture (zoals de server ze met HOOT_KORTE_KOP_AI
+    // zou geven); elk komt door de controle. Alleen voor toetsen en opnamen.
+    static let voorbeeldKort = [
+        "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD": "Deal over belastingplan, nog geen reactie VVD",
+        "Honderden scholen in Europa krijgen een bommelding per e-mail vanuit het buitenland": "Bommelding per e-mail bij honderden scholen",
+        "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet": "RIVM-labs dreigen dicht, verhuizen kan niet",
+        "Italy: Hundreds of schools evacuated after bomb threats": "Italy: schools evacuated after bomb threats",
+        "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough": "Prisoner swap agreed, but no breakthrough",
+        "‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe techwet tegen manipulatieve trucs van big tech": "Brussel pakt trucs van big tech aan",
+        "AI-pionier Anthropic bestormt lijst grootste beursgangen ooit": "Anthropic op lijst grootste beursgangen ooit",
+        "Three Iran-backed suspects plotted attacks including RAF Fairford incident, US says": "US: Iran-backed suspects plotted attacks",
+        "US soldier arrested for Russia spying: What we know": "Russia spying: US soldier arrested",
+        "OM vermoedt dat verdachte zorgmedewerker nog meer slachtoffers heeft gemaakt": "OM vermoedt meer slachtoffers zorgmedewerker",
+    ]
+    // De fixture met de korte koppen van de server (via de bewaking van WidgetEditie.bouw).
+    static func editieMetKort(gelezen: [Int] = [], nu: Date = moment("2026-11-11T17:41:00Z")) throws -> WidgetEditie {
+        let e = try editie(nu: nu)
+        let stenen = e.verhalen.map { v in WidgetEditie.Bouwsteen(plek: v.id, itemId: v.itemId, kop: v.kop, kortKop: voorbeeldKort[v.kop], bron: v.bron) }
+        var uit = WidgetEditie.bouw(id: e.id, datum: e.datum, dagdeel: e.dagdeel, stenen: stenen, gelezen: [], vraag: e.vraag, nu: nu)
+        uit.gelezen = gelezen.map { uit.verhalen[$0].itemId }
+        return uit
+    }
+
+    // Een eigen suite per toets: de echte plek van het toestel blijft staan.
+    private func metEigenSuite(_ werk: () async throws -> Void) async rethrows {
+        let naam = "nl.hootnews.Hoot.toets.\(UUID().uuidString)"
+        WidgetBlader.suiteOverride = naam
+        defer { UserDefaults().removePersistentDomain(forName: naam); WidgetBlader.suiteOverride = nil }
+        try await werk()
+    }
+
+    func testBladerplekPerEditieEnTerugNaar01BijEenNieuwe() async throws {
+        try await metEigenSuite {
+            let avond = "2026-11-11-avond", ochtend = "2026-11-12-ochtend"
+            XCTAssertEqual(WidgetBlader.stand(voor: avond), .init(editie: avond), "nog niets: het begin")
+            WidgetBlader.zet(.enkel, 4, editie: avond)
+            WidgetBlader.zet(.groep, 2, editie: avond)
+            XCTAssertEqual(WidgetBlader.stand(voor: avond), .init(editie: avond, enkel: 4, groep: 2), "Klein en Middel delen enkel, Groot heeft groep")
+            // Een nieuwe Editie: terug naar 01 (en de eerste groep).
+            XCTAssertEqual(WidgetBlader.stand(voor: ochtend), .init(editie: ochtend))
+            WidgetBlader.zet(.enkel, 1, editie: ochtend)
+            XCTAssertEqual(WidgetBlader.stand(voor: ochtend).enkel, 1)
+            XCTAssertEqual(WidgetBlader.stand(voor: ochtend).groep, 0, "de groep van de vorige Editie gaat niet mee")
+            XCTAssertEqual(WidgetBlader.stand(voor: avond), .init(editie: avond), "alleen de laatste Editie wordt onthouden")
+            // De intent schrijft dezelfde plek (wat de knoppen in de widget doen).
+            _ = try await BladerIntent(.enkel, plek: 7, editie: ochtend).perform()
+            XCTAssertEqual(WidgetBlader.stand(voor: ochtend).enkel, 7)
+            _ = try await BladerIntent(.groep, plek: 3, editie: ochtend).perform()
+            XCTAssertEqual(WidgetBlader.stand(voor: ochtend), .init(editie: ochtend, enkel: 7, groep: 3))
+            _ = try await BladerIntent(.enkel, plek: 0, editie: ochtend).perform() // Terug naar 01
+            XCTAssertEqual(WidgetBlader.stand(voor: ochtend).enkel, 0)
         }
-        let begin = ["Honderden scholen in Europa doelwit van bommeldingen", "Storm raast over het noorden van het land", lang]
-        XCTAssertEqual(groot(begin + ["Kabinet stelt asielwet uit"]), [2, 4])
-        XCTAssertEqual(groot(begin + [lang, lang]), [2])
-        // Een 01 van 149 tekens: 02 (lang) past niet heel met zijn bronregel en valt weg; niets onder de rand.
-        let k149 = "Rijkswaterstaat sluit de Afsluitdijk dit weekend voor al het verkeer vanwege onderhoud aan de sluizen bij Den Oever en Kornwerderzand, meldt de NOS"
-        let e = Self.editie([k149, k149 + " 2", "Storm raast"])
-        let z = try! XCTUnwrap(GrootEditie.zet(e, maat: maat, marge: WidgetRuimte.s4))
-        let binnen = maat.height - 2 * WidgetRuimte.s4
-        let hoogte = GrootEditie.vast + z.held.hoogte + WidgetZet.totaal(z.rijen, tussen: 0, extra: GrootEditie.rij)
-        XCTAssertLessThanOrEqual(hoogte, binnen)
-        XCTAssertEqual(z.held.index, 0)
+    }
+
+    // Bladeren telt niet als gelezen: de plek staat los van `gelezen`, en de widget schrijft geen Editie.
+    func testBladerenTeltNietAlsGelezen() async throws {
+        try await metEigenSuite {
+            let e = try Self.editie(gelezen: 2)
+            let voor = WidgetBron.laad()
+            _ = try await BladerIntent(.enkel, plek: 5, editie: e.id).perform()
+            XCTAssertEqual(e.aantalGelezen, 2)
+            XCTAssertEqual(WidgetBron.laad(), voor, "bladeren raakt de Editie in de App Group niet aan")
+            // En de plek blijft op het toestel: alleen deze sleutel, niets in het vraagbestand voor de server.
+            XCTAssertNotNil(WidgetBlader.defaults?.data(forKey: WidgetBlader.sleutel))
+        }
+    }
+
+    func testBladerGrenzenEnGroepen() throws {
+        let e = try Self.editie()
+        XCTAssertEqual(e.verhalen.count, 10)
+        XCTAssertEqual(WidgetBlader.einde(e), 10, "plek 10 is het einde")
+        XCTAssertEqual(WidgetBlader.laatsteGroep(e), 3)
+        XCTAssertEqual((0...3).map { WidgetBlader.groep($0, in: e) }, [0..<3, 3..<6, 6..<9, 9..<10], "01-03, 04-06, 07-09, dan 10 met het einde")
+        // Een bewaarde plek buiten de grenzen, of van een andere Editie: binnen de grenzen, of het begin.
+        XCTAssertEqual(WidgetBlader.enkel(.init(editie: e.id, enkel: 14), e), 10)
+        XCTAssertEqual(WidgetBlader.enkel(.init(editie: e.id, enkel: -2), e), 0)
+        XCTAssertEqual(WidgetBlader.enkel(.init(editie: "2026-11-10-avond", enkel: 6), e), 0)
+        XCTAssertEqual(WidgetBlader.groep(.init(editie: e.id, groep: 9), e), 3)
+        XCTAssertEqual(WidgetBlader.enkel(nil, e), 0)
+        // Negen verhalen: drie volle groepen, dan alleen het einde.
+        var negen = e; negen.verhalen.removeLast()
+        XCTAssertEqual(WidgetBlader.laatsteGroep(negen), 3)
+        XCTAssertTrue(WidgetBlader.groep(3, in: negen).isEmpty)
+    }
+
+    func testToonKeuzesPerMaat() {
+        XCTAssertEqual(HootWidgetEntry(date: .now, editie: nil).toon, .bladeren, "Bladeren is de standaard")
+        XCTAssertEqual(WidgetToon.allCases.first, .bladeren)
+        XCTAssertEqual(WidgetToon.passend(.bladeren, in: .systemSmall), .bladeren)
+        XCTAssertEqual(WidgetToon.passend(.bladeren, in: .systemMedium), .bladeren)
+        XCTAssertEqual(WidgetToon.passend(.kop01, in: .systemSmall), .kop01)
+        XCTAssertEqual(WidgetToon.passend(.voortgang, in: .systemSmall), .voortgang)
+        XCTAssertEqual(WidgetToon.passend(.top3, in: .systemSmall), .voortgang, "Top 3 past niet in Klein")
+        XCTAssertEqual(WidgetToon.passend(.voortgang, in: .systemMedium), .top3, "Voortgang past niet in Middel")
+        XCTAssertEqual(WidgetToon.passend(.top3, in: .systemMedium), .top3)
+    }
+
+    // Klein toont de korte kop; Middel de hele kop als hij heel past, anders de korte; Groot de hele kop, of de korte
+    // als hij niet heel past. Zonder (veilige) korte kop valt de widget terug op de hele kop.
+    func testKorteKopInKleinMiddelEnGroot() throws {
+        let e = try Self.editieMetKort()
+        for v in e.verhalen { XCTAssertEqual(v.kortKop, Self.voorbeeldKort[v.kop] ?? v.kop, v.kop) }
+        let klein = CGSize(width: 170, height: 170), middel = CGSize(width: 364, height: 170), groot = CGSize(width: 364, height: 382)
+        for plek in 0..<10 {
+            let k = try XCTUnwrap(KleinBladeren.zet(e, maat: klein, marge: 16, plek: plek))
+            XCTAssertEqual(k.gezet.tekst, e.verhalen[plek].kortKop, "Klein: de korte kop")
+            XCTAssertEqual(k.m, WidgetLetter.widgetKop, "de korte kop past in widget-kop 16/18,4")
+            XCTAssertTrue(k.bron)
+            let m = try XCTUnwrap(MiddelBladeren.zet(e, maat: middel, marge: 16, plek: plek))
+            XCTAssertEqual(m.gezet.tekst, e.verhalen[plek].kop, "Middel: de hele kop past op iPhone")
+        }
+        XCTAssertNil(KleinBladeren.zet(e, maat: klein, marge: 16, plek: 10), "na 10: het einde")
+        for g in 0...3 {
+            for rij in GrootBladeren.zet(e, maat: groot, marge: 16, groep: g) { XCTAssertEqual(rij.keuze.gezet.tekst, e.verhalen[rij.index].kop, "Groot: de hele kop") }
+        }
+        // Op de iPad mini past niet elke hele kop in Middel: dan de korte, nooit afgekapt.
+        let mini = CGSize(width: 305.5, height: 141)
+        let lang = try XCTUnwrap(MiddelBladeren.zet(e, maat: mini, marge: 16, plek: 5))
+        XCTAssertEqual(lang.gezet.tekst, e.verhalen[5].kortKop)
+        // Een onveilige korte kop (ingekort) telt niet: dan de hele kop, zo nodig kleiner of zonder bron.
+        let stenen = [WidgetEditie.Bouwsteen(plek: "a", itemId: "a", kop: e.verhalen[0].kop, kortKop: "D66 en CDA sluiten deal met Pro en Volt…", bron: "NOS")]
+        let oud = WidgetEditie.bouw(id: e.id, datum: e.datum, dagdeel: e.dagdeel, stenen: stenen, gelezen: [], vraag: .lid)
+        XCTAssertEqual(oud.verhalen[0].kortKop, oud.verhalen[0].kop)
+        let terug = try XCTUnwrap(KleinBladeren.zet(oud, maat: klein, marge: 16, plek: 0))
+        XCTAssertEqual(terug.gezet.tekst, oud.verhalen[0].kop, "terugval op de hele kop")
+        XCTAssertLessThanOrEqual(CGFloat(terug.gezet.regels) * terug.m.regel, 170 - 32 - BladerZet.rij - WidgetRuimte.s2)
+    }
+
+    // Groot: drie koppen per groep, nooit een rij weg en nooit hoger dan er ruimte is, ook met lange live koppen en
+    // zonder korte kop; aan het eind 10 met het einde eronder.
+    func testGrootGroepenPassenAltijd() throws {
+        let live = try WidgetRenderTests.liveKoppen().sorted { $0.kop.count > $1.kop.count }
+        let maten = [CGSize(width: 364, height: 382), CGSize(width: 329, height: 345), CGSize(width: 305.5, height: 305.5), CGSize(width: 378.5, height: 378.5)]
+        for start in stride(from: 0, to: 40, by: 10) {
+            let e = WidgetRenderTests.editie(Array(live.dropFirst(start).prefix(10)))
+            for maat in maten {
+                for g in 0...3 {
+                    let rijen = GrootBladeren.zet(e, maat: maat, marge: 16, groep: g)
+                    XCTAssertEqual(rijen.map(\.index), Array(WidgetBlader.groep(g, in: e)))
+                    let kolom = GrootBladeren.kolom(maat, marge: 16)
+                    let hoogte = rijen.reduce(0) { $0 + BladerZet.hoogte($1.keuze, bron: e.verhalen[$1.index].bron, breedte: kolom, lucht: WidgetRuimte.s1) }
+                        + GrootBladeren.tussen * CGFloat(max(0, rijen.count - 1))
+                    let einde = g == 3 ? GrootBladeren.eindeHoogte(e, breedte: maat.width - 32) : 0
+                    XCTAssertLessThanOrEqual(hoogte + einde + BladerZet.afronding * CGFloat(rijen.count), maat.height - 32 - BladerZet.rij - WidgetRuimte.s3 + 0.5, "groep \(g) op \(maat)")
+                    for r in rijen { XCTAssertGreaterThanOrEqual(r.keuze.m.grootte, WidgetZet.ondergrens) }
+                }
+            }
+        }
+    }
+
+    // Het einde: de eindzin van deze Editie en de volgende Editie, zonder kloktijden; nooit "houdt op".
+    func testEindeVanDeEditieInDeWidget() throws {
+        let e = try Self.editie()
+        XCTAssertTrue(["Je bent bij.", "Je weet genoeg."].contains(e.eindzin))
+        XCTAssertEqual(WidgetDagdeel.volgendeZin(na: e.dagdeel), "Morgen de Ochtendeditie")
+        for t in [e.eindzin, WidgetDagdeel.volgendeZin(na: e.dagdeel), "Terug naar 01", BladerZet.reserve] {
+            XCTAssertNil(t.range(of: "[0-9]{1,2}[:.][0-9]{2}", options: .regularExpression), "geen kloktijd: \(t)")
+            XCTAssertFalse(t.contains("houdt op"))
+        }
     }
 }
 

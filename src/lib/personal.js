@@ -21,7 +21,7 @@ import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mj
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
-import { metKorteKoppen } from '../../shared/kort-kop.mjs'
+import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN } from '../../shared/editor.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
@@ -675,7 +675,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     supply = {target:EDITION_SIZE,auditBelow:EDITION_AUDIT_BELOW,floor:EDITION_FLOOR,selected:regularCount,totalSlots:out.length,ownArticles:pool.length,decisions,counts,unresolved:unresolved.length,proven:regularCount>=EDITION_FLOOR && unresolved.length===0}
   }
   const shown = [...new Set(out.map((e) => e.leadId || e.id))]
-  // Met `kortKop` per plek (shared/kort-kop.mjs): de korte kop voor de widgets, net als de Editie voor iedereen.
+  // Met `kortKop` per plek (shared/kort-kop.mjs): de korte kop voor de widgets, net als de Editie voor iedereen; een
+  // kop die daar herschreven is, krijgt hier dezelfde korte kop.
   return metKorteKoppen({
     id: global.id,
     slot: global.slot,
@@ -691,7 +692,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     brief: null,
     _plan: sel.deskOrder,
     ...(supply ? { _supply: supply } : {}),
-  })
+  }, { herschreven: herschrevenVan(global) }) // de herschreven korte koppen van de algemene Editie (nooit zelf het model vragen)
 }
 
 export { withoutDebug, earlierEditions, editionBasis, personalRows } from './personal-basis.js'
