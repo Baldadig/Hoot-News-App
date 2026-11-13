@@ -2,6 +2,7 @@
 // de held en Hoot kiest tonen hem tot de live voorpagina (hoot.js) binnen is; de Editie-, Stroom- en Selectie-demo's
 // tonen hem altijd. Alleen kop, uitgever en datum; een rubriek alleen als die zeker is. Geen verzonnen kranten.
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
+const VOLGENDE = { ochtend: 'vanmiddag', middag: 'vanavond', avond: 'morgenochtend' }
 // Zelfde woorden als de app; Buitenland heet op de landing Wereld (de Stroom-tab).
 export const RUBRIEK = { binnenland: 'Binnenland', buitenland: 'Wereld', cultuur: 'Cultuur', tech: 'Tech', wetenschap: 'Wetenschap', sport: 'Sport', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne' }
 const MAAND = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december']
@@ -20,8 +21,8 @@ export function datum(iso) {
 // Eén beslisregel voor de waarom-markering in Hoot kiest, gelijk aan redenen() in hoot.js. Plek 3 is 'Buiten je bubbel'
 // alleen als de Editie echt een bubbel heeft; anders 'Ook het lezen waard'. Geeft null als twee plekken dezelfde reden krijgen.
 export const REDEN = {
-  groot: ['Groot nieuws', 'Veel bronnen schrijven erover. Dit wil je weten.'],
-  meer: ['Meerdere bronnen', 'Niet één krant, maar meerdere vinden het belangrijk.'],
+  groot: ['Groot nieuws', 'Veel bronnen schrijven erover.'],
+  meer: ['Meerdere bronnen', 'Meer dan één bron schrijft erover.'],
   eigen: ['Ook het lezen waard', 'Eén bron schrijft erover, en het is de moeite waard.'],
   bubbel: ['Buiten je bubbel', 'Iets wat je anders niet had gelezen.'],
 }
@@ -34,8 +35,9 @@ export function redenen(ns, bubbel) {
 const markering = (soort, n) => (soort === 'groot' ? `Groot nieuws · ${n} bronnen` : soort === 'meer' ? `${n} bronnen schrijven erover` : REDEN[soort][0])
 export const reden = (n) => (n >= 5 ? 'Groot nieuws' : n >= 2 ? `${n} bronnen schrijven erover` : 'Ook het lezen waard')
 
+// Zonder `wanneer` (de Editie-demo) alleen de bronnaam: geen datum die naast de held van vandaag oud oogt.
 const bron = (x, wanneer, metAantal = true) =>
-  `<div class="k-bron"><i>${ini(x.source)}</i><span>${esc(x.source)}<small>${esc(wanneer)}</small></span>${metAantal && x.sourceCount >= 2 ? `<b class="k-n">${x.sourceCount} bronnen</b>` : ''}${BM}</div>`
+  `<div class="k-bron"><i>${ini(x.source)}</i><span>${esc(x.source)}${wanneer ? `<small>${esc(wanneer)}</small>` : ''}</span>${metAantal && x.sourceCount >= 2 ? `<b class="k-n">${x.sourceCount} bronnen</b>` : ''}${BM}</div>`
 const kick = (nr, desk) => (label(desk) ? `<div class="k-kick">${nr ? `<span class="k-nr">${nr}</span>` : ''}${label(desk)}</div>` : nr ? `<div class="k-kick k-kick--los"><span class="k-nr">${nr}</span></div>` : '')
 
 export function fragmenten(b) {
@@ -59,8 +61,11 @@ export function fragmenten(b) {
   const ed = b.editie
   return {
     BW_SLOT: slot,
+    BW_SLOT_ID: SLOT[b.slot] ? b.slot : 'avond',
     BW_DAG: lang,
-    BW_HELD_LABEL: esc(`De ${slot} van ${lang} op iPhone, met het hoofdverhaal: ${v1.title}`),
+    BW_DATUM: esc(b.date),
+    BW_VOLGENDE: VOLGENDE[b.slot] || 'morgenochtend',
+    BW_HELD_LABEL: esc(`De ${slot} van ${lang}, met het hoofdverhaal: ${v1.title}. Lees verder in Hoot`),
     // De held: het hoofdverhaal zonder rubriek, alleen het nummer (besluit Alex).
     BW_HELD: `<div class="k-kick k-kick--los"><span class="k-nr">01</span></div><div class="k-why">${esc(reden(ns[0]))}</div><div class="k-kop k-kop--lead">${esc(v1.title)}</div>${bron(v1, kort)}`,
     BW_RD_N: ns.join(' '),
@@ -69,11 +74,11 @@ export function fragmenten(b) {
     BW_RD_IPAD_TOP: rd(v1, 0, true),
     BW_RD_IPAD_KOL: rd(v2, 1, true) + rd(v3, 2, true),
     BW_RD_TEL: lijst.map((x, i) => rd(x, i, false)).join('\n        '),
-    BW_ED_LEAD: `${kick('01', ed[0].desk)}<div class="k-why">${esc(reden(ed[0].sourceCount))}</div><div class="k-kop k-kop--lead">${esc(ed[0].title)}</div>${bron(ed[0], kort)}`,
-    BW_ED_TWEE: `${kick('02', ed[1].desk)}<div class="k-why">${esc(reden(ed[1].sourceCount))}</div><div class="k-kop">${esc(ed[1].title)}</div><svg class="k-beeld2" viewBox="0 0 320 160"><use href="#il-iris"/></svg>${bron(ed[1], kort)}`,
+    BW_ED_LEAD: `${kick('01', ed[0].desk)}<div class="k-why">${esc(reden(ed[0].sourceCount))}</div><div class="k-kop k-kop--lead">${esc(ed[0].title)}</div>${bron(ed[0], '')}`,
+    BW_ED_TWEE: `${kick('02', ed[1].desk)}<div class="k-why">${esc(reden(ed[1].sourceCount))}</div><div class="k-kop">${esc(ed[1].title)}</div><svg class="k-beeld2" viewBox="0 0 320 160"><use href="#il-iris"/></svg>${bron(ed[1], '')}`,
     BW_ED_REST: ed.slice(2, 10).map((x, i) => `<li><span class="sc-nr">${String(i + 3).padStart(2, '0')}</span>${esc(x.title)}</li>`).join(''),
     // Geen bubbel in deze Editie: dan ook geen leeg bubbelblok.
-    BW_ED_BUBBEL: b.bubbel ? `<div class="sc-bubbel"><div class="k">${kick('', b.bubbel.desk)}<div class="k-why">Buiten je bubbel</div><div class="k-kop">${esc(b.bubbel.title)}</div>${bron(b.bubbel, kort, false)}</div></div>` : '',
+    BW_ED_BUBBEL: b.bubbel ? `<div class="sc-bubbel"><div class="k">${kick('', b.bubbel.desk)}<div class="k-why">Buiten je bubbel</div><div class="k-kop">${esc(b.bubbel.title)}</div>${bron(b.bubbel, '', false)}</div></div>` : '',
     BW_SEL_WEEK: `Week ${b.selectie.week}`,
     BW_SEL_LEDE: `${b.selectie.velden.reduce((n, v) => n + v.count, 0)} stukken in ${b.selectie.velden.length} onderwerpen`,
     BW_SEL_INHOUD: b.selectie.velden.map((v) => `<div class="sc-irij"><span><b>${esc(v.label)}</b><small>${v.count} stukken</small></span><svg viewBox="0 0 24 24"><use href="#i-neer"/></svg></div>`).join('\n            '),

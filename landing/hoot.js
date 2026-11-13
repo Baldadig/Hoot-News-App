@@ -1,58 +1,11 @@
-/* gethoot.app · v4. Geen trackers, geen cookies. Opslag alleen voor de eigen dagteller (landing/tel.mjs, als die aan staat). Eén bestand:
-   1. het ritueel (kleuren per dagdeel, vóór de eerste weergave)  2. de gang van de zon, de rustige, herhalende demo’s van Editie, Stroom en Selectie, parallax, De Redacteur met de echte Editie, de stuiterende punt. */
+/* gethoot.app · v5. Geen trackers, geen cookies. Opslag alleen voor de eigen dagteller (landing/tel.mjs).
+   De kleuren per dagdeel staan inline in de head (landing/inline.mjs, PALET), zodat dit bestand met defer kan laden.
+   Hier: de gang van de zon, de demo's van Editie, Stroom en Selectie (elk één keer, dan stil), parallax,
+   Hoot kiest met de echte Editie, de held met de Editie van nu, de stuiterende punt. */
 (function () {
   'use strict';
   var R = document.documentElement;
-  R.classList.add('init');
 
-  /* ---------- 1 · het ritueel ---------- */
-  var K = ['papier','wit','rood','op-rood','inkt','inkt2','inkt3','lijn','chip','s-bg','s-ink','s-ink2','s-ink3','s-red','s-line','s-card','s-blok'];
-  var P = {
-    ochtend: ['#F5F1E8','#FBF8F1','#9A3324','#F5F1E8','#1A1814','#4B453B','#6B6457','#DED5C4','#EFE9DD','#F5F1E8','#1A1814','#4B453B','#6B6457','#9A3324','#DED5C4','#FCFAF5','#9A3324'],
-    middag:  ['#F3F1EC','#FFFFFF','#9A3324','#F7F5F0','#15130F','#45403A','#67615A','#E2DDD3','#EFECE6','#F7F5F0','#15130F','#45403A','#67615A','#9A3324','#E2DDD3','#FFFFFF','#9A3324'],
-    vroeg:   ['#EEE4D3','#F5ECDD','#933422','#F4EBDC','#2A231B','#5A4D3D','#6F6250','#DCCDB5','#E9DDC9','#EFE5D4','#2A231B','#584B3C','#6F6250','#933422','#DCCDB5','#F8F0E3','#933422'],
-    nacht:   ['#151310','#1E1B17','#9A3324','#F5F1E8','#F1ECE2','#CBC3B5','#A39B8D','#34302A','#2A2621','#151310','#F1ECE2','#CBC3B5','#A39B8D','#EC7A70','#34302A','#1E1B17','#8B3023']
-  };
-  var A = [[0,'nacht'],[5.5,'nacht'],[7.5,'ochtend'],[11,'ochtend'],[13,'middag'],[16.5,'middag'],[18.5,'vroeg'],[20,'vroeg'],[21.5,'nacht'],[24,'nacht']];
-  function hex(h) { return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
-  function mix(a, b, t) { var x = hex(a), y = hex(b); return 'rgb(' + [0,1,2].map(function (i) { return Math.round(x[i] + (y[i] - x[i]) * t); }).join(',') + ')'; }
-  function palet(u) {
-    for (var i = 0; i < A.length - 1; i++) {
-      if (u >= A[i][0] && u <= A[i+1][0]) {
-        var t = (u - A[i][0]) / ((A[i+1][0] - A[i][0]) || 1); t = t * t * (3 - 2 * t);
-        var a = P[A[i][1]], b = P[A[i+1][1]];
-        return { k: a.map(function (c, j) { return mix(c, b[j], t); }), donker: (A[i][1] === 'nacht' && t < .5) || (A[i+1][1] === 'nacht' && t >= .5) };
-      }
-    }
-    return { k: P.nacht, donker: true };
-  }
-  var S = { modus: 'auto', uur: null, demo: false };
-  var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
-  function nu() { var d = new Date(); return d.getHours() + d.getMinutes() / 60; }
-  function dagdeel(u) { return u >= 5 && u < 12 ? 'ochtend' : (u >= 12 && u < 17.5 ? 'middag' : 'avond'); }
-  function pas() {
-    var u = S.uur == null ? nu() : S.uur, p;
-    if (S.modus === 'light') p = { k: P.middag, donker: false };
-    else if (S.modus === 'dark') p = { k: P.nacht, donker: true };
-    else if (mq && mq.matches && !S.demo) p = { k: P.nacht, donker: true };
-    else p = palet(u);
-    K.forEach(function (k, i) { R.style.setProperty('--' + k, p.k[i]); });
-    R.classList.toggle('donker', p.donker);
-    R.style.colorScheme = p.donker ? 'dark' : 'light';
-    if (S.modus === 'auto') R.removeAttribute('data-theme'); else R.setAttribute('data-theme', S.modus);
-    R.setAttribute('data-dagdeel', dagdeel(u));
-    if (window.hootDagdeel) window.hootDagdeel(dagdeel(u));
-  }
-  window.hootSet = function (o) { for (var k in o) S[k] = o[k]; pas(); };
-  pas();
-  if (mq && mq.addEventListener) mq.addEventListener('change', pas);
-  setInterval(function () { if (S.uur == null) pas(); }, 60000);
-  /* de demo-schakelaars van het concept (alleen met ?demo in het adres) */
-  if (/[?&]demo\b/.test(location.search)) {
-    addEventListener('message', function (e) { var d = e.data; if (d && d.hoot && typeof d.hoot === 'object') window.hootSet(d.hoot); });
-  }
-
-  /* ---------- 2 · de pagina ---------- */
   function start() {
     requestAnimationFrame(function () { requestAnimationFrame(function () { R.classList.remove('init'); }); });
     /* reduced motion: één variabele, alleen bijgewerkt door de change-listener. Lees RM.matches nergens anders,
@@ -70,69 +23,35 @@
     }
     function ease(p) { return p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
 
-    /* Rustige herhaling, alleen in beeld en in een zichtbaar tabblad. De preview zelf werkt
-       ook op touch; hover/focus pauzeert tijdelijk. Reduced motion houdt de demo stil. */
-    function klok(sectie, scene, rust) {
-      var k = { pos: 0, duur: 0, teken: null, auto: true, klaar: false, herhaal: true, tempo: 1 };
-      var zicht = false, muis = false, focus = false, pauze = false, raf = 0, vorig = 0;
-      var naam = scene.getAttribute('data-motion') || 'preview';
-      function mag() { return !!k.teken && !k.klaar && !pauze && zicht && !document.hidden && !reduce && (!k.auto || (!muis && !focus)); }
+    /* Eén ronde, dan stil (review 13 november): alleen in beeld en in een zichtbaar tabblad, geen lus en geen
+       onzichtbare pauzeknop. Reduced motion: meteen de eindstand. */
+    function eenRonde(sectie, duur, teken, rust) {
+      var pos = 0, zicht = false, raf = 0, vorig = 0, klaar = false;
+      function mag() { return !klaar && zicht && !document.hidden && !reduce; }
       function tik(nu) {
         raf = 0; if (!mag()) return;
-        if (vorig) k.pos = Math.min(k.duur, k.pos + Math.min(100, nu - vorig) * k.tempo);
-        vorig = nu; k.teken(k.pos);
-        if (k.pos >= k.duur) {
-          if (!k.herhaal || k.duur <= 0) { k.klaar = true; return; }
-          k.pos = 0; vorig = 0; k.teken(0);
-        }
+        if (vorig) pos = Math.min(duur, pos + Math.min(100, nu - vorig));
+        vorig = nu; teken(pos);
+        if (pos >= duur) { klaar = true; return; }
         raf = requestAnimationFrame(tik);
       }
-      k.kijk = function () {
+      function kijk() {
         if (mag()) { if (!raf) { vorig = 0; raf = requestAnimationFrame(tik); } }
         else if (raf) { cancelAnimationFrame(raf); raf = 0; }
-      };
-      k.speel = function (duur, teken) { k.pos = 0; k.duur = duur; k.teken = teken; k.auto = false; k.klaar = false; k.teken(0); k.kijk(); };
-      k.bezig = function () { return !!k.teken && k.pos > 0 && !k.klaar; };
-      function bediening() {
-        scene.setAttribute('data-paused', String(pauze));
-        if (reduce) {
-          scene.removeAttribute('role'); scene.removeAttribute('tabindex'); scene.removeAttribute('aria-label');
-        } else {
-          scene.setAttribute('role', 'button'); scene.setAttribute('tabindex', '0');
-          scene.setAttribute('aria-label', 'Animatie van de ' + naam + (pauze ? ' hervatten' : ' pauzeren'));
-        }
       }
-      function wissel() {
-        if (reduce) return;
-        pauze = !pauze; muis = false; bediening(); k.kijk();
-      }
-      bediening();
-      scene.addEventListener('click', wissel);
-      scene.addEventListener('keydown', function (e) {
-        if (!reduce && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); wissel(); }
-      });
-      scene.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { muis = true; k.kijk(); } });
-      scene.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { muis = false; k.kijk(); } });
-      function inFocus(node) { return !!(node && sectie.contains(node) && !scene.contains(node)); }
-      sectie.addEventListener('focusin', function (e) { focus = inFocus(e.target); k.kijk(); });
-      sectie.addEventListener('focusout', function (e) { focus = inFocus(e.relatedTarget); k.kijk(); });
-      zichtbaar(sectie, function (aan) { zicht = aan; k.kijk(); });
-      document.addEventListener('visibilitychange', k.kijk);
-      opRM(function () {
-        bediening();
-        if (reduce) { k.pos = 0; k.klaar = false; rust(); }
-        k.kijk();
-      });
-      return k;
+      zichtbaar(sectie, function (aan) { zicht = aan; kijk(); });
+      document.addEventListener('visibilitychange', kijk);
+      opRM(function () { if (reduce) { klaar = true; rust(); } kijk(); });
+      if (reduce) rust();
     }
 
-    /* ---- 01 Editie: de gang van de zon. De telefoon leest de Editie uit tot "Je bent bij.", dan het volgende dagdeel;
-       na een rondje langs ochtend, middag en avond begint de rustige cyclus opnieuw. ---- */
+    /* ---- 01 Editie: de telefoon staat op regel 08 en rolt bij binnenkomst in 1,6 s naar "Je bent bij.". Daar blijft hij.
+       De knoppen Ochtend, Middag en Avond lezen hun dagdeel één keer uit, van boven tot de rode kaart. ---- */
     var TXT = { ochtend: ['Ochtendeditie', 'vanmiddag'], middag: ['Middageditie', 'vanavond'], avond: ['Avondeditie', 'morgenochtend'] };
-    var ORDE = ['ochtend', 'middag', 'avond'], T = { ochtend: 0, middag: .5, avond: 1 };
+    var T = { ochtend: 0, middag: .5, avond: 1 };
     var dagen = $('.dagen'), zon = dagen && $('.dagzon', dagen);
     var scE = $('.sc-editie'), tst = scE && $('.toestel', scE), rol = scE && $('.sc-rol', scE);
-    var huidig = 'ochtend', zt = 0, gekozen = false, zonAnim = 0, kE = null;
+    var huidig = (scE && scE.getAttribute('data-slot')) || 'avond', zt = 0, zonAnim = 0, rolAnim = 0, rolY = 0, aanEind = false;
     function plaats(t) {
       if (!zon) return;
       var w = dagen.clientWidth, h = dagen.clientHeight, u = 1 - t;
@@ -141,15 +60,15 @@
       zon.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
       zt = t;
     }
+    var ZON = 1600;
     function zonNaar(d) {
       var a = zt, b = T[d], id = ++zonAnim;
       if (!zon) return;
-      zon.style.opacity = '1';
       if (reduce || a === b) { plaats(b); return; }
-      var t0 = performance.now(), dur = ZON;
+      var t0 = performance.now();
       (function stap(nu) {
         if (id !== zonAnim) return;
-        var p = Math.min(1, (nu - t0) / dur);
+        var p = Math.min(1, (nu - t0) / ZON);
         plaats(a + (b - a) * ease(p));
         if (p < 1) requestAnimationFrame(stap);
       })(t0);
@@ -164,76 +83,60 @@
       var zicht = scE.clientHeight - tst.offsetTop - tst.clientTop;
       return Math.max(0, rol.offsetTop + rol.offsetHeight - zicht);
     }
-    /* één dagdeel uitlezen duurt SEG ms: even kijken, in twee halen naar beneden, "Je bent bij." laten staan, dan uitfaden */
-    var SEG = 12480, ZON = 1600;
-    function lezen(lijst, eind, metZon) {
-      return function (pos) {
-        var n = lijst.length, i = Math.min(n, Math.floor(pos / SEG)), s = pos - i * SEG;
-        var d = i < n ? lijst[i] : eind;
-        if (d !== huidig) zetTekst(d);
-        var a = i < n ? afstand() : 0, y = 0, op = '1';
-        if (i < n) {
-          if (s >= 2300 && s < 5200) y = a * .55 * ease((s - 2300) / 2900);
-          else if (s >= 5200 && s < 6300) y = a * .55;
-          else if (s >= 6300 && s < 9200) y = a * (.55 + .45 * ease((s - 6300) / 2900));
-          else if (s >= 9200) { y = a; if (s >= 12000) op = '0'; }
-        }
-        rol.style.transform = 'translateY(' + (-y).toFixed(1) + 'px)';
-        if (rol.style.opacity !== op) rol.style.opacity = op;
-        if (!metZon || !zon) return;
-        /* de zon loopt mee naar het volgende dagdeel; van de avond naar de ochtend gaat hij onder en komt aan de andere kant weer op */
-        var k = Math.floor((pos - 12000) / SEG);
-        if (k < 0) { plaats(T[lijst[0]]); zon.style.opacity = '1'; return; }
-        k = Math.min(k, n - 1);
-        var za = T[lijst[k]], zb = T[k + 1 < n ? lijst[k + 1] : eind], q = (pos - k * SEG - 12000) / ZON;
-        if (q >= 1 || za === zb) { plaats(zb); zon.style.opacity = '1'; }
-        else if (zb < za) { if (q < .325) { plaats(za); zon.style.opacity = '0'; } else { plaats(zb); zon.style.opacity = '1'; } }
-        else { plaats(za + (zb - za) * ease(q)); zon.style.opacity = '1'; }
-      };
+    function zet(y) { rolY = y; rol.style.transform = 'translateY(' + (-y).toFixed(1) + 'px)'; }
+    /* waar regel 08 bovenaan het scherm staat (de lijst begint bij 03, dus het zesde item) */
+    function bij08() {
+      var li = $$('.sc-rest li', rol)[5]; if (!li) return 0;
+      return Math.min(afstand(), Math.max(0, li.getBoundingClientRect().top - rol.getBoundingClientRect().top - 24));
     }
-    function rustE() {
-      zonAnim++;
-      if (rol) { rol.style.transition = reduce ? 'none' : 'opacity .45s ease'; rol.style.transform = 'translateY(0)'; rol.style.opacity = '1'; }
-      if (zon) zon.style.opacity = '1';
-      if (!gekozen) zetTekst(R.getAttribute('data-dagdeel') || 'ochtend');
-      plaats(T[huidig]);
+    function rolNaar(van, naar, duur, wacht, klaar) {
+      var id = ++rolAnim, t0 = 0;
+      if (reduce || duur <= 0) { zet(naar); if (klaar) klaar(); return; }
+      zet(van);
+      (function stap(nu) {
+        if (id !== rolAnim) return;
+        if (!t0) t0 = nu + (wacht || 0);
+        var p = Math.max(0, Math.min(1, (nu - t0) / duur));
+        zet(van + (naar - van) * ease(p));
+        if (p < 1) requestAnimationFrame(stap); else if (klaar) klaar();
+      })(performance.now());
     }
+    function eindstand() { rolAnim++; aanEind = true; zet(afstand()); }
     function kiesDag(d) {
-      gekozen = true;
       zonNaar(d);
-      if (!kE || reduce) { zetTekst(d); return; }
-      /* de bezoeker kiest zelf: dat dagdeel wordt één keer uitgelezen, daarna staat hij weer bovenaan */
-      zetTekst(d); kE.speel(SEG, lezen([d], d, false));
+      if (reduce || !rol) { zetTekst(d); if (rol) eindstand(); return; }
+      /* even uit, de nieuwe Editie bovenaan, dan één keer uitlezen tot de rode kaart */
+      var id = ++rolAnim; aanEind = false;
+      rol.style.opacity = '0';
+      setTimeout(function () {
+        if (id !== rolAnim) return;
+        zetTekst(d); zet(0); rol.style.opacity = '1';
+        rolNaar(0, afstand(), 3600, 700, function () { aanEind = true; });
+      }, 260);
     }
     $$('.dag').forEach(function (b) { b.addEventListener('click', function () { kiesDag(b.getAttribute('data-dag')); }); });
-    window.hootDagdeel = function (d) {
-      /* de held en De Redacteur tonen een echte Editie (live of bewaard, data-vast): die naam blijft staan */
-      $$('.held .js-editie').forEach(function (s) { if (!s.hasAttribute('data-live') && !s.hasAttribute('data-vast')) s.textContent = TXT[d][0]; });
-      $$('.js-rd-editie').forEach(function (s) { if (!s.hasAttribute('data-live') && !s.hasAttribute('data-vast')) s.textContent = TXT[d][0]; });
-      if (!gekozen && !(kE && kE.bezig())) { zetTekst(d); plaats(T[d]); }
-    };
-    window.hootDagdeel(R.getAttribute('data-dagdeel') || 'ochtend');
-    if (dagen) addEventListener('resize', function () { plaats(zt); });
     if (scE && rol && tst) {
-      rol.style.transition = 'opacity .45s ease';
-      kE = klok(scE.closest('.band'), scE, rustE);
-      kE.tempo = .6;
-      opRM(function () { rol.style.transition = reduce ? 'none' : 'opacity .45s ease'; });
-      /* de automatische ronde begint bij het dagdeel van nu en eindigt daar ook weer */
-      var autoE = null;
-      kE.teken = function (pos) {
-        if (!autoE) { var j = ORDE.indexOf(huidig); autoE = lezen([ORDE[j], ORDE[(j + 1) % 3], ORDE[(j + 2) % 3]], ORDE[j], true); }
-        autoE(pos);
+      rol.style.transition = 'opacity .25s ease';
+      zetTekst(huidig); plaats(T[huidig]);
+      var binnen = false;
+      var kom = function () {
+        if (binnen) return; binnen = true;
+        rolNaar(bij08(), afstand(), 1600, 250, function () { aanEind = true; });
       };
-      /* de ronde loopt door tot de zon zijn laatste stap naar het dagdeel van nu heeft afgemaakt: een nette eindstand */
-      kE.duur = 2 * SEG + 12000 + ZON;
-      kE.kijk();
+      if (reduce || !IO) eindstand(); else {
+        zet(bij08());
+        var ioE = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { ioE.disconnect(); kom(); } }, { threshold: .4 });
+        ioE.observe(scE);
+      }
+      opRM(function () { if (reduce) { eindstand(); plaats(T[huidig]); } });
+      addEventListener('resize', function () { plaats(zt); if (aanEind) zet(afstand()); });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (aanEind) zet(afstand()); else if (!binnen) zet(bij08()); });
     }
 
-    /* ---- 02 Stroom: de voorbeeldrubrieken wisselen rustig en herhalen vanaf Alles. ---- */
+    /* ---- 02 Stroom: de voorbeeldrubrieken wisselen één ronde en staan dan weer op Alles. ---- */
     var scS = $('.sc-stroom'), rij = scS && $('.sc-tabrij', scS), ind = rij && $('.sc-ind', rij);
     if (scS) {
-      var RUB = ['alles', 'binnenland', 'wereld', 'cultuur'], ri = 0, STAP = 6500;
+      var RUB = ['alles', 'binnenland', 'wereld', 'cultuur'], ri = 0, STAP = 6500, DUUR = RUB.length * STAP;
       var toon = function (k, anim) {
         $$('[data-m]', rij).forEach(function (m) {
           var aan = m.getAttribute('data-m') === k; m.className = aan ? 'on' : '';
@@ -246,28 +149,22 @@
       };
       toon('alles', false);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { toon(RUB[ri], false); });
-      var kS = klok(scS.closest('.band'), scS, function () { ri = 0; toon('alles', false); $$('.water', scS).forEach(function (w) { w.style.backgroundPosition = ''; }); });
-      kS.duur = RUB.length * STAP;
       var water = $$('.water', scS);
-      kS.teken = function (pos) {
+      eenRonde(scS.closest('.band'), DUUR, function (pos) {
         var i = Math.floor(pos / STAP) % RUB.length;
         if (i !== ri) { ri = i; toon(RUB[ri], true); }
-        water.forEach(function (w, j) { w.style.backgroundPosition = (Math.sin(2 * Math.PI * pos / kS.duur) * (j ? -5 : 8)).toFixed(2) + 'px 0'; });
-      };
-      kS.kijk();
+        water.forEach(function (w, j) { w.style.backgroundPosition = (Math.sin(2 * Math.PI * pos / DUUR) * (j ? -5 : 8)).toFixed(2) + 'px 0'; });
+      }, function () { ri = 0; toon('alles', false); water.forEach(function (w) { w.style.backgroundPosition = ''; }); });
     }
 
-    /* ---- 03 Selectie: de herkenbare ringen bewegen hooguit 2,5%, in een cyclus van 24 s. ---- */
+    /* ---- 03 Selectie: de ringen ademen één keer, hooguit 2,5%. ---- */
     var scV = $('.sc-selectie');
     if (scV) {
       var ringen = $$('.rg', scV);
-      var kV = klok(scV.closest('.band'), scV, function () { ringen.forEach(function (r) { r.style.transform = ''; }); });
-      kV.duur = 24000;
-      kV.teken = function (pos) {
-        var golf = Math.sin(2 * Math.PI * pos / kV.duur);
+      eenRonde(scV.closest('.band'), 24000, function (pos) {
+        var golf = Math.sin(2 * Math.PI * pos / 24000);
         ringen.forEach(function (r, i) { r.style.transform = 'scale(' + (1 + golf * (.015 + i * .005)).toFixed(4) + ')'; });
-      };
-      kV.kijk();
+      }, function () { ringen.forEach(function (r) { r.style.transform = ''; }); });
     }
 
     /* parallax: de zon komt op terwijl de band in beeld schuift, het scherm schuift een tikje mee */
@@ -303,6 +200,23 @@
       ioH.observe(scH);
     }
 
+    /* held vanaf 1100: de horizon ligt op de basislijn van "einde." (review 13 november). De tekst staat verticaal in het
+       midden en het toestel heeft een vaste hoogte, dus het verschil hangt af van de breedte: meten en de zon met
+       horizon zoveel verschuiven. Daaronder staat de held anders en blijft alles op zijn plek. */
+    var zpH = $('.zp-held'), h1L = $('.held h1 .rgl:last-child');
+    function horizon() {
+      if (!zpH || !h1L) return;
+      zpH.style.translate = '';
+      if (innerWidth < 1100) return;
+      var m = document.createElement('i'); m.style.cssText = 'display:inline-block;width:0;height:0';
+      h1L.appendChild(m);
+      var d = zpH.getBoundingClientRect().bottom - m.getBoundingClientRect().bottom;
+      h1L.removeChild(m);
+      zpH.style.translate = '0 ' + (-d).toFixed(1) + 'px';
+    }
+    horizon(); addEventListener('resize', horizon);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(horizon);
+
     /* "Je weet genoeg.": de punt stuitert één keer als de slotband in beeld komt */
     var einde = $('.einde');
     if (einde) {
@@ -314,40 +228,33 @@
       } else einde.classList.add('stuit');
     }
 
-    /* ---- 04 De Redacteur: de waarom-regels op de hoogte van de regel in het scherm (zoals concept v3) ---- */
+    /* ---- 04 Hoot kiest: vanaf 900 breed de waarom-regels op de hoogte van hun markering in het scherm, met een lijntje
+       dat 4 px naast de markering zelf eindigt. Daaronder (tablet en telefoon) een gewone lijst, zonder wijzers. ---- */
     var pod = $('.podium');
     function lijn() {
       if (!pod) return;
-      if (innerWidth < 720) {
-        $$('.uitleg li', pod).forEach(function (li) { li.classList.remove('weg'); li.style.removeProperty('top'); li.style.removeProperty('--lijnw'); });
-        pod.style.minHeight = ''; pod.classList.add('klaar'); /* mobiel: alle drie de regels onder de telefoon, als gewone tekst */
+      if (innerWidth < 900) {
+        $$('.uitleg li', pod).forEach(function (li) { li.style.removeProperty('top'); li.style.removeProperty('--lijnw'); });
+        pod.classList.add('klaar');
         return;
       }
-      var mob = false, desk = innerWidth >= 900, pr = pod.getBoundingClientRect(), gap = desk ? 10 : 6;
-      var scope = mob ? $('.rd-tel', pod) : pod, onder = 0, vol = false; /* mobiel: de regels in de telefoon; anders de iPad (staat eerst) */
+      var pr = pod.getBoundingClientRect(), gap = 10, DOT = 9, LUCHT = 4;
       $$('.uitleg li', pod).forEach(function (li) {
-        li.classList.remove('weg');
-        var m = $('[data-w="' + li.getAttribute('data-bij') + '"]', scope); if (!m) return;
-        var r = m.parentElement.getBoundingClientRect();
-        var top = r.top + r.height / 2 - pr.top - 8;
-        /* mobiel: past een regel niet meer onder de vorige, dan vallen hij en de rest weg (de belangrijkste blijven staan, zoals v3) */
-        if (mob && (vol || top < onder)) { vol = true; li.classList.add('weg'); return; }
-        li.style.top = top.toFixed(1) + 'px';
-        var lr = li.getBoundingClientRect();
-        if (mob) onder = lr.bottom - pr.top + 12;
-        var links = desk && li.classList.contains('l');
-        var w = links ? (r.left - 4 - 9) - (lr.right + gap) : (lr.left - gap) - (r.right + 10 + 9);
+        var m = $('.ipad [data-w="' + li.getAttribute('data-bij') + '"]', pod); if (!m) return;
+        var r = m.getBoundingClientRect();
+        li.style.top = (r.top + r.height / 2 - pr.top - 7.5).toFixed(1) + 'px';
+        var lr = li.getBoundingClientRect(), links = li.classList.contains('l');
+        var w = links ? (r.left - LUCHT - DOT) - (lr.right + gap) : (lr.left - gap) - (r.right + LUCHT + DOT);
         li.style.setProperty('--lijnw', Math.max(16, w).toFixed(1) + 'px');
       });
-      pod.style.minHeight = mob && onder ? Math.ceil(onder - 12) + 'px' : '';
       pod.classList.add('klaar');
     }
     /* Eén beslisregel voor de markering op de kaart én de uitleg ernaast, uit het aantal bronnen per verhaal.
        Bovenaan: vijf of meer bronnen is groot nieuws, twee of meer is meerdere bronnen. Tweede kaart: meerdere bronnen als dat nog vrij is,
        anders ook het lezen waard (één bron). Derde kaart: buiten je bubbel. De pagina kent de bronnen van de bezoeker niet, dus geen 'jouw kranten'. */
     var REDEN = {
-      groot: ['Groot nieuws', 'Veel bronnen schrijven erover. Dit wil je weten.'],
-      meer: ['Meerdere bronnen', 'Niet één krant, maar meerdere vinden het belangrijk.'],
+      groot: ['Groot nieuws', 'Veel bronnen schrijven erover.'],
+      meer: ['Meerdere bronnen', 'Meer dan één bron schrijft erover.'],
       eigen: ['Ook het lezen waard', 'Eén bron schrijft erover, en het is de moeite waard.'],
       bubbel: ['Buiten je bubbel', 'Iets wat je anders niet had gelezen.']
     };
@@ -375,10 +282,22 @@
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(lijn);
     }
 
-    /* Live: de echte Editie van vandaag in dezelfde vorm (held en De Redacteur). Alleen kop, bron, rubriek en
+    /* Zelfde onderwerp? Twee koppen delen een woorddeel van minstens zeven letters ("Belastingplan" en
+       "vermogenswinstbelasting"). Dan is de bubbel geen bubbel naast plek 01: de bewaarde Editie blijft staan. */
+    function woorden(s) { return String(s || '').toLowerCase().split(/[^a-zà-ÿ0-9]+/).filter(function (w) { return w.length >= 7; }); }
+    function overlap(a, b) {
+      var A = woorden(a), B = woorden(b);
+      return A.some(function (x) {
+        for (var i = 0; i + 7 <= x.length; i++) { var g = x.substr(i, 7); if (B.some(function (y) { return y.indexOf(g) >= 0; })) return true; }
+        return false;
+      });
+    }
+    window.hootOverlap = overlap; /* voor de toetsen en de nameting */
+
+    /* Live: de echte Editie van vandaag in dezelfde vorm (held en Hoot kiest). Alleen kop, bron, rubriek en
        aantal bronnen wisselen; geen beeld van uitgevers, geen intro, geen tijdstip. Weet de server de rubriek
-       niet zeker (deskLabel null), dan staat er alleen het nummer. Faalt het ophalen, of zijn er geen drie
-       verschillende redenen, dan blijft de bewaarde Editie staan (echte koppen, met haar eigen datum). */
+       niet zeker (deskLabel null), dan staat er alleen het nummer. Faalt het ophalen binnen 1,5 s, of zijn er geen
+       drie verschillende redenen, dan blijft de bewaarde Editie staan (echte koppen, met haar eigen datum). */
     var LIVE = true;
     var SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' };
     function ini(b) { return b.replace(/^(de|het|the)\s+/i, '').charAt(0).toUpperCase(); }
@@ -389,6 +308,10 @@
     function vandaagIso() {
       try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); } catch (e) { return ''; }
     }
+    function dagnr(iso) { var t = Date.parse(iso + 'T00:00:00Z'); return isFinite(t) ? Math.round(t / 864e5) : NaN; }
+    /* De terugval: is de bewaarde Editie ouder dan een dag, dan geen datum (hij is echt, maar niet van gisteren of vandaag). */
+    var vd = dagnr(vandaagIso());
+    $$('.js-datum[data-vast]').forEach(function (s) { if (vd - dagnr(s.getAttribute('data-iso')) > 1) s.textContent = ''; });
     /* 'Vandaag' alleen als de Editie van vandaag is; anders de dag zelf ("11 november"). Nooit een tijdstip. */
     function wanneer(iso) {
       if (iso && iso === vandaagIso()) return 'Vandaag';
@@ -414,51 +337,58 @@
       if (n >= 2 && !$('mark', it)) { if (!kn) { kn = document.createElement('b'); kn.className = 'k-n'; sp.parentNode.insertBefore(kn, sp.nextSibling); } kn.textContent = n + ' bronnen'; } else weg(kn); /* in Hoot kiest staat het aantal al in de markering */
     }
     function zetNaam(sel, slot) { $$(sel).forEach(function (s) { s.textContent = slot; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); }); }
+    /* de wissel van bewaard naar live: 0,2 s uit, invullen, 0,2 s aan (zonder beweging meteen) */
+    function wissel(el, fn) {
+      if (!el || reduce) { fn(); return; }
+      el.classList.add('wissel');
+      setTimeout(function () { fn(); el.classList.remove('wissel'); }, 200);
+    }
     if (LIVE && window.fetch) {
-      var haal = function () {
-        var ac = window.AbortController ? new AbortController() : null;
-        var to = setTimeout(function () { if (ac) ac.abort(); }, 5000);
-        fetch('/api/voorpagina', { headers: { accept: 'application/json' }, signal: ac ? ac.signal : undefined })
-          .then(function (r) {
-            if (!r.ok || !/json/i.test(r.headers.get('content-type') || '')) throw 0;
-            return r.json();
-          })
-          .then(function (d) {
-            var ed = d && d.edition, en = ed && ed.entries, slot = ed && SLOT[ed.slot];
-            if (!slot || !en) throw 0;
-            en = en.filter(function (x) { return x && typeof x.title === 'string' && x.title; });
-            if (en.length < 3) throw 0;
-            /* plek 1 en 2 uit de Editie; plek 3 is de echte 'Buiten je bubbel' als die er is */
-            var lijst = en.slice(0, 2).concat([ed.bubble && ed.bubble.title ? ed.bubble : en[2]]);
-            var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns, !!(ed.bubble && ed.bubble.title));
-            if (!rd) throw 0; /* geen drie verschillende redenen (ook zonder bubbel): de bewaarde Editie blijft staan */
-            var dag = '', wn = wanneer(ed.date);
-            try { dag = new Date(ed.date + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
-            /* held: het hoofdverhaal */
-            var lead = $('.js-held-lead');
-            if (lead) {
-              vul(lead, lijst[0], ns[0] >= 5 ? 'Groot nieuws' : (ns[0] >= 2 ? ns[0] + ' bronnen schrijven erover' : 'Ook het lezen waard'), false, wn);
-              zetNaam('.held .js-editie', slot);
-              $$('.held .js-datum').forEach(function (s) { if (dag) s.textContent = dag; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); });
-              var fig = $('.js-held-toestel'); if (fig) fig.setAttribute('aria-label', 'De ' + slot + ' van ' + (wn === 'Vandaag' ? 'vandaag' : dag) + ' op iPhone, met het hoofdverhaal: ' + lijst[0].title);
-            }
-            /* De Redacteur: iPad en telefoon krijgen dezelfde drie verhalen */
-            if (pod) {
-              $$('.toestel', pod).forEach(function (fig) {
-                var items = $$('.rd-item', fig).filter(function (it) { return $('mark', it); });
-                lijst.forEach(function (x, i) { if (items[i]) vul(items[i], x, null, true, wn); });
-              });
-              zetNaam('.js-rd-editie', slot);
-              $$('.sc-sub[data-vast]', pod).forEach(function (s) { if (dag) s.textContent = dag; s.removeAttribute('data-vast'); });
-              zetRedenen(ns, rd);
-              pod.setAttribute('data-bron', 'live');
-              lijn();
-            }
-          })
-          .catch(function () { if (pod) pod.setAttribute('data-bron', 'bewaard'); })
-          .then(function () { clearTimeout(to); });
-      };
-      haal(); /* de held staat bovenaan: meteen ophalen, de API is klein en wordt gecachet */
+      var ac = window.AbortController ? new AbortController() : null;
+      var to = setTimeout(function () { if (ac) ac.abort(); }, 1500);
+      fetch('/api/voorpagina', { headers: { accept: 'application/json' }, signal: ac ? ac.signal : undefined })
+        .then(function (r) {
+          if (!r.ok || !/json/i.test(r.headers.get('content-type') || '')) throw 0;
+          return r.json();
+        })
+        .then(function (d) {
+          var ed = d && d.edition, en = ed && ed.entries, slot = ed && SLOT[ed.slot];
+          if (!slot || !en) throw 0;
+          en = en.filter(function (x) { return x && typeof x.title === 'string' && x.title; });
+          if (en.length < 3) throw 0;
+          var bub = ed.bubble && ed.bubble.title ? ed.bubble : null;
+          /* plek 1 en 2 uit de Editie; plek 3 is de echte 'Buiten je bubbel' als die er is */
+          var lijst = en.slice(0, 2).concat([bub || en[2]]);
+          var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns, !!bub);
+          /* Hoot kiest blijft bewaard als er geen drie verschillende redenen zijn, of als de bubbel over hetzelfde gaat
+             als plek 01 (dan klopt "Iets wat je anders niet had gelezen" niet). De held toont hoe dan ook de Editie van nu. */
+          var kiesLive = !!rd && !(bub && overlap(bub.title, en[0].title));
+          var dag = '', wn = wanneer(ed.date), vannu = wn === 'Vandaag';
+          try { dag = new Date(ed.date + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+          /* held: het hoofdverhaal, de regel bij het toestel en het label van de link */
+          var lead = $('.js-held-lead');
+          if (lead) wissel(lead, function () {
+            vul(lead, lijst[0], ns[0] >= 5 ? 'Groot nieuws' : (ns[0] >= 2 ? ns[0] + ' bronnen schrijven erover' : 'Ook het lezen waard'), false, wn);
+            zetNaam('.held .js-editie', slot);
+            $$('.held .js-datum').forEach(function (s) { s.textContent = dag; s.removeAttribute('data-vast'); s.setAttribute('data-live', ''); });
+            var a = $('.js-held-link'); if (a) a.setAttribute('aria-label', 'De ' + slot + (vannu ? ' van nu' : ' van ' + dag) + ', met het hoofdverhaal: ' + lijst[0].title + '. Lees verder in Hoot');
+          });
+          /* Hoot kiest: iPad en telefoon krijgen dezelfde drie verhalen */
+          if (pod && !kiesLive) pod.setAttribute('data-bron', 'bewaard');
+          if (pod && kiesLive) wissel(pod, function () {
+            $$('.toestel', pod).forEach(function (fig) {
+              var items = $$('.rd-item', fig).filter(function (it) { return $('mark', it); });
+              lijst.forEach(function (x, i) { if (items[i]) vul(items[i], x, null, true, wn); });
+            });
+            zetNaam('.js-rd-editie', slot);
+            $$('.sc-sub[data-vast]', pod).forEach(function (s) { s.textContent = dag; s.removeAttribute('data-vast'); });
+            zetRedenen(ns, rd);
+            pod.setAttribute('data-bron', 'live');
+            lijn();
+          });
+        })
+        .catch(function () { if (pod) pod.setAttribute('data-bron', 'bewaard'); })
+        .then(function () { clearTimeout(to); });
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
