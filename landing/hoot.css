@@ -610,3 +610,10 @@ html.ios .verder-rij .wacht{order:-1}
 .vh-stip button[aria-pressed=true]::before{background:var(--accent);transform:scale(1.25)}
 @media (prefers-reduced-motion:reduce){.vh-stapel img.erbij{animation:none}}
 @media (min-width:900px){.bronnen .kol{padding-bottom:var(--s7)}}
+
+/* ---- de rij bronnen boven de vragen: pillen met logo en naam, over de volle breedte, de randen lopen zacht uit ---- */
+.bronrij{overflow:hidden;margin-bottom:var(--s7);-webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.bronrij-in{display:flex;gap:10px;width:max-content;margin:0;padding:2px 0;list-style:none;cursor:grab;touch-action:pan-y;will-change:transform;user-select:none;-webkit-user-select:none}
+.bronrij-in.sleep{cursor:grabbing}
+.bronrij-in li{display:flex;align-items:center;gap:10px;height:48px;padding:0 18px 0 6px;border-radius:999px;background:var(--s-card);box-shadow:inset 0 0 0 1px var(--lijn);font:800 1.125rem/1 var(--kop);letter-spacing:-.012em;white-space:nowrap}
+.bronrij-in img{flex:none;width:36px;height:36px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(26,24,20,.12);object-fit:cover;pointer-events:none}

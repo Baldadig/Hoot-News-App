@@ -33,9 +33,9 @@ const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 
 const BEWAARD = JSON.parse(readFileSync(new URL('../landing/bewaard.json', import.meta.url), 'utf8'))
 const velden = (aan) => {
   const as = appStore(aan), lijst = vragen({ aantal: SOURCES.length, appUrl: as.APP_URL_VRAAG })
-  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.' }
+  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.', BRONRIJ: '<li>NOS</li>' }
 }
-const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
+const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|BRONRIJ|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
 const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/ ([.,])/g, '$1')
 
 test('landing: overal dezelfde accountzin, en het account in de eerste vraag', () => {
@@ -387,4 +387,12 @@ test('review 13 november: de gedeelde kaart zegt waar hij vandaan komt, met herk
   const html = await r.text()
   assert.match(html, /<a href="\/\?via=deel">Gedeeld vanuit Hoot\.<\/a> Tien verhalen, drie keer per dag\. Dan ben je bij\./)
   assert.match(html, /<a href="\/\?via=deel"><b>hoot\.<\/b><\/a>/)
+})
+
+test('de rij bronnen boven de vragen: elk merk één keer, eigen logo-bestanden, de tweede helft verborgen voor schermlezers', () => {
+  assert.match(SRC, /<div class="bronrij js-bronrij"><ul class="bronrij-in" aria-label="Een greep uit de bronnen">\{\{BRONRIJ\}\}<\/ul><\/div>/)
+  assert.ok(SRC.indexOf('js-bronrij') > SRC.indexOf('id="vragen"') && SRC.indexOf('js-bronrij') < SRC.indexOf('id="h-vragen"'))
+  assert.match(BUILD, /const DUBBEL = \/\^\(nos-\|guardian-\|bbc-sport\|npr-music\|politico-eu\)\//)
+  assert.match(BUILD, /rijBronnen\.map\(\(x\) => pilR\(x, false\)\)\.join\(''\) \+ rijBronnen\.map\(\(x\) => pilR\(x, true\)\)/)
+  assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /if \(!reduce && !brSleep && !document\.hidden\) brX -= 30 \* dt \* brRem/)
 })

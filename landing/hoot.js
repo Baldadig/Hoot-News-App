@@ -217,6 +217,32 @@
       };
     }
 
+    /* ---- de rij bronnen boven de vragen: drijft langzaam naar links, alleen in beeld. Aanwijzen zet hem stil, slepen
+       verschuift hem. Verminder beweging: stil (slepen kan nog). ---- */
+    var br = $('.js-bronrij'), brIn = br && $('.bronrij-in', br);
+    if (brIn) {
+      var brX = 0, brHalf = 0, brZicht = false, brRem = 1, brDoel = 1, brSleep = false, brPx = 0, brVorig = 0;
+      var brMeet = function () { brHalf = brIn.scrollWidth / 2; };
+      brMeet(); addEventListener('resize', brMeet); addEventListener('load', brMeet);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(brMeet);
+      brIn.addEventListener('mouseenter', function () { brDoel = 0; });
+      brIn.addEventListener('mouseleave', function () { if (!brSleep) brDoel = 1; });
+      brIn.addEventListener('pointerdown', function (e) { brSleep = true; brPx = e.clientX; brIn.classList.add('sleep'); try { brIn.setPointerCapture(e.pointerId); } catch (x) {} });
+      brIn.addEventListener('pointermove', function (e) { if (brSleep) { brX += e.clientX - brPx; brPx = e.clientX; } });
+      var brLos = function (e) { brSleep = false; brIn.classList.remove('sleep'); if (e.pointerType !== 'mouse') brDoel = 1; };
+      brIn.addEventListener('pointerup', brLos); brIn.addEventListener('pointercancel', brLos);
+      zichtbaar(br, function (aan) { brZicht = aan; if (aan) { brVorig = 0; requestAnimationFrame(brTik); } });
+      var brLoopt = false;
+      var brTik = function (nu) {
+        if (brLoopt && nu === undefined) return;
+        var dt = Math.min(50, nu - (brVorig || nu)) / 1000; brVorig = nu; brRem += (brDoel - brRem) * Math.min(1, dt * 6);
+        if (!reduce && !brSleep && !document.hidden) brX -= 30 * dt * brRem;
+        if (brHalf) { while (brX <= -brHalf) brX += brHalf; while (brX > 0) brX -= brHalf; }
+        brIn.style.transform = 'translateX(' + brX.toFixed(1) + 'px)';
+        if (brZicht) { brLoopt = true; requestAnimationFrame(brTik); } else brLoopt = false;
+      };
+    }
+
     /* parallax: de zon komt op terwijl de band in beeld schuift, het scherm schuift een tikje mee */
     var scenes = $$('[data-scene]');
     if (!reduce && IO && scenes.length) {
