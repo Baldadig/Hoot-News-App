@@ -153,7 +153,9 @@ const ochtendMetId = { id: '2026-10-30-ochtend', ...ochtend }
 const AVOND = Date.parse('2026-10-30T16:00:00Z')
 
 test('T4 H3: previous over de laatste drie Edities — wat in de Ochtend stond, komt in de Avond niet terug zonder ontwikkeling', () => {
-  const extra2 = art('pw-extra2', 'rtl', 'Fans leggen bloemen bij het theater van Patrick Stewart', new Date(AVOND - 36e5).toISOString())
+  // Leeftijd (13 november 2026): ook de persoonlijke Editie neemt de kop uit een stuk van ná de vorige Editie dat bij het
+  // verhaal hoort (sinceLast, linkedItems); dit stuk noemt daarom de gebeurtenis zelf (was: alleen "bloemen bij het theater").
+  const extra2 = art('pw-extra2', 'rtl', 'Patrick Stewart (1940-2026) overleden: fans leggen bloemen bij zijn theater', new Date(AVOND - 36e5).toISOString())
   const st = { ...stStewart, itemIds: [...stewart.map((s) => s.id), extra.id, extra2.id], sourceCount: 12, latestAt: extra2.publishedAt }
   const sts = [st, stFresh, ...small.map((s) => s.st)]
   const p = [...pool, extra2]

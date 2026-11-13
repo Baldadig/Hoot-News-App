@@ -60,7 +60,7 @@ export function makeGolden(snap = loadSnapshot()) {
     // De ingekorte invoer moet dezelfde plekken geven als de hele momentopname. Vergeleken op wat de
     // plek is (verhaal, hoofdbericht, rubriek, waarom); itemIds, title en keys komen uit het verhaal
     // zelf en staan sinds P5b/H2 al in de uitvoer van composePersonal, dus aan beide kanten.
-    const plek = ({ _parts, _front, itemIds, title, keys, ...e }) => e
+    const plek = ({ _parts, _front, _running, itemIds, title, keys, ...e }) => e
     const same = JSON.stringify(full.entries.map(plek)) === JSON.stringify(output.entries.map(plek))
     if (!same) throw new Error(`${c.name}: de ingekorte invoer geeft een andere Editie dan de momentopname`)
     return { name: c.name, input, output }

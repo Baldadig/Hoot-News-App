@@ -333,12 +333,14 @@ export function jitter(seed, id) {
 }
 
 // ---------- 3. Tempo: hoe lang een los bericht van een bron meedoet ----------
-// Een bron die elk uur publiceert, heeft na 14 uur genoeg nieuws; een die eens per dag of twee
+// Een bron die elk uur publiceert, heeft na 10 uur genoeg nieuws; een die eens per dag of twee
 // publiceert (Carbon Brief, Quanta, The Atlantic) krijgt tot drie dagen. Venster = 3 × de
-// mediane tussentijd van de elf nieuwste stukken, tussen 14 en 72 uur.
+// mediane tussentijd van de elf nieuwste stukken, tussen 10 en 72 uur. Leeftijd (13 november 2026): de ondergrens was 14
+// uur; die geldt ook voor de ochtendaanvulling (netlify/lib/aanvulling.mjs). Met een vorige Editie moet een los stuk
+// bovendien van daarna zijn (selectForReader), in de algemene en de persoonlijke Editie.
 export const TEMPO_LATEST = 11
 export const TEMPO_FACTOR = 3
-export const TEMPO_MIN_H = 14
+export const TEMPO_MIN_H = 10
 export const TEMPO_MAX_H = 72
 export const TEMPO_NO_GAP_H = 24 // één stuk: geen tussentijd, reken met een dag
 export function tempoWindows(items = []) {

@@ -91,7 +91,9 @@ test('nl-opening: niet voor een gezakt verhaal (in je vorige Editie, geen nieuw 
   w.pool.push(extra)
   kab.itemIds.push(extra.id)
   kab.latestAt = extra.publishedAt
-  const vorige = { id: '2026-11-11-avond', builtAt: new Date(NOW - 36e5).toISOString(), entries: [{ kind: 'story', id: 's-kab', leadId: old[0], desk: 'binnenland', itemIds: old, title: w.pool.find((i) => i.id === old[0]).title }] }
+  // De vorige Editie van drie uur geleden: de andere verhalen (van twee uur geleden) zijn van daarna. Sinds 13 november (leeftijd)
+  // komt ook in de persoonlijke Editie de kop uit een stuk van ná de vorige Editie (was: een uur geleden).
+  const vorige = { id: '2026-11-11-avond', builtAt: new Date(NOW - 3 * 36e5).toISOString(), entries: [{ kind: 'story', id: 's-kab', leadId: old[0], desk: 'binnenland', itemIds: old, title: w.pool.find((i) => i.id === old[0]).title }] }
   const sel = run(w, prof(TP), { previous: previousOf(vorige) })
   const e = sel.find((x) => x.id === 's-kab')
   assert.ok(e && e.held && !e.front, sel.map((x) => `${x.id}:${!!x.held}`).join())

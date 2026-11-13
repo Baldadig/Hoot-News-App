@@ -497,8 +497,9 @@ test('bij gelijke grootte gaat nieuws voor een luchtig verhaal (3b · ronde 4 ·
       const pubs = new Set(its.map((i) => i.source)).size
       stories.push({ id, itemIds: its.map((i) => i.id), sourceCount: pubs, publisherCount: pubs, latestAt: its.map((i) => i.publishedAt).sort().at(-1), desk })
     }
-    // Het nieuws is ouder (13 uur), het luchtige verhaal vers (1 uur); verder even groot.
-    story('nieuws', ['bbc', 'guardian', 'nyt', 'lemonde'].map((s) => art(s, 'Chilean parliament rejects pension reform in Santiago', 13)), 'buitenland')
+    // Het nieuws is ouder (11 uur, net binnen het verhaalvenster van 12 uur; was 13 bij een venster van 24), het luchtige
+    // verhaal vers (1 uur); verder even groot. Ook met de leeftijdsstraf (13 november 2026) gaat het nieuws voor.
+    story('nieuws', ['bbc', 'guardian', 'nyt', 'lemonde'].map((s) => art(s, 'Chilean parliament rejects pension reform in Santiago', 11)), 'buitenland')
     story('luchtig', lightPubs.map((s) => art(s, 'Governor declares gold-covered ballroom a national monument', 1)), 'buitenland')
     story('n0', ['nos', 'nrc', 'volkskrant'].map((s) => art(s, 'Kabinet presenteert stikstofwet in Den Haag', 1)), 'binnenland')
     story('n1', ['ad', 'nu', 'rtl'].map((s) => art(s, 'Inflatie in Nederland stijgt naar 3,7 procent', 1)), 'binnenland')
@@ -576,13 +577,14 @@ test('de Nederlandse kop geeft dezelfde actuele stand: geen ingehaalde vooruitbl
     art('guardian', 'Velor rejects reform as Hanno Kreisler loses referendum', 3),
     art('nos', 'Velor naar de stembus: Hanno Kreisler hoopt op ja, hier wordt het verschil gemaakt', 10),
   ], 'nyt')
-  // Een beursval: het Nederlandse stuk is van de avond ervoor (19 uur), de Engelse kop van een uur geleden. Hetzelfde feit
-  // (de koersval), dus de Nederlandse kop (ronde 8 · 1: geen leeftijdsgrens meer binnen het verhaalvenster).
+  // Een beursval: het Nederlandse stuk is van de avond ervoor (11 uur; was 19 bij een kopgrens van 24 uur), de Engelse kop
+  // van een uur geleden. Hetzelfde feit (de koersval), dus de Nederlandse kop (ronde 8 · 1: geen leeftijdsgrens meer binnen
+  // het verhaalvenster; dat is sinds 13 november 2026 12 uur).
   const stocks = story('stocks', [
     art('nyt', 'Asian Markets Follow Nasdaq Lower as Nvidia Slides', 1),
     art('ft', 'Nvidia slide drags Asian stocks after Nasdaq fall', 2),
     art('bbc', 'Nvidia and Nasdaq fall hits markets in Asia', 2),
-    art('nos', 'Nvidia krijgt klappen op Wall Street, Nasdaq 4 procent omlaag', 19),
+    art('nos', 'Nvidia krijgt klappen op Wall Street, Nasdaq 4 procent omlaag', 11),
   ], 'nyt')
   // Een gewone gebeurtenis met een Nederlands stuk van een paar uur eerder: dat wordt de kop.
   const quake = story('quake', [
@@ -603,8 +605,12 @@ test('de Nederlandse kop geeft dezelfde actuele stand: geen ingehaalde vooruitbl
   const later = dutchHeads([quake].map((e) => ({ ...e })), { itemsOf, mainIds: MAIN_IDS, now: T, since: T - 3 * 36e5 })
   assert.equal(of(later[0]).source, 'nyt')
   // Met een vorige Editie van daarna valt ook de Nederlandse kop van de avond ervoor af (actualiteit).
-  const stocksLater = dutchHeads([stocks].map((e) => ({ ...e })), { itemsOf, mainIds: MAIN_IDS, now: T, since: T - 12 * 36e5 })
+  const stocksLater = dutchHeads([stocks].map((e) => ({ ...e })), { itemsOf, mainIds: MAIN_IDS, now: T, since: T - 10 * 36e5 })
   assert.equal(of(stocksLater[0]).source, 'nyt')
+  // Leeftijd (13 november 2026): een Nederlands stuk ouder dan de kopgrens (HEAD_MAX_H, 12 uur) wordt nooit de kop.
+  members.get('stocks')[3].publishedAt = at(19)
+  const stocksOld = dutchHeads([stocks].map((e) => ({ ...e })), { itemsOf, mainIds: MAIN_IDS, now: T })
+  assert.equal(of(stocksOld[0]).source, 'nyt', 'een kop van 19 uur oud is achtergrond')
 })
 
 test('nieuwsbelang boven sensatie: een verhaal over een bekend persoon opent niet naast even groot economisch nieuws (3b · ronde 6 · 2)', async () => {

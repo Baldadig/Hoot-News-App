@@ -130,7 +130,7 @@ export const ANKERS = [...NL.map((x) => [...x, 'nl']), ...EN.map((x) => [...x, '
 // via deze weg; dat vangt HERBEVESTIG_MS op (zie verderop): na die termijn telt het pas weer na een nieuwe controle.
 export const MAX_TRIES = 2
 const DAY = 864e5
-const FRESH_MS = 24 * 3600e3 // zoals isStale in stories.mjs: ouder komt niet meer in een Editie
+const FRESH_MS = 12 * 3600e3 // zoals isStale en HEAD_MAX_H in stories.mjs (12 uur sinds 13 november 2026): ouder komt niet meer in een Editie
 
 // Het zwakke signaal: een ruime, generieke woordenlijst. Alleen een reden om het model te vragen, nooit om te weren.
 // Samenstellingen tellen mee ("Voetbalpodcast", "Black Friday-deals", "kortingscode"): die woorden zonder grens vooraan.

@@ -4,7 +4,7 @@ import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, ve
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
-import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight, VL_HOME, foreignHead } from './desks.mjs'
+import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight, freshBonus, agePenalty, AGE_MAX, VL_HOME, foreignHead } from './desks.mjs'
 import { detectLang } from '../../shared/lang.mjs'
 import { keywordTopics } from './topics.mjs'
 
@@ -701,10 +701,22 @@ function strayCore(p, got) {
   return coverageOf(got.filter(Boolean)).publisherCount >= Math.min(STRAY_PUBS, Math.ceil(p.pubs / 2))
 }
 
-// Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
+// Een bericht van meer dan HEAD_MAX_H uur oud (een portret, een analyse van gisteren) is achtergrond:
 // het wordt geen hoofdbericht zolang er recentere berichten in de bundel zitten.
 // Een bericht zonder datum telt ook als achtergrond: we weten niet dat het vers is.
-const STALE_AFTER = 24 * 60 * 60 * 1000
+// Leeftijd (13 november 2026, besluit van Alex): de kopgrens en het verhaalvenster zijn 12 uur (was 24). Een Editie komt
+// drie keer per dag; wat ouder is dan een half etmaal, stond al in een vorige Editie of had erin kunnen staan.
+export const HEAD_MAX_H = 12
+// Een lopend verhaal: het eerste stuk is ouder dan RUNNING_H uur (firstAt). Het krijgt alleen een plek met een nieuw feit
+// binnen het venster (runningFact), en hooguit RUNNING_MAX per Editie, algemeen en persoonlijk.
+export const RUNNING_H = 24
+export const RUNNING_MAX = 2
+// De vloer (EDITION_FLOOR, composePersonal): haalt de persoonlijke Editie met deze grenzen geen vier plekken, dan gelden
+// voor die laatste plekken de grenzen van vóór 13 november: een verhaalvenster van FLOOR_STORY_H uur en losse stukken van
+// minstens FLOOR_ITEM_H uur (selectForReader met `floor`). De regels voor lopende verhalen en de vorige Editie blijven.
+export const FLOOR_STORY_H = 24
+export const FLOOR_ITEM_H = 14
+const STALE_AFTER = HEAD_MAX_H * 60 * 60 * 1000
 export const isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER
 
 // Volgorde van kandidaten voor het hoofdbericht: eigen/voorkeursbronnen, nieuws boven opinie,
@@ -1308,9 +1320,24 @@ export function seenBefore(st, items, previous) {
 // minstens één nieuw stuk dat de kop wordt. Eén keer: wat in de vorige Editie al zo bleef (`previous.heldIds`), maakt
 // plaats. Een strafgewicht zoals bij een vervolg werkt hier niet: dan valt het verhaal helemaal weg.
 export const HOLD_PUBS = 10
-export function holdable(st, items, previous) {
+// Leeftijd (13 november 2026): alleen een verhaal dat zelf nog geen RUNNING_H uur loopt (firstAt), mag zo blijven; een lopend
+// verhaal komt alleen terug met een nieuw feit (runningFact).
+export function holdable(st, items, previous, now = null) {
   if ((st.publisherCount ?? coverageOf(items).publisherCount) < HOLD_PUBS) return false
+  if (now !== null && isRunning(st, items, now)) return false
   return ![st.id, ...(st.formerIds || [])].some((id) => previous?.heldIds?.has(id))
+}
+// Het eerste stuk van een verhaal: `firstAt` van de server, anders het oudste stuk dat het toestel kent.
+export const storyFirstAt = (st, items = []) => {
+  const t = Date.parse(st?.firstAt)
+  if (Number.isFinite(t)) return t
+  const ts = items.map(timeOf).filter((x) => x > 0)
+  return ts.length ? Math.min(...ts) : null
+}
+// Loopt het verhaal al langer dan RUNNING_H uur? Zonder enige tijd: nee (niets om te meten).
+export const isRunning = (st, items, now) => {
+  const first = storyFirstAt(st, items)
+  return first !== null && now - first > RUNNING_H * 36e5
 }
 // De stukken uit `cands` die met minstens één ander stuk van `items` verbonden zijn (sameSubject met de kenmerken `sig`,
 // anders sameEvent in de uitgebreide stand over het verhaal zelf): een verdwaald stuk in een bundel wordt nooit de kop.
@@ -1448,6 +1475,19 @@ export function newFactIn(fresh, old, sig, own = fresh, story = null) {
   const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story)
   return fact ? { keys: fact.keys, heads: own.length ? factHeads(own, fact, sig) : [] } : null
 }
+// Leeftijd (13 november 2026): het nieuwe feit van een lopend verhaal (isRunning) binnen het venster. De stukken van de
+// laatste HEAD_MAX_H uur tegenover alles daarvóór, met dezelfde toets (newFact) en dezelfde telling over het hele verhaal
+// (`keyAt`, `pubAt` van de server; grens: het begin van het venster). Een nieuw stuk zonder nieuw feit is niet genoeg.
+// `items`: wat de selectie van het verhaal kent; `sig`: hun kenmerken. Uitvoer: { keys, carriers } of null.
+export function runningFact(st, items, sig, now) {
+  const cutoff = now - HEAD_MAX_H * 36e5
+  const fresh = items.filter((i) => timeOf(i) > cutoff && timeOf(i) <= now)
+  if (!fresh.length) return null
+  const keysOf = keysWith(sig)
+  const then = new Set()
+  for (const i of items) if (!(timeOf(i) > cutoff)) for (const k of keysOf(i)) then.add(k)
+  return newFact(fresh, then, keysOf, { keyAt: st?.keyAt, pubAt: st?.pubAt, cutoff, pubs: st?.publisherCount })
+}
 
 // ---------- De kop van een plek (H7) ----------
 // Verkiezingsnacht 4 november 2026: de midterms-bundel had 64 stukken, en de nieuwste kop met een eigen bron
@@ -1572,6 +1612,15 @@ function families(cands) {
     if (all.size > own.size && total >= FRONT_BIG) extra.set(head, all.size - own.size)
   }
   for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null
+  // Een los stuk over dezelfde stembus (leeftijd, 13 november 2026: met minder lopende verhalen kwam bij de midterms een
+  // los Atlantic-stuk "Democrats Sweep Republicans" naast de uitslag) hoort ook bij de familie: het krijgt geen plek naast
+  // een verhaal van die familie (familyRoom).
+  for (const c of cands) {
+    if (c.kind !== 'item') continue
+    const its = c.items || [c.it]
+    const place = voteFrom.size && voteGroup(its) ? placeOfGroup(its) : null
+    c.vote = place && voteFrom.has(place) ? place : null
+  }
   return extra
 }
 // De stembusfamilie per verhaal, voor wie de plekken niet zelf kiest (composePersonal: brede verhalen en
@@ -1592,6 +1641,13 @@ export function voteFamilyOf(stories = [], byId = new Map()) {
   }
   return out
 }
+// De stembusfamilie van een los stuk (leeftijd, 13 november 2026): de plaats als het stuk over een stembus met een uitslag
+// gaat (een plaats uit `fam`, voteFamilyOf), anders null.
+export function voteFamilyOfItem(it, fam) {
+  if (!it || !fam?.size || !voteGroup([it])) return null
+  const place = placeOfGroup([it])
+  return place && [...fam.values()].includes(place) ? place : null
+}
 // Mag deze kandidaat nog bij de plekken van zijn familie? `placedC`: de kandidaten die al een plek hebben.
 // `wide`: de algemene Editie mag op een uitzonderlijke nieuwsdag een tweede plek geven (FAMILY_WIDE_MAX).
 const secondFact = (c, now) => !!now && now - timeOf({ publishedAt: c.st.latestAt }) <= SECOND_FRESH_H * 36e5 && !c.voteResult && (c.st.publisherCount ?? coverageOf(c.whole || c.items).publisherCount) >= FAMILY_SECOND_PUBS && !curioStory(c.st, c.items) && c.items.filter((i) => !isOpinion(i)).length * 2 > c.items.length
@@ -1603,6 +1659,7 @@ function wideSecond(c, placedC, now) {
   return mates.length >= FAMILY_MAX && mates.length < FAMILY_WIDE_MAX && mates.some((x) => pubs(x) >= FAMILY_WIDE_PUBS) && secondFact(c, now)
 }
 function familyRoom(c, placedC, wide = false, now = null) {
+  if (c.kind === 'item' && c.vote) return !placedC.some((x) => x.vote === c.vote)
   if (c.kind !== 'story' || !c.vote) return true
   const mates = placedC.filter((x) => x.kind === 'story' && x.vote === c.vote)
   if (!mates.length) return true
@@ -2177,7 +2234,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   // Kandidaten: verhalen (meerdere publicaties) en losse berichten uit je eigen bronnen.
   const cands = []
   for (const st of stories) {
-    if (!fresh(st.latestAt, 24)) continue
+    if (!fresh(st.latestAt, HEAD_MAX_H)) continue
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean).filter(i=>!lightVideoFiller(i))
     if (!items.length) continue
     // De algemene Editie is nieuws: een sportverhaal (ook met een kop zonder sporttag) en een verhaal van
@@ -2304,7 +2361,7 @@ export function dutchPlace(e, { itemsOf, byId, storyOf = () => null, sources = S
   const lead = byId.get(e.leadId || e.id)
   return dutchSource(lead?.source, sources) && !foreignHead(lead.title) && !internationalNews(itemsOf(e), e.desk ?? null, storyOf(e) || null)
 }
-export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false, general = false } = {}) {
+export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false, general = false, floor = false } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
   // een kenmerk met de woordenschat van de pool van nu.
@@ -2329,7 +2386,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // naast "aanval op Iran aan de vooravond van de verkiezingen").
   const again = (c) => {
     if (c.vervolg || c.held) return false
-    if (since === null || c.kind !== 'story') return same(c.ids, vorige)
+    if (personal || since === null || c.kind !== 'story') return same(c.ids, vorige)
     const lead = leadOf(c)
     const head = lead && headSignature(sig, lead)
     return !!head && prevArts.some((a) => sameHeadEvent(head, headSignature(sig, a)))
@@ -2368,11 +2425,13 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const storyOfItem = () => (storyMap ||= new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st]))))
 
   const reject = (kind, id, ids, reason) => { if (audit) audit.push({kind, id, itemIds: ids, reason}) }
-  // Actualiteit (ronde 7 · 3, besluit van Alex 6 november; alleen de algemene Editie met een vorige Editie): elke Editie
-  // vertelt wat er sinds de vorige gebeurde. `since`: het moment van de vorige Editie. De kop van een plek komt uit de stukken
-  // van daarna die bij het verhaal horen (sinceLast); een verhaal zonder zo'n stuk krijgt geen plek.
-  // Alleen een kop die de lezer kan lezen (geen Spaanse kop van een Engelstalige bron, otherLangTitle).
-  const since = general && previous ? previous.at || 0 : null
+  // Actualiteit (ronde 7 · 3, besluit van Alex 6 november): elke Editie met een vorige Editie vertelt wat er sinds de vorige
+  // gebeurde. `since`: het moment van de vorige Editie. De kop van een plek komt uit de stukken van daarna die bij het verhaal
+  // horen (sinceLast); een verhaal zonder zo'n stuk krijgt geen plek. Alleen een kop die de lezer kan lezen (geen Spaanse kop
+  // van een Engelstalige bron, otherLangTitle). Leeftijd (13 november 2026): ook in de persoonlijke Editie (was alleen de
+  // algemene). `personal` herkent de persoonlijke tak (gelezen, newSincePrevious, heldDown), los van `since`.
+  const personal = !general
+  const since = previous ? previous.at || 0 : null
   const sinceLast = (st, items) => {
     const fresh = items.filter((i) => titled(i) && timeOf(i) > since && !otherLangTitle(i))
     if (!fresh.length || fresh.length === items.length || items.length < 3) return fresh
@@ -2380,7 +2439,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   }
   const cands = []
   for (const st of stories) {
-    if (!fresh(st.latestAt, 24)) { reject('story', st.id, st.itemIds, 'ouder-dan-verhaalvenster'); continue }
+    if (!fresh(st.latestAt, floor ? FLOOR_STORY_H : HEAD_MAX_H)) { reject('story', st.id, st.itemIds, 'ouder-dan-verhaalvenster'); continue }
     const raw = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     const items = raw.filter(i=>!lightVideoFiller(i,prof))
     if (!items.length) { reject('story', st.id, st.itemIds, raw.length ? 'licht-videorondje-buiten-interesse' : 'geen-bekend-artikel'); continue }
@@ -2400,8 +2459,8 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
         // In de persoonlijke Editie (nieuw feit, 13 november) alleen als je het nog niet las, met een nieuw stuk uit je eigen
         // bronnen als kop: wat je las en geen nieuw feit heeft, verdwijnt (H1); wat alleen in je vorige Editie stond, zakt één
         // keer (onder de top 5, heldDown in composePersonal) en verdwijnt daarna.
-        if (since === null) heads = ctx.readIds?.size && st.itemIds.some((id) => ctx.readIds.has(id)) ? [] : newsHeads(newSincePrevious(st, items, previous).filter(titled))
-        if (!(heads?.length && holdable(st, items, previous))) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
+        if (personal) heads = ctx.readIds?.size && st.itemIds.some((id) => ctx.readIds.has(id)) ? [] : newsHeads(newSincePrevious(st, items, previous).filter(titled))
+        if (!(heads?.length && holdable(st, items, previous, now))) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
         held = true
       } else {
         straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
@@ -2425,16 +2484,36 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl, whole, keyAt: st.keyAt, pubAt: st.pubAt, pubs: st.publisherCount })
     // Je las het en er is een nieuw feit (personalParts, ctx.newFacts): de kop bij voorkeur uit een stuk dat het noemt.
     if (!dev && !held && parts.followUp?.heads?.length) heads = parts.followUp.heads.map((id) => items.find((i) => i.id === id)).filter(Boolean)
+    // Leeftijd (13 november 2026): een lopend verhaal (eerste stuk ouder dan RUNNING_H uur) krijgt alleen een plek met een
+    // nieuw feit binnen het venster: ontwikkeld sinds je vorige Editie, een nieuw feit na wat je las, of een nieuw feit in de
+    // laatste HEAD_MAX_H uur tegenover alles daarvóór (runningFact). Een nieuw stuk alleen is niet genoeg. Dan bij voorkeur
+    // met een kop die het nieuwe feit noemt. Hooguit RUNNING_MAX zulke plekken (take).
+    const running = isRunning(st, whole, now)
+    if (running) {
+      const inWindow = (i) => !!i && fresh(i.publishedAt, HEAD_MAX_H)
+      const okDev = dev && dev.heads.some(inWindow)
+      const okRead = !dev && !held && parts.followUp?.heads?.some((id) => inWindow(byId.get(id)))
+      const fact = okDev || okRead ? null : runningFact(st, whole, sigKnown, now)
+      if (!okDev && !okRead && !fact) { reject('story', st.id, st.itemIds, 'lopend-zonder-nieuw-feit'); continue }
+      if (fact) {
+        const own = factHeads(items.filter(inWindow), fact, sigKnown).filter(titled)
+        const mineNew = since !== null ? own.filter((i) => timeOf(i) > since) : own
+        if (mineNew.length) heads = mineNew
+        else if (since !== null && !(heads?.length)) { reject('story', st.id, st.itemIds, 'lopend-zonder-nieuw-feit'); continue }
+      }
+    }
     // Ronde 4 · 3: in de algemene Editie gaat nieuws bij gelijke grootte voor een luchtig verhaal of curiosum (curioStory).
     // Zo'n verhaal krijgt geen versheidsbonus en weegt een halve uitgever minder (CURIO_TIE): even groot nieuws gaat altijd
-    // voor, een luchtig verhaal met meer uitgevers kan nog steeds een plek krijgen.
-    const tie = general && curioStory(st, items) ? weight({ sourceCount: 0, ownCount: 0, latestAt: st.latestAt }, now) + CURIO_TIE : 0
-    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
+    // voor, een luchtig verhaal met meer uitgevers kan nog steeds een plek krijgen. Leeftijd (13 november 2026): zo'n verhaal
+    // telt ook altijd als oud (de volle leeftijdsstraf, AGE_MAX), anders ging een vers luchtig verhaal weer voor even groot
+    // nieuws van een paar uur ouder.
+    const tie = general && curioStory(st, items) ? freshBonus(st.latestAt, now) + CURIO_TIE + AGE_MAX - agePenalty(st.latestAt, now) : 0
+    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
     if (!titled(it)) { reject('item', it.id, [it.id], 'zonder-titel'); continue }
-    if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
+    if (!fresh(it.publishedAt, Math.max(ctx.tempo?.get(it.source) || TEMPO_MIN_H, floor ? FLOOR_ITEM_H : 0)) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
     if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) { reject('item', it.id, [it.id], 'eerder-getoond-of-gelezen'); continue } // stond er al, of je las het al
     if (since !== null && !(timeOf(it) > since)) { reject('item', it.id, [it.id], 'geen-nieuw-stuk-sinds-vorige-Editie'); continue }
     // Hoort het bij een verhaal waarvan je al een stuk las (ook zonder storyId op het bericht), dan
@@ -2558,8 +2637,12 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const lead = leadPool(leadCandidates(pool, mainIds, preferred, now, { role: 'front' }), mate.items, now)[0]
     if (lead) Object.assign(e, { leadId: lead.id, title: lead.title || null })
   }
+  // Hooguit RUNNING_MAX lopende verhalen per Editie (leeftijd, 13 november 2026); wat daardoor buiten de Editie blijft,
+  // staat aan het eind in de audit (te-veel-lopende-verhalen).
+  const runningCapped = new Set()
   const take = (c, desk, extra = {}, open = false) => {
     if (!admissible(c, open)) return false
+    if (c.running && placedC.filter((x) => x.running).length >= RUNNING_MAX) { runningCapped.add(c); return false }
     if (general && spread(c) <= 1 && strongLeft()) return false
     // De Nederlandse ondergrens (ronde 3 · 4): zolang de Editie minder dan NL_TOP5_MIN Nederlandse plekken heeft en er nog
     // Nederlands nieuws over is, blijven de laatste plekken daarvoor vrij (dutchFloor zet ze daarna in de top 5).
@@ -2572,7 +2655,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     used.add(c)
     placedC.push(c)
     place(c.ids, c, c.kind === 'story' ? lead?.id : c.it.id)
-    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...(c.held ? { held: true } : {}), ...extra }
+    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...(c.held ? { held: true } : {}), ...(c.running ? { _running: true } : {}), ...extra }
     if (c.kind === 'story') {
       // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron (zie boven).
       leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
@@ -2679,6 +2762,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     }
     fill()
   }
+  for (const c of runningCapped) if (!used.has(c)) reject('story', c.st.id, c.st.itemIds, 'te-veel-lopende-verhalen')
   entries.sort((a, b) => b.w - a.w || textOrder(a.id, b.id))
   // Zonder Wereld komt buitenland zonder reden buiten de voorpagina achteraan, en wie Binnenland koos,
   // opent met Nederland: een buitenlands verhaal op de voorpagina komt na de Nederlandse (feedback 31

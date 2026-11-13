@@ -71,7 +71,10 @@ test('toelating: licht alleen voor wie het gebied koos; Buiten je bubbel mag lic
 
 test('live, algemene Avondeditie 3 november: geen games- of cultuurverhaal in de genummerde plekken', () => {
   const titles = general.entries.map((e) => titleOf(e.leadId || e.id))
-  assert.equal(general.entries.length, 10)
+  // Leeftijd (13 november 2026): 8 plekken (was 10). Drie lopende verhalen zonder nieuw feit (de vooruitblik op de
+  // verkiezingsnacht, Juan Atkins, de bevrijde gijzelaar) en drie verhalen buiten het verhaalvenster van 12 uur vallen weg,
+  // en de gratis aanvulling vindt geen los Nederlands stuk van minder dan 10 uur oud. Boven de ondergrens (EDITION_FLOOR).
+  assert.equal(general.entries.length, 8)
   for (const t of titles) assert.ok(!/GTA|Elder Scrolls|Juan Atkins/i.test(t), t)
   // Het gamesverhaal bestaat wel en is licht, maar niet groot nieuws volgens algemene uitgevers.
   const gta = general.stories.find((s) => s.itemIds.some((id) => /GTA VI/.test(titleOf(id))))

@@ -342,9 +342,20 @@ export function primaryDesk(itemDesks = []) {
 }
 
 // Hoe belangrijk "van het moment": dekking telt het zwaarst, versheid geeft een duw.
+// Leeftijd (13 november 2026, besluit van Alex: "Mijn persoonlijke editie"): naast de duw voor vers nieuws gaat er één punt
+// af per vol uur boven AGE_FREE_H uur sinds het laatste stuk, hooguit AGE_MAX eraf. Een verhaal van gisteravond zakt zo
+// onder even groot nieuws van vanochtend. Zonder `latestAt` telt het als oud (de volle straf).
+export const AGE_FREE_H = 6
+export const AGE_MAX = 12
+const hoursSince = (latestAt, now) => (latestAt ? (now - Date.parse(latestAt)) / 36e5 : 99)
+// De duw voor vers nieuws alleen (zonder dekking en zonder leeftijdsstraf): die valt weg voor een luchtig verhaal (CURIO_TIE).
+export const freshBonus = (latestAt, now = Date.now()) => {
+  const h = hoursSince(latestAt, now)
+  return h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0
+}
+export const agePenalty = (latestAt, now = Date.now()) => Math.min(AGE_MAX, Math.max(0, Math.floor(hoursSince(latestAt, now) - AGE_FREE_H)))
 export function weight({ sourceCount = 1, ownCount = 0, latestAt }, now = Date.now()) {
-  const h = latestAt ? (now - Date.parse(latestAt)) / 36e5 : 99
   // Twee punten per gekozen uitgever, hooguit acht: voorkeur helpt, maar kan dekking niet overheersen.
   const chosen = Number.isFinite(ownCount) ? Math.min(4, Math.max(0, ownCount)) : 0
-  return sourceCount * 4 + chosen * 2 + (h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0)
+  return sourceCount * 4 + chosen * 2 + freshBonus(latestAt, now) - agePenalty(latestAt, now)
 }
