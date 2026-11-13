@@ -11,3 +11,7 @@ npm-debug.log*
 yarn-error.log*
 .claude/
 ios/Audit-schermen/
+
+# Losse invoerbestanden voor landing/bewaar.mjs (horen niet in de repo)
+/vak.json
+/feed.json
