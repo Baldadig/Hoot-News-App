@@ -6,7 +6,7 @@
 // Ververs dit vóór een deploy, zodat de terugval niet veroudert.
 import fs from 'node:fs'
 import path from 'node:path'
-import { extract, rubriek, isHeavy, isDutch } from '../netlify/functions/voorpagina.mjs'
+import { extract, rubriek, isHeavy, isDutch, strongKind } from '../netlify/functions/voorpagina.mjs'
 import { desksOf, primaryDesk } from '../netlify/lib/desks.mjs'
 import { signatures, sameSubject } from '../netlify/lib/stories.mjs'
 import { redenen } from './bewaard.mjs'
@@ -45,7 +45,7 @@ export function bewaar(feed, vak, vorige = null) {
     const it = byId.get(e.kind === 'story' ? e.leadId || stories.get(e.id)?.leadId : e.id)
     if (!rustig(it)) continue
     const n = e.kind === 'story' ? e.sourceCount || stories.get(e.id)?.sourceCount || 1 : 1
-    if (e.desk === 'bubbel') bubbel = plek(it, n)
+    if (e.desk === 'bubbel') { if (strongKind(it, srcs.get(it.source)?.cat) !== 'showbizz') bubbel = plek(it, n) } // geen showbizz als bubbel, zoals op de voorpagina
     else if (editie.length < 10) editie.push(plek(it, n, e.desk || null))
   }
   const nieuwste = [...(feed.items || [])].filter((i) => Number.isFinite(Date.parse(i.publishedAt))).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt))

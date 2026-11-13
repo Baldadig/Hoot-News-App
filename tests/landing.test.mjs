@@ -109,10 +109,13 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie me
   const nrs = [...editie.matchAll(/<span class="(?:k|sc)-nr">(\d\d)<\/span>/g)].map((m) => m[1])
   assert.deepEqual(nrs, ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'])
   // De bubbel komt na 10, zonder nummer, vóór het eindblok.
-  const bubbel = editie.match(/<div class="sc-bubbel">([\s\S]*?)<div class="sc-blok">/)[1]
-  assert.match(bubbel, /Buiten je bubbel/)
-  assert.doesNotMatch(bubbel, /-nr"/)
-  assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
+  // (alleen als de bewaarde Editie een bubbel heeft; showbizz telt op de landing niet als bubbel)
+  if (BEWAARD.bubbel) {
+    const bubbel = editie.match(/<div class="sc-bubbel">([\s\S]*?)<div class="sc-blok">/)[1]
+    assert.match(bubbel, /Buiten je bubbel/)
+    assert.doesNotMatch(bubbel, /-nr"/)
+    assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
+  } else assert.doesNotMatch(editie, /class="sc-bubbel"/)
   assert.doesNotMatch(tekst(SRC), /Bluesky/)
   const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 Hoot kiest'))
   assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
@@ -301,7 +304,9 @@ test('herstel 1: zonder bubbel heet plek 3 "Ook het lezen waard", en de Editie-d
   assert.match(html, /<li class="r" data-bij="w3"><b>Ook het lezen waard<\/b>/)
   assert.match(html, /<mark data-w="w3">Ook het lezen waard<\/mark>/)
   // met bubbel blijft het zoals het was
-  const met = vulBewaard(SRC, BEWAARD)
+  const metB = zonderBubbel()
+  metB.voorpagina.bubble = { desk: null, deskLabel: null, title: 'Iets heel anders', source: 'NOS', sourceCount: 1 }
+  const met = vulBewaard(SRC, metB)
   assert.match(met, /data-bubbel="ja"/)
   assert.match(met, /<li class="r" data-bij="w3"><b>Buiten je bubbel<\/b>/)
 })

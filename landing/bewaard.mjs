@@ -80,7 +80,8 @@ export function fragmenten(b) {
   const top = b.voorpagina.breed?.[0]
   const plekken = top && (top.sourceCount || 0) > (b.voorpagina.entries[0].sourceCount || 0) ? [top, ...b.voorpagina.entries.filter((x) => x.title !== top.title)] : b.voorpagina.entries
   const [v1, v2] = plekken
-  const v3 = b.voorpagina.bubble || plekken[2]
+  // Zonder bubbel is plek 3 'Ook het lezen waard': dat kan alleen een verhaal van één bron zijn. Neem de eerste zo'n plek.
+  const v3 = b.voorpagina.bubble || plekken.slice(2).find((x) => (x.sourceCount || 1) < 2) || plekken[2]
   const ns = [v1, v2, v3].map((x) => x.sourceCount || 1)
   const rds = redenen(ns, !!b.voorpagina.bubble)
   if (!rds) throw new Error('landing/bewaard.json: Hoot kiest heeft geen drie verschillende redenen; ververs met node landing/bewaar.mjs.')
