@@ -714,7 +714,11 @@ final class HootStore {
             sources = start.sources
             if quickPending { muted = Set(newsSources.map(\.id).filter { !enabled.contains($0) }); quickPending = false }
             storiesById = Dictionary(start.stories.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+            // Een nieuw dagdeel terwijl jouw Editie daarvan er nog niet is: wat er stond blijft staan (DagdeelWissel). Na een
+            // herstart is dat de laatste Editie van de server op dit toestel (edition.json).
+            let before = shownEdition ?? personal
             edition = start.edition
+            if heldNow == nil, currentEdition == nil, DagdeelWissel.mayHold(before, kern: start.edition, owner: ownerNow) { held = before }
             updatedAt = start.meta.updatedAt.flatMap(HootDate.parse)
             relatedVersion = start.meta.related
             stroomTabs = StroomTab.uit(start.stroomTabs)
@@ -965,7 +969,22 @@ final class HootStore {
     // ---- Jouw Editie ----
     // Toon alleen jouw samengestelde Editie. De algemene feed kent jouw interesses niet en mag
     // tijdens het laden niet kort langs de buitenland-/sportgrens of Nederlandse opening gaan.
-    var shownEdition: Edition? { Self.visiblePersonal(personal, id: edition?.id, owner: ownerNow) ?? Self.visiblePersonal(personalProvisional, id: edition?.id, owner: ownerNow) }
+    // De Editie die je ziet: bij een nieuw dagdeel even de vorige (`held`, DagdeelWissel), anders jouw Editie van dit dagdeel.
+    var shownEdition: Edition? { heldNow ?? currentEdition }
+    // Jouw Editie van het dagdeel van de kern (van de server of het vangnet), of nil zolang die er niet is.
+    var currentEdition: Edition? { Self.visiblePersonal(personal, id: edition?.id, owner: ownerNow) ?? Self.visiblePersonal(personalProvisional, id: edition?.id, owner: ownerNow) }
+    // De dagdeelwissel (DagdeelWissel.swift, Editie sneller C3): komt er een nieuwe kern terwijl jouw Editie van dat
+    // dagdeel er nog niet is, dan blijft de Editie die er stond in beeld. Alleen getoond: nooit in edition.json, je
+    // account of je geschiedenis, en niet bewaard over een herstart (dan staat edition.json er nog, zie fetchAll).
+    private(set) var held: Edition?
+    private var heldNow: Edition? { DagdeelWissel.mayHold(held, kern: edition, owner: ownerNow) ? held : nil }
+    // De nieuwe Editie komt eraan (het dagdeel van de kern), of staat klaar (het dagdeel van de nieuwe Editie).
+    var editionComing: String? { heldNow != nil && currentEdition == nil ? edition?.slot : nil }
+    var editionReady: String? { heldNow != nil ? currentEdition?.slot : nil }
+    // Wisselen naar de nieuwe Editie (EditionView beslist wanneer: bovenaan en niet aan het lezen, of na een tik).
+    func swapEdition() { held = nil }
+    // De Editie voor de widget: altijd de nieuwste die er is, ook als de app nog even de vorige toont.
+    var widgetEdition: Edition? { currentEdition ?? shownEdition }
     static func visiblePersonal(_ candidate: Edition?, id: String?, owner: String) -> Edition? {
         guard let candidate, let id, candidate.id == id, candidate.owner == owner else { return nil }
         return candidate
@@ -1310,7 +1329,8 @@ final class HootStore {
     // "Ongedaan maken" na verwijderen: terug op zijn oude plek.
     func restoreSaved(_ item: Item, at index: Int) { if !isSaved(item) { saved.insert(item, at: min(index, saved.count)) } }
     /// Meten zonder volgen (Telling.swift): één gebeurtenis, met het dagdeel van de Editie die je ziet.
-    func tel(_ event: Telling.Event) { Telling.stuur(event, dagdeel: Telling.dagdeel(date: edition?.date, slot: edition?.slot)) }
+    // Het dagdeel van de Editie die je ziet (bij de dagdeelwissel even de vorige): lezen in de vorige telt niet voor de nieuwe.
+    func tel(_ event: Telling.Event) { let e = shownEdition ?? edition; Telling.stuur(event, dagdeel: Telling.dagdeel(date: e?.date, slot: e?.slot)) }
     func markRead(_ item: Item) {
         tel(.artikelOpen)
         guard !readSet.contains(item.id) else { return }

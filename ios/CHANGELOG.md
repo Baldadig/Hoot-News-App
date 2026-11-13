@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Dagdeelwissel (Editie sneller C3): bij een nieuwe kern blijft de vorige Editie staan tot jouw nieuwe er is (DagdeelWissel.swift, gelijk aan shared/dagdeel-wissel.mjs), met onder de datum "De Avondeditie komt eraan" en een systeem-laadteken. Komt de nieuwe binnen: bovenaan en niet aan het lezen = wisselen met het drukken; anders bovenin de knop "De Avondeditie staat klaar" (tik = bovenaan en wisselen). Titel, datum, eindkaart, Telling en ReviewAsk volgen de getoonde Editie; de widget krijgt de nieuwste (widgetEdition). Toetsen: DagdeelWisselTests.
+
 - 1.3.1, Editie sneller: jouw Editie wordt aan de server gevraagd zodra de kern er is, tegelijk met de berichten per bron (die heeft alleen het vangnet nodig). Bleef het antwoord uit, dan vraagt dezelfde laadronde niet nog eens maar rekent meteen het vangnet; een volgende ronde vraagt opnieuw. Wachttijd (20 s, één nieuwe poging) ongewijzigd. Toetsen: EditieSnellerTests.
 
 - Nieuw merkrood Rubrica (PMS 484 C), na build 48: BrandRed en AccentColor `#9A3324`, AccentSoft `#F2E4DF` (Donker en Nacht ongewijzigd). Daarmee ook het rode opstartscherm, de iris, de zon in de placeholders, het nummer 01, de punt van "hoot.", de eindkaart in Nacht (`#41150F`, 42 procent over zwart), de lezer en de deelkaart. De vier app-iconen en hun voorbeelden in Instellingen zijn opnieuw gemaakt met `scripts/appiconen.mjs` (zelfde bron, nieuw rood; Donker blijft gelijk). Een nieuw icoon vraagt een nieuwe build voor de App Store.

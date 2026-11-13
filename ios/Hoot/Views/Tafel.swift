@@ -120,9 +120,10 @@ struct TafelOnder: View {
 
     private var ruim: Bool { TafelEditie.ruim(hoogte: hoogte, tafelOnder: tafelOnder) }
 
-    private var titel: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
+    private var getoond: Edition? { store.shownEdition ?? store.edition } // bij de dagdeelwissel even de vorige Editie
+    private var titel: String { getoond?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     private var datum: String {
-        guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
+        guard let d = getoond?.date, let date = HootDate.day(d) else { return "" }
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
@@ -154,7 +155,7 @@ struct TafelOnder: View {
                                 .id(row.id)
                         }
                         // Het einde neemt ook een hele plek: zo eindigt de rij op een rand, niet op een half verhaal.
-                        TafelEinde(regel: EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), aantal: rij.count)
+                        TafelEinde(regel: EditionEnd.line(date: getoond?.date, slot: getoond?.slot), aantal: rij.count)
                             .frame(width: plekken.cel, alignment: .leading)
                             .id("einde")
                     }
