@@ -230,9 +230,22 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   // De dagdeelwissel (shared/dagdeel-wissel.mjs): staat de nieuwe Editie klaar terwijl de vorige nog in beeld is, dan
   // wisselen we vanzelf als je bovenaan staat en niet leest (nu, terug in de tab, of na het sluiten van een verhaal);
   // anders bovenin de tikbare melding. Het drukken hieronder speelt dan op de nieuwe Editie.
-  const atTop = () => (ref.current?.scrollTop ?? 0) <= AT_TOP_PX
+  // Bovenaan: de laatst gemeten plek terwijl de Editie zichtbaar was (zoals iOS met atTop). Een verborgen view
+  // (`[hidden]`, display: none) leest altijd 0, en bij terugkomen zet useScrollMemory je plek pas daarna terug;
+  // daarom meten we alleen in beeld, en controleren we alleen als de Editie actief is.
+  const lastTop = useRef(0)
   useEffect(() => {
-    if (!nextReady || !onSwap) return undefined
+    const el = ref.current
+    if (!el || !active) return undefined
+    const measure = () => {
+      if (el.getClientRects().length) lastTop.current = el.scrollTop
+    }
+    el.addEventListener('scroll', measure, { passive: true })
+    return () => el.removeEventListener('scroll', measure)
+  }, [active])
+  const atTop = () => lastTop.current <= AT_TOP_PX
+  useEffect(() => {
+    if (!nextReady || !onSwap || !active) return undefined
     const check = () => swapsNow({ atTop: atTop(), reading: reading || storyOpen }) && onSwap()
     check()
     const visible = () => document.visibilityState === 'visible' && check()

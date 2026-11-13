@@ -97,6 +97,11 @@ test('web: de vorige Editie wordt alleen getoond, nooit bewaard als Editie van h
   assert.match(view, /comingLine\(coming\)/)
   assert.match(view, /readyLine\(nextReady\)/)
   assert.match(view, /swapsNow\(\{ atTop: atTop\(\), reading: reading \|\| storyOpen \}\)/)
+  // Niet stil wisselen vanuit een ander tabblad: alleen controleren als de Editie actief is, en "bovenaan" is de laatst
+  // gemeten plek in beeld (een verborgen view leest altijd 0; keuring dagdeel-wissel, punt 1).
+  assert.match(view, /if \(!nextReady \|\| !onSwap \|\| !active\) return undefined/)
+  assert.match(view, /const atTop = \(\) => lastTop\.current <= AT_TOP_PX/)
+  assert.match(view, /if \(el\.getClientRects\(\)\.length\) lastTop\.current = el\.scrollTop/)
   // Eindkaart en telling op de getoonde Editie, niet op de kern.
   assert.match(view, /eindzin\(edition\.date, edition\.slot\)/)
   assert.match(view, /usePrintEdition\(ref, edition\?\.id/)
