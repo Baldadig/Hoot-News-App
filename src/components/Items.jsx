@@ -74,12 +74,12 @@ export function SourceMark({ source, size = 24 }) {
 // Bron-gegevens van een bericht (de berichten dragen ze zelf, zodat bewaarde items compleet zijn).
 const srcOf = (item) => ({ name: item.sourceName, avatar: item.avatar, avatarContain: item.avatarContain, brandColor: item.brandColor })
 
-export function SaveButton({ id, kind = 'item', payload, label = 'bericht' }) {
+export function SaveButton({ id, kind = 'item', payload }) {
   const { saved, toggleSave } = useHoot()
   // Een verhaal dat intussen is samengegaan met een ander blijft bewaard onder zijn oude id.
   const key = savedKey(saved, id, payload)
   const on = !!key
-  const text = on ? `Bewaard — tik om dit ${label} te verwijderen` : `Bewaar dit ${label}`
+  const text = on ? 'Bewaard, tik om te verwijderen' : 'Bewaar' // gelijk aan de app (Components.swift)
   return (
     <button type="button" className={`iconbtn save${on ? ' is-on' : ''}`} onClick={() => toggleSave(kind, key || id, payload)} aria-pressed={on} aria-label={text} title={text}>
       <BookmarkIcon filled={on} />

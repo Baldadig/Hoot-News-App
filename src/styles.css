@@ -3395,7 +3395,8 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 .ob__sname {
   font-size: var(--t3);

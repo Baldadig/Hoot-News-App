@@ -77,7 +77,7 @@ function SourceStatus({ status, recovered, latestBySource, meta, onRetry, refres
           <ul>
             {status.failed.map((f) => (
               <li key={f.id}>
-                <strong>{f.name}</strong> — niet bereikbaar. {latestBySource[f.id] ? `Laatste bericht van ${timeAgo(latestBySource[f.id])}.` : 'Geen berichten.'}
+                <strong>{f.name}</strong>: niet bereikbaar. {latestBySource[f.id] ? `Laatste bericht van ${timeAgo(latestBySource[f.id])}.` : 'Geen berichten.'}
               </li>
             ))}
           </ul>

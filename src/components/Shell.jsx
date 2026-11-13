@@ -35,7 +35,7 @@ function toTopOnRetap(e, active) {
 export function Nav({ path, hrefs = {}, sourceNote = '' }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
-      <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
+      <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot, naar de Editie">
         <BrandLogo height={28} />
       </a>
       <ul className="nav__list">
