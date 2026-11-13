@@ -625,3 +625,9 @@ html.ios .verder-rij .wacht{order:-1}
 .bronrij-in.sleep{cursor:grabbing}
 .bronrij-in li{display:flex;align-items:center;gap:10px;height:48px;padding:0 18px 0 6px;border-radius:999px;background:var(--s-card);box-shadow:inset 0 0 0 1px var(--lijn);font:800 1.125rem/1 var(--kop);letter-spacing:-.012em;white-space:nowrap}
 .bronrij-in img{flex:none;width:36px;height:36px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(26,24,20,.12);object-fit:cover;pointer-events:none}
+/* bronnen op desktop omgedraaid (Alex, 13 november): de kaart links, de tekst rechts op de kolom van 01 Editie eronder.
+   Zo staan er niet twee beelden onder elkaar aan de rechterkant (het toestel van de held en de kaart). Mobiel: tekst, dan kaart. */
+@media (min-width:1100px){
+  .bronnen .kol{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s8)}
+  .bronnen .verhaal{order:-1;justify-self:start}
+}

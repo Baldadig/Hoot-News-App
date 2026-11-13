@@ -425,7 +425,9 @@
     }
     if (LIVE && window.fetch) {
       var ac = window.AbortController ? new AbortController() : null;
-      var to = setTimeout(function () { if (ac) ac.abort(); }, 1500);
+      /* 4 s: de server antwoordt meestal binnen een seconde, maar na stilte soms pas na drie. Bij 1,5 s bleef dan de bewaarde
+         Editie van een eerdere dag staan (Alex zag 12 november op de 13e). De wissel zelf blijft een vervaging van 0,2 s. */
+      var to = setTimeout(function () { if (ac) ac.abort(); }, 4000);
       fetch('/api/voorpagina', { headers: { accept: 'application/json' }, signal: ac ? ac.signal : undefined })
         .then(function (r) {
           if (!r.ok || !/json/i.test(r.headers.get('content-type') || '')) throw 0;

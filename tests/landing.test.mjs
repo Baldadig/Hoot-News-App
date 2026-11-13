@@ -72,9 +72,9 @@ test('bronnenblok: één verhaal met de bronnen die erover schrijven; het getal 
   assert.equal(vhTekst({ sourceCount: 12, sources: [{ name: 'NOS' }, { name: 'NRC' }, { name: 'Trouw' }, { name: 'AD' }] }), '<b>12 bronnen</b> schrijven erover: NOS, NRC, Trouw en 9 andere.')
   assert.equal(vhTekst({ sourceCount: 1, sources: [] }), '<b>1 bron</b> schrijft erover.')
   assert.equal(vhTekst({ sourceCount: 2, sources: [{ name: 'NOS' }, { name: 'NRC' }] }), '<b>2 bronnen</b> schrijven erover: NOS, NRC.')
-  // zonder brede verhalen in de terugval: plek 01, zonder logo's
+  // zonder brede verhalen in de terugval: plek 01, met de logo's die dat verhaal zelf draagt
   const kaal = fragmenten({ ...BEWAARD, voorpagina: { ...BEWAARD.voorpagina, breed: [] } })
-  assert.equal(kaal.BW_VH_STAPEL, '')
+  assert.equal((kaal.BW_VH_STAPEL.match(/<img /g) || []).length, Math.min(VH_LOGOS, (BEWAARD.voorpagina.entries[0].sources || []).length))
   assert.equal(kaal.BW_VH_KOP.replace(/&[a-z]+;/g, ''), BEWAARD.voorpagina.entries[0].title.replace(/[&<>"]/g, ''))
   // live neemt het over via ed.breed; er is voor elke bron uit de catalogus een logo
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
@@ -279,6 +279,7 @@ const zonderBubbel = () => {
   const b = JSON.parse(JSON.stringify(BEWAARD))
   b.voorpagina.bubble = null
   b.bubbel = null
+  b.voorpagina.breed = [] // deze toets gaat over de drie plekken zelf, niet over het breedste verhaal
   b.voorpagina.entries[0].sourceCount = 6
   b.voorpagina.entries[1].sourceCount = 3
   b.voorpagina.entries[2] = { ...b.voorpagina.entries[1], title: 'Een gewoon derde verhaal', sourceCount: 1 }
@@ -340,10 +341,10 @@ test('klein: in Hoot kiest staat het aantal bronnen één keer, in de markering'
 // Review 13 november: het eerste scherm, de demo's, snelheid en zoekgegevens.
 const JS = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
 import { PALET } from '../landing/inline.mjs'
-test('review 13 november: de held is de Editie van nu, aantikbaar, met een wissel van 1,5 s', () => {
+test('review 13 november: de held is de Editie van nu, aantikbaar, met een zachte wissel', () => {
   assert.match(SRC, /<a class="nu js-held-link" href="\/lees\/" data-tel="web:toestel"/)
   assert.doesNotMatch(SRC, /nu-regel|van nu\. Lees verder/) // de regel bij het toestel is eruit (Alex, ronde 2)
-  assert.match(JS, /setTimeout\(function \(\) \{ if \(ac\) ac\.abort\(\); \}, 1500\)/)
+  assert.match(JS, /setTimeout\(function \(\) \{ if \(ac\) ac\.abort\(\); \}, 4000\)/) // was 1500: te krap na stilte, dan bleef de terugval staan
   assert.match(CSS, /\.held \.k-kop--lead\{min-height:3\.6em\}/)
   assert.match(CSS, /\.js-held-lead,\.podium \.toestel,\.podium \.uitleg\{transition:opacity \.2s ease\}/)
   assert.match(SRC, /<link rel="preload" href="\/api\/voorpagina" as="fetch" crossorigin>/)

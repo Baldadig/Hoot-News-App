@@ -72,8 +72,11 @@ export function fragmenten(b) {
   if (!b?.selectie?.velden?.length) throw new Error('landing/bewaard.json heeft geen Selectie; ververs met node landing/bewaar.mjs.')
   const { kort, lang } = datum(b.date)
   const slot = SLOT[b.slot] || 'Editie'
-  const [v1, v2] = b.voorpagina.entries
-  const v3 = b.voorpagina.bubble || b.voorpagina.entries[2]
+  // Zelfde regel als live (hoot.js): het breedste verhaal opent, als het breder is dan de eerste plek.
+  const top = b.voorpagina.breed?.[0]
+  const plekken = top && (top.sourceCount || 0) > (b.voorpagina.entries[0].sourceCount || 0) ? [top, ...b.voorpagina.entries.filter((x) => x.title !== top.title)] : b.voorpagina.entries
+  const [v1, v2] = plekken
+  const v3 = b.voorpagina.bubble || plekken[2]
   const ns = [v1, v2, v3].map((x) => x.sourceCount || 1)
   const rds = redenen(ns, !!b.voorpagina.bubble)
   if (!rds) throw new Error('landing/bewaard.json: Hoot kiest heeft geen drie verschillende redenen; ververs met node landing/bewaar.mjs.')
@@ -86,7 +89,9 @@ export function fragmenten(b) {
     return `<div class="rd-item ${ipad && i === 0 ? 'k-lead' : 'k'}">${kick(nr, x.desk)}<div class="k-why"><mark data-w="${w}">${esc(mark)}</mark></div><div class="k-kop${ipad && i === 0 ? ' k-kop--lead' : ''}">${esc(x.title)}</div>${beeld}${bron(x, kort, false)}</div>`
   }
   const lijst = [v1, v2, v3]
-  const ed = b.editie
+  // Ook de Editie-demo opent met het breedste verhaal: staat het al in de lijst, dan schuift het naar voren; anders komt
+  // het ervoor en valt de laatste af (het blijven er tien).
+  const ed = top && v1 === top ? [{ title: top.title, source: top.source, sourceCount: top.sourceCount, desk: top.desk }, ...b.editie.filter((x) => x.title !== top.title)].slice(0, b.editie.length) : b.editie
   return {
     BW_SLOT: slot,
     BW_SLOT_ID: SLOT[b.slot] ? b.slot : 'avond',
