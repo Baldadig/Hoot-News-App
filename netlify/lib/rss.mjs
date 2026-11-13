@@ -182,6 +182,20 @@ async function readFeed(url) {
   return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
 }
 
+// Een feed die de oudste bovenaan zet (Hidde de Vries, Thuiswinkel.org) leverde met de grens alleen oude stukken, en de
+// server zette hem op kapot (nachttest 14 november). Staat de feed meer oplopend dan aflopend, dan stabiel aflopend op
+// publicatietijd, stukken zonder tijd achteraan. Een gewone feed (nieuwste eerst) houdt precies zijn eigen volgorde.
+const tijd = (i) => Date.parse(i.publishedAt) || 0
+export function newestFirst(items = []) {
+  let op = 0, af = 0
+  for (let k = 1; k < items.length; k++) {
+    const a = tijd(items[k - 1]), b = tijd(items[k])
+    if (a && b) { if (b > a) op++; else if (b < a) af++ }
+  }
+  if (op <= af) return items
+  return items.map((i, k) => [i, k]).sort(([a, ka], [b, kb]) => (tijd(a) && tijd(b) ? tijd(b) - tijd(a) : !tijd(a) - !tijd(b)) || ka - kb).map(([i]) => i)
+}
+
 // `limit`: hoeveel berichten in de taal van de bron (feedvolgorde). Standaard het oude venster
 // (editionWindowOf: 30, per rubriek minder). De feed-opbouw vraagt alles (Infinity): de Stroom kapt
 // zelf af op tijd en aantal (stream.mjs), de verhalen en de Editie nemen het oude venster (firstOf, stream.mjs).
@@ -251,7 +265,7 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
       // Zonder geldige (http/https) link of zonder kop niet tonen, en elk stuk één keer (dezelfde link = hetzelfde id;
       // BBC Sport zet soms een stuk twee keer in de feed).
       .filter((i) => i.url && i.title && !seen.has(i.id) && seen.add(i.id))
-      const items = firstOf(mapped, limit) // de grens telt alleen berichten in de brontaal
+      const items = firstOf(newestFirst(mapped), limit) // de grens telt alleen berichten in de brontaal
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
     } catch (e) {
       lastErr = e
