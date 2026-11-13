@@ -57,12 +57,6 @@ const HASH = h256(INLINE), HASH_PALET = h256(PALET);
 const { SOURCES } = await import('../netlify/lib/sources.mjs');
 const { ruim, vragen, vragenHtml, jsonld } = await import('./vragen.mjs');
 const BRONNEN_RUIM = ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase());
-// Een greep uit de catalogus, als tekst (geen logo's): landelijk, regionaal, Vlaams, internationaal en een paar vakbronnen.
-// Elke naam komt uit SOURCES; een id die verdwijnt, valt hier vanzelf weg. Het restgetal is echt.
-const GREEP = ['nos', 'nu', 'nrc', 'volkskrant', 'trouw', 'parool', 'rtl', 'ftm', 'dvhn', 'gelderlander', 'standaard', 'demorgen', 'vrt', 'guardian', 'bbc', 'economist', 'nyt', 'ft', 'tweakers', 'theverge', 'quanta', 'sporza', '3voor12', 'pitchfork'];
-const greep = GREEP.map((id) => SOURCES.find((x) => x.id === id)).filter(Boolean);
-const escH = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-const BRONNAMEN = greep.map((x) => `<span>${escH(x.name)}</span>`).join(' ') + ` <span class="meer">en nog ${SOURCES.length - greep.length} meer</span>`;
 const BESCHRIJVING = 'Hoot is een rustige nieuwslezer. Drie keer per dag tien verhalen uit jouw bronnen, dan ben je bij. Gratis, zonder advertenties. Hoot volgt je niet.';
 const VRAAGLIJST = vragen({ aantal: SOURCES.length, appUrl: AS.APP_URL_VRAAG });
 
@@ -71,7 +65,7 @@ const VRAAGLIJST = vragen({ aantal: SOURCES.length, appUrl: AS.APP_URL_VRAAG });
 const { vulBewaard } = await import('./bewaard.mjs');
 const BEWAARD = JSON.parse(rd('bewaard.json'));
 
-const VARS = { CSSFILE, JSFILE, INLINE, PALET, WM_D, MARK_D, BRONNEN_RUIM, BRONNAMEN, BESCHRIJVING, VRAGEN: vragenHtml(VRAAGLIJST), JSONLD: jsonld({ lijst: VRAAGLIJST, appUrl: AS.APP_URL_VRAAG, beschrijving: BESCHRIJVING }), ...AS };
+const VARS = { CSSFILE, JSFILE, INLINE, PALET, WM_D, MARK_D, BRONNEN_RUIM, BESCHRIJVING, VRAGEN: vragenHtml(VRAAGLIJST), JSONLD: jsonld({ lijst: VRAAGLIJST, appUrl: AS.APP_URL_VRAAG, beschrijving: BESCHRIJVING }), ...AS };
 const fill = (t) => vulBewaard(t, BEWAARD).replace(/\{\{(\w+)\}\}/g, (_, k) => { if (!(k in VARS)) throw new Error('landing: onbekend veld {{' + k + '}}'); return VARS[k]; }).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
 fs.writeFileSync(path.join(OUT, '404.html'), fill(rd('404.src.html')));
