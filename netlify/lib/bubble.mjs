@@ -1,4 +1,5 @@
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
+import { opinieBron } from '../../shared/opinie.mjs'
 // "Buiten je bubbel" — pure functies (getest in tests/bubble.test.mjs).
 // Drie gratis signalen voor waar anderen over praten (Google Trends NL, trending op Bluesky,
 // meestgelezen Wikipedia-pagina's) worden vergeleken met álle beschikbare berichten, ook van
@@ -177,7 +178,7 @@ export function nearStories(stories = [], byId = new Map(), { isFree = () => fal
     if (!items.length || items.some(isSport)) continue
     const topics = [...new Set(items.flatMap((i) => i.topics || []))]
     if (!topics.length) continue
-    const free = items.filter((i) => isFree(i.source) && !excludedFromEdition(i) && !isLive(i) && i.type !== 'opinie')
+    const free = items.filter((i) => isFree(i.source) && !excludedFromEdition(i) && !isLive(i) && i.type !== 'opinie' && !opinieBron(i.source))
     const lead = free.find((i) => isDutch(i.source) && i.summary) || free.find((i) => i.summary) || free[0]
     if (!lead) continue
     out.push({ storyId: st.id, sourceCount: st.sourceCount, topics, item: lead })

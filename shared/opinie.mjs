@@ -21,6 +21,14 @@
 //
 // Sinds 11 november (besluit Alex) rekent ook de Editie hiermee: isOpinion in shared/article-signals.mjs
 // ("nooit opinie op 01") gebruikt deze herkenning, op de server, het web en de iPhone (edition-core.js).
+//
+// Een opinieblad (besluit Alex 13 november 2026): de catalogus zegt het per bron (`opinie` in
+// netlify/lib/sources.mjs), en dan is alles van die bron opinie. Ook dat zegt de uitgever zelf.
+import { OPINIE_IDS } from '../netlify/lib/sources.mjs'
+
+// Is deze bron een opinieblad? Dan draagt hij geen plek in de Editie en telt hij niet mee in de drempels voor groot
+// nieuws (coverageOf in shared/edition-policy.mjs, het aantal bronnen van een verhaal in netlify/lib/stories.mjs).
+export const opinieBron = (id) => OPINIE_IDS.has(id)
 
 const DIR = /^(opinie[a-z-]*|opinies|opinion|opinions|[a-z]+-opinion|meningen|mening|columns?|columns-[a-z-]+|columnisten|commentaar|commentisfree|[a-z]+-commentary|opinion-and-essays|wat-u-zegt)$/i
 const HOST_DIR = [
@@ -73,7 +81,7 @@ function signedAtEnd(item) {
 
 export function isOpinie(item = {}) {
   if (!item || item.kind === 'post') return false
-  if (item.type === 'opinie') return true
+  if (item.type === 'opinie' || opinieBron(item.source)) return true
   if (urlSignal(item.url)) return true
   if (LABEL.test(String(item.section || '').trim())) return true
   const title = String(item.title || '')

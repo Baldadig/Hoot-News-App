@@ -12,6 +12,7 @@
 // webinars, podcastafleveringen, dealpagina's, vacatures of "10 tools"-lijstjes. Geen AI-tekst: bij elk stuk staat de
 // eigen intro van de schrijver.
 import { loadSourceWithRetry } from './rss.mjs'
+import { loadSourceAvatars } from './lookups.mjs'
 import { hardMark } from '../../shared/editie-filter.mjs'
 import { visibleFor, langOf } from '../../shared/lang.mjs'
 import { tzOffsetMs, hostname } from './text.mjs'
@@ -146,7 +147,7 @@ const ORDER = {
 // alles op .nl of .be, plus de Nederlandstalige bronnen op een ander domein (hieronder). Geen
 // hoofdtaal: bronnen die bewust in meer talen schrijven. De rest is Engelstalig.
 const NL_ELSEWHERE = new Set(
-  ['frankwatching', 'photofacts', 'fotodok', 'iusmentis', 'tweakers', 'tweakers-games', 'thuiswinkel', 'esb', 'changeinc', 'verheggen', 'gemeentenu', 'writteninmusic', 'gonzocircus', 'tzum', 'trendbeheer', 'gamekings', 'helden'].map(
+  ['frankwatching', 'photofacts', 'fotodok', 'iusmentis', 'tweakers', 'tweakers-games', 'thuiswinkel', 'esb', 'changeinc', 'verheggen', 'gemeentenu', 'writteninmusic', 'gonzocircus', 'tzum', 'trendbeheer', 'gamekings', 'helden', 'opiniez', 'delagelanden', 'hardhoofd', 'historiek'].map(
     (id) => 'vak:' + id,
   ),
 )
@@ -473,7 +474,10 @@ export async function addOgImages(pool, { max = 24, first = new Set(), load = lo
 // ---- Ophalen en bewaren ----
 const KEEP_DAYS = 16
 export async function loadVakItems(sources = VAK_SOURCES) {
-  const results = await Promise.all(sources.map((s) => loadSourceWithRetry(s, Promise.resolve({}))))
+  // Het merkbeeld (13 november 2026): `logo` of `x` neemt loadSource zelf; een `bsky`-profielbeeld vragen we hier op.
+  const withBsky = sources.filter((s) => s.bsky && !s.logo)
+  const avatars = withBsky.length ? loadSourceAvatars(withBsky).catch(() => ({})) : Promise.resolve({})
+  const results = await Promise.all(sources.map((s) => loadSourceWithRetry(s, avatars)))
   const newest = (r) => r.items.reduce((m, i) => (i.publishedAt && i.publishedAt > m ? i.publishedAt : m), '') || null
   // Alleen wat bij een onderwerp past en om te lezen is: brede bronnen (een krant, een
   // rubrieksfeed) leveren veel meer dan we bewaren willen.

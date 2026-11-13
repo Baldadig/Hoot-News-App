@@ -192,8 +192,8 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
       // Feed en avatars tegelijk ophalen (avatars houden de feed niet meer op).
       const [feed, avatars] = await Promise.all([readFeed(url), avatarsP])
       const fetchedAt = Date.now()
-      // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
-      const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
+      // Mooie merk-avatar: 0) het officiele beeld van de site (`logo`), 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
+      const brandAvatar = src.logo || avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats, src) && (!src.keep || String(it.link || '').includes(src.keep)))
       const seen = new Set()
       const mapped = fresh.map(([it, cats]) => {

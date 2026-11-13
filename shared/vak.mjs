@@ -60,6 +60,7 @@ export const VAK_FIELDS = [
   { id: 'eten', domain: 'cultuur', label: 'Eten & drinken', about: 'Koken, restaurants, wijn en de foodwereld' },
   { id: 'reizen', domain: 'cultuur', label: 'Reizen', about: 'Bestemmingen, reisverhalen en de reiswereld' },
   { id: 'sport', domain: 'cultuur', label: 'Sport', about: 'Achtergrond en analyse, niet alleen de uitslag' },
+  { id: 'geschiedenis', domain: 'cultuur', label: 'Geschiedenis', about: 'Verhalen uit het verleden en nieuw historisch onderzoek' },
 ]
 export const VAK_FIELD_IDS = VAK_FIELDS.map((f) => f.id)
 // Per domein zijn onderwerpen, in de volgorde hierboven.

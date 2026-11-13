@@ -28,8 +28,9 @@ test('nieuwsfeeds van kranten en Belgisch nieuws zijn uit de Selectie, en staan 
   for (const id of ['nos-economie', 'nu-economie']) assert.deepEqual(VAK_SOURCES.find((s) => s.id === 'vak:' + id).fields, ['vastgoed', 'geld'])
   // Sporza alleen nog voor wielrennen.
   assert.ok(ids.has('vak:sporza-wielrennen'))
-  // Geen Belgische bron meer bij Politiek, Sport en Economie, behalve Sporza Wielrennen.
-  const be = VAK_SOURCES.filter((s) => /\.be$/.test(new URL(s.urls[0]).hostname) && s.fields.some((f) => ['politiek', 'sport', 'economie'].includes(f)))
+  // Geen Belgische nieuwsbron meer bij Politiek, Sport en Economie, behalve Sporza Wielrennen. Vlaamse opinie (`opinie`,
+  // besluit Alex 13 november 2026: "Knack etc.") is geen nieuwsfeed en mag wel.
+  const be = VAK_SOURCES.filter((s) => !s.opinie && /\.be$/.test(new URL(s.urls[0]).hostname) && s.fields.some((f) => ['politiek', 'sport', 'economie'].includes(f)))
   assert.deepEqual(be.map((s) => s.id), ['vak:sporza-wielrennen'])
   // Het archief wordt niet opgehaald en heeft geen dubbele id's met de Selectie.
   assert.equal(ARCHIVED_SOURCES.filter((s) => ids.has(s.id)).length, 0)

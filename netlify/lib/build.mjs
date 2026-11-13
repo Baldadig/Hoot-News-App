@@ -26,7 +26,7 @@ import { freeDutchFill, morningTopUp, OCHTEND_AANVULLING } from './aanvulling.mj
 import { haagsDossier } from './dossiers.mjs'
 import { placeDesks } from './rubriek.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
-import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
+import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, OPINIE_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
 import { STORE_KEY, splitFeed, storeOf, withLatest } from './stream.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
@@ -51,10 +51,10 @@ const SOURCE = new Map(SOURCES.map((s) => [s.id, s]))
 // Telt mee voor verhalen: alles behalve regionaal (veel gedeelde stukken) en muziek.
 const inStories = (it) => it.kind === 'article' && SOURCE.get(it.source)?.cat !== 'regio' && !MUSIC_IDS.has(it.source)
 // Telt mee voor de editie: landelijk, internationaal, economie, tech en wetenschap.
-// De editie is nieuws: geen sport- of muziekbronnen, en ook geen sportbericht uit een gewone
-// nieuwsbron (een grote voetbalavond kwam anders via de Volkskrant toch bovenaan).
+// De editie is nieuws: geen sport- of muziekbronnen, geen opiniebladen (`opinie`, 13 november 2026), en ook geen
+// sportbericht uit een gewone nieuwsbron (een grote voetbalavond kwam anders via de Volkskrant toch bovenaan).
 const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
-const inEdition = (it) => !excludedFromEdition(it) && EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source) && !keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
+const inEdition = (it) => !excludedFromEdition(it) && EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source) && !OPINIE_IDS.has(it.source) && !keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
 
 // `anthropic`: alleen voor toetsen (een nepmodel); anders de client uit ANTHROPIC_API_KEY.
 export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
@@ -1187,7 +1187,7 @@ function sourceList({ mainGroups, bskyGroups, avatars, profiles }) {
         login: s.login || null,
         followed: true,
         brandColor: s.color || '#21468b',
-        avatar: first(g)?.avatar || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null),
+        avatar: first(g)?.avatar || s.logo || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null),
         avatarContain: first(g)?.avatarContain || false,
         handle: first(g)?.domain || null,
       }

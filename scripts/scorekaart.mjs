@@ -129,7 +129,7 @@ export async function rebuild(set, root) {
     for (const st of stories) for (const id of st.itemIds) if (byId.has(id)) byId.get(id).storyId = st.id
     const SRC = new Map(c.SOURCES.map((s) => [s.id, s]))
     const SPORT = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
-    const inEdition = (it) => c.EDITION_CATS.has(SRC.get(it.source)?.cat) && !c.MUSIC_IDS.has(it.source) && !c.keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT.has(t))
+    const inEdition = (it) => c.EDITION_CATS.has(SRC.get(it.source)?.cat) && !c.MUSIC_IDS.has(it.source) && !c.OPINIE_IDS?.has(it.source) && !c.keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT.has(t))
     const newsPool = articles.filter(inEdition)
     const newsIds = new Set(newsPool.map((a) => a.id))
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
