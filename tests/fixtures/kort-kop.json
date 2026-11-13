@@ -1,5 +1,5 @@
 {
-  "max": 60,
+  "max": 45,
   "gevallen": [
     {
       "kop": "Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis",
@@ -71,7 +71,7 @@
     },
     {
       "kop": "Een kop van precies zestig tekens die nog net past, wel fijn",
-      "verwacht": "Een kop van precies zestig tekens die nog net past, wel fijn"
+      "verwacht": null
     },
     {
       "kop": "Donaudampfschiffahrtsgesellschaftskapitänswitwenrentenauszahlungsstelle bestaat niet",
@@ -1445,21 +1445,21 @@
       "max": 28
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal dat\u0085niet doen deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal datniet doen deze week",
       "verwacht": null
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal dat\u0085niet doen deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal datniet doen deze week",
       "verwacht": null,
       "max": 52
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal dat\u0085niet doen deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal datniet doen deze week",
       "verwacht": null,
       "max": 44
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal dat\u0085niet doen deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber, maar de Eerste Kamer zal datniet doen deze week",
       "verwacht": null,
       "max": 28
     },
@@ -1483,25 +1483,25 @@
       "max": 28
     },
     {
-      "kop": "Kop met\u0085teken",
+      "kop": "Kop metteken",
       "verwacht": "Kop met teken"
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer dat\u0085niet doet deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer datniet doet deze week",
       "verwacht": null
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer dat\u0085niet doet deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer datniet doet deze week",
       "verwacht": null,
       "max": 52
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer dat\u0085niet doet deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer datniet doet deze week",
       "verwacht": null,
       "max": 44
     },
     {
-      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer dat\u0085niet doet deze week",
+      "kop": "Kamer stemt in met nieuwe asielwet van minister Faber terwijl de Eerste Kamer datniet doet deze week",
       "verwacht": null,
       "max": 28
     },
@@ -2215,11 +2215,11 @@
       "verwacht": null
     },
     {
-      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag over de nieuwe asielwet\u0085niet",
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag over de nieuwe asielwetniet",
       "verwacht": null
     },
     {
-      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag over de nieuwe asielwet\u0085niet",
+      "kop": "Kabinet is gevallen na urenlang crisisberaad in Den Haag over de nieuwe asielwetniet",
       "max": 40,
       "verwacht": null
     },
@@ -2870,6 +2870,134 @@
       "kop": "Kabinet trekt de belastingverlaging voor middeninkomens in 2027 na kritiek weer in",
       "verwacht": null,
       "max": 40
+    }
+  ],
+  "herschreven": [
+    {
+      "kop": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD",
+      "kort": "Deal over belastingplan, nog geen reactie VVD",
+      "veilig": true,
+      "waarom": "herschreven, ontkenning blijft"
+    },
+    {
+      "kop": "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD",
+      "kort": "Deal over belastingplan, VVD zwijgt nog",
+      "veilig": false,
+      "waarom": "ontkenning weg: bij twijfel geen korte kop"
+    },
+    {
+      "kop": "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet",
+      "kort": "RIVM-labs dreigen dicht, verhuizen kan niet",
+      "veilig": true,
+      "waarom": "herschreven"
+    },
+    {
+      "kop": "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet",
+      "kort": "Verouderde RIVM-labs dreigen dicht te gaan",
+      "veilig": false,
+      "waarom": "de voorwaarde (kan niet verhuizen) is weg"
+    },
+    {
+      "kop": "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet",
+      "kort": "Minister Kuipers: RIVM-labs kunnen niet weg",
+      "veilig": false,
+      "waarom": "nieuwe naam"
+    },
+    {
+      "kop": "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
+      "kort": "300 scholen doelwit van nepbommeldingen",
+      "veilig": false,
+      "waarom": "nieuw getal"
+    },
+    {
+      "kop": "Three Iran-backed suspects plotted attacks including RAF Fairford incident, US says",
+      "kort": "US: Iran-backed suspects plotted attacks",
+      "veilig": true,
+      "waarom": "bron blijft, Engels blijft Engels"
+    },
+    {
+      "kop": "Autistic teen missing in Australian bushland for 6 days rescued alive",
+      "kort": "Autistic teen found alive after 6 days",
+      "veilig": true,
+      "waarom": "afloop blijft"
+    },
+    {
+      "kop": "Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit",
+      "kort": "Kabinet stelt AOW-leeftijd 68 opnieuw uit",
+      "veilig": true,
+      "waarom": "herschreven"
+    },
+    {
+      "kop": "Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit",
+      "kort": "Kabinet stelt AOW-leeftijd 68 niet uit",
+      "veilig": false,
+      "waarom": "ontkenning erbij"
+    },
+    {
+      "kop": "Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis",
+      "kort": "Iraanse dreiging is zó groot dat",
+      "veilig": false,
+      "waarom": "afgekapt, niet herschreven"
+    },
+    {
+      "kop": "Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis",
+      "kort": "Iraanse dreiging is zó groot dat Amerikaanse minister…",
+      "veilig": false,
+      "waarom": "ingekorte kop van een oudere server"
+    },
+    {
+      "kop": "Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis",
+      "kort": "Amerikaanse minister verhuist naar legerbasis…",
+      "veilig": false,
+      "waarom": "beletselteken"
+    },
+    {
+      "kop": "Iraanse dreiging is zó groot dat Amerikaanse minister met gezin moet verhuizen naar zwaar beveiligde legerbasis",
+      "kort": "Amerikaanse minister moet door Iran naar een zwaar beveiligde basis",
+      "veilig": false,
+      "waarom": "langer dan 45 tekens"
+    },
+    {
+      "kop": "Iraanse dreiging: Amerikaanse minister moet met gezin naar legerbasis",
+      "kort": "Iraanse dreiging: minister naar legerbasis",
+      "veilig": true,
+      "waarom": "herschreven"
+    },
+    {
+      "kop": "Iraanse dreiging: Amerikaanse minister moet met gezin naar legerbasis",
+      "kort": "Om Iran moet Amerikaanse minister naar basis",
+      "veilig": false,
+      "waarom": "Iran staat niet als woord in de kop (Iraanse): streng"
+    },
+    {
+      "kop": "Kort: het weer",
+      "kort": "Kort: het weer",
+      "veilig": true,
+      "waarom": "de kop zelf"
+    },
+    {
+      "kop": "Kort: het weer",
+      "kort": "Het weer",
+      "veilig": false,
+      "waarom": "de kop past al: dan de kop zelf"
+    },
+    {
+      "kop": "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough",
+      "kort": "Russia and Ukraine agree on prisoner exchange",
+      "veilig": false,
+      "waarom": "zonder doorbraak (ontkenning) is weg"
+    },
+    {
+      "kop": "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough",
+      "kort": "Prisoner swap agreed, but no breakthrough",
+      "veilig": true,
+      "waarom": "herschreven, ontkenning blijft"
+    },
+    {
+      "kop": "Kop metteken die veel te lang is voor de widget op het beginscherm",
+      "kort": "",
+      "veilig": false,
+      "waarom": "leeg"
     }
   ]
 }

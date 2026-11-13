@@ -1,6 +1,7 @@
 import { cleanIntro } from '../../shared/edition-display.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { aiExclusions } from './editie-ai.mjs'
+import { korteKoppen as korteKoppenAi, teVragen as teVragenKort, aiEnabled as kortKopAiEnabled, MAX_TRIES as KORT_KOP_TRIES } from './kort-kop-ai.mjs'
 import { wholeSentences, introMax, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { EDITOR_REVISION, EDITION_REBUILD_SLOT, editionCacheKey, editionRevisionKey } from '../../shared/editor-version.mjs'
 import { previousEdition, carriedEdition, findEdition } from './edition-history.mjs'
@@ -1111,6 +1112,20 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       stored.brief = null
     }
   }
+  // De korte koppen voor de bladerwidget (netlify/lib/kort-kop-ai.mjs, achter HOOT_KORTE_KOP_AI): één keer per Editie,
+  // alleen voor koppen die er nog niet bij staan (ook na een ochtendaanvulling). Mislukt het, dan hooguit MAX_TRIES keer.
+  if (kortKopAiEnabled() && anthropic && stored.entries.length && (stored.korteKoppenTries || 0) < KORT_KOP_TRIES) {
+    const items = new Map(stored.items.map((i) => [i.id, i]))
+    const koppen = stored.entries.filter((e) => e.desk !== 'bubbel').map((e) => items.get(e.kind === 'story' ? e.leadId || e.id : e.id)?.title || e.title).filter(Boolean)
+    if (teVragenKort(koppen, stored.korteKoppen || {}).length) {
+      const r = await korteKoppenAi({ koppen, bekend: stored.korteKoppen || {}, client: anthropic })
+      if (r.gevraagd) {
+        stored.korteKoppen = r.korteKoppen
+        if (r.stats.fout || teVragenKort(koppen, r.korteKoppen).length) stored.korteKoppenTries = (stored.korteKoppenTries || 0) + 1
+        changed = true
+      }
+    }
+  }
   if (changed && stored.entries.length) await kvSet(key, stored)
   if (archive && stored.entries.length) {
     archive = await archiveEdition(slot, stored, archive, { byId, stories, storyById }).catch((e) => (console.error('archief', String(e?.message || e)), null))
@@ -1130,7 +1145,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   return {
     snapshot: stored,
     archive,
-    // Met `kortKop` per plek (shared/kort-kop.mjs): de korte kop voor de widgets.
+    // Met `kortKop` per plek (shared/kort-kop.mjs): de korte kop voor de widgets, herschreven waar dat mocht.
     public: metKorteKoppen({
       id: slot.id,
       slot: slot.slot,
@@ -1146,7 +1161,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       wide: widelyCovered(stories, byId, { isFree, isDutch: dutch, isSport }),
       // Actueel: waaruit de persoonlijke Editie "Naast je bubbel" kiest als geen trend buiten je profiel valt.
       near: nearStories(stories, byId, { isFree, isDutch: dutch, isSport, isLive, now }),
-    }),
+    }, { herschreven: stored.korteKoppen || null }),
   }
 }
 

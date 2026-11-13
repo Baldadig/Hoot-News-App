@@ -1,11 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { kortKop, metKorteKoppen, veilig, KORT_MAX } from '../shared/kort-kop.mjs'
+import { kortKop, metKorteKoppen, veilig, controle, herschrevenVan, KORT_MAX } from '../shared/kort-kop.mjs'
 
 // tests/fixtures/kort-kop.json wordt ook door iOS gelezen (KortKopTests): dezelfde uitkomst op beide.
 const fx = JSON.parse(readFileSync(new URL('./fixtures/kort-kop.json', import.meta.url), 'utf8'))
-const MATEN = [60, 56, 52, 48, 44, 40, 36, 32, 28, 24]
+const MATEN = [60, 56, 52, 48, 45, 44, 40, 36, 32, 28, 24]
 const schoonKop = (s) => s.replace(/[​-‍﻿]/gu, '').replace(/[\s\u0085]+/gu, ' ').trim()
 
 test('korte kop: dezelfde uitkomst als de gedeelde gevallen', () => {
@@ -15,7 +15,7 @@ test('korte kop: dezelfde uitkomst als de gedeelde gevallen', () => {
   for (const c of fx.gevallen) assert.equal(kortKop(c.kop, c.max ?? KORT_MAX), c.verwacht, `${c.kop} (${c.max ?? KORT_MAX})`)
 })
 
-test('korte kop: nooit ingekort, op elke maat (besluit "korte kop dicht", keuring 9)', () => {
+test('korte kop zonder taalmodel: nooit ingekort, op elke maat', () => {
   // Een eigen controle, los van de code: de uitkomst is de kop zelf (die past), of null. Nooit een beletselteken
   // dat de kop niet zelf had, nooit een woord minder.
   for (const c of fx.gevallen) {
@@ -24,12 +24,12 @@ test('korte kop: nooit ingekort, op elke maat (besluit "korte kop dicht", keurin
       const k = kortKop(c.kop, max)
       if (t.length <= max) assert.equal(k, t, `${c.kop} (${max})`)
       else assert.equal(k, null, `${c.kop} (${max}) → ${k}`)
-      if (k !== null) assert.ok(veilig(c.kop, k), `${c.kop} (${max})`)
+      if (k !== null && max <= KORT_MAX) assert.ok(veilig(c.kop, k), `${c.kop} (${max})`)
     }
   }
 })
 
-test('korte kop: wat keuring 9 vond, staat heel', () => {
+test('korte kop: wat keuring 9 vond, wordt zonder taalmodel nooit ingekort', () => {
   const heel = [
     // 1. Een tweede bewering met en/and, ook een die de eerste tegenspreekt.
     'Kabinet is gevallen na urenlang crisisberaad in Den Haag en premier noemt dat bericht nepnieuws',
@@ -72,8 +72,9 @@ test('korte kop: wat keuring 9 vond, staat heel', () => {
 })
 
 test('korte kop: een kop die past blijft precies zo', () => {
-  const past = 'Een kop van precies zestig tekens die nog net past, wel fijn'
-  assert.equal(past.length, 60)
+  assert.equal(KORT_MAX, 45)
+  const past = 'Een kop van 45 tekens die nog net past, fijn!'
+  assert.equal(past.length, 45)
   assert.equal(kortKop(past), past)
   assert.equal(veilig(past, past), true)
   assert.equal(kortKop(`${past}!`), null)
@@ -105,4 +106,38 @@ test('metKorteKoppen: per plek de kop als hij past, de rest ongemoeid', () => {
   assert.equal(uit.items, ed.items)
   assert.equal(ed.entries[1].kortKop, undefined) // het origineel blijft zoals het was
   assert.equal(metKorteKoppen(null), null)
+  // Met herschreven koppen (kort-kop-ai.mjs): alleen een die door de controle komt.
+  const met = metKorteKoppen(ed, { herschreven: { [lang]: 'Iraanse dreiging: minister naar legerbasis' } })
+  assert.equal(met.entries[0].kortKop, 'Iraanse dreiging: minister naar legerbasis')
+  const fout = metKorteKoppen(ed, { herschreven: { [lang]: 'Iraanse dreiging is zó groot dat Amerikaanse…' } })
+  assert.equal('kortKop' in fout.entries[0], false)
+  const nul = metKorteKoppen(ed, { herschreven: { [lang]: null } })
+  assert.equal('kortKop' in nul.entries[0], false)
+  // Een persoonlijke Editie neemt de herschreven korte kop over van de algemene.
+  assert.deepEqual(herschrevenVan(met), { [lang]: 'Iraanse dreiging: minister naar legerbasis' })
+  assert.deepEqual(herschrevenVan(uit), {})
+})
+
+test('herschreven korte kop: dezelfde controle als iOS (gedeelde gevallen)', () => {
+  assert.ok(fx.herschreven.length >= 20)
+  for (const c of fx.herschreven) {
+    assert.equal(veilig(c.kop, c.kort), c.veilig, `${c.kort} (${c.waarom})`)
+    if (c.veilig) assert.ok(schoonKop(c.kort).length <= KORT_MAX)
+  }
+})
+
+test('herschreven korte kop: de controle los nagelopen', () => {
+  const kop = 'Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit'
+  assert.equal(controle(kop, 'Kabinet stelt AOW-leeftijd 68 opnieuw uit'), true)
+  assert.equal(controle(kop, 'Kabinet stelt AOW-leeftijd 69 opnieuw uit'), false, 'nieuw getal')
+  assert.equal(controle(kop, 'Kabinet stelt AOW-leeftijd 68 never uit'), false, 'ontkenning erbij')
+  assert.equal(controle(kop, 'Kabinet stelt de verhoging van de AOW-leeftijd'), false, 'het begin van de kop')
+  assert.equal(controle(kop, 'Kabinet stelt de verhoging van de AOW-leeftijd.'), false, 'het begin, met een punt')
+  assert.equal(controle(kop, 'Schoof stelt AOW-leeftijd 68 opnieuw uit'), true, 'de eerste naam telt niet als nieuwe naam')
+  assert.equal(controle(kop, 'AOW: Schoof stelt 68 opnieuw uit'), true, 'de eerste naam na een dubbele punt ook niet')
+  assert.equal(controle(kop, 'Kabinet en Schoof stellen AOW 68 uit'), false, 'een nieuwe naam midden in de kop')
+  assert.equal(controle(kop, null), false)
+  assert.equal(controle(kop, '   '), false)
+  assert.equal(controle("Prime minister doesn't resign after crisis talks in Downing Street", 'PM stays after crisis talks'), false, "n't is een ontkenning")
+  assert.equal(controle("Prime minister doesn't resign after crisis talks in Downing Street", "PM doesn't resign after crisis talks"), true)
 })
