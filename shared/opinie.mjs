@@ -80,5 +80,30 @@ export function isOpinie(item = {}) {
   return TITLE.test(title) || TITLE_CAPS.test(title) || signedBySelf(item) || signedAtEnd(item)
 }
 
+// De rubriek uit de feed zelf (de rss-categorie die de uitgever meegeeft; netlify/lib/rss.mjs zet er `type: 'opinie'`
+// mee). Column in de Editie, 13 november 2026: NRC zet zijn opinie alleen in de categorie "Opinie & columns" en zijn
+// columns in "Ondertussen", met een gewone /nieuws/-link en zonder auteur; de oude regel kende alleen een categorie die
+// precies "Opinie" of "Column" heet, en herkende van 487 bewaarde NRC-stukken er geen enkele als opinie.
+//  - een categorie die helemaal uit opinielabels bestaat: "Opinie", "Opinie & columns", "Opinie en columns" (De
+//    Standaard), "Opinie - Columns" (Mediahuis-regio). Elk deel moet een label zijn: "Opinion & Analysis",
+//    "Public opinion", "Opinion polls" of "Magazine / Comment" tellen dus niet;
+//  - een vaste columnrubriek van één uitgever, net als HOST_DIR: NRC "Ondertussen" (columns en lezersbijdragen; op 13
+//    november 9 van 9 stukken geen nieuws).
+// Een woord in een langere categorie of een onderwerp telt nooit; bij twijfel blijft het nieuws.
+const CAT_PART = /^(opinie|opinies|opinion|opinions|column|columns|columnisten|columnists|commentaar|commentary|ingezonden|ingezonden brieven?|meningen|hoofdredactioneel)$/i
+const CAT_SPLIT = /\s*(?:&|\+|\/|\||,|\s-\s|\s–\s|\ben\b|\band\b)\s*/i
+const HOST_CAT = [[/(^|\.)nrc\.nl$/i, /^ondertussen$/i]]
+export function opinieRubriek(cats = [], url = '') {
+  const list = (Array.isArray(cats) ? cats : [cats]).map((c) => String(c || '').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim()).filter(Boolean)
+  if (list.some((c) => c.split(CAT_SPLIT).filter(Boolean).every((p) => CAT_PART.test(p)))) return true
+  let host = ''
+  try {
+    host = new URL(String(url || '')).hostname
+  } catch {
+    return false
+  }
+  return HOST_CAT.some(([h, c]) => h.test(host) && list.some((x) => c.test(x)))
+}
+
 // Voor de website: een bericht uit een feed van vóór dit veld draagt alleen `type`.
 export const opinieInStroom = (item) => item?.opinion === true || item?.type === 'opinie'

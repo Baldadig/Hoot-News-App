@@ -9,6 +9,7 @@ import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleT
 import { langOf } from '../../shared/lang.mjs'
 import { rubricSegments } from '../../shared/editie-filter.mjs'
 import { couponPage } from './kortingscode.mjs'
+import { opinieRubriek } from '../../shared/opinie.mjs'
 
 const parser = new Parser({
   timeout: 9000,
@@ -129,9 +130,10 @@ function authorOf(it) {
   return a && a.length <= 70 ? a : null
 }
 // Soort alleen als de bron het zelf aangeeft (URL-pad of RSS-categorie). Geen signaal = geen label.
-function typeOf(link, cats) {
+// De categorie: opinieRubriek (shared/opinie.mjs), ook "Opinie & columns" en een vaste columnrubriek van één uitgever.
+export function typeOf(link, cats) {
   if (/\/(opinie|opinion|opinions|columns?[a-z-]*|commentaar|commentisfree)\//i.test(link)) return 'opinie'
-  if (cats.some((c) => /^(opinie|opinion|column|columns|commentaar)$/i.test(c.trim()))) return 'opinie'
+  if (opinieRubriek(cats, link)) return 'opinie'
   return null
 }
 // Rubriek uit de URL, alleen waar die betrouwbaar is (de Volkskrant).
