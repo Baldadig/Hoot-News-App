@@ -1179,7 +1179,7 @@ struct EditionSun: View {
     private struct Tekening: View, Animatable {
         var p: Double
         let count: Int
-        var animatableData: Double {
+        nonisolated var animatableData: Double {
             get { p }
             set { p = newValue }
         }
