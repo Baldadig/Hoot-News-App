@@ -53,17 +53,27 @@ export const SCHEMA = {
 
 export const promptOf = (koppen) => koppen.map((k, i) => `${i + 1}. ${k}`).join('\n')
 
-// Dezelfde taal: eerst de lidwoorden en voorzetsels, en zonder duidelijke uitslag de klanken van editie-ai (langOf:
-// ij, oe, aa, sch tegen th, wh, -ing). Bij twijfel wint de strenge kant: een andere uitslag = geen korte kop.
+// Dezelfde taal: eerst de lidwoorden en voorzetsels, en zonder duidelijke uitslag de klanken (ij, oe, aa, sch tegen th,
+// wh, -ing, zoals langOf in editie-ai). Geven ook de klanken geen uitslag, dan is de taal onzeker: geen korte kop.
 const NL_W = /(?<![\p{L}])(de|het|een|van|en|op|voor|met|niet|naar|bij|uit|zijn|wordt|over|om|ook|nog|maar|dat|die|deze|dit|wil|gaat|krijgt|na|geen)(?![\p{L}])/giu
 const EN_W = /(?<![\p{L}])(the|a|an|of|and|to|for|with|on|are|after|as|at|by|from|its|how|why|what|this|that|will|says|new|your|not|no|over|in)(?![\p{L}])/giu
 const duidelijk = (s) => {
   const nl = (s.match(NL_W) || []).length, en = (s.match(EN_W) || []).length
   return nl === en ? null : nl > en ? 'nl' : 'en'
 }
+const klanken = (s) => {
+  const nl = (s.match(/ij|oe|aa|uu|ui|sch|cht/gi) || []).length, en = (s.match(/th|wh|ing\b|ght|ea|ou/gi) || []).length
+  return nl === en ? null : nl > en ? 'nl' : 'en'
+}
+// Is ook dat onbeslist (een korte Engelse kop zonder lidwoorden), dan telt of de korte kop zijn woorden uit de kop haalt:
+// minstens de helft van zijn woorden van vier letters of meer staat in de kop. Een vertaling haalt dat niet.
+const lang4 = (s) => (s.toLowerCase().match(/[\p{L}]{4,}/gu) || [])
 export function zelfdeTaal(kop, kort) {
-  const taal = (s) => duidelijk(s) ?? langOf({ title: s })
-  return taal(kop) === taal(kort)
+  const taal = (s) => duidelijk(s) ?? klanken(s)
+  const a = taal(kop) ?? langOf({ title: kop }), b = taal(kort)
+  if (b !== null) return a === b
+  const w = lang4(kort), k = new Set(lang4(kop))
+  return w.length > 0 && w.filter((x) => k.has(x)).length * 2 >= w.length
 }
 
 // Een uitkomst van het model nalopen: de korte kop, of null.

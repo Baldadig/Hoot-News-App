@@ -32,21 +32,26 @@ enum KortKop {
 
     private static let ontkenning = regex("(?<![\\p{L}\\p{N}])(niet|geen|nooit|zonder|noch|niemand|niets|nergens|not|no|never|without|nor|none|nobody|nothing|nowhere)(?![\\p{L}\\p{N}])|n['’]t(?![\\p{L}\\p{N}])", [.caseInsensitive])
     static func ontkent(_ s: String) -> Bool { bevat(ontkenning, s) }
+    // Wie het zegt: een kop met een bron houdt die in de korte kop, met zo'n woord of als "Bron: …" (zoals op het web).
+    private static let bron = regex("(?<![\\p{L}\\p{N}])(volgens|zegt|zeggen|zei|zeiden|meldt|melden|aldus|says|said|according|claims|claim|reports|report)(?![\\p{L}\\p{N}])", [.caseInsensitive])
+    static func noemtBron(_ s: String) -> Bool { bevat(bron, s) || s.contains(":") }
     private static func getallen(_ s: String) -> [String] { treffers("[0-9]+", s) }
-    // De woorden met een hoofdletter, behalve het eerste van de kop of van een zinsdeel na ": " (zoals op het web).
+    // De woorden, en daarvan die met een hoofdletter (ook het eerste woord), zoals op het web.
+    private static func woorden(_ s: String) -> [String] { treffers("[\\p{L}\\p{N}]+", s) }
     private static func namen(_ s: String) -> [String] {
-        var uit: [String] = []
-        let delen = vervang("[:.!?]\\s+", s, "\u{1}").components(separatedBy: "\u{1}")
         let hoofdletter = regex("\\p{Lu}")
-        for deel in delen {
-            let woorden = treffers("[\\p{L}\\p{N}]+", deel)
-            for w in woorden.dropFirst() where bevat(hoofdletter, w) { uit.append(w) }
-        }
-        return uit
+        return woorden(s).filter { bevat(hoofdletter, $0) }
+    }
+    // Alleen weglatingen: elk woord van de korte kop staat, in dezelfde volgorde, ook in de kop (ingekort, niet herschreven).
+    private static func ingekort(_ t: String, _ k: String) -> Bool {
+        let tw = woorden(t.lowercased()), kw = woorden(k.lowercased())
+        var i = 0
+        for w in tw where i < kw.count && (w as NSString).isEqual(to: kw[i]) { i += 1 }
+        return i == kw.count
     }
 
     // De controle op een herschreven korte kop (gelijk aan het web): lengte, geen beletselteken, niet het begin van de
-    // kop, geen nieuwe getallen of namen, ontkenning gelijk.
+    // kop en niet alleen weglatingen, geen nieuwe getallen of woorden met een hoofdletter, ontkenning gelijk.
     static func controle(_ kop: String, _ kort: String?) -> Bool {
         guard let kort else { return false }
         let t = schoon(kop), k = schoon(kort)
@@ -57,11 +62,14 @@ enum KortKop {
         if bevat(puntjes, k), !bevat(puntjes, t) { return false }
         let stam = vervang("[\\s\\p{P}]+$", k, "").lowercased()
         if !stam.isEmpty, (t.lowercased() as NSString).hasPrefix(stam) { return false }
+        if ingekort(t, k) { return false }
         let tGetallen = Set(getallen(t))
         if getallen(k).contains(where: { !tGetallen.contains($0) }) { return false }
         let tLaag = t.lowercased() as NSString
         if namen(k).contains(where: { tLaag.range(of: $0.lowercased(), options: .literal).location == NSNotFound }) { return false }
-        return ontkent(t) == ontkent(k)
+        if ontkent(t) != ontkent(k) { return false }
+        if bevat(bron, t), !noemtBron(k) { return false }
+        return true
     }
 
     // De bewaking: de kop zelf (als hij past), of een herschreven kop die door de controle komt. Een ingekorte kop van
