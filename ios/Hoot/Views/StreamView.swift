@@ -397,7 +397,7 @@ struct SourcesList: View {
                 VStack(alignment: .leading, spacing: Space.s0) {
                     HStack(spacing: Space.s2) {
                         Text(s.name)
-                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
+                        if s.paid == true { Text("Abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("Gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
                     }
                     if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
                 }

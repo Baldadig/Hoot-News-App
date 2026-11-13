@@ -30,8 +30,8 @@ export function SourceRow({ s, muted, onToggle, onRemove, favorite = false, onFa
         <span className="srow__text">
           <span className="srow__name">
             {s.name}
-            {/* Zoals in de app: "gratis" in accent, "abonnement" stil. */}
-            {s.paid ? <span className="srow__tag srow__tag--paid"> abonnement</span> : <span className="srow__tag srow__tag--free"> gratis</span>}
+            {/* Zoals in de app: "Gratis" in accent, "Abonnement" stil. */}
+            {s.paid ? <span className="srow__tag srow__tag--paid"> Abonnement</span> : <span className="srow__tag srow__tag--free"> Gratis</span>}
           </span>
           <span className={`srow__meta${s.ok || muted ? '' : ' is-down'}`}>
             {s.handle && s.ok ? `${s.handle} · ` : ''}

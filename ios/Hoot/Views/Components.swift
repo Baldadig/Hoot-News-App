@@ -629,7 +629,7 @@ struct SourceLine: View {
 
     // Smalle kolom (gelijk aan .meta__bronnen in src/styles/rust.css): "1 uur geleden · 7 bronnen" op de
     // regel van de tijd, in de maat en kleur van de tijd; tikken vergelijkt. Geen knop "N bronnen ›" op een
-    // eigen regel, en geen "abonnement": zo blijft het één regel. Bewaren staat rechts, altijd zichtbaar
+    // eigen regel, en geen "Abonnement": zo blijft het één regel. Bewaren staat rechts, altijd zichtbaar
     // (op iOS is er geen hover).
     private var narrowBody: some View {
         HStack(alignment: .top, spacing: Space.s2) {
@@ -768,7 +768,7 @@ struct SourceLine: View {
     }
 
     private var meta: String {
-        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
+        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "Abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
     // "N bronnen ›": altijd het totaal, in ink2. Gelijk aan bronnenLabel in src/components/Items.jsx.

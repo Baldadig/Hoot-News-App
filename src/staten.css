@@ -101,6 +101,6 @@
   align-items: center;
 }
 
-/* Bronnen: "gratis" / "abonnement" achter de naam, zoals in de app (StreamView.swift). */
+/* Bronnen: "Gratis" / "Abonnement" achter de naam, zoals in de app (StreamView.swift). */
 .srow__tag { font-size: var(--t1); font-weight: 400; margin-left: var(--s1); color: var(--ink-3); }
 .srow__tag--free { color: var(--accent); font-weight: 600; }

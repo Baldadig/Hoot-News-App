@@ -129,7 +129,7 @@ export function SourceMeta({ item, outside = false }) {
         <span className="srcmeta__time">
           <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
           {item.readMin && !outside ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
-          {paid ? <span className="srcbtn__read"> · abonnement</span> : null}
+          {paid ? <span className="srcbtn__read"> · Abonnement</span> : null}
           {outside ? <span className="srcbtn__read"> · Buiten je bronnen</span> : null}
         </span>
       </span>
