@@ -1,6 +1,7 @@
 // Vult de landing met de bewaarde, echte Editie uit landing/bewaard.json (zie landing/bewaar.mjs). Dit is de terugval (B):
 // de held en Hoot kiest tonen hem tot de live voorpagina (hoot.js) binnen is; de Editie-, Stroom- en Selectie-demo's
 // tonen hem altijd. Alleen kop, uitgever en datum; een rubriek alleen als die zeker is. Geen verzonnen kranten.
+import { SOURCES } from '../netlify/lib/sources.mjs'
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 const VOLGENDE = { ochtend: 'vanmiddag', middag: 'vanavond', avond: 'morgenochtend' }
 // Zelfde woorden als de app; Buitenland heet op de landing Wereld (de Stroom-tab).
@@ -36,8 +37,14 @@ const markering = (soort, n) => (soort === 'groot' ? `Groot nieuws · ${n} bronn
 export const reden = (n) => (n >= 5 ? 'Groot nieuws' : n >= 2 ? `${n} bronnen schrijven erover` : 'Ook het lezen waard')
 
 // Zonder `wanneer` (de Editie-demo) alleen de bronnaam: geen datum die naast de held van vandaag oud oogt.
+// Het echte logo van de bron (landing/bronnen/<id>.webp) als de naam in de catalogus staat; anders de beginletter.
+const ID_VAN = new Map(SOURCES.map((s) => [s.name, s.id]))
+const logo = (x) => {
+  const id = x.sourceId || ID_VAN.get(x.source)
+  return id ? `<img src="/img/bronnen/${esc(id)}.webp" alt="" width="24" height="24" loading="lazy">` : `<i>${ini(x.source)}</i>`
+}
 const bron = (x, wanneer, metAantal = true) =>
-  `<div class="k-bron"><i>${ini(x.source)}</i><span>${esc(x.source)}${wanneer ? `<small>${esc(wanneer)}</small>` : ''}</span>${metAantal && x.sourceCount >= 2 ? `<b class="k-n">${x.sourceCount} bronnen</b>` : ''}${BM}</div>`
+  `<div class="k-bron">${logo(x)}<span>${esc(x.source)}${wanneer ? `<small>${esc(wanneer)}</small>` : ''}</span>${metAantal && x.sourceCount >= 2 ? `<b class="k-n">${x.sourceCount} bronnen</b>` : ''}${BM}</div>`
 const kick = (nr, desk) => (label(desk) ? `<div class="k-kick">${nr ? `<span class="k-nr">${nr}</span>` : ''}${label(desk)}</div>` : nr ? `<div class="k-kick k-kick--los"><span class="k-nr">${nr}</span></div>` : '')
 
 // Het bronnenblok ("Eén verhaal, veel bronnen"): de breedste verhalen van de bewaarde Editie, of anders plek 01.

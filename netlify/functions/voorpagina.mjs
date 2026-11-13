@@ -218,6 +218,7 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   }
   const plek = ({ item, rubriek: r, sourceCount, storyId }) => {
     const out = { desk: r, deskLabel: r ? LABEL[r] || null : null, title: item.title, source: item.sourceName || item.source, sourceCount }
+    if (srcs.has(item.source)) out.sourceId = item.source // voor het logo van de bron op de landing
     const list = bronnen(item, storyId)
     if (list) out.sources = list
     if (openImageSources.has(item.source) && /^https:\/\//.test(item.image || '')) out.imageUrl = item.image

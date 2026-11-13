@@ -119,8 +119,8 @@ test('vorm: slot, datum en drie plekken met alleen de kleine velden', () => {
   assert.equal(r.slot, 'ochtend')
   assert.equal(r.date, '2026-10-31')
   assert.equal(r.entries.length, 3)
-  assert.deepEqual(r.entries[0], { desk: 'binnenland', deskLabel: 'Binnenland', title: 'Kabinet bereikt akkoord', source: 'NOS', sourceCount: 12 })
-  for (const e of r.entries) assert.ok(Object.keys(e).every((k) => ['desk', 'deskLabel', 'source', 'sourceCount', 'title'].includes(k)))
+  assert.deepEqual(r.entries[0], { desk: 'binnenland', deskLabel: 'Binnenland', title: 'Kabinet bereikt akkoord', source: 'NOS', sourceCount: 12, sourceId: 'nos' }) // sourceId: voor het logo
+  for (const e of r.entries) assert.ok(Object.keys(e).every((k) => ['desk', 'deskLabel', 'source', 'sourceCount', 'sourceId', 'title'].includes(k)))
   assert.ok(!JSON.stringify(r).includes('http')) // geen URL's of beeld
 })
 
@@ -424,7 +424,7 @@ test('voorpagina: breed geeft hooguit drie verhalen met minstens drie bekende br
   const e = extract(f)
   assert.deepEqual(e.breed.map((x) => x.title), ['Kabinet bereikt akkoord'])
   assert.equal(e.breed[0].sources.length, 4)
-  assert.deepEqual(Object.keys(e.breed[0]).sort(), ['desk', 'deskLabel', 'source', 'sourceCount', 'sources', 'title'])
+  assert.deepEqual(Object.keys(e.breed[0]).sort(), ['desk', 'deskLabel', 'source', 'sourceCount', 'sourceId', 'sources', 'title'])
   // het Engelse verhaal (s2) komt er nooit in, hoe breed ook
   f.stories[1].sourceNames = ['NOS', 'NRC', 'de Volkskrant', 'Trouw', 'NYT']
   assert.ok(!extract(f).breed.some((x) => x.title === 'English headline'))

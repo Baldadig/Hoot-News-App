@@ -406,7 +406,11 @@
       var b = $('.k-bron', it), bron = String(x.source || '').trim(), n = Number(x.sourceCount) || 0;
       if (!b) return;
       if (!bron) { weg(b); return; }
-      $('i', b).textContent = ini(bron);
+      /* het echte logo van de bron als de server het id meegeeft (eigen bestand); anders, of als het ontbreekt, de beginletter */
+      var oud = $('i', b) || $('img', b), mono = document.createElement('i'); mono.textContent = ini(bron);
+      var sid = x.sourceId || (x.sources && x.sources[0] && x.sources[0].name === bron ? x.sources[0].id : '');
+      if (sid && /^[a-z0-9-]+$/.test(sid)) { var lg = new Image(); lg.alt = ''; lg.onerror = function () { if (lg.parentNode) lg.parentNode.replaceChild(mono, lg); }; lg.src = '/img/bronnen/' + sid + '.webp'; b.replaceChild(lg, oud); }
+      else b.replaceChild(mono, oud);
       var sp = $('span', b); sp.textContent = bron;
       var sm = document.createElement('small'); sm.textContent = dag; sp.appendChild(sm);
       var kn = $('.k-n', b);
@@ -433,7 +437,12 @@
           en = en.filter(function (x) { return x && typeof x.title === 'string' && x.title; });
           if (en.length < 3) throw 0;
           var bub = ed.bubble && ed.bubble.title ? ed.bubble : null;
-          /* plek 1 en 2 uit de Editie; plek 3 is de echte 'Buiten je bubbel' als die er is */
+          /* De opening is het grootste nieuws: het verhaal waar de meeste bronnen over schrijven (ed.breed, de breedste
+             eerst), niet zomaar de eerste rustige plek. Alex, 13 november: een bril van Tweakers met vijf bronnen is geen
+             nummer 1 naast een verhaal met dertig. Alleen als er niets breders is, opent de eerste plek. */
+          var top = Array.isArray(ed.breed) && ed.breed[0] && typeof ed.breed[0].title === 'string' && ed.breed[0].title ? ed.breed[0] : null;
+          if (top && (Number(top.sourceCount) || 0) > (Number(en[0].sourceCount) || 0)) en = [top].concat(en.filter(function (x) { return x.title !== top.title; }));
+          /* plek 1 en 2; plek 3 is de echte 'Buiten je bubbel' als die er is */
           var lijst = en.slice(0, 2).concat([bub || en[2]]);
           var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns, !!bub);
           /* Hoot kiest blijft bewaard als er geen drie verschillende redenen zijn, of als de bubbel over hetzelfde gaat
