@@ -84,6 +84,8 @@ struct BladerIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
+        // Een tik op een widget die nog een oudere Editie toont, zet de plek van de nieuwe niet terug naar 01.
+        if let nu = WidgetBron.laad()?.id, WidgetDagdeel.later(nu, dan: editie) { return .result() }
         WidgetBlader.zet(WidgetBlader.Soort(rawValue: soort) ?? .enkel, plek, editie: editie)
         for kind in WidgetBlader.soorten { WidgetCenter.shared.reloadTimelines(ofKind: kind) }
         return .result()
@@ -167,7 +169,7 @@ struct WBladerKnop: View {
     var body: some View {
         Button(intent: BladerIntent(soort, plek: doel ?? 0, editie: editie)) {
             Image(systemName: links ? "chevron.left" : "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
+                .font(WidgetLetter.kicker) // 12 punt, de letter van de kicker
                 .foregroundStyle(WidgetKleur.ink)
                 .frame(width: BladerZet.rij, height: BladerZet.rij)
                 .overlay(Circle().strokeBorder(WidgetKleur.rule, lineWidth: 1))
@@ -215,7 +217,9 @@ struct WBladerEinde: View {
     }
     static func hoogte(_ editie: WidgetEditie, breedte: CGFloat, maat: WidgetLetter.Maat) -> CGFloat {
         let m = WidgetZet.trap(maat).first { WidgetZet.regels(editie.eindzin, $0, breedte: breedte) == 1 } ?? WidgetLetter.widgetKop.op(WidgetZet.ondergrens)
-        return m.regel + WidgetRuimte.s1 + WidgetZet.bronRegel
+        let volgende = WidgetZet.voet(WidgetDagdeel.volgendeZin(na: editie.dagdeel), breedte: breedte)
+        return CGFloat(WidgetZet.regels(editie.eindzin, m, breedte: breedte)) * m.regel + WidgetRuimte.s1
+            + CGFloat(WidgetZet.bronRegels(volgende, breedte: breedte)) * WidgetZet.bronRegel
     }
 }
 

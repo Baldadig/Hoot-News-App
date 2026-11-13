@@ -556,7 +556,7 @@ import WidgetKit
         "D66 en CDA sluiten deal met Pro en Volt rond belastingplan, nog geen reactie VVD": "Deal over belastingplan, nog geen reactie VVD",
         "Honderden scholen in Europa krijgen een bommelding per e-mail vanuit het buitenland": "Bommelding per e-mail bij honderden scholen",
         "Sluiting dreigt voor verouderde laboratoria RIVM, maar verhuizen kan nog niet": "RIVM-labs dreigen dicht, verhuizen kan niet",
-        "Italy: Hundreds of schools evacuated after bomb threats": "Italy: schools evacuated after bomb threats",
+        "Italy: Hundreds of schools evacuated after bomb threats": "Italy: bomb threats empty hundreds of schools",
         "Russia, Ukraine agree on prisoner exchange as talks end without major breakthrough": "Prisoner swap agreed, but no breakthrough",
         "‘Nog 1 hotelkamer beschikbaar!’ Brussel presenteert nieuwe techwet tegen manipulatieve trucs van big tech": "Brussel pakt trucs van big tech aan",
         "AI-pionier Anthropic bestormt lijst grootste beursgangen ooit": "Anthropic op lijst grootste beursgangen ooit",
@@ -601,6 +601,16 @@ import WidgetKit
             XCTAssertEqual(WidgetBlader.stand(voor: ochtend), .init(editie: ochtend, enkel: 7, groep: 3))
             _ = try await BladerIntent(.enkel, plek: 0, editie: ochtend).perform() // Terug naar 01
             XCTAssertEqual(WidgetBlader.stand(voor: ochtend).enkel, 0)
+            // Keuring K5: een knop op een widget die nog de oudere Editie toont, zet de plek van de nieuwe niet terug.
+            let map = FileManager.default.temporaryDirectory.appending(path: "hoot-blader-\(UUID().uuidString)", directoryHint: .isDirectory)
+            try FileManager.default.createDirectory(at: map, withIntermediateDirectories: true)
+            WidgetGroep.mapOverride = map
+            defer { WidgetGroep.mapOverride = nil; try? FileManager.default.removeItem(at: map) }
+            WidgetBron.bewaar(WidgetEditie.bouw(id: ochtend, datum: "2026-11-12", dagdeel: "ochtend",
+                                                stenen: [.init(plek: "a", itemId: "a", kop: "Storm raast over het noorden", bron: "NOS")], gelezen: [], vraag: .lid))
+            _ = try await BladerIntent(.enkel, plek: 3, editie: ochtend).perform()
+            _ = try await BladerIntent(.enkel, plek: 6, editie: avond).perform()
+            XCTAssertEqual(WidgetBlader.stand(voor: ochtend).enkel, 3, "de oude knop doet niets")
         }
     }
 
