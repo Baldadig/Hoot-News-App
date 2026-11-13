@@ -2,37 +2,19 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Empty, ViewHeader } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { CloseIcon, SearchArt } from '../components/icons.jsx'
-import { withoutRepeats } from '../../shared/stroom.mjs'
+import { searchHits } from '../lib/zoek.js'
 
 // Zoeken is een tab (telefoon) en staat in de zijbalk (breed): geen terugknop, wel een schermtitel (h1) zoals elk scherm.
 export default function Search() {
-  const { itemsById, saved, storiesById, sourcesById, muted } = useHoot()
+  const { itemsById, saved, storiesById, muted, prefs } = useHoot()
   const [q, setQ] = useState('')
   const [scope, setScope] = useState('mijn') // mijn | alle
   const inputRef = useRef(null)
   useEffect(() => inputRef.current?.focus(), [])
 
-  const results = useMemo(() => {
-    const words = q.toLowerCase().split(/\s+/).filter((w) => w.length > 1)
-    if (!words.length) return []
-    // "Mijn bronnen": wat je volgt, plus alles wat je hebt bewaard. "Alle bronnen" neemt ook
-    // de bronnen mee die alleen ter vergelijking binnen een verhaal staan.
-    const pool = new Map()
-    for (const [id, i] of itemsById) if (scope === 'alle' || sourcesById.get(i.source)?.followed !== false) pool.set(id, i)
-    for (const e of Object.values(saved)) {
-      if (e.item) pool.set(e.item.id, e.item)
-      for (const i of e.items || []) pool.set(i.id, i)
-    }
-    const hits = [...pool.values()]
-      .filter((i) => !muted.has(i.source))
-      .filter((i) => {
-        const hay = `${i.title} ${i.summary || ''} ${i.sourceName} ${i.author || ''}`.toLowerCase()
-        return words.every((w) => hay.includes(w))
-      })
-      .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
-    // Hetzelfde stuk (ook met een aangepaste kop) één keer, zoals in de Stroom.
-    return withoutRepeats(hits).slice(0, 60)
-  }, [q, scope, itemsById, sourcesById, saved, muted])
+  // Mijn bronnen of alle bronnen, gelijk aan de app (lib/zoek.js).
+  const ownMuted = useMemo(() => new Set(prefs?.muted || []), [prefs])
+  const results = useMemo(() => searchHits(q, { itemsById, saved, scope, muted, ownMuted }), [q, scope, itemsById, saved, muted, ownMuted])
 
   return (
     <section className="view view--page" aria-label="Zoeken">
