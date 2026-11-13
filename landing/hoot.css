@@ -642,3 +642,8 @@ html.ios .verder-rij .wacht{order:-1}
 /* de kaart als artikeltegel: kop, dan de bronnen; geen telregel meer */
 .vh-stapel{margin-top:14px}
 .vh-stip{margin-top:10px}
+/* de logo's vallen weer licht over elkaar, zoals de bronstapel in de app (Alex, 13 november) */
+.vh-stapel{gap:0}
+.vh-stapel img{margin-left:-7px;box-shadow:0 0 0 2px var(--s-card),0 0 0 3px rgba(26,24,20,.10);position:relative}
+.vh-stapel img:first-child{margin-left:0}
+.vh-stapel .vh-meer{margin-left:10px}
