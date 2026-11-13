@@ -587,3 +587,26 @@ a.nu:focus-visible .toestel{outline:2px solid var(--op-rood);outline-offset:4px}
 html.ios .verder-rij .wacht{order:-1}
 @media (min-width:900px){.verder-rij{justify-content:center}}
 @media (max-width:719px){html:not(.ios) .redacteur .wacht{display:none}}
+
+/* ---- bronnen: één verhaal, veel bronnen (Alex, 13 november). Kop links, de kaart rechts; op mobiel eronder ---- */
+.bronnen .kol{display:grid;gap:var(--s6);align-items:center}
+@media (min-width:1000px){.bronnen .kol{grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:var(--s8)}}
+.verhaal{width:100%;max-width:520px;background:var(--s-card);color:var(--inkt);border-radius:20px;box-shadow:0 0 0 1px var(--lijn);padding:18px 22px 14px;cursor:pointer}
+@media (min-width:1000px){.verhaal{justify-self:end}}
+.vh-kick{font:800 .75rem/1 var(--tekst);letter-spacing:var(--kap);text-transform:uppercase;color:var(--accent)}
+.vh-kop{margin-top:10px;min-height:2.44em;font:800 clamp(1.25rem,2vw,1.5rem)/1.22 var(--kop);letter-spacing:-.012em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+.vh-stapel{display:flex;align-items:center;height:44px;margin-top:12px;padding-left:2px}
+.vh-stapel img,.vh-meer{flex:none;width:40px;height:40px;border-radius:50%;margin-left:-7px;box-shadow:0 0 0 2px var(--s-card),0 0 0 3px rgba(26,24,20,.08);background:#fff;object-fit:cover}
+.vh-stapel img:first-child{margin-left:0}
+@media (min-width:480px){.vh-stapel img,.vh-meer{margin-left:-3px}}
+.vh-meer{display:grid;place-items:center;background:var(--chip);color:var(--inkt2);font:800 .8125rem/1 var(--tekst);font-variant-numeric:tabular-nums}
+.vh-stapel img.erbij{animation:vh-erbij .45s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes vh-erbij{from{opacity:0;transform:translateX(14px) scale(.6)}to{opacity:1;transform:none}}
+.vh-tel{margin-top:10px;min-height:3em;font-size:.9375rem;line-height:1.5;color:var(--inkt2)}
+.vh-tel b{color:var(--inkt);font-weight:800;font-variant-numeric:tabular-nums}
+.vh-stip{display:flex;gap:0;margin:2px 0 0 -14px;min-height:8px}
+.vh-stip button{width:36px;height:36px;padding:0;border:0;background:none;cursor:pointer;display:grid;place-items:center;border-radius:50%}
+.vh-stip button::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--lijn);transition:background-color .2s ease,transform .2s ease}
+.vh-stip button[aria-pressed=true]::before{background:var(--accent);transform:scale(1.25)}
+@media (prefers-reduced-motion:reduce){.vh-stapel img.erbij{animation:none}}
+@media (min-width:900px){.bronnen .kol{padding-bottom:var(--s7)}}

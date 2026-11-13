@@ -91,11 +91,21 @@
   </div>
 </section>
 
-<!-- bronnen: het bewijs onder de held. Alleen tekst, alleen bronnen uit de catalogus; het getal komt uit SOURCES -->
+<!-- bronnen: het bewijs onder de held. Links de kop, rechts (op mobiel eronder) één echt verhaal uit de Editie met de
+     bronnen die erover schrijven: hun logo's schuiven er één voor één bij. Live uit /api/voorpagina (breed), terugval uit bewaard.json -->
 <section class="band papier bronnen" aria-labelledby="h-bronnen">
   <div class="binnen kol">
-    <h2 id="h-bronnen">Jouw nieuws, rustig bij elkaar<span class="punt">.</span></h2>
-    <p class="bronregel">Van NOS, NRC en de Volkskrant tot regionale kranten, De Standaard en The Guardian. {{BRONNEN_RUIM}} bronnen, jij kiest.</p>
+    <div class="bronnen-tekst">
+      <h2 id="h-bronnen">Jouw nieuws, rustig bij elkaar<span class="punt">.</span></h2>
+      <p class="bronregel">Hoot legt wat je bronnen schrijven bij elkaar. {{BRONNEN_RUIM}} bronnen, jij kiest.</p>
+    </div>
+    <div class="verhaal js-verhaal" data-verhalen="{{BW_VH_DATA}}">
+      <p class="vh-kick js-vh-kick">Uit de Editie</p>
+      <p class="vh-kop js-vh-kop">{{BW_VH_KOP}}</p>
+      <div class="vh-stapel js-vh-stapel" role="img" aria-label="{{BW_VH_LABEL}}">{{BW_VH_STAPEL}}</div>
+      <p class="vh-tel js-vh-tel">{{BW_VH_TEL}}</p>
+      <div class="vh-stip js-vh-stip" role="group" aria-label="Kies een verhaal"></div>
+    </div>
   </div>
 </section>
 

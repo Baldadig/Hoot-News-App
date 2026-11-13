@@ -75,6 +75,10 @@ const pub = APP + '/public';
 fs.copyFileSync(pub + '/favicon.svg', path.join(OUT, 'favicon.svg'));
 fs.copyFileSync(pub + '/apple-touch-icon.png', path.join(OUT, 'apple-touch-icon.png'));
 fs.copyFileSync(pub + '/icons/favicon-32.png', path.join(OUT, 'icons/favicon-32.png'));
+// De logo's van de bronnen (landing/bronnen, ververst met node landing/bronlogos.mjs): eigen bestanden, want de CSP
+// laat alleen beelden van de eigen site toe. Alleen wat het bronnenblok toont wordt opgehaald (hooguit acht per verhaal).
+fs.mkdirSync(path.join(OUT, 'img', 'bronnen'), { recursive: true });
+for (const f of fs.readdirSync(path.join(SRC, 'bronnen'))) if (f.endsWith('.webp')) fs.copyFileSync(path.join(SRC, 'bronnen', f), path.join(OUT, 'img', 'bronnen', f));
 if (fs.existsSync(path.join(SRC, 'og.png'))) fs.copyFileSync(path.join(SRC, 'og.png'), path.join(OUT, 'img/og.png'));
 
 // headers en redirects

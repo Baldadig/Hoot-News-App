@@ -167,6 +167,56 @@
       }, function () { ringen.forEach(function (r) { r.style.transform = ''; }); });
     }
 
+    /* ---- bronnen: één verhaal, veel bronnen. De logo's schuiven er één voor één bij en de teller loopt mee; daarna het
+       volgende verhaal. Alleen in beeld. Een tik op de kaart of een stip kiest zelf. Verminder beweging: stil, wel te kiezen. ---- */
+    var vh = $('.js-verhaal');
+    if (vh) {
+      var vhKop = $('.js-vh-kop', vh), vhSt = $('.js-vh-stapel', vh), vhTel = $('.js-vh-tel', vh), vhKick = $('.js-vh-kick', vh), vhStip = $('.js-vh-stip', vh);
+      var VH = [], vhI = 0, vhT = 0, vhZicht = false, VH_LOGOS = 8;
+      try { VH = JSON.parse(vh.getAttribute('data-verhalen') || '[]'); } catch (e) {}
+      var vhN = function (x) { return Math.max(Number(x.sourceCount) || 1, (x.sources || []).length); };
+      var vhZin = function (x, n) {
+        var namen = (x.sources || []).slice(0, Math.min(3, n)).map(function (s) { return s.name; }), rest = n - namen.length;
+        vhTel.textContent = ''; var b = document.createElement('b'); b.textContent = n === 1 ? '1 bron' : n + ' bronnen'; vhTel.appendChild(b);
+        vhTel.appendChild(document.createTextNode(' ' + (n === 1 ? 'schrijft' : 'schrijven') + ' erover' + (namen.length ? ': ' + namen.join(', ') + (rest > 0 ? ' en ' + rest + ' andere' : '') : '') + '.'));
+      };
+      var vhLogo = function (s) { var i = new Image(); i.src = '/img/bronnen/' + encodeURIComponent(s.id) + '.webp'; i.alt = ''; i.width = i.height = 40; i.onerror = function () { weg(i); }; return i; };
+      var vhStippen = function () {
+        vhStip.textContent = '';
+        if (VH.length < 2) return;
+        VH.forEach(function (x, k) { var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', 'Verhaal ' + (k + 1) + ': ' + x.title); b.setAttribute('aria-pressed', String(k === vhI));
+          b.addEventListener('click', function (e) { e.stopPropagation(); vhToon(k, true); }); vhStip.appendChild(b); });
+      };
+      var vhToon = function (k, speel) {
+        clearTimeout(vhT); vhI = (k + VH.length) % VH.length;
+        var x = VH[vhI], bronnen = (x.sources || []).slice(0, VH_LOGOS), n = vhN(x), j = 0;
+        vhKop.textContent = x.title; vhSt.textContent = '';
+        $$('button', vhStip).forEach(function (b, q) { b.setAttribute('aria-pressed', String(q === vhI)); });
+        var af = function () {
+          if (n > bronnen.length && bronnen.length) { var m = document.createElement('span'); m.className = 'vh-meer'; m.textContent = '+' + (n - bronnen.length); vhSt.appendChild(m); }
+          vhZin(x, n);
+          if (VH.length > 1 && !reduce) vhT = setTimeout(function wacht() { if (vhZicht && !document.hidden && !reduce) vhToon(vhI + 1, true); else vhT = setTimeout(wacht, 1500); }, 4200);
+        };
+        if (reduce || !speel || !bronnen.length) { bronnen.forEach(function (s) { vhSt.appendChild(vhLogo(s)); }); af(); return; }
+        (function erbij() {
+          if (j >= bronnen.length) { af(); return; }
+          var i = vhLogo(bronnen[j]); i.className = 'erbij'; vhSt.appendChild(i); j++; vhZin(x, j);
+          vhT = setTimeout(erbij, j < 4 ? 380 : 220);
+        })();
+      };
+      vh.addEventListener('click', function () { if (VH.length > 1) vhToon(vhI + 1, true); });
+      vhStippen();
+      var vhBegon = false;
+      zichtbaar(vh, function (aan) { vhZicht = aan; if (aan && !vhBegon && VH.length) { vhBegon = true; vhToon(0, true); } });
+      opRM(function () { if (reduce) { clearTimeout(vhT); if (VH.length) vhToon(vhI, false); } });
+      /* live: de verhalen van de Editie van nu nemen het over */
+      window.hootVerhalen = function (lijst, vannu) {
+        var ok = lijst.filter(function (x) { return x && typeof x.title === 'string' && x.title && Array.isArray(x.sources) && x.sources.length >= 2; });
+        if (!ok.length) return;
+        VH = ok; vhKick.textContent = vannu ? 'In de Editie van nu' : 'Uit de Editie'; vhStippen(); vhToon(0, vhZicht); vhBegon = vhBegon || vhZicht;
+      };
+    }
+
     /* parallax: de zon komt op terwijl de band in beeld schuift, het scherm schuift een tikje mee */
     var scenes = $$('[data-scene]');
     if (!reduce && IO && scenes.length) {
@@ -374,6 +424,8 @@
             var a = $('.js-held-link'); if (a) a.setAttribute('aria-label', 'De ' + slot + (vannu ? ' van nu' : ' van ' + dag) + ', met het hoofdverhaal: ' + lijst[0].title + '. Lees verder in Hoot');
           });
           /* Hoot kiest: iPad en telefoon krijgen dezelfde drie verhalen */
+          /* het bronnenblok: de breedste verhalen van de Editie van nu */
+          if (Array.isArray(ed.breed) && ed.breed.length && window.hootVerhalen) window.hootVerhalen(ed.breed, vannu);
           if (pod && !kiesLive) pod.setAttribute('data-bron', 'bewaard');
           if (pod && kiesLive) wissel(pod, function () {
             $$('.toestel', pod).forEach(function (fig) {

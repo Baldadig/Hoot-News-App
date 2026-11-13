@@ -13,6 +13,10 @@ import { signatures, sameSubject } from '../lib/stories.mjs'
 import { keywordTopics, OTHER_SPORT } from '../lib/topics.mjs'
 
 export const PLACES = 3
+// Zoveel bronnen per verhaal gaan hooguit mee (de landing toont er een rij logo's van).
+export const SOURCES_MAX = 12
+export const BREED_MAX = 3
+export const BREED_MIN = 3
 const ORIGINS = new Set(['https://gethoot.app', 'https://www.gethoot.app'])
 const CACHE = 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600'
 
@@ -191,15 +195,48 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
 
   // Volgorde: eerst de hoogste in de Editie, dan op aantal bronnen.
   picked.sort((a, b) => a.order - b.order || b.sourceCount - a.sourceCount)
-  const plek = ({ item, rubriek: r, sourceCount }) => {
+  // De bronnen die over dit verhaal schrijven (landing, "Eén verhaal, veel bronnen"): id en naam uit de catalogus,
+  // de bron van de kop eerst, daarna in de volgorde van de catalogus (de bekendste Nederlandse titels staan daar
+  // vooraan: herkenbaarheid), hooguit SOURCES_MAX. Alleen namen die het verhaal zelf al draagt (story.sourceNames);
+  // geen URL's. Minder dan twee bekende bronnen: het veld blijft weg.
+  const idOfName = new Map((start.sources || []).filter((s) => s.name).map((s) => [s.name, s.id]))
+  const rang = new Map((start.sources || []).map((s, i) => [s.name, i]))
+  const bronnen = (item, storyId) => {
+    const lead = srcs.get(item.source)
+    const rest = [...((storyId && stories.get(storyId)?.sourceNames) || [])].sort((a, b) => (rang.get(a) ?? 1e9) - (rang.get(b) ?? 1e9))
+    const names = [lead?.name || item.sourceName, ...rest]
+    const seen = new Set()
+    const list = []
+    for (const name of names) {
+      const id = idOfName.get(name)
+      if (!id || seen.has(id)) continue
+      seen.add(id)
+      list.push({ id, name })
+      if (list.length === SOURCES_MAX) break
+    }
+    return list.length >= 2 ? list : null
+  }
+  const plek = ({ item, rubriek: r, sourceCount, storyId }) => {
     const out = { desk: r, deskLabel: r ? LABEL[r] || null : null, title: item.title, source: item.sourceName || item.source, sourceCount }
+    const list = bronnen(item, storyId)
+    if (list) out.sources = list
     if (openImageSources.has(item.source) && /^https:\/\//.test(item.image || '')) out.imageUrl = item.image
     return out
   }
   const entries = picked.map(plek)
   if (entries.length !== places) return null
   const b = bubble ? plek(bubble) : null
-  return b ? { slot: ed.slot, date: ed.date, entries, bubble: b } : { slot: ed.slot, date: ed.date, entries }
+  // 'breed': de verhalen waar de meeste bronnen over schrijven (hooguit BREED_MAX, elk met minstens BREED_MIN bekende
+  // bronnen), voor het bronnenblok van de landing. Zelfde zeef als de plekken (Nederlands, niet zwaar, geen sport),
+  // elk onderwerp één keer. Geen verhaal dat eraan voldoet: het veld blijft weg.
+  const breed = []
+  for (const c of cands.filter((c) => c.storyId).map((c) => ({ c, p: plek(c) })).filter((x) => (x.p.sources || []).length >= BREED_MIN).sort((x, y) => y.p.sources.length - x.p.sources.length || x.c.order - y.c.order)) {
+    if (breed.length < BREED_MAX && !breed.some((x) => duplicate(x.c, c.c))) breed.push(c)
+  }
+  const out = { slot: ed.slot, date: ed.date, entries }
+  if (b) out.bubble = b
+  if (breed.length) out.breed = breed.map((x) => x.p)
+  return out
 }
 
 // KEYS.start heeft `items: []`; de berichten voor het aanvullen komen uit de voorpagina-pool.

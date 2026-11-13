@@ -79,7 +79,7 @@ export function bewaar(feed, vak, vorige = null) {
   }
   if (!selectie) selectie = vorige?.selectie?.velden?.length ? vorige.selectie : null
   if (!selectie) throw new Error('Geen Selectie: /api/vak gaf geen twee bruikbare onderwerpen en er is geen vorige; het oude bestand blijft staan.')
-  return { slot: ed.slot, date: ed.date, voorpagina: { entries: vp.entries, bubble: vp.bubble || null }, editie, bubbel, stroom, selectie }
+  return { slot: ed.slot, date: ed.date, voorpagina: { entries: vp.entries, bubble: vp.bubble || null, breed: vp.breed || [] }, editie, bubbel, stroom, selectie }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.join(HIER, 'bewaar.mjs')) {
