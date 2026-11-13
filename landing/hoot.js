@@ -176,6 +176,7 @@
       try { VH = JSON.parse(vh.getAttribute('data-verhalen') || '[]'); } catch (e) {}
       var vhN = function (x) { return Math.max(Number(x.sourceCount) || 1, (x.sources || []).length); };
       var vhZin = function (x, n) {
+        if (!vhTel) return; /* de telregel is weg (Alex, 13 november): de kaart is een artikeltegel met kop en bronnen */
         vhTel.textContent = ''; var b = document.createElement('b'); b.textContent = n === 1 ? '1 bron' : n + ' bronnen'; vhTel.appendChild(b);
         vhTel.appendChild(document.createTextNode(' ' + (n === 1 ? 'schrijft' : 'schrijven') + ' erover.'));
       };
