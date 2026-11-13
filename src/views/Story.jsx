@@ -10,6 +10,7 @@ import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { ownIntro } from '../../shared/kaart-intro.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { Verschillen } from '../components/Verschillen.jsx'
+import { opinieInStroom } from '../../shared/opinie.mjs'
 
 // Esc sluit het vaste zijpaneel (breed scherm), zoals het de dialoog sluit op een smal scherm. Alleen als
 // de toets niet al iets anders deed (een dialoog, het wissen van een zoekveld) en niet in een invoerveld.
@@ -39,7 +40,7 @@ function SourceItem({ item, note }) {
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="srcitem__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
-        {note || item.type === 'opinie' ? <p className="label label--kicker kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
+        {note || opinieInStroom(item) ? <p className="label label--kicker kicker">{[opinieInStroom(item) ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
         <h3 className="head-4 srcitem__title">{item.title}</h3>
         {summary ? (
           <p className="clamp clamp--vangnet srcitem__sum">
@@ -141,7 +142,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
           <>
             {/* De kop is het stuk zelf: tikken opent het, zoals een kop in de lijst. Rubriek (Opinie,
                 Eerste bericht, Buiten je bronnen) als kicker erboven, waar dat van toepassing is. */}
-            {note(lead) || lead.type === 'opinie' ? <p className="label label--kicker kicker story__kicker">{[lead.type === 'opinie' ? 'Opinie' : null, note(lead)].filter(Boolean).join(' · ')}</p> : null}
+            {note(lead) || opinieInStroom(lead) ? <p className="label label--kicker kicker story__kicker">{[opinieInStroom(lead) ? 'Opinie' : null, note(lead)].filter(Boolean).join(' · ')}</p> : null}
             <h2 className="head-5 story__title">
               <a className="story__link" href={linkOf(lead)} rel="noreferrer" onClick={() => markRead(lead.id)}>
                 {lead.title}

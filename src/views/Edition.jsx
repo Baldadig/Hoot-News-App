@@ -26,6 +26,7 @@ import { volgLeesStand, leesWaarde } from '../lib/leesstand.js'
 import { reduced } from '../lib/motion.js'
 import { resolveEditionEntry, heroFirst, numberRows, countOf, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { SLOTS } from '../../shared/slots.mjs'
+import { opinieInStroom } from '../../shared/opinie.mjs'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
@@ -62,7 +63,7 @@ const introColumn = (link) => {
 }
 function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null, whySpace = false }) {
   const { markRead, read, prefs } = useHoot()
-  const opinie = item.type === 'opinie'
+  const opinie = opinieInStroom(item) // het veld van de server (shared/opinie.mjs), zoals de Stroom
   const title = item.title
   // De miniatuur staat er altijd (het beeld of het placeholderbeeld), behalve met beelden uit: dan de hele breedte.
   // Gemeten is gemeten: de echte breedte van de tekstkolom (useColumnWidth). Tot die er is, de smalste maat.
@@ -155,8 +156,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       const label = e.desk === 'breed' ? 'Waar iedereen over schrijft' : deskLabel({ ...e, desk: r.desk })
       // Het label (lib/label.js): de interesse van de lezer als het verhaal die echt draagt, anders de rubriek;
       // de waarom-regel alleen als die iets toevoegt; 'Buiten je bronnen' staat bij de bronregel.
+      // Zonder rubriek heet een plek "Nieuws", behalve een opiniestuk: dat draagt zelf het label "Opinie" (column in de
+      // Editie, 13 november 2026: "08 · NIEUWS" boven een column). De Redacteur zet opinie niet meer als kop van een plek;
+      // dit vangt een Editie van een oudere server.
       const l = labelFor({ topics: r.item.topics, mainTopics: r.item.mainTopics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: r.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
-      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker || 'Nieuws', why: l.why, outside: l.outside }
+      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker || (opinieInStroom(r.item) ? null : 'Nieuws'), why: l.why, outside: l.outside }
     })
     .filter(Boolean)
   // De telling (numberRows): elke rij krijgt zijn nummer in de getoonde volgorde; N is het totaal.

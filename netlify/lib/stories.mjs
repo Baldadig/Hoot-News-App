@@ -724,13 +724,17 @@ export const isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER
 // `preferred`: je voorkeursbronnen (de ster bij een bron); die gaan nog vóór je andere bronnen.
 // `now`: het moment van samenstellen (zonder: geen achtergrond-regel).
 export function leadCandidates(items, mainIds, preferred = null, now = null, { role = 'neutral' } = {}) {
-  // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
+  // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is: elk nieuwsstuk gaat vóór elk opiniestuk, wat
+  // de voorkeuren ook zeggen (column in de Editie, 13 november 2026). Tot dan was het −16 punten en alleen bij
+  // `type === 'opinie'`: een voorkeursbron (+12) met basisbron (+8) haalde dat in, en een column die alleen aan link of
+  // kop herkend was (isOpinion) kreeg niets af ("There's a New Roy Cohn in Town" boven de Volkskrant, 9 november).
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
   // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
   // Een fotogalerij of slideshow is nooit het hoofdbericht als er iets anders is (isGallery).
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
+  const score = (i) => (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
   const scores = new Map(items.map(i => [i, score(i)]))
-  return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b))
+  const op = new Map(items.map((i) => [i, isOpinion(i) ? 1 : 0]))
+  return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b))
 }
 
 // Verhalen: verbonden groepen van artikelen over dezelfde gebeurtenis (≥2 bronnen).
@@ -1794,7 +1798,9 @@ const prefer = (xs, f) => {
 // Een sportbron is nooit de kop van een verhaal dat geen sport is (toets 4 november 2026: "ESPN: NYC Marathon
 // runner dies" werd de kop van een bundel over mazelen en een marathon, in een Editie zonder sportkeuze).
 export function leadPool(cands, items, now, own = null, total = items.length, coreItems = centralItems) {
-  let xs = prefer(cands, (i) => !isStale(i, now))
+  // Nieuws vóór alles (leadCandidates): ook eigen bronnen, de kern en versheid halen een opiniestuk niet naar voren.
+  let xs = prefer(cands, (i) => !isOpinion(i))
+  xs = prefer(xs, (i) => !isStale(i, now))
   if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source))
   if (own) xs = prefer(xs, own)
   const core = new Set(coreItems(items, total))
@@ -2248,7 +2254,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight({ sourceCount: st.publisherCount ?? st.sourceCount, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous) + fav })
   }
   for (const it of pool) {
-    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
+    if (!mainIds.has(it.source) || it.kind !== 'article' || isOpinion(it) || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     if (previous?.itemIds?.has(it.id)) continue // stond er al
     if (isGallery(it) || lightVideoFiller(it) || lightNews({}, [it])) continue // een galerij of een licht stuk is geen eigen plek
@@ -2444,6 +2450,11 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const items = raw.filter(i=>!lightVideoFiller(i,prof))
     if (!items.length) { reject('story', st.id, st.itemIds, raw.length ? 'licht-videorondje-buiten-interesse' : 'geen-bekend-artikel'); continue }
     if (!items.some(titled)) { reject('story', st.id, st.itemIds, 'zonder-titel'); continue }
+    // Opinie draagt geen plek (column in de Editie, 13 november 2026): zijn de stukken die hier meetellen (in de
+    // persoonlijke Editie: die uit je eigen bronnen) allemaal opinie, dan is het verhaal voor deze lezer een los
+    // opiniestuk, en dat komt niet in de Editie (zie de losse stukken hieronder). Een column van je eigen krant die via
+    // gedeelde namen in een sportverhaal van vier andere bronnen hing, werd zo de kop van plek 08.
+    if (!items.some((i) => !isOpinion(i))) { reject('story', st.id, st.itemIds, 'alleen-opinie'); continue }
     // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
     // telt hier alleen voor de volgorde, niet voor de plek).
     let dev = null
@@ -2508,10 +2519,15 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // telt ook altijd als oud (de volle leeftijdsstraf, AGE_MAX), anders ging een vers luchtig verhaal weer voor even groot
     // nieuws van een paar uur ouder.
     const tie = general && curioStory(st, items) ? freshBonus(st.latestAt, now) + CURIO_TIE + AGE_MAX - agePenalty(st.latestAt, now) : 0
+    // Opinie is geen nieuw stuk (column in de Editie, 13 november 2026): komen de kandidaten voor de kop (wat er sinds de
+    // vorige Editie bijkwam, of het stuk met het nieuwe feit) alleen uit opinie, dan heeft het verhaal voor deze Editie
+    // geen nieuws om mee te openen. Anders werd de nieuwe column de kop ("Texas Republicans Get Washed", The Atlantic
+    // /ideas/, boven het nieuws van NYT, Rolling Stone en NRC in de herbouw van 4 november avond).
+    if (heads?.length && !heads.some((i) => !isOpinion(i))) { reject('story', st.id, st.itemIds, 'alleen-opinie-nieuw'); continue }
     cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
   }
   for (const it of pool) {
-    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
+    if (!mainIds.has(it.source) || it.kind !== 'article' || isOpinion(it) || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
     if (!titled(it)) { reject('item', it.id, [it.id], 'zonder-titel'); continue }
     if (!fresh(it.publishedAt, Math.max(ctx.tempo?.get(it.source) || TEMPO_MIN_H, floor ? FLOOR_ITEM_H : 0)) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
     if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) { reject('item', it.id, [it.id], 'eerder-getoond-of-gelezen'); continue } // stond er al, of je las het al
