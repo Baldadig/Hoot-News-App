@@ -10,7 +10,7 @@
 // Rekenregels (web en iOS draaien deze code allebei, en moeten bit-gelijk uitkomen): alleen
 // + − × ÷, Math.round/min/max/floor en Date.parse op ISO-tekst. Geen Math.log/pow/exp/abs en geen
 // localeCompare; elke sortering heeft een totale vergelijker die eindigt op id.
-import { INTERESTS, topicById, currentTopics, currentTopicMap } from '../src/lib/topics.js'
+import { INTERESTS, OPT_IN, baseTopics, topicById, currentTopics, currentTopicMap } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
 import { DESKS, DESK_LABEL, desksOf, storyForeignOf, isNonEuropean, VL_HOME, NL_HOME } from '../netlify/lib/desks.mjs'
 import { shownTopics, keywordTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
@@ -67,9 +67,12 @@ export function profileOf({ interests = [], topics = [], affinity = null, taste 
   const inherited = new Set()
   for (const f of INTERESTS) {
     if (!interests.includes(f.id)) continue
+    // Een onderwerp dat je zelf aantikt (OPT_IN, Achterklap & showbizz) hoort niet bij "alles": niet aangetikt
+    // telt het niet mee (zoals een onderwerp buiten je interesses), en de volledige lijst is die zonder.
     const picked = f.topics.filter((t) => topics.includes(t))
-    const sharp = picked.length > 0 && picked.length < f.topics.length
+    const sharp = picked.length > 0 && !baseTopics(f).every((t) => topics.includes(t))
     for (const t of f.topics) {
+      if (!sharp && OPT_IN.has(t) && !picked.includes(t)) continue // geen keuze: geen gewicht, ook geen nul
       expl[t] = sharp ? (picked.includes(t) ? 1 : 0) : W_INHERITED
       if (!sharp) inherited.add(t)
     }

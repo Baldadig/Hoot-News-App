@@ -8,7 +8,9 @@ import XCTest
     func testIndelingEnNamen() {
         XCTAssertEqual(Rubriek.byId["tech"]?.topics, ["ai", "tech", "gadgets", "privacy", "ev"])
         XCTAssertEqual(Rubriek.byId["tech"]?.cats, ["tech"])
-        XCTAssertEqual(Rubriek.byId["cultuur"]?.topics, ["muziek", "film", "boeken", "kunst", "media", "games"])
+        XCTAssertEqual(Rubriek.byId["cultuur"]?.topics, ["muziek", "film", "boeken", "kunst", "media", "games", "showbizz"])
+        XCTAssertEqual(Rubriek.byId["cultuur"]?.base, ["muziek", "film", "boeken", "kunst", "media", "games"])
+        XCTAssertEqual(Rubriek.byId["economie"]?.topics, ["economie", "werk", "bedrijven", "energie", "geld", "crypto"])
         XCTAssertEqual(Rubriek.byId["cultuur"]?.cats, ["cultuur", "games"])
         XCTAssertEqual(Rubriek.alle.map(\.id), ["politiek", "binnenland", "wereld", "economie", "tech", "wetenschap", "cultuur", "sport"])
         XCTAssertEqual(Taste.label("tech"), "Big Tech")
@@ -25,6 +27,22 @@ import XCTest
         XCTAssertEqual(vak["security"], "Hacks & privacy")
         XCTAssertEqual(vak["gadgets"], "Gadgets")
         XCTAssertEqual(vak["zorg"], "Zorg & gezondheid")
+    }
+
+    // Crypto onder Economie (13 november 2026, OnderwerpVersie, zoals withCrypto op het web): Economie-alles van
+    // toen krijgt Crypto erbij; een scherpe keuze niet. Achterklap & showbizz zit niet in "alles".
+    func testCryptoEnShowbizz() {
+        let old = ["economie", "werk", "bedrijven", "energie", "geld"]
+        XCTAssertEqual(OnderwerpVersie.migrate(interests: ["economie"], topics: old), old + ["crypto"])
+        XCTAssertEqual(OnderwerpVersie.migrate(interests: ["economie", "sport"], topics: old + ["voetbal"]), old + ["crypto", "voetbal"])
+        XCTAssertEqual(OnderwerpVersie.migrate(interests: ["economie"], topics: ["werk", "geld"]), ["werk", "geld"])
+        XCTAssertEqual(OnderwerpVersie.migrate(interests: ["tech"], topics: old), old)
+        XCTAssertEqual(Rubriek.resolve(["cultuur"], picked: []), ["muziek", "film", "boeken", "kunst", "media", "games"])
+        XCTAssertEqual(Rubriek.resolve(["cultuur"], picked: ["showbizz"]), ["showbizz"])
+        XCTAssertEqual(Rubriek.picked(from: ["muziek", "film", "boeken", "kunst", "media", "games"], interests: ["cultuur"]), [])
+        XCTAssertEqual(Rubriek.picked(from: ["showbizz"], interests: ["cultuur"]), ["showbizz"])
+        XCTAssertEqual(Taste.label("crypto"), "Crypto")
+        XCTAssertEqual(Taste.label("showbizz"), "Achterklap & showbizz")
     }
 
     // De gedeelde gevallen: elke oude keuze wordt in de app dezelfde nieuwe keuze als op het web.

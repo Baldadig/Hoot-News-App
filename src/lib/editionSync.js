@@ -12,7 +12,7 @@
 // Zonder account stelt het toestel anoniem samen (owner 'anon') en raakt het `user_state` nooit aan.
 import { withoutDebug, earlierEditions } from './personal-basis.js'
 import { previousOf, historyOf } from '../../shared/edition-history.mjs'
-import { RUBRIEKEN } from './topics.js'
+import { RUBRIEKEN, ONDERWERPEN } from './topics.js'
 
 export const TABLE = 'user_state'
 
@@ -199,9 +199,9 @@ export function provisionalReady({ status, global, items = 0, itemsFor = null, f
 // readingSummary in affinity.js; weg zolang lezen nog niet meetelt) en zonder account de history-regels van je
 // vorige Edities op dit toestel (`earlier`). Nooit het ruwe `affinity`, nooit `previous`.
 // `rubrieken`: je keuzes zijn in de indeling van nu (Games onder Cultuur, topics.js RUBRIEKEN); zonder dat veld
-// (app 1.2.1 en ouder) zet de server ze eerst om.
+// (app 1.2.1 en ouder) zet de server ze eerst om. `onderwerpen`: met Crypto onder Economie (topics.js ONDERWERPEN).
 export function serverRequest({ followed = [], interests = [], topics = [], favorites = [], taste = null, readIds = [], reading = null, earlier = [] }) {
-  return { v: 2, followed: [...followed], interests: [...interests], topics: [...topics], rubrieken: RUBRIEKEN, favorites: [...favorites], taste: taste || null, readIds: [...readIds].slice(-1500), ...(reading ? { reading } : {}), ...(earlier.length ? { earlier } : {}) }
+  return { v: 2, followed: [...followed], interests: [...interests], topics: [...topics], rubrieken: RUBRIEKEN, onderwerpen: ONDERWERPEN, favorites: [...favorites], taste: taste || null, readIds: [...readIds].slice(-1500), ...(reading ? { reading } : {}), ...(earlier.length ? { earlier } : {}) }
 }
 
 // POST /api/edition met het token van het lid (als dat er is). 401: één keer het token vernieuwen en opnieuw.

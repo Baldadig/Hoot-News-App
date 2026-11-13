@@ -213,6 +213,11 @@ final class HootStore {
             migratedTopics = m.topics
             d.set(try? JSONEncoder().encode(RubriekVersie.current), forKey: "hoot.rubrieken")
         }
+        // Crypto onder Economie (OnderwerpVersie). Eén keer, voor wat dit toestel ervoor bewaarde.
+        if (load("hoot.onderwerpen") as Int?) != OnderwerpVersie.current {
+            migratedTopics = OnderwerpVersie.migrate(interests: storedInterests, topics: migratedTopics)
+            d.set(try? JSONEncoder().encode(OnderwerpVersie.current), forKey: "hoot.onderwerpen")
+        }
         interests = storedInterests
         topics = migratedTopics
         favorites = load("hoot.favorites") ?? []
@@ -329,6 +334,7 @@ final class HootStore {
             var interests: [String]?
             var topics: [String]?
             var rubrieken: Int? // de versie van de indeling (RubriekVersie); zonder: van vóór 1.3
+            var onderwerpen: Int? // de versie van de lijst onderwerpen (OnderwerpVersie); zonder: zonder Crypto
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website (een kapotte rij valt weg, niet de hele lijst)
             var taste: Taste?
@@ -407,6 +413,9 @@ final class HootStore {
             nextInterests = m.interests
             nextTopics = m.topics
         }
+        if let t = nextTopics, p?.onderwerpen != OnderwerpVersie.current {
+            nextTopics = OnderwerpVersie.migrate(interests: nextInterests ?? interests, topics: t)
+        }
         if let v = nextInterests, v != interests { interests = v; save("hoot.interests", v) }
         if let v = nextTopics, v != topics { topics = v; save("hoot.topics", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
@@ -445,7 +454,7 @@ final class HootStore {
             "theme": theme.theme, "themeDark": theme.dark,
             "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
             "bubble": bubble, "bluesky": bluesky, "bskyInStream": bskyInStream.sorted(), "preview": preview == 0 ? "alles" as Any : preview as Any, "regels": preview == 0 ? "alles" as Any : preview as Any,
-            "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "favorites": favorites, "onboarded": true,
+            "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "onderwerpen": OnderwerpVersie.current, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],
             "social": ownBluesky.map { ["handle": $0.handle, "name": $0.name, "avatar": $0.avatar as Any] },
         ]
@@ -1124,7 +1133,7 @@ final class HootStore {
     // `reading` alleen als lezen al meetelt.
     static func serverBody(followed: [String], interests: [String], topics: [String], favorites: [String], taste: Taste, readIds: [String], reading: [String: Any]?) -> [String: Any] {
         var body: [String: Any] = [
-            "v": 2, "followed": followed, "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "favorites": favorites,
+            "v": 2, "followed": followed, "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "onderwerpen": OnderwerpVersie.current, "favorites": favorites,
             "taste": taste.isEmpty ? NSNull() : Self.encoded(taste), "readIds": Array(readIds.suffix(1500)),
         ]
         if let reading { body["reading"] = reading }

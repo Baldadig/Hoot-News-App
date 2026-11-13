@@ -26,7 +26,10 @@ const KW = [
   ['werk', /\b(werkloosheid|werkgelegenheid|cao|vakbond|\bfnv\b|staking|stakingen|lonen|loonsverhoging|minimumloon|ontslag|ontslagen|reorganisatie|banen|vacatures|pensioen|\baow\b|unemployment|layoffs|jobs report|labor union|trade union|wages)\b/i],
   ['bedrijven', /\b(kwartaalcijfers|jaarcijfers|omzet|winst|bedrijfswinst|fusie|overname|faillis|beursgang|topman|topvrouw|\bceo\b|earnings|revenue|profit|merger|acquisition|bankrupt|takeover|ipo)\b/i],
   ['energie', /\b(energie|energy|gasprijs|olieprijs|stroomprijs|energieprijs|\bopec\b|kerncentrale|nuclear power|zonnepanelen|windpark|wind farm|stroomnet|netcongestie|\blng\b|aardgas|oil price|gas price)\b/i],
-  ['geld', /\b(sparen|spaarrente|belastingaangifte|belastingdienst|toeslag|toeslagen|koopkracht|boodschappen duurder|prijzen stijgen|pensioenfonds|beleggen|crypto|bitcoin|hypotheekrente|savings|personal finance)\b/i],
+  ['geld', /\b(sparen|spaarrente|belastingaangifte|belastingdienst|toeslag|toeslagen|koopkracht|boodschappen duurder|prijzen stijgen|pensioenfonds|beleggen|hypotheekrente|savings|personal finance)\b/i],
+  // Sinds 13 november 2026 een eigen onderwerp; crypto en bitcoin stonden eerst bij Geld & sparen. Niet in RETIRED:
+  // server en trefwoorden gaan samen live, en een bericht van eerder houdt zijn Geld & sparen.
+  ['crypto', /\b(crypto(?!gra)\w*|bitcoin\w*|ethereum|stablecoins?|blockchain|binance|coinbase|bitvavo|tether|solana|dogecoin|\bbtc\b|memecoins?|altcoins?|\bnfts?\b)\b/i],
   // Tech
   ['ai', /\b(kunstmatige intelligentie|artificial intelligence|\ba\.?i\.?\b|openai|chatgpt|anthropic|\bclaude\b|gemini|\bllm\b|machine learning|deepmind|copilot|chatbot|generatieve)\b/i],
   ['tech', /\b(apple|google|alphabet|\bmeta\b|facebook|instagram|whatsapp|microsoft|\bamazon\b|nvidia|tesla|musk|spacex|twitter|\bx\.com\b|tiktok|bytedance|big tech|techbedrijf|techgigant|semiconductor|chipmaker|chipfabrikant|halfgeleider|tsmc|\basml\b)\b/i],
@@ -46,6 +49,9 @@ const KW = [
   ['boeken', /\b(roman|novel|schrijver|schrijfster|auteur van|literatu|boekenweek|booker|nobelprijs voor literatuur|bestseller|poëzie|dichter|poet|poetry|uitgeverij|publisher|memoir)\b/i],
   ['kunst', /\b(museum|tentoonstelling|exhibition|kunstenaar|kunstwerk|artwork|schilderij|painting|beeldhouw|sculpture|theater|theatre|opera|ballet|rijksmuseum|stedelijk|van gogh|rembrandt|veiling|auction)\b/i],
   ['media', /\b(omroep(?! (?:zeeland|brabant|gelderland|west|flevoland|limburg))|\bnpo\b(?! radio)|journalistiek|journalism|tv-programma|talkshow|presentator|mediabedrijf|dpg media|mediahuis|press freedom|persvrijheid|mediawet)\b/i],
+  // Alleen voor wie het aantikt (OPT_IN in src/lib/topics.js). Woorden die alleen roddel en sterren zijn; ook de
+  // rubriek in de link telt (SHOWBIZZ_PATH in articleTopics): NU.nl Achterklap, RTL Boulevard.
+  ['showbizz', /\b(showbizz|showbiz|achterklap|roddel\w*|celebrity|celebrities|beroemdheden|realityster\w*|reality-ster\w*|influencer\w*|rode loper|red carpet|bekende nederlander\w*|bn'?ers?)\b/i],
   // Sport
   ['voetbal', /\b(voetbal\w*|football|soccer|eredivisie\w*|ajax|psv|feyenoord|oranje|champions league|europa league|premier league|la liga|bundesliga|knvb|wk-kwalificatie|world cup|keeper|doelpunt|penalty|ballon d.or|gouden bal)\b/i],
   ['f1', /\b(formule 1|formula 1|formula one|\bf1\b|verstappen|grand prix|red bull racing|ferrari|mercedes-amg|mclaren|hamilton|leclerc|norris|piastri)\b/i],
@@ -117,8 +123,13 @@ function journeyWithoutConflict(it) {
     && !/\b(?:oorlog|war|frontlin\w*|invas\w*|offensief|militair\w*|military|troepen|troops|aanval|attack|bomb\w*|sancti\w*|sanction\w*|poetin|putin|kremlin|arrest\w*|gevangen\w*|prison\w*|ontvoer\w*|kidnap\w*|doodgeschoten|killed)\b/i.test(`${head} ${first}`)
 }
 
+// Rubrieken in de link die alleen showbizz zijn (niet /entertainment/ of /show/: daar staan ook film en muziek).
+export const SHOWBIZZ_PATH = /\/(achterklap|showbizz|showbiz|boulevard|bv-en-co|celebrit\w*|sterren)\//i
+
 // De zichtbare kop en intro zijn het bewijs; een voetnoot verderop in RSS-HTML is geen onderwerp.
+// De rubriek in de link telt alleen voor showbizz: die zegt het zekerder dan de kop.
 export function articleTopics(it, own = []) {
+  if (SHOWBIZZ_PATH.test(it.url || '')) own = [...own, 'showbizz']
   const headline = keywordTopics(it.title || '')
   const intro = keywordTopics(it.summary || String(it.text || '').slice(0, 600))
   const topics = [...new Set([...headline, ...intro, ...own])]

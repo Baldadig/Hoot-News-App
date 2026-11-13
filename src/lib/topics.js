@@ -12,6 +12,8 @@ export const TOPICS = [
   T('klimaat', 'Klimaat'), T('gezondheid', 'Gezondheid'), T('ruimte', 'Ruimte'), T('natuur', 'Natuur & dieren'), T('brein', 'Psychologie & brein'),
   T('muziek', 'Muziek'), T('film', 'Film & series'), T('boeken', 'Boeken'), T('kunst', 'Kunst & musea'), T('media', 'Media'),
   T('voetbal', 'Voetbal'), T('f1', 'Formule 1'), T('wielrennen', 'Wielrennen'), T('tennis', 'Tennis'), T('wintersport', 'Schaatsen & wintersport'), T('olympisch', 'Olympische sporten'),
+  // Erbij op 13 november 2026, achteraan zodat de leesgeschiedenis van de testpersona's gelijk blijft.
+  T('crypto', 'Crypto'), T('showbizz', 'Achterklap & showbizz'),
 ]
 
 // Breed → smal: wat je in de onboarding eerst kiest, en wat daaronder valt.
@@ -20,20 +22,28 @@ export const INTERESTS = [
   { id: 'politiek', label: 'Politiek', topics: ['nederland', 'europa', 'vs-politiek', 'verkiezingen'], cats: [] },
   { id: 'binnenland', label: 'Binnenland', topics: ['wonen', 'zorg', 'onderwijs', 'misdaad', 'migratie', 'verkeer'], cats: ['regio'] },
   { id: 'wereld', label: 'Wereld', topics: ['oekraine', 'middenoosten', 'azie', 'afrika', 'latam', 'geopolitiek'], cats: [] },
-  { id: 'economie', label: 'Economie', topics: ['economie', 'werk', 'bedrijven', 'energie', 'geld'], cats: ['economie'] },
+  { id: 'economie', label: 'Economie', topics: ['economie', 'werk', 'bedrijven', 'energie', 'geld', 'crypto'], cats: ['economie'] },
   { id: 'tech', label: 'Tech', topics: ['ai', 'tech', 'gadgets', 'privacy', 'ev'], cats: ['tech'] },
   { id: 'wetenschap', label: 'Wetenschap', topics: ['klimaat', 'gezondheid', 'ruimte', 'natuur', 'brein'], cats: ['wetenschap'] },
   // Games hoort sinds 1.3 bij Cultuur (rubrieken, fase 2), niet meer bij Tech; zie currentChoice hieronder.
-  { id: 'cultuur', label: 'Cultuur', topics: ['muziek', 'film', 'boeken', 'kunst', 'media', 'games'], cats: ['cultuur', 'games'] },
+  // Achterklap & showbizz (13 november 2026) staat als laatste onder Cultuur en komt alleen bij wie het aantikt (OPT_IN).
+  { id: 'cultuur', label: 'Cultuur', topics: ['muziek', 'film', 'boeken', 'kunst', 'media', 'games', 'showbizz'], cats: ['cultuur', 'games'] },
   { id: 'sport', label: 'Sport', topics: ['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'], cats: ['sport'] },
 ]
+// Onderwerpen die alleen meedoen als je ze zelf aantikt: "alles" van een interesse is zonder deze
+// (Alex, 13 november 2026: showbizz alleen voor wie ervoor kiest). Web: resolveTopics en pickedFrom (welcome.js);
+// de Redacteur: profileOf (shared/editor.mjs); app: Models.swift (Rubriek.optIn).
+export const OPT_IN = new Set(['showbizz'])
+// De onderwerpen die "alles" van een interesse zijn.
+export const baseTopics = (i) => i.topics.filter((t) => !OPT_IN.has(t))
 const INTEREST_OF = Object.fromEntries(INTERESTS.flatMap((i) => i.topics.map((t) => [t, i.id])))
 
-// Hoort dit bericht bij een interesse? Via zijn onderwerpen, of omdat de bron erover gaat.
+// Hoort dit bericht bij een interesse? Via zijn onderwerpen, of omdat de bron erover gaat. Een OPT_IN-onderwerp
+// (showbizz) telt hier niet: de rubriek Cultuur in de Stroom blijft zonder roddel.
 export function inInterest(item, interestId, source) {
   const i = INTERESTS.find((x) => x.id === interestId)
   if (!i) return false
-  return (item.topics || []).some((t) => INTEREST_OF[t] === interestId) || i.cats.includes(source?.cat)
+  return (item.topics || []).some((t) => INTEREST_OF[t] === interestId && !OPT_IN.has(t)) || i.cats.includes(source?.cat)
 }
 
 export const topicById = (id) => TOPICS.find((t) => t.id === id)
@@ -85,18 +95,35 @@ export function currentChoice(interests = [], topics = []) {
   let nextI = I.filter((i) => !(onlyGames && i === 'tech'))
   if (games && !nextI.includes('cultuur')) nextI = [...nextI, 'cultuur']
   let nextT = T.filter((t) => t !== 'games')
-  const cultuur = INTERESTS.find((i) => i.id === 'cultuur').topics
+  const cultuur = baseTopics(INTERESTS.find((i) => i.id === 'cultuur'))
   // Cultuur "alles" bewaart het welkom als de hele lijst; zonder enig cultuuronderwerp blijft het ook alles.
   if (cultuurAll && (OLD_CULTUUR.every((t) => T.includes(t)) || games)) nextT = [...nextT, ...cultuur.filter((t) => !nextT.includes(t))]
   else if (games) nextT = [...nextT, 'games']
   return { interests: nextI, topics: nextT }
 }
 
+// De lijst onderwerpen heeft ook een versie (`prefs.onderwerpen`, ook in de vraag aan de server), los van de
+// indeling (RUBRIEKEN): een oudere app (1.3) leest een hogere RUBRIEKEN als oude indeling. Versie 2 (13 november
+// 2026): Crypto onder Economie, met de trefwoorden die eerst bij Geld & sparen stonden. Wie Economie helemaal volgde,
+// bewaarde de vijf onderwerpen van toen ("alles"); zonder versie komt Crypto daar één keer bij, zodat alles alles
+// blijft en wie via Geld & sparen cryptonieuws kreeg dat houdt. Een keuze met versie blijft zoals hij is (Crypto
+// bewust uitgezet). Achterklap & showbizz hoeft dit niet: dat zit niet in "alles". Web: prefs.js, sync.js;
+// server: edition.mjs (choiceOf); app: Models.swift (OnderwerpVersie). Tests: tests/onderwerpen-crypto.test.mjs.
+export const ONDERWERPEN = 2
+const OLD_ECONOMIE = ['economie', 'werk', 'bedrijven', 'energie', 'geld']
+export function withCrypto(interests = [], topics = []) {
+  const I = Array.isArray(interests) ? interests : []
+  const T = Array.isArray(topics) ? topics : []
+  if (!I.includes('economie') || T.includes('crypto') || !OLD_ECONOMIE.every((t) => T.includes(t))) return T
+  const at = T.indexOf('geld') + 1
+  return [...T.slice(0, at), 'crypto', ...T.slice(at)]
+}
+
 // Wat je volgt: per gekozen interesse de onderwerpen die je aantikte, of alle als je er geen koos.
 export function resolveTopics(interests = [], picked = []) {
   return INTERESTS.filter((i) => interests.includes(i.id)).flatMap((i) => {
     const mine = i.topics.filter((t) => picked.includes(t))
-    return mine.length ? mine : i.topics
+    return mine.length ? mine : baseTopics(i)
   })
 }
 

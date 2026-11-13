@@ -135,7 +135,9 @@ export function historyFor(persona, followed, sources) {
   const own = [...followed]
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   const latentSources = persona.latent ? own.filter((id) => persona.latent.cats.includes(catOf.get(id)) || persona.favorites.includes(id)) : []
-  const allTopics = T.TOPICS.map((t) => t.id)
+  // De 43 onderwerpen van vóór 13 november 2026 (Crypto en Achterklap & showbizz kwamen erbij): zo blijft de
+  // leesgeschiedenis van de persona's, en daarmee elke golden, gelijk.
+  const allTopics = T.TOPICS.map((t) => t.id).filter((t) => t !== 'crypto' && t !== 'showbizz')
   let aff = A.emptyAffinity()
   for (let n = 0; n < persona.reads; n++) {
     const onTaste = persona.latent && r() >= persona.noise

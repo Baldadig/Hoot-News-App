@@ -4,7 +4,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { INTERESTS, TOPICS, topicById, resolveTopics, currentChoice, RUBRIEKEN } from '../src/lib/topics.js'
+import { INTERESTS, TOPICS, topicById, resolveTopics, currentChoice, RUBRIEKEN, baseTopics } from '../src/lib/topics.js'
 import { normalizePrefs } from '../src/lib/prefs.js'
 import { applyWelcome } from '../src/lib/welcome.js'
 import { withRemoteChoice, SYNCED_PREFS } from '../src/lib/sync.js'
@@ -19,13 +19,13 @@ test('de nieuwe indeling: Games onder Cultuur, Tech zonder Games, dezelfde id\'s
   const by = Object.fromEntries(INTERESTS.map((i) => [i.id, i]))
   assert.deepEqual(by.tech.topics, ['ai', 'tech', 'gadgets', 'privacy', 'ev'])
   assert.deepEqual(by.tech.cats, ['tech'])
-  assert.deepEqual(by.cultuur.topics, ['muziek', 'film', 'boeken', 'kunst', 'media', 'games'])
+  assert.deepEqual(by.cultuur.topics, ['muziek', 'film', 'boeken', 'kunst', 'media', 'games', 'showbizz'])
   assert.deepEqual(by.cultuur.cats, ['cultuur', 'games'])
   // Elk onderwerp hoort bij precies één interesse, en er verdween geen id.
   const all = INTERESTS.flatMap((i) => i.topics)
   assert.equal(new Set(all).size, all.length)
   assert.deepEqual([...all].sort(), TOPICS.map((t) => t.id).sort())
-  assert.equal(TOPICS.length, 43)
+  assert.equal(TOPICS.length, 45) // 13 november 2026: Crypto en Achterklap & showbizz erbij
 })
 
 test('de namen: Big Tech blijft, Hacks & privacy; in de Selectie Games, Hacks & privacy en Gadgets', () => {
@@ -54,7 +54,9 @@ test('bewaarde keuzes van de oude indeling: dezelfde keuzes in de nieuwe', () =>
 
 // Wat de Redacteur ervan maakt (profileOf): per onderwerp hetzelfde gewicht als vóór de verhuizing, op de twee
 // besluiten na (Games was bij Tech-alles geërfd en valt weg; bij Cultuur-alles erft Games nu mee).
-const OLD = INTERESTS.map((i) => (i.id === 'tech' ? { ...i, topics: [...i.topics, 'games'] } : i.id === 'cultuur' ? { ...i, topics: i.topics.filter((t) => t !== 'games') } : i))
+// Zonder Achterklap & showbizz (13 november 2026): dat zit niet in "alles" en kwam pas na deze verhuizing.
+const NOW = INTERESTS.map((i) => ({ ...i, topics: baseTopics(i) }))
+const OLD = NOW.map((i) => (i.id === 'tech' ? { ...i, topics: [...i.topics, 'games'] } : i.id === 'cultuur' ? { ...i, topics: i.topics.filter((t) => t !== 'games') } : i))
 function explOf(defs, interests, topics) {
   const out = {}
   for (const f of defs) {
@@ -83,7 +85,7 @@ test('elke combinatie van Tech en Cultuur: geen enkel gekozen onderwerp gaat ver
         const topics = [...new Set([...(pickedT.length ? pickedT : interests.includes('tech') ? techOld : []), ...(pickedC.length ? pickedC : interests.includes('cultuur') ? cultOld : [])])]
         const before = explOf(OLD, interests, topics)
         const next = currentChoice(interests, topics)
-        const after = explOf(INTERESTS, next.interests, next.topics)
+        const after = explOf(NOW, next.interests, next.topics)
         const techAll = interests.includes('tech') && (!pickedT.length || pickedT.length === techOld.length)
         const cultAll = interests.includes('cultuur') && (!pickedC.length || pickedC.length === cultOld.length)
         const exp = { ...before }

@@ -161,19 +161,25 @@ var HootCore = (() => {
     T("wielrennen", "Wielrennen"),
     T("tennis", "Tennis"),
     T("wintersport", "Schaatsen & wintersport"),
-    T("olympisch", "Olympische sporten")
+    T("olympisch", "Olympische sporten"),
+    // Erbij op 13 november 2026, achteraan zodat de leesgeschiedenis van de testpersona's gelijk blijft.
+    T("crypto", "Crypto"),
+    T("showbizz", "Achterklap & showbizz")
   ];
   var INTERESTS = [
     { id: "politiek", label: "Politiek", topics: ["nederland", "europa", "vs-politiek", "verkiezingen"], cats: [] },
     { id: "binnenland", label: "Binnenland", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"] },
     { id: "wereld", label: "Wereld", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: [] },
-    { id: "economie", label: "Economie", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"] },
+    { id: "economie", label: "Economie", topics: ["economie", "werk", "bedrijven", "energie", "geld", "crypto"], cats: ["economie"] },
     { id: "tech", label: "Tech", topics: ["ai", "tech", "gadgets", "privacy", "ev"], cats: ["tech"] },
     { id: "wetenschap", label: "Wetenschap", topics: ["klimaat", "gezondheid", "ruimte", "natuur", "brein"], cats: ["wetenschap"] },
     // Games hoort sinds 1.3 bij Cultuur (rubrieken, fase 2), niet meer bij Tech; zie currentChoice hieronder.
-    { id: "cultuur", label: "Cultuur", topics: ["muziek", "film", "boeken", "kunst", "media", "games"], cats: ["cultuur", "games"] },
+    // Achterklap & showbizz (13 november 2026) staat als laatste onder Cultuur en komt alleen bij wie het aantikt (OPT_IN).
+    { id: "cultuur", label: "Cultuur", topics: ["muziek", "film", "boeken", "kunst", "media", "games", "showbizz"], cats: ["cultuur", "games"] },
     { id: "sport", label: "Sport", topics: ["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"], cats: ["sport"] }
   ];
+  var OPT_IN = /* @__PURE__ */ new Set(["showbizz"]);
+  var baseTopics = (i) => i.topics.filter((t) => !OPT_IN.has(t));
   var INTEREST_OF = Object.fromEntries(INTERESTS.flatMap((i) => i.topics.map((t) => [t, i.id])));
   var topicById = (id) => TOPICS.find((t) => t.id === id);
   var RETIRED_TOPICS = { trump: "vs-politiek" };
@@ -349,7 +355,10 @@ var HootCore = (() => {
     ["werk", /\b(werkloosheid|werkgelegenheid|cao|vakbond|\bfnv\b|staking|stakingen|lonen|loonsverhoging|minimumloon|ontslag|ontslagen|reorganisatie|banen|vacatures|pensioen|\baow\b|unemployment|layoffs|jobs report|labor union|trade union|wages)\b/i],
     ["bedrijven", /\b(kwartaalcijfers|jaarcijfers|omzet|winst|bedrijfswinst|fusie|overname|faillis|beursgang|topman|topvrouw|\bceo\b|earnings|revenue|profit|merger|acquisition|bankrupt|takeover|ipo)\b/i],
     ["energie", /\b(energie|energy|gasprijs|olieprijs|stroomprijs|energieprijs|\bopec\b|kerncentrale|nuclear power|zonnepanelen|windpark|wind farm|stroomnet|netcongestie|\blng\b|aardgas|oil price|gas price)\b/i],
-    ["geld", /\b(sparen|spaarrente|belastingaangifte|belastingdienst|toeslag|toeslagen|koopkracht|boodschappen duurder|prijzen stijgen|pensioenfonds|beleggen|crypto|bitcoin|hypotheekrente|savings|personal finance)\b/i],
+    ["geld", /\b(sparen|spaarrente|belastingaangifte|belastingdienst|toeslag|toeslagen|koopkracht|boodschappen duurder|prijzen stijgen|pensioenfonds|beleggen|hypotheekrente|savings|personal finance)\b/i],
+    // Sinds 13 november 2026 een eigen onderwerp; crypto en bitcoin stonden eerst bij Geld & sparen. Niet in RETIRED:
+    // server en trefwoorden gaan samen live, en een bericht van eerder houdt zijn Geld & sparen.
+    ["crypto", /\b(crypto(?!gra)\w*|bitcoin\w*|ethereum|stablecoins?|blockchain|binance|coinbase|bitvavo|tether|solana|dogecoin|\bbtc\b|memecoins?|altcoins?|\bnfts?\b)\b/i],
     // Tech
     ["ai", /\b(kunstmatige intelligentie|artificial intelligence|\ba\.?i\.?\b|openai|chatgpt|anthropic|\bclaude\b|gemini|\bllm\b|machine learning|deepmind|copilot|chatbot|generatieve)\b/i],
     ["tech", /\b(apple|google|alphabet|\bmeta\b|facebook|instagram|whatsapp|microsoft|\bamazon\b|nvidia|tesla|musk|spacex|twitter|\bx\.com\b|tiktok|bytedance|big tech|techbedrijf|techgigant|semiconductor|chipmaker|chipfabrikant|halfgeleider|tsmc|\basml\b)\b/i],
@@ -369,6 +378,9 @@ var HootCore = (() => {
     ["boeken", /\b(roman|novel|schrijver|schrijfster|auteur van|literatu|boekenweek|booker|nobelprijs voor literatuur|bestseller|poëzie|dichter|poet|poetry|uitgeverij|publisher|memoir)\b/i],
     ["kunst", /\b(museum|tentoonstelling|exhibition|kunstenaar|kunstwerk|artwork|schilderij|painting|beeldhouw|sculpture|theater|theatre|opera|ballet|rijksmuseum|stedelijk|van gogh|rembrandt|veiling|auction)\b/i],
     ["media", /\b(omroep(?! (?:zeeland|brabant|gelderland|west|flevoland|limburg))|\bnpo\b(?! radio)|journalistiek|journalism|tv-programma|talkshow|presentator|mediabedrijf|dpg media|mediahuis|press freedom|persvrijheid|mediawet)\b/i],
+    // Alleen voor wie het aantikt (OPT_IN in src/lib/topics.js). Woorden die alleen roddel en sterren zijn; ook de
+    // rubriek in de link telt (SHOWBIZZ_PATH in articleTopics): NU.nl Achterklap, RTL Boulevard.
+    ["showbizz", /\b(showbizz|showbiz|achterklap|roddel\w*|celebrity|celebrities|beroemdheden|realityster\w*|reality-ster\w*|influencer\w*|rode loper|red carpet|bekende nederlander\w*|bn'?ers?)\b/i],
     // Sport
     ["voetbal", /\b(voetbal\w*|football|soccer|eredivisie\w*|ajax|psv|feyenoord|oranje|champions league|europa league|premier league|la liga|bundesliga|knvb|wk-kwalificatie|world cup|keeper|doelpunt|penalty|ballon d.or|gouden bal)\b/i],
     ["f1", /\b(formule 1|formula 1|formula one|\bf1\b|verstappen|grand prix|red bull racing|ferrari|mercedes-amg|mclaren|hamilton|leclerc|norris|piastri)\b/i],
@@ -1326,8 +1338,9 @@ var HootCore = (() => {
     for (const f of INTERESTS) {
       if (!interests.includes(f.id)) continue;
       const picked = f.topics.filter((t) => topics.includes(t));
-      const sharp = picked.length > 0 && picked.length < f.topics.length;
+      const sharp = picked.length > 0 && !baseTopics(f).every((t) => topics.includes(t));
       for (const t of f.topics) {
+        if (!sharp && OPT_IN.has(t) && !picked.includes(t)) continue;
         expl[t] = sharp ? picked.includes(t) ? 1 : 0 : W_INHERITED;
         if (!sharp) inherited.add(t);
       }
@@ -3891,7 +3904,7 @@ var HootCore = (() => {
       };
     }
     const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`;
-    const cultuur = INTERESTS.find((f) => f.id === "cultuur")?.topics || [];
+    const cultuur = baseTopics(INTERESTS.find((f) => f.id === "cultuur"));
     const gamesSharp = interests.includes("cultuur") && topics.includes("games") && !cultuur.every((t) => topics.includes(t));
     const gamesOk = (prof.topicP.games || 0) >= EXTRA_MIN && (gamesSharp || prof.origin.games === "geleerd");
     const extraKinds = /* @__PURE__ */ new Set([...sportChosen(prof) ? ["sport"] : [], ...cultuurChosen(prof, EXTRA_MIN) ? ["cultuur"] : [], ...gamesOk ? ["games"] : []]);

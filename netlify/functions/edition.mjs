@@ -49,7 +49,7 @@ import { composePersonal, withoutDebug, editionBasis, earlierEditions } from '..
 import { accountAhead, claimFilter, readAccountEdition, TABLE } from '../../src/lib/editionSync.js'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 import { readingSummary } from '../../src/lib/affinity.js'
-import { currentChoice, RUBRIEKEN } from '../../src/lib/topics.js'
+import { currentChoice, RUBRIEKEN, withCrypto, ONDERWERPEN } from '../../src/lib/topics.js'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 
 const fail = (status, error, headers = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
@@ -90,7 +90,11 @@ export const READ_MAX = 1500 // zoveel gelezen berichten gaan ook mee in de sync
 // currentChoice). De afdruk (`basis`) blijft die van de vraag zelf: zo herkent het toestel zijn Editie.
 export function choiceOf(body) {
   const asked = { interests: ids(body.interests, 20), topics: ids(body.topics, 60) }
-  return { asked, ...(body.rubrieken === RUBRIEKEN ? asked : currentChoice(asked.interests, asked.topics)) }
+  const now = body.rubrieken === RUBRIEKEN ? asked : currentChoice(asked.interests, asked.topics)
+  // Zonder `onderwerpen` (app 1.3 en ouder): wie Economie helemaal volgde, krijgt Crypto erbij (topics.js withCrypto).
+  if (body.onderwerpen === ONDERWERPEN) return { asked, ...now }
+  const topics = withCrypto(now.interests, now.topics)
+  return { asked, ...now, topics }
 }
 
 // De afdrukken waaronder deze vraag een Editie in je account herkent (Editie vast, 12 november 2026: "Mijn

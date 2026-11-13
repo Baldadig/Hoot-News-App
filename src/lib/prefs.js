@@ -2,7 +2,7 @@
 // (getest in tests/prefs.test.mjs).
 import { themePref, darkPref } from './theme.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
-import { currentTopics, currentTopicMap, currentChoice, RUBRIEKEN } from './topics.js'
+import { currentTopics, currentTopicMap, currentChoice, RUBRIEKEN, withCrypto, ONDERWERPEN } from './topics.js'
 import { TASTE_CAP } from './affinity.js'
 import { INTRO_LINES } from '../../shared/zinnen.mjs'
 import { textSizePref } from './tekstgrootte.js'
@@ -67,6 +67,8 @@ export function normalizePrefs(raw) {
   // De indeling van 1.3 (Games onder Cultuur): keuzes zonder versie zijn van de oude indeling. Bij het lezen
   // omgezet, niet bij het opslaan: zo blijft je account leesbaar voor een oudere app (zie topics.js currentChoice).
   if (out.rubrieken !== RUBRIEKEN) Object.assign(out, currentChoice(out.interests, out.topics), { rubrieken: RUBRIEKEN })
+  // Crypto onder Economie (13 november 2026): wie Economie helemaal volgde, houdt alles (topics.js withCrypto).
+  if (out.onderwerpen !== ONDERWERPEN) Object.assign(out, { topics: withCrypto(out.interests, out.topics), onderwerpen: ONDERWERPEN })
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
   // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
   out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []

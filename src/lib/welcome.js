@@ -1,5 +1,5 @@
 // Wat het welkom met je instellingen doet — pure functies (tests/welcome.test.mjs).
-import { RUBRIEKEN } from './topics.js'
+import { RUBRIEKEN, ONDERWERPEN, OPT_IN } from './topics.js'
 
 // Opnieuw kiezen (vanuit Bronnen of Instellingen): je bronnen beginnen met wat nu aan staat,
 // niet met een nieuw voorstel.
@@ -32,8 +32,10 @@ export function pickedFrom(topics = [], interests = [], all = []) {
   return all
     .filter((i) => interests.includes(i.id))
     .flatMap((i) => {
+      // "Alles" is de lijst zonder wat je zelf aantikt (OPT_IN in topics.js): precies die lijst is 'Alles'.
       const mine = i.topics.filter((t) => topics.includes(t))
-      return mine.length === i.topics.length ? [] : mine
+      const base = i.topics.filter((t) => !OPT_IN.has(t))
+      return mine.length === base.length && base.every((t) => mine.includes(t)) ? [] : mine
     })
 }
 
@@ -57,6 +59,7 @@ export function applyWelcome(p, choice) {
     interests: choice.interests,
     topics: choice.topics,
     rubrieken: RUBRIEKEN, // gekozen in de indeling van nu (topics.js)
+    onderwerpen: ONDERWERPEN, // en met de onderwerpen van nu (Crypto erbij)
     pinned: kept.length ? kept : choice.topics.slice(0, 3),
     ...(choice.vak ? { vak: choice.vak } : {}),
     muted: [...(p.muted || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => !s.optional && !on.has(s.id)).map((s) => s.id)],

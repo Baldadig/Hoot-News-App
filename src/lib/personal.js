@@ -19,7 +19,7 @@ import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
-import { INTERESTS } from './topics.js'
+import { INTERESTS, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN } from '../../shared/editor.mjs'
@@ -234,7 +234,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    lezen); games alleen als je dat onderwerp scherp koos of las, niet geërfd van Cultuur (wie Cultuur
   //    kiest, bedoelt meestal muziek, film en boeken; tot 1.3 hoorde Games bij Tech, met dezelfde regel).
   //    Games telt daarom ook niet mee voor de sterkte van Cultuur (cultuurChosen in shared/edition-policy.mjs).
-  const cultuur = INTERESTS.find((f) => f.id === 'cultuur')?.topics || []
+  // Zonder Achterklap & showbizz: dat zit niet in Cultuur-alles (OPT_IN in topics.js).
+  const cultuur = baseTopics(INTERESTS.find((f) => f.id === 'cultuur'))
   const gamesSharp = interests.includes('cultuur') && topics.includes('games') && !cultuur.every((t) => topics.includes(t))
   const gamesOk = (prof.topicP.games || 0) >= EXTRA_MIN && (gamesSharp || prof.origin.games === 'geleerd')
   const extraKinds = new Set([...(sportChosen(prof) ? ['sport'] : []), ...(cultuurChosen(prof, EXTRA_MIN) ? ['cultuur'] : []), ...(gamesOk ? ['games'] : [])])

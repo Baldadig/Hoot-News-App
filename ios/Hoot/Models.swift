@@ -635,7 +635,7 @@ struct Taste: Codable, Hashable {
     var less: [String] { topics.filter { $0.value < 0 }.sorted { $0.value < $1.value }.map(\.key) }
 
     // De namen van de onderwerpen (src/lib/topics.js).
-    static let labels: [String: String] = ["nederland": "Den Haag", "europa": "Europa", "vs-politiek": "Verenigde Staten", "verkiezingen": "Verkiezingen", "wonen": "Wonen", "zorg": "Zorg", "onderwijs": "Onderwijs", "misdaad": "Misdaad & recht", "migratie": "Asiel & migratie", "verkeer": "Verkeer & OV", "oekraine": "Oekraïne & Rusland", "middenoosten": "Midden-Oosten", "azie": "China & Azië", "afrika": "Afrika", "latam": "Latijns-Amerika", "geopolitiek": "Defensie & NAVO", "economie": "Markten & beurs", "werk": "Werk & inkomen", "bedrijven": "Bedrijven", "energie": "Energie", "geld": "Geld & sparen", "ai": "AI", "tech": "Big Tech", "gadgets": "Gadgets", "privacy": "Hacks & privacy", "ev": "Elektrisch rijden", "games": "Games", "klimaat": "Klimaat", "gezondheid": "Gezondheid", "ruimte": "Ruimte", "natuur": "Natuur & dieren", "brein": "Psychologie & brein", "muziek": "Muziek", "film": "Film & series", "boeken": "Boeken", "kunst": "Kunst & musea", "media": "Media", "voetbal": "Voetbal", "f1": "Formule 1", "wielrennen": "Wielrennen", "tennis": "Tennis", "wintersport": "Schaatsen & wintersport", "olympisch": "Olympische sporten"]
+    static let labels: [String: String] = ["nederland": "Den Haag", "europa": "Europa", "vs-politiek": "Verenigde Staten", "verkiezingen": "Verkiezingen", "wonen": "Wonen", "zorg": "Zorg", "onderwijs": "Onderwijs", "misdaad": "Misdaad & recht", "migratie": "Asiel & migratie", "verkeer": "Verkeer & OV", "oekraine": "Oekraïne & Rusland", "middenoosten": "Midden-Oosten", "azie": "China & Azië", "afrika": "Afrika", "latam": "Latijns-Amerika", "geopolitiek": "Defensie & NAVO", "economie": "Markten & beurs", "werk": "Werk & inkomen", "bedrijven": "Bedrijven", "energie": "Energie", "geld": "Geld & sparen", "crypto": "Crypto", "ai": "AI", "tech": "Big Tech", "gadgets": "Gadgets", "privacy": "Hacks & privacy", "ev": "Elektrisch rijden", "games": "Games", "klimaat": "Klimaat", "gezondheid": "Gezondheid", "ruimte": "Ruimte", "natuur": "Natuur & dieren", "brein": "Psychologie & brein", "muziek": "Muziek", "film": "Film & series", "boeken": "Boeken", "kunst": "Kunst & musea", "media": "Media", "showbizz": "Achterklap & showbizz", "voetbal": "Voetbal", "f1": "Formule 1", "wielrennen": "Wielrennen", "tennis": "Tennis", "wintersport": "Schaatsen & wintersport", "olympisch": "Olympische sporten"]
     static func label(_ id: String) -> String { labels[id] ?? id }
     // "voetbal en Ajax", voor de bevestiging.
     static func about(_ items: [Item]) -> String {
@@ -659,11 +659,12 @@ struct Rubriek: Identifiable {
         Rubriek(id: "politiek", label: "Politiek", icon: "building.columns", topics: ["nederland", "europa", "vs-politiek", "verkiezingen"], cats: []),
         Rubriek(id: "binnenland", label: "Binnenland", icon: "house", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"]),
         Rubriek(id: "wereld", label: "Wereld", icon: "globe.europe.africa", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: []),
-        Rubriek(id: "economie", label: "Economie", icon: "chart.line.uptrend.xyaxis", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"]),
+        Rubriek(id: "economie", label: "Economie", icon: "chart.line.uptrend.xyaxis", topics: ["economie", "werk", "bedrijven", "energie", "geld", "crypto"], cats: ["economie"]),
         Rubriek(id: "tech", label: "Tech", icon: "cpu", topics: ["ai", "tech", "gadgets", "privacy", "ev"], cats: ["tech"]),
         Rubriek(id: "wetenschap", label: "Wetenschap", icon: "atom", topics: ["klimaat", "gezondheid", "ruimte", "natuur", "brein"], cats: ["wetenschap"]),
         // Games hoort sinds 1.3 bij Cultuur, niet meer bij Tech (RubriekVersie hieronder).
-        Rubriek(id: "cultuur", label: "Cultuur", icon: "theatermasks", topics: ["muziek", "film", "boeken", "kunst", "media", "games"], cats: ["cultuur", "games"]),
+        // Achterklap & showbizz als laatste: alleen als je het aantikt (optIn).
+        Rubriek(id: "cultuur", label: "Cultuur", icon: "theatermasks", topics: ["muziek", "film", "boeken", "kunst", "media", "games", "showbizz"], cats: ["cultuur", "games"]),
         Rubriek(id: "sport", label: "Sport", icon: "figure.run", topics: ["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"], cats: ["sport"]),
     ]
     static let byId = Dictionary(uniqueKeysWithValues: alle.map { ($0.id, $0) })
@@ -671,15 +672,20 @@ struct Rubriek: Identifiable {
     // Hoort dit bericht in deze rubriek? (inInterest op de website)
     static func past(_ item: Item, _ id: String, cat: String?) -> Bool {
         guard let r = byId[id] else { return false }
-        return (item.topics ?? []).contains(where: r.topics.contains) || cat.map(r.cats.contains) == true
+        // Een optIn-onderwerp (showbizz) telt niet: Cultuur in de Stroom blijft zonder roddel (inInterest op het web).
+        return (item.topics ?? []).contains(where: r.base.contains) || cat.map(r.cats.contains) == true
     }
 
+    // Onderwerpen die alleen meedoen als je ze aantikt (OPT_IN in src/lib/topics.js): "alles" is zonder deze.
+    static let optIn: Set<String> = ["showbizz"]
+    var base: [String] { topics.filter { !Rubriek.optIn.contains($0) } }
+
     // Wat je volgt (resolveTopics op de website): per gekozen interesse de onderwerpen die je
-    // aantikte, of alle als je er geen koos. Op de volgorde van de rubrieken.
+    // aantikte, of alle (zonder optIn) als je er geen koos. Op de volgorde van de rubrieken.
     static func resolve(_ interests: [String], picked: [String]) -> [String] {
         alle.filter { interests.contains($0.id) }.flatMap { r in
             let mine = r.topics.filter(picked.contains)
-            return mine.isEmpty ? r.topics : mine
+            return mine.isEmpty ? r.base : mine
         }
     }
 
@@ -688,7 +694,7 @@ struct Rubriek: Identifiable {
     static func picked(from topics: [String], interests: [String]) -> [String] {
         alle.filter { interests.contains($0.id) }.flatMap { r in
             let mine = r.topics.filter(topics.contains)
-            return mine.count == r.topics.count ? [] : mine
+            return mine == r.base ? [] : mine
         }
     }
 }
@@ -714,13 +720,27 @@ enum RubriekVersie {
         var nextI = interests.filter { !(onlyGames && $0 == "tech") }
         if games && !nextI.contains("cultuur") { nextI.append("cultuur") }
         var nextT = topics.filter { $0 != "games" }
-        let cultuur = Rubriek.byId["cultuur"]?.topics ?? []
+        let cultuur = Rubriek.byId["cultuur"]?.base ?? []
         if cultuurAll && (oldCultuur.allSatisfy(topics.contains) || games) {
             nextT += cultuur.filter { !nextT.contains($0) }
         } else if games {
             nextT.append("games")
         }
         return (nextI, nextT)
+    }
+}
+
+// De versie van de lijst onderwerpen (src/lib/topics.js → ONDERWERPEN en withCrypto), los van RubriekVersie.
+// Versie 2: Crypto onder Economie. Wie Economie helemaal volgde (de vijf onderwerpen van toen), krijgt Crypto
+// er één keer bij; een keuze met versie blijft zoals hij is.
+enum OnderwerpVersie {
+    static let current = 2
+    static let oldEconomie = ["economie", "werk", "bedrijven", "energie", "geld"]
+    static func migrate(interests: [String], topics: [String]) -> [String] {
+        guard interests.contains("economie"), !topics.contains("crypto"), oldEconomie.allSatisfy(topics.contains) else { return topics }
+        var next = topics
+        next.insert("crypto", at: (topics.firstIndex(of: "geld") ?? topics.count - 1) + 1)
+        return next
     }
 }
 
