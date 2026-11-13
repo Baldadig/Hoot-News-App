@@ -30,7 +30,7 @@ export const SOURCES = [
   // Nederland
   S('nos', 'NOS', 'nl', 'nl', 'Het publieke nieuws: snel, breed en gratis.', ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'], { pick: true, base: true, bsky: 'nos.nl', x: 'nos', color: '#B5121B' }),
   S('nu', 'NU.nl', 'nl', 'nl', 'Het snelste nieuws, de hele dag.', 'https://www.nu.nl/rss/Algemeen', { pick: true, color: '#0B4E8C' , bsky: 'nu.nl' }),
-  S('nrc', 'NRC', 'nl', 'nl', 'Achtergrond, analyse en onderzoek.', ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss'], { login: 'https://www.nrc.nl/login/', paid: true, pick: true, base: true, bsky: 'nrc.nl', x: 'nrc', color: '#C20E1A' }),
+  S('nrc', 'NRC', 'nl', 'nl', 'Achtergrond, analyse en onderzoek.', 'https://www.nrc.nl/rss/', { login: 'https://www.nrc.nl/login/', paid: true, pick: true, base: true, bsky: 'nrc.nl', x: 'nrc', color: '#C20E1A' }),
   S('volkskrant', 'de Volkskrant', 'nl', 'nl', 'Nieuws, verhalen en opinie.', ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'], { login: 'https://www.volkskrant.nl/login/', paid: true, pick: true, base: true, bsky: 'volkskrant.nl', x: 'volkskrant', color: '#1481C4' }),
   S('trouw', 'Trouw', 'nl', 'nl', 'Nieuws met aandacht voor mens, natuur en zingeving.', 'https://www.trouw.nl/rss.xml', { login: 'https://www.trouw.nl/login/', paid: true, color: '#00A0DC' , bsky: 'trouw.nl' }),
   S('parool', 'Het Parool', 'nl', 'nl', 'Amsterdam en de wereld.', 'https://www.parool.nl/rss.xml', { login: 'https://www.parool.nl/login/', paid: true, color: '#002F6C' , bsky: 'parool.nl' }),
@@ -110,7 +110,7 @@ export const SOURCES = [
   S('newyorker', 'The New Yorker', 'int', 'en', 'Reportages, essays en cultuur.', 'https://www.newyorker.com/feed/news', { login: 'https://www.newyorker.com/auth/initiate', paid: true, color: '#1A1A1A' , bsky: 'newyorker.com' }),
   S('foreignpolicy', 'Foreign Policy', 'int', 'en', 'Analyse van internationale politiek.', 'https://foreignpolicy.com/feed/', { login: 'https://foreignpolicy.com/login/', paid: true, pick: true, for: ['wereld'], color: '#C8102E' , bsky: 'foreignpolicy.com' }),
   S('politico-eu', 'Politico Europe', 'int', 'en', 'Brussel en de Europese politiek.', 'https://www.politico.eu/feed/', { pick: true, for: ['politiek'], color: '#DC0A0A' , bsky: 'politico.eu' }),
-  S('politico', 'Politico', 'int', 'en', 'Amerikaanse politiek, van binnenuit.', ['https://rss.politico.com/politics-news.xml', 'https://www.politico.com/rss/politicopicks.xml'], { pick: true, for: ['politiek'], x: 'politico', color: '#E5202E' }),
+  S('politico', 'Politico', 'int', 'en', 'Amerikaanse politiek, van binnenuit.', 'https://rss.politico.com/politics-news.xml', { pick: true, for: ['politiek'], x: 'politico', color: '#E5202E' }),
   S('aljazeera', 'Al Jazeera', 'int', 'en', 'Wereldnieuws met een blik vanuit het Zuiden.', 'https://www.aljazeera.com/xml/rss/all.xml', { x: 'AJEnglish', color: '#FA9000' }),
   S('npr', 'NPR', 'int', 'en', 'De Amerikaanse publieke omroep.', 'https://feeds.npr.org/1001/rss.xml', { x: 'NPR', color: '#1A1A1A' }),
   S('dw', 'Deutsche Welle', 'int', 'en', 'Duits publiek nieuws, in het Engels.', 'https://rss.dw.com/rdf/rss-en-all', { color: '#05A0E6' , x: 'dwnews' }),
@@ -139,7 +139,7 @@ export const SOURCES = [
   // Wetenschap
   S('quanta', 'Quanta Magazine', 'wetenschap', 'en', 'Wiskunde, natuurkunde en biologie, helder uitgelegd.', 'https://api.quantamagazine.org/feed/', { pick: true, for: ['wetenschap'], color: '#1A1A1A' , bsky: 'quantamagazine.org' }),
   S('sciam', 'Scientific American', 'wetenschap', 'en', 'Wetenschap voor iedereen.', 'http://rss.sciam.com/ScientificAmerican-Global', { login: 'https://www.scientificamerican.com/login/', paid: true, pick: true, for: ['wetenschap'], color: '#C8102E' , x: 'sciam' }),
-  S('nature', 'Nature', 'wetenschap', 'en', 'Het wetenschappelijk tijdschrift: nieuws en onderzoek.', 'https://www.nature.com/nature.rss', { login: 'https://www.nature.com/my-account', paid: true, color: '#1A1A1A', keep: '/articles/d4', bsky: 'nature.com' }), // alleen nieuws (d4…), geen onderzoekspapers (s4…) zonder intro
+  S('nature', 'Nature', 'wetenschap', 'en', 'Het wetenschappelijk tijdschrift: nieuws en onderzoek.', 'https://www.nature.com/nature.rss', { login: 'https://idp.nature.com/auth/personal/springernature?redirect_uri=https://www.nature.com/', paid: true, color: '#1A1A1A', keep: '/articles/d4', bsky: 'nature.com' }), // alleen nieuws (d4…), geen onderzoekspapers (s4…) zonder intro
   S('carbonbrief', 'Carbon Brief', 'wetenschap', 'en', 'Klimaatwetenschap en -beleid.', 'https://www.carbonbrief.org/feed/', { forTopic: 'klimaat', pick: true, color: '#0F6E5A' , bsky: 'carbonbrief.org' }),
   // Sport
   S('nos-sport', 'NOS Sport', 'sport', 'nl', 'Al het sportnieuws van de NOS.', 'https://feeds.nos.nl/nossportalgemeen', { pick: true, for: ['sport'], color: '#B5121B' , bsky: 'nos.nl' }),
