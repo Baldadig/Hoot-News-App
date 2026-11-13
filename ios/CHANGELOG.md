@@ -8,6 +8,45 @@
 
 - 1.3.1, Editie sneller: jouw Editie wordt aan de server gevraagd zodra de kern er is, tegelijk met de berichten per bron (die heeft alleen het vangnet nodig). Bleef het antwoord uit, dan vraagt dezelfde laadronde niet nog eens maar rekent meteen het vangnet; een volgende ronde vraagt opnieuw. Wachttijd (20 s, één nieuwe poging) ongewijzigd. Toetsen: EditieSnellerTests.
 
+- 1.3.1, Crypto en Achterklap & showbizz: Crypto onder Economie, Achterklap & showbizz als laatste onder Cultuur en alleen als je het zelf aantikt (Rubriek.optIn). Wie Economie helemaal volgde, krijgt Crypto er één keer bij (OnderwerpVersie, gelijk aan src/lib/topics.js). Toetsen: RubriekVersieTests.
+
+- 1.3.1, de zon als voortgang: de zon in de kop van de Editie toont hoe ver je bent, beweegt alleen als je scrolt en zweeft rustig naar de stand (260 ms, gelijk aan src/lib/leesstand.js). Bij Minder beweging alleen de hele stap. `animatableData` is nonisolated, anders bouwt de app niet onder Swift 6. Toetsen: ZonVoortgangTests.
+
+- 1.3.1, beeldpoort: een beeld staat alleen groot als het origineel minstens 600 breed is, en Hoot vraagt geen maat waarbij de uitgever het beeld uitrekt (ImageURL.swift, BeeldOpMaat.swift, gelijk aan shared/beeld.mjs). Toetsen: BeeldPoortTests.
+
+- 1.3.1, verder: inloggen bij je bronnen (Apple-vensters als vel, eerlijk Google-blad, Inlogdagboek), 20 seconden wachten op de server met één stille nieuwe poging, de beoordelingsvraag na de derde uitgelezen Editie (nooit tijdens het lezen), motion-duren 120, 240 en 700 ms (Beweging.swift), de eindkaart zonder "Lees verder in de Stroom", en de rekenkern van main (nieuw feit, één plek per cluster, Nederlandse opening, leeftijd). Zie CHANGELOG.md in de hoofdmap.
+
+## [1.3] — 2026-11-12 — Widgets, Uitleg bij begrippen, achttien beelden (build 53)
+
+- **Hoot-widgets**: op het beginscherm, het vergrendelscherm, in StandBy en op de iPad zie je de koppen van je Editie. Een kop wordt nooit ingekort tot iets anders dan het nieuws zegt, en een tik opent de Editie of dat verhaal (hoot://editie, hoot://verhaal/<id>). De widget-extensie deelt de Editie met de app via de App Group group.nl.hootnews.Hoot en haalt bij een nieuw dagdeel zo nodig zelf dezelfde Editie op.
+- **Uitleg bij begrippen**: onder een bericht met een begrip als formateur of midterms staat de pil "Uitleg: formateur". Een tik opent een half blad met de uitleg en een knop naar Wikipedia; omlaag vegen sluit het. Onderaan een verhaal staan alle Begrippen bij elkaar, uitklapbaar. Web en app gebruiken dezelfde lijst van 32 begrippen (shared/glossary.json).
+- **Achttien placeholderbeelden**: een stuk zonder beeld krijgt een van achttien Hoot-beelden in plaats van tien. Nieuw zijn De kop, Vouw, Baan, Eclips, Walsen, Zetsel, De rij en Koepels. Twee beeldloze stukken na elkaar krijgen nooit hetzelfde beeld of dezelfde soort.
+- **Grote beelden**: Parool, Trouw en Humo (DPG-beeldserver) krijgen het grote beeld, zoals ook Volkskrant, NU.nl en FD; de app volgt de beeldregel van het web.
+- **Rubrieken, namen gelijk**: Games hoort bij Cultuur in plaats van bij Tech; Privacy & veiligheid heet Hacks & privacy; Big Tech blijft Big Tech. Niemand verliest een keuze.
+- **Meten zonder volgen**: de app telt alleen totalen per dag (zonder id), zoals het web. Privacymanifest: Productinteractie houdt Analytics als doel; geen tracking.
+- Privacy: de widget-extensie heeft een eigen PrivacyInfo.xcprivacy (UserDefaults met reden 1C8F.1 voor de App Group, geen tracking, geen verzamelde gegevens).
+
+## [1.2.1] — 2026-11-11 — Je account rechtsboven, Opinie in de Stroom, de Editie van de server (build 52)
+
+- **Je account rechtsboven**: in plaats van het tandwiel staat je account rechtsboven.
+- **Opinie in de Stroom**: een eigen tab Opinie na Sport, vóór Buiten je bubbel. De tabs van de Stroom komen van de server.
+- **Duo**: het tafelblad staat weer aan wanneer je de Duo liggend houdt, ook op de echte Duo.
+- **De Editie van de server**: de app vraagt jouw Editie aan de server en stuurt een samenvatting van je leesprofiel mee. Alleen offline stelt het toestel zelf samen.
+- **Het seintje voor de Ochtendeditie** volgt het ochtendmoment van de server.
+- **Delen: kaart én link**: bij een gedeeld verhaal gaan de Hoot-kaart en de link naar het artikel bij de uitgever samen mee, in Berichten, WhatsApp en Mail.
+
+## [1.2] — 2026-11-08 — De krant vouwt mee (build 51)
+
+- iPhone Duo: de Editie als krant. Dicht de dichte voorpagina, open staand de tabloid in twee kolommen. Open liggend één krantenpagina: het tafelblad staat in 1.2 uit (`KrantIndeling.tafelblad = false`) en komt in 1.2.1, met de fix voor de echte Duo (branch `duo`: cd44535, 08ab0fb).
+- Elke plek in de Editie verzorgd (beeld en intro), en de kaartintro in de Editie op de telefoon vier regels (`HootStore.kaartLines`).
+- De Redacteur 3b in `edition-core.js` (`redacteur-2026-11-07-taalregel`): de taal volgt je bronkeuze; uitrol zonder herhaling.
+- Buiten je bubbel op de iPad liggend als katern in het raster; "Een verhaal naast je Editie." ook op de iPhone.
+- Zonder vouw blijven iPhone en iPad gelijk aan main (schermvergelijking in Hoot-design/release-1.2).
+
+## [1.1.1] · 2026-11-06 · De app in de App Store (build 37 t/m 50)
+
+Deze punten stonden nog onder Onuitgebracht; ze zitten allemaal in ios-v1.1.1 (build 50).
+
 - Nieuw merkrood Rubrica (PMS 484 C), na build 48: BrandRed en AccentColor `#9A3324`, AccentSoft `#F2E4DF` (Donker en Nacht ongewijzigd). Daarmee ook het rode opstartscherm, de iris, de zon in de placeholders, het nummer 01, de punt van "hoot.", de eindkaart in Nacht (`#41150F`, 42 procent over zwart), de lezer en de deelkaart. De vier app-iconen en hun voorbeelden in Instellingen zijn opnieuw gemaakt met `scripts/appiconen.mjs` (zelfde bron, nieuw rood; Donker blijft gelijk). Een nieuw icoon vraagt een nieuwe build voor de App Store.
 
 - Build 48 (1.1.0): Instellingen D, intro variant 4, Zoeken in Mijn bronnen / Alle bronnen. De ongebruikte Inter-bestanden (Inter-400 t/m -800, Lezer-Inter-400/-800, OFL-Inter) gaan niet meer mee in de app (uitzondering in het Xcode-project; de bestanden blijven in de repo).
@@ -57,33 +96,6 @@
 - Verhalen delen als Hoot-krantenkop in merkrood, in liggend en staand formaat (A3).
 
 - Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
-
-## [1.3] — 2026-11-12 — Widgets, Uitleg bij begrippen, achttien beelden (build 53)
-
-- **Hoot-widgets**: op het beginscherm, het vergrendelscherm, in StandBy en op de iPad zie je de koppen van je Editie. Een kop wordt nooit ingekort tot iets anders dan het nieuws zegt, en een tik opent de Editie of dat verhaal (hoot://editie, hoot://verhaal/<id>). De widget-extensie deelt de Editie met de app via de App Group group.nl.hootnews.Hoot en haalt bij een nieuw dagdeel zo nodig zelf dezelfde Editie op.
-- **Uitleg bij begrippen**: onder een bericht met een begrip als formateur of midterms staat de pil "Uitleg: formateur". Een tik opent een half blad met de uitleg en een knop naar Wikipedia; omlaag vegen sluit het. Onderaan een verhaal staan alle Begrippen bij elkaar, uitklapbaar. Web en app gebruiken dezelfde lijst van 32 begrippen (shared/glossary.json).
-- **Achttien placeholderbeelden**: een stuk zonder beeld krijgt een van achttien Hoot-beelden in plaats van tien. Nieuw zijn De kop, Vouw, Baan, Eclips, Walsen, Zetsel, De rij en Koepels. Twee beeldloze stukken na elkaar krijgen nooit hetzelfde beeld of dezelfde soort.
-- **Grote beelden**: Parool, Trouw en Humo (DPG-beeldserver) krijgen het grote beeld, zoals ook Volkskrant, NU.nl en FD; de app volgt de beeldregel van het web.
-- **Rubrieken, namen gelijk**: Games hoort bij Cultuur in plaats van bij Tech; Privacy & veiligheid heet Hacks & privacy; Big Tech blijft Big Tech. Niemand verliest een keuze.
-- **Meten zonder volgen**: de app telt alleen totalen per dag (zonder id), zoals het web. Privacymanifest: Productinteractie houdt Analytics als doel; geen tracking.
-- Privacy: de widget-extensie heeft een eigen PrivacyInfo.xcprivacy (UserDefaults met reden 1C8F.1 voor de App Group, geen tracking, geen verzamelde gegevens).
-
-## [1.2.1] — 2026-11-11 — Je account rechtsboven, Opinie in de Stroom, de Editie van de server (build 52)
-
-- **Je account rechtsboven**: in plaats van het tandwiel staat je account rechtsboven.
-- **Opinie in de Stroom**: een eigen tab Opinie na Sport, vóór Buiten je bubbel. De tabs van de Stroom komen van de server.
-- **Duo**: het tafelblad staat weer aan wanneer je de Duo liggend houdt, ook op de echte Duo.
-- **De Editie van de server**: de app vraagt jouw Editie aan de server en stuurt een samenvatting van je leesprofiel mee. Alleen offline stelt het toestel zelf samen.
-- **Het seintje voor de Ochtendeditie** volgt het ochtendmoment van de server.
-- **Delen: kaart én link**: bij een gedeeld verhaal gaan de Hoot-kaart en de link naar het artikel bij de uitgever samen mee, in Berichten, WhatsApp en Mail.
-
-## [1.2] — 2026-11-08 — De krant vouwt mee (build 51)
-
-- iPhone Duo: de Editie als krant. Dicht de dichte voorpagina, open staand de tabloid in twee kolommen. Open liggend één krantenpagina: het tafelblad staat in 1.2 uit (`KrantIndeling.tafelblad = false`) en komt in 1.2.1, met de fix voor de echte Duo (branch `duo`: cd44535, 08ab0fb).
-- Elke plek in de Editie verzorgd (beeld en intro), en de kaartintro in de Editie op de telefoon vier regels (`HootStore.kaartLines`).
-- De Redacteur 3b in `edition-core.js` (`redacteur-2026-11-07-taalregel`): de taal volgt je bronkeuze; uitrol zonder herhaling.
-- Buiten je bubbel op de iPad liggend als katern in het raster; "Een verhaal naast je Editie." ook op de iPhone.
-- Zonder vouw blijven iPhone en iPad gelijk aan main (schermvergelijking in Hoot-design/release-1.2).
 
 ## [1.0.1] — 2026-10-31 — De Redacteur op de iPhone, Welkom zoals het web, Tijdlijn | Krant (build 36; TestFlight: build 34 en 35 op 29-10-2026)
 
