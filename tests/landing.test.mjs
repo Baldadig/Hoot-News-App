@@ -216,7 +216,7 @@ test('landing: de lijnen zijn terug (ringen, dagen-boog, stroomlijnen, persvel)'
   assert.match(SRC, /class="rg rg1"/)
   assert.match(SRC, /<svg class="boog"/)
   assert.match(SRC, /class="water"/)
-  assert.match(SRC, /vel-r1/)
+  assert.match(SRC, /vel-rg vel-rg1/) // het slotbeeld: de ondergaande zon met ringen (was het persvel met twee lijnen)
 })
 
 test('landing: grote koppen op rood eindigen met een punt in inkt; het logo blijft papier op rood', () => {
