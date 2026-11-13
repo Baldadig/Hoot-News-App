@@ -172,13 +172,12 @@
     var vh = $('.js-verhaal');
     if (vh) {
       var vhKop = $('.js-vh-kop', vh), vhSt = $('.js-vh-stapel', vh), vhTel = $('.js-vh-tel', vh), vhKick = $('.js-vh-kick', vh), vhStip = $('.js-vh-stip', vh);
-      var VH = [], vhI = 0, vhT = 0, vhZicht = false, VH_LOGOS = 8;
+      var VH = [], vhI = 0, vhT = 0, vhZicht = false, VH_LOGOS = 5;
       try { VH = JSON.parse(vh.getAttribute('data-verhalen') || '[]'); } catch (e) {}
       var vhN = function (x) { return Math.max(Number(x.sourceCount) || 1, (x.sources || []).length); };
       var vhZin = function (x, n) {
-        var namen = (x.sources || []).slice(0, Math.min(3, n)).map(function (s) { return s.name; }), rest = n - namen.length;
         vhTel.textContent = ''; var b = document.createElement('b'); b.textContent = n === 1 ? '1 bron' : n + ' bronnen'; vhTel.appendChild(b);
-        vhTel.appendChild(document.createTextNode(' ' + (n === 1 ? 'schrijft' : 'schrijven') + ' erover' + (namen.length ? ': ' + namen.join(', ') + (rest > 0 ? ' en ' + rest + ' andere' : '') : '') + '.'));
+        vhTel.appendChild(document.createTextNode(' ' + (n === 1 ? 'schrijft' : 'schrijven') + ' erover.'));
       };
       var vhLogo = function (s) { var i = new Image(); i.src = '/img/bronnen/' + encodeURIComponent(s.id) + '.webp'; i.alt = ''; i.width = i.height = 40; i.onerror = function () { weg(i); }; return i; };
       var vhStippen = function () {
@@ -193,7 +192,7 @@
         vhKop.textContent = x.title; vhSt.textContent = '';
         $$('button', vhStip).forEach(function (b, q) { b.setAttribute('aria-pressed', String(q === vhI)); });
         var af = function () {
-          if (n > bronnen.length && bronnen.length) { var m = document.createElement('span'); m.className = 'vh-meer'; m.textContent = '+' + (n - bronnen.length); vhSt.appendChild(m); }
+          if (n > bronnen.length && bronnen.length) { var m = document.createElement('span'); m.className = 'vh-meer'; m.textContent = '+' + (n - bronnen.length) + (n - bronnen.length === 1 ? ' bron' : ' bronnen'); vhSt.appendChild(m); }
           vhZin(x, n);
           if (VH.length > 1 && !reduce) vhT = setTimeout(function wacht() { if (vhZicht && !document.hidden && !reduce) vhToon(vhI + 1, true); else vhT = setTimeout(wacht, 1500); }, 4200);
         };

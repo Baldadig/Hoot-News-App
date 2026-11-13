@@ -633,3 +633,9 @@ html.ios .verder-rij .wacht{order:-1}
 }
 /* de intro van het bronnenblok even groot als de andere intro's (Alex, 13 november: viel te klein uit): 20/30 vanaf 720 */
 @media (min-width:720px){.bronregel{font-size:1.25rem;line-height:1.875rem;max-width:32ch;margin-top:var(--s5)}}
+
+/* de kaart: hooguit vijf logo's naast elkaar (zonder overlap), daarna "+7 bronnen" als tekst (Alex, 13 november) */
+.vh-stapel{gap:6px;padding-left:0}
+.vh-stapel img,.vh-stapel img:first-child{margin-left:0;box-shadow:0 0 0 1px rgba(26,24,20,.12)}
+.vh-stapel .vh-meer{width:auto;height:auto;margin-left:6px;border-radius:0;background:none;box-shadow:none;display:inline;font:800 .9375rem/1 var(--tekst);color:var(--inkt2);white-space:nowrap}
+.vh-tel{min-height:1.5em}

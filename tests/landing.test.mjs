@@ -72,9 +72,9 @@ test('bronnenblok: één verhaal met de bronnen die erover schrijven; het getal 
   assert.ok((kaart.match(/<img /g) || []).length <= VH_LOGOS)
   assert.doesNotMatch(html, /<img[^>]+src="(?:https?:|data:)/)
   // één zin, in de build en in het script gelijk
-  assert.equal(vhTekst({ sourceCount: 12, sources: [{ name: 'NOS' }, { name: 'NRC' }, { name: 'Trouw' }, { name: 'AD' }] }), '<b>12 bronnen</b> schrijven erover: NOS, NRC, Trouw en 9 andere.')
+  assert.equal(vhTekst({ sourceCount: 12, sources: [{ name: 'NOS' }, { name: 'NRC' }, { name: 'Trouw' }, { name: 'AD' }] }), '<b>12 bronnen</b> schrijven erover.')
   assert.equal(vhTekst({ sourceCount: 1, sources: [] }), '<b>1 bron</b> schrijft erover.')
-  assert.equal(vhTekst({ sourceCount: 2, sources: [{ name: 'NOS' }, { name: 'NRC' }] }), '<b>2 bronnen</b> schrijven erover: NOS, NRC.')
+  assert.equal(vhTekst({ sourceCount: 2, sources: [{ name: 'NOS' }, { name: 'NRC' }] }), '<b>2 bronnen</b> schrijven erover.')
   // zonder brede verhalen in de terugval: plek 01, met de logo's die dat verhaal zelf draagt
   const kaal = fragmenten({ ...BEWAARD, voorpagina: { ...BEWAARD.voorpagina, breed: [] } })
   assert.equal((kaal.BW_VH_STAPEL.match(/<img /g) || []).length, Math.min(VH_LOGOS, (BEWAARD.voorpagina.entries[0].sources || []).length))
