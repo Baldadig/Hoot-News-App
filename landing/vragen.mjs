@@ -1,6 +1,6 @@
 // "Goed om te weten.": de zeven vragen van de landing (review 13 november, deel 5). Eén bron voor de uitklaplijst
 // in de pagina én het FAQPage-blok (JSON-LD) in de head, zodat ze nooit uit elkaar lopen. build.mjs vult {{VRAGEN}}
-// en {{JSONLD}}; het getal bronnen komt uit de catalogus (netlify/lib/sources.mjs), niet uit deze tekst.
+// en {{JSONLD}}. Geen aantal bronnen op de landing (besluit Alex 13 november): "Al jouw bronnen, jij kiest."
 //
 // Twee antwoorden zijn een voorzet van Claude (13 november) en wachten op Alex: "Waar leeft Hoot van?" en "Hoe kiest
 // Hoot?". De AI-stap (HOOT_EDITIE_AI) staat uit; zet AI_STAP op true zodra hij aan staat, dan komt de zin erbij.
@@ -13,18 +13,16 @@ export function ruim(n) {
   if (t < 1) return String(n)
   return (n > t * 10 ? 'ruim ' : '') + TIEN[t]
 }
-const Hoofd = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const kaal = (html) => html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
 
 // html mag een link bevatten (de App Store); het JSON-LD krijgt de kale tekst.
 export function vragen({ aantal, appUrl }) {
-  const r = ruim(aantal)
   return [
     ['Is Hoot gratis?', 'Ja. Je leest meteen, zonder account. Met een gratis account staan je bronnen en je bewaarde artikelen op al je toestellen.'],
     ['Waar leeft Hoot van?', 'Hoot is gemaakt door Baldadig, in Nederland, en Baldadig betaalt de kosten zelf. Er zijn geen advertenties en Hoot verkoopt geen gegevens.'],
-    ['Welke bronnen kan ik volgen?', `${Hoofd(r)}: NOS, NRC, de Volkskrant, NU.nl, RTL Nieuws, regionale kranten, Vlaamse titels zoals De Standaard en internationale bronnen zoals The Guardian. Jij kiest welke je volgt.`],
+    ['Welke bronnen kan ik volgen?', 'Van NOS, NRC, de Volkskrant, NU.nl en RTL Nieuws tot regionale kranten, Vlaamse titels zoals De Standaard en internationale bronnen zoals The Guardian. Jij kiest welke je volgt.'],
     ['Kan ik ook betaalde artikelen lezen?', 'Voor betaalde artikelen gebruik je je eigen abonnement bij de uitgever. Hoot geeft geen extra toegang tot artikelen achter een betaalmuur.'],
     ['Hoe kiest Hoot?', 'Hoot kijkt waar jouw bronnen over schrijven: hoe meer bronnen een verhaal brengen, hoe hoger het staat, en wat je vaak leest telt mee. Elke Editie heeft tien verhalen en één van buiten je bubbel, met bij elk verhaal de reden.' +
       (AI_STAP ? ' Een taalmodel houdt aanbiedingen en aankondigingen eruit.' : '')],

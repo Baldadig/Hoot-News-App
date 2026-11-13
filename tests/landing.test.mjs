@@ -51,7 +51,8 @@ test('landing: overal dezelfde accountzin, en het account in de eerste vraag', (
 test('bronnenblok: één verhaal met de bronnen die erover schrijven; het getal komt uit de catalogus', () => {
   const html = vul(true), t = tekst(html)
   assert.ok(t.includes('Jouw nieuws, rustig bij elkaar.'))
-  assert.ok(t.includes(`Hoot legt wat je bronnen schrijven bij elkaar. ${ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase())} bronnen, jij kiest.`))
+  assert.ok(t.includes('Hoot legt wat je bronnen schrijven bij elkaar. Al jouw bronnen, jij kiest.'))
+  assert.ok(!/tachtig|negentig|honderd/.test(t), 'geen aantal bronnen op de landing (besluit Alex 13 nov)')
   assert.equal(ruim(84), 'ruim tachtig')
   assert.equal(ruim(80), 'tachtig')
   assert.equal(ruim(99), 'ruim negentig')
