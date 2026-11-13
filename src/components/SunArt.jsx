@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
-import { K, W, H, HZ, CX, LINE, STILL, RISE_S, breathe, halo, introSun, editieSun, kopSun, eindeSun, waterShift, WATER_ROWS } from '../lib/sun.js'
+import { K, W, H, HZ, CX, LINE, STILL, RISE_S, KOP, breathe, halo, introSun, editieSun, kopSun, eindeSun, waterShift, WATER_ROWS } from '../lib/sun.js'
 import { reduced } from '../lib/motion.js'
 import { watch } from '../lib/inview.js'
 
@@ -121,21 +121,29 @@ export default function SunArt({ kind, className = '' }) {
 
 // ---- De zon in de Editie (plan 01/05) ----
 
-// Klein en stil naast de naam van de Editie. Zijn hoogte toont het dagdeel (lib/sun.js kopSun):
-// laag in de ochtend en de vroege avond, hoog in de middag. Het kader is bijgesneden tot de lucht
-// boven de horizon; de lijn houdt op elke maat 1,5 px.
-export function KopSun({ slot }) {
+// Klein naast de naam van de Editie: hoe ver je bent (zon-voortgang, variant B). Bij 01 hoog, bij het
+// laatste verhaal op de horizon, bij het einde onder met een korte gloed. De stand zet Edition.jsx
+// rechtstreeks op de tekening (lib/leesstand.js), zonder React bij elke scrolstap. Hetzelfde merkteken
+// van 44 × 26 als in de app (EditionSun); de lijn houdt op elke maat 1,5 px.
+export function KopSun({ n = 10, className = '' }) {
   const id = useId().replace(/:/g, '')
-  const v = kopSun(slot)
+  const v = kopSun(0, n)
   return (
-    <svg className={`sun sun--kop sun--${slot || 'editie'}`} viewBox={`${CX - LINE} 20 ${2 * LINE} ${HZ - 20 + 2}`} aria-hidden="true" focusable="false">
+    <svg className={`sun sun--kop ${className}`.trim()} viewBox={`0 0 ${KOP.w} ${KOP.h}`} aria-hidden="true" focusable="false">
       <defs>
         <clipPath id={`${id}-sky`}>
-          <rect x={CX - LINE} y={0} width={2 * LINE} height={HZ} />
+          <rect x={-10} y={-10} width={KOP.w + 20} height={KOP.hz + 10} />
         </clipPath>
+        <radialGradient id={`${id}-gloed`}>
+          <stop offset="0" style={{ stopColor: 'var(--sun-disc)', stopOpacity: 0.55 }} />
+          <stop offset="1" style={{ stopColor: 'var(--sun-disc)', stopOpacity: 0 }} />
+        </radialGradient>
       </defs>
-      <circle className="sun__disc" clipPath={`url(#${id}-sky)`} cx={CX} cy={v.cy} r={v.r} />
-      <line className="sun__line" x1={CX - LINE} x2={CX + LINE} y1={HZ} y2={HZ} vectorEffect="non-scaling-stroke" />
+      <g className="sun__stand">
+        <ellipse className="sun__gloed" cx={KOP.cx} cy={KOP.hz} rx={14} ry={4.5} fill={`url(#${id}-gloed)`} opacity={v.gloed} />
+        <circle className="sun__disc" clipPath={`url(#${id}-sky)`} cx={v.cx} cy={v.cy} r={v.r} />
+        <line className="sun__line" x1={KOP.x1} x2={KOP.x2} y1={KOP.hz} y2={KOP.hz} vectorEffect="non-scaling-stroke" />
+      </g>
     </svg>
   )
 }

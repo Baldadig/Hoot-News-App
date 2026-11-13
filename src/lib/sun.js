@@ -46,10 +46,19 @@ export function editieSun(t) {
   return { r: 22 * K * breathe(t), cy: HZ - 10 * K + (1 - p) * 30 * K }
 }
 
-// In de Editie zelf (plan 01/05): een kleine, stille zon in de kop. Zijn hoogte toont het dagdeel,
-// zonder kloktijd: laag bij de Ochtend- en de Avondeditie, hoog bij de Middageditie.
-export function kopSun(slot) {
-  return { r: 22 * K, cy: slot === 'middag' ? HZ - 30 * K : HZ - 6 * K }
+// In de Editie zelf: de zon in de kop toont hoe ver je bent (zon-voortgang, variant B: recht omlaag,
+// zoals het merkteken). Kader 44 × 26, horizon op 20, zon r 8 op x 22, alles onder de horizon geknipt.
+// Stand p van 0 (verhaal 01 bovenaan) tot n (het einde): tot het laatste verhaal zakt hij van 9 tot op
+// de horizon, bij het einde gaat hij onder en gloeit de horizon na. De hoogte draagt geen dagdeel meer:
+// dat zegt de naam. iOS rekent hetzelfde in EditionSun.stand (EditionView.swift); beide draaien
+// tests/fixtures/zon-voortgang.json.
+export const KOP = { w: 44, h: 26, hz: 20, r: 8, cx: 22, hoog: 9, onder: 30, x1: 4, x2: 40 }
+export function kopSun(p, n = 10) {
+  const last = Math.max(1, n - 1)
+  const q = clamp(Number(p) || 0, 0, Math.max(1, n))
+  const t = Math.min(q, last) / last
+  const e = clamp(q - last)
+  return { cx: KOP.cx, cy: KOP.hoog + (KOP.hz - KOP.hoog) * t + (KOP.onder - KOP.hz) * e, r: KOP.r, gloed: e }
 }
 
 // Het einde van de Editie: de zon komt één keer op boven 'Je bent bij.' (6 s, easeInOutQuad, zodra

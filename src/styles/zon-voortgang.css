@@ -1,0 +1,74 @@
+/* De zon als voortgang (zon-voortgang, variant B: recht omlaag). Een eigen bestand, want styles.css is
+   vastgelegd (tests/zacht-papier). De tekening staat in components/SunArt.jsx (KopSun), de stand zet
+   lib/leesstand.js bij het scrollen. Gelijk aan EditionSun en EditionKopBalk in EditionView.swift. */
+
+/* De gloed bij het einde: de kleur van de zon, zacht op de horizon. */
+.sun--kop .sun__gloed {
+  pointer-events: none;
+}
+
+/* Minder beweging: de zon schuift niet mee maar verspringt per verhaal met één korte fade (de helft
+   uit, de helft aan: samen --dur-minder). Zonder Minder beweging zet lib/leesstand.js deze klasse nooit. */
+.sun--kop .sun__stand {
+  transition: opacity calc(var(--dur-minder) / 2) var(--ease-bediening);
+}
+.sun--kop.is-uit .sun__stand {
+  opacity: 0;
+}
+
+/* De zon groeit niet mee met de tekst: het merkteken is 44 × 26. Past de naam er niet meer naast,
+   dan valt hij eronder (.vh__title wikkelt al; styles.css). */
+.edtop .vh__title > .edtitle > .sun--kop,
+.edtop .vh__title > .sun--kop {
+  width: 44px;
+  height: 26px;
+}
+
+/* De meelopende kop: is de naam van de Editie uit beeld, dan blijven naam en zon bovenaan staan, rustig
+   en klein, zoals de titel in de balk van een iPhone-app. Hij neemt geen plek in de kolom (hoogte 0) en
+   komt met een korte fade; voor VoiceOver staat de stand bij de naam bovenaan, hier niet nog eens. */
+.edbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  height: 0;
+}
+.edbar__in {
+  position: absolute;
+  top: 0;
+  left: calc(-1 * (var(--gutter) + var(--safe-l)));
+  right: calc(-1 * (var(--gutter) + var(--safe-r)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  padding-top: var(--safe-t);
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--dur-kort) var(--ease-bediening),
+    visibility 0s linear var(--dur-kort);
+}
+.edbar.is-aan .edbar__in {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--dur-kort) var(--ease-bediening);
+}
+.edbar__naam {
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 22px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.edbar .sun--kop {
+  width: 44px;
+  height: 26px;
+  margin: 0;
+}
