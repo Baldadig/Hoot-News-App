@@ -139,6 +139,7 @@ export const MORE_SOURCES = [
   V('hln-wetenschap', 'HLN Wetenschap', 'vakblad', ['wetenschap'], 'https://www.hln.be/wetenschap/rss.xml'),
   V('astroblogs', 'Astroblogs', 'community', ['wetenschap'], 'https://www.astroblogs.nl/feed/', { about: 'Sterrenkundigen en liefhebbers schrijven over nieuw ruimteonderzoek' }),
   V('quanta', 'Quanta Magazine', 'vakblad', ['wetenschap'], 'https://api.quantamagazine.org/feed/'),
+  V('nemokennislink', 'NEMO Kennislink', 'vakblad', ['wetenschap'], 'https://www.nemokennislink.nl/feed.xml', { about: 'Wetenschap uitgelegd, van NEMO Science Museum', x: 'NEMOKennislink' }),
   V('skipr', 'Skipr', 'vakblad', ['zorg'], 'https://www.skipr.nl/feed/'),
   V('zorgvisie', 'Zorgvisie', 'vakblad', ['zorg'], 'https://www.zorgvisie.nl/rss'),
   V('zorgwelzijn', 'Zorg+Welzijn', 'vakblad', ['zorg'], 'https://www.zorgwelzijn.nl/feed/'),
@@ -172,6 +173,20 @@ export const MORE_SOURCES = [
   V('trouw-verdieping', 'Trouw Verdieping', 'vakblad', ['politiek'], 'https://www.trouw.nl/verdieping/rss.xml', { filter: true }),
   V('investico', 'Investico', 'vakblad', ['politiek'], 'https://www.platform-investico.nl/feed/', { about: 'Onderzoeksjournalisten, over macht en beleid', filter: true }),
   V('sargasso', 'Sargasso', 'community', ['politiek'], 'https://sargasso.nl/feed/', { about: 'Groepsblog met analyses van politiek en beleid', filter: true }),
+  // Opinie (besluit Alex 13 november 2026), van links tot rechts. De opiniebladen met een bijna dagelijkse bijdrage staan
+  // ook in de hoofdcatalogus (Stroom, tab Opinie); Nederland Rechtsstaat, OneWorld, Opiniez, DeWereldMorgen en Uitpers
+  // alleen hier. Brede bronnen (filter): alleen wat over politiek en bestuur gaat telt. `opinie`: geen nieuwsfeed (zie de
+  // regel van Selectie · fase 3: geen Belgisch nieuws bij Politiek; Vlaamse opinie mag wel).
+  V('joop', 'Joop', 'vakblad', ['politiek'], 'https://www.joop.nl/feed', { opinie: true, about: 'Opinie en commentaar van BNNVARA, progressief', filter: true, bsky: 'joop.nl' }),
+  V('hpdetijd', 'HP/De Tijd', 'vakblad', ['politiek'], 'https://www.hpdetijd.nl/rss', { opinie: true, about: 'Opinieblad: eigenzinnig, liberaal en kritisch', filter: true, paid: true, bsky: 'hpdetijd.bsky.social' }),
+  V('wyniasweek', "Wynia's Week", 'vakblad', ['politiek'], 'https://www.wyniasweek.nl/feed/', { opinie: true, about: 'Opinie en analyse, rechts-liberaal', filter: true, x: 'wyniasweek' }),
+  V('tpo', 'TPO', 'vakblad', ['politiek'], 'https://tpo.nl/feed/', { opinie: true, about: 'Opinie en commentaar, conservatief', filter: true, paid: true, logo: 'https://tpo.nl/wp-content/uploads/2025/10/cropped-TPO_Logobox_New-02-192x192.jpg' }),
+  V('socialevraagstukken', 'Sociale Vraagstukken', 'expert', ['politiek'], 'https://www.socialevraagstukken.nl/feed/', { opinie: true, about: 'Wetenschappers over de samenleving, zonder partijkleur', filter: true, logo: 'https://socialevraagstukken.b-cdn.net/wp-content/uploads/cropped-favicon-192x192.png' }),
+  V('nederlandrechtsstaat', 'Nederland Rechtsstaat', 'expert', ['recht', 'politiek'], 'https://www.nederlandrechtsstaat.nl/feed/', { opinie: true, about: 'Juristen over de rechtsstaat, wetgeving en rechtspraak', logo: 'https://www.nederlandrechtsstaat.nl/wp-content/uploads/2021/11/cropped-favicon-192x192.png' }),
+  V('oneworld', 'OneWorld', 'vakblad', ['politiek'], 'https://www.oneworld.nl/feed/', { opinie: true, about: 'Progressief, met een mondiale blik', filter: true, bsky: 'oneworld.nl' }),
+  V('opiniez', 'Opiniez', 'community', ['politiek'], 'https://www.opiniez.com/feed/', { opinie: true, about: 'Open opinieplatform, schrijvers van links tot rechts', filter: true, x: 'opiniez' }),
+  V('dewereldmorgen', 'DeWereldMorgen', 'community', ['politiek'], 'https://www.dewereldmorgen.be/rss.xml', { opinie: true, about: 'Vlaams, progressief: opinie en achtergrond', filter: true, bsky: 'dewereldmorgen.bsky.social' }),
+  V('uitpers', 'Uitpers', 'community', ['politiek'], 'https://www.uitpers.be/feed/', { opinie: true, about: 'Vlaams, over internationale politiek, links', filter: true, bsky: 'uitpers.be' }),
   V('mr', 'Mr.', 'vakblad', ['recht'], 'https://www.mr-online.nl/juridisch-nieuws/feed/'),
   V('advocatenblad', 'Advocatenblad', 'vakblad', ['recht'], 'https://www.advocatenblad.nl/feed/'),
   V('njb', 'Nederlands Juristenblad', 'vakblad', ['recht'], 'https://www.njb.nl/feeds/news-feed'),
@@ -198,6 +213,7 @@ export const MORE_SOURCES = [
   V('pressgazette', 'Press Gazette', 'vakblad', ['media'], 'https://pressgazette.co.uk/feed/'),
   V('cjr', 'Columbia Journalism Review', 'vakblad', ['media'], 'https://www.cjr.org/feed'),
   V('simonowens', 'Simon Owens', 'expert', ['media'], 'https://simonowens.substack.com/feed', { about: 'Over de zakelijke kant van media: uitgevers, nieuwsbrieven en creators' }),
+  V('mediacourant', 'MediaCourant', 'vakblad', ['media'], 'https://www.mediacourant.nl/feed/', { about: 'Medianieuws: tv, radio, omroepen en kijkcijfers', bsky: 'mediacourant.bsky.social' }),
   // cultuur1
   V('filmkrant', 'De Filmkrant', 'vakblad', ['film'], 'https://filmkrant.nl/feed/'),
   V('vpro-cinema', 'VPRO Cinema', 'vakblad', ['film'], 'https://www.cinema.nl/rss.xml'),
@@ -207,6 +223,8 @@ export const MORE_SOURCES = [
   V('focus-film', 'Knack Focus Film', 'vakblad', ['film'], 'https://focus.knack.be/film/rss'),
   V('indiewire', 'IndieWire', 'vakblad', ['film'], 'https://www.indiewire.com/c/criticism/feed/'),
   V('rogerebert', 'RogerEbert.com', 'vakblad', ['film'], 'https://www.rogerebert.com/feed'),
+  // Vlaamse cultuurkritiek (13 november 2026): film, muziek en boeken, elk stuk bij het onderwerp dat past.
+  V('cuttingedge', 'Cutting Edge', 'vakblad', ['film', 'muziek', 'boeken'], 'https://www.cuttingedge.be/feed/', { about: 'Vlaamse cultuurkritiek: film, muziek, boeken en podium', logo: 'https://www.cuttingedge.be/wp-content/uploads/2020/10/cropped-logo2011_onlyCE_e3000f_w512.png' }),
   V('3voor12', '3voor12', 'vakblad', ['muziek'], 'https://3voor12.vpro.nl/rss.xml'),
   V('vk-muziek', 'de Volkskrant Muziek', 'vakblad', ['muziek'], 'https://www.volkskrant.nl/muziek/rss.xml'),
   V('writteninmusic', 'Written in Music', 'vakblad', ['muziek'], 'https://writteninmusic.com/feed/'),
@@ -215,6 +233,10 @@ export const MORE_SOURCES = [
   V('subjectivisten', 'De Subjectivisten', 'vakblad', ['muziek'], 'https://www.subjectivisten.nl/feed/'),
   V('pitchfork-reviews', 'Pitchfork', 'vakblad', ['muziek'], 'https://pitchfork.com/feed/feed-album-reviews/rss'),
   V('thequietus', 'The Quietus', 'vakblad', ['muziek'], 'https://thequietus.com/feed'),
+  // Klassiek, opera en jazz in het Nederlands (13 november 2026).
+  V('nieuwemuze', 'De Nieuwe Muze', 'vakblad', ['muziek'], 'https://www.denieuwemuze.nl/feed/', { about: 'Klassieke muziek, opera en jazz', x: 'de_nieuwe_muze' }),
+  V('placedelopera', "Place de l'Opera", 'vakblad', ['muziek'], 'https://www.operamagazine.nl/feed/', { about: 'Opera en muziektheater', x: 'placedelopera' }),
+  V('jazzism', 'Jazzism', 'vakblad', ['muziek'], 'https://www.jazzism.nl/feed/', { about: 'Jazz, soul en wereldmuziek' }),
   V('vk-boeken', 'de Volkskrant Boeken', 'vakblad', ['boeken'], 'https://www.volkskrant.nl/boeken/rss.xml'),
   V('trouw-boeken', 'Trouw Letter & Geest', 'vakblad', ['boeken'], 'https://www.trouw.nl/boeken/rss.xml'),
   V('tzum', 'Tzum', 'vakblad', ['boeken'], 'https://www.tzum.info/feed/'),
@@ -223,6 +245,10 @@ export const MORE_SOURCES = [
   V('lithub', 'Literary Hub', 'vakblad', ['boeken'], 'https://lithub.com/feed/'),
   V('parisreview', 'The Paris Review', 'vakblad', ['boeken'], 'https://www.theparisreview.org/blog/feed/'),
   V('guardian-books', 'The Guardian Books', 'vakblad', ['boeken'], 'https://www.theguardian.com/books/rss'),
+  // Taal, letteren en ideeën in het Nederlands (13 november 2026).
+  V('neerlandistiek', 'Neerlandistiek', 'community', ['boeken'], 'https://neerlandistiek.nl/feed/', { about: 'Taalkundigen en letterkundigen over het Nederlands', bsky: 'neerlandistiek.bsky.social' }),
+  V('hardhoofd', 'Hard//hoofd', 'vakblad', ['boeken'], 'https://www.hardhoofd.com/feed/', { about: 'Literair en essayistisch, jonge schrijvers', bsky: 'hardhoofd.bsky.social' }),
+  V('filosofie', 'Filosofie Magazine', 'vakblad', ['boeken'], 'https://www.filosofie.nl/feed/', { about: 'Filosofie voor een breed publiek', paid: true, bsky: 'filosofiemagazine.bsky.social' }),
   V('vk-kunst', 'de Volkskrant Beeldende kunst', 'vakblad', ['kunst'], 'https://www.volkskrant.nl/tentoonstellingen/rss.xml'),
   V('museumtijdschrift', 'Museumtijdschrift', 'vakblad', ['kunst'], 'https://www.museumtijdschrift.nl/feed/'),
   V('mistermotley', 'Mister Motley', 'vakblad', ['kunst'], 'https://www.mistermotley.nl/feed/'),
@@ -231,6 +257,9 @@ export const MORE_SOURCES = [
   V('theartnewspaper', 'The Art Newspaper', 'vakblad', ['kunst'], 'https://www.theartnewspaper.com/rss.xml'),
   V('hyperallergic', 'Hyperallergic', 'vakblad', ['kunst'], 'https://hyperallergic.com/feed/'),
   V('artnet', 'Artnet News', 'vakblad', ['kunst'], 'https://news.artnet.com/feed'),
+  // Podium en essays (13 november 2026). De Lage Landen: wat over kunst gaat telt daar, de rest bij boeken.
+  V('theaterkrant', 'Theaterkrant', 'vakblad', ['kunst'], 'https://www.theaterkrant.nl/nieuws/feed/', { about: 'Theater en dans: nieuws en recensies', bsky: 'theaterkrant.bsky.social' }),
+  V('delagelanden', 'De Lage Landen', 'vakblad', ['kunst', 'boeken'], 'https://www.de-lage-landen.com/feed/', { about: 'Essays over cultuur in Nederland en Vlaanderen', bsky: 'delagelanden.bsky.social' }),
   V('parool-kunst', 'Het Parool Kunst & Media', 'vakblad', ['film', 'muziek', 'boeken', 'kunst'], 'https://www.parool.nl/kunst-media/rss.xml', { filter: true }),
   V('tijd-cultuur', 'De Tijd Cultuur', 'vakblad', ['film', 'muziek', 'boeken', 'kunst'], 'https://www.tijd.be/rss/cultuur.xml', { filter: true }),
   // cultuur2
@@ -287,6 +316,10 @@ export const MORE_SOURCES = [
   V('guardian-tactics', 'The Guardian Football Tactics', 'vakblad', ['sport'], 'https://www.theguardian.com/football/football-tactics/rss', { about: 'Tactische analyse van het Europese voetbal' }),
   V('inrng', 'The Inner Ring', 'expert', ['sport'], 'https://inrng.com/feed/', { about: 'Kenner van het profwielrennen: koersen, ploegen en regels uitgelegd' }),
   V('sporza-wielrennen', 'Sporza Wielrennen', 'vakblad', ['sport'], 'https://sporza.be/nl/categorie/wielrennen.rss.xml'),
+  // Geschiedenis (nieuw onderwerp, 13 november 2026): verhalen uit het verleden en nieuw historisch onderzoek.
+  V('historischnieuwsblad', 'Historisch Nieuwsblad', 'vakblad', ['geschiedenis'], 'https://www.historischnieuwsblad.nl/feed/', { about: 'Geschiedenistijdschrift: verhalen en nieuw onderzoek', paid: true, bsky: 'historischnwsbl.bsky.social' }),
+  V('historiek', 'Historiek', 'vakblad', ['geschiedenis'], 'https://historiek.net/feed/', { about: 'Geschiedenis in korte en lange verhalen', bsky: 'historiek.bsky.social' }),
+  V('isgeschiedenis', 'IsGeschiedenis', 'vakblad', ['geschiedenis'], 'https://isgeschiedenis.nl/feed', { about: 'Geschiedenis voor een breed publiek', x: 'isgeschiedenis' }),
 ]
 
 // ---- Archief (Selectie · fase 3, 12 november 2026) ----
@@ -366,5 +399,7 @@ export const MORE_FITS = {
   geek: new RegExp("^(?!\\s*(pixel scroll|memory lane)\\b)[\\s\\S]*?\\b(sciencefiction\\w*|science[- ]fiction|sci-?fi\\w*|sff|sf-(boek|roman|verhaal|verhalen|vereniging|schrijver|auteur|serie|film|klassieker)\\w*|speculatieve fictie|speculative fiction|fantasy\\w*|space ?operas?|cyberpunk|steampunk|star wars|star trek|doctor who|lord of the rings|rings of power|middle[- ]earth|midden-aarde|tolkien|the hobbit|game of thrones|house of the dragon|the witcher|wheel of time|discworld|pratchett|harry potter|dune|the expanse|red dwarf|blade runner|terminator|godzilla|kaiju|hunger games|marvel(?! at\\b)|mcu|avengers|x-men|iron man|tony stark|batman|superman|spider-?man|dcu|dc (comics|studios|universe)|superhero\\w*|superhelden?\\w*|comics|comic ?books?|comic (strips?|artists?|series)|webcomics?|graphic novels?|beeldroman\\w*|strip(boek|album|verhaal|verhalen|reeks|tekenaar|maker|held|figuur|kunst|winkel|festival|geschiedenis)\\w*|manga\\w*|anime(serie\\w*|film\\w*|s)?|ghibli|akira|gundam|one piece|bordspel\\w*|board ?games?|tabletop|ttrpgs?|rpgs?|rollenspel\\w*|dungeons?|dungeons (&|and) dragons|d&d|warhammer|games workshop|wargam\\w*|miniatures|miniaturen|trading ?card ?games?|tcg|magic: the gathering|kaartspel\\w*|action figures?|actiefiguren|toy lines?|cosplay\\w*|comic-?con|nycc|sdcc|worldcon|hugo awards?|nebula awards?|world fantasy awards?|spiel essen|fandoms?|fanfic\\w*|fan ?fiction|fanzines?|fan ?art|nerd\\w*|geek\\w*|memes?|meme-?\\w+|internetcultuur|internet ?culture|online culture|very online|extremely online|lolcows?|brainrot|skibidi|shitpost\\w*|copypasta|creepypasta|4chan|youtubers?|retro-?computing|retrocomputing|retro[- ](computers?|hardware|consoles?|tech)|vintage (computers?|hardware|tech)|homecomputers?|commodore|amiga|c64|zx spectrum|msx|atari|8-bit|emulators?|fpga|demoscene|chiptune|pixel art|maker ?(culture|faire|community|cultuur)|makerspaces?|hackerspaces?|raspberry pi|arduino|3d[- ]?print\\w*|lego)\\b", 'i'),
   eten: new RegExp("\\b(eten|etenswaren|drinken|koken|kookt|kookboek\\w*|koks|kookt|chef-?koks?|chefs?|recept\\w*|gerecht\\w*|restaurants?|restaurantrecensie\\w*|eetcaf[eé]s?|horeca\\w*|keukens?|culinai\\w*|smaak|smaakt|smaken|smaaktest\\w*|proeven|proeverij\\w*|wijn|wijnen|wijnhuis\\w*|wijnbouw\\w*|wijnboer\\w*|wijngaard\\w*|champagne|bier|bieren|brouwerij\\w*|speciaalbier\\w*|koffie|thee|kaas|kazen|brood|bakkers?|bakkerij\\w*|patisserie|foodhal\\w*|food|foodies?|michelin\\w*|sterrenchef\\w*|gault ?& ?millau|menu|diner|lunch|ontbijt|brunch|vegetari\\w*|vegan\\w*|veganist\\w*|plantaardig\\w*|vleesvervang\\w*|groenten?|supermarkt\\w*|snacks?|cooking|cooks?|recipes?|dining|diners?|wines?|winemak\\w*|vineyards?|vintages?|beers?|brewery|breweries|brewing|cuisine|kitchens?|bakery|bread|cheese|coffee|cocktails?|chefs?|eater|meals?|dishes|tasting)\\b", 'i'),
   reizen: new RegExp("\\b(reizen|reis|op reis|reist|reiziger|reisbranche|reisorganisatie\\w*|touroperators?|vakantie\\w*|zomervakantie|herfstvakantie|toeris\\w*|massatoerisme|overtoerisme|bestemming\\w*|vakantiebestemming\\w*|hotels?|hostels?|airbnb|booking\\.com|vliegreis\\w*|vliegtickets?|vluchten|luchtvaart\\w*|luchthavens?|vliegvel\\w*|schiphol|airlines?|luchtvaartmaatschappij\\w*|klm|transavia|ryanair|easyjet|nachttrein\\w*|eurostar|ice-?trein\\w*|ice (naar|tussen|berlijn|frankfurt|keulen|brussel)|tgv|interrail|hogesnelheidstrein\\w*|cruises?|cruiseschip\\w*|kamperen|camping\\w*|campers?|caravans?|wandelvakantie\\w*|wandelroute\\w*|lange-afstandswandel\\w*|fietsvakantie\\w*|stedentrip\\w*|rondreis\\w*|roadtrip\\w*|wintersport\\w*|skigebied\\w*|skiën|pretpark\\w*|paspoort|visum|travel\\w*|holidays?|vacations?|tourism|tourists?|overtourism|destinations?|flights?|airports?|beach resorts?|all-inclusive\\w*|hikes?|hiking|backpack\\w*|road trips?|ski resorts?)\\b", 'i'),
+  // Geschiedenis: het verleden zelf (een eeuw, een oorlog, een tijdperk) of het vak; geen koningshuis of jubileum van nu.
+  geschiedenis: new RegExp("\\b(geschiedenis\\w*|\\w+geschiedenis|historic\\w*|historisch\\w*|historici|historicus|history|historians?|histori(e|ën)|middeleeuw\\w*|medieval|oudheid|antiquity|romeinen|romeins\\w*|romans|grieken|griekse oudheid|egyptenaren|farao\\w*|vikingen|vikings?|gouden eeuw|golden age|\\d{1,2}e eeuw|(zeventiende|achttiende|negentiende|twintigste) eeuw|eeuwen geleden|centur(y|ies)|(eerste|tweede) wereldoorlog|world war (one|two|i|ii)|wereldoorlog\\w*|bezetting\\w*|bezetter\\w*|verzetsstrijder\\w*|verzetsgroep\\w*|holocaust|shoah|jodenvervolging|slavernijverleden|slavenhandel|slavery|koloni(aal|ale|alisme|ën)|colonial\\w*|dekolonisatie|indonesische onafhankelijkheid|voc|wic|archeolog\\w*|archaeolog\\w*|opgraving\\w*|excavations?|archief\\w*|archives?|renaissance|reformatie|beeldenstorm|tachtigjarige oorlog|franse revolutie|french revolution|napoleon\\w*|koude oorlog|cold war|prehistori\\w*|steentijd|bronstijd|ijzertijd|dinosaur\\w*|vroegmoderne?|early modern|oorlogsgraven|herdenkingscultuur)\\b", 'i'),
   sport: new RegExp("\\b(sport|sporten|sporter\\w*|topsport\\w*|sportief|voetbal\\w*|eredivisie|knvb|champions league|europa league|conference league|wk|ek|olympisch\\w*|olympische spelen|wielren\\w*|renners?|rensters?|peloton|tour de france|giro|vuelta|voorjaarsklassieker\\w*|wielerklassieker\\w*|schaats\\w*|tennis\\w*|formule ?1|f1|grand prix|gp|verstappen|atletiek|marathon|hardlop\\w*|hockey|darts|zwemmen|zwemmers?|zwemster\\w*|turnen|wedstrijd\\w*|competitie\\w*|kampioen\\w*|kampioenschap\\w*|bondscoach|trainer|coach|oranjeleeuwinnen|leeuwinnen|ajax|psv|feyenoord|az|fc twente|rode duivels|ballon d'or|gouden bal|football|soccer|cycling|rugby|cricket|golf|nba|nfl|mlb|nhl|olympic\\w*|athletes?|athletics|premier league|la liga|bundesliga|serie a|world cup|world series|matches|league|playoffs?|transfers?)\\b", 'i'),
 }
