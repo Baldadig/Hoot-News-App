@@ -14,7 +14,7 @@
 import { signatures, sameEvent, sameHeadEvent, curioStory, peopleStory, isLive } from './stories.mjs'
 import { isOpinion, verdictTitle } from '../../shared/article-signals.mjs'
 import { publisherOf } from '../../shared/edition-policy.mjs'
-import { bubbleRejection, headWords } from './bubble.mjs'
+import { bubbleRejection, headWords, sportOpBubbel } from './bubble.mjs'
 import { keywordTopics } from './topics.mjs'
 import { SOURCES } from './sources.mjs'
 
@@ -157,7 +157,8 @@ export function scoreEdition({ edition, byId = new Map(), storyById = new Map(),
     const esig = signatures(pool, earlierArts)
     const ids = new Set(earlier.flatMap((i) => [i?.id, i?.storyId]).filter(Boolean))
     const shownToday = (a) => ids.has(a.id) || (!!a.storyId && ids.has(a.storyId)) || (bubble.kind === 'story' && ids.has(bubble.id)) || (esig.has(a.id) && earlierArts.some((x) => sameEvent(esig.get(a.id), esig.get(x.id))))
-    const isSport = (i) => src.get(i.source)?.cat === 'sport' || (i.topics || []).some((t) => SPORT_TOPICS.has(t)) || keywordTopics(`${i.title || ''} ${i.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
+    const catOf = new Map([...src].map(([id, s]) => [id, s.cat]))
+    const isSport = (i) => sportOpBubbel(i, { catOf, story: i.storyId ? storyById.get(i.storyId) || stories.find((s) => s.id === i.storyId) : null })
     const reden = it ? bubbleRejection(it, { isFree: (id) => src.has(id) && !src.get(id).paid, isSport, isLive, now, heads: headWords(leads.map((l) => l?.title)), terms: bubble.terms || [], shownToday }) : 'onbekend-stuk'
     const naast = !!bubble.near
     einde = { ok: !naast && !reden, keuze: naast ? 'naast' : 'trend', reden: naast ? 'naast-in-plaats-van-leeg' + (reden ? `, ${reden}` : '') : reden, bron: it?.sourceName || it?.source || null, kop: it?.title || null }

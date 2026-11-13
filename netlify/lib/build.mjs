@@ -18,7 +18,7 @@ import { isOpinion } from '../../shared/article-signals.mjs'
 import { isOpinie } from '../../shared/opinie.mjs'
 import { tabsVan, stroomTabsFeed } from '../../shared/stroom-tabs.mjs'
 import { VL_HOME } from './desks.mjs'
-import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords } from './bubble.mjs'
+import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords, sportOpBubbel } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { verschillenAan, verschillenUitKV, metVerschillen } from './verschillen.mjs'
 import { crossLanguagePairs } from './taalgrens.mjs'
@@ -908,7 +908,8 @@ export function dutchFloor(entries, { itemsOf, byId, storyOf = () => null, sourc
 
 // ---------- Buiten je bubbel (frisse ogen · 1, besluit van Alex 11 november) ----------
 const isFreeSource = (id) => SOURCE.has(id) && !SOURCE.get(id).paid
-const isSportItem = (i) => SOURCE.get(i?.source)?.cat === 'sport' || (i?.topics || []).some((t) => SPORT_TOPICS.has(t)) || keywordTopics(`${i?.title || ''} ${i?.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
+const CAT_OF = new Map(SOURCES.map((s) => [s.id, s.cat]))
+const isSportItem = (i, storyById = new Map()) => sportOpBubbel(i, { catOf: CAT_OF, story: i?.storyId ? storyById.get(i.storyId) : null })
 // De bubbelplek van de algemene Editie. Een trend die aan de harde eisen voldoet (gratis, jonger dan een etmaal, geen
 // liveblog of sport, geen naam die al in een kop van de Editie staat, niet al eerder getoond: vandaag of in de vorige
 // Editie); anders blijft de plek leeg. Puur: ook de scorekaart (scripts/scorekaart.mjs) rekent ermee. `entries`: de
@@ -929,7 +930,7 @@ export function pickBubble({ entries = [], heads = [], storyById = new Map(), po
   const earlierSigs = earlierArts.map((a) => sig.get(a.id)).filter(Boolean)
   const shownToday = (a) => earlierIds.has(a.id) || (!!a.storyId && earlierIds.has(a.storyId)) || (sig.has(a.id) && earlierSigs.some((s) => sameEvent(sig.get(a.id), s)))
   const words = headWords(heads)
-  const opts0 = { isFree: isFreeSource, isSport: isSportItem, isLive, now, heads: words, shownToday }
+  const opts0 = { isFree: isFreeSource, isSport: (a) => isSportItem(a, storyById), isLive, now, heads: words, shownToday }
   const reject = (a, terms = []) => bubbleRejection(a, { ...opts0, terms })
   const afval = []
   const note = (a, reden, extra = {}) => afval.push({ id: a?.id || null, bron: a?.sourceName || a?.source || null, kop: a?.title || null, reden, ...extra })

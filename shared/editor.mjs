@@ -370,8 +370,10 @@ export function tempoWindows(items = []) {
 // volgt (≥ 0,5). Een wielerfan krijgt dus geen voetbal als bubbelstuk.
 export const OUTSIDE_TOPIC = 0.3
 export const OUTSIDE_FAMILY = 0.5
-export const outsideProfile = (topics = [], prof) =>
-  !topics.some((t) => (prof.topicP[t] || 0) >= OUTSIDE_TOPIC || (prof.family[FAMILY_OF[t]] || 0) >= OUTSIDE_FAMILY)
+// `families`: gebieden die het verhaal zeker raakt zonder onderwerp (sport onder /sport/, personal.js).
+export const outsideProfile = (topics = [], prof, families = []) =>
+  !topics.some((t) => (prof.topicP[t] || 0) >= OUTSIDE_TOPIC || (prof.family[FAMILY_OF[t]] || 0) >= OUTSIDE_FAMILY) &&
+  !families.some((f) => (prof.family[f] || 0) >= OUTSIDE_FAMILY)
 
 // Buren: gebieden die op elkaar aansluiten. Serendipiteit met een idee: niet willekeurig, maar
 // één stap van wat je al leest.
