@@ -2959,7 +2959,43 @@
     },
     {
       "kop": "Iraanse dreiging: Amerikaanse minister moet met gezin naar legerbasis",
+      "kort": "Iraanse dreiging: minister moet naar basis",
+      "veilig": true,
+      "waarom": "herschreven"
+    },
+    {
+      "kop": "Iraanse dreiging: Amerikaanse minister moet met gezin naar legerbasis",
       "kort": "Iraanse dreiging: minister naar legerbasis",
+      "veilig": false,
+      "waarom": "alleen weglatingen: ingekort"
+    },
+    {
+      "kop": "Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit",
+      "kort": "Kabinet stelt verhoging AOW-leeftijd 68 jaar",
+      "veilig": false,
+      "waarom": "ingekort, uit is weg: betekenis omgedraaid (keuring B1)"
+    },
+    {
+      "kop": "Honderden scholen in Europa doelwit van bommeldingen, volgens de politie gaat het om nepberichten",
+      "kort": "Honderden scholen doelwit van bommeldingen",
+      "veilig": false,
+      "waarom": "ingekort, de bron die het ontkracht is weg (keuring B1)"
+    },
+    {
+      "kop": "Three Iran-backed suspects plotted attacks including RAF Fairford incident, US says",
+      "kort": "Iran-backed suspects plotted RAF attacks",
+      "veilig": false,
+      "waarom": "ingekort, US says is weg (keuring B1)"
+    },
+    {
+      "kop": "Kabinet stelt de verhoging van de AOW-leeftijd naar 68 jaar voor de tweede keer uit",
+      "kort": "Schoof stelt AOW-leeftijd 68 opnieuw uit",
+      "veilig": false,
+      "waarom": "nieuwe naam als eerste woord (keuring B2)"
+    },
+    {
+      "kop": "Italy: Hundreds of schools evacuated after bomb threats",
+      "kort": "Italy: bomb threats empty hundreds of schools",
       "veilig": true,
       "waarom": "herschreven"
     },

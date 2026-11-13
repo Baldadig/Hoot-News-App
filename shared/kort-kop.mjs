@@ -23,20 +23,27 @@ export const schoon = (s) => String(s ?? '').replace(/[​-‍﻿]/gu, '').repla
 // Ontkenningen in het Nederlands en het Engels. Een herschreven kop heeft er een als de kop er een heeft, en andersom.
 const ONTKENNING = /(?<![\p{L}\p{N}])(niet|geen|nooit|zonder|noch|niemand|niets|nergens|not|no|never|without|nor|none|nobody|nothing|nowhere)(?![\p{L}\p{N}])|n['’]t(?![\p{L}\p{N}])/iu
 export const ontkent = (s) => ONTKENNING.test(s)
+// Wie het zegt: een kop met een bron ("volgens de politie", "US says") houdt die in de korte kop, met zo'n woord of als
+// "Bron: …" (keuring B1).
+const BRON = /(?<![\p{L}\p{N}])(volgens|zegt|zeggen|zei|zeiden|meldt|melden|aldus|says|said|according|claims|claim|reports|report)(?![\p{L}\p{N}])/iu
+export const noemtBron = (s) => BRON.test(s) || /:/u.test(s)
 const getallen = (s) => s.match(/[0-9]+/g) || []
-// De woorden met een hoofdletter (namen, afkortingen) behalve het eerste van de kop of van een zinsdeel na ": ".
-function namen(s) {
-  const out = []
-  const delen = s.split(/[:.!?]\s+/u)
-  for (const deel of delen) {
-    const woorden = deel.split(/[^\p{L}\p{N}]+/u).filter(Boolean)
-    for (let i = 1; i < woorden.length; i++) if (/\p{Lu}/u.test(woorden[i])) out.push(woorden[i])
-  }
-  return out
+// De woorden (letters en cijfers), en daarvan die met een hoofdletter: namen, afkortingen, ook het eerste woord (een
+// kop die opent met een nieuwe naam, "Schoof: …", brengt een nieuw feit; keuring bladerwidget B2).
+const woorden = (s) => s.match(/[\p{L}\p{N}]+/gu) || []
+const namen = (s) => woorden(s).filter((w) => /\p{Lu}/u.test(w))
+// Alleen weglatingen: elk woord van de korte kop staat, in dezelfde volgorde, ook in de kop. Dan is hij ingekort, niet
+// herschreven, en kan het weggelaten deel de betekenis dragen ("… voor de tweede keer uit"; keuring B1).
+function ingekort(t, k) {
+  const tw = woorden(t.toLowerCase()), kw = woorden(k.toLowerCase())
+  let i = 0
+  for (const w of tw) if (i < kw.length && w === kw[i]) i++
+  return i === kw.length
 }
 
 // De controle op een herschreven korte kop (server en iOS gelijk). Alleen wat zonder taalmodel te toetsen is:
-// lengte, geen beletselteken, niet het begin van de kop, geen nieuwe getallen of namen, ontkenning gelijk.
+// lengte, geen beletselteken, niet het begin van de kop en geen kop met alleen weglatingen, geen nieuwe getallen of
+// woorden met een hoofdletter, ontkenning gelijk.
 // De server toetst daarnaast de taal (kort-kop-ai.mjs).
 export function controle(kop, kort) {
   if (kort === null || kort === undefined) return false
@@ -47,11 +54,13 @@ export function controle(kop, kort) {
   if (/…|\.\.\./u.test(k) && !/…|\.\.\./u.test(t)) return false
   const stam = k.replace(/[\s\p{P}]+$/u, '').toLowerCase()
   if (stam && t.toLowerCase().startsWith(stam)) return false // afgekapt, niet herschreven
+  if (ingekort(t, k)) return false // alleen weglatingen: ingekort, niet herschreven
   const tGetallen = new Set(getallen(t))
   if (getallen(k).some((g) => !tGetallen.has(g))) return false
   const tLaag = t.toLowerCase()
   if (namen(k).some((n) => !tLaag.includes(n.toLowerCase()))) return false
   if (ontkent(t) !== ontkent(k)) return false
+  if (BRON.test(t) && !noemtBron(k)) return false
   return true
 }
 

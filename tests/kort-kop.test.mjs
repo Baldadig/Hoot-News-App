@@ -107,14 +107,14 @@ test('metKorteKoppen: per plek de kop als hij past, de rest ongemoeid', () => {
   assert.equal(ed.entries[1].kortKop, undefined) // het origineel blijft zoals het was
   assert.equal(metKorteKoppen(null), null)
   // Met herschreven koppen (kort-kop-ai.mjs): alleen een die door de controle komt.
-  const met = metKorteKoppen(ed, { herschreven: { [lang]: 'Iraanse dreiging: minister naar legerbasis' } })
-  assert.equal(met.entries[0].kortKop, 'Iraanse dreiging: minister naar legerbasis')
+  const met = metKorteKoppen(ed, { herschreven: { [lang]: 'Iraanse dreiging: minister moet naar basis' } })
+  assert.equal(met.entries[0].kortKop, 'Iraanse dreiging: minister moet naar basis')
   const fout = metKorteKoppen(ed, { herschreven: { [lang]: 'Iraanse dreiging is zó groot dat Amerikaanse…' } })
   assert.equal('kortKop' in fout.entries[0], false)
   const nul = metKorteKoppen(ed, { herschreven: { [lang]: null } })
   assert.equal('kortKop' in nul.entries[0], false)
   // Een persoonlijke Editie neemt de herschreven korte kop over van de algemene.
-  assert.deepEqual(herschrevenVan(met), { [lang]: 'Iraanse dreiging: minister naar legerbasis' })
+  assert.deepEqual(herschrevenVan(met), { [lang]: 'Iraanse dreiging: minister moet naar basis' })
   assert.deepEqual(herschrevenVan(uit), {})
 })
 
@@ -133,11 +133,12 @@ test('herschreven korte kop: de controle los nagelopen', () => {
   assert.equal(controle(kop, 'Kabinet stelt AOW-leeftijd 68 never uit'), false, 'ontkenning erbij')
   assert.equal(controle(kop, 'Kabinet stelt de verhoging van de AOW-leeftijd'), false, 'het begin van de kop')
   assert.equal(controle(kop, 'Kabinet stelt de verhoging van de AOW-leeftijd.'), false, 'het begin, met een punt')
-  assert.equal(controle(kop, 'Schoof stelt AOW-leeftijd 68 opnieuw uit'), true, 'de eerste naam telt niet als nieuwe naam')
-  assert.equal(controle(kop, 'AOW: Schoof stelt 68 opnieuw uit'), true, 'de eerste naam na een dubbele punt ook niet')
+  assert.equal(controle(kop, 'Schoof stelt AOW-leeftijd 68 opnieuw uit'), false, 'een nieuwe naam als eerste woord (keuring B2)')
+  assert.equal(controle(kop, 'AOW: Schoof stelt 68 opnieuw uit'), false, 'ook na een dubbele punt')
+  assert.equal(controle(kop, 'Kabinet stelt verhoging AOW-leeftijd 68 jaar'), false, 'alleen weglatingen: ingekort (keuring B1)')
   assert.equal(controle(kop, 'Kabinet en Schoof stellen AOW 68 uit'), false, 'een nieuwe naam midden in de kop')
   assert.equal(controle(kop, null), false)
   assert.equal(controle(kop, '   '), false)
   assert.equal(controle("Prime minister doesn't resign after crisis talks in Downing Street", 'PM stays after crisis talks'), false, "n't is een ontkenning")
-  assert.equal(controle("Prime minister doesn't resign after crisis talks in Downing Street", "PM doesn't resign after crisis talks"), true)
+  assert.equal(controle("Prime minister doesn't resign after crisis talks in Downing Street", "Minister doesn't quit after crisis talks"), true)
 })
