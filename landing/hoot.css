@@ -631,3 +631,5 @@ html.ios .verder-rij .wacht{order:-1}
   .bronnen .kol{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s8)}
   .bronnen .verhaal{order:-1;justify-self:start}
 }
+/* de intro van het bronnenblok even groot als de andere intro's (Alex, 13 november: viel te klein uit): 20/30 vanaf 720 */
+@media (min-width:720px){.bronregel{font-size:1.25rem;line-height:1.875rem;max-width:32ch;margin-top:var(--s5)}}
