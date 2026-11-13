@@ -1162,19 +1162,30 @@ struct EditionSun: View {
         let p = stand?.p ?? 0
         let stap = LeesStand.stap(p, count)
         ZStack {
-            Tekening(v: Self.stand(still ? Double(stap) : p, count: count))
+            Tekening(p: still ? Double(stap) : p, count: count)
                 .id(still ? stap : -1)
                 .transition(.opacity)
         }
         .animation(still ? Beweging.minderAnim : nil, value: stap)
+        // Rustig nazweven (keuze Alex, 13 nov): de zon loopt zacht naar de stand in plaats van elke scrollstap
+        // direct mee te springen. Kritisch gedempt, gelijk aan ZON_VOLG_MS in src/lib/leesstand.js.
+        .animation(still ? nil : Self.volg, value: p)
         .frame(width: 44, height: 26)
         .accessibilityHidden(true)
     }
 
-    private struct Tekening: View {
-        let v: (cy: Double, gloed: Double)
+    static let volg = Animation.spring(response: 0.75, dampingFraction: 1)
+
+    private struct Tekening: View, Animatable {
+        var p: Double
+        let count: Int
+        var animatableData: Double {
+            get { p }
+            set { p = newValue }
+        }
         var body: some View {
-            Canvas { ctx, _ in
+            let v = EditionSun.stand(p, count: count)
+            return Canvas { ctx, _ in
                 let k = EditionSun.kader
                 if v.gloed > 0 {
                     var glow = ctx

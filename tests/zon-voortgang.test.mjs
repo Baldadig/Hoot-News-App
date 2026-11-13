@@ -71,3 +71,17 @@ test('zon-voortgang: alleen scrollen beweegt de zon, Minder beweging fadet per v
   const main = read('src/main.jsx')
   assert.ok(main.indexOf('zon-voortgang.css') > 0 && main.indexOf('zon-voortgang.css') < main.indexOf('minder-beweging.css'))
 })
+
+test('zon-voortgang: de zon zweeft rustig naar de stand (keuze 13 nov), web en app gelijk', async () => {
+  const { volgStap, ZON_VOLG_MS } = await import('../src/lib/leesstand.js')
+  assert.equal(volgStap(0, 5, 0), 0) // geen tijd: niet verspringen
+  const na1 = volgStap(0, 5, ZON_VOLG_MS)
+  assert.ok(na1 > 3 && na1 < 3.4) // na één tijdconstante ongeveer 63 procent
+  assert.ok(Math.abs(volgStap(0, 5, 5 * ZON_VOLG_MS) - 5) < 0.05) // daarna staat hij stil
+  assert.ok(volgStap(5, 0, 16) < 5 && volgStap(5, 0, 16) > 4.5) // één frame: een klein stukje, geen sprong
+  const lib = read('src/lib/leesstand.js')
+  assert.match(lib, /if \(!still\) \{\s*shown\.set\(svg, null\)\s*zweefZon/) // Minder beweging zweeft niet
+  const ios = read('ios/Hoot/Views/EditionView.swift')
+  assert.match(ios, /\.animation\(still \? nil : Self\.volg, value: p\)/)
+  assert.match(ios, /struct Tekening: View, Animatable/)
+})

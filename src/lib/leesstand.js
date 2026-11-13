@@ -1,5 +1,7 @@
 // De zon als voortgang (zon-voortgang, variant B): hoe ver je in de Editie bent, uit de scrollpositie.
-// De zon beweegt alleen als jij scrolt, nooit uit zichzelf. Gelijk aan LeesStand in EditionView.swift.
+// De zon beweegt alleen als jij scrolt, nooit uit zichzelf. Hij volgt de stand niet per pixel maar zweeft
+// er rustig naartoe (ZON_VOLG_MS), zodat snel scrollen geen sprongen geeft. Gelijk aan LeesStand en
+// EditionSun in EditionView.swift.
 //
 // De leeslijn: bovenaan ligt hij net onder de kop, helemaal onderaan op de onderkant van het scherm.
 // Daartussen schuift hij gelijkmatig mee, zodat ook de laatste verhalen (die nooit bovenaan kunnen
@@ -48,12 +50,42 @@ export function tekenZon(svg, p, n) {
 // verzetten, weer aan), samen één fade van STILL_MS (200 ms): de helft uit, de helft aan (de CSS-overgang
 // in styles/zon-voortgang.css is calc(var(--dur-minder) / 2)).
 const shown = new WeakMap()
-export function zetZon(svg, p, n, still) {
-  if (!still) {
-    shown.set(svg, null)
+
+// Rustig nazweven (keuze Alex, 13 nov: de zon bewoog te hard): de getekende stand loopt elk frame een stukje
+// naar de echte stand, met een tijdconstante van ZON_VOLG_MS. Na ongeveer drie keer die tijd staat hij stil.
+export const ZON_VOLG_MS = 260
+export const volgStap = (van, naar, dt) => naar + (van - naar) * Math.exp(-Math.max(0, dt) / ZON_VOLG_MS)
+const getekend = new WeakMap()
+function zweefZon(svg, p, n) {
+  const z = getekend.get(svg)
+  if (!z) {
+    getekend.set(svg, { nu: p, doel: p, n, t: 0, frame: 0 })
     tekenZon(svg, p, n)
     return
   }
+  z.doel = p
+  z.n = n
+  if (z.frame) return
+  z.t = performance.now()
+  const stap = (now) => {
+    z.nu = volgStap(z.nu, z.doel, now - z.t)
+    z.t = now
+    if (Math.abs(z.nu - z.doel) < 0.002) z.nu = z.doel
+    tekenZon(svg, z.nu, z.n)
+    z.frame = z.nu === z.doel ? 0 : requestAnimationFrame(stap)
+  }
+  z.frame = requestAnimationFrame(stap)
+}
+
+export function zetZon(svg, p, n, still) {
+  if (!still) {
+    shown.set(svg, null)
+    zweefZon(svg, p, n)
+    return
+  }
+  const z = getekend.get(svg)
+  if (z?.frame) cancelAnimationFrame(z.frame)
+  getekend.delete(svg)
   const stap = stapVan(p, n)
   const vorige = shown.get(svg)
   if (vorige === stap) return
@@ -125,6 +157,11 @@ export function volgLeesStand(scroller, { n, eind, still = () => false }) {
   ro?.observe(scroller.querySelector(".col") || scroller)
   plan()
   return () => {
+    for (const svg of scroller.querySelectorAll('.sun--kop')) {
+      const z = getekend.get(svg)
+      if (z?.frame) cancelAnimationFrame(z.frame)
+      getekend.delete(svg)
+    }
     scroller.removeEventListener('scroll', plan)
     window.removeEventListener('resize', plan)
     ro?.disconnect()
