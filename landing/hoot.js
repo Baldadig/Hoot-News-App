@@ -210,9 +210,11 @@
       zichtbaar(vh, function (aan) { vhZicht = aan; if (aan && !vhBegon && VH.length) { vhBegon = true; vhToon(0, true); } });
       opRM(function () { if (reduce) { clearTimeout(vhT); if (VH.length) vhToon(vhI, false); } });
       /* live: de verhalen van de Editie van nu nemen het over */
-      window.hootVerhalen = function (lijst, vannu) {
+      window.hootVerhalen = function (lijst, vannu, inHeld) {
         var ok = lijst.filter(function (x) { return x && typeof x.title === 'string' && x.title && Array.isArray(x.sources) && x.sources.length >= 2; });
         if (!ok.length) return;
+        /* het verhaal dat de held er vlak boven al toont komt als laatste: de kaart opent met een ander verhaal */
+        ok = ok.filter(function (x) { return x.title !== inHeld; }).concat(ok.filter(function (x) { return x.title === inHeld; }));
         VH = ok; vhKick.textContent = vannu ? 'In de Editie van nu' : 'Uit de Editie'; vhStippen(); vhToon(0, vhZicht); vhBegon = vhBegon || vhZicht;
       };
     }
@@ -462,7 +464,7 @@
           });
           /* Hoot kiest: iPad en telefoon krijgen dezelfde drie verhalen */
           /* het bronnenblok: de breedste verhalen van de Editie van nu */
-          if (Array.isArray(ed.breed) && ed.breed.length && window.hootVerhalen) window.hootVerhalen(ed.breed, vannu);
+          if (Array.isArray(ed.breed) && ed.breed.length && window.hootVerhalen) window.hootVerhalen(ed.breed, vannu, lijst[0].title);
           if (pod && !kiesLive) pod.setAttribute('data-bron', 'bewaard');
           if (pod && kiesLive) wissel(pod, function () {
             $$('.toestel', pod).forEach(function (fig) {
