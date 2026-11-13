@@ -14,7 +14,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster } from '../../netlify/lib/stories.mjs'
+import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
@@ -544,7 +544,15 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const famOf = voteFamilyOf(stories, itemAny)
   const famTaken = new Map()
   const acceptedItems = [] // per geaccepteerde plek de stukken die dit toestel kent (sameCluster)
-  const famKey = (e) => famOf.get(e.kind === 'story' ? e.id : serverStory(e)) || famOf.get(storyOfItem.get(e.leadId || e.id)) || null
+  const famKey = (e) => famOf.get(e.kind === 'story' ? e.id : serverStory(e)) || famOf.get(storyOfItem.get(e.leadId || e.id)) || (e.kind === 'item' ? voteFamilyOfItem(itemAny.get(e.leadId || e.id), famOf) : null) || null
+  // Leeftijd (13 november 2026): hooguit RUNNING_MAX lopende verhalen (eerste stuk ouder dan RUNNING_H uur) in je hele
+  // Editie, langs elke route; een lopend verhaal uit de algemene Editie of het brede nieuws heeft ook een nieuw feit binnen
+  // het venster nodig (runningFact). Wat selectForReader al toetste, draagt `_running` (debugveld, niet in de uitvoer).
+  let runningN = 0
+  const runningStory = (e, known) => {
+    const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e))
+    return st && isRunning(st, known, now) ? st : null
+  }
   const accept = e => {
     if (accepted.length >= capacity) return
     const id = e.leadId || e.id
@@ -560,6 +568,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (acceptedItems.some((xs) => sameCluster(sigAll, known, xs))) return
     const allowed = p.allowed || (floorLight && p.reason === 'licht-buiten-interesse')
     if (!allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
+    const run = runningStory(e, known)
+    if (run && (runningN >= RUNNING_MAX || (!e._running && !runningFact(run, known, sigAll, now)))) return
+    if (run) runningN++
     if (p.capped) internationalCount++
     if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1)
     ids.forEach(x => finalTaken.add(x))
@@ -577,7 +588,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (accepted.length < EDITION_FLOOR) {
     floorLight = true
     capacity = EDITION_FLOOR
-    selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, allowLight: true }).forEach(accept)
+    // Leeftijd (13 november 2026): op de vloer ook de leeftijdsgrenzen van vóór die dag (FLOOR_STORY_H, FLOOR_ITEM_H).
+    selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, allowLight: true, floor: true }).forEach(accept)
     floorLight = false
   }
   // Pas na hooguit tien gewone plekken: één optionele bubbel, met dezelfde inhouds- en dubbelgrenzen.

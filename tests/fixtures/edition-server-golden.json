@@ -35,34 +35,8 @@
    "entries": [
     {
      "kind": "story",
-     "id": "s19u85n2",
-     "leadId": "1mg305i",
-     "itemIds": [
-      "1mg305i",
-      "17npg3c",
-      "xhht3v",
-      "1q9dlr3",
-      "h9gma0",
-      "a707b1",
-      "f3q7ha",
-      "9fi5ia",
-      "16kvxop",
-      "1qvyyn3",
-      "1os3clc",
-      "mo0l6j"
-     ],
-     "title": "Laatste onafhankelijke Russische krant stopt onder druk van het Kremlin: ‘We werden gedood’",
-     "desk": "buitenland",
-     "sourceCount": 12,
-     "why": {
-      "code": "groot",
-      "text": "Groot nieuws · 12 bronnen"
-     }
-    },
-    {
-     "kind": "story",
      "id": "srjbii3",
-     "leadId": "1f34jte",
+     "leadId": "1r0emmx",
      "itemIds": [
       "1o2tc0r",
       "hevpy8",
@@ -75,7 +49,7 @@
       "1f34jte",
       "h8r35j"
      ],
-     "title": "Christa Pike na mislukte executie: 'Voortdurend pijn, zowel fysiek als mentaal'",
+     "title": "Christa Pike reageert na mislukte executie: 'Ik heb constant pijn'",
      "desk": "vs",
      "sourceCount": 10,
      "why": {
@@ -86,7 +60,7 @@
     {
      "kind": "story",
      "id": "sd4ef4",
-     "leadId": "1r0emuz",
+     "leadId": "16wfgec",
      "itemIds": [
       "8bppqs",
       "1h5amg7",
@@ -97,7 +71,7 @@
       "16wfgec",
       "mwm3qb"
      ],
-     "title": "Man rent op koning af bij werkbezoek in Ursem, beveiligers grijpen in",
+     "title": "Geschrokken koning ziet man op zich af rennen: 'Niks aan de hand, geeft niet'",
      "desk": "binnenland",
      "sourceCount": 6,
      "why": {
@@ -128,21 +102,39 @@
     },
     {
      "kind": "story",
-     "id": "srpiq4s",
-     "leadId": "1v9ma0m",
+     "id": "sueo7zt",
+     "leadId": "1r0emuw",
      "itemIds": [
-      "1v9ma0m",
-      "1k7aemi",
-      "ynlaqb",
-      "1wbrnuj",
-      "h73xql"
+      "1ko7y4i",
+      "iyux46",
+      "zytzt5",
+      "1r0emuw"
      ],
-     "title": "Nooit was de wereldeconomie zo afhankelijk van Wall Street als nu. Hoe de ‘midterms’ ook de beurzen in hun ban houden",
-     "desk": "vs",
+     "title": "DNA-match leidt tot arrestatie 57-jarige man voor zedenzaak uit 1994",
+     "desk": "binnenland",
+     "sourceCount": 4,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Binnenland"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "s1r56e3b",
+     "leadId": "1r0emmz",
+     "itemIds": [
+      "kp24x7",
+      "xdulbp",
+      "1r0emmz",
+      "kbwavq",
+      "23qgwr"
+     ],
+     "title": "Wat leren we van de grootste cryptoroof ooit? 'Hou je mond over wat je bezit'",
+     "desk": "buitenland",
      "sourceCount": 5,
      "why": {
       "code": "rubriek",
-      "text": "Rubriek VS"
+      "text": "Rubriek Buitenland"
      }
     },
     {
@@ -171,43 +163,6 @@
      "why": {
       "code": "groot",
       "text": "Groot nieuws · 11 bronnen"
-     }
-    },
-    {
-     "kind": "story",
-     "id": "sueo7zt",
-     "leadId": "1ko7y4i",
-     "itemIds": [
-      "1ko7y4i",
-      "iyux46",
-      "zytzt5",
-      "1r0emuw"
-     ],
-     "title": "DNA-match leidt tot aanhouding in ruim dertig jaar oude verkrachtingszaak",
-     "desk": "binnenland",
-     "sourceCount": 4,
-     "why": {
-      "code": "rubriek",
-      "text": "Rubriek Binnenland"
-     }
-    },
-    {
-     "kind": "story",
-     "id": "s1r56e3b",
-     "leadId": "1r0emmz",
-     "itemIds": [
-      "kp24x7",
-      "xdulbp",
-      "1r0emmz",
-      "kbwavq",
-      "23qgwr"
-     ],
-     "title": "Wat leren we van de grootste cryptoroof ooit? 'Hou je mond over wat je bezit'",
-     "desk": "buitenland",
-     "sourceCount": 5,
-     "why": {
-      "code": "rubriek",
-      "text": "Rubriek Buitenland"
      }
     },
     {
@@ -242,32 +197,62 @@
       "code": "rubriek",
       "text": "Rubriek Binnenland"
      }
+    },
+    {
+     "kind": "story",
+     "id": "s19u86u5",
+     "leadId": "1488akf",
+     "itemIds": [
+      "1uq7mpp",
+      "1488akf"
+     ],
+     "title": "Kabinet stelt stikstofwetten uit: minister Van Essen wil na overleg met boeren meer tijd",
+     "desk": "binnenland",
+     "sourceCount": 2,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Binnenland"
+     }
+    },
+    {
+     "kind": "story",
+     "id": "s1on0sip",
+     "leadId": "60bc7t",
+     "itemIds": [
+      "wd3gs5",
+      "60bc7t"
+     ],
+     "title": "Een livestream en honderden mensen volgen hoe het historische station van Vught veertien meter verplaatst wordt",
+     "desk": "binnenland",
+     "sourceCount": 2,
+     "why": {
+      "code": "rubriek",
+      "text": "Rubriek Binnenland"
+     }
     }
    ],
    "items": [
     {
-     "id": "1mg305i",
+     "id": "1r0emmx",
      "kind": "article",
-     "source": "volkskrant",
-     "sourceName": "de Volkskrant",
-     "handle": "volkskrant.nl",
-     "domain": "volkskrant.nl",
-     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:ass4aukj7qniiiswynzx24xa/bafkreihfgvaeavbcwjgjhfis4mrvwffes7pk2qm73fu7hluy2qesrwdjim",
-     "brandColor": "#1481C4",
-     "section": "Buitenland",
-     "storyId": "s19u85n2",
-     "firstSeenAt": "2026-10-30T18:10:21.150Z",
-     "title": "Laatste onafhankelijke Russische krant stopt onder druk van het Kremlin: ‘We werden gedood’",
-     "summary": "Novaja Gazeta was de krant van de vermoorde journaliste Anna Politkovskaja en voormalig hoofdredacteur Dmitri Moeratov, die in 2021 de Nobelprijs voor de Vrede ontving.",
-     "topics": [
-      "oekraine"
-     ],
-     "url": "https://www.volkskrant.nl/buitenland/laatste-onafhankelijke-russische-krant-stopt-onder-druk-van-het-kremlin-we-werden-gedood~b944dae10/",
-     "image": "https://image.volkskrant.nl/279690534/feature-crop/320/320/afbeelding",
-     "publishedAt": "2026-10-30T18:02:00.000Z"
+     "source": "nos",
+     "sourceName": "NOS",
+     "handle": "nos.nl",
+     "domain": "nos.nl",
+     "avatar": "https://unavatar.io/x/nos",
+     "brandColor": "#B5121B",
+     "storyId": "srjbii3",
+     "firstSeenAt": "2026-10-30T16:30:20.606Z",
+     "title": "Christa Pike reageert na mislukte executie: 'Ik heb constant pijn'",
+     "summary": "De Amerikaanse Christa Pike, die een executiepoging overleefde en wereldnieuws werd, zegt dat ze sindsdien constant pijn heeft.",
+     "readMin": 2,
+     "topics": [],
+     "url": "https://nos.nl/l/2637331",
+     "image": "https://images.cdn.nos.nl/6/H/Y/Q/Q/B/SwSRfkJsF9dDfspnySB2GS4xeB4UWn8iTy6FWCR/0x0x800x450-800x450.webp",
+     "publishedAt": "2026-10-30T16:21:32.000Z"
     },
     {
-     "id": "1f34jte",
+     "id": "16wfgec",
      "kind": "article",
      "source": "nu",
      "sourceName": "NU.nl",
@@ -276,33 +261,14 @@
      "avatar": "https://www.google.com/s2/favicons?domain=nu.nl&sz=128",
      "avatarContain": true,
      "brandColor": "#0B4E8C",
-     "storyId": "srjbii3",
-     "firstSeenAt": "2026-10-30T14:30:21.129Z",
-     "title": "Christa Pike na mislukte executie: 'Voortdurend pijn, zowel fysiek als mentaal'",
-     "summary": "De Amerikaanse Christa Pike, die eind september een executiepoging overleefde, lijdt sinds de mislukte executie voortdurend pijn, zegt ze in een eerste reactie.",
-     "topics": [],
-     "url": "https://www.nu.nl/buitenland/6414953/christa-pike-na-mislukte-executie-voortdurend-pijn-zowel-fysiek-als-mentaal.html",
-     "image": "https://images.nu.nl/m/0qmx3a9arjge_sqr256/501/0/1632/1632/christa-pike-na-mislukte-executie-voortdurend-pijn-zowel-fysiek-als-mentaal.jpg",
-     "publishedAt": "2026-10-30T13:58:05.000Z"
-    },
-    {
-     "id": "1r0emuz",
-     "kind": "article",
-     "source": "nos",
-     "sourceName": "NOS",
-     "handle": "nos.nl",
-     "domain": "nos.nl",
-     "avatar": "https://unavatar.io/x/nos",
-     "brandColor": "#B5121B",
      "storyId": "sd4ef4",
-     "firstSeenAt": "2026-10-30T17:40:18.847Z",
-     "title": "Man rent op koning af bij werkbezoek in Ursem, beveiligers grijpen in",
-     "summary": "Bij een werkbezoek aan het Noord-Hollandse dorp Ursem is koning Willem-Alexander vanmiddag aangesproken door een mogelijk verwarde man.",
-     "readMin": 1,
+     "firstSeenAt": "2026-10-30T17:20:14.239Z",
+     "title": "Geschrokken koning ziet man op zich af rennen: 'Niks aan de hand, geeft niet'",
+     "summary": "Een man is vrijdagmiddag op koning Willem-Alexander afgerend tijdens een bezoek aan het Noord-Hollandse Ursem.",
      "topics": [],
-     "url": "https://nos.nl/l/2637344",
-     "image": "https://images.cdn.nos.nl/6/t/K/7/L/U/QMNB21J5oEP1NJFnT2cmPjuo28ot5bDzNcqrkf/4x320x2928x1647-1024x576.webp",
-     "publishedAt": "2026-10-30T17:32:28.000Z"
+     "url": "https://www.nu.nl/koningshuis/6414975/geschrokken-koning-ziet-man-op-zich-af-rennen-niks-aan-de-hand-geeft-niet.html",
+     "image": "https://images.nu.nl/m/ddaxoleakts8_sqr256/709/350/1622/1622/geschrokken-koning-ziet-man-op-zich-af-rennen-niks-aan-de-hand-geeft-niet.jpg",
+     "publishedAt": "2026-10-30T16:20:35.000Z"
     },
     {
      "id": "olr72n",
@@ -327,67 +293,26 @@
      "publishedAt": "2026-10-30T17:51:50.000Z"
     },
     {
-     "id": "1v9ma0m",
+     "id": "1r0emuw",
      "kind": "article",
-     "source": "nrc",
-     "sourceName": "NRC",
-     "handle": "nrc.nl",
-     "domain": "nrc.nl",
-     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:bvkk4kkuavnhqrwapc34wtfp/bafkreieemx772stvjftotey4yiolatuo3zud74hfc633fdqy4lzvu2tbou",
-     "brandColor": "#C20E1A",
-     "storyId": "srpiq4s",
-     "firstSeenAt": "2026-10-30T16:40:22.625Z",
-     "title": "Nooit was de wereldeconomie zo afhankelijk van Wall Street als nu. Hoe de ‘midterms’ ook de beurzen in hun ban houden",
-     "summary": "Peilingen beloven winst voor de Democraten in het Amerikaanse Congres. Een groot deel van het bedrijfsleven maakte Trump het hof.",
-     "topics": [
-      "vs-politiek",
-      "verkiezingen",
-      "economie",
-      "bedrijven"
-     ],
-     "url": "https://www.nrc.nl/nieuws/2026/10/30/nooit-was-de-wereldeconomie-zo-afhankelijk-van-wall-street-als-nu-hoe-de-midterms-ook-de-beurzen-in-hun-ban-houden-a4939842",
-     "image": "https://images.nrc.nl/_-Qs7rL8rxvpm19Bki1hIbxA3TE=/1280x/filters:no_upscale()/s3/static.nrc.nl/wp-content/uploads/2026/10/30150851/301026ECO_2037834646_stock02.jpg",
-     "publishedAt": "2026-10-30T16:30:00.000Z"
-    },
-    {
-     "id": "u5wxml",
-     "kind": "article",
-     "source": "volkskrant",
-     "sourceName": "de Volkskrant",
-     "handle": "volkskrant.nl",
-     "domain": "volkskrant.nl",
-     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:ass4aukj7qniiiswynzx24xa/bafkreihfgvaeavbcwjgjhfis4mrvwffes7pk2qm73fu7hluy2qesrwdjim",
-     "brandColor": "#1481C4",
-     "section": "Cultuur & media",
-     "storyId": "s1bck9xo",
-     "firstSeenAt": "2026-10-30T16:40:22.625Z",
-     "title": "Met zijn norse bariton en striemende blik zette acteur Patrick Stewart (1940-2026) Star Trek naar zijn hand",
-     "summary": "In Engeland kenden ze Patrick Stewart vooral als een klassieke Shakespeare-acteur, maar voor Amerikanen was hij kapitein Jean-Luc Picard uit Star Trek: The Next Generation.",
-     "topics": [],
-     "url": "https://www.volkskrant.nl/cultuur-media/met-zijn-norse-bariton-en-striemende-blik-zette-acteur-patrick-stewart-1940-2026-star-trek-naar-zijn-hand~b2feedf3/",
-     "image": "https://image.volkskrant.nl/279689185/feature-crop/320/320/afbeelding",
-     "publishedAt": "2026-10-30T12:07:00.000Z"
-    },
-    {
-     "id": "1ko7y4i",
-     "kind": "article",
-     "source": "nu",
-     "sourceName": "NU.nl",
-     "handle": "nu.nl",
-     "domain": "nu.nl",
-     "avatar": "https://www.google.com/s2/favicons?domain=nu.nl&sz=128",
-     "avatarContain": true,
-     "brandColor": "#0B4E8C",
+     "source": "nos",
+     "sourceName": "NOS",
+     "handle": "nos.nl",
+     "domain": "nos.nl",
+     "avatar": "https://unavatar.io/x/nos",
+     "brandColor": "#B5121B",
      "storyId": "sueo7zt",
-     "firstSeenAt": "2026-10-30T18:20:17.146Z",
-     "title": "DNA-match leidt tot aanhouding in ruim dertig jaar oude verkrachtingszaak",
-     "summary": "Een 57-jarige man uit Helmond is aangehouden in een verkrachtingszaak uit 1994.",
+     "firstSeenAt": "2026-10-30T17:50:15.483Z",
+     "title": "DNA-match leidt tot arrestatie 57-jarige man voor zedenzaak uit 1994",
+     "summary": "Een 57-jarige man uit Helmond is aangehouden op verdenking van het verkrachten van een 15-jarige meisje in 1994.",
+     "readMin": 1,
      "topics": [
-      "misdaad"
+      "misdaad",
+      "verkeer"
      ],
-     "url": "https://www.nu.nl/binnenland/6414969/dna-match-leidt-tot-aanhouding-in-ruim-dertig-jaar-oude-verkrachtingszaak.html",
-     "image": "https://images.nu.nl/m/b0yxacuauytx_sqr256/171/1/785/785/dna-match-leidt-tot-aanhouding-in-ruim-dertig-jaar-oude-verkrachtingszaak.jpg",
-     "publishedAt": "2026-10-30T18:15:11.000Z"
+     "url": "https://nos.nl/l/2637347",
+     "image": "https://images.cdn.nos.nl/3/F/9/j/J/Y/G1aFogan5rBmtxzP81q447SQX8aTLayQ4ucQYFW/8x47x3984x2241-1024x576.webp",
+     "publishedAt": "2026-10-30T17:41:04.000Z"
     },
     {
      "id": "1r0emmz",
@@ -409,6 +334,25 @@
      "url": "https://nos.nl/l/2637333",
      "image": "https://images.cdn.nos.nl/8/H/8/m/1/Q/w66Mf4VFSE63N7akaSHoQU35s8qGdGCBWj2dw4K/8x211x3984x2241-1024x576.webp",
      "publishedAt": "2026-10-30T16:32:57.000Z"
+    },
+    {
+     "id": "u5wxml",
+     "kind": "article",
+     "source": "volkskrant",
+     "sourceName": "de Volkskrant",
+     "handle": "volkskrant.nl",
+     "domain": "volkskrant.nl",
+     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:ass4aukj7qniiiswynzx24xa/bafkreihfgvaeavbcwjgjhfis4mrvwffes7pk2qm73fu7hluy2qesrwdjim",
+     "brandColor": "#1481C4",
+     "section": "Cultuur & media",
+     "storyId": "s1bck9xo",
+     "firstSeenAt": "2026-10-30T16:40:22.625Z",
+     "title": "Met zijn norse bariton en striemende blik zette acteur Patrick Stewart (1940-2026) Star Trek naar zijn hand",
+     "summary": "In Engeland kenden ze Patrick Stewart vooral als een klassieke Shakespeare-acteur, maar voor Amerikanen was hij kapitein Jean-Luc Picard uit Star Trek: The Next Generation.",
+     "topics": [],
+     "url": "https://www.volkskrant.nl/cultuur-media/met-zijn-norse-bariton-en-striemende-blik-zette-acteur-patrick-stewart-1940-2026-star-trek-naar-zijn-hand~b2feedf3/",
+     "image": "https://image.volkskrant.nl/279689185/feature-crop/320/320/afbeelding",
+     "publishedAt": "2026-10-30T12:07:00.000Z"
     },
     {
      "id": "4kssn2",
@@ -450,6 +394,47 @@
      "url": "https://www.nu.nl/politiek/6414925/rechts-blok-somber-na-stevig-gesprek-met-kabinet-ligt-niet-zoals-we-willen.html",
      "image": "https://images.nu.nl/m/m9qxlzdax3xx_sqr256/977/5/4199/4199/rechts-blok-somber-na-stevig-gesprek-met-kabinet-ligt-niet-zoals-we-willen.jpg",
      "publishedAt": "2026-10-30T11:03:38.000Z"
+    },
+    {
+     "id": "1488akf",
+     "kind": "article",
+     "source": "volkskrant",
+     "sourceName": "de Volkskrant",
+     "handle": "volkskrant.nl",
+     "domain": "volkskrant.nl",
+     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:ass4aukj7qniiiswynzx24xa/bafkreihfgvaeavbcwjgjhfis4mrvwffes7pk2qm73fu7hluy2qesrwdjim",
+     "brandColor": "#1481C4",
+     "section": "Politiek",
+     "storyId": "s19u86u5",
+     "firstSeenAt": "2026-10-30T17:10:18.752Z",
+     "title": "Kabinet stelt stikstofwetten uit: minister Van Essen wil na overleg met boeren meer tijd",
+     "summary": "Landbouwminister Jaimi van Essen (D66) stelt de uitwerking van de stikstofplannen uit.",
+     "topics": [
+      "nederland"
+     ],
+     "url": "https://www.volkskrant.nl/politiek/kabinet-stelt-stikstofwetten-uit-minister-van-essen-wil-na-overleg-met-boeren-meer-tijd~b4b6ebd0/",
+     "image": "https://image.volkskrant.nl/279604277/roi/320/320/6799.36/4043.36/nederland-den-haag-27102026-jaimi-van-essen-minister-van-landbouw",
+     "publishedAt": "2026-10-30T15:15:00.000Z"
+    },
+    {
+     "id": "60bc7t",
+     "kind": "article",
+     "source": "nrc",
+     "sourceName": "NRC",
+     "handle": "nrc.nl",
+     "domain": "nrc.nl",
+     "avatar": "https://cdn.bsky.app/img/avatar/plain/did:plc:bvkk4kkuavnhqrwapc34wtfp/bafkreieemx772stvjftotey4yiolatuo3zud74hfc633fdqy4lzvu2tbou",
+     "brandColor": "#C20E1A",
+     "storyId": "s1on0sip",
+     "firstSeenAt": "2026-10-30T16:20:16.493Z",
+     "title": "Een livestream en honderden mensen volgen hoe het historische station van Vught veertien meter verplaatst wordt",
+     "summary": "In Vught moet het station uit 1868 13,6 meter opschuiven om ruimte te maken voor „de verdiepte ligging” van het nieuwe spoor.",
+     "topics": [
+      "verkeer"
+     ],
+     "url": "https://www.nrc.nl/nieuws/2026/10/30/een-livestream-en-honderden-mensen-volgen-hoe-het-historische-station-van-vught-veertien-meter-verplaatst-werd-a4940162",
+     "image": "https://images.nrc.nl/PXJIGh0arXZlsasHQwkcMIr48Bk=/1280x/filters:no_upscale()/s3/static.nrc.nl/wp-content/uploads/2026/10/30155833/301026VER_2038006724_move.jpg",
+     "publishedAt": "2026-10-30T15:57:54.000Z"
     }
    ],
    "bubble": [
@@ -478,10 +463,10 @@
    "owner": "00000000-0000-4000-8000-0000000000aa",
    "basis": "1ey1p7v",
    "history": [],
-   "revision": "redacteur-2026-11-13-nl-opening",
+   "revision": "redacteur-2026-11-13-leeftijd",
    "server": true
   },
   "source": "claimed",
-  "revision": "redacteur-2026-11-13-nl-opening"
+  "revision": "redacteur-2026-11-13-leeftijd"
  }
 }

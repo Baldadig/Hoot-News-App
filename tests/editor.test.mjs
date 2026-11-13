@@ -261,10 +261,11 @@ test('zaad: jitter ligt in [0, 1), is stabiel en hangt af van zaad en id', () =>
   assert.equal(G.jitter('', ''), (((((5381 * 33) ^ 124) >>> 0) % 1000) / 1000))
 })
 
-test('tempo: een uurbron krijgt 14 uur, een bron die elke 30 uur publiceert 72', () => {
+test('tempo: een uurbron krijgt 10 uur (was 14, leeftijd 13 november 2026), een bron die elke 30 uur publiceert 72', () => {
+  assert.equal(G.TEMPO_MIN_H, 10)
   const series = (source, every, n) => Array.from({ length: n }, (_, k) => it(`${source}${k}`, source, [], { publishedAt: at(-k * every) }))
   const w = G.tempoWindows([...series('uur', 1, 20), ...series('traag', 30, 6), ...series('dag', 8, 5), it('los', 'een', [])])
-  assert.equal(w.get('uur'), 14)
+  assert.equal(w.get('uur'), 10)
   assert.equal(w.get('traag'), 72)
   assert.equal(w.get('dag'), 24) // 3 × 8
   assert.equal(w.get('een'), 72) // geen tussentijd: 3 × 24

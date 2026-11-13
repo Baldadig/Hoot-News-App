@@ -173,12 +173,14 @@ test('een breed verhaal dat anders als aanvulling zou komen, krijgt zijn eigen l
 test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen ook brengen', () => {
   // Kyiv: de Guardian (gratis) is de lead van de server, maar NOS (die je volgt) schrijft er ook over.
   const kyiv = art('k1', 'guardian', 'Russia bombards Kyiv with missiles')
-  const nosKyiv = art('k2', 'nos', 'Rusland bestookt Kyiv met raketten', { publishedAt: ago(30) })
+  // Twintig uur oud (was dertig): sinds 13 november (leeftijd) is een verhaal waarvan het eerste stuk ouder is dan 24 uur een
+  // lopend verhaal, dat alleen met een nieuw feit een plek krijgt; daar gaat deze toets niet over.
+  const nosKyiv = art('k2', 'nos', 'Rusland bestookt Kyiv met raketten', { publishedAt: ago(20) })
   const st = [...stories, { id: 'sKyiv', leadId: 'k1', itemIds: ['k1', 'k2'], sourceCount: 6 }]
   const g = { ...global, wide: [{ storyId: 'sKyiv', sourceCount: 6, topics: ['oekraine'], item: kyiv }] }
   const e = composePersonal({ global: g, stories: st, items: [...items, nosKyiv], followed, now: NOW, builtAt: 'T' })
   assert.ok(!e.entries.some((x) => x.desk === 'breed'))
-  assert.ok(e.items.some((i) => i.source === 'guardian'), 'de beschikbare eigen versie is dertig uur oud; een actuele externe versie mag met een eerlijke aanvulreden')
+  assert.ok(e.items.some((i) => i.source === 'guardian'), 'de beschikbare eigen versie is twintig uur oud; een actuele externe versie mag met een eerlijke aanvulreden')
   assert.equal(e.entries.find(x=>(x.leadId||x.id)==='k1')?.supplement,'groot')
   // Zonder eigen bron in het verhaal komt het er wel, via de gratis bron.
   const st2 = [...stories, { id: 'sKyiv', leadId: 'k1', itemIds: ['k1'], sourceCount: 6 }]

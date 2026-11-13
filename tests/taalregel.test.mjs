@@ -17,6 +17,14 @@ const load = (f) => JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/${f}`
 const FILES = ['live-feed-2026-11-04.json.gz', 'live-feed-2026-11-04-midterms.json.gz', 'live-feed-2026-11-07.json.gz']
 const FEEDS = Object.fromEntries(FILES.map((f) => [f, load(f)]))
 const NL = ['nos', 'nu', 'nrc', 'volkskrant']
+// Leeftijd (13 november 2026): een lopend verhaal (eerste stuk ouder dan 24 uur) krijgt alleen met een nieuw feit een plek.
+// Op 7 november zijn het pausverhaal en de andere plekken met een Engelse kop zulke verhalen; de toetsen hieronder gaan over
+// de taalregel, niet over leeftijd. Daarom krijgen ze daar een eerste stuk van 20 uur oud (firstAt), zodat de taalregel
+// iets te kiezen houdt.
+const young = (feed) => {
+  const first = new Date(Date.parse(feed.edition.builtAt) - 20 * 36e5).toISOString()
+  return { ...feed, stories: feed.stories.map((st) => (st.firstAt && st.firstAt < first ? { ...st, firstAt: first } : st)) }
+}
 
 const compose = (feed, followed, extra = {}) => composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed: new Set(followed), interests: [], topics: [], now: Date.parse(feed.edition.builtAt), builtAt: feed.edition.builtAt, ...extra })
 // Wat het toestel kent (zonder `related`: die stukken heeft een toestel niet).
@@ -80,7 +88,7 @@ for (const f of FILES) {
 }
 
 test('taalregel: Waar iedereen over schrijft neemt het Nederlandstalige stuk uit hetzelfde verhaal (de paus, 7 november)', () => {
-  const feed = FEEDS['live-feed-2026-11-07.json.gz']
+  const feed = young(FEEDS['live-feed-2026-11-07.json.gz'])
   const byId = known(feed)
   const w = feed.edition.wide.find((x) => /Pope Leo/.test(x.item.title))
   assert.equal(w.item.source, 'aljazeera', 'de server koos de Engelse kop')
@@ -108,7 +116,7 @@ test('taalregel: een breed verhaal met alleen Engelse stukken valt weg (en de pl
 })
 
 test('taalregel: een aanvulling met een Engelse kop krijgt een Nederlandse kop uit hetzelfde verhaal', () => {
-  const feed = FEEDS['live-feed-2026-11-07.json.gz']
+  const feed = young(FEEDS['live-feed-2026-11-07.json.gz'])
   const byId = known(feed)
   // Wie alleen NU.nl volgt, wordt aangevuld uit de algemene Editie; daar hebben drie plekken een Engelse kop.
   const english = feed.edition.entries.filter((g) => g.kind === 'story' && !dutchHead(feed, byId.get(g.leadId)))
@@ -165,7 +173,7 @@ for (const f of FILES) {
   })
 }
 test('taalregel: de regel doet echt iets (zonder Engelse bron verschilt de Editie op 7 november)', () => {
-  const feed = FEEDS['live-feed-2026-11-07.json.gz']
+  const feed = young(FEEDS['live-feed-2026-11-07.json.gz'])
   assert.notEqual(print(compose(feed, NL)), print(compose(feed, NL, { _langRule: false })))
 })
 

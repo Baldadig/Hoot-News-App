@@ -21,7 +21,11 @@
 // een tweede naam of dezelfde gebeurtenis) krijgen samen één plek, langs elke route (sameCluster in netlify/lib/stories.mjs).
 // 13 november 2026, nl-opening: wie minstens drie Nederlandse nieuwsbronnen volgt en geen Binnenland koos, opent met het
 // Nederlandse voorpaginaverhaal, als het een interesse raakt (nlOpener in netlify/lib/stories.mjs). Alleen de persoonlijke Editie.
-export const EDITOR_REVISION = 'redacteur-2026-11-13-nl-opening'
+// 13 november 2026, leeftijd: kopgrens en verhaalvenster 12 uur (was 24); een lopend verhaal (eerste stuk ouder dan 24 uur)
+// alleen met een nieuw feit binnen het venster, hooguit twee per Editie; blijvers alleen als het verhaal nog geen 24 uur
+// loopt; een leeftijdsstraf in het gewicht; ook in de persoonlijke Editie een kop van ná de vorige Editie; losse stukken
+// minstens 10 uur (was 14).
+export const EDITOR_REVISION = 'redacteur-2026-11-13-leeftijd'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
 // met de rekenkern die erin zit. Veranderde de afdruk bij elke revisie, dan paste de Editie van de server nooit bij
