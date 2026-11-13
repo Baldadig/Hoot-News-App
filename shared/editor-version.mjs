@@ -30,7 +30,8 @@
 // opinie ook herkend aan de rubriek uit de feed ("Opinie & columns", NRC "Ondertussen").
 // 13 november 2026, bronnen: opiniebladen (`opinie` in de catalogus) zijn helemaal opinie, bundelen niet mee, komen pas
 // achteraf als lid bij een verhaal en tellen niet in het aantal bronnen of de uitgevers (drempels voor groot nieuws);
-// een uitgever met meer bronnen (`publisher`, de regionale omroepen) telt als één.
+// een uitgever met meer bronnen (`publisher`, de regionale omroepen) telt als één. Keuring: ook "Waar iedereen over
+// schrijft" neemt nooit een opiniestuk als kop of als bewijs dat je bron erover schrijft (personal.js, widelyCovered).
 export const EDITOR_REVISION = 'redacteur-2026-11-13-bronnen'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

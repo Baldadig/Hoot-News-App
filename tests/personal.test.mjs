@@ -137,6 +137,34 @@ test('"Waar iedereen over schrijft": buiten je interesses, niet dubbel, met de l
   assert.equal(dup.entries.filter((x) => x.desk === 'breed').length, 0)
 })
 
+test('"Waar iedereen over schrijft": een opiniestuk van je eigen bron wordt nooit de kop', () => {
+  const wideItem = art('w1', 'nu', 'Eerste besmetting met Shamonda-virus in Frankrijk', { topics: ['gezondheid'] })
+  const opinie = art('j1', 'joop', 'Het Shamonda-virus laat zien hoe kwetsbaar we zijn', { topics: ['gezondheid'] })
+  const kolom = art('c1', 'nos', 'Column: Shamonda-virus en de paniek', { topics: ['gezondheid'] })
+  const virus = { id: 'sVirus', leadId: 'w1', itemIds: ['w1', 'j1', 'c1'], sourceCount: 12, latestAt: ago(1) }
+  const g = { ...global, wide: [{ storyId: 'sVirus', sourceCount: 12, topics: ['gezondheid'], item: wideItem }] }
+  const run = (f) => composePersonal({ global: g, stories: [...stories, virus], items: [...items, wideItem, opinie, kolom], followed: f, interests: ['tech'], now: NOW, builtAt: 'T' })
+  for (const f of [new Set([...followed, 'joop']), followed]) {
+    const e = run(f)
+    const wide = e.entries.find((x) => x.desk === 'breed')
+    assert.ok(wide, 'het brede verhaal houdt zijn plek')
+    assert.equal(wide.leadId, 'w1', 'de kop blijft het nieuwsstuk van de server, niet de opinie van je eigen bron')
+  }
+})
+
+test('server: breed gedekt neemt nooit opinie of een opinieblad als kop', async () => {
+  const { widelyCovered } = await import('../netlify/lib/stories.mjs')
+  const byId = new Map([
+    ['j', art('j', 'joop', 'Mening over het kabinet')],
+    ['k', art('k', 'nos', 'Column: het kabinet')],
+    ['n', art('n', 'nu', 'Kabinet valt')],
+  ])
+  const free = new Set(['joop', 'nos', 'nu'])
+  const out = widelyCovered([{ id: 's', sourceCount: 9, itemIds: ['j', 'k', 'n'] }], byId, { isFree: (id) => free.has(id), isDutch: () => true })
+  assert.equal(out[0].item.id, 'n')
+  assert.deepEqual(widelyCovered([{ id: 's', sourceCount: 9, itemIds: ['j', 'k'] }], byId, { isFree: (id) => free.has(id), isDutch: () => true }), [])
+})
+
 test('server: breed gedekt alleen met een gratis bron als bericht, en geen sport', async () => {
   const { widelyCovered } = await import('../netlify/lib/stories.mjs')
   const byId = new Map([

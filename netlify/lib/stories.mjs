@@ -2905,7 +2905,7 @@ export function widelyCovered(stories = [], byId = new Map(), { isFree = () => f
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     if (st.sourceCount < min && !majorNews(st, items)) continue
     if (!items.length || items.filter(isSport).length * 2 >= items.length) continue
-    const free = items.filter((i) => isFree(i.source) && !isLive(i) && i.type !== 'opinie')
+    const free = items.filter((i) => isFree(i.source) && !isLive(i) && !isOpinion(i))
     // De kop eerst uit de Nederlandstalige stukken (`isDutch`, Nederlands vóór Vlaams: dutchFirst), daarbinnen dezelfde
     // kwaliteit en actualiteit, geen landbonus (taalregel, 7 november 2026: de paus in Uruguay kreeg de Engelse Al
     // Jazeera-kop terwijl de VRT het bracht). Pas zonder Nederlandstalig gratis stuk een anderstalig.

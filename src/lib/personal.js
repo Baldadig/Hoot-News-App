@@ -256,7 +256,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // bron als kop (`wideLead`), in de plaats van je lichtste plek: de Nederlandse voorpagina laat niet
   // al het grote nieuws toe (selectForReader).
   let bubbleEntry = global.entries.find((e) => e.desk === 'bubbel') || null
-  const ownIds = new Set(items.filter((i) => followed.has(i.source)).map((i) => i.id))
+  // Alleen nieuws telt als "je bron schrijft erover": een opiniestuk (ook van een opinieblad) wordt nooit de kop.
+  const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i)).map((i) => i.id))
   const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
   const bigWide = w => majorNews(storyById.get(w.storyId) || w, [w.item])
   // De kop van een breed verhaal: je eigen stuk als je bron erover schrijft, anders dat van de server, mits leesbaar
@@ -291,7 +292,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const relead = (head, xs) => {
     if (readable(head)) return head
     const rubric = rubricOf(head)
-    const ok = xs.filter((i) => i && i.kind !== 'post' && readableIn(i, rubric))
+    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && readableIn(i, rubric))
     if (!ok.length) return null
     // Eerst wat niet verouderd is, dan je eigen bronnen, dan Nederlands vóór Vlaams; daarbinnen leadPool (kern, vers).
     const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok
