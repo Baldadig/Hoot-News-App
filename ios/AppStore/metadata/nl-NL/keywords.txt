@@ -1,1 +1,1 @@
-nieuwsapp,nieuwslezer,krant,kranten,rss,schermtijd,minder,rust,overzicht,ochtend,opinie,bronnen,duo
+nieuwsapp,nieuwslezer,krant,kranten,rss,schermtijd,minder,rust,overzicht,ochtend,widget,bronnen,duo

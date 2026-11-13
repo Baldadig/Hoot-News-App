@@ -1,15 +1,33 @@
-Nieuws met een begin en een einde.
+Nieuws met een einde.
+Jij kiest de bronnen. Hoot kiest er drie keer per dag tien verhalen uit. Dan ben je bij.
+Gratis, met of zonder account. Geen advertenties. Hoot volgt je niet.
 
-Nieuw op de iPhone Duo: dicht past je Editie als een krant in je hand, open lees je hem als een echte krant.
+Jouw nieuws, rustig bij elkaar.
+Hoot is een nieuwslezer voor iPhone en iPad. Je kiest uit meer dan tachtig bronnen, van landelijke en regionale kranten tot Vlaamse en internationale titels. Hoot legt bij elkaar wat ze schrijven.
 
-Kies bij het begin wat je wilt volgen. Daarna zet Hoot drie keer per dag een Editie voor je klaar: tien verhalen uit je eigen bronnen, met beeld en een korte intro. Ben je erdoorheen, dan ben je bij.
+Tien verhalen. Dan ben je bij.
+In de ochtend, de middag en de vroege avond staat er een Editie voor je klaar: tien verhalen uit jouw bronnen, met beeld en een korte intro. Daarna is de dag weer van jou. Op de iPhone Duo vouwt je Editie mee als een krant.
 
-Schrijven meer media over hetzelfde nieuws, dan zie je met één tik hoe elk van hen het brengt. De rest staat in de Stroom, het nieuwste bovenaan. Trek om te verversen en Hoot haalt het nieuwste voor je op.
+Hier was je gebleven.
+De Stroom zet al je bronnen onder elkaar, nieuwste eerst, en onthoudt waar je was. Opinie heeft er een eigen tab. Wie je op Bluesky wilt volgen, zet je erbij.
 
-Elke maandag zet Hoot je Selectie klaar: het beste van de week uit het vak dat jou boeit.
+Bijgepraat op maandag.
+Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over. Dat is je Selectie.
 
-Lezen doe je in een rustige krantenletter, zonder de drukte van de website. In de avond kies je Nacht: echt zwart, zacht voor je ogen. Bij een aantal uitgevers werkt je abonnement ook in Hoot. Wil je er ook je eigen Bluesky-accounts bij, dan zet je die zelf in je Stroom.
+Hoot kiest elke Editie.
+Uit jouw bronnen. Waar het iets toevoegt, zie je waarom een verhaal erin staat. Schrijven meer bronnen over hetzelfde nieuws, dan zie je met Vergelijken hoe elke bron het brengt. Bij een begrip als formateur of midterms tik je op Uitleg en weet je wat het is.
 
-Je hebt geen Hoot-account nodig en ziet geen advertenties. Hoot volgt je niet. Wat de app leert van je leesgedrag, bewaart Hoot alleen op je toestel.
+Je Editie op je beginscherm.
+Met de widgets staat je Editie op je beginscherm en je vergrendelscherm. Op je beginscherm blader je erdoor zonder de app te openen.
+
+Rustig lezen.
+Een artikel lees je in een krantenletter, zonder de drukte van de website. Bij een aantal uitgevers log je in met je eigen abonnement en lees je verder in Hoot. Hoot geeft zelf geen toegang tot betaalde artikelen.
+
+Hoot volgt je niet.
+Hoot telt alleen totalen, zonder te weten wie. Met een account staan je bronnen en wat je bewaarde op al je toestellen. Om je Editie te maken stuurt de app onder meer je bronnen en interesses, wat je al las en een samenvatting van wat je vaak leest naar de Hoot-server. Die bewaart daarvan alleen de Editie zelf: hooguit een dag, en met een account in je account.
+
+Je weet genoeg.
 
 Hoot is gemaakt in Nederland door Baldadig. Koppen en korte intro’s komen uit openbare nieuwsfeeds. Bij elk verhaal staan de bron en een link naar het oorspronkelijke artikel.
+
+Beelden in de screenshots: Wikimedia Commons (o.a. David Malone, Jamou en Event Horizon Telescope, CC BY).
