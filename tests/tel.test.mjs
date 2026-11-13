@@ -274,7 +274,7 @@ test('iOS-spiegel: dezelfde zeven gebeurtenissen als shared/tel.mjs', () => {
 })
 
 // ---- Meten · 6: herkomst, App Store-tik en welkom (achter NIEUWE_TELLERS, standaard uit) ----
-import { NIEUWE_TELLERS, NIEUW, VIA_LABELS, VIA_EVENTS, WELKOM_STAPPEN, APPSTORE_TIK, viaEvent, slotIdNow, eventsFor } from '../shared/tel.mjs'
+import { NIEUWE_TELLERS, NIEUW, VIA_LABELS, VIA_EVENTS, WELKOM_STAPPEN, APPSTORE_TIK, LANDING, LANDING_OPEN, VRAAG_OPEN, WEB_TIK_EVENTS, APPSTORE_PLEK_EVENTS, tikEvent, viaEvent, slotIdNow, eventsFor } from '../shared/tel.mjs'
 import { telVia } from '../src/lib/tel.js'
 import { startTel } from '../landing/tel.mjs'
 
@@ -291,8 +291,8 @@ test('Meten · 6: één constante (aan na goedkeuring van het beleid); uit betek
   assert.deepEqual(eventsFor(true), [...EVENTS, ...NIEUW])
 })
 test('Meten · 6: gesloten vocabulaire; geen leeftijd op het web', () => {
-  assert.deepEqual(VIA_LABELS, ['ig', 'x', 'bsky', 'mail', 'nb', 'qr'])
-  assert.deepEqual(VIA_EVENTS, ['via:ig', 'via:x', 'via:bsky', 'via:mail', 'via:nb', 'via:qr', 'via:anders'])
+  assert.deepEqual(VIA_LABELS, ['ig', 'x', 'bsky', 'mail', 'nb', 'qr', 'ad', 'deel', 'as'])
+  assert.deepEqual(VIA_EVENTS, ['via:ig', 'via:x', 'via:bsky', 'via:mail', 'via:nb', 'via:qr', 'via:ad', 'via:deel', 'via:as', 'via:anders'])
   assert.deepEqual(WELKOM_STAPPEN, ['welkom-open', 'bronnen-gekozen', 'liever-meteen-lezen', 'eerste-editie'])
   assert.equal(APPSTORE_TIK, 'appstore-tik')
   assert.ok(!NIEUW.some((e) => /leeftijd|age|install|dag-\d/.test(e)))
@@ -337,7 +337,7 @@ test('Meten · 6 op de server: uit genegeerd, aan geteld; in de opslag alleen he
   assert.deepEqual(doc.c, { 'via:ig|web|ochtend': 1, 'via:anders|web|ochtend': 1, 'appstore-tik|web|ochtend': 2, 'welkom-open|web|ochtend': 1, 'bronnen-gekozen|web|ochtend': 1, 'liever-meteen-lezen|web|ochtend': 1, 'eerste-editie|web|ochtend': 1 })
   assert.doesNotMatch(JSON.stringify([...mem.entries()]), /203\.0\.113|198\.51\.100|Uniek|id=42/)
   const d = shapeDay('2026-11-11', doc)
-  assert.deepEqual(d.herkomst, { ig: 1, x: 0, bsky: 0, mail: 0, nb: 0, qr: 0, anders: 1 })
+  assert.deepEqual(d.herkomst, { ig: 1, x: 0, bsky: 0, mail: 0, nb: 0, qr: 0, ad: 0, deel: 0, as: 0, anders: 1 })
   assert.equal(d.appstore_tik, 2)
   assert.deepEqual(d.welkom, { 'welkom-open': 1, 'bronnen-gekozen': 1, 'liever-meteen-lezen': 1, 'eerste-editie': 1 })
   assert.equal(d.lezers.dag.open, 0) // de nieuwe tellers lopen niet door de lezers heen
@@ -406,18 +406,62 @@ test('telVia: uit raakt de adresbalk niet aan; aan telt via:<label> en haalt ?vi
   // nooit een uitzondering
   assert.equal(telVia({ loc: { get search() { throw new Error('x') } }, nieuw: true }), null)
 })
-test('landing: uit doet niets; aan telt een tik op een App Store-link als appstore-tik', async () => {
-  let listener = null
-  const doc = { addEventListener: (t, fn) => { listener = fn } }
+test('landing: uit doet niets; aan telt het openen, de tik per plek, de oude App Store-tik en een geopende vraag', async () => {
+  const ls = {}
+  const doc = { addEventListener: (t, fn) => { ls[t] = fn } }
   assert.equal(startTel({ doc, nieuw: false }), false)
-  assert.equal(listener, null)
+  assert.deepEqual(ls, {})
   const a = beacon()
   const adres = nepAdres('')
-  assert.equal(startTel({ doc, nieuw: true, nav: a, prod: true, storage: fakeStore(), ...adres }), true)
-  listener({ target: { closest: (sel) => (sel.includes('apps.apple.com') ? {} : null) } })
-  listener({ target: { closest: () => null } })
-  assert.equal(a.sent.length, 1)
-  assert.equal(JSON.parse(await a.sent[0][1].text()).e, APPSTORE_TIK)
+  assert.equal(startTel({ doc, nieuw: true, nav: a, prod: true, storage: fakeStore(), dagdeel: D, ...adres }), true)
+  const link = (attrs) => ({ target: { closest: (sel) => (sel === 'a[href]' ? { getAttribute: (k) => attrs[k] ?? null } : null) } })
+  ls.click(link({ href: '/lees/', 'data-tel': 'web:held' }))
+  ls.click(link({ href: 'https://apps.apple.com/nl/app/id1', 'data-tel': 'as:slot' }))
+  ls.click(link({ href: 'https://apps.apple.com/nl/app/id1' })) // zonder plek: de oude teller
+  ls.click(link({ href: '/privacy' })) // telt niet
+  ls.click(link({ href: '/lees/', 'data-tel': 'web:onbekend' })) // onbekende plek telt niet
+  ls.click({ target: { closest: () => null } })
+  ls.toggle({ target: { tagName: 'DETAILS', open: true } })
+  ls.toggle({ target: { tagName: 'DETAILS', open: true } }) // één keer per dagdeel
+  ls.toggle({ target: { tagName: 'DETAILS', open: false } })
+  const es = await Promise.all(a.sent.map(async ([, b]) => JSON.parse(await b.text()).e))
+  assert.deepEqual(es, [LANDING_OPEN, 'web-tik:held', 'appstore-tik:slot', APPSTORE_TIK, VRAAG_OPEN])
+})
+test('review 13 november: de landingstellers in het vocabulaire, op de server en in het overzicht', async () => {
+  assert.deepEqual(LANDING, ['landing-open', 'web-tik:held', 'web-tik:toestel', 'web-tik:editie', 'web-tik:kiest', 'web-tik:slot', 'appstore-tik:held', 'appstore-tik:slot', 'appstore-tik:vraag', 'vraag-open'])
+  for (const e of LANDING) { assert.ok(NIEUW.includes(e), e); assert.ok(parseTel(ok({ e }), NOW, AAN), e) }
+  assert.equal(parseTel(ok({ e: LANDING_OPEN, n: 5 }), NOW, AAN).n, 1) // één keer per dagdeel
+  assert.equal(parseTel(ok({ e: VRAAG_OPEN, n: 5 }), NOW, AAN).n, 1)
+  assert.equal(parseTel(ok({ e: 'web-tik:held', n: 3 }), NOW, AAN).n, 3)
+  for (const e of ['web-tik', 'web-tik:', 'web-tik:balk', 'appstore-tik:stroom', 'landing', 'vraag-open:3']) assert.equal(parseTel(ok({ e }), NOW, AAN), null, e)
+  assert.equal(tikEvent('web:kiest'), 'web-tik:kiest')
+  assert.equal(tikEvent('as:vraag'), 'appstore-tik:vraag')
+  assert.equal(tikEvent('as:stroom'), null)
+  assert.equal(tikEvent('web:held:x'), null)
+  assert.equal(tikEvent(null), null)
+  // de plekken in de pagina bestaan allemaal in het vocabulaire, en andersom
+  const src = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8') + readFileSync(new URL('../landing/appstore.mjs', import.meta.url), 'utf8') + readFileSync(new URL('../landing/vragen.mjs', import.meta.url), 'utf8')
+  const codes = new Set([...src.matchAll(/data-tel="((?:web|as):\$?\{?[a-z]+\}?)"/g)].map((m) => m[1]).filter((c) => !c.includes('$')))
+  for (const c of codes) assert.ok(tikEvent(c), c)
+  for (const e of WEB_TIK_EVENTS) assert.ok(codes.has('web:' + e.split(':')[1]), e)
+  // op de server: het totaal van de App Store-tik telt de oude en de plekken samen
+  const mem = new Map()
+  const up = async (k, fn) => { const n = fn(mem.get(k) ?? null); mem.set(k, n); return n }
+  const write = (p) => record(p, up)
+  for (const e of [APPSTORE_TIK, 'appstore-tik:held', 'appstore-tik:held', 'appstore-tik:slot', LANDING_OPEN, LANDING_OPEN, 'web-tik:held', 'web-tik:toestel', VRAAG_OPEN]) await handle(post(ok({ e })), { now: NOW, write, nieuw: true })
+  const d = shapeDay('2026-11-11', mem.get('tel:2026-11-11'))
+  assert.equal(d.appstore_tik, 4)
+  assert.deepEqual(d.appstore_plek, { held: 2, slot: 1, vraag: 0 })
+  assert.equal(d.landing_open, 2)
+  assert.deepEqual(d.web_tik, { held: 1, toestel: 1, editie: 0, kiest: 0, slot: 0 })
+  assert.equal(d.vraag_open, 1)
+  assert.equal(d.lezers.dag.open, 0)
+  const t = overzicht({ van: '2026-11-11', tot: '2026-11-11', dagen: [d] })
+  assert.match(t, /App Store-tik op de landing: 4/)
+  assert.match(t, /per plek: held 2, slot 1, vraag 0/)
+  assert.match(t, /Landing geopend \(één keer per dagdeel per browser\): 2; naar \/lees\/: 2 \(100 %\)/)
+  assert.match(t, /Vraag opengeklapt \(één keer per dagdeel per browser\): 1/)
+  void APPSTORE_PLEK_EVENTS
 })
 test('Meten · 6: geen IP, user-agent, cookie of log in de nieuwe bronnen; de landing bundelt het gedeelde vocabulaire', () => {
   for (const f of ['landing/tel.mjs', 'src/lib/tel.js']) {
@@ -429,7 +473,9 @@ test('Meten · 6: geen IP, user-agent, cookie of log in de nieuwe bronnen; de la
 })
 test('Meten · 6: de tellers gaan pas aan samen met het aangepaste privacybeleid', () => {
   const privacy = readFileSync(new URL('../src/views/Privacy.jsx', import.meta.url), 'utf8')
-  const nieuweZin = /via welke link je binnenkwam/
-  if (NIEUWE_TELLERS) assert.match(privacy, nieuweZin, 'NIEUWE_TELLERS staat aan, maar het privacybeleid zegt het nog niet')
-  else assert.doesNotMatch(privacy, nieuweZin, 'het beleid noemt de herkomst al, terwijl de tellers uit staan')
+  const zinnen = [/via welke link je binnenkwam/, /hoe vaak de voorpagina wordt geopend/, /hoe vaak er een vraag wordt opengeklapt/, /waar op die pagina er op een knop naar Hoot of de App Store wordt getikt/]
+  for (const nieuweZin of zinnen) {
+    if (NIEUWE_TELLERS) assert.match(privacy, nieuweZin, 'NIEUWE_TELLERS staat aan, maar het privacybeleid zegt het nog niet')
+    else assert.doesNotMatch(privacy, nieuweZin, 'het beleid noemt de tellers al, terwijl ze uit staan')
+  }
 })

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hoot · Nieuws met een einde</title>
-<meta name="description" content="Hoot is een rustige Nederlandse nieuwslezer. Drie keer per dag een Editie met tien verhalen, de Stroom voor tussendoor en elke maandag de Selectie. Gratis, met of zonder account. Geen advertenties. Hoot volgt je niet.">
+<title>Hoot · Nieuws met een einde · Rustige nieuwslezer</title>
+<meta name="description" content="{{BESCHRIJVING}}">
 <link rel="canonical" href="https://gethoot.app/">
 <meta name="theme-color" content="#9A3324">
 <meta name="color-scheme" content="light dark">{{APPSTORE_META}}
@@ -18,27 +18,28 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Hoot. Nieuws met een einde. Een telefoon waar de zon achter opkomt, op een rood vlak.">
+<meta property="og:image:alt" content="Hoot. Nieuws met een einde. Naast de kop de rode kaart uit de app: Je bent bij.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Hoot · Nieuws met een einde">
 <meta name="twitter:description" content="Jouw nieuws, rustig bij elkaar. Drie keer per dag tien verhalen. Dan ben je bij.">
 <meta name="twitter:image" content="https://gethoot.app/img/og.png">
-<meta name="twitter:image:alt" content="Hoot. Nieuws met een einde. Een telefoon waar de zon achter opkomt, op een rood vlak.">
+<meta name="twitter:image:alt" content="Hoot. Nieuws met een einde. Naast de kop de rode kaart uit de app: Je bent bij.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/fonts/newsreader-800.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/newsreader-tekst.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/schibsted.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/api/voorpagina" as="fetch" crossorigin>
 <link rel="stylesheet" href="/assets/{{CSSFILE}}">
 <script>{{INLINE}}</script>
-<script src="/assets/{{JSFILE}}"></script>
+<script>{{PALET}}</script>
+<script src="/assets/{{JSFILE}}" defer></script>
+<script type="application/ld+json">{{JSONLD}}</script>
 </head>
 <body>
 <svg class="sym" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <symbol id="wm" viewBox="0 0 239.45 73.5"><path d="{{WM_D}}"/><circle class="wm-d" fill="var(--wm-dot,currentColor)" cx="231.75" cy="65.8" r="7.7"/></symbol>
   <symbol id="mark" viewBox="0 0 82.15 72"><path d="{{MARK_D}}"/><circle class="wm-d" fill="var(--wm-dot,currentColor)" cx="74.45" cy="64.3" r="7.7"/></symbol>
-  <symbol id="i-tand" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
   <symbol id="i-bm" viewBox="0 0 14 18"><path d="M1.5 1.5h11v15L7 12.5l-5.5 4z"/></symbol>
   <symbol id="i-pijl" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="i-neer" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
@@ -52,101 +53,101 @@
 
 <header class="top rood">
   <div class="top-in">
-    <a class="merk" href="/" aria-label="Hoot, naar de top"><svg class="wm" viewBox="0 0 239.45 73.5" aria-hidden="true"><use href="#wm"/></svg></a>
+    <a class="merk" href="/" aria-label="Hoot, naar boven"><svg class="wm" viewBox="0 0 239.45 73.5" aria-hidden="true"><use href="#wm"/></svg></a>
   </div>
 </header>
 
 <main id="inhoud">
 
-<!-- held: het toestel komt uit de onderrand op, de grote zon met ringen staat ernaast op dezelfde horizon en zit voor een derde achter het toestel -->
+<!-- held: de Editie van nu (richting 1, besluit Alex 13 november). Het toestel en de regel erboven zijn één link naar /lees/ -->
 <section class="band rood held" aria-labelledby="h-held">
   <div class="binnen">
     <div class="tekst">
-      <p class="kicker">Voor iPhone, iPad en Web</p>
+      <p class="kicker">Nieuwslezer voor iPhone, iPad en web</p>
       <h1 id="h-held"><span class="rgl">Nieuws</span> <span class="rgl">met een</span> <span class="rgl">einde<span class="punt">.</span></span></h1>
-      <p class="lead">Jouw bronnen, jouw interesses. Drie keer per dag tien verhalen. Dan ben je bij.</p>
+      <p class="lead">Jij kiest de bronnen. Hoot kiest er drie keer per dag tien verhalen uit. Dan ben je bij.</p>
       <div class="actie">
+        <a class="knop" href="/lees/" data-tel="web:held"><span class="t-web">Lees Hoot in je browser</span><span class="t-ios">Of lees in je browser</span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
         {{APPSTORE_HELD}}
-        <a class="knop" href="/lees/">Probeer Hoot op het web<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
       </div>
       <p class="gratis">Gratis, met of zonder account.<br>Geen advertenties. Hoot volgt je niet.</p>
+      {{APPSTORE_OOK}}
     </div>
     <div class="scene sc-held">
       <div class="zonplek zp-held" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="rg rg3"></i><i class="rg rg2"></i><i class="rg rg1"></i><i class="zon"></i></div></div></div>
-      <figure class="toestel js-held-toestel" aria-label="{{BW_HELD_LABEL}}">
-        <div class="scherm" aria-hidden="true"><div class="sc-in">
-          <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
-          <div class="sc-titel"><span class="js-editie" data-vast>{{BW_SLOT}}</span></div>
-          <div class="sc-sub js-datum" data-vast>{{BW_DAG}}</div>
-          <div class="k-regel"></div>
-          <div class="k-lead js-held-lead"><svg class="k-beeld" viewBox="0 0 320 160" preserveAspectRatio="xMidYMid slice"><use href="#il-a"/></svg>{{BW_HELD}}</div>
-        </div></div>
-      </figure>
+      <a class="nu js-held-link" href="/lees/" data-tel="web:toestel" aria-label="{{BW_HELD_LABEL}}">
+        <span class="nu-regel" aria-hidden="true"><span class="js-nu">{{BW_NU}}</span> <u>Lees verder<svg viewBox="0 0 24 24"><use href="#i-pijl"/></svg></u></span>
+        <div class="toestel js-held-toestel" aria-hidden="true">
+          <div class="scherm"><div class="sc-in">
+            <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
+            <div class="sc-titel"><span class="js-editie" data-vast>{{BW_SLOT}}</span></div>
+            <div class="sc-sub js-datum" data-vast data-iso="{{BW_DATUM}}">{{BW_DAG}}</div>
+            <div class="k-regel"></div>
+            <div class="k-lead js-held-lead"><svg class="k-beeld" viewBox="0 0 320 160" preserveAspectRatio="xMidYMid slice"><use href="#il-a"/></svg>{{BW_HELD}}</div>
+          </div></div>
+        </div>
+      </a>
     </div>
   </div>
 </section>
 
-<section class="band papier voordelen" aria-labelledby="h-voordelen">
+<!-- bronnen: het bewijs onder de held. Alleen tekst, alleen bronnen uit de catalogus; het getal komt uit SOURCES -->
+<section class="band papier bronnen" aria-labelledby="h-bronnen">
   <div class="binnen kol">
-    <h2 id="h-voordelen">Jouw nieuws, rustig bij elkaar<span class="punt">.</span></h2>
-    <ul class="voordeel-lijst">
-      <li><h3><span>Een Editie</span> <span>die je uitleest.</span></h3><p>Tien verhalen, drie keer per dag.</p></li>
-      <li><h3><span>Alles wat je volgt,</span> <span>in de Stroom.</span></h3><p>Al het nieuws uit jouw bronnen, met opinie apart.</p></li>
-      <li><h3><span>Elke maandag</span> <span>de Selectie.</span></h3><p>Het beste van de week, per onderwerp.</p></li>
-      <li><h3><span>Meer kanten</span> <span>van één verhaal.</span></h3><p>Vergelijk hoe verschillende bronnen hetzelfde nieuws brengen.</p></li>
-    </ul>
+    <h2 id="h-bronnen">Jouw nieuws, rustig bij elkaar<span class="punt">.</span></h2>
+    <p class="bronregel">Van NOS, NRC en de Volkskrant tot regionale kranten, De Standaard en The Guardian. {{BRONNEN_RUIM}} bronnen, jij kiest.</p>
   </div>
 </section>
 
-<!-- 01 Editie: de gang van de zon over de dag, de telefoon leest de Editie uit tot "Je bent bij.". Zoals 1.1.0: genummerd 01–10, de bubbel apart erna, zonder nummer -->
-<section class="band wit editie" id="editie" aria-labelledby="h-editie">
+<!-- 01 Editie: de telefoon rolt bij binnenkomst naar "Je bent bij." en blijft daar staan. De knoppen spelen hun dagdeel één keer -->
+<section class="band wit editie" id="editie" aria-labelledby="lb-editie h-editie">
   <div class="binnen om">
     <div class="tekst">
-      <p class="label"><span class="nr">01</span> Editie</p>
-      <h2 id="h-editie">Dan ben je bij<span class="punt">.</span></h2>
-      <p class="lead">In de ochtend, de middag en de vroege avond staat er een Editie voor je klaar.</p>
+      <p class="label" id="lb-editie"><span class="nr">01</span>Editie</p>
+      <h2 id="h-editie"><span class="rgl">Tien verhalen.</span> <span class="rgl">Dan ben je bij<span class="punt">.</span></span></h2>
+      <p class="lead">In de ochtend, de middag en de vroege avond staat er een Editie voor je klaar. Daarna is de dag weer van jou.</p>
       <div class="dagen" role="group" aria-label="Kies een dagdeel">
         <svg class="boog" viewBox="0 0 380 136" preserveAspectRatio="none" aria-hidden="true"><path d="M45.6 84Q190-24 334.4 84"/><line x1="0" x2="380" y1="104" y2="104"/></svg>
         <i class="dagzon" aria-hidden="true"></i>
-        <button type="button" class="dag" data-dag="ochtend" aria-pressed="true"><span>Ochtend</span></button>
+        <button type="button" class="dag" data-dag="ochtend" aria-pressed="false"><span>Ochtend</span></button>
         <button type="button" class="dag" data-dag="middag" aria-pressed="false"><span>Middag</span></button>
         <button type="button" class="dag" data-dag="avond" aria-pressed="false"><span>Avond</span></button>
       </div>
+      <p class="verder"><a href="/lees/" data-tel="web:editie">Lees de Editie van nu<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a></p>
     </div>
-    <div id="demo-editie" data-motion="Editie" class="scene sc-editie">
-      <figure class="toestel" aria-label="De Editie op iPhone: tien verhalen, één buiten je bubbel en aan het eind ‘Je bent bij.’">
+    <div id="demo-editie" class="scene sc-editie" data-slot="{{BW_SLOT_ID}}">
+      <figure class="toestel" role="img" aria-label="De Editie op iPhone: tien verhalen, één buiten je bubbel en aan het eind ‘Je bent bij.’">
         <div class="scherm" aria-hidden="true"><div class="sc-in"><div class="sc-rol">
           <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
-          <div class="sc-titel"><span class="js-editie">Ochtendeditie</span></div>
-          
+          <div class="sc-titel"><span class="js-editie">{{BW_SLOT}}</span></div>
           <div class="k-regel"></div>
           <div class="k-lead"><svg class="k-beeld" viewBox="0 0 320 160" preserveAspectRatio="xMidYMid slice"><use href="#il-c"/></svg>{{BW_ED_LEAD}}</div>
           <div class="k-regel"></div>
           <div class="k">{{BW_ED_TWEE}}</div>
           <ol class="sc-rest">{{BW_ED_REST}}</ol>
           {{BW_ED_BUBBEL}}
-          <div class="sc-blok"><svg viewBox="0 0 82.15 72"><use href="#mark"/></svg><strong>Je bent bij.</strong><p>Dit was de <span class="js-editie">Ochtendeditie</span>. De volgende staat <span class="js-volgende">vanmiddag</span> voor je klaar.</p></div>
+          <div class="sc-blok"><svg viewBox="0 0 82.15 72"><use href="#mark"/></svg><strong>Je bent bij.</strong><p>Dit was de <span class="js-editie">{{BW_SLOT}}</span>. De volgende staat <span class="js-volgende">{{BW_VOLGENDE}}</span> voor je klaar.</p></div>
         </div></div></div>
       </figure>
     </div>
   </div>
 </section>
 
-<!-- 02 Stroom: de rubrieken wisselen in de app zelf. Op papier, met de rode zon als enige accent (minder rood, 4-11); de banden erna wisselen wit en papier af -->
-<section class="band papier stroom" id="stroom" aria-labelledby="h-stroom">
+<!-- 02 Stroom: de rubrieken wisselen één ronde, dan staat het stil. Op papier, met de rode zon als enige accent -->
+<section class="band papier stroom" id="stroom" aria-labelledby="lb-stroom h-stroom">
   <div class="binnen">
     <div class="tekst">
-      <p class="label"><span class="nr">02</span> Stroom</p>
-      <h2 id="h-stroom">Al je bronnen, één Stroom<span class="punt">.</span></h2>
-      <p class="lead">Tussendoor het laatste uit je bronnen, nieuwste eerst.</p>
+      <p class="label" id="lb-stroom"><span class="nr">02</span>Stroom</p>
+      <h2 id="h-stroom"><span class="rgl">Hier was je</span> <span class="rgl">gebleven<span class="punt">.</span></span></h2>
+      <p class="lead">De Stroom zet al je bronnen onder elkaar, nieuwste eerst, en onthoudt waar je was.</p>
     </div>
-    <div id="demo-stroom" data-motion="Stroom" class="scene sc-stroom" data-scene>
+    <div id="demo-stroom" class="scene sc-stroom" data-scene>
       <div class="zonplek zp-stroom" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="zon"></i></div></div><i class="water"></i><i class="water w2"></i></div>
-      <figure class="toestel" aria-label="De Stroom op iPhone: het laatste uit je bronnen, per rubriek, met de regel ‘Hier was je gebleven’">
+      <figure class="toestel" role="img" aria-label="De Stroom op iPhone: het laatste uit je bronnen, per rubriek en met opinie apart, met de regel ‘Hier was je gebleven’">
         <div class="scherm" aria-hidden="true"><div class="sc-in">
           <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
           <div class="sc-titel sc-titel--klein">Stroom</div>
-          <div class="sc-tabrij"><span data-m="alles" class="on">Alles</span><span data-m="binnenland">Binnenland</span><span data-m="wereld">Wereld</span><span data-m="cultuur">Cultuur</span><i class="sc-ind"></i></div>
+          <div class="sc-tabrij"><span data-m="alles" class="on">Alles</span><span data-m="binnenland">Binnenland</span><span data-m="wereld">Wereld</span><span data-m="cultuur">Cultuur</span><span data-m="opinie">Opinie</span><i class="sc-ind"></i></div>
           {{PANELEN}}
         </div></div>
       </figure>
@@ -155,16 +156,16 @@
 </section>
 
 <!-- 03 Selectie: zoals 1.1.0 (Selectie-index B), de inhoud bovenaan -->
-<section class="band wit selectie" id="selectie" aria-labelledby="h-selectie">
+<section class="band wit selectie" id="selectie" aria-labelledby="lb-selectie h-selectie">
   <div class="binnen om">
     <div class="tekst">
-      <p class="label"><span class="nr">03</span> Selectie</p>
-      <h2 id="h-selectie">Het beste van de week<span class="punt">.</span></h2>
-      <p class="lead">Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.</p>
+      <p class="label" id="lb-selectie"><span class="nr">03</span>Selectie</p>
+      <h2 id="h-selectie"><span class="rgl">Bijgepraat</span> <span class="rgl">op maandag<span class="punt">.</span></span></h2>
+      <p class="lead">Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over. Niets gesponsord.</p>
     </div>
-    <div id="demo-selectie" data-motion="Selectie" class="scene sc-selectie" data-scene>
+    <div id="demo-selectie" class="scene sc-selectie" data-scene>
       <div class="zonplek zp-ring" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="rg rg3"></i><i class="rg rg2"></i><i class="rg rg1"></i><i class="zon"></i></div></div></div>
-      <figure class="toestel" aria-label="{{BW_SEL_LABEL}}">
+      <figure class="toestel" role="img" aria-label="{{BW_SEL_LABEL}}">
         <div class="scherm" aria-hidden="true"><div class="sc-in">
           <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
           <div class="sc-titel">Selectie</div>
@@ -183,24 +184,23 @@
   </div>
 </section>
 
-<!-- 04 Hoot kiest: dezelfde Editie op een staande iPad (genummerd, de bubbel als laatste), de waarom-regels ernaast; op mobiel (tot 720) op een telefoon, de regels met lijntjes ernaast -->
-<section class="band papier redacteur" id="redacteur" aria-labelledby="h-red">
+<!-- 04 Hoot kiest: dezelfde Editie op een staande iPad (genummerd, de bubbel als laatste), de waarom-regels ernaast; op tablet als lijst, op mobiel een telefoon -->
+<section class="band papier redacteur" id="redacteur" aria-labelledby="lb-red h-red">
   <div class="binnen kol rd-kop">
-    <p class="label"><span class="nr">04</span> Hoot kiest</p>
+    <p class="label" id="lb-red"><span class="nr">04</span>Hoot kiest</p>
     <h2 id="h-red">Hoot kiest elke Editie<span class="punt">.</span></h2>
-    <p class="lead">Bij elk verhaal zie je waarom.</p>
+    <p class="lead">Uit jouw bronnen. Bij elk verhaal zie je waarom, bij groot nieuws ook hoe elke bron het brengt.</p>
   </div>
 
   <div class="podium" data-live data-n="{{BW_RD_N}}" data-bubbel="{{BW_RD_BUBBEL}}">
     <ul class="uitleg">
       {{BW_RD_UITLEG}}
     </ul>
-    <figure class="toestel ipad" aria-label="De Editie op iPad, met bij elk verhaal de reden waarom het erin staat">
+    <figure class="toestel ipad" role="img" aria-label="De Editie op iPad, met bij elk verhaal de reden waarom het erin staat">
       <div class="scherm" aria-hidden="true"><div class="sc-in">
         <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
         <div class="sc-titel"><span class="js-rd-editie" data-vast>{{BW_SLOT}}</span></div>
-        <div class="sc-sub" data-vast>{{BW_DAG}}</div>
-        
+        <div class="sc-sub js-datum" data-vast data-iso="{{BW_DATUM}}">{{BW_DAG}}</div>
         <div class="k-regel"></div>
         <div class="ip-top"><svg class="k-beeld" viewBox="0 0 320 160" preserveAspectRatio="xMidYMid slice"><use href="#il-a"/></svg>{{BW_RD_IPAD_TOP}}</div>
         <div class="k-regel"></div>
@@ -209,45 +209,27 @@
         </div>
       </div></div>
     </figure>
-    <figure class="toestel rd-tel" aria-label="De Editie op iPhone, met bij elk verhaal de reden waarom het erin staat">
+    <figure class="toestel rd-tel" role="img" aria-label="De Editie op iPhone, met bij elk verhaal de reden waarom het erin staat">
       <div class="scherm" aria-hidden="true"><div class="sc-in">
         <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg></div>
         <div class="sc-titel"><span class="js-rd-editie" data-vast>{{BW_SLOT}}</span></div>
-        <div class="sc-sub" data-vast>{{BW_DAG}}</div>
-        
+        <div class="sc-sub js-datum" data-vast data-iso="{{BW_DATUM}}">{{BW_DAG}}</div>
         <div class="k-regel"></div>
         {{BW_RD_TEL}}
       </div></div>
     </figure>
   </div>
+  <div class="binnen kol rd-verder">
+    <p class="verder"><a href="/lees/" data-tel="web:kiest">Lees de Editie van nu<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a></p>
+  </div>
 </section>
 
-<!-- Kleine FAQ: praktische vragen vóór de laatste webactie. -->
+<!-- Goed om te weten: zeven vragen (landing/vragen.mjs, ook in het JSON-LD). Native details: aanraking, toetsenbord en schermlezer -->
 <section class="band wit faq" id="vragen" aria-labelledby="h-vragen">
   <div class="binnen kol">
-    <h2 id="h-vragen">Veelgestelde vragen<span class="punt">.</span></h2>
+    <h2 id="h-vragen">Goed om te weten<span class="punt">.</span></h2>
     <div class="faq-lijst">
-      <details>
-        <summary>Is Hoot gratis?</summary>
-        <p>Ja. Je kunt meteen lezen, zonder account. Wil je je bronnen en Bewaard op al je toestellen? Maak dan gratis een account.</p>
-      </details>
-      <details>
-        <summary>Heb ik een account nodig?</summary>
-        <p>Nee. Je kunt meteen lezen. Met een gratis account heb je je bronnen en Bewaard op al je toestellen.</p>
-      </details>
-      <details>
-        <summary>Kan ik ook betaalde artikelen lezen?</summary>
-        <p>Voor betaalde artikelen gebruik je je eigen abonnement bij de uitgever. Hoot geeft geen extra toegang tot artikelen achter een betaalmuur.</p>
-      </details>
-      <details>
-        <summary>Wat is het verschil tussen Editie, Stroom en Selectie?</summary>
-        <p>De Editie verschijnt in de ochtend, de middag en de vroege avond en heeft een duidelijk einde. In de Stroom lees je tussendoor het laatste uit je bronnen. De Selectie brengt elke maandagochtend de beste stukken van de afgelopen week, per onderwerp.</p>
-      </details>
-      {{APPSTORE_VRAAG}}
-      <details>
-        <summary>Wat betekent ‘Vergelijk bronnen’?</summary>
-        <p>Hoot brengt artikelen over dezelfde gebeurtenis bij elkaar. Via ‘Vergelijk bronnen’ bekijk je hoe verschillende uitgevers erover schrijven en kies je welk bericht je wilt lezen.</p>
-      </details>
+      {{VRAGEN}}
     </div>
   </div>
 </section>
@@ -256,9 +238,10 @@
 <section class="band rood einde" aria-labelledby="h-einde">
   <div class="binnen kol mid">
     <h2 id="h-einde">Je weet genoeg<span class="punt bal"><span class="bal-i">.</span></span></h2>
-    <p class="lead">{{APPSTORE_LEAD}}</p>
+    <p class="lead">De Editie van nu staat voor je klaar.</p>
     <div class="actie mid">
-      <a class="knop" href="/lees/">Probeer Hoot op het web<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
+      <a class="knop" href="/lees/" data-tel="web:slot"><span class="t-web">Lees Hoot in je browser</span><span class="t-ios">Of lees in je browser</span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
+      {{APPSTORE_SLOT}}
     </div>
     <p class="gratis">{{APPSTORE_EINDE}}</p>
     <div class="vel" aria-hidden="true"><i class="vel-zon"></i><i class="vel-hor"></i><i class="vel-r1"></i><i class="vel-r2"></i></div>
@@ -268,8 +251,8 @@
 
 <footer class="voet rood">
   <div class="voet-in">
-    <a class="merk" href="/" aria-label="Hoot, naar de top"><svg class="wm" viewBox="0 0 239.45 73.5" aria-hidden="true"><use href="#wm"/></svg></a>
-    <nav aria-label="Voet"><a href="/over">Over</a><a href="/privacy">Privacy</a><a href="mailto:info@gethoot.app">info@gethoot.app</a><a href="https://www.instagram.com/gethoot.app/" rel="noopener" aria-label="Hoot op Instagram"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a></nav>
+    <a class="merk" href="/" aria-label="Hoot, naar boven"><svg class="wm" viewBox="0 0 239.45 73.5" aria-hidden="true"><use href="#wm"/></svg></a>
+    <nav aria-label="Voet"><a href="/over">Over</a><a href="/privacy">Privacy</a><a href="mailto:info@gethoot.app">info@gethoot.app</a><a class="ig" href="https://www.instagram.com/gethoot.app/" rel="noopener" aria-label="Hoot op Instagram"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a></nav>
     <p>Gemaakt door <a href="https://baldadig.nl" rel="noopener">Baldadig</a>, in Nederland.</p>
   </div>
 </footer>

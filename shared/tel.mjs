@@ -23,15 +23,39 @@ export const KEYS = ['e', 'd', 'p', 'v', 'n']
 export const NIEUWE_TELLERS = true
 
 // Herkomst: ?via=<label> op de landing en /lees. Alleen deze labels; al het andere telt als 'via:anders'.
-export const VIA_LABELS = ['ig', 'x', 'bsky', 'mail', 'nb', 'qr']
+// ad: advertenties, deel: de gedeelde kaart (/deel/<id>), as: links vanaf de App Store-pagina (review 13 november).
+export const VIA_LABELS = ['ig', 'x', 'bsky', 'mail', 'nb', 'qr', 'ad', 'deel', 'as']
 export const VIA_ANDERS = 'anders'
 export const VIA_EVENTS = [...VIA_LABELS, VIA_ANDERS].map((l) => `via:${l}`)
 // De stappen van het eerste welkom op het web, als totalen (geen trechter per persoon).
 export const WELKOM_STAPPEN = ['welkom-open', 'bronnen-gekozen', 'liever-meteen-lezen', 'eerste-editie']
 export const APPSTORE_TIK = 'appstore-tik'
-export const NIEUW = [...VIA_EVENTS, APPSTORE_TIK, ...WELKOM_STAPPEN]
-// Ook deze tellen één keer per dagdeel per browser (herkomst en welkom); de App Store-tik elke keer.
-export const NIEUW_ONCE = [...VIA_EVENTS, ...WELKOM_STAPPEN]
+// De landing (review 13 november, aanbeveling 3): de noemer en waar op de pagina getikt wordt. Alleen deze plekken.
+//   landing-open   de landing geopend, één keer per dagdeel per browser (de noemer)
+//   web-tik:<plek> een tik op een link naar /lees/: de knop in de held, het toestel in de held, onder 01 Editie,
+//                  onder 04 Hoot kiest, de knop in het slot
+//   appstore-tik:<plek> een tik op een App Store-link: de pil in de held, de pil of regel in het slot, de vraag
+//   vraag-open     een vraag opengeklapt, één keer per dagdeel per browser (wie twijfelt en zoekt)
+// 'appstore-tik' zonder plek blijft geldig: een oude, gecachete pagina stuurt hem nog.
+export const LANDING_OPEN = 'landing-open'
+export const VRAAG_OPEN = 'vraag-open'
+export const WEB_PLEKKEN = ['held', 'toestel', 'editie', 'kiest', 'slot']
+export const APPSTORE_PLEKKEN = ['held', 'slot', 'vraag']
+export const WEB_TIK_EVENTS = WEB_PLEKKEN.map((p) => `web-tik:${p}`)
+export const APPSTORE_PLEK_EVENTS = APPSTORE_PLEKKEN.map((p) => `${APPSTORE_TIK}:${p}`)
+export const LANDING = [LANDING_OPEN, ...WEB_TIK_EVENTS, ...APPSTORE_PLEK_EVENTS, VRAAG_OPEN]
+export const NIEUW = [...VIA_EVENTS, APPSTORE_TIK, ...WELKOM_STAPPEN, ...LANDING]
+// Ook deze tellen één keer per dagdeel per browser (herkomst, welkom, het openen van de landing en een vraag);
+// de tikken elke keer.
+export const NIEUW_ONCE = [...VIA_EVENTS, ...WELKOM_STAPPEN, LANDING_OPEN, VRAAG_OPEN]
+
+// data-tel op de landing ('web:held', 'as:slot') naar de gebeurtenis; onbekend: null.
+export function tikEvent(code) {
+  const m = /^(web|as):([a-z]+)$/.exec(String(code || ''))
+  if (!m) return null
+  const e = m[1] === 'web' ? `web-tik:${m[2]}` : `${APPSTORE_TIK}:${m[2]}`
+  return LANDING.includes(e) ? e : null
+}
 
 // Alle gebeurtenissen die nu meetellen: de zeven vaste, plus de nieuwe als de vlag aan staat.
 export const eventsFor = (nieuw = NIEUWE_TELLERS) => (nieuw ? [...EVENTS, ...NIEUW] : EVENTS)

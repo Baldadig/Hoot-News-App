@@ -71,10 +71,11 @@ test('geen uitnodigingspaden of -teksten meer op het web', () => {
 })
 
 test('landing: de FAQ zegt dat een account voor iedereen is', () => {
-  const html = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8')
+  // sinds de review van 13 november staan de vragen in landing/vragen.mjs; het account zit in "Is Hoot gratis?"
+  const html = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8') + readFileSync(new URL('../landing/vragen.mjs', import.meta.url), 'utf8')
   assert.doesNotMatch(html, /op uitnodiging/)
-  assert.match(html, /Wil je je bronnen en Bewaard op al je toestellen\? Maak dan gratis een account\./)
-  assert.match(html, /<summary>Heb ik een account nodig\?<\/summary>/)
+  assert.match(html, /Met een gratis account staan je bronnen en je bewaarde artikelen op al je toestellen\./)
+  assert.match(html, /'Is Hoot gratis\?'/)
 })
 
 // Keuze r5-einde-rust (5 november): de vraag komt pas ná het einde van de Editie en schuift nooit over

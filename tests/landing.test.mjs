@@ -2,8 +2,10 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { INLINE } from '../landing/inline.mjs'
-import { appStore, APP_URL } from '../landing/appstore.mjs'
+import { appStore, APP_URL, PT, appUrl } from '../landing/appstore.mjs'
 import { vulBewaard, fragmenten, redenen } from '../landing/bewaard.mjs'
+import { vragen, vragenHtml, jsonld, ruim, AI_STAP } from '../landing/vragen.mjs'
+import { SOURCES } from '../netlify/lib/sources.mjs'
 
 // Voert het inline script van de landing uit met een nagebootste adresbalk; geeft het doel of null.
 const run = (search, hash) => {
@@ -29,26 +31,37 @@ const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 
 // Alleen de zichtbare tekst en de attributen die voorgelezen of gedeeld worden; geen opmaak.
 // De pagina zoals build.mjs hem vult, met de App Store-plekken uit of aan.
 const BEWAARD = JSON.parse(readFileSync(new URL('../landing/bewaard.json', import.meta.url), 'utf8'))
-const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+)\}\}/g, (_, k) => appStore(aan)[k])
-const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+const velden = (aan) => {
+  const as = appStore(aan), lijst = vragen({ aantal: SOURCES.length, appUrl: as.APP_URL_VRAAG })
+  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.' }
+}
+const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
+const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/ ([.,])/g, '$1')
 
-test('landing: overal dezelfde accountzin, en een eigen vraag over het account', () => {
+test('landing: overal dezelfde accountzin, en het account in de eerste vraag', () => {
   for (const aan of [false, true]) {
     const html = vul(aan)
     assert.doesNotMatch(html, /Gratis, zonder account|Geen account nodig|Gratis lezen\./)
-    // meta, held (desktop en, met de App Store-pil, ook mobiel) en slot
-    assert.ok((html.match(/Gratis, met of zonder account\./g) || []).length >= (aan ? 4 : 3))
+    // held en slot
+    assert.ok((html.match(/Gratis, met of zonder account\./g) || []).length >= 2)
   }
-  assert.match(SRC, /<summary>Heb ik een account nodig\?<\/summary>\s*<p>Nee\. Je kunt meteen lezen\. Met een gratis account heb je je bronnen en Bewaard op al je toestellen\.<\/p>/)
+  assert.match(vul(true), /<summary>Is Hoot gratis\?<\/summary>\s*<p>Ja\. Je leest meteen, zonder account\. Met een gratis account staan je bronnen en je bewaarde artikelen op al je toestellen\.<\/p>/)
 })
 
-test('landing: de drie delen gelijkwaardig in de voordelen en in de meta-omschrijving', () => {
-  const lijst = SRC.match(/<ul class="voordeel-lijst">([\s\S]*?)<\/ul>/)[1]
-  const koppen = tekst((lijst.match(/<h3>[\s\S]*?<\/h3>/g) || []).join(' '))
-  for (const deel of ['Editie', 'Stroom', 'Selectie']) assert.match(koppen, new RegExp(`\\b${deel}\\b`), deel)
-  assert.equal((lijst.match(/<li>/g) || []).length, 4)
-  const meta = SRC.match(/<meta name="description" content="([^"]+)"/)[1]
-  for (const deel of ['Editie', 'Stroom', 'Selectie']) assert.match(meta, new RegExp(deel), deel)
+test('review 13 november: de bronnenband noemt bronnen bij naam, het getal komt uit de catalogus', () => {
+  const t = tekst(vul(true))
+  assert.ok(t.includes('Jouw nieuws, rustig bij elkaar.'))
+  assert.ok(t.includes(`Van NOS, NRC en de Volkskrant tot regionale kranten, De Standaard en The Guardian. ${ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase())} bronnen, jij kiest.`))
+  for (const naam of ['NOS', 'NRC', 'de Volkskrant', 'De Standaard', 'The Guardian']) assert.ok(SOURCES.some((x) => x.name === naam), naam + ' staat in de catalogus')
+  assert.equal(ruim(84), 'ruim tachtig')
+  assert.equal(ruim(80), 'tachtig')
+  assert.equal(ruim(99), 'ruim negentig')
+  assert.equal(ruim(100), 'honderd')
+  assert.doesNotMatch(SRC, /voordeel-lijst/) // de vier voordelen zijn weg
+  assert.doesNotMatch(SRC, /<img/) // alleen tekst, geen logo's
+  const meta = vul(true).match(/<meta name="description" content="([^"]+)"/)[1]
+  assert.match(SRC, /<title>Hoot · Nieuws met een einde · Rustige nieuwslezer<\/title>/)
+  assert.ok(meta.length <= 160)
 })
 
 const BUILD = readFileSync(new URL('../landing/build.mjs', import.meta.url), 'utf8')
@@ -61,7 +74,9 @@ test('landing: de voorbeelden houden zich aan de huisregels', () => {
   }
   // De Stroom-tabs in de vaste volgorde van de app: Alles, dan de hoofdrubrieken.
   const tabs = [...SRC.match(/<div class="sc-tabrij">([\s\S]*?)<\/div>/)[1].matchAll(/data-m="\w+"[^>]*>([^<]+)</g)].map((m) => m[1])
-  assert.deepEqual(tabs, ['Alles', 'Binnenland', 'Wereld', 'Cultuur'])
+  assert.deepEqual(tabs, ['Alles', 'Binnenland', 'Wereld', 'Cultuur', 'Opinie']) // Opinie zoals in de app (server-tab na de rubrieken)
+  // de tabletter is een deelbestand met precies deze tekens
+  assert.match(readFileSync(new URL('../landing/letter.mjs', import.meta.url), 'utf8'), new RegExp(`TAB_TEKENS = '${tabs.join(' ')}'`))
   assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /var RUB = \['alles', 'binnenland', 'wereld', 'cultuur'\]/)
 })
 
@@ -81,48 +96,74 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie me
 })
 
 test('landing: de App Store staat klaar achter één regel in build.mjs', () => {
-  // Aan sinds de vrijgave van 1.1.0: de App Store-pagina is bereikbaar.
   assert.match(BUILD, /^const APP_STORE = true;$/m)
-  for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_LEAD', 'APPSTORE_EINDE', 'APPSTORE_VRAAG']) assert.ok(SRC.includes(`{{${k}}}`), k)
+  for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_SLOT', 'APPSTORE_OOK', 'APPSTORE_EINDE']) assert.ok(SRC.includes(`{{${k}}}`), k)
   const uit = vul(false), aan = vul(true)
   assert.doesNotMatch(uit, /apps\.apple\.com|apple-itunes-app/)
-  // Keuze r5-landing (5 november): tot de vrijgave geen pil, geen App Store-vraag en nergens "binnenkort".
   assert.doesNotMatch(uit, /binnenkort/i)
   assert.doesNotMatch(uit, /class="wacht/)
   assert.doesNotMatch(uit, /App Store/)
-  assert.match(uit, /<p class="kicker">Voor iPhone, iPad en Web<\/p>/)
-  assert.match(uit, /href="\/lees\/">Probeer Hoot op het web/)
+  assert.match(uit, /<p class="kicker">Nieuwslezer voor iPhone, iPad en web<\/p>/)
+  assert.match(uit, /href="\/lees\/" data-tel="web:held"><span class="t-web">Lees Hoot in je browser<\/span>/)
   assert.match(uit, /<p class="gratis">Gratis, met of zonder account\.<br>Geen advertenties\. Hoot volgt je niet\.<\/p>/)
-  assert.doesNotMatch(uit, /<details>\s*<\/details>/)
-  assert.match(aan, /<details>\s*<summary>Staat Hoot in de App Store\?<\/summary>/)
-  assert.match(aan, /<p class="wacht-gratis|<em class="wacht-gratis">/)
   assert.equal(APP_URL, 'https://apps.apple.com/nl/app/id6828037269')
   assert.match(aan, /<meta name="apple-itunes-app" content="app-id=6828037269">/)
-  assert.match(aan, new RegExp(`<a class="wacht" href="${APP_URL}">`))
-  assert.match(aan, new RegExp(`Ook in de <a href="${APP_URL}">App Store</a>\\.`))
-  assert.doesNotMatch(aan, /Binnenkort/)
-  // De hover-ring alleen op de link, niet op de pil die (nog) tekst is.
+  // de pil in de held en in het slot, met de plek voor de teller; zonder pt= blijft de link kaal (alleen ct= meet niets)
+  assert.match(aan, /<a class="wacht" href="[^"]+" data-tel="as:held">/)
+  assert.match(aan, /<a class="wacht" href="[^"]+" data-tel="as:slot">/)
+  if (!PT) assert.equal(appUrl('held'), APP_URL)
+  else assert.match(appUrl('held'), /\?pt=[^&]+&ct=landing-held/)
+  assert.match(aan, /<summary>Is er een app\?<\/summary>\s*<p>Ja, voor iPhone en iPad, in de <a href="[^"]+" data-tel="as:vraag">App Store<\/a>/)
+  assert.match(aan, /<span class="ook-tel">Ook voor iPhone en iPad\.<\/span>/)
+  // eigen pil zonder Apple-logo (Apple: "Don't use the standalone Apple logo"), en zonder het h.-merk
+  const pil = aan.match(/<a class="wacht"[\s\S]*?<\/a>/)[0]
+  assert.doesNotMatch(pil, /<svg|#mark/)
   const css = readFileSync(new URL('../landing/hoot.css', import.meta.url), 'utf8')
   assert.doesNotMatch(css, /(^|[^a])\.wacht:hover/)
   assert.match(css, /a\.wacht:hover\{box-shadow/)
+  assert.match(css, /\.wacht\{[^}]*min-height:52px;[^}]*border-radius:999px/)
 })
 
-test('landing: de kleine tekstronde uit de review', () => {
-  const t = tekst(vul(false))
+test('review 13 november: de nieuwe tekst uit deel 5', () => {
+  const t = tekst(vul(true))
   for (const zin of [
-    'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
-    'Hoot kiest elke Editie',
-    'Bij elk verhaal zie je waarom.',
-    'Lees mee in je browser.',
+    'Nieuwslezer voor iPhone, iPad en web',
+    'Jij kiest de bronnen. Hoot kiest er drie keer per dag tien verhalen uit. Dan ben je bij.',
+    'Lees Hoot in je browser',
+    'Tien verhalen. Dan ben je bij.',
+    'In de ochtend, de middag en de vroege avond staat er een Editie voor je klaar. Daarna is de dag weer van jou.',
+    'Hier was je gebleven.',
+    'De Stroom zet al je bronnen onder elkaar, nieuwste eerst, en onthoudt waar je was.',
+    'Bijgepraat op maandag.',
+    'Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over. Niets gesponsord.',
+    'Hoot kiest elke Editie.',
+    'Uit jouw bronnen. Bij elk verhaal zie je waarom, bij groot nieuws ook hoe elke bron het brengt.',
+    'Goed om te weten.',
+    'Je weet genoeg.',
+    'De Editie van nu staat voor je klaar.',
+    'Lees de Editie van nu',
   ]) assert.ok(t.includes(zin), zin)
-  assert.doesNotMatch(t, /Lees verder in de Stroom|Of lees verder|Ontdek Hoot|Lees je laat|Met een inhoud bovenaan|Hoot onthoudt waar je was|Tien verhalen, en één/)
-  // Meer kanten van één verhaal staat als vierde voordeel.
-  assert.match(SRC, /de Selectie\.<\/span><\/h3>.*\n.*Meer kanten/)
-  // Citaten in de aria-labels tussen ‘…’, en geen dubbele dubbele punt.
+  assert.equal((SRC.match(/Lees de Editie van nu/g) || []).length, 2) // onder 01 en onder 04, verder niet
+  assert.doesNotMatch(SRC, /href="\/lees\/#\/(stroom|selectie)/) // geen links die het welkom niet leveren
+  assert.doesNotMatch(t, /Probeer Hoot op het web|Veelgestelde vragen|Voor iPhone, iPad en Web/)
+  // zeven vragen, in dezelfde volgorde in de pagina en in het JSON-LD
+  const lijst = vragen({ aantal: SOURCES.length, appUrl: APP_URL })
+  assert.equal(lijst.length, 7)
+  assert.deepEqual([...vul(true).matchAll(/<summary>([^<]+)<\/summary>/g)].map((m) => m[1]), lijst.map((x) => x[0]))
+  const ld = JSON.parse(jsonld({ lijst, appUrl: APP_URL, beschrijving: 'x' }))
+  assert.deepEqual(ld['@graph'][1].mainEntity.map((q) => q.name), lijst.map((x) => x[0]))
+  assert.equal(ld['@graph'][0]['@type'], 'SoftwareApplication')
+  assert.doesNotMatch(jsonld({ lijst: [['<x', '</script>']], appUrl: '', beschrijving: '' }), /<\/script/i)
+  // de AI-stap alleen noemen als hij aan staat
+  assert.equal(/taalmodel/.test(lijst[4][1]), AI_STAP)
+  // citaten in de aria-labels tussen ‘…’, en geen dubbele dubbele punt
   const labels = [...SRC.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1])
   assert.ok(labels.some((l) => l.includes('‘Je bent bij.’')))
   assert.ok(labels.some((l) => l.includes('‘Hier was je gebleven’')))
   for (const l of labels) assert.ok((l.match(/:/g) || []).length <= 1, l)
+  // de toestellen zijn beelden voor de schermlezer, het label van een band hoort bij zijn kop
+  assert.equal((SRC.match(/<figure class="toestel[^"]*" role="img"/g) || []).length, 5)
+  for (const id of ['editie', 'stroom', 'selectie', 'red']) assert.match(SRC, new RegExp(`aria-labelledby="lb-${id} h-${id}"`), id)
 })
 
 test('landing: het deelbeeld is 1200 × 630', () => {
@@ -161,12 +202,12 @@ test('landing: grote koppen op rood eindigen met een punt in inkt; het logo blij
     const h = SRC.slice(SRC.indexOf(`id="${kop}"`), SRC.indexOf('</h', SRC.indexOf(`id="${kop}"`)))
     assert.match(h, /class="punt[ "]/, kop)
   }
-  assert.match(SRC, /<p class="kicker">Voor iPhone, iPad en Web<\/p>/)
+  assert.match(SRC, /<p class="kicker">Nieuwslezer voor iPhone, iPad en web<\/p>/)
   assert.match(CSS, /\.held \.kicker\{[^}]*text-transform:none/)
 })
 
 test('landing: lopende tekst in Schibsted Grotesk, de lead op desktop 20/30', () => {
-  for (const sel of ['.lead{', '.voordeel-lijst p{', '.faq details p{']) {
+  for (const sel of ['.lead{', '.bronregel{', '.faq details p{']) {
     const r = CSS.slice(CSS.indexOf(sel), CSS.indexOf('}', CSS.indexOf(sel)))
     assert.match(r, /font:var\(--fw-brood\) 1\.0625rem\/1\.5 var\(--tekst\)/, sel)
     assert.doesNotMatch(r, /--lees/, sel)
@@ -175,14 +216,16 @@ test('landing: lopende tekst in Schibsted Grotesk, de lead op desktop 20/30', ()
   assert.equal((CSS.match(/--fw-brood:430/g) || []).length, 3) // Nacht: media, data-theme en .donker
 })
 
-test('landing: huisregels in de FAQ (vroege avond, geen kloktijden)', () => {
-  assert.match(SRC, /in de ochtend, de middag en de vroege avond/)
-  assert.doesNotMatch(tekst(SRC), /middag en avond|\b\d{1,2}(:\d\d)? ?uur\b(?! geleden)/)
+test('landing: huisregels in de vragen (vroege avond, geen kloktijden, nooit "houdt op", geen gedachtestreepjes)', () => {
+  const t = tekst(vul(true))
+  assert.match(t, /in de ochtend, de middag en de vroege avond/i)
+  assert.doesNotMatch(t, /middag en avond|\b\d{1,2}(:\d\d)? ?uur\b(?! geleden)|houdt op| – | — /)
+  for (const w of ['Editie', 'Stroom', 'Selectie']) assert.doesNotMatch(t, new RegExp(`\\b(de|een) ${w.toLowerCase()}\\b`), w)
 })
 
 test('frisse ogen: de Stroom heeft een tab Opinie, dus de landing belooft geen nieuws "zonder de meningen eromheen"', () => {
   assert.doesNotMatch(SRC, /zonder de meningen/)
-  assert.match(SRC, /in de Stroom\.<\/span><\/h3><p>Al het nieuws uit jouw bronnen, met opinie apart\.<\/p>/)
+  assert.match(SRC, /<span data-m="opinie">Opinie<\/span>/)
 })
 
 // landing-live (audit punt 1): echte Editie, geen verzonnen kranten, de held zonder rubriek.
@@ -199,7 +242,7 @@ test('landing: geen verzonnen kranten; de voorbeelden komen uit een bewaarde, ec
 })
 
 test('landing: de held toont het hoofdverhaal zonder rubriek, alleen het nummer', () => {
-  const held = vul(true).match(/<div class="k-lead js-held-lead">([\s\S]*?)<\/figure>/)[1]
+  const held = vul(true).match(/<div class="k-lead js-held-lead">([\s\S]*?)<\/a>/)[1]
   assert.match(held, /<div class="k-kick k-kick--los"><span class="k-nr">01<\/span><\/div>/)
   for (const r of ['Binnenland', 'Wereld', 'Cultuur', 'Tech', 'Wetenschap']) assert.doesNotMatch(held.replace(/<div class="k-kop[^"]*">[^<]*<\/div>/, ''), new RegExp(r))
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
@@ -250,7 +293,8 @@ test('herstel 1 en 3: één beslisregel in hoot.js en bewaard.mjs; zonder bubbel
   for (const [ns, bub] of gevallen) { const x = redenen(ns, bub); if (x) assert.equal(new Set(x).size, 3) }
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
   assert.match(js, /redenen\(ns0, pod\.getAttribute\('data-bubbel'\) === 'ja'\)/) // de terugval kijkt of er een bubbel is
-  assert.match(js, /redenen\(ns, !!\(ed\.bubble && ed\.bubble\.title\)\)/) // live ook
+  assert.match(js, /redenen\(ns, !!bub\)/) // live ook
+  assert.match(js, /var bub = ed\.bubble && ed\.bubble\.title \? ed\.bubble : null/)
 })
 
 test('herstel 2: zonder Selectie een duidelijke melding in plaats van een TypeError; bewaar() houdt de vorige Selectie', () => {
@@ -267,4 +311,57 @@ test('klein: in Hoot kiest staat het aantal bronnen één keer, in de markering'
   const rd = vulBewaard(SRC, BEWAARD).match(/<div class="podium"[\s\S]*?<\/section>/)[0]
   assert.doesNotMatch(rd, /class="k-n"/)
   assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /if \(n >= 2 && !\$\('mark', it\)\)/)
+})
+
+// Review 13 november: het eerste scherm, de demo's, snelheid en zoekgegevens.
+const JS = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+import { PALET } from '../landing/inline.mjs'
+test('review 13 november: de held is de Editie van nu, aantikbaar, met een wissel van 1,5 s', () => {
+  assert.match(SRC, /<a class="nu js-held-link" href="\/lees\/" data-tel="web:toestel"/)
+  assert.match(fragmenten(BEWAARD).BW_NU, /^De (Ochtend|Middag|Avond)editie\.$/) // terugval: zonder "van nu"
+  assert.match(JS, /'De ' \+ slot \+ \(vannu \? ' van nu\.' : '\.'\)/) // live: de naam uit edition.slot
+  assert.match(JS, /setTimeout\(function \(\) \{ if \(ac\) ac\.abort\(\); \}, 1500\)/)
+  assert.match(CSS, /\.held \.k-kop--lead\{min-height:3\.6em\}/)
+  assert.match(CSS, /\.js-held-lead,\.podium \.toestel,\.podium \.uitleg\{transition:opacity \.2s ease\}/)
+  assert.match(SRC, /<link rel="preload" href="\/api\/voorpagina" as="fetch" crossorigin>/)
+})
+test('review 13 november: de bubbel over hetzelfde als plek 01 houdt Hoot kiest bewaard', () => {
+  const overlap = new Function(JS.slice(JS.indexOf('function woorden('), JS.indexOf('window.hootOverlap')) + '; return overlap;')()
+  assert.equal(overlap('Belastingplan aangenomen, en nu is de vraag wat de VVD gaat doen', 'Kamer stemt na maanden gesteggel in met vermogenswinstbelasting in box 3'), true)
+  assert.equal(overlap('Belastingplan aangenomen', 'Bij Fontaines D.C. in de AFAS Dome kreeg de existentiële crisis een catwalk'), false)
+  assert.match(JS, /var kiesLive = !!rd && !\(bub && overlap\(bub\.title, en\[0\]\.title\)\)/)
+})
+test("review 13 november: de demo's spelen één keer, zonder lus en zonder onzichtbare pauzeknop", () => {
+  assert.doesNotMatch(JS, /setAttribute\('role', 'button'\)|pointerenter|herhaal/)
+  assert.doesNotMatch(SRC, /data-motion=/)
+  assert.match(JS, /rolNaar\(bij08\(\), afstand\(\), 1600/) // bij binnenkomst van regel 08 naar de rode kaart
+  assert.match(CSS, /\.sc-rest li\{-webkit-mask:linear-gradient\(90deg,#000 calc\(100% - 2em\),transparent\)/)
+  const editie = vul(true).slice(vul(true).indexOf('id="demo-editie"'), vul(true).indexOf('<!-- 02 Stroom'))
+  assert.doesNotMatch(editie, /<small>/) // geen datum in de bronregels van de demo
+})
+test('review 13 november: snelheid (palet inline, script met defer, deelletter) en zoekgegevens', () => {
+  assert.match(SRC, /<script>\{\{PALET\}\}<\/script>/)
+  assert.match(SRC, /<script src="\/assets\/\{\{JSFILE\}\}" defer><\/script>/)
+  assert.doesNotMatch(SRC, /newsreader-tekst/)
+  assert.match(BUILD, /script-src 'self' '\$\{HASH\}' '\$\{HASH_PALET\}'/)
+  new Function(PALET) // geldig script
+  assert.match(PALET, /'#675B4A'/) // vroege avond: derde tekstkleur 5,26 op papier
+  assert.doesNotMatch(PALET, /#6F6250/)
+  assert.match(SRC, /<script type="application\/ld\+json">\{\{JSONLD\}\}<\/script>/)
+})
+test('review 13 november: één kopschaal en knoppen uit één familie', () => {
+  assert.match(CSS, /h1\{font-size:clamp\(2\.75rem,1\.6rem \+ 5\.2vw,7rem\)\}/)
+  assert.match(CSS, /h2\{font-size:clamp\(2\.25rem,9\.6vw,4rem\)\}/)
+  assert.match(CSS, /\.bronnen h2,\.faq h2\{font-size:clamp\(1\.875rem,3\.3vw,2\.5rem\)/)
+  assert.match(CSS, /\.einde h2\{font-size:clamp\(2\.5rem,12vw,9rem\)/)
+  assert.doesNotMatch(CSS, /\.held h1\{font-size/)
+  assert.doesNotMatch(CSS, /letter-spacing:\.(06|08|09|1)em/) // één spatiëring voor kapitalen
+  assert.match(CSS, /--kap:\.08em/)
+})
+test('review 13 november: de gedeelde kaart zegt waar hij vandaan komt, met herkomst deel', async () => {
+  const { handleSharePage } = await import('../netlify/functions/deel.mjs')
+  const r = await handleSharePage(new Request('https://gethoot.app/deel/abc'), { find: async () => ({ title: 'Een kop', url: 'https://nos.nl/a', section: 'Binnenland', source: 'NOS' }) })
+  const html = await r.text()
+  assert.match(html, /<a href="\/\?via=deel">Gedeeld vanuit Hoot\.<\/a> Tien verhalen, drie keer per dag\. Dan ben je bij\./)
+  assert.match(html, /<a href="\/\?via=deel"><b>hoot\.<\/b><\/a>/)
 })
