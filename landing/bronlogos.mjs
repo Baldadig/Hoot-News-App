@@ -1,4 +1,4 @@
-// Ververst de logo's van de bronnen voor het bronnenblok van de landing (landing/bronnen/<id>.webp, 128 px).
+// Ververst de logo's van de bronnen voor het bronnenblok van de landing (landing/bronnen/<id>.webp, 192 px: scherp tot 64 px op een scherm met drie beeldpunten per punt).
 // Het zijn dezelfde avatars die de app bij elke bron toont (feed.sources[].avatar). Alleen GET, niets naar de server.
 // Gebruik: node landing/bronlogos.mjs            haalt https://gethoot.app/api/feed op
 //          node landing/bronlogos.mjs feed.json  werkt met een bewaarde feed
@@ -14,15 +14,27 @@ const feed = process.argv[2] ? JSON.parse(fs.readFileSync(process.argv[2], 'utf8
 const bekend = new Set(SOURCES.map((s) => s.id))
 const lijst = (feed.sources || []).filter((s) => bekend.has(s.id) && /^https:\/\//.test(s.avatar || ''))
 fs.mkdirSync(UIT, { recursive: true })
+// Waar de avatar van de app klein is (een favicon van 128 px), het officiele profielbeeld of app-icoon van de uitgever.
+// Nagekeken op 13 november 2026; let op bij 'bd': x/bdnl is een ander account, het goede is x/brabantsdagblad.
+const BETER = {
+  tubantia: 'https://unavatar.io/x/tubantia?fallback=false',
+  bd: 'https://unavatar.io/x/brabantsdagblad?fallback=false',
+  limburger: 'https://unavatar.io/x/delimburger?fallback=false',
+  ed: 'https://unavatar.io/x/ed_regio?fallback=false',
+  bndestem: 'https://unavatar.io/x/bndestem?fallback=false',
+  pzc: 'https://unavatar.io/x/pzcredactie?fallback=false',
+  nieuwsblad: 'https://unavatar.io/x/nieuwsblad_be?fallback=false',
+  guardian: 'https://assets.guim.co.uk/static/frontend/icons/homescreen/apple-touch-icon-512.png',
+}
 const mis = []
 for (let i = 0; i < lijst.length; i += 8) {
   await Promise.all(lijst.slice(i, i + 8).map(async (s) => {
     try {
-      const r = await fetch(s.avatar, { signal: AbortSignal.timeout(12000) })
+      const r = await fetch(BETER[s.id] || s.avatar, { signal: AbortSignal.timeout(12000) })
       if (!r.ok) throw new Error('HTTP ' + r.status)
       const b = Buffer.from(await r.arrayBuffer())
       if (b.length > 2e6) throw new Error('groter dan 2 MB')
-      await sharp(b, { limitInputPixels: 16e6 }).resize(128, 128, { fit: s.avatarContain ? 'contain' : 'cover', background: '#ffffff' }).flatten({ background: '#ffffff' }).webp({ quality: 86 }).toFile(path.join(UIT, s.id + '.webp'))
+      await sharp(b, { limitInputPixels: 16e6 }).resize(192, 192, { fit: s.avatarContain && !BETER[s.id] ? 'contain' : 'cover', background: '#ffffff' }).flatten({ background: '#ffffff' }).webp({ quality: 90 }).toFile(path.join(UIT, s.id + '.webp'))
     } catch (e) {
       mis.push(`${s.id}: ${e.message}`) // het oude bestand blijft staan
     }
