@@ -54,9 +54,13 @@ enum ImageURL {
         if host == "images.cdn.nos.nl", let m = s.firstMatch(#"^(.*)-1024x576(\.webp)$"#) {
             return URL(string: kind == .thumb ? "\(m[1])-512x288\(m[2])" : s)
         }
-        if host == "images.nu.nl", let m = s.firstMatch(#"^(https://images\.nu\.nl/m/[a-z0-9]+)_sqr256/\d+/\d+/\d+/\d+/(.+)$"#) {
-            // Liggend met uitsnede 0/0/0/0: NU.nl snijdt zelf 16:9 bij (de vierkante uitsnede rekt uit).
-            return URL(string: kind == .thumb ? s : "\(m[1])_wd1280/0/0/0/0/\(m[2])")
+        if host == "images.nu.nl", let v = nuVierkant(s) {
+            // Liggend bestaat bij NU.nl alleen 16:9, en NU.nl rekt elke uitsnede daarin, ook 0/0/0/0 (Tyra Banks,
+            // 13 november: een staand portret breed getrokken). Dus een 16:9-uitsnede binnen het vierkant uit de
+            // feed (gelijk aan nuLiggend in shared/beeld.mjs).
+            if kind == .thumb { return URL(string: s) }
+            let hoog = Int((Double(v.zijde) * 9 / 16).rounded())
+            return URL(string: "\(v.basis)_wd1280/\(v.x)/\(v.y + (v.zijde - hoog) / 2)/\(v.zijde)/\(hoog)/\(v.naam)")
         }
         if cdnHosts.contains(host) {
             var c = URLComponents(url: HootBasis.url.appendingPathComponent(".netlify/images"), resolvingAgainstBaseURL: false)!
@@ -64,6 +68,14 @@ enum ImageURL {
             return c.url
         }
         return u
+    }
+
+    // NU.nl: het vierkant uit de feed (_sqr256/<x>/<y>/<b>/<h>/), in de pixels van het origineel. Gelijk aan
+    // nuVierkant in shared/beeld.mjs.
+    static func nuVierkant(_ raw: String?) -> (basis: String, x: Int, y: Int, zijde: Int, naam: String)? {
+        guard let raw, let m = raw.firstMatch(#"^(https://images\.nu\.nl/m/[a-z0-9]+)_sqr256/(\d+)/(\d+)/(\d+)/(\d+)/(.+)$"#),
+              let x = Int(m[2]), let y = Int(m[3]), let b = Int(m[4]), let h = Int(m[5]), b > 0, h > 0 else { return nil }
+        return (m[1], x, y, min(b, h), m[6])
     }
 }
 

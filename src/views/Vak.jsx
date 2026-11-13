@@ -6,7 +6,7 @@ import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
-import { fitsHero, fitsLarge } from '../lib/img.js'
+import { fitsHero, fitsLarge, sharpHere } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
@@ -81,7 +81,8 @@ function Also({ item }) {
 // Een stuk als kaart. `feature`: het eerste van het vak, groot en met beeld (als dat scherp genoeg is).
 function Card({ item, rank, feature = false }) {
   const { markRead, read } = useHoot()
-  const showImage = item.image && (feature ? fitsHero(item.image) : fitsLarge(item.image))
+  // Groot alleen als het echt scherp genoeg is en de verhouding het vak vult (sharpHere, shared/beeld.mjs).
+  const showImage = item.image && (feature ? fitsHero(item.image) : fitsLarge(item.image)) && sharpHere(item)
   // Hele zinnen, nooit "…", gemeten in de kaart (binnenruimte en rand eraf): 3 regels, het eerste
   // stuk 4 regels in de grotere letter (.dcard__sum --lines). De clamp staat een regel ruimer.
   const fit = useIntroMax()(feature ? 4 : 3, feature ? 'kaartEerste' : 'kaart')

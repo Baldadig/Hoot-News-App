@@ -536,7 +536,7 @@ struct RemoteImage: View {
                 if let measure, measure.valid {
                     GeometryReader { geometry in
                         let rect = measure.frame(in: geometry.size)
-                        Image(uiImage: image).resizable().frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                        Image(uiImage: image).resizable().aspectRatio(contentMode: .fill).frame(width: rect.width, height: rect.height).clipped().offset(x: rect.minX, y: rect.minY) // nooit uitrekken
                     }
                 } else {
                     Image(uiImage: image).resizable().scaledToFill()

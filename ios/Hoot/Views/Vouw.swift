@@ -173,7 +173,7 @@ struct FocusBeeld: View {
                 if let image = loader.image, let focus { // pas tonen als het focuspunt er is: geen sprong
                     GeometryReader { g in
                         let rect = BeeldFocus.frame(beeld: image.size, measure: item.measure, in: g.size, y: focus)
-                        Image(uiImage: image).resizable().frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                        Image(uiImage: image).resizable().aspectRatio(contentMode: .fill).frame(width: rect.width, height: rect.height).clipped().offset(x: rect.minX, y: rect.minY) // nooit uitrekken
                     }
                 } else if loader.failed {
                     Color.clear

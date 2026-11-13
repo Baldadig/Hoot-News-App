@@ -103,11 +103,13 @@ test('The Guardian: de breedte staat in het (getekende) adres; 140 px is nooit g
   assert.equal(fitsHero(null), false)
 })
 
-test('NU.nl: het vierkantje van 256 px wordt als hoofdbeeld een scherpe 16:9-versie, zonder uitrekken', () => {
+test('NU.nl: het vierkantje van 256 px wordt als hoofdbeeld een 16:9-uitsnede binnen dat vierkant, zonder uitrekken', () => {
   const url = 'https://images.nu.nl/m/nr1x4qtarbku_sqr256/164/0/851/851/zeven-doden.jpg'
   const lead = imgProps(url, 'lead')
-  assert.equal(lead.src, 'https://images.nu.nl/m/nr1x4qtarbku_wd640/0/0/0/0/zeven-doden.jpg')
-  assert.match(lead.srcSet, /_wd1280\/0\/0\/0\/0\/zeven-doden\.jpg 1280w$/)
+  // 851 breed, 479 hoog (16:9), verticaal midden in het vierkant: 0 + (851 - 479) / 2 = 186.
+  assert.equal(lead.src, 'https://images.nu.nl/m/nr1x4qtarbku_wd640/164/186/851/479/zeven-doden.jpg')
+  assert.match(lead.srcSet, /_wd1280\/164\/186\/851\/479\/zeven-doden\.jpg 1280w$/)
+  assert.ok(!/\/0\/0\/0\/0\//.test(lead.srcSet), 'nooit 0/0/0/0: dan perst NU.nl het hele beeld in 16:9')
   assert.deepEqual(imgProps(url, 'thumb'), { src: url })
 })
 
@@ -131,7 +133,8 @@ test('scherp genoeg voor een groot beeld: bronbreedte ≥ 1,4 × het vak op een 
   assert.equal(sourceWidth(ad), 400)
   assert.equal(sourceWidth({ image: 'https://example.org/a.jpg' }), null)
   assert.equal(sharpEnough(ad, 720, 2), false)
-  assert.equal(sharpEnough(ad, 358, 1), true)
+  // 400 breed is te smal voor een groot beeld, ook op een scherm zonder retina (shared/beeld.mjs: 600).
+  assert.equal(sharpEnough(ad, 358, 1), false)
   // NOS levert hooguit 1024: dat blijft groot op 720, ook op een retinascherm.
   assert.equal(sharpEnough({ image: 'https://images.cdn.nos.nl/8/D/x/4x209x2992x1683-1024x576.webp' }, 720, 2), true)
   assert.equal(sharpEnough({ image: 'https://example.org/b.jpg', imageMeta: meta(840, 472) }, 720, 2), false)
@@ -169,4 +172,106 @@ test('DPG: Het Parool en Trouw krijgen net als de Volkskrant het grote beeld van
   const set = swift.match(/static let dpgHosts: Set<String> = \[([^\]]*)\]/)
   assert.ok(set, 'ImageURL.dpgHosts staat in de app')
   assert.deepEqual([...set[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]).sort(), [...DPG_HOSTS].sort())
+})
+
+// ---- Vervormde en onscherpe beelden (13 november 2026, Tyra Banks bij NU.nl in Buiten je bubbel) ----
+test('beeldpoort: NU.nl staand portret van 536 breed geeft geen uitgerekte variant en geen groot beeld', async () => {
+  const { sourceWidth, shownRatio, largeOk, sharpEnough, largeVariant } = await import('../src/lib/img.js')
+  const { nuLiggend } = await import('../shared/beeld.mjs')
+  const url = 'https://images.nu.nl/m/8iyx5wyaofel_sqr256/0/13/536/536/topmodel-tyra-banks-52-is-weer-vrijgezel-ik-omarm-mijn-vrouwelijkheid.jpg'
+  // De echte live meting uit de feed: het vierkant van 256.
+  const item = { image: url, imageMeta: { w: 256, h: 256, crop: { l: 0, r: 0, t: 0, b: 0 }, ratio: 1 } }
+  // Gemeten 13 november: deze uitsnede geeft 1280 x 720 zonder vervorming (0/0/0/0 rekte het portret uit).
+  assert.equal(nuLiggend(url, 1280), 'https://images.nu.nl/m/8iyx5wyaofel_wd1280/0/130/536/302/topmodel-tyra-banks-52-is-weer-vrijgezel-ik-omarm-mijn-vrouwelijkheid.jpg')
+  assert.equal(largeVariant(url), nuLiggend(url, 1280))
+  assert.ok(!imgProps(url, 'lead').srcSet.includes('/0/0/0/0/'))
+  assert.equal(sourceWidth(item), 536, 'niet de 1280 die NU.nl opgeschaald levert')
+  assert.equal(shownRatio(item), 16 / 9)
+  assert.equal(largeOk(item), false)
+  assert.equal(sharpEnough(item, 358, 3), false)
+  // Een NU.nl-beeld met een groot origineel blijft gewoon groot.
+  const groot = { image: 'https://images.nu.nl/m/qjrxs4nafylh_sqr256/1016/860/2486/2486/aow.jpg' }
+  assert.equal(sourceWidth(groot), 1280)
+  assert.equal(largeOk(groot), true)
+  assert.equal(sharpEnough(groot, 358, 3), true)
+})
+
+test('beeldpoort: te smal (400) geen groot beeld, 1280 x 720 wel; verhouding 3:1 of 1:2 nooit groot', async () => {
+  const { largeOk, sharpEnough, shownRatio } = await import('../src/lib/img.js')
+  const { grootBeeldMag, GROOT_MIN_BREED, GROOT_VERHOUDING } = await import('../shared/beeld.mjs')
+  const meta = (w, h) => ({ w, h, crop: { l: 0, r: 0, t: 0, b: 0 } })
+  assert.equal(GROOT_MIN_BREED, 600)
+  assert.deepEqual(GROOT_VERHOUDING, [0.6, 2.4])
+  assert.equal(largeOk({ image: 'https://example.org/smal.jpg', imageMeta: meta(400, 267) }), false)
+  assert.equal(sharpEnough({ image: 'https://example.org/smal.jpg', imageMeta: meta(400, 267) }, 358, 1), false)
+  const gewoon = { image: 'https://example.org/gewoon.jpg', imageMeta: meta(1280, 720) }
+  assert.equal(largeOk(gewoon), true)
+  assert.equal(sharpEnough(gewoon, 358, 3), true)
+  // Breed genoeg, maar een banner van 3:1 of een staande strook van 1:2: het vak kan het niet vullen.
+  const banner = { image: 'https://example.org/banner.jpg', imageMeta: meta(1800, 600) }
+  const strook = { image: 'https://example.org/strook.jpg', imageMeta: meta(800, 1600) }
+  assert.equal(shownRatio(banner), 3)
+  assert.equal(largeOk(banner), false)
+  assert.equal(largeOk(strook), false)
+  // Een staande foto van 2:3 mag wel (de vakken snijden bij, ze rekken nooit uit).
+  assert.equal(largeOk({ image: 'https://example.org/staand.jpg', imageMeta: meta(1000, 1500) }), true)
+  // Onbekend blijft zoals altijd: tonen.
+  assert.equal(largeOk({ image: 'https://example.org/onbekend.jpg' }), true)
+  assert.equal(grootBeeldMag({}), true)
+  assert.equal(grootBeeldMag({ kleinVierkant: true }), false)
+})
+
+test('beeldpoort: de gemeten grote variant (imageMeta.lead) telt voor breedte en verhouding', async () => {
+  const { sourceWidth, largeOk } = await import('../src/lib/img.js')
+  const plain = { l: 0, r: 0, t: 0, b: 0 }
+  const wired = 'https://media.wired.com/photos/abc/master/pass/foto.jpg'
+  // Wired vraagt 1360 (c_limit): levert de uitgever er maar 500, dan geen groot beeld.
+  assert.equal(sourceWidth({ image: wired, imageMeta: { w: 500, h: 300, crop: plain, lead: { w: 500, h: 300 } } }), 500)
+  assert.equal(largeOk({ image: wired, imageMeta: { w: 500, h: 300, crop: plain, lead: { w: 500, h: 300 } } }), false)
+  assert.equal(largeOk({ image: wired, imageMeta: { w: 1360, h: 400, crop: plain, lead: { w: 1360, h: 400 } } }), false, '3,4:1')
+  assert.equal(largeOk({ image: wired, imageMeta: { w: 1360, h: 765, crop: plain, lead: { w: 1360, h: 765 } } }), true)
+})
+
+test('beeldpoort: bekend klein vierkant (FD 140, Guardian 140) pas groot als de variant gemeten en goed is', async () => {
+  const { largeOk, smallSquare } = await import('../src/lib/img.js')
+  const fd = 'https://images.fd.nl/905854-906089.jpeg?fit=crop&crop=faces&auto=format%2Ccompress&q=45&w=140&h=140&fm=jpg&cs=tinysrgb'
+  const meta = { w: 140, h: 140, crop: { l: 0, r: 0, t: 0, b: 0 } }
+  assert.equal(smallSquare(fd), true)
+  assert.equal(smallSquare('https://images.fd.nl/a.jpg?w=640&fm=jpg'), false)
+  assert.equal(smallSquare('https://images.nu.nl/m/8iyx5wyaofel_sqr256/0/13/536/536/a.jpg'), false, 'NU.nl: de breedte staat in het adres')
+  assert.equal(largeOk({ image: fd, imageMeta: meta }), false)
+  assert.equal(largeOk({ image: fd, imageMeta: { ...meta, lead: { w: 1360, h: 906 } } }), true)
+  assert.equal(largeOk({ image: 'https://i.guim.co.uk/img/x.jpg?width=140&s=abc' }), false)
+})
+
+test('beeldpoort: de server meet ook de grote variant en zet die in imageMeta.lead', async () => {
+  const { measureFeedImages } = await import('../netlify/lib/image-measure.mjs')
+  const url = 'https://images.nu.nl/m/8iyx5wyaofel_sqr256/0/13/536/536/tyra.jpg'
+  const items = [{ kind: 'article', image: url }, { kind: 'article', image: 'https://example.org/geen-variant.jpg' }]
+  const asked = []
+  const sizes = { [url]: [256, 256], 'https://images.nu.nl/m/8iyx5wyaofel_wd1280/0/130/536/302/tyra.jpg': [1280, 720], 'https://example.org/geen-variant.jpg': [900, 600] }
+  const load = async (u) => { asked.push(u); const [w, h] = sizes[u]; return { w, h, crop: { l: 0, r: 0, t: 0, b: 0 }, ratio: w / h } }
+  let stored = {}
+  await measureFeedImages(items, 1000, { load, get: async () => ({}), set: async (_k, v) => { stored = v } })
+  assert.deepEqual(asked.sort(), Object.keys(sizes).sort())
+  assert.deepEqual(items[0].imageMeta.lead, { w: 1280, h: 720 })
+  assert.equal(items[0].imageMeta.w, 256)
+  assert.equal(items[1].imageMeta.lead, undefined)
+  assert.ok(stored['https://images.nu.nl/m/8iyx5wyaofel_wd1280/0/130/536/302/tyra.jpg'])
+})
+
+test('beeldpoort: de app spiegelt de poort en de NU.nl-uitsnede (ImageURL.swift, BeeldOpMaat.swift)', async () => {
+  const { readFileSync } = await import('node:fs')
+  const swift = readFileSync(new URL('../ios/Hoot/ImageURL.swift', import.meta.url), 'utf8')
+  const opMaat = readFileSync(new URL('../ios/Hoot/BeeldOpMaat.swift', import.meta.url), 'utf8')
+  assert.match(swift, /static let grootMinBreed = 600\.0/)
+  assert.match(swift, /static let grootVerhouding = \(0\.6, 2\.4\)/)
+  assert.match(swift, /guard largeOk\(item\) else \{ return false \}/)
+  assert.match(opMaat, /_wd1280\/\\\(v\.x\)\/\\\(v\.y \+ \(v\.zijde - hoog\) \/ 2\)\/\\\(v\.zijde\)\/\\\(hoog\)\//)
+  assert.ok(!opMaat.includes('/0/0/0/0/'), 'de app vraagt nooit meer 0/0/0/0')
+  // Nergens uitrekken: een beeld op een vaste maat krijgt altijd aspectRatio(contentMode: .fill).
+  for (const f of ['ImageMeasure.swift', 'Views/Components.swift', 'Views/Vouw.swift']) {
+    const src = readFileSync(new URL(`../ios/Hoot/${f}`, import.meta.url), 'utf8')
+    assert.ok(!/\.resizable\(\)\.frame\(width: rect\.width/.test(src), f)
+  }
 })
