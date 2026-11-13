@@ -3,7 +3,7 @@ import { cleanIntro } from '../../shared/edition-display.mjs'
 import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { typeset } from '../../shared/typeset.mjs'
-import { BRAND, UA, editionWindowOf } from './sources.mjs'
+import { BRAND, UA, editionWindowOf, ownLogo } from './sources.mjs'
 import { firstOf } from './stream.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime, withoutPromo, PROMO_OWN } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
@@ -192,8 +192,8 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
       // Feed en avatars tegelijk ophalen (avatars houden de feed niet meer op).
       const [feed, avatars] = await Promise.all([readFeed(url), avatarsP])
       const fetchedAt = Date.now()
-      // Mooie merk-avatar: 0) het officiele beeld van de site (`logo`), 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
-      const brandAvatar = src.logo || avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
+      // Mooie merk-avatar: 0) het officiele beeld van de site (`logo`), 1) Bluesky-profiel, 2) het eigen logo van Hoot, 3) favicon.
+      const brandAvatar = src.logo || avatars[src.id] || ownLogo(src.id)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats, src) && (!src.keep || String(it.link || '').includes(src.keep)))
       const seen = new Set()
       const mapped = fresh.map(([it, cats]) => {

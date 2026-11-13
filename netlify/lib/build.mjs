@@ -26,7 +26,7 @@ import { freeDutchFill, morningTopUp, OCHTEND_AANVULLING } from './aanvulling.mj
 import { haagsDossier } from './dossiers.mjs'
 import { placeDesks } from './rubriek.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
-import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, OPINIE_IDS, EDITION_CATS, UA } from './sources.mjs'
+import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, OPINIE_IDS, EDITION_CATS, UA, ownLogo } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
 import { STORE_KEY, splitFeed, storeOf, withLatest } from './stream.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
@@ -1187,7 +1187,7 @@ function sourceList({ mainGroups, bskyGroups, avatars, profiles }) {
         login: s.login || null,
         followed: true,
         brandColor: s.color || '#21468b',
-        avatar: first(g)?.avatar || s.logo || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null),
+        avatar: first(g)?.avatar || s.logo || avatars[g.id] || ownLogo(s.id),
         avatarContain: first(g)?.avatarContain || false,
         handle: first(g)?.domain || null,
       }

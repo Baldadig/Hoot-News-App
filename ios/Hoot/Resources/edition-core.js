@@ -214,9 +214,11 @@ var HootCore = (() => {
 
   // netlify/lib/sources.mjs
   var S = (id, name, cat, lang, about, url, more = {}) => ({ id, name, cat, lang, about, urls: Array.isArray(url) ? url : [url], ...more });
+  var OWN_LOGO_BASE = "https://gethoot.app/img/bronnen/";
+  var own = (id) => OWN_LOGO_BASE + id + ".webp";
   var SOURCES = [
     // Nederland
-    S("nos", "NOS", "nl", "nl", "Het publieke nieuws: snel, breed en gratis.", ["https://feeds.nos.nl/nosnieuwsalgemeen", "http://feeds.nos.nl/nosnieuwsalgemeen"], { pick: true, base: true, bsky: "nos.nl", x: "nos", color: "#B5121B" }),
+    S("nos", "NOS", "nl", "nl", "Het publieke nieuws: snel, breed en gratis.", ["https://feeds.nos.nl/nosnieuwsalgemeen", "http://feeds.nos.nl/nosnieuwsalgemeen"], { pick: true, base: true, logo: own("nos"), x: "nos", color: "#B5121B" }),
     S("nu", "NU.nl", "nl", "nl", "Het snelste nieuws, de hele dag.", "https://www.nu.nl/rss/Algemeen", { pick: true, color: "#0B4E8C", bsky: "nu.nl" }),
     S("nrc", "NRC", "nl", "nl", "Achtergrond, analyse en onderzoek.", "https://www.nrc.nl/rss/", { login: "https://www.nrc.nl/login/", paid: true, pick: true, base: true, bsky: "nrc.nl", x: "nrc", color: "#C20E1A" }),
     S("volkskrant", "de Volkskrant", "nl", "nl", "Nieuws, verhalen en opinie.", ["https://www.volkskrant.nl/voorpagina/rss.xml", "https://www.volkskrant.nl/nieuws-achtergrond/rss.xml"], { login: "https://www.volkskrant.nl/login/", paid: true, pick: true, base: true, bsky: "volkskrant.nl", x: "volkskrant", color: "#1481C4" }),
@@ -309,7 +311,7 @@ var HootCore = (() => {
     // Economie
     // Gratis en Nederlands bij Economie (keuze r5-economiebron, 5 november): de economiefeed van de NOS,
     // zoals NOS Sport en NOS Cultuur. Gecontroleerd op 5 november 2026 (bereikbaar, actueel, 20 berichten).
-    S("nos-economie", "NOS Economie", "economie", "nl", "Economie en werk van de NOS.", "https://feeds.nos.nl/nosnieuwseconomie", { pick: true, for: ["economie"], color: "#B5121B", bsky: "nos.nl" }),
+    S("nos-economie", "NOS Economie", "economie", "nl", "Economie en werk van de NOS.", "https://feeds.nos.nl/nosnieuwseconomie", { pick: true, for: ["economie"], color: "#B5121B", logo: own("nos-economie") }),
     S("fd", "Het Financieele Dagblad", "economie", "nl", "Economie, bedrijven en financiën.", "https://fd.nl/?rss", { login: "https://fd.nl/login", paid: true, pick: true, for: ["economie"], color: "#F3A712", bsky: "fd.nl" }),
     S("bloomberg", "Bloomberg", "economie", "en", "Markten en bedrijfsnieuws.", "https://feeds.bloomberg.com/markets/news.rss", { login: "https://www.bloomberg.com/account/signin", paid: true, color: "#1A1A1A", bsky: "bloomberg.com" }),
     // Tech
@@ -332,7 +334,7 @@ var HootCore = (() => {
     // alleen nieuws (d4…), geen onderzoekspapers (s4…) zonder intro
     S("carbonbrief", "Carbon Brief", "wetenschap", "en", "Klimaatwetenschap en -beleid.", "https://www.carbonbrief.org/feed/", { forTopic: "klimaat", pick: true, color: "#0F6E5A", bsky: "carbonbrief.org" }),
     // Sport
-    S("nos-sport", "NOS Sport", "sport", "nl", "Al het sportnieuws van de NOS.", "https://feeds.nos.nl/nossportalgemeen", { pick: true, for: ["sport"], color: "#B5121B", bsky: "nos.nl" }),
+    S("nos-sport", "NOS Sport", "sport", "nl", "Al het sportnieuws van de NOS.", "https://feeds.nos.nl/nossportalgemeen", { pick: true, for: ["sport"], color: "#B5121B", logo: own("nos-sport") }),
     S("vi", "Voetbal International", "sport", "nl", "Het voetbalblad van Nederland.", "https://www.vi.nl/rss", { login: "https://www.vi.nl/", pick: true, forTopic: "voetbal", topics: ["voetbal"], color: "#D6001C", x: "VI_nl" }),
     S("wielerflits", "WielerFlits", "sport", "nl", "Alles over wielrennen.", "https://www.wielerflits.nl/feed/", { login: "https://www.wielerflits.nl/", pick: true, forTopic: "wielrennen", topics: ["wielrennen"], color: "#F28C00", x: "WielerFlits" }),
     S("sporza", "Sporza", "sport", "nl", "Sport van de VRT.", "https://sporza.be/nl.rss.xml", { color: "#1A1A1A", bsky: "sporza.be" }),
@@ -341,7 +343,7 @@ var HootCore = (() => {
     S("espn", "ESPN", "sport", "en", "Amerikaanse sport.", "https://www.espn.com/espn/rss/news", { login: "https://www.espn.com/login", color: "#D00000", bsky: "espn.com" }),
     S("autosport", "Autosport", "sport", "en", "Formule 1 en autosport.", "https://www.autosport.com/rss/f1/news/", { login: "https://www.autosport.com/sign-in/", pick: true, forTopic: "f1", topics: ["f1"], color: "#E10600", x: "autosport" }),
     // Cultuur en muziek. Muziek: in de Stroom (onderwerp Muziek), niet in de Editie.
-    S("nos-cultuur", "NOS Cultuur & Media", "cultuur", "nl", "Cultuur en media van de NOS.", "https://feeds.nos.nl/nosnieuwscultuurenmedia", { pick: true, for: ["cultuur"], color: "#B5121B", bsky: "nos.nl" }),
+    S("nos-cultuur", "NOS Cultuur & Media", "cultuur", "nl", "Cultuur en media van de NOS.", "https://feeds.nos.nl/nosnieuwscultuurenmedia", { pick: true, for: ["cultuur"], color: "#B5121B", logo: own("nos-cultuur") }),
     S("3voor12", "3voor12", "cultuur", "nl", "Muziek van de VPRO: nieuws, recensies, live.", "https://3voor12.vpro.nl/rss.xml", { pick: true, forTopic: "muziek", base: true, music: true, bsky: "3voor12.bsky.social", color: "#E5007E" }),
     S("pitchfork", "Pitchfork", "cultuur", "en", "Muziekrecensies en nieuws.", "https://pitchfork.com/feed/feed-news/rss", { music: true, color: "#1A1A1A", bsky: "pitchfork.com" }),
     S("rollingstone", "Rolling Stone", "cultuur", "en", "Muziek, film en popcultuur.", "https://www.rollingstone.com/feed/", { login: "https://www.rollingstone.com/", music: true, color: "#D32531", bsky: "rollingstone.com" }),
@@ -357,6 +359,7 @@ var HootCore = (() => {
     S("cuttingedge", "Cutting Edge", "cultuur", "nl", "Vlaamse cultuurkritiek: film, muziek, boeken en podium.", "https://www.cuttingedge.be/feed/", { color: "#E20006", logo: "https://www.cuttingedge.be/wp-content/uploads/2020/10/cropped-logo2011_onlyCE_e3000f_w512.png" }),
     S("nieuwemuze", "De Nieuwe Muze", "cultuur", "nl", "Klassieke muziek, opera en jazz.", "https://www.denieuwemuze.nl/feed/", { music: true, color: "#2D7289", x: "de_nieuwe_muze" })
   ];
+  var CATALOGUE_IDS = new Set(SOURCES.map((s) => s.id));
   var BRAND = Object.fromEntries(SOURCES.map((s) => [s.id, s.color]));
   var MAIN_IDS = new Set(SOURCES.filter((s) => s.base && !s.music).map((s) => s.id));
   var MUSIC_IDS = new Set(SOURCES.filter((s) => s.music).map((s) => s.id));
@@ -2814,8 +2817,8 @@ var HootCore = (() => {
     const inst = [...a.strong].filter((k) => INSTITUTES.has(k) && b.strong.has(k)).length;
     if (!inst) return n;
     if (!sharedCount(a.weak, b.weak)) return n - inst;
-    const own = (x, y) => [...x.weak].some((k) => !y.weak.has(k));
-    return own(a, b) && own(b, a) ? n - inst : n;
+    const own2 = (x, y) => [...x.weak].some((k) => !y.weak.has(k));
+    return own2(a, b) && own2(b, a) ? n - inst : n;
   }
   var ACTIONS = [
     ["vonnis", /\b(vonnis\w*|veroordeeld|veroordeling|celstraf\w*|cel|tbs|schuldig|vrijgesproken|vrijspraak|sentenced|sentence|convicted|guilty|acquitted|jailed|prison term)\b/],
@@ -2950,8 +2953,8 @@ var HootCore = (() => {
   var STRAY_MIN = 4;
   function subjectIn(sig, c, list, items, meta = null) {
     const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0;
-    const own = c.kind === "story" && pubs >= OWN_STORY && items?.length ? items.map((i) => headSignature(sig, i)).filter(Boolean) : c.ids.map((id) => sig.get(id)).filter(Boolean);
-    if (!meta || c.kind !== "story" || pubs < STRAY_MIN) return own.some((x) => list.some((s) => sameSubject(x, s)));
+    const own2 = c.kind === "story" && pubs >= OWN_STORY && items?.length ? items.map((i) => headSignature(sig, i)).filter(Boolean) : c.ids.map((id) => sig.get(id)).filter(Boolean);
+    if (!meta || c.kind !== "story" || pubs < STRAY_MIN) return own2.some((x) => list.some((s) => sameSubject(x, s)));
     const heads = /* @__PURE__ */ new Map();
     const itemOf = /* @__PURE__ */ new Map();
     if (items?.length) {
@@ -2965,7 +2968,7 @@ var HootCore = (() => {
     const result = (x, it) => voteKind(it) === 2 && voteKind(itemOf.get(x)) === 2;
     const hits = /* @__PURE__ */ new Map();
     for (let k = 0; k < list.length; k++) {
-      const mates = own.filter((x) => sameSubject(x, list[k]));
+      const mates = own2.filter((x) => sameSubject(x, list[k]));
       if (!mates.length) continue;
       const p = meta[k];
       if (!p?.owner) return true;
@@ -3163,10 +3166,10 @@ var HootCore = (() => {
     return newsHeads(named.length ? named : fresh);
   }
   var newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || "") && !isLive(i));
-  function newFactIn(fresh, old, sig, own = fresh, story = null) {
+  function newFactIn(fresh, old, sig, own2 = fresh, story = null) {
     const keysOf = keysWith(sig);
     const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story);
-    return fact ? { keys: fact.keys, heads: own.length ? factHeads(own, fact, sig) : [] } : null;
+    return fact ? { keys: fact.keys, heads: own2.length ? factHeads(own2, fact, sig) : [] } : null;
   }
   function runningFact(st, items, sig, now) {
     const cutoff = now - HEAD_MAX_H * 36e5;
@@ -3233,15 +3236,15 @@ var HootCore = (() => {
     for (const head of order) {
       if (head.fam) continue;
       head.fam = head.st.id;
-      const own = new Set(head.items.map((i) => publisherOf(i.source)));
-      const all = new Set(own);
+      const own2 = new Set(head.items.map((i) => publisherOf(i.source)));
+      const all = new Set(own2);
       for (const c of order) {
         if (c.fam || !familyRelated(head, c)) continue;
         c.fam = head.st.id;
         for (const i of c.items) all.add(publisherOf(i.source));
       }
-      const total = pubsOf(head) + (all.size - own.size);
-      if (all.size > own.size && total >= FRONT_BIG) extra.set(head, all.size - own.size);
+      const total = pubsOf(head) + (all.size - own2.size);
+      if (all.size > own2.size && total >= FRONT_BIG) extra.set(head, all.size - own2.size);
     }
     for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null;
     for (const c of cands) {
@@ -3370,11 +3373,11 @@ var HootCore = (() => {
     const ys = xs.filter(f);
     return ys.length ? ys : xs;
   };
-  function leadPool(cands, items, now, own = null, total = items.length, coreItems = centralItems) {
+  function leadPool(cands, items, now, own2 = null, total = items.length, coreItems = centralItems) {
     let xs = prefer(cands, (i) => !isOpinion(i));
     xs = prefer(xs, (i) => !isStale(i, now));
     if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
-    if (own) xs = prefer(xs, own);
+    if (own2) xs = prefer(xs, own2);
     const core = new Set(coreItems(items, total));
     xs = prefer(xs, (i) => core.has(i));
     xs = prefer(xs, (i) => !/\?/.test(i.title || ""));
@@ -3570,8 +3573,8 @@ var HootCore = (() => {
           continue;
         }
         if (fact) {
-          const own = factHeads(items.filter(inWindow), fact, sigKnown).filter(titled);
-          const mineNew = since !== null ? own.filter((i) => timeOf(i) > since) : own;
+          const own2 = factHeads(items.filter(inWindow), fact, sigKnown).filter(titled);
+          const mineNew = since !== null ? own2.filter((i) => timeOf(i) > since) : own2;
           if (mineNew.length) heads = mineNew;
           else if (since !== null && !heads?.length) {
             reject("story", st.id, st.itemIds, "lopend-zonder-nieuw-feit");
@@ -3705,8 +3708,8 @@ var HootCore = (() => {
       const e = mate && entries.find((x) => x.kind === "story" && x.id === mate.st.id);
       if (!e) return;
       const theirs = c.ids.map((id) => sig.get(id)).filter(Boolean);
-      const own = mate.items.filter((i) => titled(i) && !(sig.has(i.id) && theirs.some((t) => sameSubject(sig.get(i.id), t))));
-      const pool2 = own.some((i) => voteKind(i) === 2) ? own.filter((i) => voteKind(i) === 2) : own;
+      const own2 = mate.items.filter((i) => titled(i) && !(sig.has(i.id) && theirs.some((t) => sameSubject(sig.get(i.id), t))));
+      const pool2 = own2.some((i) => voteKind(i) === 2) ? own2.filter((i) => voteKind(i) === 2) : own2;
       if (!pool2.length || pool2.some((i) => i.id === e.leadId)) return;
       const lead = leadPool(leadCandidates(pool2, mainIds, preferred, now, { role: "front" }), mate.items, now)[0];
       if (lead) Object.assign(e, { leadId: lead.id, title: lead.title || null });
@@ -4033,8 +4036,8 @@ var HootCore = (() => {
     const at = (i) => Date.parse(i?.publishedAt) || 0;
     const newest = (list) => list.reduce((m, i) => i && i.kind !== "post" && followed.has(i.source) ? Math.max(m, at(i)) : m, 0);
     const theirs = newest(global?.items || []);
-    const own = newest(items);
-    return theirs > 0 && own > 0 && theirs - own > STALE_INPUT_MS;
+    const own2 = newest(items);
+    return theirs > 0 && own2 > 0 && theirs - own2 > STALE_INPUT_MS;
   }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set(), weg = null, _langRule = true, _memoSignatures = true }) {
     if (!global?.entries?.length) return null;
@@ -4068,7 +4071,7 @@ var HootCore = (() => {
     const storyDesk = new Map(mineStories.map((st) => [st.id, st.desk]));
     const itemAny = new Map([...items, ...global.items || [], ...[...global.wide || [], ...global.near || []].map((w) => w?.item).filter(Boolean)].map((i) => [i.id, i]));
     const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== "post"));
-    const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])), newFacts: (fresh, old, own2, whole) => newFactIn(fresh, old, sigAll, own2, whole) };
+    const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])), newFacts: (fresh, old, own3, whole) => newFactIn(fresh, old, sigAll, own3, whole) };
     if (_memoSignatures) {
       const memo2 = /* @__PURE__ */ new WeakMap();
       const coreMemo = /* @__PURE__ */ new WeakMap();
@@ -4185,11 +4188,11 @@ var HootCore = (() => {
       if (un) abroad++;
       extra.push({ ...e, desk: null });
     }
-    const own = [...news, ...extra];
+    const own2 = [...news, ...extra];
     const serverStory = (e) => e.kind === "story" ? null : e.formerId || itemAny.get(e.leadId || e.id)?.storyId || null;
     const membersOf = (e) => /* @__PURE__ */ new Set([e.leadId || e.id, ...e.kind === "story" ? [...storyById.get(e.id)?.itemIds || [], ...e.itemIds || []] : storyById.get(serverStory(e))?.itemIds || []]);
-    const taken = new Set(own.flatMap((e) => [...membersOf(e)]));
-    const leads = own.map((e) => e.leadId || e.id);
+    const taken = new Set(own2.flatMap((e) => [...membersOf(e)]));
+    const leads = own2.map((e) => e.leadId || e.id);
     const sameAsPlaced = (id) => sigAll.has(id) && leads.some((x) => x !== id && sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)));
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
     const prevHeads = previous ? previousHeads(sigAll, previous, now) : [];

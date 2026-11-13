@@ -26,9 +26,14 @@ export { BSKY_BRAND } from '../../shared/bluesky.mjs'
 //   Gecontroleerd op 28 oktober 2026.
 // Alle feeds gecontroleerd op 22 oktober 2026 (bereikbaar, actueel).
 const S = (id, name, cat, lang, about, url, more = {}) => ({ id, name, cat, lang, about, urls: Array.isArray(url) ? url : [url], ...more })
+// Het eigen logo van een bron (landing/bronnen/<id>.webp, 192 px, gebouwd naar /img/bronnen/). Absoluut, want de app
+// gebruikt dezelfde url. De terugval van het merkbeeld: `logo`, Bluesky, dit eigen logo, favicon (nachttest 14 november:
+// unavatar.io gaf 429, en dan toonde web en app een letter of een favicon).
+export const OWN_LOGO_BASE = 'https://gethoot.app/img/bronnen/'
+const own = (id) => OWN_LOGO_BASE + id + '.webp'
 export const SOURCES = [
   // Nederland
-  S('nos', 'NOS', 'nl', 'nl', 'Het publieke nieuws: snel, breed en gratis.', ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'], { pick: true, base: true, bsky: 'nos.nl', x: 'nos', color: '#B5121B' }),
+  S('nos', 'NOS', 'nl', 'nl', 'Het publieke nieuws: snel, breed en gratis.', ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'], { pick: true, base: true, logo: own('nos'), x: 'nos', color: '#B5121B' }),
   S('nu', 'NU.nl', 'nl', 'nl', 'Het snelste nieuws, de hele dag.', 'https://www.nu.nl/rss/Algemeen', { pick: true, color: '#0B4E8C' , bsky: 'nu.nl' }),
   S('nrc', 'NRC', 'nl', 'nl', 'Achtergrond, analyse en onderzoek.', 'https://www.nrc.nl/rss/', { login: 'https://www.nrc.nl/login/', paid: true, pick: true, base: true, bsky: 'nrc.nl', x: 'nrc', color: '#C20E1A' }),
   S('volkskrant', 'de Volkskrant', 'nl', 'nl', 'Nieuws, verhalen en opinie.', ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'], { login: 'https://www.volkskrant.nl/login/', paid: true, pick: true, base: true, bsky: 'volkskrant.nl', x: 'volkskrant', color: '#1481C4' }),
@@ -121,7 +126,7 @@ export const SOURCES = [
   // Economie
   // Gratis en Nederlands bij Economie (keuze r5-economiebron, 5 november): de economiefeed van de NOS,
   // zoals NOS Sport en NOS Cultuur. Gecontroleerd op 5 november 2026 (bereikbaar, actueel, 20 berichten).
-  S('nos-economie', 'NOS Economie', 'economie', 'nl', 'Economie en werk van de NOS.', 'https://feeds.nos.nl/nosnieuwseconomie', { pick: true, for: ['economie'], color: '#B5121B', bsky: 'nos.nl' }),
+  S('nos-economie', 'NOS Economie', 'economie', 'nl', 'Economie en werk van de NOS.', 'https://feeds.nos.nl/nosnieuwseconomie', { pick: true, for: ['economie'], color: '#B5121B', logo: own('nos-economie') }),
   S('fd', 'Het Financieele Dagblad', 'economie', 'nl', 'Economie, bedrijven en financiën.', 'https://fd.nl/?rss', { login: 'https://fd.nl/login', paid: true, pick: true, for: ['economie'], color: '#F3A712' , bsky: 'fd.nl' }),
   S('bloomberg', 'Bloomberg', 'economie', 'en', 'Markten en bedrijfsnieuws.', 'https://feeds.bloomberg.com/markets/news.rss', { login: 'https://www.bloomberg.com/account/signin', paid: true, color: '#1A1A1A' , bsky: 'bloomberg.com' }),
   // Tech
@@ -142,7 +147,7 @@ export const SOURCES = [
   S('nature', 'Nature', 'wetenschap', 'en', 'Het wetenschappelijk tijdschrift: nieuws en onderzoek.', 'https://www.nature.com/nature.rss', { login: 'https://idp.nature.com/auth/personal/springernature?redirect_uri=https://www.nature.com/', paid: true, color: '#1A1A1A', keep: '/articles/d4', bsky: 'nature.com' }), // alleen nieuws (d4…), geen onderzoekspapers (s4…) zonder intro
   S('carbonbrief', 'Carbon Brief', 'wetenschap', 'en', 'Klimaatwetenschap en -beleid.', 'https://www.carbonbrief.org/feed/', { forTopic: 'klimaat', pick: true, color: '#0F6E5A' , bsky: 'carbonbrief.org' }),
   // Sport
-  S('nos-sport', 'NOS Sport', 'sport', 'nl', 'Al het sportnieuws van de NOS.', 'https://feeds.nos.nl/nossportalgemeen', { pick: true, for: ['sport'], color: '#B5121B' , bsky: 'nos.nl' }),
+  S('nos-sport', 'NOS Sport', 'sport', 'nl', 'Al het sportnieuws van de NOS.', 'https://feeds.nos.nl/nossportalgemeen', { pick: true, for: ['sport'], color: '#B5121B', logo: own('nos-sport') }),
   S('vi', 'Voetbal International', 'sport', 'nl', 'Het voetbalblad van Nederland.', 'https://www.vi.nl/rss', { login: 'https://www.vi.nl/', pick: true, forTopic: 'voetbal', topics: ['voetbal'], color: '#D6001C' , x: 'VI_nl' }),
   S('wielerflits', 'WielerFlits', 'sport', 'nl', 'Alles over wielrennen.', 'https://www.wielerflits.nl/feed/', { login: 'https://www.wielerflits.nl/', pick: true, forTopic: 'wielrennen', topics: ['wielrennen'], color: '#F28C00' , x: 'WielerFlits' }),
   S('sporza', 'Sporza', 'sport', 'nl', 'Sport van de VRT.', 'https://sporza.be/nl.rss.xml', { color: '#1A1A1A' , bsky: 'sporza.be' }),
@@ -151,7 +156,7 @@ export const SOURCES = [
   S('espn', 'ESPN', 'sport', 'en', 'Amerikaanse sport.', 'https://www.espn.com/espn/rss/news', { login: 'https://www.espn.com/login', color: '#D00000' , bsky: 'espn.com' }),
   S('autosport', 'Autosport', 'sport', 'en', 'Formule 1 en autosport.', 'https://www.autosport.com/rss/f1/news/', { login: 'https://www.autosport.com/sign-in/', pick: true, forTopic: 'f1', topics: ['f1'], color: '#E10600' , x: 'autosport' }),
   // Cultuur en muziek. Muziek: in de Stroom (onderwerp Muziek), niet in de Editie.
-  S('nos-cultuur', 'NOS Cultuur & Media', 'cultuur', 'nl', 'Cultuur en media van de NOS.', 'https://feeds.nos.nl/nosnieuwscultuurenmedia', { pick: true, for: ['cultuur'], color: '#B5121B' , bsky: 'nos.nl' }),
+  S('nos-cultuur', 'NOS Cultuur & Media', 'cultuur', 'nl', 'Cultuur en media van de NOS.', 'https://feeds.nos.nl/nosnieuwscultuurenmedia', { pick: true, for: ['cultuur'], color: '#B5121B', logo: own('nos-cultuur') }),
   S('3voor12', '3voor12', 'cultuur', 'nl', 'Muziek van de VPRO: nieuws, recensies, live.', 'https://3voor12.vpro.nl/rss.xml', { pick: true, forTopic: 'muziek', base: true, music: true, bsky: '3voor12.bsky.social', color: '#E5007E' }),
   S('pitchfork', 'Pitchfork', 'cultuur', 'en', 'Muziekrecensies en nieuws.', 'https://pitchfork.com/feed/feed-news/rss', { music: true, color: '#1A1A1A' , bsky: 'pitchfork.com' }),
   S('rollingstone', 'Rolling Stone', 'cultuur', 'en', 'Muziek, film en popcultuur.', 'https://www.rollingstone.com/feed/', { login: 'https://www.rollingstone.com/', music: true, color: '#D32531' , bsky: 'rollingstone.com' }),
@@ -167,6 +172,9 @@ export const SOURCES = [
   S('cuttingedge', 'Cutting Edge', 'cultuur', 'nl', 'Vlaamse cultuurkritiek: film, muziek, boeken en podium.', 'https://www.cuttingedge.be/feed/', { color: '#E20006', logo: 'https://www.cuttingedge.be/wp-content/uploads/2020/10/cropped-logo2011_onlyCE_e3000f_w512.png' }),
   S('nieuwemuze', 'De Nieuwe Muze', 'cultuur', 'nl', 'Klassieke muziek, opera en jazz.', 'https://www.denieuwemuze.nl/feed/', { music: true, color: '#2D7289', x: 'de_nieuwe_muze' }),
 ]
+// Het eigen logo als de bron in de catalogus staat (vakbronnen hebben er geen); anders null.
+const CATALOGUE_IDS = new Set(SOURCES.map((s) => s.id))
+export const ownLogo = (id) => (CATALOGUE_IDS.has(id) ? own(id) : null)
 export const BRAND = Object.fromEntries(SOURCES.map((s) => [s.id, s.color]))
 
 // Bluesky-accounts die Hoot voor iedereen ophaalt (openbare API, eigen posts van de afgelopen 36 uur).
