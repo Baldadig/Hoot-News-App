@@ -13,7 +13,7 @@ export default function Privacy({ onBack, backLabel }) {
         <h2 className="label label--section sect">Wat Hoot telt</h2>
         <p>
           Hoot telt alleen totalen: hoeveel Edities er vandaag zijn geopend en uitgelezen, en hoe vaak de Stroom, de Selectie, een vergelijking, een verhaal of het delen is gebruikt. Op de website telt Hoot ook hoe vaak de voorpagina wordt geopend, hoe vaak er een vraag wordt opengeklapt, waar op die pagina er op een knop naar Hoot of de App Store wordt getikt, hoe vaak het welkom wordt doorlopen en via welke link je binnenkwam, als die een kort label draagt (zoals ?via=mail); dat label haalt Hoot daarna uit de adresbalk. Zonder te weten wie. Er gaat geen
-          account of id mee en er wordt niets per persoon bewaard: geen IP-adres, alleen een getal per dag. Je toestel onthoudt zelf alleen dat het een dagdeel al heeft geteld. Staat Do Not Track of Global Privacy Control aan, dan telt de website niets.
+          account of id mee en er wordt niets per persoon bewaard: geen IP-adres, alleen een getal per dag, per dagdeel, platform (web of app) en appversie. Je toestel onthoudt zelf alleen dat het een dagdeel al heeft geteld. Staat Do Not Track of Global Privacy Control aan, dan telt de website niets.
         </p>
 
         <h2 className="label label--section sect">Op je toestel</h2>
@@ -90,7 +90,7 @@ export default function Privacy({ onBack, backLabel }) {
           <li>
             <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via de Hoot-server. Log je in de
             lezer in bij een abonnement, dan typ je je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Wat de uitgever bewaart (je inlog, je toestemming voor cookies) blijft
-            alleen in de lezer op dit toestel. Je wist het met &ldquo;Overal uitloggen in de lezer&rdquo; bij Instellingen › Abonnementen.
+            alleen in de lezer op dit toestel. Je wist het met &ldquo;Overal uitloggen in de lezer&rdquo; bij Instellingen › Artikelen › Abonnementen.
           </li>
           <li>
             <strong>Bluesky</strong> (als je dat aanzet): de app vraagt de posts van de mensen die je volgt rechtstreeks op bij de openbare Bluesky-API.
@@ -111,7 +111,7 @@ export default function Privacy({ onBack, backLabel }) {
         <p>
           Vragen over je gegevens? Mail naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>.
         </p>
-        <p>Bijgewerkt op 11 november 2026.</p>
+        <p>Bijgewerkt op 13 november 2026.</p>
       </div>
     </section>
   )
