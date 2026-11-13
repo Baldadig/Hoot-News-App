@@ -579,6 +579,7 @@ var HootCore = (() => {
     if (/\bPangram\b/.test(text) && /\b(internet|ai|detector|detectie|kunstmatige intelligentie)\b/i.test(text) && !out.includes("ai")) out.push("ai");
     return out;
   }
+  var SHOWBIZZ_PATH = /\/(achterklap|showbizz|showbiz|boulevard|bv-en-co|celebrit\w*|sterren)\//i;
 
   // netlify/lib/desks.mjs
   var DESKS = ["binnenland", "buitenland", "vs", "middenoosten", "oekraine", "wetenschap"];
@@ -1062,7 +1063,7 @@ var HootCore = (() => {
     const election = /\b(elections?|verkiezing\w*|midterms?|political texts|senaat|senate)\b/i.test(`${it.title || ""} ${(it.url || "").replace(/[-_/]/g, " ")}`);
     if (election && usPoliticsIn(visible + " " + (it.url || "").replace(/[-_/]/g, " ")) && !keywordTopics(visible).some((t) => KIND_TOPICS.has(t))) return false;
     if (/\b(journal article|research finds|study finds)\b/i.test(it.title || "")) return false;
-    return (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || "") || /^(sport|cultuur)/i.test(it.section || "") || OTHER_SPORT.test(it.title || "") || CULTURE_SPORT.test(visible);
+    return (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || "") || SHOWBIZZ_PATH.test(it.url || "") || /^(sport|cultuur)/i.test(it.section || "") || OTHER_SPORT.test(it.title || "") || CULTURE_SPORT.test(visible);
   };
   function placeSignals({ title = "", summary = "", text = "" }) {
     const t = `${title} ${summary || text}`;
@@ -4157,7 +4158,9 @@ var HootCore = (() => {
       const meta = st || entry;
       const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null;
       const bubble = entry.desk === "bubbel" || entry.bubble === true;
-      const reason = newsRejection(prof, meta, members, desk, { bubble });
+      const lead = itemAny.get(id) || members[0];
+      const optIn = (lead?.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t));
+      const reason = optIn ? "niet-aangetikt" : newsRejection(prof, meta, members, desk, { bubble });
       return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof, members, desk, meta), members, meta, desk };
     };
     const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped;

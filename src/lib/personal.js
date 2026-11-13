@@ -19,7 +19,7 @@ import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
-import { INTERESTS, baseTopics } from './topics.js'
+import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN } from '../../shared/editor.mjs'
@@ -339,7 +339,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null
     // Buiten je bubbel (de plek zelf of een kandidaat ervoor) mag licht zijn; zie newsRejection.
     const bubble = entry.desk === 'bubbel' || entry.bubble === true
-    const reason = newsRejection(prof, meta, members, desk, { bubble })
+    // Een onderwerp dat je zelf aantikt (OPT_IN, Achterklap & showbizz) komt alleen bij wie het aantikte (besluit 13
+    // november); geen gewicht was niet genoeg, het stuk bleef als gewoon nieuws toegelaten (nachttest 14 november, R3).
+    const lead = itemAny.get(id) || members[0]
+    const optIn = (lead?.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))
+    const reason = optIn ? 'niet-aangetikt' : newsRejection(prof, meta, members, desk, { bubble })
     return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof,members,desk,meta), members, meta, desk }
   }
   const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped

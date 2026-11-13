@@ -4,7 +4,7 @@ import { urlDelen } from '../../shared/url-delen.mjs'
 // Elke editie probeert per rubriek het belangrijkste verhaal van het moment te hebben:
 // binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap (plus, in feed.mjs,
 // één verhaal van buiten je bubbel).
-import { OTHER_SPORT, keywordTopics } from './topics.mjs'
+import { OTHER_SPORT, keywordTopics, SHOWBIZZ_PATH } from './topics.mjs'
 
 export const DESKS = ['binnenland', 'buitenland', 'vs', 'middenoosten', 'oekraine', 'wetenschap']
 export const DESK_LABEL = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
@@ -113,7 +113,9 @@ const ownKind = (it) => {
   // géén zichtbaar sport/cultuuronderwerp gaan dan vóór die oude tag (bv. verkiezingsopinie met f1).
   if (election && usPoliticsIn(visible + ' ' + (it.url || '').replace(/[-_/]/g, ' ')) && !keywordTopics(visible).some(t => KIND_TOPICS.has(t))) return false
   if (/\b(journal article|research finds|study finds)\b/i.test(it.title || '')) return false
-  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible)
+  // Showbizz is een eigen soort, met dezelfde rubrieken als het onderwerp (SHOWBIZZ_PATH): NU.nl /achterklap/ werd
+  // anders Binnenland (nachttest 14 november, R3).
+  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || SHOWBIZZ_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible)
 }
 
 
