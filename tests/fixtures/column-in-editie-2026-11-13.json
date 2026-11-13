@@ -1,0 +1,133 @@
+{
+ "bron": "https://gethoot.app/api/feed, 13 november 2026 avond (kopie /tmp/claude-501/feed-nu.json); Avondeditie plek 08 bij een lezer met de basisbronnen en Sport",
+ "rss": {
+  "nrc": {
+   "8wq4dq": [
+    "Ondertussen"
+   ]
+  }
+ },
+ "story": {
+  "id": "s1wcxxx6",
+  "leadId": "8wq4dq",
+  "itemIds": [
+   "3q47hm",
+   "n17pbx",
+   "18xv1d",
+   "1xkb3s2",
+   "8wq4dq"
+  ],
+  "sourceCount": 5,
+  "publisherCount": 5,
+  "sourceNames": [
+   "De Telegraaf",
+   "NOS Sport",
+   "AD",
+   "Voetbal International",
+   "NRC"
+  ],
+  "latestAt": "2026-11-13T18:56:29.000Z",
+  "firstAt": "2026-11-13T15:48:39.000Z",
+  "sport": true,
+  "light": false,
+  "desk": null
+ },
+ "items": [
+  {
+   "id": "3q47hm",
+   "kind": "article",
+   "source": "telegraaf",
+   "sourceName": "De Telegraaf",
+   "storyId": "s1wcxxx6",
+   "title": "Ajax-spits Tolu Arokodare steelt met prachtige hakgoal de show bij Nigeriaans elftal",
+   "summary": "Tolu Arokodare heeft zijn goede vorm bij Ajax doorgetrokken naar het nationale team van Nigeria.",
+   "topics": [
+    "voetbal",
+    "afrika"
+   ],
+   "mainTopics": [
+    "voetbal"
+   ],
+   "url": "https://www.telegraaf.nl/sport/voetbal/ajax-spits-tolu-arokodare-steelt-met-prachtige-hakgoal-de-show-bij-nigeriaans-elftal/164541822.html",
+   "image": "https://prod-img.telegraaf.nl/public/incoming/j05k6k-anp-529099999.jpg/alternates/BASE_SIXTEEN_NINE/ANP-529099999.jpg",
+   "publishedAt": "2026-11-13T18:56:29.000Z",
+   "author": "onze Telesportredactie"
+  },
+  {
+   "id": "n17pbx",
+   "kind": "article",
+   "source": "nos-sport",
+   "sourceName": "NOS Sport",
+   "storyId": "s1wcxxx6",
+   "title": "Ajax-spits Tolu op dreef bij Nigeria, PSV’er Santos scoort voor Kaapverdië",
+   "summary": "Tolu Arokodare heeft zijn vorm bij Ajax ook laten zien bij Nigeria.",
+   "topics": [
+    "afrika",
+    "voetbal"
+   ],
+   "mainTopics": [
+    "afrika",
+    "voetbal"
+   ],
+   "url": "https://nos.nl/l/2639369",
+   "image": "https://images.cdn.nos.nl/6/E/p/J/j/g/BkRtRwJa2Kuw4EGdTkecDZ6MrGUP3uCAEHBPMxy/8x310x3664x2061-1024x576.webp",
+   "publishedAt": "2026-11-13T18:47:58.000Z"
+  },
+  {
+   "id": "18xv1d",
+   "kind": "article",
+   "source": "ad",
+   "sourceName": "AD",
+   "storyId": "s1wcxxx6",
+   "title": "Fraaie hakgoal en nog een treffer: Ajax-spits Tolu toont topvorm ook in Nigeria",
+   "summary": "Tolu Arokodare verkeert in topvorm. De spits was de laatste weken bij Ajax al op dreef en heeft zich nu ook in de nationale ploeg van Nigeria laten gelden.",
+   "topics": [
+    "afrika",
+    "voetbal"
+   ],
+   "mainTopics": [
+    "afrika",
+    "voetbal"
+   ],
+   "url": "https://www.ad.nl/voetbal/fraaie-hakgoal-en-nog-een-treffer-ajax-spits-tolu-toont-topvorm-ook-in-nigeria~ae5aa762/",
+   "image": "https://images.ad.nl/NjU2ZGE3M2ZmMGU5ODVhZWRkODYvZGlvLzI4MDMwOTk2MS9maXQtd2lkdGgvNDAw/brentford-england-may-31-toluwalase-emmanuel-arokodare-of-nigeria-after-the-unity-cup-final-match-between-jamaica-and-nigeria-at-gtech-community-stadium-on-may-31-2025-in-brentford-england-photo-by-harry-murphy-getty-images",
+   "publishedAt": "2026-11-13T18:17:00.000Z",
+   "author": "Sportredactie"
+  },
+  {
+   "id": "1xkb3s2",
+   "kind": "article",
+   "source": "vi",
+   "sourceName": "Voetbal International",
+   "storyId": "s1wcxxx6",
+   "title": "Briljante invalbeurt Tolu bij Nigeria, PSV’er Santos belangrijk voor Kaapverdië",
+   "summary": "Tolu Arokodare kende vrijdag een ijzersterke invalbeurt bij Nigeria.",
+   "topics": [
+    "afrika",
+    "voetbal"
+   ],
+   "mainTopics": [
+    "afrika",
+    "voetbal"
+   ],
+   "url": "https://www.vi.nl/nieuws/briljante-invalbeurt-tolu-bij-nigeria-psv-er-santos-belangrijk-voor-kaapverdie",
+   "image": "https://webp.vi.cdn.pxr.nl/news/2026/11/13/5c95fc507fe3424826df82d46a5c9d9d8b2c6103.jpg?width=1200",
+   "publishedAt": "2026-11-13T18:00:50.000Z"
+  },
+  {
+   "id": "8wq4dq",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "storyId": "s1wcxxx6",
+   "title": "Quotezakkenexodus",
+   "summary": "Ja natuurlijk heb ik afgelopen zondag na het vrolijke en stevige voetbalpotje FC Twente-Ajax het spitsenduo Woutje Weghorst van Twente en Tolu Arokodare van Ajax samen…",
+   "topics": [
+    "voetbal"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/13/quotezakkenexodus-a4941342",
+   "image": "https://images.nrc.nl/FA-2Y6s4VWFQwHa_Bzd5NFvdnbg=/1280x/filters:no_upscale():format(jpeg):fill(f8f8f8,true)/s3/static.nrc.nl/wp-content/uploads/2019/10/youp5bij3.png",
+   "publishedAt": "2026-11-13T15:48:39.000Z"
+  }
+ ]
+}

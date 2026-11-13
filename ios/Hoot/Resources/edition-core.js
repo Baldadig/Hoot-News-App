@@ -2897,9 +2897,10 @@ var HootCore = (() => {
   var STALE_AFTER = HEAD_MAX_H * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
   function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
-    const score = (i) => (i.type === "opinie" ? -16 : 0) + (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
+    const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
     const scores = new Map(items.map((i) => [i, score(i)]));
-    return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b));
+    const op = new Map(items.map((i) => [i, isOpinion(i) ? 1 : 0]));
+    return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b));
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b|(^|:\s*)(bekijk|vind|volg|lees) hier\b|^\W*praat mee\b|^\W*spoorboekje\b|\bresults live\b|\blive results\b|\blive briefing\b|:\s*all the news\s*$/i;
   var isLive = (a) => LIVE_TITLE.test(a.title || "") || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || "");
@@ -3272,7 +3273,8 @@ var HootCore = (() => {
     return ys.length ? ys : xs;
   };
   function leadPool(cands, items, now, own = null, total = items.length, coreItems = centralItems) {
-    let xs = prefer(cands, (i) => !isStale(i, now));
+    let xs = prefer(cands, (i) => !isOpinion(i));
+    xs = prefer(xs, (i) => !isStale(i, now));
     if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
     if (own) xs = prefer(xs, own);
     const core = new Set(coreItems(items, total));
@@ -3421,6 +3423,10 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "zonder-titel");
         continue;
       }
+      if (!items.some((i) => !isOpinion(i))) {
+        reject("story", st.id, st.itemIds, "alleen-opinie");
+        continue;
+      }
       let dev = null;
       let straf = 0;
       let held = false;
@@ -3476,10 +3482,14 @@ var HootCore = (() => {
         }
       }
       const tie = general && curioStory(st, items) ? freshBonus(st.latestAt, now) + CURIO_TIE + AGE_MAX - agePenalty(st.latestAt, now) : 0;
+      if (heads?.length && !heads.some((i) => !isOpinion(i))) {
+        reject("story", st.id, st.itemIds, "alleen-opinie-nieuw");
+        continue;
+      }
       cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
     }
     for (const it of pool) {
-      if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
+      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
         reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
         continue;
       }
