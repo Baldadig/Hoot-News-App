@@ -647,3 +647,5 @@ html.ios .verder-rij .wacht{order:-1}
 .vh-stapel img{margin-left:-7px;box-shadow:0 0 0 2px var(--s-card),0 0 0 3px rgba(26,24,20,.10);position:relative}
 .vh-stapel img:first-child{margin-left:0}
 .vh-stapel .vh-meer{margin-left:10px}
+/* vaste hoogte: de kop krijgt altijd ruimte voor drie regels, zodat de kaart en de sectie niet meebewegen met het verhaal (Alex, 13 november) */
+.vh-kop{height:3.66em;min-height:3.66em}
