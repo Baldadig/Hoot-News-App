@@ -12,7 +12,7 @@ import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
 import { LeadStory, CompactItem, KaartItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength, bronnenLabel } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
-import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
+import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ArrowUpIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
 import { KopSun, EindeSun } from '../components/SunArt.jsx'
@@ -36,6 +36,7 @@ import { cardIntro } from '../../shared/kaart-intro.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
 import { useIntroMax, useColumnWidth, useShrinkToFit, shrunk } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
+import { comingLine, readyLine, swapsNow, AT_TOP_PX } from '../../shared/dagdeel-wissel.mjs'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
 // namen als DESK_NAMES in shared/editor.mjs; 'regio' is de plek die De Redacteur uit je regionale
@@ -134,7 +135,7 @@ function LessNote({ entryKey, item, story, n }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater, coming = null, nextReady = null, onSwap = null, storyOpen = false }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById, setPref } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
@@ -206,11 +207,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   // De zon als voortgang (zon-voortgang, variant B): één scroll-luisteraar zet de stand op de zon in de
   // kop en in de meelopende kop, en de waarde voor VoiceOver. Bij Minder beweging per verhaal een fade.
+  // Een andere getoonde Editie (ook na de dagdeelwissel): opnieuw beginnen, de zon weer bovenaan.
   const eind = edition?.date ? eindzin(edition.date, edition.slot) : null
   useEffect(() => {
     if (!active || !ready || !hasMinimum) return undefined
     return volgLeesStand(ref.current, { n: count, eind, still: reduced })
-  }, [active, ready, hasMinimum, count, eind, phone])
+  }, [active, ready, hasMinimum, count, eind, phone, edition?.id])
 
   // Eerste laden: de laadstrepen. Klaar: het bovenste vel wordt de kopstreep, de andere drie de
   // onderlijnen van de kop van het hoofdverhaal (src/lib/load-lines.js); dan geen tweede "druk".
@@ -235,6 +237,36 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   useEffect(() => {
     if (!active && hintSeen.current) onHintDone?.()
   }, [active, onHintDone])
+
+  // De dagdeelwissel (shared/dagdeel-wissel.mjs): staat de nieuwe Editie klaar terwijl de vorige nog in beeld is, dan
+  // wisselen we vanzelf als je bovenaan staat en niet leest (nu, terug in de tab, of na het sluiten van een verhaal);
+  // anders bovenin de tikbare melding. Het drukken hieronder speelt dan op de nieuwe Editie.
+  // Bovenaan: de laatst gemeten plek terwijl de Editie zichtbaar was (zoals iOS met atTop). Een verborgen view
+  // (`[hidden]`, display: none) leest altijd 0, en bij terugkomen zet useScrollMemory je plek pas daarna terug;
+  // daarom meten we alleen in beeld, en controleren we alleen als de Editie actief is.
+  const lastTop = useRef(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !active) return undefined
+    const measure = () => {
+      if (el.getClientRects().length) lastTop.current = el.scrollTop
+    }
+    el.addEventListener('scroll', measure, { passive: true })
+    return () => el.removeEventListener('scroll', measure)
+  }, [active])
+  const atTop = () => lastTop.current <= AT_TOP_PX
+  useEffect(() => {
+    if (!nextReady || !onSwap || !active) return undefined
+    const check = () => swapsNow({ atTop: atTop(), reading: reading || storyOpen }) && onSwap()
+    check()
+    const visible = () => document.visibilityState === 'visible' && check()
+    document.addEventListener('visibilitychange', visible)
+    return () => document.removeEventListener('visibilitychange', visible)
+  }, [nextReady, active, reading, storyOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+  const swapToTop = () => {
+    ref.current?.scrollTo({ top: 0 })
+    onSwap?.()
+  }
 
   usePrintEdition(ref, edition?.id, active, ready && rows.length > 0 && !lines.ending && !tien.active)
   // De bubbel ging al open: deze Editie geldt als gedrukt.
@@ -268,6 +300,16 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       {pull}
       <div className={`col col--wide col--front${tien.active ? tien.hostClass : lines.hostClass}`} ref={hostRef}>
+        {/* De nieuwe Editie staat klaar terwijl je leest: bovenin, zoals de nieuwe berichten in de Stroom. Hij neemt
+            geen plek in de kolom (styles/dagdeel-wissel.css), dus er verspringt niets. */}
+        {nextReady && ready ? (
+          <div className="edklaar">
+            <button type="button" className="btn btn--accent newpill edklaar__pill" onClick={swapToTop}>
+              <ArrowUpIcon />
+              {readyLine(nextReady)}
+            </button>
+          </div>
+        ) : null}
         <TienLayer tien={tien} host={hostRef} onDone={onTienDone} />
         <LoadLinesLayer lines={lines} host={hostRef}  land={phone ? '.kaarten .kaart__title--lead' : '.front .lead__title'} rule=".edrule" onLand={() => markPrinted(edition?.id)} />
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
@@ -319,6 +361,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 {/* Geen "Jouw Editie" meer (Alex, 5 november: dat is het altijd). Alleen wat afwijkt, staat er. */}
                 {hasPersonalLabel ? null : <span>{edition.personal ? 'Om te beginnen' : 'De Editie voor iedereen'}</span>}
               </p>
+              {/* Een nieuw dagdeel: de vorige Editie blijft staan tot de nieuwe er is. Eén rustige regel, geen tijd. */}
+              {coming ? (
+                <p className="vh__sub edkomt" role="status">
+                  <span className="edkomt__teken" aria-hidden="true" />
+                  {comingLine(coming)}
+                </p>
+              ) : null}
             </>
           ) : null}
           {ready ? <hr className="edrule" /> : null}

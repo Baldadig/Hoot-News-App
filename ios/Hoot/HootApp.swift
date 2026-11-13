@@ -219,15 +219,22 @@ struct RootView: View {
     private var widgetWachtSleutel: String { WidgetVerhaalWacht.sleutel(store) + (account.status == .loading ? "|laadt" : "") }
     // Het verhaal uit de widget openen in de lezer (of in Safari, zoals je ingesteld hebt); het telt als gelezen,
     // net als in de Editie. Ook als de Editie het stuk intussen onder een ander hoofdstuk heeft.
+    // Toont de app bij de dagdeelwissel nog de vorige Editie en staat het verhaal in de nieuwe (die de widget al heeft),
+    // dan eerst wisselen: je opent het verhaal uit de Editie die de widget liet zien.
     private func openFromWidget(_ id: String) -> Bool {
-        guard let row = WidgetVerhaalWacht.rij(id, in: store.editionRows) else { return false }
+        if let row = WidgetVerhaalWacht.rij(id, in: store.editionRows) {
+            reader.open(row.item, store: store)
+            return true
+        }
+        guard store.editionReady != nil, let row = WidgetVerhaalWacht.rij(id, in: store.rows(of: store.widgetEdition)) else { return false }
+        store.swapEdition()
         reader.open(row.item, store: store)
         return true
     }
     // Wacht een verhaal uit de widget, dan nu openen; of, na het laden, laten vervallen als het niet in de Editie staat.
     private func widgetVerhaalStap() {
         guard let id = widgetVerhaal else { return }
-        switch WidgetVerhaalWacht.stap(id, rows: store.editionRows, geladen: widgetGeladen, accountLaadt: account.status == .loading,
+        switch WidgetVerhaalWacht.stap(id, rows: store.rows(of: store.widgetEdition), geladen: widgetGeladen, accountLaadt: account.status == .loading,
                                        gewacht: Date().timeIntervalSince(widgetSinds)) {
         case .open: _ = openFromWidget(id); widgetVerhaal = nil
         case .vervalt: widgetVerhaal = nil
@@ -274,7 +281,7 @@ struct RootView: View {
             default: break
             }
         }
-        .onChange(of: store.edition?.id) { if tab == .editie { store.tel(.editieOpen) } }
+        .onChange(of: store.shownEdition?.id) { if tab == .editie { store.tel(.editieOpen) } }
         .task { await store.load() }
         #if DEBUG
         .onAppear {

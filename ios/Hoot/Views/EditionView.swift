@@ -213,7 +213,11 @@ extension HootStore {
             }
         }
         #endif
-        guard let edition = shownEdition else { return [] }
+        return rows(of: shownEdition)
+    }
+    // De plekken van een Editie (de getoonde, of voor de widget de nieuwste).
+    func rows(of edition: Edition?) -> [EditionRowModel] {
+        guard let edition else { return [] }
         let published = Dictionary((edition.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         let on = Set(followed.map(\.id))
         let rows: [EditionRowModel] = edition.entries.filter { bubble || $0.desk != "bubbel" }.compactMap { e in
@@ -282,7 +286,7 @@ struct EditionView: View {
     // Om een beoordeling vragen (ReviewAsk): alleen op het einde, na de derde uitgelezen Editie, een tel nadat de
     // eindkaart in beeld kwam, en alleen als je er nog bent en er geen seintje-vraag staat. Hooguit één keer per versie.
     private func reviewMoment() {
-        guard let id = store.edition?.id, !store.browsing else { return }
+        guard let id = store.shownEdition?.id, !store.browsing else { return } // de Editie die je uitlas, ook bij de dagdeelwissel
         let read = ReviewAsk.record(edition: id)
         let version = ReviewAsk.appVersion
         guard ReviewAsk.shouldAsk(read: read, version: version), !DebugLaunch.offline else { return }
@@ -297,11 +301,13 @@ struct EditionView: View {
             requestReview()
         }
     }
-    private var title: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
+    // Titel, datum en einde horen bij de Editie die je ziet: bij de dagdeelwissel even de vorige (DagdeelWissel).
+    private var shown: Edition? { store.shownEdition ?? store.edition }
+    private var title: String { shown?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     // Het aantal genummerde verhalen: daarvan telt de zon in de kop (zon-voortgang).
     private var leesCount: Int { EditionNumbering.count(EditionNumbering.rows(store.editionRows).filter { $0.desk != "bubbel" }) }
     private var dateLine: String {
-        guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
+        guard let d = shown?.date, let date = HootDate.day(d) else { return "" }
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
@@ -316,7 +322,7 @@ struct EditionView: View {
 
     // Wanneer de volgende er is, in dagdelen uit Slots: geen kloktijden.
     private var upNext: String {
-        guard let volgende = store.edition?.slot.flatMap({ Slots.all[$0]?.volgende }) else { return "" }
+        guard let volgende = shown?.slot.flatMap({ Slots.all[$0]?.volgende }) else { return "" }
         // Vaste spatie in "je klaar.": de zin eindigt nooit met één woord alleen op de laatste regel.
         return " De volgende staat \(volgende) klaar."
     }
@@ -341,6 +347,16 @@ struct EditionView: View {
     @State private var leadTop: CGFloat = 0
     @State private var vouwMaat = VouwMaat()
     private static let inhoud = "editie-inhoud"
+    private static let boven = "editie-boven"
+    // De dagdeelwissel (DagdeelWissel.swift): sta je bovenaan, en lees je niet (geen verhaal, geen lezer)?
+    @State private var atTop = true
+    private var leest: Bool { !path.isEmpty || reader?.item != nil || staat?.verhaal[.editie] != nil }
+    // Staat de nieuwe Editie klaar terwijl de vorige nog in beeld is: vanzelf wisselen als je bovenaan staat en niet
+    // leest (nu, terug in de app, terug op dit tabblad of na het sluiten van een verhaal). Het drukken speelt dan.
+    private func swapIfIdle() {
+        guard store.editionReady != nil, DagdeelWissel.swapsNow(atTop: atTop, reading: leest) else { return }
+        store.swapEdition()
+    }
     struct VouwMaat: Equatable { var hoogte: CGFloat = 0; var boven: CGFloat = 0; var onder: CGFloat = 0; var venster: CGFloat = 0 }
     private var vouwRuimte: VouwRuimte? {
         guard !wide, vouwMaat.hoogte > 0, leadTop > 0, let profiel = Vouw.profiel(vensterHoogte: vouwMaat.venster, typeSize: typeSize, compacteVoorpagina: compact) else { return nil }
@@ -526,8 +542,9 @@ struct EditionView: View {
                     // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
                     // Met een kleine zon ernaast die toont hoe ver je bent (zon-voortgang): hij zakt alleen als
                     // jij scrolt. Past de naam er bij grote tekst niet meer naast, dan valt de zon eronder.
-                    HootKop()
-                    EditionHeader(title: title, stand: stand, count: EditionNumbering.count(rows), eind: EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), sun: store.edition?.slot != nil)
+                    // Naam, eindzin en telling horen bij de Editie die je ziet (shown), ook tijdens de dagdeelwissel.
+                    HootKop().id(Self.boven) // bovenaan: hierheen bij een tik op "staat klaar"
+                    EditionHeader(title: title, stand: stand, count: EditionNumbering.count(rows), eind: EditionEnd.line(date: shown?.date, slot: shown?.slot), sun: shown?.slot != nil)
                         .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).maxY } action: { stand.kopOnder = $0 }
                         .tienAnchor() // je eerste Editie: het teken staat hieronder
                     if rows.isEmpty && loaderShown {
@@ -555,9 +572,23 @@ struct EditionView: View {
                             .font(.ui(.footnote)) // Schibsted 13, gelijk aan .vh__sub op het web (t1)
                             .foregroundStyle(Theme.ink3)
                             .frame(minHeight: 20, alignment: .leading) // de regel blijft 20 hoog (lh-2), zoals op het web: de kop houdt zijn ritme
-                            .padding(.bottom, Space.s4)
+                            .padding(.bottom, store.editionComing == nil ? Space.s4 : 0)
                             .loadLinesText(lines)
                             .tienBlock(tien, 0)
+                        // Een nieuw dagdeel: de vorige Editie blijft staan tot de nieuwe er is (DagdeelWissel). Eén rustige
+                        // regel met het systeemteken, geen tijd; gelijk aan .edkomt op het web.
+                        if let slot = store.editionComing {
+                            HStack(spacing: Space.s2) {
+                                ProgressView().controlSize(.mini)
+                                Text(DagdeelWissel.comingLine(slot))
+                            }
+                            .font(.ui(.footnote))
+                            .foregroundStyle(Theme.ink3)
+                            .frame(minHeight: 20, alignment: .leading)
+                            .padding(.bottom, Space.s4)
+                            .accessibilityElement(children: .combine)
+                            .transition(.opacity)
+                        }
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4).loadLinesText(lines).tienBlock(tien, 0)
                         // Meer kanten van één verhaal (keuze r5-kanten-welkom, gelijk aan .kantentip op het web): één
@@ -688,7 +719,7 @@ struct EditionView: View {
                                     endVisible = visible
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
-                            Kop(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), .title)
+                            Kop(EditionEnd.line(date: shown?.date, slot: shown?.slot), .title)
                             Text(afgebroken: "Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)", typeSize: typeSize) // AX: "morgen-/ochtend", niet "morgenochte/nd"
                                 .font(.ui(.subheadline))
                                 .multilineTextAlignment(.center)
@@ -745,12 +776,40 @@ struct EditionView: View {
             } action: { _, geo in
                 stand.werkBij(geo, count: lees)
             }
+            // Een andere getoonde Editie (ook na de dagdeelwissel): de zon begint weer bovenaan.
             .onChange(of: store.shownEdition?.id) { _, _ in stand.reset() }
+            // Bovenin, over de krant heen (er verspringt niets): eerst de meelopende kop, daaronder "De Avondeditie
+            // staat klaar". Eén stapel, zodat de melding nooit onder de kop valt: staat de kop er, dan schuift de
+            // melding mee omlaag. Tik = bovenaan en wisselen.
             .overlay(alignment: .top) {
-                if store.edition?.slot != nil, EditionLimits.hasMinimum(lees) {
-                    EditionKopBalk(title: title, stand: stand, count: lees)
+                VStack(spacing: 0) {
+                    if shown?.slot != nil, EditionLimits.hasMinimum(lees) {
+                        EditionKopBalk(title: title, stand: stand, count: lees)
+                    }
+                    if let slot = store.editionReady, !store.editionRows.isEmpty {
+                        Button {
+                            withAnimation(still ? nil : Beweging.gewoonAnim) { proxy.scrollTo(Self.boven, anchor: .top) }
+                            store.swapEdition()
+                        } label: {
+                            Label(DagdeelWissel.readyLine(slot), systemImage: "arrow.up")
+                                .font(.ui(.subheadline))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.capsule)
+                        .tint(Theme.accent) // gelijk aan .btn--accent op het web
+                        .padding(.top, Space.s2)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
             }
+            .animation(Beweging.kies(Beweging.gewoonAnim, still: still), value: store.editionReady)
+            .animation(Beweging.kies(Beweging.gewoonAnim, still: still), value: store.editionComing)
+            // Bovenaan of niet (DagdeelWissel): een tweede, losse luisteraar naast die van de zon.
+            .onScrollGeometryChange(for: Bool.self) { g in g.contentOffset.y + g.contentInsets.top <= DagdeelWissel.atTop } action: { _, top in atTop = top }
+            .onChange(of: store.editionReady, initial: true) { swapIfIdle() }
+            .onChange(of: scenePhase) { _, p in if p == .active { swapIfIdle() } }
+            .onChange(of: leest) { swapIfIdle() }
+            .onChange(of: staat?.tab) { swapIfIdle() }
             .compacteVoorpagina { compact = $0 }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
             .plekBewaren(proxy)

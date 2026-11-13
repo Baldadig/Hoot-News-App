@@ -3,18 +3,19 @@ import WidgetKit
 
 // De app schrijft voor de widgets (HootWidget) een klein bestand in de App Group: na elke nieuwe Editie en
 // na elk gelezen verhaal. Daarna vraagt hij iOS de widgets te verversen. De widget rekent niets zelf: wat er
-// staat, en wat gelezen is, is precies wat de app toont (EditionRowModel, HootStore.isRead).
+// staat, en wat gelezen is, is precies wat de app toont (EditionRowModel, HootStore.isRead). Bij de dagdeelwissel
+// (DagdeelWissel.swift) krijgt de widget al de nieuwe Editie, ook als de app nog even de vorige toont (widgetEdition).
 @MainActor
 enum WidgetSchrijver {
     // Wat de widget moet weten om te zien of er iets veranderde: de Editie, de plekken en wat gelezen is.
     static func sleutel(_ store: HootStore) -> String {
-        let rows = EditionNumbering.rows(store.editionRows).filter { $0.number != nil }
+        let rows = EditionNumbering.rows(store.rows(of: store.widgetEdition)).filter { $0.number != nil }
         let gelezen = rows.filter { store.isRead($0.item) }.map(\.id)
-        return [store.shownEdition?.id ?? "", rows.map(\.id).joined(separator: ","), gelezen.joined(separator: ","), vraag(store).rawValue].joined(separator: "|")
+        return [store.widgetEdition?.id ?? "", rows.map(\.id).joined(separator: ","), gelezen.joined(separator: ","), vraag(store).rawValue].joined(separator: "|")
     }
 
     static func vraag(_ store: HootStore) -> WidgetEditie.Vraag {
-        vraag(eigen: store.shownEdition?.personal == true, account: store.ownerNow != "anon",
+        vraag(eigen: store.widgetEdition?.personal == true, account: store.ownerNow != "anon",
               vraagBewaard: FileManager.default.fileExists(atPath: WidgetBron.vraagBestand.path))
     }
     // Lid alleen met een account (dan is je token nodig). Zonder account: jouw vraag als die er is, en anders
@@ -27,7 +28,7 @@ enum WidgetSchrijver {
     // Haalt de widget de Editie voor iedereen terwijl jij een eigen Editie hebt, dan moet hij de taalregel kennen:
     // de bronnen die je volgt (alleen op dit toestel, in de App Group).
     static func eigenBronnen(_ store: HootStore, vraag: WidgetEditie.Vraag) -> [String]? {
-        vraag == .algemeen && store.shownEdition?.personal == true ? store.followed.map(\.id).sorted() : nil
+        vraag == .algemeen && store.widgetEdition?.personal == true ? store.followed.map(\.id).sorted() : nil
     }
 
     // Zonder Editie (nog niet geladen) schrijft hij niets: dan blijft de vorige staan.
@@ -38,9 +39,9 @@ enum WidgetSchrijver {
         // De app als gastheer van de toetsen schrijft niets voor de widgets: geen beeld ophalen of iOS laten
         // verversen terwijl andere toetsen (WebKit) op tijd moeten antwoorden.
         if WidgetGroep.inToets { return }
-        guard let edition = store.shownEdition, let datum = edition.date, let dagdeel = edition.slot else { return }
+        guard let edition = store.widgetEdition, let datum = edition.date, let dagdeel = edition.slot else { return }
         let kort = Dictionary(edition.entries.map { ($0.id, $0.kortKop) }, uniquingKeysWith: { a, _ in a })
-        let rows = EditionNumbering.rows(store.editionRows).filter { $0.number != nil }
+        let rows = EditionNumbering.rows(store.rows(of: edition)).filter { $0.number != nil }
         guard !rows.isEmpty else { return }
         let stenen = rows.map { r in
             WidgetEditie.Bouwsteen(plek: r.id, desk: r.desk, itemId: r.item.id, oudeIds: r.item.formerIds ?? [], kop: r.item.title,
@@ -76,7 +77,7 @@ enum WidgetSchrijver {
 enum WidgetVerhaalWacht {
     static func sleutel(editie: String?, rijen: [String]) -> String { ([editie ?? ""] + rijen).joined(separator: "|") }
     @MainActor static func sleutel(_ store: HootStore) -> String {
-        sleutel(editie: store.shownEdition?.id ?? store.edition?.id, rijen: store.editionRows.map(\.id))
+        sleutel(editie: store.widgetEdition?.id ?? store.edition?.id, rijen: store.rows(of: store.widgetEdition).map(\.id))
     }
 
     // De rij met dit stuk: als hoofdstuk (ook onder een eerdere id), of ergens in de bundel van een verhaal.

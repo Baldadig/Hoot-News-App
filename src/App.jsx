@@ -190,7 +190,9 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, readIds: read, affinity, sync: { status: syncStatus, pulled: syncPulled }, stuck: feedStuck })
+  // `myEdition` is de Editie die je ziet: bij een nieuw dagdeel even de vorige, tot de nieuwe er is en je wisselt
+  // (shared/dagdeel-wissel.mjs). `coming`, `nextReady` en `swapEdition` horen bij die wissel.
+  const { edition: myEdition, coming: editionComing, nextReady: editionNext, swap: swapEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, readIds: read, affinity, sync: { status: syncStatus, pulled: syncPulled }, stuck: feedStuck })
   // Meten zonder volgen (src/lib/tel.js): het dagdeel van de Editie die je ziet. Alleen totalen, geen personen.
   const dagdeel = myEdition?.date && myEdition?.slot ? `${myEdition.date}-${myEdition.slot}` : null
   const dagdeelRef = useRef(dagdeel)
@@ -707,6 +709,10 @@ export default function App() {
               tien={tienStart}
               onTienDone={endTien}
               edition={myEdition}
+              coming={editionComing}
+              nextReady={editionNext}
+              onSwap={swapEdition}
+              storyOpen={!!story}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}
               statusProps={statusProps}

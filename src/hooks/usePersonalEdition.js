@@ -4,6 +4,7 @@ import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, se
 import { readJSON, writeJSON } from '../lib/store.js'
 import { readingSummary } from '../lib/affinity.js'
 import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
+import { holdFor } from '../../shared/dagdeel-wissel.mjs'
 
 const KEY = 'hoot:my-edition'
 
@@ -188,5 +189,44 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
   const mine = (e) => e && e.owner === owner && e.id === global?.id
   const shown = mine(edition) ? edition : mine(provisional) ? provisional : null
   const briefNote = shown && !shown.brief && briefFull === `${shown.version}|${shown.basis}` ? BRIEF_FULL_TEXT : null
-  return { edition: shown, member: !!uid, briefNote }
+
+  // De dagdeelwissel (shared/dagdeel-wissel.mjs, Editie sneller C3): komt er een nieuw dagdeel en is jouw nieuwe Editie
+  // er nog niet, dan blijft de vorige staan (`held`), in plaats van de laadstrepen. Ze wordt alleen getoond, niet opnieuw
+  // bewaard. Wat er stond: de Editie die je net zag, of anders (na herladen) de laatste van de server of het vangnet.
+  // Synchroon in de weergave, zodat er geen beeld met laadstrepen tussen zit. De Editie-weergave beslist wanneer
+  // er gewisseld wordt (bovenaan en niet aan het lezen) en roept dan `swap`.
+  const lastShown = useRef(null)
+  const held = useRef(null)
+  const looked = useRef('')
+  const [, setSwapped] = useState(0)
+  held.current = holdFor({
+    held: held.current,
+    shown,
+    last: lastShown.current,
+    global,
+    owner,
+    // Eén keer per dagdeel en lezer in de opslag kijken (niet bij elke weergave JSON lezen).
+    stored: () => {
+      if (looked.current === `${global.id}|${owner}`) return []
+      looked.current = `${global.id}|${owner}`
+      return [readJSON(KEY, null), readJSON(PROVISIONAL_KEY, null)]
+    },
+  })
+  const showing = held.current || shown
+  if (showing) lastShown.current = showing
+  const swap = () => {
+    held.current = null
+    lastShown.current = shown
+    setSwapped((n) => n + 1)
+  }
+  return {
+    edition: showing,
+    current: shown,
+    // De nieuwe Editie komt eraan (het dagdeel van de kern), of staat klaar (het dagdeel van de nieuwe Editie).
+    coming: held.current && !shown ? global?.slot || null : null,
+    nextReady: held.current && shown ? shown.slot || null : null,
+    swap,
+    member: !!uid,
+    briefNote: held.current ? null : briefNote,
+  }
 }
