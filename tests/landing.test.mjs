@@ -33,9 +33,9 @@ const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 
 const BEWAARD = JSON.parse(readFileSync(new URL('../landing/bewaard.json', import.meta.url), 'utf8'))
 const velden = (aan) => {
   const as = appStore(aan), lijst = vragen({ aantal: SOURCES.length, appUrl: as.APP_URL_VRAAG })
-  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.' }
+  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.', BRONNAMEN: '<span>NOS</span>' }
 }
-const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
+const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|BRONNAMEN|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
 const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/ ([.,])/g, '$1')
 
 test('landing: overal dezelfde accountzin, en het account in de eerste vraag', () => {
