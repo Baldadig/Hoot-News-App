@@ -167,6 +167,32 @@
       }, function () { ringen.forEach(function (r) { r.style.transform = ''; }); });
     }
 
+    /* ---- bronnen: acht schijven met een bronlogo; om de beurt wisselt er rustig één (een kleine twee seconden per wissel),
+       alleen in beeld. Verminder beweging: de eerste acht blijven staan. ---- */
+    var lg = $('.logos');
+    if (lg) {
+      var pool = [];
+      try { pool = JSON.parse(lg.getAttribute('data-pool') || '[]'); } catch (e) {}
+      var plekken = $$('img', lg), lgZicht = false, lgT = 0, beurt = 0;
+      var ORDE = [0, 5, 2, 7, 1, 4, 6, 3]; /* niet van links naar rechts: zo voelt het als een rustig wisselend bord */
+      var wisselLogo = function () {
+        lgT = 0;
+        if (!lgZicht || reduce || document.hidden || !pool.length) return;
+        var img = plekken[ORDE[beurt++ % ORDE.length]], nieuw = pool.shift();
+        pool.push({ s: img.getAttribute('src'), n: img.alt });
+        var li = img.parentNode; li.classList.add('uit');
+        setTimeout(function () {
+          var pre = new Image(); pre.onload = pre.onerror = function () { img.src = nieuw.s; img.alt = nieuw.n; li.classList.remove('uit'); };
+          pre.src = nieuw.s;
+        }, 450);
+        lgT = setTimeout(wisselLogo, 1900);
+      };
+      var lgKijk = function () { if (lgZicht && !reduce && !document.hidden) { if (!lgT) lgT = setTimeout(wisselLogo, 1200); } else if (lgT) { clearTimeout(lgT); lgT = 0; } };
+      zichtbaar(lg, function (aan) { lgZicht = aan; lgKijk(); });
+      document.addEventListener('visibilitychange', lgKijk);
+      opRM(lgKijk);
+    }
+
     /* parallax: de zon komt op terwijl de band in beeld schuift, het scherm schuift een tikje mee */
     var scenes = $$('[data-scene]');
     if (!reduce && IO && scenes.length) {

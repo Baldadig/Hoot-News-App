@@ -587,3 +587,14 @@ a.nu:focus-visible .toestel{outline:2px solid var(--op-rood);outline-offset:4px}
 html.ios .verder-rij .wacht{order:-1}
 @media (min-width:900px){.verder-rij{justify-content:center}}
 @media (max-width:719px){html:not(.ios) .redacteur .wacht{display:none}}
+
+/* bronnen: acht papieren schijven met het logo in merkrood (zoals op de gedeelde kaart); er wisselt rustig één tegelijk */
+.logos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s4);margin-top:var(--s6);max-width:520px;padding:0;list-style:none}
+.logos li{aspect-ratio:1;border-radius:50%;background:#FCFAF5;box-shadow:0 0 0 1px var(--lijn);display:grid;place-items:center;overflow:hidden;transition:opacity .45s ease,transform .45s ease}
+.logos img{display:block;width:72%;height:auto;border-radius:12%}
+.logos li.uit{opacity:0;transform:scale(.92)}
+@media (prefers-reduced-motion:reduce){.logos li{transition:none}}
+@media (min-width:1100px){
+  .bronnen .kol{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s8);align-items:center}
+  .logos{margin-top:0;justify-self:end;width:100%;gap:var(--s5)}
+}

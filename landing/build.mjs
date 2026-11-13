@@ -57,6 +57,19 @@ const HASH = h256(INLINE), HASH_PALET = h256(PALET);
 const { SOURCES } = await import('../netlify/lib/sources.mjs');
 const { ruim, vragen, vragenHtml, jsonld } = await import('./vragen.mjs');
 const BRONNEN_RUIM = ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase());
+// De bronlogo's (Alex, 13 november): dezelfde silhouetten in merkrood als de gedeelde kaart (shared/deelkaart/publisher-marks.json),
+// op een papieren schijf. Acht plekken; landing/hoot.js wisselt ze rustig door de rest van de rij. Alleen logo's die als
+// silhouet herkenbaar zijn (geen effen schijven). Als losse bestanden, want de CSP laat geen data:-beelden toe.
+const MARKS = JSON.parse(fs.readFileSync(APP + '/shared/deelkaart/publisher-marks.json', 'utf8'));
+const LOGO_IDS = ['nos', 'nu', 'volkskrant', 'rtl', 'standaard', 'bbc', 'nyt', 'tweakers', 'ad', 'trouw', 'parool', 'ft', 'fd', 'hln', 'dvhn', 'ftm', 'tijd', 'newyorker', 'lemonde', 'theverge', 'pzc', 'ed', 'bd', 'lc', 'haarlemsdagblad', 'bndestem', 'nd', 'gva', 'limburger', 'stentor', 'atlantic', 'independent', 'techcrunch', 'pitchfork', 'rollingstone', '3voor12', 'quanta', 'nature', 'npr', 'politico', 'vi', 'espn'];
+fs.mkdirSync(path.join(OUT, 'img', 'bronnen'), { recursive: true });
+const logos = LOGO_IDS.map((id) => ({ id, bron: SOURCES.find((x) => x.id === id), png: MARKS[id] })).filter((x) => x.bron && x.png).map((x) => {
+  const bytes = Buffer.from(x.png.split(',')[1], 'base64'), file = `/img/bronnen/${x.id}.${sha(bytes, 8)}.png`;
+  fs.writeFileSync(path.join(OUT, file), bytes);
+  return { s: file, n: x.bron.name };
+});
+const escA = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const BRONLOGOS = `<ul class="logos" data-pool="${escA(JSON.stringify(logos.slice(8)))}" aria-label="Een greep uit de bronnen">${logos.slice(0, 8).map((l) => `<li><img src="${l.s}" alt="${escA(l.n)}" width="84" height="84"></li>`).join('')}</ul>`;
 const BESCHRIJVING = 'Hoot is een rustige nieuwslezer. Drie keer per dag tien verhalen uit jouw bronnen, dan ben je bij. Gratis, zonder advertenties. Hoot volgt je niet.';
 const VRAAGLIJST = vragen({ aantal: SOURCES.length, appUrl: AS.APP_URL_VRAAG });
 
@@ -65,7 +78,7 @@ const VRAAGLIJST = vragen({ aantal: SOURCES.length, appUrl: AS.APP_URL_VRAAG });
 const { vulBewaard } = await import('./bewaard.mjs');
 const BEWAARD = JSON.parse(rd('bewaard.json'));
 
-const VARS = { CSSFILE, JSFILE, INLINE, PALET, WM_D, MARK_D, BRONNEN_RUIM, BESCHRIJVING, VRAGEN: vragenHtml(VRAAGLIJST), JSONLD: jsonld({ lijst: VRAAGLIJST, appUrl: AS.APP_URL_VRAAG, beschrijving: BESCHRIJVING }), ...AS };
+const VARS = { CSSFILE, JSFILE, INLINE, PALET, WM_D, MARK_D, BRONNEN_RUIM, BRONLOGOS, BESCHRIJVING, VRAGEN: vragenHtml(VRAAGLIJST), JSONLD: jsonld({ lijst: VRAAGLIJST, appUrl: AS.APP_URL_VRAAG, beschrijving: BESCHRIJVING }), ...AS };
 const fill = (t) => vulBewaard(t, BEWAARD).replace(/\{\{(\w+)\}\}/g, (_, k) => { if (!(k in VARS)) throw new Error('landing: onbekend veld {{' + k + '}}'); return VARS[k]; }).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
 fs.writeFileSync(path.join(OUT, '404.html'), fill(rd('404.src.html')));
