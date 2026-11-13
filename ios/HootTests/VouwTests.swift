@@ -34,7 +34,7 @@ import UIKit
     private func kopregel() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HootKop()
-            EditionHeader(title: "Avondeditie", slot: "avond")
+            EditionHeader(title: "Avondeditie")
             Text("Donderdag 5 november").font(.ui(.footnote)).foregroundStyle(Theme.ink3).frame(minHeight: 20, alignment: .leading).padding(.bottom, Space.s4)
             StrongRule().padding(.bottom, Space.s4)
         }

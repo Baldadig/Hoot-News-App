@@ -52,15 +52,17 @@ test('stilbeelden voor Verminder beweging', () => {
   assert.deepEqual(STILL, { intro: 1.6, editie: 4, stroom: 1.6, selectie: 1.6, einde: 6 })
 })
 
-test('de zon in de Editie: klein en stil in de kop, laag in ochtend en avond, hoog in de middag', () => {
-  const o = kopSun('ochtend')
-  const m = kopSun('middag')
-  const a = kopSun('avond')
-  assert.equal(o.cy, a.cy)
-  assert.ok(m.cy < o.cy - 20 * K, 'middag duidelijk hoger')
-  assert.ok(o.cy < HZ && o.cy + o.r > HZ, 'laag: de schijf raakt de horizon')
-  assert.ok(m.cy - m.r > HZ - 140 * 0.72, 'hoog: binnen het kader')
-  for (const s of [o, m, a]) near(s.r, 22 * K)
+test('de zon in de Editie: de kop toont hoe ver je bent, recht omlaag, zonder dagdeel', () => {
+  // Bij 01 hoog, bij het laatste verhaal op de horizon, bij het einde onder met gloed.
+  near(kopSun(0, 10).cy, 9)
+  near(kopSun(9, 10).cy, 20)
+  near(kopSun(10, 10).cy, 30)
+  near(kopSun(10, 10).gloed, 1)
+  near(kopSun(9, 10).gloed, 0)
+  for (let p = 0; p < 10; p += 0.5) assert.ok(kopSun(p + 0.5, 10).cy > kopSun(p, 10).cy, `zakt bij ${p}`)
+  for (const p of [0, 3, 9, 10]) near(kopSun(p, 10).cx, 22) // recht omlaag: x blijft
+  assert.ok(kopSun(10, 10).cy - 8 > 20, 'bij het einde helemaal onder de horizon')
+  assert.equal(kopSun.length, 1, 'de stand en het aantal, geen dagdeel') // n heeft een standaard
 })
 
 test('de zon onderaan de Editie: één keer op in 6 s, dan stil; stil bij Verminder beweging', () => {
