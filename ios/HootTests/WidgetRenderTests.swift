@@ -29,8 +29,9 @@ import WidgetKit
         return e
     }
 
-    private func entry(_ e: WidgetEditie?, _ toon: WidgetToon = .top3, beeld: Bool = true, om: String = "2026-11-11T17:41:00Z") -> HootWidgetEntry {
-        HootWidgetEntry(date: WidgetTests.moment(om), editie: e, toon: toon, metBeeld: beeld)
+    private func entry(_ e: WidgetEditie?, _ toon: WidgetToon = .top3, beeld: Bool = true, om: String = "2026-11-11T17:41:00Z", plek: Int = 0) -> HootWidgetEntry {
+        HootWidgetEntry(date: WidgetTests.moment(om), editie: e, toon: toon, metBeeld: beeld,
+                        blader: e.map { WidgetBlader.Stand(editie: $0.id, enkel: plek, groep: plek) })
     }
 
     private func isAccessory(_ f: WidgetFamily) -> Bool { [.accessoryCircular, .accessoryRectangular, .accessoryInline].contains(f) }
@@ -62,7 +63,8 @@ import WidgetKit
 
     // MARK: - Marges, afkappen en slim vullen (besluit Alex 12 november 2026)
 
-    struct Formaat { let naam: String; let family: WidgetFamily; let maat: CGSize; let toon: WidgetToon; let beeld: Bool }
+    // `plek`: bij Bladeren de plek (Klein, Middel: 0 tot en met 10) of de groep (Groot: 0 tot en met 3).
+    struct Formaat { let naam: String; let family: WidgetFamily; let maat: CGSize; let toon: WidgetToon; let beeld: Bool; var plek = 0 }
     static let mini = (klein: CGSize(width: 155, height: 155), middel: CGSize(width: 329, height: 155), groot: CGSize(width: 329, height: 345))
     static let formaten: [Formaat] = [
         .init(naam: "middel-top3", family: .systemMedium, maat: iPhone.middel, toon: .top3, beeld: false),
@@ -92,7 +94,22 @@ import WidgetKit
         .init(naam: "vergrendelscherm-160", family: .accessoryRectangular, maat: CGSize(width: 160, height: 72), toon: .top3, beeld: false),
         .init(naam: "vergrendelscherm-157", family: .accessoryRectangular, maat: CGSize(width: 157, height: 67), toon: .top3, beeld: false),
         .init(naam: "vergrendelscherm-153", family: .accessoryRectangular, maat: CGSize(width: 153, height: 64), toon: .top3, beeld: false),
-    ]
+    ] + bladerFormaten
+    // Bladeren (13 november 2026): begin, midden en einde, op iPhone (ook mini), iPad en iPad mini. Groot bladert altijd.
+    static let bladerFormaten: [Formaat] = {
+        var uit: [Formaat] = []
+        let maten: [(String, CGSize, CGSize, CGSize)] = [("", iPhone.klein, iPhone.middel, iPhone.groot), ("mini-", mini.klein, mini.middel, mini.groot),
+                                                         ("ipad-", iPad.klein, iPad.middel, iPad.groot), ("ipadmini-", ipadMini.klein, ipadMini.middel, ipadMini.groot)]
+        for (voor, klein, middel, groot) in maten {
+            for plek in [0, 4, 9, 10] {
+                uit.append(.init(naam: "\(voor)klein-bladeren-\(plek)", family: .systemSmall, maat: klein, toon: .bladeren, beeld: false, plek: plek))
+                uit.append(.init(naam: "\(voor)middel-bladeren-\(plek)", family: .systemMedium, maat: middel, toon: .bladeren, beeld: false, plek: plek))
+            }
+            for g in 1...3 { uit.append(.init(naam: "\(voor)groot-\(g)", family: .systemLarge, maat: groot, toon: .top3, beeld: false, plek: g)) }
+        }
+        uit.append(.init(naam: "ipad10-klein-bladeren", family: .systemSmall, maat: CGSize(width: 146, height: 146), toon: .bladeren, beeld: false))
+        return uit
+    }()
     static let ipadMini = (klein: CGSize(width: 141, height: 141), middel: CGSize(width: 305.5, height: 141), groot: CGSize(width: 305.5, height: 305.5))
 
     // Wat een widget toonde: de nummers van de koppen (van boven naar onder) en wat er mis was.
@@ -141,12 +158,13 @@ import WidgetKit
             }
         }
         defer { WidgetZetMeting.opname = nil }
-        let inhoud = HootWidgetInhoud(entry: entry(e, f.toon, beeld: f.beeld), family: f.family, maat: f.maat)
+        let inhoud = HootWidgetInhoud(entry: entry(e, f.toon, beeld: f.beeld, plek: f.plek), family: f.family, maat: f.maat)
             .frame(width: f.maat.width, height: f.maat.height)
         let r = ImageRenderer(content: inhoud.padding(100).background(Color.white).environment(\.colorScheme, .light))
         r.scale = 1
         let beeld = try XCTUnwrap(r.uiImage, f.naam)
         var u = Uitslag()
+        let bladeren = f.toon == .bladeren || f.family == .systemLarge || f.family == .systemExtraLarge
         let rand: CGFloat = f.family == .accessoryRectangular ? 0 : WidgetRuimte.s4
         let binnen = CGRect(x: rand, y: rand, width: f.maat.width - 2 * rand, height: f.maat.height - 2 * rand)
         func binnenMarge(_ r: CGRect, speling: CGFloat) -> Bool { binnen.insetBy(dx: -speling, dy: -speling).contains(r) }
@@ -156,7 +174,8 @@ import WidgetKit
         if !f.beeld, let inkt = inktRuim(beeld), !binnenMarge(inkt, speling: inktSpeling) { u.fouten.append("inkt \(inkt) buiten \(binnen)") }
         let opVolgorde = koppen.values.sorted { $0.2.minY < $1.2.minY }
         for (g, m, kader) in opVolgorde {
-            guard let v = e.verhalen.first(where: { $0.kop == g.tekst }) else { u.fouten.append("geen hele kop: \(g.tekst)"); continue }
+            // De hele kop, of (bij Bladeren) de korte kop van de server.
+            guard let v = e.verhalen.first(where: { $0.kop == g.tekst }) ?? e.verhalen.first(where: { $0.kortKop == g.tekst && bladeren }) else { u.fouten.append("geen hele kop: \(g.tekst)"); continue }
             u.nummers.append(v.nummer)
             if WidgetZet.regels(g.tekst, m, breedte: kader.width) > g.regels { u.fouten.append("past niet in \(kader.width): \(g.tekst)") }
             // Op schaal 1 rondt iOS kaders af op hele punten: een punt speling, minder dan een regel.
@@ -184,25 +203,38 @@ import WidgetKit
             if !binnenMarge(kader, speling: 1) { u.fouten.append("voet \(t) \(kader) buiten \(binnen)") }
             if Int((kader.height / WidgetZet.bronRegel).rounded()) < WidgetZet.bronRegels(t, breedte: kader.width + 2) { u.fouten.append("voet \(t) afgekapt") }
         }
-        if f.family != .accessoryRectangular, kickers.isEmpty, standen.isEmpty, !koppen.isEmpty, f.toon != .kop01 || f.family != .systemSmall {
+        if f.family != .accessoryRectangular, kickers.isEmpty, standen.isEmpty, !koppen.isEmpty, f.toon != .kop01 || f.family != .systemSmall,
+           f.toon != .bladeren || f.family != .systemSmall {
             u.fouten.append("geen kopregel gemeten")
         }
         // Een bronregel bij elke rij: Groot (01 en elke rij) en Kop 01 zonder beeld bovenaan (Klein met beeld heeft
         // er geen; Middel · Top 3 heeft er nooit een gehad).
         let metBron: Bool
+        // Bladeren: een bronregel per kop, behalve als de kop alleen zonder bron past (dan nooit meer bronnen dan koppen).
+        if bladeren, bronnen.count > koppen.count { u.fouten.append("\(koppen.count) koppen, \(bronnen.count) bronregels") }
         switch (f.family, f.toon) {
-        case (.systemLarge, _), (.systemExtraLarge, _), (.systemMedium, .kop01): metBron = true
+        case _ where bladeren: metBron = false
+        case (.systemMedium, .kop01): metBron = true
         case (.systemSmall, .kop01): metBron = koppen.values.first.map { $0.2.minY < 56 } ?? false
         default: metBron = false
         }
         if metBron, bronnen.count != koppen.count { u.fouten.append("\(koppen.count) koppen, \(bronnen.count) bronregels") }
-        if !metBron, f.family != .systemSmall || f.toon != .kop01, !bronnen.isEmpty, f.family != .accessoryRectangular { u.fouten.append("onverwachte bronregel") }
-        // De eerste kop bovenaan: direct onder de kopregel (of het beeld), geen lege ruimte erboven.
-        if let eerste = opVolgorde.first?.2 {
+        if !metBron, !bladeren, f.family != .systemSmall || f.toon != .kop01, !bronnen.isEmpty, f.family != .accessoryRectangular { u.fouten.append("onverwachte bronregel") }
+        // De eerste kop bovenaan: direct onder de kopregel (of het beeld), geen lege ruimte erboven. Bij Bladeren kan de
+        // eerste rij "Tik om te lezen." zijn (een uiterste kop die ook kort en klein niet past): dan telt dit niet.
+        let blader = WidgetBlader.Stand(editie: e.id, enkel: f.plek, groep: f.plek)
+        let eersteReserve: Bool = switch (f.family, f.toon) {
+        case (.systemLarge, _), (.systemExtraLarge, _): GrootBladeren.zet(e, maat: f.maat, marge: rand, groep: WidgetBlader.groep(blader, e)).first?.keuze.reserve ?? false
+        case (.systemSmall, .bladeren): KleinBladeren.zet(e, maat: f.maat, marge: rand, plek: WidgetBlader.enkel(blader, e))?.reserve ?? false
+        case (.systemMedium, .bladeren): MiddelBladeren.zet(e, maat: f.maat, marge: rand, plek: WidgetBlader.enkel(blader, e))?.reserve ?? false
+        default: false
+        }
+        if let eerste = opVolgorde.first?.2, !eersteReserve {
             let s = WidgetRuimte.self
             let hoogste: CGFloat = switch (f.family, f.toon) {
             case (.accessoryRectangular, _): 16 + s.s0
-            case (.systemLarge, _), (.systemExtraLarge, _): rand + 16 + s.s3 + GrootEditie.beeldHoogte + s.s3
+            case (.systemLarge, _), (.systemExtraLarge, _): rand + BladerZet.rij + s.s3
+            case (_, .bladeren): rand + BladerZet.rij + s.s2
             case (.systemMedium, .top3): rand + 16 + s.s3
             case (.systemSmall, .kop01) where eerste.minY > KleinKop.beeldHoogte: KleinKop.beeldHoogte + s.s3 + 16 + s.s1
             default: rand + 16 + s.s2
@@ -342,6 +374,34 @@ import WidgetKit
     }
 
     // MARK: - Opnamen
+
+    // De bladerwidget (13 november 2026): Klein, Middel en Groot, licht en donker, aan het begin, midden (met een gelezen
+    // verhaal: 05) en aan het einde. Met de korte koppen zoals de server ze met HOOT_KORTE_KOP_AI geeft (voorbeeld), en
+    // ter vergelijking Klein en Middel zonder korte kop (de schakelaar uit: de hele kop). Gekeurd zoals de rest.
+    func testBladerOpnamen() async throws {
+        var e = try WidgetTests.editieMetKort(gelezen: [1, 4])
+        let server = try JSONDecoder().decode(ServerEditie.self, from: Data(contentsOf: WidgetTests.fixture))
+        if let eerste = server.stenen.first { e.verhalen[0].beeld = await WidgetBeelden.haal(eerste.beeldURL, itemId: eerste.itemId) }
+        let zonder = try WidgetTests.editie(gelezen: 0, nu: WidgetTests.moment("2026-11-11T17:41:00Z"))
+        var zonderMet05 = zonder; zonderMet05.gelezen = [zonder.verhalen[1].itemId, zonder.verhalen[4].itemId]
+        let momenten: [(String, Int, Int)] = [("begin", 0, 0), ("midden", 4, 1), ("einde", 10, 3)]
+        for (scheme, s) in [(ColorScheme.light, "licht"), (.dark, "donker")] {
+            for (naam, plek, groep) in momenten {
+                _ = try png(widget(entry(e, .bladeren, plek: plek), .systemSmall, Self.iPhone.klein, scheme), "bladeren-klein-\(naam)-\(s)")
+                _ = try png(widget(entry(e, .bladeren, plek: plek), .systemMedium, Self.iPhone.middel, scheme), "bladeren-middel-\(naam)-\(s)")
+                _ = try png(widget(entry(e, .bladeren, plek: groep), .systemLarge, Self.iPhone.groot, scheme), "bladeren-groot-\(naam)-\(s)")
+            }
+        }
+        for (naam, plek, _) in momenten.prefix(2) {
+            _ = try png(widget(entry(zonderMet05, .bladeren, plek: plek), .systemSmall, Self.iPhone.klein, .light), "bladeren-zonder-korte-kop-klein-\(naam)-licht")
+            _ = try png(widget(entry(zonderMet05, .bladeren, plek: plek), .systemMedium, Self.iPhone.middel, .light), "bladeren-zonder-korte-kop-middel-\(naam)-licht")
+        }
+        _ = try png(widget(entry(zonderMet05, .bladeren, plek: 1), .systemLarge, Self.iPhone.groot, .light), "bladeren-zonder-korte-kop-groot-midden-licht")
+        // Gekeurd: niets buiten de marge, niets afgekapt, in elke stand en elk formaat.
+        for (wat, ed) in [("met korte kop", e), ("zonder korte kop", zonderMet05)] {
+            for f in Self.bladerFormaten { for fout in try keur(ed, f).fouten { XCTFail("\(wat) \(f.naam): \(fout)") } }
+        }
+    }
 
     func testOpnamen() async throws {
         let nul = try await editie(gelezen: 0), vier = try await editie(gelezen: 4), tien = try await editie(gelezen: 10)

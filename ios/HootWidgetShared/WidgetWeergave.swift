@@ -1,21 +1,35 @@
 import SwiftUI
 import WidgetKit
 
-// De widgets van Hoot (voorstel widget/VOORSTEL.md, keuzes van Alex 11 november 2026): Middel · Top 3,
-// Klein · Kop 01 of Voortgang, Middel · Kop 01, Groot · Editie en het vergrendelscherm (rechthoekig, rond,
-// inline). Achtergrond `paper`, koppen in Newsreader 800, labels in Schibsted Grotesk; het enige rood is het
+// De widgets van Hoot (voorstel widget/VOORSTEL.md, keuzes van Alex 11 november 2026; bladeren 13 november 2026):
+// Klein en Middel · Bladeren (de standaard), Middel · Top 3, Klein · Kop 01 of Voortgang, Middel · Kop 01, Groot ·
+// bladeren per drie (WidgetBladeren.swift) en het vergrendelscherm (rechthoekig, rond, inline). Achtergrond `paper`, koppen in Newsreader 800, labels in Schibsted Grotesk; het enige rood is het
 // nummer 01. Ruime marges: minstens `s4` (16), en nooit minder dan de marge van iOS zelf.
 // Dezelfde views draaien in de widgetextensie en (voor de toetsen en opnamen) in de app.
 
 enum WidgetToon: String, Codable, Sendable, CaseIterable {
-    case top3, kop01, voortgang
+    case bladeren, top3, kop01, voortgang
+}
+
+extension WidgetToon {
+    // Wat in een maat past: Top 3 alleen in Middel (in Klein wordt het Voortgang), Voortgang alleen in Klein (in Middel
+    // wordt het Top 3). Bladeren en Kop 01 in beide. Groot bladert altijd per drie; het vergrendelscherm kent geen keuze.
+    static func passend(_ t: WidgetToon, in family: WidgetFamily) -> WidgetToon {
+        switch (t, family) {
+        case (.top3, .systemSmall): .voortgang
+        case (.voortgang, .systemMedium): .top3
+        default: t
+        }
+    }
 }
 
 struct HootWidgetEntry: TimelineEntry {
     let date: Date
     let editie: WidgetEditie?
-    var toon: WidgetToon = .top3
+    var toon: WidgetToon = .bladeren
     var metBeeld = true
+    // De bladerplek van dit toestel (WidgetBlader), gelezen toen de tijdlijn werd gemaakt; nil = het begin.
+    var blader: WidgetBlader.Stand? = nil
 
     var stand: WidgetStand? { editie.map { WidgetStand.van($0, op: date) } }
 }
@@ -46,15 +60,19 @@ struct HootWidgetInhoud: View {
                 case .accessoryCircular: VergrendelRond(editie: editie, stand: stand).padding(systeemMarges)
                 case .accessoryInline: VergrendelRegel(editie: editie, stand: stand)
                 case .systemSmall:
-                    if entry.toon == .voortgang {
+                    if entry.toon == .bladeren {
+                        KleinBladeren(editie: editie, maat: maat, marge: marge, plek: WidgetBlader.enkel(entry.blader, editie))
+                    } else if entry.toon == .voortgang {
                         KleinVoortgang(editie: editie, stand: stand, maat: maat, marge: marge)
                     } else {
                         KleinKop(editie: editie, stand: stand, maat: maat, marge: marge, metBeeld: entry.metBeeld)
                     }
                 case .systemLarge, .systemExtraLarge:
-                    GrootEditie(editie: editie, stand: stand, maat: maat, marge: marge)
+                    GrootBladeren(editie: editie, maat: maat, marge: marge, groep: WidgetBlader.groep(entry.blader, editie))
                 default:
-                    if entry.toon == .kop01 {
+                    if entry.toon == .bladeren {
+                        MiddelBladeren(editie: editie, maat: maat, marge: marge, plek: WidgetBlader.enkel(entry.blader, editie))
+                    } else if entry.toon == .kop01 {
                         MiddelKop(editie: editie, stand: stand, maat: maat, marge: marge, metBeeld: entry.metBeeld)
                     } else {
                         MiddelTop3(editie: editie, stand: stand, maat: maat, marge: marge)
@@ -73,7 +91,7 @@ struct HootWidgetInhoud: View {
 
 // "MIDDAGEDITIE" in de kicker; met het nummer ervoor bij Kop 01. Vooraf gemeten in de breedte die er is: past
 // de hele naam niet, dan zonder "editie" ("01 OCHTEND"), anders alleen het nummer. Nooit afgekapt (keuring 11).
-private struct WKopregel: View {
+struct WKopregel: View {
     let naam: String
     var nummer: Int? = nil
     var gelezen = false
@@ -106,7 +124,7 @@ private struct WKopregelMetStand: View {
 
 // Het nummer van de plek (edition-number): 01 in accent zolang hij ongelezen is, de rest inkt; gelezen ink-3.
 // Staat de kop ernaast kleiner gezet, dan het nummer even groot (nooit groter dan 16).
-private struct WNummer: View {
+struct WNummer: View {
     let nummer: Int
     var gelezen = false
     var grootte: CGFloat = 16
@@ -126,7 +144,7 @@ private struct WNummer: View {
 }
 
 // Een hele kop in de regels die hij nodig heeft (vooraf gemeten), in de maat van zijn plek.
-private struct WKop: View {
+struct WKop: View {
     let gezet: WidgetZet.Gezet
     let m: WidgetLetter.Maat
     var gelezen = false
@@ -145,7 +163,7 @@ private struct WKop: View {
 // De bronregel: hoort bij zijn rij. Past de rij niet met bronregel, dan valt de hele rij weg (nooit alleen de bron).
 // Geen lineLimit: een lange naam loopt door op een volgende regel (WidgetZet.bronRegels rekent die mee), iOS kapt
 // hem nooit af (keuring 11).
-private struct WBron: View {
+struct WBron: View {
     let naam: String
     var body: some View {
         Text(naam).font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3)
@@ -428,83 +446,6 @@ struct MiddelKop: View {
             .frame(width: maat.width, height: maat.height, alignment: .topLeading)
             .widgetURL(HootLink.verhaal(v.itemId))
             .accessibilityElement(children: .combine)
-        } else {
-            KleinVoortgang(editie: editie, stand: stand, maat: maat, marge: marge)
-        }
-    }
-}
-
-// Groot · Editie: naam en voortgang, het beeld en de kop van 01 met bron, daaronder van boven af zoveel rijen
-// (hele kop met bron) als er passen, in Editie-volgorde. Een rij die niet heel past, valt weg; een latere die wel
-// past, schuift op met zijn eigen nummer. Nooit een rij erin forceren.
-struct GrootEditie: View {
-    let editie: WidgetEditie
-    let stand: WidgetStand
-    let maat: CGSize
-    let marge: CGFloat
-
-    static let beeldHoogte: CGFloat = 88
-    static let rij = 2 * WidgetRuimte.s2 + 1 + WidgetRuimte.s1 + 16 // haarlijn met lucht, ruimte en bronregel per rij
-    // Boven de rijen, naast de kop van 01: kopregel, lucht, beeld, lucht, ruimte en de bronregel van 01.
-    static let vast = 16 + WidgetRuimte.s3 + beeldHoogte + WidgetRuimte.s3 + WidgetRuimte.s1 + 16
-
-    struct Zet { let held: WidgetZet.Plek; let rijen: [WidgetZet.Plek] }
-    // Gemeten op de breedte die de koppen echt krijgen: naast de nummerkolom (keuring 1).
-    static func zet(_ editie: WidgetEditie, maat: CGSize, marge: CGFloat) -> Zet? {
-        let kolom = maat.width - 2 * marge - MiddelTop3.nummerKolom - WidgetRuimte.s2
-        let binnen = maat.height - 2 * marge
-        // Een bronregel die op twee regels doorloopt, telt mee (keuring 11).
-        let bronExtra: (WidgetVerhaal) -> CGFloat = { WidgetZet.bronExtra($0.bron, breedte: kolom) }
-        guard let held = WidgetZet.vul(editie.verhalen, WidgetLetter.item, breedte: kolom, hoogte: binnen - vast, tussen: 0,
-                                       extraPer: bronExtra, max: 1).first else { return nil }
-        let over = binnen - vast - held.hoogte - bronExtra(editie.verhalen[held.index])
-        let rijen = WidgetZet.vul(editie.verhalen, WidgetLetter.widgetKop, breedte: kolom, hoogte: over, tussen: 0, extra: rij,
-                                  extraPer: bronExtra, vanaf: held.index + 1, eersteKleiner: false)
-        return Zet(held: held, rijen: rijen)
-    }
-
-    var body: some View {
-        if let z = Self.zet(editie, maat: maat, marge: marge) {
-            let breedte = maat.width - 2 * marge
-            let gelezen = editie.leesSet
-            let eerste = editie.verhalen[z.held.index]
-            VStack(alignment: .leading, spacing: 0) {
-                Link(destination: HootLink.editie) {
-                    WKopregelMetStand(naam: editie.naam, stand: stand.label, breedte: breedte)
-                }
-                Link(destination: HootLink.verhaal(eerste.itemId)) {
-                    VStack(alignment: .leading, spacing: WidgetRuimte.s1) {
-                        WidgetBeeld(verhaal: eerste)
-                            .frame(width: breedte, height: Self.beeldHoogte)
-                            .clipShape(RoundedRectangle(cornerRadius: WidgetRuimte.hoek, style: .continuous))
-                            .padding(.bottom, WidgetRuimte.s3 - WidgetRuimte.s1)
-                        // Het nummer naast de kop, net als in de rijen: geen eigen regel, meer lucht voor de rest.
-                        HStack(alignment: .firstTextBaseline, spacing: WidgetRuimte.s2) {
-                            WNummer(nummer: eerste.nummer, gelezen: eerste.gelezen(in: gelezen), grootte: z.held.m.grootte, regel: z.held.m.regel).frame(width: MiddelTop3.nummerKolom, alignment: .leading)
-                            WKop(gezet: z.held.gezet, m: z.held.m, gelezen: eerste.gelezen(in: gelezen))
-                        }
-                        WBron(naam: eerste.bron).padding(.leading, MiddelTop3.nummerKolom + WidgetRuimte.s2)
-                    }
-                }
-                .padding(.top, WidgetRuimte.s3)
-                ForEach(z.rijen, id: \.index) { p in
-                    let v = editie.verhalen[p.index]
-                    let lees = v.gelezen(in: gelezen)
-                    Rectangle().fill(WidgetKleur.rule).frame(height: 1).padding(.vertical, WidgetRuimte.s2)
-                    Link(destination: HootLink.verhaal(v.itemId)) {
-                        VStack(alignment: .leading, spacing: WidgetRuimte.s1) {
-                            HStack(alignment: .firstTextBaseline, spacing: WidgetRuimte.s2) {
-                                WNummer(nummer: v.nummer, gelezen: lees, grootte: p.m.grootte, regel: p.m.regel).frame(width: MiddelTop3.nummerKolom, alignment: .leading)
-                                WKop(gezet: p.gezet, m: p.m, gelezen: lees)
-                            }
-                            WBron(naam: v.bron).padding(.leading, MiddelTop3.nummerKolom + WidgetRuimte.s2)
-                        }
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(marge)
-            .frame(width: maat.width, height: maat.height, alignment: .topLeading)
         } else {
             KleinVoortgang(editie: editie, stand: stand, maat: maat, marge: marge)
         }

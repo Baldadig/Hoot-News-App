@@ -28,7 +28,7 @@ extension WidgetEditie {
         for s in stenen where s.desk != "bubbel" && !s.kop.isEmpty {
             guard verhalen.count < maxVerhalen else { break }
             verhalen.append(WidgetVerhaal(id: s.plek, itemId: s.itemId, oudeIds: s.oudeIds, nummer: verhalen.count + 1,
-                                          kop: s.kop, kortKop: KortKop.trap(s.kop, kort: s.kortKop).first ?? s.kop, bron: s.bron))
+                                          kop: s.kop, kortKop: KortKop.voorWidget(s.kop, kort: s.kortKop), bron: s.bron))
         }
         return WidgetEditie(id: id, datum: datum, dagdeel: dagdeel, verhalen: verhalen, gelezen: Array(gelezen.suffix(600)), vraag: vraag, geschreven: nu, eigenBronnen: eigenBronnen)
     }
