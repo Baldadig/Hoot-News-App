@@ -129,3 +129,16 @@ final class LoginWatcherWebTests: XCTestCase {
         XCTAssertFalse(result.confirmed, "een nieuwe cookie na een mislukte poging is geen inlog")
     }
 }
+
+// Nachttest 14 november (A23): VoiceOver zegt alleen "de inlogpagina" als de link er ook een is.
+@MainActor final class PublisherLoginHintTests: XCTestCase {
+    func testHintVolgtDeLink() {
+        let groene = PublisherLogin.Publisher(source: Source(id: "groene", name: "De Groene"), url: URL(string: "https://www.groene.nl/")!, domain: "groene.nl")
+        let vi = PublisherLogin.Publisher(source: Source(id: "vi", name: "VI"), url: URL(string: "https://www.vi.nl")!, domain: "vi.nl")
+        let nrc = PublisherLogin.Publisher(source: Source(id: "nrc", name: "NRC"), url: URL(string: "https://www.nrc.nl/login/")!, domain: "nrc.nl")
+        XCTAssertEqual(PublisherLogin.hint(groene, on: false), "Opent de site van De Groene, daar log je in")
+        XCTAssertEqual(PublisherLogin.hint(vi, on: false), "Opent de site van VI, daar log je in")
+        XCTAssertEqual(PublisherLogin.hint(nrc, on: false), "Opent de inlogpagina van NRC")
+        XCTAssertEqual(PublisherLogin.hint(nrc, on: true), "Opent de site van NRC, waar je bent ingelogd")
+    }
+}

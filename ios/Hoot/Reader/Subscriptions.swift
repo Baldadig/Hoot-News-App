@@ -13,6 +13,13 @@ enum PublisherLogin {
         var id: String { domain }
     }
 
+    // VoiceOver bij een rij: is de inlog-url de voorpagina (een inlog in een venster op de site zelf), dan zegt de hint dat
+    // (nachttest 14 november: bij De Groene, VI, WielerFlits, Rolling Stone en Variety zei hij "de inlogpagina").
+    static func hint(_ p: Publisher, on: Bool) -> String {
+        if on { return "Opent de site van \(p.source.name), waar je bent ingelogd" }
+        return ["", "/"].contains(p.url.path) ? "Opent de site van \(p.source.name), daar log je in" : "Opent de inlogpagina van \(p.source.name)"
+    }
+
     // De inlogpagina van een bron: van de server (`login`). Stuurt die dat (nog) niet mee, dan de
     // voorpagina van een betaalde bron (zijn domein, of dat van een recent bericht).
     static func url(for s: Source, store: HootStore) -> URL? {
@@ -268,7 +275,7 @@ struct SubscriptionsView: View {
                 }
             }
         }
-        .accessibilityHint(on ? "Opent de site van \(p.source.name), waar je bent ingelogd" : "Opent de inlogpagina van \(p.source.name)")
+        .accessibilityHint(PublisherLogin.hint(p, on: on))
         .swipeActions {
             if on { Button("Uitloggen", role: .destructive) { leaving = p } }
         }
