@@ -3697,15 +3697,16 @@ var HootCore = (() => {
   var schoon = (s) => String(s ?? "").replace(/[​-‍﻿]/gu, "").replace(/[\s\u0085]+/gu, " ").trim();
   var ONTKENNING = /(?<![\p{L}\p{N}])(niet|geen|nooit|zonder|noch|niemand|niets|nergens|not|no|never|without|nor|none|nobody|nothing|nowhere)(?![\p{L}\p{N}])|n['’]t(?![\p{L}\p{N}])/iu;
   var ontkent = (s) => ONTKENNING.test(s);
+  var BRON = /(?<![\p{L}\p{N}])(volgens|zegt|zeggen|zei|zeiden|meldt|melden|aldus|says|said|according|claims|claim|reports|report)(?![\p{L}\p{N}])/iu;
+  var noemtBron = (s) => BRON.test(s) || /:/u.test(s);
   var getallen = (s) => s.match(/[0-9]+/g) || [];
-  function namen(s) {
-    const out = [];
-    const delen = s.split(/[:.!?]\s+/u);
-    for (const deel of delen) {
-      const woorden = deel.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-      for (let i = 1; i < woorden.length; i++) if (/\p{Lu}/u.test(woorden[i])) out.push(woorden[i]);
-    }
-    return out;
+  var woorden = (s) => s.match(/[\p{L}\p{N}]+/gu) || [];
+  var namen = (s) => woorden(s).filter((w) => /\p{Lu}/u.test(w));
+  function ingekort(t, k) {
+    const tw = woorden(t.toLowerCase()), kw = woorden(k.toLowerCase());
+    let i = 0;
+    for (const w of tw) if (i < kw.length && w === kw[i]) i++;
+    return i === kw.length;
   }
   function controle(kop, kort) {
     if (kort === null || kort === void 0) return false;
@@ -3716,11 +3717,13 @@ var HootCore = (() => {
     if (/…|\.\.\./u.test(k) && !/…|\.\.\./u.test(t)) return false;
     const stam = k.replace(/[\s\p{P}]+$/u, "").toLowerCase();
     if (stam && t.toLowerCase().startsWith(stam)) return false;
+    if (ingekort(t, k)) return false;
     const tGetallen = new Set(getallen(t));
     if (getallen(k).some((g) => !tGetallen.has(g))) return false;
     const tLaag = t.toLowerCase();
     if (namen(k).some((n) => !tLaag.includes(n.toLowerCase()))) return false;
     if (ontkent(t) !== ontkent(k)) return false;
+    if (BRON.test(t) && !noemtBron(k)) return false;
     return true;
   }
   function kortKop(title, max = KORT_MAX) {
