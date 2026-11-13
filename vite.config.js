@@ -72,7 +72,7 @@ export default defineConfig({
       manifest: {
         name: 'Hoot',
         short_name: 'Hoot',
-        description: 'Je nieuwsbronnen in één rustige editie: drie keer per dag tien verhalen. Minder scrollen, meer lezen.',
+        description: 'Je nieuwsbronnen in één rustige Editie: drie keer per dag tien verhalen. Minder scrollen, meer lezen.',
         lang: 'nl',
         theme_color: '#f5f1e8',
         background_color: '#f5f1e8',
