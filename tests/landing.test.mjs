@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { INLINE } from '../landing/inline.mjs'
 import { appStore, APP_URL, PT, appUrl } from '../landing/appstore.mjs'
-import { vulBewaard, fragmenten, redenen } from '../landing/bewaard.mjs'
+import { vulBewaard, fragmenten, redenen, vhTekst, VH_LOGOS } from '../landing/bewaard.mjs'
 import { vragen, vragenHtml, jsonld, ruim, AI_STAP } from '../landing/vragen.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 
@@ -33,9 +33,9 @@ const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 
 const BEWAARD = JSON.parse(readFileSync(new URL('../landing/bewaard.json', import.meta.url), 'utf8'))
 const velden = (aan) => {
   const as = appStore(aan), lijst = vragen({ aantal: SOURCES.length, appUrl: as.APP_URL_VRAAG })
-  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.' }
+  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.', BRONRIJ: '<li>NOS</li>' }
 }
-const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
+const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|BRONRIJ|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
 const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/ ([.,])/g, '$1')
 
 test('landing: overal dezelfde accountzin, en het account in de eerste vraag', () => {
@@ -48,18 +48,39 @@ test('landing: overal dezelfde accountzin, en het account in de eerste vraag', (
   assert.match(vul(true), /<summary>Is Hoot gratis\?<\/summary>\s*<p>Ja\. Je leest meteen, zonder account\. Met een gratis account staan je bronnen en je bewaarde artikelen op al je toestellen\.<\/p>/)
 })
 
-test('review 13 november: de bronnenband noemt bronnen bij naam, het getal komt uit de catalogus', () => {
-  const t = tekst(vul(true))
+test('bronnenblok: één verhaal met de bronnen die erover schrijven; het getal komt uit de catalogus', () => {
+  const html = vul(true), t = tekst(html)
   assert.ok(t.includes('Jouw nieuws, rustig bij elkaar.'))
-  assert.ok(t.includes(`Van NOS, NRC en de Volkskrant tot regionale kranten, De Standaard en The Guardian. ${ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase())} bronnen, jij kiest.`))
-  for (const naam of ['NOS', 'NRC', 'de Volkskrant', 'De Standaard', 'The Guardian']) assert.ok(SOURCES.some((x) => x.name === naam), naam + ' staat in de catalogus')
+  assert.ok(t.includes(`Hoot legt wat je bronnen schrijven bij elkaar. ${ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase())} bronnen, jij kiest.`))
   assert.equal(ruim(84), 'ruim tachtig')
   assert.equal(ruim(80), 'tachtig')
   assert.equal(ruim(99), 'ruim negentig')
   assert.equal(ruim(100), 'honderd')
   assert.doesNotMatch(SRC, /voordeel-lijst/) // de vier voordelen zijn weg
-  assert.doesNotMatch(SRC, /<img/) // alleen tekst, geen logo's
-  const meta = vul(true).match(/<meta name="description" content="([^"]+)"/)[1]
+  // de kaart: een echte kop uit de bewaarde Editie, de logo's als eigen bestanden (CSP: alleen de eigen site)
+  const kaart = html.match(/<div class="verhaal js-verhaal"[\s\S]*?<\/section>/)[0]
+  const eerste = (BEWAARD.voorpagina.breed?.[0]) || BEWAARD.voorpagina.entries[0]
+  assert.ok(tekst(kaart).includes(eerste.title))
+  for (const m of kaart.matchAll(/<img src="([^"]+)"/g)) {
+    assert.match(m[1], /^\/img\/bronnen\/[a-z0-9-]+\.webp$/)
+    assert.ok(SOURCES.some((x) => m[1] === `/img/bronnen/${x.id}.webp`), m[1] + ' is een bron uit de catalogus')
+    readFileSync(new URL('../landing/bronnen/' + m[1].split('/').pop(), import.meta.url)) // het bestand bestaat
+  }
+  assert.ok((kaart.match(/<img /g) || []).length <= VH_LOGOS)
+  assert.doesNotMatch(html, /<img[^>]+src="(?:https?:|data:)/)
+  // één zin, in de build en in het script gelijk
+  assert.equal(vhTekst({ sourceCount: 12, sources: [{ name: 'NOS' }, { name: 'NRC' }, { name: 'Trouw' }, { name: 'AD' }] }), '<b>12 bronnen</b> schrijven erover: NOS, NRC, Trouw en 9 andere.')
+  assert.equal(vhTekst({ sourceCount: 1, sources: [] }), '<b>1 bron</b> schrijft erover.')
+  assert.equal(vhTekst({ sourceCount: 2, sources: [{ name: 'NOS' }, { name: 'NRC' }] }), '<b>2 bronnen</b> schrijven erover: NOS, NRC.')
+  // zonder brede verhalen in de terugval: plek 01, zonder logo's
+  const kaal = fragmenten({ ...BEWAARD, voorpagina: { ...BEWAARD.voorpagina, breed: [] } })
+  assert.equal(kaal.BW_VH_STAPEL, '')
+  assert.equal(kaal.BW_VH_KOP.replace(/&[a-z]+;/g, ''), BEWAARD.voorpagina.entries[0].title.replace(/[&<>"]/g, ''))
+  // live neemt het over via ed.breed; er is voor elke bron uit de catalogus een logo
+  const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
+  assert.match(js, /window\.hootVerhalen\(ed\.breed, vannu\)/)
+  for (const x of SOURCES) readFileSync(new URL(`../landing/bronnen/${x.id}.webp`, import.meta.url))
+  const meta = html.match(/<meta name="description" content="([^"]+)"/)[1]
   assert.match(SRC, /<title>Hoot · Nieuws met een einde · Rustige nieuwslezer<\/title>/)
   assert.ok(meta.length <= 160)
 })
@@ -366,4 +387,12 @@ test('review 13 november: de gedeelde kaart zegt waar hij vandaan komt, met herk
   const html = await r.text()
   assert.match(html, /<a href="\/\?via=deel">Gedeeld vanuit Hoot\.<\/a> Tien verhalen, drie keer per dag\. Dan ben je bij\./)
   assert.match(html, /<a href="\/\?via=deel"><b>hoot\.<\/b><\/a>/)
+})
+
+test('de rij bronnen boven de vragen: elk merk één keer, eigen logo-bestanden, de tweede helft verborgen voor schermlezers', () => {
+  assert.match(SRC, /<div class="bronrij js-bronrij"><ul class="bronrij-in" aria-label="Een greep uit de bronnen">\{\{BRONRIJ\}\}<\/ul><\/div>/)
+  assert.ok(SRC.indexOf('js-bronrij') > SRC.indexOf('id="vragen"') && SRC.indexOf('js-bronrij') < SRC.indexOf('id="h-vragen"'))
+  assert.match(BUILD, /const DUBBEL = \/\^\(nos-\|guardian-\|bbc-sport\|npr-music\|politico-eu\)\//)
+  assert.match(BUILD, /rijBronnen\.map\(\(x\) => pilR\(x, false\)\)\.join\(''\) \+ rijBronnen\.map\(\(x\) => pilR\(x, true\)\)/)
+  assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /if \(!reduce && !brSleep && !document\.hidden\) brX -= 30 \* dt \* brRem/)
 })

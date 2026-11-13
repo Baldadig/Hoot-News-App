@@ -31,7 +31,164 @@
    "title": "Slimste Mens-deelnemer trekt zich terug na beschuldigingen",
    "source": "RTL Nieuws",
    "sourceCount": 1
-  }
+  },
+  "breed": [
+   {
+    "desk": "vs",
+    "deskLabel": "VS",
+    "title": "De ontluisterende val van Trump-fluisteraar Jensen Huang lijkt goed getimed",
+    "source": "NRC",
+    "sourceCount": 38,
+    "sources": [
+     {
+      "id": "nrc",
+      "name": "NRC"
+     },
+     {
+      "id": "nos",
+      "name": "NOS"
+     },
+     {
+      "id": "nu",
+      "name": "NU.nl"
+     },
+     {
+      "id": "volkskrant",
+      "name": "de Volkskrant"
+     },
+     {
+      "id": "trouw",
+      "name": "Trouw"
+     },
+     {
+      "id": "nd",
+      "name": "Nederlands Dagblad"
+     },
+     {
+      "id": "standaard",
+      "name": "De Standaard"
+     },
+     {
+      "id": "demorgen",
+      "name": "De Morgen"
+     },
+     {
+      "id": "tijd",
+      "name": "De Tijd"
+     },
+     {
+      "id": "hln",
+      "name": "Het Laatste Nieuws"
+     },
+     {
+      "id": "gva",
+      "name": "Gazet van Antwerpen"
+     },
+     {
+      "id": "nyt",
+      "name": "NYT"
+     }
+    ]
+   },
+   {
+    "desk": "vs",
+    "deskLabel": "VS",
+    "title": "Wereldwijde storing treft Microsoft Outlook",
+    "source": "Nederlands Dagblad",
+    "sourceCount": 20,
+    "sources": [
+     {
+      "id": "nd",
+      "name": "Nederlands Dagblad"
+     },
+     {
+      "id": "nos",
+      "name": "NOS"
+     },
+     {
+      "id": "nu",
+      "name": "NU.nl"
+     },
+     {
+      "id": "nrc",
+      "name": "NRC"
+     },
+     {
+      "id": "trouw",
+      "name": "Trouw"
+     },
+     {
+      "id": "parool",
+      "name": "Het Parool"
+     },
+     {
+      "id": "ad",
+      "name": "AD"
+     },
+     {
+      "id": "telegraaf",
+      "name": "De Telegraaf"
+     },
+     {
+      "id": "rtl",
+      "name": "RTL Nieuws"
+     },
+     {
+      "id": "vrt",
+      "name": "VRT NWS"
+     },
+     {
+      "id": "standaard",
+      "name": "De Standaard"
+     },
+     {
+      "id": "demorgen",
+      "name": "De Morgen"
+     }
+    ]
+   },
+   {
+    "desk": "binnenland",
+    "deskLabel": "Binnenland",
+    "title": "Belastingplan aangenomen, en nu is de vraag wat de VVD gaat doen",
+    "source": "NOS",
+    "sourceCount": 12,
+    "sources": [
+     {
+      "id": "nos",
+      "name": "NOS"
+     },
+     {
+      "id": "nu",
+      "name": "NU.nl"
+     },
+     {
+      "id": "nrc",
+      "name": "NRC"
+     },
+     {
+      "id": "volkskrant",
+      "name": "de Volkskrant"
+     },
+     {
+      "id": "trouw",
+      "name": "Trouw"
+     },
+     {
+      "id": "rtl",
+      "name": "RTL Nieuws"
+     },
+     {
+      "id": "demorgen",
+      "name": "De Morgen"
+     },
+     {
+      "id": "fd",
+      "name": "Het Financieele Dagblad"
+     }
+    ]
+   }
+  ]
  },
  "editie": [
   {

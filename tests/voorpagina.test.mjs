@@ -398,3 +398,34 @@ test('rubriek: alleen hele mappen uit de URL, geen woorden uit de slug', () => {
   const ai = { title: 'Liechtenstein ruilt publieke omroep in voor AI-radio', mainTopics: ['ai', 'media'], url: 'https://nos.nl/l/2638489' }
   assert.equal(rubriek(ai, 'buitenland', 'nl'), 'buitenland') // 'media' als onderwerp is niet zeker Cultuur
 })
+
+// Bronnenblok van de landing (13 november): per verhaal de bronnen die erover schrijven.
+test('voorpagina: een verhaal draagt zijn bronnen (id en naam), de bron van de kop eerst, hooguit twaalf; anders geen veld', () => {
+  const f = feed()
+  f.sources = [{ id: 'nos', name: 'NOS', lang: 'nl' }, { id: 'nyt', name: 'NYT', lang: 'en' }, { id: 'nrc', name: 'NRC', lang: 'nl' }, { id: 'vk', name: 'de Volkskrant', lang: 'nl' }]
+  f.stories[0].sourceNames = ['de Volkskrant', 'NRC', 'NOS', 'Onbekende Krant', 'NRC'] // de rest komt in catalogusvolgorde
+  const e = extract(f)
+  const a = e.entries.find((x) => x.title === 'Kabinet bereikt akkoord')
+  assert.deepEqual(a.sources, [{ id: 'nos', name: 'NOS' }, { id: 'nrc', name: 'NRC' }, { id: 'vk', name: 'de Volkskrant' }])
+  for (const x of e.entries) if (x !== a) assert.equal('sources' in x, false, x.title) // losse berichten en verhalen zonder namen
+  assert.doesNotMatch(JSON.stringify(e), /https?:\/\/x\//) // nog steeds geen uitgever-URL's
+  // begrensd
+  f.sources.push(...Array.from({ length: 20 }, (_, i) => ({ id: 'b' + i, name: 'Bron ' + i, lang: 'nl' })))
+  f.stories[0].sourceNames = f.sources.map((s) => s.name)
+  assert.equal(extract(f).entries.find((x) => x.title === 'Kabinet bereikt akkoord').sources.length, 12)
+})
+
+test('voorpagina: breed geeft hooguit drie verhalen met minstens drie bekende bronnen, de breedste eerst; anders geen veld', () => {
+  const f = feed()
+  assert.equal('breed' in extract(f), false) // de verhalen dragen hier geen namen
+  f.sources = [{ id: 'nos', name: 'NOS', lang: 'nl' }, { id: 'nyt', name: 'NYT', lang: 'en' }, { id: 'nrc', name: 'NRC', lang: 'nl' }, { id: 'vk', name: 'de Volkskrant', lang: 'nl' }, { id: 'tr', name: 'Trouw', lang: 'nl' }]
+  f.stories[0].sourceNames = ['NOS', 'NRC', 'de Volkskrant', 'Trouw']
+  f.stories[2].sourceNames = ['NRC', 'NOS'] // twee: te weinig
+  const e = extract(f)
+  assert.deepEqual(e.breed.map((x) => x.title), ['Kabinet bereikt akkoord'])
+  assert.equal(e.breed[0].sources.length, 4)
+  assert.deepEqual(Object.keys(e.breed[0]).sort(), ['desk', 'deskLabel', 'source', 'sourceCount', 'sources', 'title'])
+  // het Engelse verhaal (s2) komt er nooit in, hoe breed ook
+  f.stories[1].sourceNames = ['NOS', 'NRC', 'de Volkskrant', 'Trouw', 'NYT']
+  assert.ok(!extract(f).breed.some((x) => x.title === 'English headline'))
+})

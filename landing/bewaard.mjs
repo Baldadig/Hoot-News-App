@@ -40,6 +40,27 @@ const bron = (x, wanneer, metAantal = true) =>
   `<div class="k-bron"><i>${ini(x.source)}</i><span>${esc(x.source)}${wanneer ? `<small>${esc(wanneer)}</small>` : ''}</span>${metAantal && x.sourceCount >= 2 ? `<b class="k-n">${x.sourceCount} bronnen</b>` : ''}${BM}</div>`
 const kick = (nr, desk) => (label(desk) ? `<div class="k-kick">${nr ? `<span class="k-nr">${nr}</span>` : ''}${label(desk)}</div>` : nr ? `<div class="k-kick k-kick--los"><span class="k-nr">${nr}</span></div>` : '')
 
+// Het bronnenblok ("Eén verhaal, veel bronnen"): de breedste verhalen van de bewaarde Editie, of anders plek 01.
+// Zelfde opmaak als vhTeken() in hoot.js: hooguit VH_LOGOS logo's, daarna een schijf met de rest.
+export const VH_LOGOS = 8
+export const vhAantal = (x) => Math.max(Number(x.sourceCount) || 1, (x.sources || []).length)
+export function vhTekst(x) {
+  const n = vhAantal(x), namen = (x.sources || []).slice(0, 3).map((s) => s.name), rest = n - namen.length
+  const kop = `<b>${n === 1 ? '1 bron' : n + ' bronnen'}</b> ${n === 1 ? 'schrijft' : 'schrijven'} erover`
+  return namen.length ? `${kop}: ${esc(namen.join(', '))}${rest > 0 ? ` en ${rest} andere` : ''}.` : `${kop}.`
+}
+export function verhaalVelden(b) {
+  const lijst = (b.voorpagina.breed?.length ? b.voorpagina.breed : [b.voorpagina.entries[0]]).map((x) => ({ title: x.title, sourceCount: x.sourceCount, sources: x.sources || [] }))
+  const x = lijst[0], n = vhAantal(x), toon = x.sources.slice(0, VH_LOGOS)
+  return {
+    BW_VH_DATA: esc(JSON.stringify(lijst)),
+    BW_VH_KOP: esc(x.title),
+    BW_VH_LABEL: esc(x.sources.length ? `De logo's van ${x.sources.slice(0, 3).map((s) => s.name).join(', ')}${n > 3 ? ` en ${n - 3} andere bronnen` : ''}` : 'De bronnen van dit verhaal'),
+    BW_VH_STAPEL: toon.map((s) => `<img src="/img/bronnen/${esc(s.id)}.webp" alt="" width="40" height="40">`).join('') + (n > toon.length && toon.length ? `<span class="vh-meer">+${n - toon.length}</span>` : ''),
+    BW_VH_TEL: vhTekst(x),
+  }
+}
+
 export function fragmenten(b) {
   if (!b?.selectie?.velden?.length) throw new Error('landing/bewaard.json heeft geen Selectie; ververs met node landing/bewaar.mjs.')
   const { kort, lang } = datum(b.date)
@@ -68,6 +89,7 @@ export function fragmenten(b) {
     BW_HELD_LABEL: esc(`De ${slot} van ${lang}, met het hoofdverhaal: ${v1.title}. Lees verder in Hoot`),
     // De held: het hoofdverhaal zonder rubriek, alleen het nummer (besluit Alex).
     BW_HELD: `<div class="k-kick k-kick--los"><span class="k-nr">01</span></div><div class="k-why">${esc(reden(ns[0]))}</div><div class="k-kop k-kop--lead">${esc(v1.title)}</div>${bron(v1, kort)}`,
+    ...verhaalVelden(b),
     BW_RD_N: ns.join(' '),
     BW_RD_BUBBEL: b.voorpagina.bubble ? 'ja' : 'nee',
     BW_RD_UITLEG: rds.map((r, i) => `<li class="${i === 1 ? 'l' : 'r'}" data-bij="w${i + 1}"><b>${REDEN[r][0]}</b>${REDEN[r][1]}</li>`).join('\n      '),
