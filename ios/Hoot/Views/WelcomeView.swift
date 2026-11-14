@@ -403,7 +403,7 @@ struct WelcomeView: View {
             heading("Volg je bronnen", "Kies wie je wilt lezen. Je Editie komt uit wat je volgt.", compact: true)
             searchField.padding(.top, Space.s5)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-            if again { // de filters alleen bij opnieuw kiezen; de eerste keer is er één lijst (gelijk aan het web)
+            if showFilters { // de filters alleen bij opnieuw kiezen na een echte keuze; de eerste keer is er één lijst (gelijk aan het web)
                 Flow {
                     ChoiceChip(label: "Aanbevolen", on: !showFollowed && query.isEmpty) { showFollowed = false; query = "" }
                     ChoiceChip(label: mine.isEmpty ? "Gevolgd" : "Gevolgd · \(mine.count)", on: showFollowed && query.isEmpty) { showFollowed = true; query = "" }
@@ -474,7 +474,7 @@ struct WelcomeView: View {
             } else {
                 rows(hits).padding(.top, Space.s3)
             }
-        } else if again && showFollowed {
+        } else if showFilters && showFollowed {
             let list = FollowList.followed(all, mine)
             if list.isEmpty {
                 Text("Je volgt nog niets. Begin bij Voor jou.")
@@ -682,7 +682,12 @@ struct WelcomeView: View {
 
     // Alleen wie al eens koos (opnieuw kiezen vanuit Instellingen, niet na meteen lezen) ziet de uitklapper voor
     // de Selectie; in het eerste welkom vraagt de lege Selectie het zelf (DigestView). Gelijk aan Welcome.jsx.
-    private var showSelectie: Bool { reopen && !store.browsing }
+    private var showSelectie: Bool { Self.eerderGekozen(reopen: reopen, browsing: store.browsing) }
+    // De filters Aanbevolen en Gevolgd: dezelfde voorwaarde. Ook via "Maak Hoot van jou" na meteen lezen is het de
+    // eerste keuze, met één lijst (keuze Alex, 14 november). Gelijk aan `filters` in Welcome.jsx.
+    private var showFilters: Bool { Self.eerderGekozen(reopen: reopen, browsing: store.browsing) }
+    // Een echte eerdere keuze: opnieuw kiezen (vanuit Instellingen), niet de eerste keer en niet na meteen lezen.
+    static func eerderGekozen(reopen: Bool, browsing: Bool) -> Bool { reopen && !browsing }
 
     @ViewBuilder private var selectieKeuze: some View {
         VStack(spacing: 0) {
@@ -738,7 +743,7 @@ struct WelcomeView: View {
             case .interesses:
                 ctaButton("Verder", onRed: false, off: false) { go(.bronnen) }
             default:
-                if !(typeSize.isAccessibilitySize && again) { // bij opnieuw kiezen en heel grote tekst staat het aantal al in "Gevolgd · n"
+                if !(typeSize.isAccessibilitySize && showFilters) { // met de filters en heel grote tekst staat het aantal al in "Gevolgd · n"
                     Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
                         .font(.ui(.footnote)).foregroundStyle(Theme.hint)
                         .accessibilityAddTraits(.updatesFrequently)

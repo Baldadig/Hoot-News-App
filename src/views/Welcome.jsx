@@ -25,7 +25,7 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 //                      of het gratis begin), direct daaronder open de kranten ("Lees je een krant?"),
 //                      dan per gekozen interesse een blok met een gratis aanrader; de rest ingeklapt;
 //                      zoeken vindt alles. Sinds onboarding blok 4 geen voorbeeld-Editie meer, en de
-//                      filters Aanbevolen en Gevolgd alleen bij opnieuw kiezen.
+//                      filters Aanbevolen en Gevolgd alleen bij opnieuw kiezen na een echte eerdere keuze.
 // Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos, en niet
 // verstopt in één lange lijst. De hoofdknop werkt altijd ("Later kiezen" is weg sinds 1.1.1, keuze r5-later-kiezen). Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
 // komt pas onder de eerste Editie (alleen in de app; web-push bestaat niet).
@@ -246,7 +246,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
           <div className="ob__scroll" ref={scroller} inert={red ? '' : undefined}>
             <div className="col ob__col" ref={paperCol}>
               {view === 'bronnen' ? (
-                <Bronnen head={head} sources={pickable} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} filters={reopen} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
+                <Bronnen head={head} sources={pickable} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} filters={reopen && !prefs.browsing} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
                 <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} digest={digest} selectie={reopen && !prefs.browsing} />
               )}
@@ -324,7 +324,8 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
 // Bovenaan Voor jou: het voorstel (shared/voorstel.mjs, 1.1.1), opgebouwd uit je interesses, met per bron een
 // korte reden; zonder interesses het gratis begin. Direct daaronder, altijd open, de kranten als "Lees je een
 // krant?" (onboarding blok 4); niets staat daar vooraf aan. De filters Aanbevolen en Gevolgd alleen bij opnieuw
-// kiezen (`filters`): de eerste keer is er maar één lijst.
+// kiezen na een echte eerdere keuze (`filters`, dezelfde voorwaarde als de Selectie-uitklapper): de eerste keer,
+// ook via "Maak Hoot van jou" na meteen lezen, is er maar één lijst. Gelijk aan WelcomeView.swift.
 function Bronnen({ head, sources, mine, interests, plan = null, preset = false, filters = false, onPick, onAll, query, setQuery, filter, setFilter, more, setMore }) {
   const planIds = useMemo(() => (plan || []).map((p) => p.id), [plan])
   const why = useMemo(() => new Map((plan || []).map((p) => [p.id, p.why])), [plan])

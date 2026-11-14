@@ -159,6 +159,16 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(FollowList.beginLabel([]), "Naar je Editie")
     }
 
+    // Tweede keuring onboarding (keuze Alex, 14 november): de filters Aanbevolen en Gevolgd en de Selectie-uitklapper
+    // tonen alleen bij opnieuw kiezen na een echte keuze. De eerste keer, ook via "Maak Hoot van jou" na meteen lezen
+    // (onCancel, browsing), is er één lijst. Gelijk aan `reopen && !prefs.browsing` in Welcome.jsx.
+    func testFiltersEnUitklapperAlleenNaEenEchteKeuze() {
+        XCTAssertTrue(WelcomeView.eerderGekozen(reopen: true, browsing: false), "opnieuw kiezen vanuit Instellingen")
+        XCTAssertFalse(WelcomeView.eerderGekozen(reopen: false, browsing: false), "het eerste welkom")
+        XCTAssertFalse(WelcomeView.eerderGekozen(reopen: false, browsing: true), "Maak Hoot van jou na meteen lezen")
+        XCTAssertFalse(WelcomeView.eerderGekozen(reopen: true, browsing: true), "opnieuw kiezen terwijl je nog rondkijkt")
+    }
+
     // Nachttest 14 november (A13): Instellingen › Bronnen heeft dezelfde rubrieken, namen en volgorde als het welkom en het web.
     @MainActor func testBronnenlijstRubriekenGelijkAanWelkom() {
         XCTAssertEqual(SourcesList.cats.map(\.0), FollowList.cats.map(\.id))

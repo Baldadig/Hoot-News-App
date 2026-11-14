@@ -161,7 +161,7 @@ test('de hoofdknop zonder gevolgde bronnen noemt het gratis begin bij naam', () 
   assert.equal(beginLabel([]), 'Naar je Editie')
 })
 
-test('de bronnenstap: geen voorbeeld meer, de filters alleen bij opnieuw kiezen (web en app)', () => {
+test('de bronnenstap: geen voorbeeld meer, de filters alleen bij opnieuw kiezen na een echte keuze (web en app)', () => {
   const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
   const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
   for (const gone of ['Zo ziet je Editie eruit', 'Begin met het gratis begin', 'Nederlands nieuws', 'PeekBar', 'previewLines']) {
@@ -169,9 +169,9 @@ test('de bronnenstap: geen voorbeeld meer, de filters alleen bij opnieuw kiezen 
     assert.ok(!swift.includes(gone), `app: ${gone} is weg`)
   }
   assert.ok(!swift.includes('peekBar') && !swift.includes('FollowList.preview'), 'app: het voorbeeld is weg')
-  assert.match(web, /filters=\{reopen\}/)
+  assert.match(web, /filters=\{reopen && !prefs\.browsing\}/) // ook niet bij de eerste keuze via Maak Hoot van jou
   assert.match(web, /\{filters \? \(\s*<div className="chips ob__filter"/)
-  assert.match(swift, /if again \{ \/\/ de filters alleen bij opnieuw kiezen/)
+  assert.match(swift, /if showFilters \{ \/\/ de filters alleen bij opnieuw kiezen/)
   assert.match(web, /<Fold id="kranten" label="Lees je een krant\?"/)
   assert.match(swift, /foldGroup\(id: "kranten", title: "Lees je een krant\?"/)
   assert.match(web, /beginLabel\(pickable\)/)

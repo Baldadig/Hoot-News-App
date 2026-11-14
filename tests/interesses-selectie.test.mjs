@@ -25,7 +25,8 @@ test('interessestap: de Selectie-uitklapper alleen bij opnieuw kiezen', () => {
   assert.match(web, /\{selectie \? \(\s*<button type="button" className="ob__disclose"/)
   assert.match(web, /\{selectie && open \? \(/)
   const app = read('ios/Hoot/Views/WelcomeView.swift')
-  assert.match(app, /private var showSelectie: Bool \{ reopen && !store\.browsing \}/)
+  assert.match(app, /private var showSelectie: Bool \{ Self\.eerderGekozen\(reopen: reopen, browsing: store\.browsing\) \}/)
+  assert.match(app, /static func eerderGekozen\(reopen: Bool, browsing: Bool\) -> Bool \{ reopen && !browsing \}/)
   assert.match(app, /if showSelectie \{ selectieKeuze \}/)
   // De uitklapper zelf staat er nog (opnieuw kiezen vanuit Instellingen).
   for (const src of [web, app]) assert.ok(src.includes('Kies onderwerpen voor je Selectie'))
@@ -53,4 +54,23 @@ test('lege Selectie: de onderwerpen staan er zelf, geen rij naar een ander blad'
   assert.match(app, /if store\.digestFields\.isEmpty \{\s*kies\s/)
   assert.match(app, /store\.digestFields = Self\.fields\.map\(\\\.id\)\.filter \{ keuze\.contains\(\$0\) \}/)
   assert.match(app, /\.disabled\(draft\.isEmpty \|\| !preferencesReady\)/)
+})
+
+// Tweede keuring onboarding, bevinding 2 (keuze Alex, 14 november): de filters Aanbevolen en Gevolgd tonen alleen
+// bij opnieuw kiezen na een echte eerdere keuze, dus niet bij de eerste keuze via "Maak Hoot van jou" na meteen
+// lezen. Dezelfde voorwaarde als de Selectie-uitklapper, op web en iOS.
+test('bronnenstap: de filters alleen bij opnieuw kiezen na een echte keuze, gelijk aan de uitklapper', () => {
+  const web = read('src/views/Welcome.jsx')
+  assert.match(web, /filters=\{reopen && !prefs\.browsing\}/)
+  assert.ok(!/filters=\{reopen\}/.test(web), 'niet meer alleen reopen')
+  assert.match(web, /\{filters \? \(\s*<div className="chips ob__filter"/)
+  assert.match(web, /\} else if \(filters && filter === 'gevolgd'\) \{/)
+  const app = read('ios/Hoot/Views/WelcomeView.swift')
+  assert.match(app, /private var showFilters: Bool \{ Self\.eerderGekozen\(reopen: reopen, browsing: store\.browsing\) \}/)
+  assert.match(app, /if showFilters \{ \/\/ de filters/)
+  assert.match(app, /\} else if showFilters && showFollowed \{/)
+  assert.match(app, /typeSize\.isAccessibilitySize && showFilters/)
+  // De chips staan alleen nog achter showFilters, nergens achter `again`.
+  assert.ok(!/if again \{[^\n]*\n\s*Flow \{\s*ChoiceChip\(label: "Aanbevolen"/.test(app))
+  assert.ok(!app.includes('again && showFollowed'))
 })
