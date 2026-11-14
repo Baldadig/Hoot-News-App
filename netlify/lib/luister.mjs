@@ -7,15 +7,18 @@
 //     één uitzondering (besluit Alex, 14 november): de podcasts van BNR, met de bron `bnr` die alleen voor podcasts
 //     bestaat (bnr.nl weigert de Hoot-server, dus BNR is geen Hoot-bron). Ze mogen ook als verdieping koppelen, maar een
 //     show zonder Hoot-bron (`zonderBron`) alleen onder strenge voorwaarden: (1) het onderwerp volgt uit de kop van het
-//     verhaal, niet uit één gedeelde naam; (2) één onderwerp per aflevering, met de hele beschrijving gelezen; (3) actueel:
-//     na het begin van het nieuws of van dezelfde of de vorige dag, en niet als de aflevering zegt dat het nieuws pas na de
-//     opname kwam; (4) een aflevering van de eigen bron van het verhaal gaat voor; (5) bij twijfel niets;
+//     verhaal, niet uit één gedeelde naam; (2) één onderwerp per aflevering, met de hele beschrijving gelezen (één eigen naam
+//     buiten het eerste onderwerp die nergens in het verhaal staat, is al genoeg om af te vallen); (3) actueel: na het begin
+//     van het nieuws of van dezelfde of de vorige dag, en niet als de aflevering zegt dat het nieuws pas na de opname kwam;
+//     (4) een aflevering van de eigen bron van het verhaal gaat voor; (5) bij twijfel niets. Een verkeerde koppeling is
+//     erger dan geen;
 //   - een overzichtsshow (vijf onderwerpen per aflevering) koppelt nooit en wordt niet eens opgehaald;
 //   - een show met twee of drie onderwerpen per aflevering (`meer`) en een weekshow (`week`) alleen via een artikellink;
 //   - zonder artikellink (alleen `verdieping`, één onderwerp per aflevering) via de centrale namen van het verhaal, en
 //     strenger sinds de keuring van 14 november: de aflevering zelf gaat over één onderwerp ("Ook…", "Verder ook aandacht
 //     voor…" en een inhoudsopgave maken er `meer` van), het eerste onderwerp van de beschrijving is het verhaal, de rest van
-//     de beschrijving gaat niet over iets anders, de kop van het verhaal deelt een naam met de aflevering, een samengestelde
+//     de beschrijving gaat niet over iets anders, de kop van het verhaal deelt namen met de aflevering (en de kop zelf meer
+//     dan het kader: een naam uit de titel, of de eerste naam van de kop, of twee eigen namen), een samengestelde
 //     naam ("Jong Oranje") telt als één naam, en "hetzelfde" alleen als de aflevering ná het eerste stuk verscheen;
 //   - een vooruitblik van vóór de kop van het verhaal koppelt nooit (de afloop is een ander onderwerp);
 //   - een aflevering die zelf zegt dat het nieuws pas na de opname kwam, koppelt niet aan dat nieuws (alle shows);
@@ -46,8 +49,8 @@ const H = 36e5
 // `spotify`: het id van de show bij Spotify (één keer met de hand opgezocht, 14 november; zonder sleutel opent Spotify de
 // show, niet de aflevering). Ontbreekt het, dan zoekt Spotify op de naam van de show.
 // `opinie`: een opiniepodcast (nooit in de Editie); er staat er nu geen in de lijst.
-// `opsomming`: een sportshow waar een opsomming van drie of meer namen in de eerste zin de hele speelronde betekent
-// (`meer`); alleen de eerste zin telt, de makers in latere zinnen niet (NIEUWE-SHOWS.md, controle).
+// `opsomming`: een sportshow waar een opsomming ("A, B en C") in een zin de hele speelronde betekent (`meer`); de makers
+// en het panel tellen niet (NIEUWE-SHOWS.md, controle; keuring 14 november).
 // `bron: 'bnr'`: bestaat alleen voor podcasts (geen Hoot-bron; zie de afspraak bovenaan en `zonderBron`).
 // Niet in de lijst: Bureau Buitenland en Dit is de Dag (NPO Radio 1; geen bron in Hoot), bulletins van minuten (NU.nl
 // nieuws, Bloomberg News Now) en shows zonder nieuwe afleveringen.
@@ -154,6 +157,7 @@ export const cleanTitle = (t) => String(t || '').replace(/^\s*\d{1,3}\.\s+/, '')
 // van twee woorden).
 const NAAM = /(?<=[\p{Ll}\d,;:]\s)\p{Lu}[\p{L}'’-]+(?:\s+(?:(?:van|de|der|den|ten|ter|von|du|da|el|al|le|la)\s+)*\p{Lu}[\p{L}'’-]+)+/gu
 const MAKERS_UIT = 20 // de makers: uit de nieuwste twintig afleveringen (presentatoren wisselen door de jaren)
+const MAKERS_ZIN = /\b(te gast|aan tafel|gemaakt door|presentat\w*|redactie|verslaggever\w*|makers?|bespre\w+|praa?t\w*|in gesprek|hosts?|hosted)\b/i
 const normZin = (z) => String(z || '').toLowerCase().replace(/\s+/g, ' ').trim()
 const itemText = (it) => toText(it['content:encoded'] || it.content || it.description || '').replace(/\s+/g, ' ').trim()
 export function vastVan(items = []) {
@@ -161,10 +165,15 @@ export function vastVan(items = []) {
   const zin = new Map()
   const naam = new Map()
   for (const t of texts) for (const z of new Set(sentences(t).map(normZin).filter((z) => z.length >= 30))) zin.set(z, (zin.get(z) || 0) + 1)
-  const recent = texts.slice(0, MAKERS_UIT)
+  const zinnen = new Set([...zin].filter(([, c]) => c >= 2).map(([z]) => z))
+  // De makers tellen pas als de vaste zinnen eruit zijn (keuring 14 november: "Wall Street" uit de vaste showtekst van BNR
+  // Beurs, "We blijven niet alleen bij de AEX of Wall Street …", telde anders als maker en verdween dan ook uit de zinnen
+  // over de inhoud). Een vaste zin die de makers noemt ("We bespreken het met politiek verslaggever …", "Deze aflevering is
+  // gemaakt door …") telt wel.
+  const recent = texts.slice(0, MAKERS_UIT).map((t) => sentences(t).filter((z) => !zinnen.has(normZin(z)) || MAKERS_ZIN.test(z)).join(' '))
   for (const t of recent) for (const n of new Set(t.match(NAAM) || [])) naam.set(n, (naam.get(n) || 0) + 1)
   return {
-    zinnen: new Set([...zin].filter(([, c]) => c >= 2).map(([z]) => z)),
+    zinnen,
     namen: [...naam].filter(([, c]) => c >= Math.max(3, 0.4 * recent.length)).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([n]) => n).slice(0, 20),
   }
 }
@@ -386,18 +395,36 @@ const MEER = [
   // analist …", "Hoor je trouwens ook meer over …", "Verder hoor je meer over:", "Verder deze aflevering:", "Ook in deze
   // uitzending:", "Dit hoor je ook deze aflevering", "Verder staan we stil bij …".
   /\b(hebben|hadden)\s+(we|wij|ze)\s+het\s+(ook|verder|daarnaast|nog)\b|\b(we|wij|ze)\s+(hebben|hadden)\s+het\s+(ook|verder|daarnaast)\b/i,
-  /\b(ook|verder|daarnaast|bovendien|tevens)\s+(kijken|hoor|hoort|horen|staan|maken|bespreken|spreken|praten|duiken|gaan|komen)\s+(we|wij|je|jij|jullie|ze)\b/i,
+  // Keuring 14 november: ook de woorden die een volgorde van onderwerpen aangeven ("Daarna duiken we in …", "Vervolgens
+  // kijken we …", "Tot slot: …", een kale "Verder: …").
+  /\b(ook|verder|daarnaast|bovendien|tevens|daarna|vervolgens|tot slot|ten slotte|tenslotte)\s+(kijken|hoor|hoort|horen|staan|maken|bespreken|spreken|praten|duiken|gaan|komen|hebben)\s+(we|wij|je|jij|jullie|ze)\b/i,
+  // (Geen kale "ook:": "Lees ook: …" is een artikellink van de uitgever, geen tweede onderwerp.)
+  /\b(verder|daarnaast|daarna|vervolgens|bovendien|tot slot|ten slotte|tenslotte)\s*:/i,
   /\bhoor\s+(je|jij)\s+((trouwens|verder|nog)\s+)?(ook|meer)\b|\b(dit|dat|wat)\s+hoor\s+(je|jij)\s+(nog\s+)?ook\b/i,
   /\b(verder|ook)\s+(in\s+)?deze\s+(aflevering|uitzending)\b/i,
   // Sport (NOS Voetbalpodcast, controle 14 november): de hele speelronde of het nieuws van de week, niet één verhaal.
   /\b(speelronde|voetbalzondag|voetbalweekend|alles erop en eraan|wel en wee|voeren de boventoon|nieuwtjes|midweeks?e?|europese week)\b/i,
+  // Een terugblik op de week (alle shows, keuring 14 november): "we kijken terug op de afgelopen week", "weekoverzicht".
+  /\bterug\s+op\s+(de\s+|deze\s+|een\s+|afgelopen\s+|de afgelopen\s+)(\S+\s+){0,2}week\b|\bweek(overzicht|terugblik|samenvatting)\b/i,
 ]
-// Een opsomming van drie of meer namen in de eerste zin ("Over A, B, bekerstunts en de C"), alleen bij een show met
-// `opsomming`: daar is het de speelronde. Een deel telt als het een woord met een hoofdletter heeft dat niet het eerste
-// woord van de zin is. Latere zinnen tellen niet (daar staan de makers).
-const opsomming = (zin) => {
-  const delen = String(zin || '').split(/,\s*|\s+(?:en|and)\s+|\s*&\s*/)
-  return delen.filter((d, i) => (i ? d : d.replace(/^\S+\s*/, '')).match(/(?:^|\s)\p{Lu}\p{Ll}/u)).length >= 3
+// Een opsomming in een zin ("A, B en C": minstens één komma en een laatste "en"), alleen bij een show met `opsomming`: daar
+// is het de speelronde ("Over Frenkie de Jong, Dirk Kuijt, bekerstunts en de Ballon d'Or", "Met een nieuwe koploper, veel
+// VAR-discussies en een opvallende move van …"). Elke zin telt (keuring 14 november: bij #570 stond de opsomming in de
+// derde zin), maar alleen het stuk vóór de eerste maker of het panel ("praten over de wedstrijd", "Aan tafel", "Te gast",
+// "Je hoort …"): de makers en de gasten zijn geen onderwerpen.
+const PANEL = /\b(te gast|aan tafel|je hoort|praa?t|praten|bespreekt|bespreken|in gesprek|schuift aan|schuiven aan|zitten klaar)\b/i
+const opsomming = (zin, makers = []) => {
+  let z = String(zin || '')
+  for (const n of makers) {
+    const i = z.indexOf(n)
+    if (i >= 0) z = z.slice(0, i)
+  }
+  const p = z.search(PANEL)
+  if (p >= 0) z = z.slice(0, p)
+  const delen = z.split(/,\s*/)
+  if (delen.length < 2) return false
+  const laatste = delen.pop().split(/\s+(?:en|and|&)\s+/)
+  return laatste.length >= 2 && [...delen, ...laatste].every((d) => /\p{L}{2,}/u.test(d))
 }
 const VOORUIT = /\b(vooruitbli\w*|vooruitgeblikt|blik(t|ken)\s+(\S+\s+){0,3}vooruit|voorbeschouw\w*|vanavond|morgenavond|preview\w*)\b/i
 // Na de opname (alle shows, 14 november): "kwam net na het opnemen van deze podcast het bericht dat …", "na de opname",
@@ -409,7 +436,7 @@ export function describe(ep, show = null) {
   const heel = ep.tekst || ep.samenvatting || ''
   const zinnen = sentences(heel)
   const naOpname = zinnen.filter((z) => NA_OPNAME.test(z)).join(' ')
-  const meer = MEER.some((re) => re.test(heel)) || (!!show?.opsomming && opsomming(zinnen.find((z) => !NA_OPNAME.test(z))))
+  const meer = MEER.some((re) => re.test(heel)) || (!!show?.opsomming && zinnen.some((z) => !NA_OPNAME.test(z) && opsomming(z, ep.vast)))
   return { meer, vooruit: VOORUIT.test(text), naOpname: naOpname || null }
 }
 const ZINNEN = 6
@@ -532,10 +559,22 @@ export function judge(ep, show, story, items, sig, now) {
   // "Van Bommel heeft Lukaku terug voor duel met Italië, Frankrijk beschikt weer over Mbappé" van een mengverhaal over de
   // interlands; alleen de intro noemt Oranje en Griekenland, dus geen nabespreking van de 7-0). Noemt de kop geen enkele
   // naam, dan zegt dit niets en telt alleen het stuk van de kop.
+  // Keuring 14 november (de kop "Zinédine Zidane roept speler van Duitse tweedeklasser op voor tweeluik in de Nations
+  // League" bij een persconferentie van Oranje): één gedeelde naam die alleen het kader is (een competitie, een land, ook
+  // als bijvoeglijk naamwoord) is niet genoeg. De kop zelf deelt dus een naam met de titel van de aflevering (waar die
+  // over gaat), of zijn eerste eigen naam (waar de kop over gaat: "Trump gives Scott Colom 'a lot of credit' …", Trump is
+  // hier een zwakke naam), of twee eigen namen (geen land) met de aflevering. Alleen als de kop geen eigen naam heeft, telt
+  // een land.
   const kt = sig.get(lead?.id + '#kop')
-  const kopZelf = (s) => [...(kt?.strong || [])].some((k) => !BROAD.has(k) && has(kt, k) && has(s, k)) || [...(kt?.weak || [])].some((k) => !BROAD.has(k) && !!s?.weak.has(k))
+  const ts = sig.get(ep.id + '#titel')
+  const kopSterk = (s) => new Set([...(kt?.strong || [])].filter((k) => !BROAD.has(k) && has(kt, k) && has(s, k)).map(find))
+  const kopZwak = (s) => [...(kt?.weak || [])].some((k) => !BROAD.has(k) && !!s?.weak.has(k))
+  const kopEigen = new Set([...(kt?.strong || [])].filter((k) => !BROAD.has(k) && has(kt, k)).map(find)).size
   const kopLeeg = !kt || ![...kt.strong, ...kt.weak].some((k) => !BROAD.has(k))
-  const kopAf = kopShared.size < 2 ? { af: 'de kop van het verhaal deelt geen twee namen met de aflevering', names, kandidaat } : !kopLeeg && !kopZelf(es) ? { af: 'de kop zelf noemt niets uit de aflevering (alleen de intro)', names, kandidaat } : null
+  const kopTitel = !kopLeeg && (kopSterk(ts).size > 0 || kopZwak(ts))
+  const kopEerste = (kt?.runs || []).map((run) => run.filter((k) => !BROAD.has(k) && has(kt, k))).find((run) => run.length) || []
+  const kopZelf = kopTitel || kopEerste.some((k) => has(es, k)) || (kopEigen > 0 && kopSterk(es).size >= Math.min(2, kopEigen)) || (!kopEigen && kopZwak(es))
+  const kopAf = kopShared.size < 2 ? { af: 'de kop van het verhaal deelt geen twee namen met de aflevering', names, kandidaat } : !kopLeeg && !kopZelf ? { af: kopSterk(es).size || kopZwak(es) ? 'de kop zelf deelt alleen het kader met de aflevering (niet de eerste naam van de kop, geen naam uit de titel)' : 'de kop zelf noemt niets uit de aflevering (alleen de intro)', names, kandidaat } : null
   // Een show zonder Hoot-bron (BNR; besluit Alex 14 november) koppelt zonder artikellink alleen onder strenge voorwaarden.
   // (2) en (5) staan al hierboven: `meer` en "iets anders" lezen bij zo'n show de hele beschrijving (koppel), en past ze bij
   // twee verhalen, dan krijgt geen van beide haar. (4) staat in koppel: een aflevering van de eigen bron gaat voor.
@@ -544,11 +583,16 @@ export function judge(ep, show, story, items, sig, now) {
     //     (de regel die de lezer ziet, niet de intro) deelt een naam met de titel van de aflevering. "Crisisoverleg op
     //     landgoed begonnen" noemt geen partij: dan koppelt "Jetten wil door met het kabinet én de VVD" niet.
     if (kopAf) return { ...kopAf, af: kopAf.af + ' (show zonder Hoot-bron)' }
-    const ts = sig.get(ep.id + '#titel')
-    const kopTitel = !kopLeeg && kopZelf(ts)
     if (!kopTitel) return { af: 'show zonder Hoot-bron: de kop van het verhaal deelt geen naam met de titel van de aflevering', names, kandidaat }
     // (3) Actueel: na het begin van het nieuws, of van dezelfde of de vorige dag (Nederlandse tijd).
     if (ep.t < firstAt && dagNL(ep.t) < dagNL(firstAt - 24 * H)) return { af: 'show zonder Hoot-bron: de aflevering is ouder dan de dag voor het begin van het nieuws', names, kandidaat }
+    // (2) Eén onderwerp, de hele beschrijving gelezen, strenger dan MEER en ELDERS (keuring 14 november: "Daarna duiken we in
+    //     de cijfers van Ahold Delhaize … Tot slot: de rente van de ECB", "Verder: de stikstofwet van minister Wiersma, het
+    //     asieldebat met Faber en de Dublin-top"): één eigen naam buiten de zin van het eerste onderwerp die nergens in het
+    //     verhaal staat, is genoeg om af te vallen. Generiek: alleen de tekst, geen namen in de code; de makers en het panel
+    //     ("We bespreken het met …", "Te gast: …") tellen niet.
+    const anders = andereNaam(ep, show, items)
+    if (anders) return { af: `show zonder Hoot-bron: de beschrijving noemt ook iets anders (${anders})`, names, kandidaat }
   }
   // 2. Hetzelfde: de centrale namen (twee, of één met dezelfde handeling) én dezelfde gebeurtenis, en de aflevering kwam
   //    ná het eerste stuk van het verhaal (keuring: een aflevering over de stemming van donderdag is bij het crisisoverleg
@@ -566,6 +610,35 @@ export function judge(ep, show, story, items, sig, now) {
   if (!deep) return { af: `zelfde kwestie, maar ${Math.round(age)} uur oud`, names, kandidaat }
   if (kopAf) return kopAf
   return { soort: 'verdiepend', grond: 'tekst', reden: `twee centrale namen (${names.join(', ')}) en dezelfde kwestie (${issue})` }
+}
+// Een eigen naam (een woord met een hoofdletter dat niet de zin begint) in een zin van de beschrijving buiten het eerste
+// onderwerp, die in geen stuk van het verhaal staat (een woord dat met dezelfde vijf letters begint telt als bekend:
+// "Europese" en "Europa"). De titel van de aflevering, de naam van de show en de makers tellen ook als bekend ("Deze Beurs in
+// Zicht zoeken we het voor je uit"), en het stuk van de zin vanaf het panel telt niet. Geeft de naam, of null.
+const woordenMemo = new WeakMap()
+const verhaalWoorden = (items) => {
+  let w = woordenMemo.get(items)
+  if (!w) woordenMemo.set(items, (w = [...new Set(items.flatMap((i) => woordenVan(`${i.title || ''} ${i.summary || ''}`)))]))
+  return w
+}
+const woordenVan = (t) => norm(t).split(/[^\p{L}\d]+/u).filter(Boolean)
+function andereNaam(ep, show, items) {
+  const woorden = verhaalWoorden(items)
+  const eigen = new Set(woordenVan([ep.titel, show?.naam, ...(ep.vast || [])].join(' ')))
+  const zinnen = ep.zinTekst || []
+  for (let k = 0; k < zinnen.length; k++) {
+    if (k === ep.onderwerpK) continue
+    let z = zinnen[k]
+    const p = z.search(PANEL)
+    if (p >= 0) z = z.slice(0, p)
+    for (const m of z.matchAll(/(?<=\S\s+)\p{Lu}[\p{L}\d'’-]*/gu)) {
+      const w = norm(m[0]).replace(/[^\p{L}\d]/gu, '')
+      if (w.length < 2) continue
+      const pre = w.slice(0, 5)
+      if (!eigen.has(w) && !woorden.some((x) => x.startsWith(pre))) return m[0]
+    }
+  }
+  return null
 }
 const dagNL = (t) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'Europe/Amsterdam' })
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -606,7 +679,10 @@ export function koppel({ stories = [], byId = new Map(), episodes = [], now = Da
   // namen buiten het verhaal.
   const zonderMakers = (z, vast = []) => vast.reduce((s, n) => s.split(n).join(''), z)
   const zinnen = new Map(eps.map((e) => [e.id, sentences(zonderBron(SHOW.get(e.show)) ? e.tekst || e.samenvatting : e.samenvatting).slice(0, zonderBron(SHOW.get(e.show)) ? ZINNEN_HEEL : ZINNEN).map((z) => zonderMakers(z, e.vast))]))
-  for (const e of eps) e.zinnen = zinnen.get(e.id).length
+  for (const e of eps) {
+    e.zinnen = zinnen.get(e.id).length
+    e.zinTekst = zinnen.get(e.id)
+  }
   const extra = eps.flatMap((e) => {
     const at = new Date(e.t).toISOString()
     return [{ id: e.id, title: e.titel, summary: e.samenvatting, publishedAt: at }, { id: e.id + '#titel', title: e.titel, summary: '', publishedAt: at }, ...(e.naOpname ? [{ id: e.id + '#naopname', title: e.naOpname, summary: '', publishedAt: at }] : []), ...zinnen.get(e.id).map((z, k) => ({ id: `${e.id}#zin${k}`, title: z, summary: '', publishedAt: at }))]
@@ -618,6 +694,7 @@ export function koppel({ stories = [], byId = new Map(), episodes = [], now = Da
     // Het eerste onderwerp: de eerste zin met een naam, behalve een zin over nieuws van na de opname.
     const k = zinnen.get(e.id).findIndex((z, k) => named(sig.get(`${e.id}#zin${k}`)) && !NA_OPNAME.test(z))
     if (k >= 0) sig.set(e.id + '#onderwerp', sig.get(`${e.id}#zin${k}`))
+    e.onderwerpK = k
   }
   const hits = new Map() // aflevering → [{ x, oordeel }]
   for (const e of eps) {

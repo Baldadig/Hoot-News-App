@@ -230,3 +230,117 @@ test('alle shows: de kop zelf noemt iets uit de aflevering, niet alleen de intro
   const r2 = koppel({ stories: [{ ...m.stories[0], leadId: oranje.id }], byId, episodes: EPS.filter((e) => e.t <= now), now, mainIds: MAIN_IDS })
   assert.match(r2.byStory.get(m.stories[0].id)?.aflevering || '', /#583/)
 })
+
+// ---------- Keuring 14 november (avond): herstel ----------
+// Elke toets houdt een generieke regel vast; de nagebouwde afleveringen zijn realistische beschrijvingen in de vorm van de
+// echte feeds, niet de tekst van één aflevering.
+const VI = JSON.parse(readFileSync(new URL('./fixtures/luister-vi-zsm-2026-11.json', import.meta.url), 'utf8'))
+// Een nagebouwde aflevering, drie uur voor `now`.
+const nabouw = (show, titel, tekst, now) => ({ id: `nb-${show}-${titel.length}-${tekst.length}`, show, titel, samenvatting: tekst.slice(0, 420), tekst, t: now - 3 * 36e5, guid: null, duur: 1500, links: [], web: null })
+
+test('keuring 1. de kop zelf: één gedeelde naam die alleen het kader is (een competitie, een land) is niet genoeg', () => {
+  // Terugblik 10 november: de kop "Zinédine Zidane roept speler van Duitse tweedeklasser op voor tweeluik in de Nations
+  // League" deelt met de persconferentie van Oranje (#580) alleen "Nations League" en "Duitse" (Duitsland). De lezer ziet een
+  // kop over Frankrijk: niets.
+  const d = VI.dagdelen.find((x) => /10-ochtend/.test(x.dagdeel))
+  const byId = new Map(d.items.map((i) => [i.id, i]))
+  const now = Date.parse(d.now)
+  const r = koppel({ stories: d.stories, byId, episodes: [...VI.episodes, ...EPS].filter((e) => e.t <= now), now, mainIds: MAIN_IDS })
+  const zidane = d.stories.find((s) => /^Zinédine Zidane roept/.test(byId.get(s.leadId)?.title || ''))
+  assert.equal(r.byStory.get(zidane.id), undefined)
+  assert.equal(r.rows.afgevallen.find((a) => a.verhaal === zidane.id && /#580/.test(a.aflevering))?.reden, 'de kop zelf deelt alleen het kader met de aflevering (niet de eerste naam van de kop, geen naam uit de titel)')
+  // Met een kop over Oranje en Xavi uit hetzelfde verhaal past #580 wel bij de kop (dan beslissen de andere regels).
+  const xavi = d.items.find((i) => zidane.itemIds.includes(i.id) && /^Xavi rekent op fitte Brobbey/.test(i.title))
+  const r2 = koppel({ stories: [{ ...zidane, leadId: xavi.id }], byId, episodes: EPS.filter((e) => e.t <= now), now, mainIds: MAIN_IDS })
+  assert.notEqual(r2.rows.afgevallen.find((a) => /#580/.test(a.aflevering))?.reden, 'de kop zelf deelt alleen het kader met de aflevering (niet de eerste naam van de kop, geen naam uit de titel)')
+  // De goede koppelingen blijven: de eerste naam van de kop ("Trump gives Scott Colom …": Scott Colom) of de enige
+  // ("Jensen Huang and the decline …") staat in de aflevering.
+  const xnow = Date.parse(X.now)
+  const xr = koppel({ stories: X.stories, byId: new Map(X.items.map((i) => [i.id, i])), episodes: X.episodes, now: xnow, mainIds: MAIN_IDS })
+  const kop = (re) => X.stories.find((s) => re.test(X.items.find((i) => i.id === s.leadId)?.title || ''))
+  assert.equal(xr.byStory.get(kop(/Scott Colom/).id)?.showId, 'today-in-focus')
+  assert.equal(xr.byStory.get(kop(/decline of the visionary/).id)?.showId, 'the-daily')
+  assert.ok(xr.byStory.get(kop(/decline of the visionary/).id).andere.some((a) => a.showId === 'today-in-focus'))
+  // En PSV/Club Brugge bij VI ZSM (5 november).
+  const d5 = VI.dagdelen.find((x) => /05-ochtend/.test(x.dagdeel))
+  const r5 = koppel({ stories: d5.stories, byId: new Map(d5.items.map((i) => [i.id, i])), episodes: [...VI.episodes, ...EPS].filter((e) => e.t <= Date.parse(d5.now)), now: Date.parse(d5.now), mainIds: MAIN_IDS })
+  assert.ok(r5.rows.koppelingen.some((k) => /PSV/.test(k.kop) && /Casino-voetbal PSV/.test(k.aflevering)))
+})
+
+test('keuring 2. BNR Beurs die halverwege overstapt: de volgorde-woorden, en één naam buiten het verhaal is genoeg', () => {
+  const now = Date.parse(X.now)
+  const byId = new Map(X.items.map((i) => [i.id, i]))
+  const st = X.stories.find((s) => /decline of the visionary/.test(byId.get(s.leadId)?.title || ''))
+  const titel = 'Jensen Huang weg bij Nvidia: wat nu voor het aandeel? | Beurs in Zicht'
+  const basis = 'Jensen Huang is vertrokken als topman van Nvidia na een tweede affaire. Ook zijn band met president Trump en handelsminister Lutnick ligt onder vuur. Wat betekent dat voor het aandeel Nvidia en voor beleggers? Deze Beurs in Zicht zoeken we het voor je uit.'
+  const run = (tekst, show = 'bnr-beurs') => {
+    const r = koppel({ stories: [st], byId, episodes: [nabouw(show, titel, tekst, now)], now, mainIds: MAIN_IDS })
+    return { l: r.byStory.get(st.id), af: r.rows.afgevallen[0]?.reden }
+  }
+  // Eén onderwerp: koppelt (hetzelfde). Een gast hoort bij het panel, niet bij de inhoud.
+  assert.equal(run(basis).l?.soort, 'hetzelfde')
+  assert.equal(run(basis + ' Te gast: Jean Paul van Oudheusden van eToro').l?.soort, 'hetzelfde')
+  // "Daarna duiken we in …" en "Tot slot: …": meer onderwerpen.
+  const daarna = run(basis + ' Daarna duiken we in de cijfers van Ahold Delhaize en de dividendplannen van Shell. Tot slot: de rente van de ECB.')
+  assert.equal(daarna.l, undefined)
+  assert.equal(daarna.af, 'deze aflevering gaat over meer onderwerpen, zonder artikellink')
+  // Zonder zo'n woord: één eigen naam buiten de zin van het eerste onderwerp die nergens in het verhaal staat.
+  const stil = basis + ' Intussen zakt Ahold Delhaize hard na zwakke cijfers.'
+  assert.equal(describe(nabouw('bnr-beurs', titel, stil, now), SHOW.get('bnr-beurs')).meer, false, 'de MEER-regel ziet het niet')
+  assert.equal(run(stil).l, undefined)
+  assert.equal(run(stil).af, 'show zonder Hoot-bron: de beschrijving noemt ook iets anders (Ahold)')
+  // Alleen voor een show zonder Hoot-bron (de strenge voorwaarden van het besluit van 14 november).
+  assert.equal(run(stil, 'nos-de-dag').l?.soort, 'hetzelfde')
+})
+
+test('keuring 3. een weekterugblik van Studio Den Haag: een kale "Verder:", de week, en namen buiten het verhaal', () => {
+  const now = Date.parse(F.now)
+  const byId = new Map(F.items.map((i) => [i.id, i]))
+  const crisis = F.stories.find((s) => s.id === 'sts2z5a')
+  const titel = 'Jetten, de VVD en een week vol crisis'
+  const basis = 'Premier Jetten, VVD-leider Yesilgöz en CDA-leider Bontenbal praten verder over de toekomst van het kabinet op De Zwaluwenberg in Hilversum. De coalitiepartijen zoeken een uitweg uit de crisis.'
+  const run = (tekst) => {
+    const r = koppel({ stories: [crisis], byId, episodes: [nabouw('bnr-studio-den-haag', titel, tekst, now)], now, mainIds: MAIN_IDS })
+    return { l: r.byStory.get(crisis.id), af: r.rows.afgevallen[0]?.reden }
+  }
+  assert.equal(run(basis).l?.soort, 'hetzelfde')
+  // Het panel (een verslaggever die niet in het verhaal staat) telt niet als ander onderwerp.
+  assert.equal(run(basis + ' We bespreken het met politiek verslaggever Leendert Beekman.').l?.soort, 'hetzelfde')
+  const verder = run(basis + ' Verder: de stikstofwet van minister Wiersma, het asieldebat met Faber en de Dublin-top van Europese regeringsleiders.')
+  assert.equal(verder.l, undefined)
+  assert.equal(verder.af, 'deze aflevering gaat over meer onderwerpen, zonder artikellink')
+  assert.equal(run(basis + ' We kijken terug op de afgelopen week in Den Haag.').af, 'deze aflevering gaat over meer onderwerpen, zonder artikellink')
+  const revue = run(basis + ' Ook de stikstofwet van minister Wiersma en het asieldebat met Faber passeren de revue.')
+  assert.equal(revue.l, undefined)
+  assert.equal(revue.af, 'show zonder Hoot-bron: de beschrijving noemt ook iets anders (Wiersma)')
+})
+
+test('keuring: de MEER-vormen van een volgorde, en "Lees ook:" is geen tweede onderwerp', () => {
+  for (const zin of ['Daarna duiken we in de cijfers van Shell.', 'Vervolgens kijken we naar de rente.', 'Tot slot: de rente van de ECB.', 'Verder: de stikstofwet en het asieldebat.', 'Ten slotte hebben we het over Ajax.', 'We blikken terug op de afgelopen week.']) {
+    assert.equal(describe({ titel: 'x', samenvatting: zin }).meer, true, zin)
+  }
+  for (const zin of ['Lees ook: Tweede Kamer straft machtspolitiek VVD af.', 'Daarna bleef het stil in de Kamer.', 'Ook na rust bleef Oranje aanvallen.']) {
+    assert.equal(describe({ titel: 'x', samenvatting: zin }).meer, false, zin)
+  }
+})
+
+test('keuring: de NOS Voetbalpodcast, een opsomming in elke zin (#570); de makers en het panel tellen niet', () => {
+  // #570: "De bal heeft weer gerold in de eredivisie. … Met een nieuwe koploper, veel VAR-discussies en een opvallende move
+  // van Clarence Seedorf." De opsomming staat in de derde zin: de hele speelronde.
+  assert.match(nos(/#570/).tekst, /Met een nieuwe koploper, veel VAR-discussies en een opvallende move/)
+  assert.equal(meer(nos(/#570/)), true)
+  // Eén wedstrijd of één persconferentie blijft één onderwerp, ook met het panel in een opsomming.
+  for (const re of [/#583/, /#580/, /#584/, /#568/, /#565/, /#571/]) assert.equal(meer(nos(re)), false, re.source)
+  assert.equal(describe({ titel: 'x', samenvatting: 'Van een slechte eerste helft en een 2-0 achterstand naar een knap herstel en een 2-2 gelijkspel.' }, SHOW.get('nos-voetbalpodcast')).meer, false, 'zonder komma geen opsomming')
+})
+
+test('keuring: de makers worden geteld zonder de vaste zinnen ("Wall Street" bij BNR Beurs is geen maker)', () => {
+  const v = vastVan(F.rauw['bnr-beurs'].items)
+  assert.ok(!v.namen.includes('Wall Street'), v.namen.join(', '))
+  assert.ok(v.namen.includes('Jelle Maasbach'), v.namen.join(', '))
+  // Een vaste zin die de makers noemt, telt wel ("We bespreken het met politiek verslaggever Sophia van Lil.").
+  assert.ok(vastVan(F.rauw['bnr-studio-den-haag'].items).namen.includes('Sophia van Lil'))
+  // En de inhoud houdt "Wall Street" ("Horror-hangover op Wall Street").
+  const e = beurs(/Horror-hangover/)
+  assert.ok(!e.vast.includes('Wall Street'))
+})
