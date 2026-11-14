@@ -32,12 +32,13 @@ const EN = new Set(
 // visibleFor het niet aan een Nederlandse lezer (nachttest 14 november: Franse koppen van Politico Europe telden als
 // Nederlands, want "de" is ook Frans). Ook de Franse elisies (l', d', qu', j', n', s', c') tellen.
 // Dubbelcheck 14 november (A10): ook de meest voorkomende korte woorden (Frans la, et, il, elle, nous, vous, au, aux;
-// Duits im, von, zu, noch, dieser; Spaans que, entre, desde, sin). Niet "pas" en "son" (gewoon Nederlands en Engels).
+// Duits im, von, zu, dieser; Spaans que, entre, desde, sin). Niet "pas" en "son" (gewoon Nederlands en Engels), en niet
+// "noch" (ook Nederlands: "noch Rusland noch China"; tweede keuring van het herstel).
 const XX = new Set(
   ('le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où ' +
     'la et il ils elle elles nous vous au aux avant après sans chez depuis selon contre lors ses ' +
     'der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur ' +
-    'im von zu noch dieser diese dieses einen einem dass bei wurde nur schon gegen ' +
+    'im von zu dieser diese dieses einen einem dass bei wurde nur schon gegen ' +
     'el una del para con por según sobre también más pero muy está fue y que entre desde porque cuando').split(/\s+/),
 )
 const ELISIE = /^(?:l|d|qu|j|n|s|c)'\p{L}{2,}/u
@@ -60,8 +61,21 @@ export function langFromUrl(url) {
 
 // Telt de functiewoorden per taal in een tekst.
 // Een woord van de derde telling met een hoofdletter vóór een woord met een hoofdletter is een naam, geen lidwoord: Le Pen,
-// La La Land, Des Moines, El Salvador, Der Spiegel (dubbelcheck A10). Dat telt dan niet mee.
+// La La Land, Des Moines, El Salvador, Der Spiegel (dubbelcheck A10). Dat telt dan niet mee. Ook een naam met een
+// tussenvoegsel: een woord van de derde telling met een hoofdletter, dan hooguit twee kleine woorden van de derde telling,
+// dan een woord met een hoofdletter (Von der Leyen). De hele reeks is dan de naam.
 const CAP = /^\p{Lu}/u
+const NAME_GAP = 2
+function nameParts(raw) {
+  const out = new Set()
+  for (let k = 0; k < raw.length; k++) {
+    if (!CAP.test(raw[k]) || !XX.has(raw[k].toLowerCase())) continue
+    let j = k + 1
+    while (j < raw.length && j <= k + NAME_GAP && !CAP.test(raw[j]) && XX.has(raw[j])) j++
+    if (CAP.test(raw[j] || '')) for (let i = k; i < j; i++) out.add(i)
+  }
+  return out
+}
 export function langCounts(text) {
   const raw = String(text || '')
     .replace(/[‘’ʼ]/g, "'")
@@ -69,11 +83,12 @@ export function langCounts(text) {
   let nl = 0
   let en = 0
   let xx = 0
+  const names = nameParts(raw)
   for (let k = 0; k < raw.length; k++) {
     const w = raw[k].toLowerCase()
     if (NL.has(w)) nl++
     if (EN.has(w)) en++
-    if ((XX.has(w) || ELISIE.test(w)) && !(CAP.test(raw[k]) && CAP.test(raw[k + 1] || ''))) xx++
+    if ((XX.has(w) || ELISIE.test(w)) && !names.has(k)) xx++
   }
   return { nl, en, xx }
 }

@@ -2452,7 +2452,7 @@ var HootCore = (() => {
     "the a an and to for with on at by from are were be been has have will would could should not this that these those its he she they you your his her their our my who what when where why how which after before about into than but or as says said there here just all more year years while against between without because its it's don't doesn't didn't won't can't isn't aren't i'm you're they're we're what's here's there's people being does did makes made gets got".split(/\s+/)
   );
   var XX = new Set(
-    "le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où la et il ils elle elles nous vous au aux avant après sans chez depuis selon contre lors ses der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur im von zu noch dieser diese dieses einen einem dass bei wurde nur schon gegen el una del para con por según sobre también más pero muy está fue y que entre desde porque cuando".split(/\s+/)
+    "le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où la et il ils elle elles nous vous au aux avant après sans chez depuis selon contre lors ses der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur im von zu dieser diese dieses einen einem dass bei wurde nur schon gegen el una del para con por según sobre también más pero muy está fue y que entre desde porque cuando".split(/\s+/)
   );
   var ELISIE = /^(?:l|d|qu|j|n|s|c)'\p{L}{2,}/u;
   var KNOWN_PATHS = [{ host: /(^|\.)parool\.nl$/, path: /^\/(amsterdam-news|guide)(\/|$)/, lang: "en" }];
@@ -2467,16 +2467,28 @@ var HootCore = (() => {
     return null;
   }
   var CAP = /^\p{Lu}/u;
+  var NAME_GAP = 2;
+  function nameParts(raw) {
+    const out = /* @__PURE__ */ new Set();
+    for (let k = 0; k < raw.length; k++) {
+      if (!CAP.test(raw[k]) || !XX.has(raw[k].toLowerCase())) continue;
+      let j = k + 1;
+      while (j < raw.length && j <= k + NAME_GAP && !CAP.test(raw[j]) && XX.has(raw[j])) j++;
+      if (CAP.test(raw[j] || "")) for (let i = k; i < j; i++) out.add(i);
+    }
+    return out;
+  }
   function langCounts(text) {
     const raw = String(text || "").replace(/[‘’ʼ]/g, "'").match(/\p{L}+(?:'\p{L}+)*/gu) || [];
     let nl = 0;
     let en = 0;
     let xx = 0;
+    const names = nameParts(raw);
     for (let k = 0; k < raw.length; k++) {
       const w = raw[k].toLowerCase();
       if (NL.has(w)) nl++;
       if (EN.has(w)) en++;
-      if ((XX.has(w) || ELISIE.test(w)) && !(CAP.test(raw[k]) && CAP.test(raw[k + 1] || ""))) xx++;
+      if ((XX.has(w) || ELISIE.test(w)) && !names.has(k)) xx++;
     }
     return { nl, en, xx };
   }

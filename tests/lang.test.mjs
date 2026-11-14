@@ -143,7 +143,7 @@ test('taal: korte Franse, Duitse en Spaanse koppen zijn xx; Le Pen, des te meer 
   const { detectLang, langOf } = await import('../shared/lang.mjs')
   for (const title of [
     "Macron dit qu'il ne démissionnera pas avant la fin de son mandat",
-    'Die Regierung will das Gesetz noch in dieser Woche beschließen',
+    'Die Regierung will das Gesetz schon in dieser Woche beschließen',
     'El gobierno aprobó la ley que limita los alquileres',
   ]) {
     assert.equal(detectLang({ title }), 'xx', title)
@@ -158,6 +158,23 @@ test('taal: korte Franse, Duitse en Spaanse koppen zijn xx; Le Pen, des te meer 
   ]) assert.notEqual(detectLang({ title }), 'xx', title)
   // Een naam met hoofdletters (La La Land, Le Pen) telt niet als Franse tekst.
   assert.notEqual(detectLang({ title: 'La La Land-ster Emma Stone speelt in film over Le Pen' }), 'xx')
+})
+
+// Tweede keuring van het herstel (14 november): "noch" is ook Nederlands ("noch … noch"), en "Von der Leyen" is een naam
+// met een tussenvoegsel. Zo'n kop van een Nederlandse bron is Nederlands, niet anderstalig.
+test('taal: noch is Nederlands, Von der Leyen is een naam', async () => {
+  const { detectLang, langOf, langCounts, visibleFor } = await import('../shared/lang.mjs')
+  const title = 'Von der Leyen wil noch Rusland noch China sparen'
+  assert.equal(langCounts(title).xx, 0, 'geen woord van de derde taal')
+  assert.notEqual(detectLang({ title }), 'xx')
+  const item = { title, ...langOf({ title }, 'nl') }
+  assert.equal(item.lang, 'nl')
+  assert.equal(item.offLang, false)
+  assert.ok(visibleFor(item))
+  // Met een Nederlandse intro telt de kop zeker als Nederlands.
+  assert.equal(detectLang({ title, summary: 'De Commissievoorzitter wil geen enkele grootmacht een voordeel geven in de handel met de Europese Unie.' }), 'nl')
+  // Een Duitse zin met von en der in kleine letters blijft Duits.
+  assert.equal(detectLang({ title: 'Die Partei von der Leyen ist nicht mehr für das Gesetz' }), 'xx')
 })
 
 test('dutchTier: een Franse kop van een Nederlandse bron is niet de Nederlandse kop van een plek', async () => {
