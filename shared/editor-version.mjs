@@ -106,6 +106,8 @@
 // Persona · tweede keuring, open punt 1: een video of podcast opent nooit de Editie (opensEdition in openWithNews).
 // Persona · herstel na de derde keuring, punt 7: geen lokaal nieuws van elders pas bij minstens twee Nederlandse of Vlaamse
 // uitgevers, geteld per uitgever (homePublishersOf); één stuk van hier, ook als kop, is niet genoeg (localAbroad).
+// Persona · herstelkeuring 3, punt 7: een ander land als bijvoeglijk naamwoord (WORLD, COUNTRY_ADJ), een Nederlander of
+// een Nederlands bedrijf (NL_ANCHOR, HERE_CORP) in de kop maakt het geen lokaal nieuws van elders (localAbroad).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-3'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

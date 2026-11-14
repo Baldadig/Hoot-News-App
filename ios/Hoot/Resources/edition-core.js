@@ -847,7 +847,9 @@ var HootCore = (() => {
     "koningsdag",
     "elfstedentocht"
   ];
-  var NL_CORP = W(["klm", "albert heijn", "asml", "tata steel", "abn amro", "rabobank", "aex", "damrak"]);
+  var NL_CORP_NAMES = ["klm", "albert heijn", "asml", "tata steel", "abn amro", "rabobank", "aex", "damrak"];
+  var NL_CORP = W(NL_CORP_NAMES);
+  var HERE_CORP = W([...NL_CORP_NAMES, "beursplein( 5)?", "philips", "heineken", "ahold\\p{L}*", "akzo\\p{L}*", "kpn", "postnl", "aegon", "adyen", "prosus", "wolters kluwer", "boskalis", "vopak"]);
   var NL_PERSONS = ["jetten", "wilders", "yeşilgöz", "yesilgoz", "timmermans", "bontenbal", "van der plas", "omtzigt", "eerdmans", "markuszower", "dijkhoff", "van essen", "peter r\\. de vries"];
   var NL_PARTIES = W(["PVV", "VVD", "D66", "CDA", "GroenLinks", "PvdA", "GL-PvdA", "SP", "NSC", "BBB", "JA21", "FvD", "Forum voor Democratie", "PvdD", "Partij voor de Dieren", "DENK", "SGP", "ChristenUnie", "CU", "50Plus", "50PLUS", "BIJ1"], "u");
   var NL_CASE = W([
@@ -1430,17 +1432,19 @@ var HootCore = (() => {
   var OTHER_STATES = W(["new south wales", "nsw", "queensland", "tasmani\\p{L}*", "western australia", "south australia", "northern territory", "victorian", "ontario", "quebec", "québec", "alberta", "british columbia", "manitoba", "saskatchewan", "nova scotia"]);
   var HOME_MIN = 2;
   var LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i;
-  var OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi;
-  var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
+  var OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk|schotland|scotland|schots\w*|scottish|wales|welsh|noord-ierland|northern ireland)\b/gi;
+  var COUNTRY_ADJ = W(["iraans\\p{L}*", "iraniër\\p{L}*", "libanees", "libanese", "libanezen", "lebanese", "nieuw-zeelands\\p{L}*", "new zealander\\p{L}*"]);
+  var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || WORLD.test(t) || COUNTRY_ADJ.test(t) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
   function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
     const head = items.find(Boolean);
     const t = String(head?.title || "");
     if (!t) return false;
     const elsewhere = () => new Set(homePublishers).size >= HOME_MIN;
     const usHere = desk === "vs" || usPoliticsIn(t) || countriesIn(t).includes("us");
-    if (usHere) return !beyondIn(t, ["us"]) && !placeSignals({ title: t }).home && !elsewhere();
+    const hereAnchor = () => placeSignals({ title: t }).home || HERE_CORP.test(t) || NL_ANCHOR.test(t);
+    if (usHere) return !beyondIn(t, ["us"]) && !hereAnchor() && !elsewhere();
     if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || "").split("?")[0]))) return false;
-    return !beyondIn(t.replace(OWN_COUNTRY, " "), ["au", "ca", "gb"]) && !elsewhere();
+    return !beyondIn(t.replace(OWN_COUNTRY, " "), ["au", "ca", "gb"]) && !hereAnchor() && !elsewhere();
   }
   function belgianSubject(it = {}) {
     const head = String(it.title || "");

@@ -59,6 +59,29 @@ test('lokaal van elders: één Nederlandse uitgever over een staat is niet genoe
   assert.deepEqual(homePublishersOf([state], { sourceNames: ['NOS', 'The Guardian'] }), ['nos', 'rtl'])
 })
 
+// Herstelkeuring 3, punt 7: zonder de uitzondering voor één uitgever moet de kop zelf het anker of het tweede land laten
+// zien. Een land als bijvoeglijk naamwoord ("Iraanse") is een ander land, een Nederlander of een Nederlands bedrijf (ook de
+// beurs) een anker van hier. Echte koppen uit de feeds; met de rubriek VS, zoals de server ze geeft.
+test('lokaal van elders: een land als bijvoeglijk naamwoord, een Nederlander of een Nederlands bedrijf is niet lokaal', () => {
+  for (const title of [
+    'WSJ: Vance overweegt directe onderhandelingen met Iraanse topfunctionaris',
+    'Ook Iraanse parlementsvoorzitter becommentarieert midterms',
+    'Iraanse media: Amerikaanse drone neergehaald',
+    'Philips schikt apneu-zaak met Amerikaanse justitie',
+    'Vanaf Beursplein 5: techaandelen hard omlaag',
+    'Nederlander opgepakt in Texas',
+    'Nederlandse toerist omgekomen bij ongeluk in Florida',
+    'Libanese premier spreekt met Trump',
+    'Nederlandse student vast in Amerikaanse cel',
+    'ASML krijgt boete van Amerikaanse toezichthouder',
+  ]) assert.ok(!localAbroad([{ title, source: 'nos' }], { desk: 'vs', homePublishers: ['nos'] }), title)
+  // Het bijvoeglijk naamwoord van het land zelf blijft binnenland, en een Nederlands anker bij een deelstaat telt ook.
+  assert.ok(localAbroad([{ title: 'Amerikaanse senator stapt op na schandaal' }], { desk: 'vs' }))
+  assert.ok(!localAbroad([{ title: 'Nederlandse backpacker vermist in Queensland' }], {}))
+  assert.ok(localAbroad([{ title: 'Welsh council approves new bypass' }], {}) === false, 'geen deelstaat of binnenlandrubriek')
+  assert.ok(localAbroad([{ title: 'Welsh council approves new bypass', url: 'https://www.theguardian.com/uk-news/2026/nov/13/bypass' }], {}), 'Wales in de Britse binnenlandrubriek blijft lokaal')
+})
+
 for (const f of FEEDS) {
   test(`${f}: lokaal nieuws van elders staat nooit op 01, nooit als Waar iedereen over schrijft, en anders achteraan`, () => {
     const feed = load(f)

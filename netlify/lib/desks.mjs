@@ -48,7 +48,12 @@ const NL_INST = [
 // Nederlandse bedrijven en de beurs: Nederlands bezit, maar ze werken ook in het buitenland. Met een
 // buitenlandse plek bewijzen ze niets (feedback 31 oktober: "KLM-crew vol ongeloof" over een dode
 // Lufthansa-medewerker in India stond onder Binnenland).
-const NL_CORP = W(['klm', 'albert heijn', 'asml', 'tata steel', 'abn amro', 'rabobank', 'aex', 'damrak'])
+const NL_CORP_NAMES = ['klm', 'albert heijn', 'asml', 'tata steel', 'abn amro', 'rabobank', 'aex', 'damrak']
+const NL_CORP = W(NL_CORP_NAMES)
+// Voor lokaal nieuws van elders (localAbroad) ook de andere grote Nederlandse bedrijven en het adres van de beurs: een
+// Nederlands bedrijf in een kop over Amerika is nieuws van hier (herstelkeuring 3, punt 7: Philips en de Amerikaanse
+// justitie). Een eigen uitbreiding, zodat de rubriek (placeSignals) en de algemene Editie niet verschuiven.
+const HERE_CORP = W([...NL_CORP_NAMES, 'beursplein( 5)?', 'philips', 'heineken', 'ahold\\p{L}*', 'akzo\\p{L}*', 'kpn', 'postnl', 'aegon', 'adyen', 'prosus', 'wolters kluwer', 'boskalis', 'vopak'])
 const NL_PERSONS = ['jetten', 'wilders', 'yeşilgöz', 'yesilgoz', 'timmermans', 'bontenbal', 'van der plas', 'omtzigt', 'eerdmans', 'markuszower', 'dijkhoff', 'van essen', 'peter r\\. de vries']
 // Partijen: hoofdlettergevoelig (PvdA is Nederlands, PVDA Belgisch; CU, SP en BBB alleen als afkorting).
 const NL_PARTIES = W(['PVV', 'VVD', 'D66', 'CDA', 'GroenLinks', 'PvdA', 'GL-PvdA', 'SP', 'NSC', 'BBB', 'JA21', 'FvD', 'Forum voor Democratie', 'PvdD', 'Partij voor de Dieren', 'DENK', 'SGP', 'ChristenUnie', 'CU', '50Plus', '50PLUS', 'BIJ1'], 'u')
@@ -217,17 +222,24 @@ const OTHER_STATES = W(['new south wales', 'nsw', 'queensland', 'tasmani\\p{L}*'
 const HOME_MIN = 2
 const LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i
 // De landen van een deelstaat of binnenlandrubriek: hun eigen naam maakt een stuk niet breder.
-const OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi
-const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
+const OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk|schotland|scotland|schots\w*|scottish|wales|welsh|noord-ierland|northern ireland)\b/gi
+// Een land als bijvoeglijk naamwoord: WORLD heeft ze voor de meeste landen, countriesIn niet altijd ("Iraanse" valt buiten
+// iran\p{L}*, "Libanese" buiten libanon). Hier de vormen die bij de landen van countriesIn ontbreken (herstelkeuring 3,
+// punt 7: "Vance overweegt onderhandelingen met Iraanse topfunctionaris" telde als Amerikaans binnenland).
+const COUNTRY_ADJ = W(['iraans\\p{L}*', 'iraniër\\p{L}*', 'libanees', 'libanese', 'libanezen', 'lebanese', 'nieuw-zeelands\\p{L}*', 'new zealander\\p{L}*'])
+const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || WORLD.test(t) || COUNTRY_ADJ.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
 export function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
   const head = items.find(Boolean)
   const t = String(head?.title || '')
   if (!t) return false
   const elsewhere = () => new Set(homePublishers).size >= HOME_MIN
   const usHere = desk === 'vs' || usPoliticsIn(t) || countriesIn(t).includes('us')
-  if (usHere) return !beyondIn(t, ['us']) && !placeSignals({ title: t }).home && !elsewhere()
+  // Een anker van hier in de kop maakt het geen lokaal nieuws van elders: Nederlands bezit (placeSignals), ook een Nederlands
+  // bedrijf of de beurs (HERE_CORP), en een Nederlander of "Nederlandse" (NL_ANCHOR).
+  const hereAnchor = () => placeSignals({ title: t }).home || HERE_CORP.test(t) || NL_ANCHOR.test(t)
+  if (usHere) return !beyondIn(t, ['us']) && !hereAnchor() && !elsewhere()
   if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || '').split('?')[0]))) return false
-  return !beyondIn(t.replace(OWN_COUNTRY, ' '), ['au', 'ca', 'gb']) && !elsewhere()
+  return !beyondIn(t.replace(OWN_COUNTRY, ' '), ['au', 'ca', 'gb']) && !hereAnchor() && !elsewhere()
 }
 
 // Gaat dit stuk over België? Voor de rubriek boven een plek bij een lezer in Vlaanderen (persona's 14 november, punt 6: voor
