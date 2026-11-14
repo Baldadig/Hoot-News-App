@@ -6,7 +6,12 @@
 //   - alleen een vaste lijst officiële nieuwspodcasts van bronnen die al in Hoot staan (SHOWS), met per show een soort;
 //   - een overzichtsshow (vijf onderwerpen per aflevering) koppelt nooit en wordt niet eens opgehaald;
 //   - een show met twee of drie onderwerpen per aflevering (`meer`) en een weekshow (`week`) alleen via een artikellink;
-//   - zonder artikellink (alleen `verdieping`, één onderwerp per aflevering) via de centrale namen van het verhaal;
+//   - zonder artikellink (alleen `verdieping`, één onderwerp per aflevering) via de centrale namen van het verhaal, en
+//     strenger sinds de keuring van 14 november: de aflevering zelf gaat over één onderwerp ("Ook…", "Verder ook aandacht
+//     voor…" en een inhoudsopgave maken er `meer` van), het eerste onderwerp van de beschrijving is het verhaal, de rest van
+//     de beschrijving gaat niet over iets anders, de kop van het verhaal deelt een naam met de aflevering, een samengestelde
+//     naam ("Jong Oranje") telt als één naam, en "hetzelfde" alleen als de aflevering ná het eerste stuk verscheen;
+//   - een vooruitblik van vóór de kop van het verhaal koppelt nooit (de afloop is een ander onderwerp);
 //   - past een aflevering bij twee verhalen, dan krijgt geen van beide haar; een verhaal krijgt er hooguit één.
 // De koppeling staat als veld `luister` op het verhaal (build.mjs). Web en app tonen het nog niet.
 //
@@ -62,6 +67,9 @@ export const FETCHED = SHOWS.filter((s) => s.soort !== 'overzicht' && s.feed)
 export const KEEP = 3 * 24 * H // drie dagen bewaren
 export const EVERY = 30 * 6e4 // een feed hooguit eens per half uur ophalen (de ronde is elke tien minuten)
 export const LUISTER_MS = 8000 // de feeds wachten hooguit zo lang vanaf de start van de ronde (de bronnen: FETCH_MS, 10 s)
+// Het koppelen rekent hooguit tot zo lang na de start van de ronde (keuring: daarna komen nog de beelden en het
+// wegschrijven, binnen de 15 s van de planner; late() van de trage bronnen wacht tot LATE_MS, 12,5 s, naast het wegschrijven).
+export const KOPPEL_MS = 11000
 export const MAX_BYTES = 400000 // alleen het begin van de feed: de nieuwste afleveringen staan bovenaan
 export const STORE_KEY = 'luister-afleveringen-v1'
 export const PROEF_KEY = 'luister-proef-v1'
@@ -122,8 +130,9 @@ export function episodeOf(show, it, channelLink = null) {
   const link = safeHttpUrl(it.link || '') && !AUDIO_FILE.test(it.link) ? it.link : null
   if (show.pad && !(link || '').includes(show.pad)) return null
   const text = toText(html).replace(/\s+/g, ' ').trim()
-  const own = new Set([hostOf(show.web), hostOf(show.feed)].filter(Boolean))
-  const links = [...new Set([...String(html).matchAll(/href=["']([^"']+)["']/gi)].map((m) => m[1].replace(/&amp;/g, '&')).filter((u) => /^https?:\/\//i.test(u) && !own.has(hostOf(u))).map(urlKey).filter(Boolean))].slice(0, 12)
+  // De artikellinks uit de shownotes, ook die naar de eigen uitgever (dat is juist "dezelfde bron"). Alleen de pagina van
+  // de show zelf en de pagina's van shows (showPage) vallen weg: die wijzen nooit naar een stuk (keuring, 14 november).
+  const links = [...new Set([...String(html).matchAll(/href=["']([^"']+)["']/gi)].map((m) => m[1].replace(/&amp;/g, '&').trim()).filter((u) => /^https?:\/\//i.test(u) && !showPage(u, show)).map(urlKey).filter(Boolean))].slice(0, 12)
   return {
     id: 'e' + hash(show.id + '|' + (it.guid || it.link || title)),
     show: show.id,
@@ -136,7 +145,17 @@ export function episodeOf(show, it, channelLink = null) {
     pagina: link || safeHttpUrl(channelLink || '') || show.web || null,
   }
 }
-const hostOf = (u) => (/^https?:\/\/(?:www\.)?([^/?#]+)/i.exec(String(u || ''))?.[1] || '').toLowerCase()
+// De pagina van een show, geen stuk: de pagina van deze show of de feed (en wat eronder hangt), of een rubriek voor
+// shows en podcasts in het pad (/podcast/, /column/the-interview, /infocus, /series/…, /shows/…, /audio/), of alleen
+// een domein. Een gewoon artikel van dezelfde uitgever (theverge.com/ai-artificial-intelligence/…, nrc.nl/nieuws/…) blijft.
+const SHOW_DIR = /^(podcasts?|column|columns|series|infocus|shows?|audio|luister|listen)$/i
+export function showPage(u, show = {}) {
+  const k = urlKey(u)
+  const path = k.slice(k.indexOf('/') + 1)
+  if (!k.includes('/') || !path) return true
+  for (const own of [show.web, show.feed].map(urlKey).filter(Boolean)) if (k === own || k.startsWith(own + '/')) return true
+  return path.split('/').some((seg) => SHOW_DIR.test(seg))
+}
 function firstSentences(text, max) {
   if (text.length <= max) return text
   const cut = text.slice(0, max)
@@ -205,6 +224,55 @@ function grouper(runs) {
   return find
 }
 
+// Samengestelde namen: een naam die in de koppen van het verhaal minstens twee keer direct vóór dezelfde andere naam staat
+// ("Jong Oranje", "Nations League", "Jensen Huang"). Staat hij daar in minstens 60% van de keren, dan is hij gebonden:
+// naam → de naam erna; hij telt alleen als de aflevering die twee ook zo noemt. Alleen het eerste deel is gebonden: "Huang"
+// alleen is nog steeds Jensen Huang. Staat hij er in een derde tot 60% van de keren, dan betekent hij in het verhaal twee
+// dingen ("Jong Oranje" en "Frenkie de Jong"): dan telt hij nooit (`dubbel`). Minder dan een derde ("Huang, Nvidia") is toeval. Geeft { bound: Map, dubbel: Set }.
+export function boundNames(runs) {
+  const count = new Map()
+  const next = new Map()
+  for (const run of runs) {
+    for (const k of run) count.set(k, (count.get(k) || 0) + 1)
+    for (let i = 0; i + 1 < run.length; i++) if (run[i + 1] !== run[i]) {
+      const m = next.get(run[i]) || next.set(run[i], new Map()).get(run[i])
+      m.set(run[i + 1], (m.get(run[i + 1]) || 0) + 1)
+    }
+  }
+  const bound = new Map()
+  const dubbel = new Set()
+  for (const [k, m] of next) {
+    const [best, n] = [...m].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0]
+    if (n < 2) continue
+    if (n >= 0.6 * count.get(k)) bound.set(k, best)
+    else if (n * 3 >= count.get(k)) dubbel.add(k)
+  }
+  return { bound, dubbel }
+}
+const adjacent = (runs = [], a, b) => runs.some((run) => run.some((k, i) => k === a && run[i + 1] === b))
+
+// Wat een beschrijving over de aflevering zegt, alleen uit de tekst van de uitgever (geen namen of onderwerpen in de code):
+// - `meer`: er komen meer onderwerpen langs ("Ook een vooruitblik op…", "Verder ook aandacht voor…", "Uiteraard ook
+//   aandacht voor de andere wedstrijden", "…, PSV en meer", een inhoudsopgave met tijden, "Also: …");
+// - `vooruit`: de aflevering kijkt vooruit ("blikken vooruit", "vooruitblik", "voorbeschouwing", "vanavond", "preview").
+const MEER = [
+  /\b(ook|verder|daarnaast|bovendien|tevens)\b[^.?!]{0,30}\b(aandacht|vooruitbli\w*|vooruit|terug|aan bod|bespreken|besproken|belangrijk|hebben (we|ze) het|gaat het|praten)\b/i,
+  /\b(uiteraard|natuurlijk)\s+(komen\s+)?(\S+\s+)?ook\b/i,
+  /\ben meer\b|\bandere (wedstrijden|onderwerpen|duels)\b/i,
+  /\b(also|plus|elsewhere|and later)\b[^.?!]{0,30}\b(we|look|looks|hear|discuss|talk|ask|asks)\b/i,
+  /(?:^|\s)\d{1,2}:\d{2}(?::\d{2})?\s[^]*\s\d{1,2}:\d{2}(?::\d{2})?\s/,
+]
+const VOORUIT = /\b(vooruitbli\w*|vooruitgeblikt|blik(t|ken)\s+(\S+\s+){0,3}vooruit|voorbeschouw\w*|vanavond|morgenavond|preview\w*)\b/i
+export function describe(ep) {
+  const text = `${ep.titel || ''}. ${ep.samenvatting || ''}`
+  return { meer: MEER.some((re) => re.test(ep.samenvatting || '')), vooruit: VOORUIT.test(text) }
+}
+const ZINNEN = 6
+const ELDERS = 4 // namen (een reeks als "Virgil van Dijk" is één naam) buiten het verhaal: de aflevering gaat ook over iets anders
+const named = (z) => !!z && [...z.strong, ...z.weak].some((n) => !BROAD.has(n))
+// De zinnen van een beschrijving (een afkorting als "Mr." breekt de zin, dat is niet erg: de eerste zin mét een naam telt).
+export const sentences = (text) => String(text || '').split(/(?<=[.!?])\s+(?=[\p{Lu}\p{N}‘'"“(])/u).map((z) => z.trim()).filter(Boolean)
+
 // Het oordeel over één aflevering bij één verhaal: { soort, grond, reden } of { af: reden }.
 // `items`: de stukken van het verhaal die als bron tellen; `sig`: kenmerken (signatures, met de aflevering als extra).
 // Per verhaal één keer (rekentijd): de eerste tijd, de links, de centrale namen en de reeksen in de koppen.
@@ -214,11 +282,19 @@ function prepOf(items, sig) {
   if (!m) prepMemo.set(sig, (m = new WeakMap()))
   let p = m.get(items)
   if (!p) {
+    const runs = items.flatMap((i) => sig.get(i.id)?.titleRuns || [])
+    // De namen van het verhaal (ook landen en andere zwakke namen) die in minstens een kwart van de stukken staan (en in
+    // minstens twee): voor het eerste onderwerp van een aflevering ("de wedstrijd Nederland - Griekenland").
+    const per = new Map()
+    for (const i of items) for (const k of new Set([...(sig.get(i.id)?.strong || []), ...(sig.get(i.id)?.weak || [])])) per.set(k, (per.get(k) || 0) + 1)
+    const need = Math.max(2, Math.ceil(items.length / 4))
     p = {
       firstAt: Math.min(...items.map((i) => Date.parse(i.publishedAt) || Infinity)),
       urls: new Set(items.map((i) => urlKey(i.url)).filter(Boolean)),
       central: clusterNames(sig, items).map((n) => n.naam).filter((k) => !BROAD.has(k)),
-      runs: items.flatMap((i) => sig.get(i.id)?.titleRuns || []),
+      runs,
+      ...boundNames(runs),
+      wide: new Set([...per].filter(([k, n]) => n >= need && !BROAD.has(k)).map(([k]) => k)),
     }
     m.set(items, p)
   }
@@ -228,20 +304,24 @@ export function judge(ep, show, story, items, sig, now) {
   const es = sig.get(ep.id)
   if (!es) return { af: 'geen kenmerk' }
   const age = (now - ep.t) / H
-  const { firstAt, urls, central, runs } = prepOf(items, sig)
+  const { firstAt, urls, central, runs, bound, dubbel, wide } = prepOf(items, sig)
   const linked = ep.links.some((u) => urls.has(u))
   // Snel weg: geen link en geen enkele centrale naam gemeen (verreweg de meeste paren). Geen kandidaat.
   if (!linked && !central.some((k) => es.strong.has(k))) return { af: 'geen centrale naam van het verhaal' }
+  // Een samengestelde naam telt als één naam (keuring: "Jong Oranje" is geen "Frenkie de Jong"; zie boundNames).
+  const has = (s, k) => !!s && s.strong.has(k) && !dubbel.has(k) && (!bound.has(k) || adjacent(s.runs, k, bound.get(k)))
   const find = grouper([...runs, ...(es.titleRuns || [])])
   const titleKeys = new Set((es.titleRuns || []).flat())
   const groups = new Map() // groep → { titel: bool }
-  for (const k of central) if (es.strong.has(k)) groups.set(find(k), (groups.get(find(k)) || false) || titleKeys.has(k))
+  for (const k of central) if (has(es, k)) groups.set(find(k), (groups.get(find(k)) || false) || titleKeys.has(k))
   const shared = groups.size
   const inTitle = [...groups.values()].filter(Boolean).length
   // De gedeelde centrale namen per persoon of ding ("jensen huang", "nvidia"), voor de reden.
   const perGroup = new Map()
-  for (const k of central) if (es.strong.has(k)) (perGroup.get(find(k)) || perGroup.set(find(k), []).get(find(k))).push(k)
+  for (const k of central) if (has(es, k)) (perGroup.get(find(k)) || perGroup.set(find(k), []).get(find(k))).push(k)
   const names = [...perGroup.values()].map((ks) => ks.join(' '))
+  const lead = items.find((i) => i.id === story.leadId) || items[0]
+  const leadAt = Date.parse(lead?.publishedAt) || firstAt
   // Een kandidaat (voor de proef): een artikellink, een centrale naam in de titel, of twee centrale namen.
   const kandidaat = linked || inTitle >= 1 || shared >= 2
   // Dezelfde gebeurtenis (sameEvent): met minstens twee stukken van het verhaal, of met het enige.
@@ -251,6 +331,9 @@ export function judge(ep, show, story, items, sig, now) {
   const fresh = age <= FRESH_H && ep.t >= firstAt - BEFORE_H * H
   const deep = age <= DEEP_H
   if (age < -1) return { af: 'verschijnt later' }
+  // Een vooruitblik is geen verdieping van de afloop (keuring: "Kolkende Kuip moet Feyenoord aan drie punten helpen" bij de
+  // nasleep van de nederlaag): een aflevering die vooruitkijkt en verscheen vóór de kop van het verhaal, koppelt niet.
+  if (ep.vooruit && ep.t < leadAt) return { af: 'een vooruitblik van vóór de kop van het verhaal', names, kandidaat }
 
   // 1. De uitgever linkt zelf naar een stuk in het verhaal. Toch een gedeelde naam in de titel van de aflevering
   //    (sterk of zwak, niet breed): een link "lees ook" naar een ander onderwerp (Trump na de midterms → de Senaatsrace in
@@ -265,19 +348,47 @@ export function judge(ep, show, story, items, sig, now) {
     return { af: `artikellink, maar ${Math.round(age)} uur oud`, names, kandidaat }
   }
   if (show.soort !== 'verdieping') return { af: show.soort === 'week' ? 'weekshow zonder artikellink' : 'meer onderwerpen per aflevering, zonder artikellink', names, kandidaat }
+  // Ook een show met één onderwerp per aflevering heeft soms een aflevering over meer dingen ("Ook een vooruitblik op…",
+  // "Verder ook aandacht voor…", een inhoudsopgave met tijden): die koppelt dan alleen via een artikellink.
+  if (ep.meer) return { af: 'deze aflevering gaat over meer onderwerpen, zonder artikellink', names, kandidaat }
   if (!shared) return { af: 'geen centrale naam van het verhaal', names, kandidaat }
   if (!inTitle) return { af: 'geen centrale naam in de titel van de aflevering', names, kandidaat }
-  // 2. Hetzelfde: de centrale namen (twee, of één met dezelfde handeling) én dezelfde gebeurtenis.
+  // Het eerste onderwerp van de aflevering is het verhaal: de eerste zin van de beschrijving met een naam noemt een
+  // centrale naam van het verhaal, of een naam die in minstens een kwart van de stukken staat (keuring: "In de ZSM bespreken … het ontslag van Robin Peter bij ADO Den Haag" is geen
+  // aflevering over Oranje of Feyenoord, ook al staat Oranje in de titel).
+  const first = sig.get(ep.id + '#onderwerp')
+  const about = (z) => central.some((k) => has(z, k)) || [...z.weak].some((k) => wide.has(k)) || [...z.strong].some((k) => wide.has(k) && has(z, k))
+  if (!first || !about(first)) return { af: 'het eerste onderwerp van de aflevering is iets anders', names, kandidaat }
+  // En de rest van de beschrijving gaat niet over iets anders: twee zinnen met namen die niets met het verhaal te maken
+  // hebben, of samen minstens vier van zulke namen, en de aflevering gaat over meer dan dit verhaal (keuring: "Ronaldo stopt
+  // en Ajax wint wéér" gaat ook over Ajax, Midtjylland, NEC en Twente). Eén zin met een paar namen mag (de
+  // presentatoren, een rubriek). Generiek: alleen tellen, geen namen in de code.
+  const elders = Array.from({ length: ep.zinnen || 0 }, (_, k) => sig.get(`${ep.id}#zin${k}`)).filter((z) => named(z) && !about(z))
+  if (elders.length >= 2 || new Set(elders.flatMap((z) => (z.runs || []).map((run) => run.join(' ')))).size >= ELDERS) return { af: 'de aflevering gaat ook over andere onderwerpen', names, kandidaat }
+  // De lezer ziet de kop: het stuk van de kop (kop en intro) en de aflevering delen minstens twee namen (twee personen of
+  // dingen; een land telt mee). Keuring: een mengverhaal krijgt geen aflevering over iets anders dan de kop. Gemeten op
+  // 14 november: het Oranje-verhaal kreeg 's middags de kop "Niet-fitte De Jong mist Nations League-duel Oranje met
+  // Duitsland"; de nabespreking van de 7-0 tegen Griekenland deelt daarmee alleen "Oranje".
+  const ls = sig.get(lead?.id)
+  const kopShared = new Set()
+  for (const k of ls?.strong || []) if (!BROAD.has(k) && has(ls, k) && has(es, k)) kopShared.add(find(k))
+  for (const k of ls?.weak || []) if (!BROAD.has(k) && es.weak.has(k)) kopShared.add(k)
+  const kopAf = kopShared.size < 2 ? { af: 'de kop van het verhaal deelt geen twee namen met de aflevering', names, kandidaat } : null
+  // 2. Hetzelfde: de centrale namen (twee, of één met dezelfde handeling) én dezelfde gebeurtenis, en de aflevering kwam
+  //    ná het eerste stuk van het verhaal (keuring: een aflevering over de stemming van donderdag is bij het crisisoverleg
+  //    van vrijdag verdiepend, niet hetzelfde). Alleen een artikellink mag eerder (zie 1).
   if (event && (shared >= 2 || action)) {
-    if (fresh) return { soort: 'hetzelfde', grond: 'tekst', reden: `${shared >= 2 ? 'twee centrale namen' : 'centrale naam en dezelfde handeling'} (${names.join(', ')}) en dezelfde gebeurtenis` }
+    if (kopAf && ((fresh && ep.t >= firstAt) || (deep && shared >= 2))) return kopAf
+    if (fresh && ep.t >= firstAt) return { soort: 'hetzelfde', grond: 'tekst', reden: `${shared >= 2 ? 'twee centrale namen' : 'centrale naam en dezelfde handeling'} (${names.join(', ')}) en dezelfde gebeurtenis` }
     if (deep && shared >= 2) return { soort: 'verdiepend', grond: 'tekst', reden: `twee centrale namen (${names.join(', ')}) en dezelfde kwestie, eerder verschenen` }
-    return { af: `zelfde gebeurtenis, maar ${Math.round(age)} uur oud`, names, kandidaat }
+    return { af: ep.t < firstAt && deep ? 'zelfde gebeurtenis met één centrale naam, maar van vóór het eerste stuk' : `zelfde gebeurtenis, maar ${Math.round(age)} uur oud`, names, kandidaat }
   }
   // 3. Verdiepend: dezelfde hoofdnamen (twee, één in de titel) en dezelfde kwestie, als achtergrond. Nooit één gedeelde naam.
   if (shared < 2) return { af: `één centrale naam (${names.join(', ')}), geen gebeurtenis`, names, kandidaat }
   const issue = sameIssue(es, items, sig)
   if (!issue) return { af: `twee centrale namen (${names.join(', ')}), maar een andere kwestie`, names, kandidaat }
   if (!deep) return { af: `zelfde kwestie, maar ${Math.round(age)} uur oud`, names, kandidaat }
+  if (kopAf) return kopAf
   return { soort: 'verdiepend', grond: 'tekst', reden: `twee centrale namen (${names.join(', ')}) en dezelfde kwestie (${issue})` }
 }
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -300,19 +411,33 @@ function sameIssue(es, items, sig) {
 // Alle verhalen tegen alle afleveringen. `stories`: de verhalen van de ronde; `byId`: de stukken.
 // `mainIds`: de bronnen die de algemene lezer volgt (taal volgt de bronkeuze). Geeft { byStory: Map(id → luister),
 // rows: de koppelingen en afvallers voor de proef }.
-export function koppel({ stories = [], byId = new Map(), episodes = [], now = Date.now(), mainIds = new Set() } = {}) {
+// `deadline` (ms): na dat moment stopt het rekenen en komt er niets (geen halve uitkomst); dan `overTijd: true`.
+export function koppel({ stories = [], byId = new Map(), episodes = [], now = Date.now(), mainIds = new Set(), deadline = Infinity } = {}) {
   const live = stories.map((st) => ({ st, items: (st.itemIds || []).map((id) => byId.get(id)).filter(counted) })).filter((x) => x.items.length >= 2)
-  const eps = episodes.filter((e) => SHOW.has(e.show) && SHOW.get(e.show).soort !== 'overzicht')
+  const eps = episodes.filter((e) => SHOW.has(e.show) && SHOW.get(e.show).soort !== 'overzicht').map((e) => ({ ...e, ...describe(e) }))
   const rows = { koppelingen: [], afgevallen: [] }
   if (!live.length || !eps.length) return { byStory: new Map(), rows }
+  if (Date.now() > deadline) return { byStory: new Map(), rows, overTijd: true }
   const pool = [...new Map(live.flatMap((x) => x.items).map((i) => [i.id, i])).values()]
   // De afleveringen krijgen een kenmerk met de woordenschat van de verhalen (`extra`: ze veranderen die niet); ook een
   // kenmerk van alleen de titel, voor de toets bij een artikellink.
-  const extra = eps.flatMap((e) => [{ id: e.id, title: e.titel, summary: e.samenvatting, publishedAt: new Date(e.t).toISOString() }, { id: e.id + '#titel', title: e.titel, summary: '', publishedAt: new Date(e.t).toISOString() }])
+  // De zinnen van de beschrijving apart (hooguit ZINNEN): voor het eerste onderwerp (de eerste zin met een naam) en voor
+  // de zinnen over iets anders dan het verhaal.
+  const zinnen = new Map(eps.map((e) => [e.id, sentences(e.samenvatting).slice(0, ZINNEN)]))
+  for (const e of eps) e.zinnen = zinnen.get(e.id).length
+  const extra = eps.flatMap((e) => {
+    const at = new Date(e.t).toISOString()
+    return [{ id: e.id, title: e.titel, summary: e.samenvatting, publishedAt: at }, { id: e.id + '#titel', title: e.titel, summary: '', publishedAt: at }, ...zinnen.get(e.id).map((z, k) => ({ id: `${e.id}#zin${k}`, title: z, summary: '', publishedAt: at }))]
+  })
   const sig = signatures(pool, extra, { extended: true })
+  for (const e of eps) {
+    const k = zinnen.get(e.id).findIndex((_, k) => named(sig.get(`${e.id}#zin${k}`)))
+    if (k >= 0) sig.set(e.id + '#onderwerp', sig.get(`${e.id}#zin${k}`))
+  }
   const hits = new Map() // aflevering → [{ x, oordeel }]
   for (const e of eps) {
     const show = SHOW.get(e.show)
+    if (Date.now() > deadline) return { byStory: new Map(), rows: { koppelingen: [], afgevallen: [] }, overTijd: true }
     for (const x of live) {
       const o = judge(e, show, x.st, x.items, sig, now)
       if (o.soort) (hits.get(e.id) || hits.set(e.id, []).get(e.id)).push({ x, o })
@@ -389,8 +514,8 @@ function row(e, x, reden) {
 }
 
 // De proef per dagdeel (alleen verhalen, shows en afleveringen; geen persoonsgegevens). Per dagdeel de laatste ronde.
-export function proefEntry({ slot, now, rows, status, episodes }) {
-  return { dagdeel: slot, at: new Date(now).toISOString(), feeds: status, afleveringen: episodes.length, koppelingen: rows.koppelingen, afgevallen: rows.afgevallen.slice(0, 200) }
+export function proefEntry({ slot, now, rows, status, episodes, overTijd = false }) {
+  return { dagdeel: slot, at: new Date(now).toISOString(), feeds: status, afleveringen: episodes.length, ...(overTijd ? { overTijd: true } : {}), koppelingen: rows.koppelingen, afgevallen: rows.afgevallen.slice(0, 200) }
 }
 export const PROEF_KEEP = 9 // dagdelen
 export function withProef(stored, entry) {
@@ -401,12 +526,23 @@ export function withProef(stored, entry) {
 // ---------- In de ronde (build.mjs) ----------
 // Na het bundelen: elk live verhaal met een koppeling krijgt het veld `luister`; de proef van dit dagdeel gaat naar KV
 // (PROEF_KEY, gelezen door /api/luister-proef). Bij elke fout: geen koppelingen, de ronde gaat gewoon door.
-export async function luisterRonde({ stories, byId, now, episodesP, slot, mainIds, update }) {
+// Binnen de tijd van de ronde (keuring): `deadline` is het laatste moment waarop het koppelen nog mag rekenen
+// (build.mjs: KOPPEL_MS na de start van de ronde, ruim onder de 15 s van de planner). Is de ronde al later, dan wordt er
+// niet gekoppeld; loopt het rekenen erover, dan stopt het zonder uitkomst. Dan heeft geen verhaal deze ronde `luister`;
+// de proef zegt `overTijd`. Het wegschrijven van de proef wacht hooguit PROEF_MS.
+export const PROEF_MS = 1000
+export async function luisterRonde({ stories, byId, now, episodesP, slot, mainIds, update, deadline = Infinity }) {
   try {
     const { episodes = [], status = {} } = (await episodesP) || {}
-    const { byStory, rows } = koppel({ stories, byId, episodes, now, mainIds })
+    const late = Date.now() > deadline
+    const { byStory, rows, overTijd = late } = late ? { byStory: new Map(), rows: { koppelingen: [], afgevallen: [] } } : koppel({ stories, byId, episodes, now, mainIds, deadline })
     for (const st of stories) if (byStory.has(st.id)) st.luister = byStory.get(st.id)
-    if (update && slot) await Promise.resolve().then(() => update(PROEF_KEY, (cur) => withProef(cur, proefEntry({ slot, now, rows, status, episodes })))).catch(() => {})
+    if (update && slot) {
+      let t
+      const write = Promise.resolve().then(() => update(PROEF_KEY, (cur) => withProef(cur, proefEntry({ slot, now, rows, status, episodes, overTijd })))).catch(() => {})
+      await Promise.race([write, new Promise((r) => (t = setTimeout(r, PROEF_MS)))])
+      clearTimeout(t)
+    }
     return byStory.size
   } catch (e) {
     console.error('luister', String(e?.message || e))

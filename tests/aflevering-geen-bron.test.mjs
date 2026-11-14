@@ -8,8 +8,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { afleveringSoort, isAflevering } from '../shared/aflevering.mjs'
-import { coverageOf, majorNews, publishersOf, countsAsSource } from '../shared/edition-policy.mjs'
-import { buildStories, widelyCovered, leadCandidates } from '../netlify/lib/stories.mjs'
+import { coverageOf, majorNews, publishersOf, countsAsSource, publisherOf } from '../shared/edition-policy.mjs'
+import { buildStories, widelyCovered, leadCandidates, newFact, signatures, clusterNames } from '../netlify/lib/stories.mjs'
+import { haagsPiece, haagsDossier, DOSSIER_MIN } from '../netlify/lib/dossiers.mjs'
 import { whyOf } from '../shared/editor.mjs'
 
 const FIX = JSON.parse(readFileSync(new URL('./fixtures/aflevering-nvidia-2026-11-14.json', import.meta.url), 'utf8'))
@@ -107,4 +108,71 @@ test('Waar iedereen over schrijft: afleveringen tillen een verhaal niet over de 
   const [w] = widelyCovered([breed], byId, { isFree: (s) => s !== 'nrc', min: 6 })
   assert.equal(w.item.id, 'a')
   assert.equal(leadCandidates([afl('x', 'nos'), bericht('y', 'nu')], new Set(['nos']))[0].id, 'y')
+})
+
+// ---------- Keuring van de tak luister (14 november 2026): stap 1 overal doorgevoerd ----------
+
+test('nieuw feit: een aflevering is geen uitgever met een nieuw stuk (pubAt, keyAt en newFact, op server en toestel)', () => {
+  // Had De Telegraaf alleen de podcast gebracht, dan staat hij niet in de tijden per uitgever van het verhaal.
+  const zonder = FIX.items.filter((i) => i.source !== 'telegraaf' || isAflevering(i))
+  const [st] = buildStories(zonder, {}, OPTS).sort((a, b) => b.itemIds.length - a.itemIds.length)
+  assert.ok(st.itemIds.some((id) => zonder.find((i) => i.id === id)?.source === 'telegraaf'), 'de aflevering is lid')
+  assert.ok(!('telegraaf' in st.pubAt), 'pubAt: geen uitgever die alleen een aflevering bracht')
+  const members = zonder.filter((i) => st.itemIds.includes(i.id) && !isAflevering(i))
+  const pubs = new Set(members.map((i) => publisherOf(i.source)))
+  for (const p of Object.keys(st.pubAt)) assert.ok(pubs.has(p), p)
+  // newFact: twee namen in een bericht van de NOS en in twee afleveringen van andere uitgevers is geen nieuw feit (één
+  // uitgever); met een tweede bericht wel.
+  const t = '2026-11-14T10:00:00.000Z'
+  const bericht = (id, source) => ({ id, kind: 'article', source, title: 'x', url: `https://${source}.example/artikel/${id}`, publishedAt: t, keys: ['lutnick', 'opvolger'] })
+  const afl = (id, source) => ({ ...bericht(id, source), feedMark: 'podcast', url: `https://${source}.example/podcast/${id}` })
+  const keysOf = (i) => i.keys
+  assert.equal(newFact([bericht('a', 'nos'), afl('b', 'telegraaf'), afl('c', 'vox')], new Set(), keysOf), null)
+  assert.deepEqual(newFact([bericht('a', 'nos'), afl('b', 'telegraaf'), bericht('d', 'nrc')], new Set(), keysOf)?.keys, ['lutnick', 'opvolger'])
+})
+
+test('het Haagse dossier: een aflevering is geen Haags stuk en telt niet als uitgever', () => {
+  const T = Date.parse('2026-11-11T07:00:00Z')
+  let n = 0
+  const art = (source, title, extra = {}) => ({ id: `hd-${++n}`, kind: 'article', source, title, summary: `${title}.`, image: 'https://example.com/b.jpg', publishedAt: new Date(T - 36e5).toISOString(), url: `https://example.com/nieuws/${n}`, ...extra })
+  const podcast = { feedMark: 'podcast' }
+  assert.ok(haagsPiece(art('nrc', 'Kabinet neemt het risico en stuurt Belastingplan zonder garantie naar de Kamer')))
+  assert.ok(!haagsPiece(art('nrc', 'Kabinet neemt het risico en stuurt Belastingplan zonder garantie naar de Kamer', podcast)), 'dezelfde kop als aflevering')
+  // Drie uitgevers met een bericht en een vierde met alleen een aflevering: geen dossier (DOSSIER_MIN is vier).
+  const pieces = [
+    art('nrc', 'Kabinet neemt het risico en stuurt Belastingplan zonder garantie naar de Kamer'),
+    art('volkskrant', 'Kabinet speelt blufpoker met belastingplan in de Tweede Kamer'),
+    art('trouw', 'Debat over belastingplan zorgt voor verwarring in de coalitie'),
+  ]
+  const other = Array.from({ length: 10 }, (_, k) => art('nyt', `World story number ${k} about markets in Asia`))
+  const stories = other.slice(0, 9).map((i, k) => ({ id: `s-w${k}`, itemIds: [i.id, `x${k}a`, `x${k}b`], publisherCount: 8 - (k % 3) }))
+  const entries = [...stories.map((st) => ({ kind: 'story', id: st.id, leadId: st.itemIds[0], desk: 'buitenland' })), { kind: 'item', id: other[9].id, desk: 'buitenland' }]
+  const afl = art('nos', 'Coalitie en Kamer nog geen steek verder met belastingplan', podcast)
+  assert.equal(DOSSIER_MIN, 4)
+  assert.equal(haagsDossier(entries, { newsPool: [...pieces, afl, ...other], stories, now: T }).dossier, null)
+  // Als bericht wel.
+  assert.equal(haagsDossier(entries, { newsPool: [...pieces, { ...afl, feedMark: undefined }, ...other], stories, now: T }).dossier?.uitgevers, 4)
+})
+
+test('de centrale namen van een verhaal (clusterCore): een aflevering telt niet als uitgever', () => {
+  const t = '2026-11-14T10:00:00.000Z'
+  let n = 0
+  const it = (source, title, extra = {}) => ({ id: `cc-${++n}`, kind: 'article', source, title, summary: '', url: `https://${source}.example/artikel/${n}`, publishedAt: t, ...extra })
+  const podcast = { feedMark: 'podcast' }
+  const items = [
+    it('nos', 'Topman Jensen Huang van Nvidia stapt op'),
+    it('nrc', 'Opvolging bij Nvidia na vertrek Jensen Huang'),
+    it('volkskrant', 'Nvidia zoekt opvolger voor Jensen Huang'),
+    it('telegraaf', 'Wat wil minister Howard Lutnick met Nvidia?', podcast),
+    it('vox', 'Howard Lutnick and the chip war', podcast),
+    it('fd', 'Waarom Howard Lutnick zich met de chipmaker bemoeit', podcast),
+    it('nu', 'Howard Lutnick spreekt over chips'),
+  ]
+  const sig = signatures(items, [], { extended: true })
+  const names = clusterNames(sig, items).map((x) => x.naam)
+  assert.ok(names.includes('huang'), names.join())
+  // Lutnick staat bij vier uitgevers, maar drie daarvan brachten alleen een aflevering: één uitgever, minder dan een derde.
+  assert.ok(!names.includes('lutnick'), names.join())
+  const asBericht = items.map(({ feedMark, ...i }) => i)
+  assert.ok(clusterNames(signatures(asBericht, [], { extended: true }), asBericht).map((x) => x.naam).includes('lutnick'))
 })

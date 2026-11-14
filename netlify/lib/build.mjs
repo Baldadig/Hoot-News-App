@@ -35,7 +35,7 @@ import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
-import { loadEpisodes, luisterRonde, LUISTER_MS } from './luister.mjs'
+import { loadEpisodes, luisterRonde, LUISTER_MS, KOPPEL_MS } from './luister.mjs'
 import { isBlog, introShown } from '../../shared/aanhef.mjs'
 export { withoutPromo } from './text.mjs'
 import { kvGet, kvSet, kvUpdate, remember, storageMode } from './kv.mjs'
@@ -59,6 +59,7 @@ const inEdition = (it) => !excludedFromEdition(it) && EDITION_CATS.has(SOURCE.ge
 
 // `anthropic`: alleen voor toetsen (een nepmodel); anders de client uit ANTHROPIC_API_KEY.
 export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
+  const roundStart = Date.now()
   const apiKey = process.env.ANTHROPIC_API_KEY
   const anthropic = client !== undefined ? client : apiKey ? new Anthropic({ apiKey, timeout: 25000, maxRetries: 1 }) : null
 
@@ -140,7 +141,8 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
       })
     : Promise.resolve(new Map())
   // Luister verder: na de Editie (die rekent er niet mee), alleen op de live verhalen. Web en app tonen het nog niet.
-  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }) })
+  // Binnen de tijd: na KOPPEL_MS vanaf de start van de ronde wordt er niet meer gekoppeld (luister.mjs, luisterRonde).
+  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), deadline: roundStart + KOPPEL_MS })
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
   // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
   const outById = new Map(out.map(i => [i.id, i]))

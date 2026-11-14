@@ -971,7 +971,9 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
-      ...(keys ? { keys: storyKeys(items, keySig), keyAt: storyKeyAt(items, keySig), pubAt: storyPubAt(items) } : {}),
+      // De tijden per uitgever voor "nieuw feit" (keyAt, pubAt) alleen uit de stukken die als bron tellen: een nieuwe
+      // aflevering is geen uitgever met een nieuw stuk (keuring luister, 14 november 2026).
+      ...(keys ? { keys: storyKeys(items, keySig), keyAt: storyKeyAt(counted, keySig), pubAt: storyPubAt(counted) } : {}),
     })
     // Sport op niveau van het verhaal (shared/edition-policy.mjs): alleen gezet als het zo is, zodat andere
     // verhalen byte-gelijk blijven. De lead hoeft geen sporttag te hebben (een NYT-fotogalerij).
@@ -1410,7 +1412,8 @@ export function developedSince(st, items, previous, sig, { mainIds = new Set(), 
   if (!fresh.length) return null
   const keysOf = keysWith(sig)
   const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
-  const whole = [...new Set([...all, ...items])]
+  // Een aflevering (shared/aflevering.mjs) telt niet mee voor een nieuw feit: niet als nieuw stuk, niet als wat er al was.
+  const whole = [...new Set([...all, ...items])].filter((i) => !isAflevering(i))
   const freshAll = whole.filter(isNew)
   // Met de kenmerken van het hele verhaal (`st.keyAt`, van de server) telt newFact zelf de nieuwe stukken van alle
   // uitgevers; zonder alleen wat het toestel kent.
@@ -1468,6 +1471,8 @@ const stemCount = (keys) => {
 const keyAtOf = (st) => (st?.keyAt && typeof st.keyAt === 'object' && !Array.isArray(st.keyAt) ? st.keyAt : null)
 const pubAtOf = (st) => (st?.pubAt && typeof st.pubAt === 'object' && !Array.isArray(st.pubAt) ? st.pubAt : null)
 export function newFact(fresh, then, keysOf, story = null) {
+  // Een aflevering is geen uitgever met een nieuw stuk (keuring luister, 14 november 2026): ook niet op het toestel.
+  fresh = fresh.filter((i) => !isAflevering(i))
   const keyAt = keyAtOf(story)
   const pubAt = pubAtOf(story)
   const cutoff = story?.cutoff ?? 0
@@ -1514,7 +1519,7 @@ export const newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title 
 // eigen bronnen; bij voorkeur met het nieuwe feit in de kop), anders null.
 export function newFactIn(fresh, old, sig, own = fresh, story = null) {
   const keysOf = keysWith(sig)
-  const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story)
+  const fact = newFact(fresh, new Set(old.filter((i) => !isAflevering(i)).flatMap(keysOf)), keysOf, story)
   return fact ? { keys: fact.keys, heads: own.length ? factHeads(own, fact, sig) : [] } : null
 }
 // Leeftijd (13 november 2026): het nieuwe feit van een lopend verhaal (isRunning) binnen het venster. De stukken van de
@@ -1527,7 +1532,7 @@ export function runningFact(st, items, sig, now) {
   if (!fresh.length) return null
   const keysOf = keysWith(sig)
   const then = new Set()
-  for (const i of items) if (!(timeOf(i) > cutoff)) for (const k of keysOf(i)) then.add(k)
+  for (const i of items) if (!(timeOf(i) > cutoff) && !isAflevering(i)) for (const k of keysOf(i)) then.add(k)
   return newFact(fresh, then, keysOf, { keyAt: st?.keyAt, pubAt: st?.pubAt, cutoff, pubs: st?.publisherCount })
 }
 
@@ -1763,7 +1768,7 @@ function clusterCore(sig, items) {
     for (const k of h.strong) {
       if (BROAD.has(k) || conceptWord(k)) continue
       const n = names.get(k) || names.set(k, { pubs: new Set(), heads: [] }).get(k)
-      n.pubs.add(publisherOf(i.source))
+      if (!isAflevering(i)) n.pubs.add(publisherOf(i.source)) // een aflevering is geen uitgever (shared/aflevering.mjs)
       n.heads.push(h)
     }
     for (const run of h.titleRuns || []) if (run.length > 1) runs.push(run)

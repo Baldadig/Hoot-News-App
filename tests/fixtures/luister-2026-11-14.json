@@ -1378,7 +1378,7 @@
    "duur": 3050,
    "links": [
     "youtube.com/@theinterviewpodcast",
-    "pcm.adswizz.com"
+    "nytimes.com/thedaily"
    ],
    "pagina": "https://www.nytimes.com/the-daily"
   },
@@ -1391,7 +1391,10 @@
    "guid": "ad86d2d8-f34a-4bca-85fd-658952e77c90",
    "duur": 1843,
    "links": [
-    "pcm.adswizz.com"
+    "nytimes.com/by/david-m-halbfinger",
+    "nytimes.com/2026/11/08/world/middleeast/israel-eisenkot-netanyahu-what-to-know.html",
+    "nytimes.com/2026/11/07/world/middleeast/eisenkot-israel-new-government.html",
+    "nytimes.com/thedaily"
    ],
    "pagina": "https://www.nytimes.com/the-daily"
   },
@@ -1404,7 +1407,10 @@
    "guid": "acb73150-dba0-437a-ac37-55ed1e31aacd",
    "duur": 1480,
    "links": [
-    "pcm.adswizz.com"
+    "nytimes.com/by/tripp-mickle",
+    "nytimes.com/live/2026/11/12/business/nvidia-jensen-huang-resigns",
+    "nytimes.com/2026/11/12/business/nvidia-stock-price-jensen-huang-ceo-affair.html",
+    "nytimes.com/thedaily"
    ],
    "pagina": "https://www.nytimes.com/the-daily"
   },
@@ -1522,7 +1528,18 @@
    "guid": "ccbe179e-c3c7-11f0-8340-eb7ea82c1b79",
    "duur": 7246,
    "links": [
-    "podcastchoices.com/adchoices"
+    "theverge.com/ai-artificial-intelligence/1030422/nvidia-jensen-huang-ai-china-alice-huang",
+    "theverge.com/streaming/1030864/streaming-skydance-paramount-disney-hulu-earnings-tiktok-short-form-video",
+    "theverge.com/entertainment/1030345/paramount-skydance-says-it-will-offer-hbo-max-and-paramount-plus-as-a-bundle-starting-in-early-2027",
+    "theverge.com/entertainment/1030246/disneys-top-priorities-for-its-streaming-service-reportedly-include-vertical-video-and-free-always-on-channels",
+    "theverge.com/streaming/1025877/tubi-is-going-to-let-you-make-mixtapes-to-recommend-shows-and-films",
+    "theverge.com/tech/1028871/meta-muse-ai-spaces",
+    "theverge.com/tech/1031029/metas-muse-can-now-deal-with-a-forwarded-email",
+    "theverge.com/transportation/1029460/elon-musk-cybertruck-death-election-backlash",
+    "theverge.com/entertainment/1030272/billboard-charts-will-include-youtubes-streaming-data-again-starting-next-year",
+    "theverge.com/tech/1030211/reddit-reviews-product-recommendations-electronics-beauty-shopping",
+    "theverge.com/subscribe",
+    "theverge.com/bulletin/795051/verge-podcast-ad-free-set-up-how-to"
    ],
    "pagina": "https://www.theverge.com/the-vergecast"
   },
@@ -1535,6 +1552,12 @@
    "guid": "4baedd96-6e7b-11f1-94bf-77635a83394e",
    "duur": 3592,
    "links": [
+    "theverge.com/ai-artificial-intelligence/1031689/jensen-huang-nvidia-ceo-resigns",
+    "theverge.com/ai-artificial-intelligence/1032028/read-nvidias-internal-emails-jensen-huang",
+    "theverge.com/ai-artificial-intelligence/1030422/nvidia-jensen-huang-ai-china-alice-huang",
+    "theverge.com/tech/1031726/apple-homeview-review-smart-display-homekit",
+    "theverge.com/subscribe",
+    "theverge.com/bulletin/795051/verge-podcast-ad-free-set-up-how-to",
     "podcastchoices.com/adchoices"
    ],
    "pagina": "https://www.theverge.com/the-vergecast"
@@ -1548,6 +1571,8 @@
    "guid": "4b944f12-6e7b-11f1-94bf-bbd4ef8aa32e",
    "duur": 2061,
    "links": [
+    "theverge.com/subscribe",
+    "theverge.com/bulletin/795051/verge-podcast-ad-free-set-up-how-to",
     "podcastchoices.com/adchoices"
    ],
    "pagina": "https://www.theverge.com/the-vergecast"
@@ -1563,8 +1588,6 @@
    "links": [
     "trouw.nl/kabinetscrisis",
     "trouw.nl/politiek/toekomst-van-het-kabinet-jetten-ligt-in-handen-van-een-gekrenkte-vvd~bfa2ff8b",
-    "trouw.nl/podcast/nieuw-leven",
-    "trouw.nl",
     "omnystudio.com/listener"
    ],
    "pagina": "https://omny.fm/shows/haags-halfuurtje/val-in-slowmotion-of-doorstart-zo-escaleerde-de-kabinetscrisis"
@@ -1691,6 +1714,10 @@
    "guid": "gid://art19-episode-locator/V0/aVZ1vo-HQdp58rQa87hG--zkyhFMbQnGEX04S37G75M",
    "duur": 2799,
    "links": [
+    "nrc.nl/nieuws/2026/11/13/openlijk-conflict-in-kabinet-vvd-wil-opnieuw-onderhandelen-over-inhoud-en-samenstelling-a4941374",
+    "nrc.nl/nieuws/2026/11/12/rob-jetten-probeert-te-redden-wat-er-te-redden-valt-hij-wil-een-doorstart-van-zijn-kabinet-a4941255",
+    "nrc.nl/nieuws/2026/11/07/casinopolitiek-coalitiediscipline-en-de-grote-gok-met-het-belastingplan-a4940752",
+    "nrc.nl/nieuws/2026/11/12/wat-spraken-pro-en-volt-af-met-d66-en-cda-het-amendement-ontleed-a4941201",
     "art19.com/privacy"
    ],
    "pagina": "https://art19.com/shows/haagse-zaken"

@@ -3299,7 +3299,7 @@ var HootCore = (() => {
     if (!fresh.length) return null;
     const keysOf = keysWith(sig);
     const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items;
-    const whole = [.../* @__PURE__ */ new Set([...all, ...items])];
+    const whole = [.../* @__PURE__ */ new Set([...all, ...items])].filter((i) => !isAflevering(i));
     const freshAll = whole.filter(isNew);
     if (!keyAtOf(st) && freshAll.length < DEVELOPED_FRESH) return null;
     const then = /* @__PURE__ */ new Set();
@@ -3327,6 +3327,7 @@ var HootCore = (() => {
   var keyAtOf = (st) => st?.keyAt && typeof st.keyAt === "object" && !Array.isArray(st.keyAt) ? st.keyAt : null;
   var pubAtOf = (st) => st?.pubAt && typeof st.pubAt === "object" && !Array.isArray(st.pubAt) ? st.pubAt : null;
   function newFact(fresh, then, keysOf, story = null) {
+    fresh = fresh.filter((i) => !isAflevering(i));
     const keyAt = keyAtOf(story);
     const pubAt = pubAtOf(story);
     const cutoff = story?.cutoff ?? 0;
@@ -3366,7 +3367,7 @@ var HootCore = (() => {
   var newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || "") && !isAflevering(i) && !isLive(i));
   function newFactIn(fresh, old, sig, own2 = fresh, story = null) {
     const keysOf = keysWith(sig);
-    const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story);
+    const fact = newFact(fresh, new Set(old.filter((i) => !isAflevering(i)).flatMap(keysOf)), keysOf, story);
     return fact ? { keys: fact.keys, heads: own2.length ? factHeads(own2, fact, sig) : [] } : null;
   }
   function runningFact(st, items, sig, now) {
@@ -3375,7 +3376,7 @@ var HootCore = (() => {
     if (!fresh.length) return null;
     const keysOf = keysWith(sig);
     const then = /* @__PURE__ */ new Set();
-    for (const i of items) if (!(timeOf(i) > cutoff)) for (const k of keysOf(i)) then.add(k);
+    for (const i of items) if (!(timeOf(i) > cutoff) && !isAflevering(i)) for (const k of keysOf(i)) then.add(k);
     return newFact(fresh, then, keysOf, { keyAt: st?.keyAt, pubAt: st?.pubAt, cutoff, pubs: st?.publisherCount });
   }
   var LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]));
@@ -3515,7 +3516,7 @@ var HootCore = (() => {
       for (const k of h.strong) {
         if (BROAD.has(k) || conceptWord(k)) continue;
         const n = names.get(k) || names.set(k, { pubs: /* @__PURE__ */ new Set(), heads: [] }).get(k);
-        n.pubs.add(publisherOf(i.source));
+        if (!isAflevering(i)) n.pubs.add(publisherOf(i.source));
         n.heads.push(h);
       }
       for (const run of h.titleRuns || []) if (run.length > 1) runs.push(run);

@@ -11,7 +11,7 @@ const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim
 export function asText(doc) {
   const out = ['# Luister verder · proef', '']
   for (const d of doc.dagdelen || []) {
-    out.push(`## ${d.dagdeel}`, '', `Laatste ronde ${d.at.slice(0, 10)}, ${d.afleveringen} afleveringen, ${d.koppelingen.length} koppelingen.`, '')
+    out.push(`## ${d.dagdeel}`, '', `Laatste ronde ${d.at.slice(0, 10)}, ${d.afleveringen} afleveringen, ${d.koppelingen.length} koppelingen.${d.overTijd ? ' Over de tijd van de ronde: niet gekoppeld.' : ''}`, '')
     if (d.koppelingen.length) {
       out.push('| Verhaal | Aflevering | Soort | Reden |', '|---|---|---|---|')
       for (const k of d.koppelingen) out.push(`| ${esc(k.kop)} | ${esc(k.show)}: ${esc(k.aflevering)} | ${k.soort} | ${esc(k.reden)} |`)

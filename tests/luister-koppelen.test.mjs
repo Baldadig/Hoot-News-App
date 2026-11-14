@@ -82,9 +82,12 @@ test('vals: één gedeelde naam is nooit genoeg (Netflix, Mississippi, Oranje, J
   const { byStory, rows } = run()
   const reason = (stRe, epRe) => rows.afgevallen.find((r) => stRe.test(r.kop || '') && epRe.test(r.aflevering))?.reden
   assert.ok(!byStory.has(story(/Planeswalker/).id), 'Joshua Wong, "Netflix star", hoort niet bij een Netflix-serie')
-  assert.match(reason(/Planeswalker/, /Joshua Wong/), /één centrale naam/)
+  // Sinds de keuring valt een kandidaat soms al eerder af, omdat de beschrijving met iets anders begint (Joshua Wong
+  // begint met Nathan Law; de nabespreking van Oranje-Griekenland met de wedstrijd, niet met Oufkir).
+  const nee = /één centrale naam|het eerste onderwerp van de aflevering is iets anders/
+  assert.match(reason(/Planeswalker/, /Joshua Wong/), nee)
   assert.ok(!byStory.has(story(/Oufkir/).id), 'een Oranje-aflevering hoort niet bij elk Oranje-verhaal')
-  assert.match(reason(/Oufkir/, /Galavoorstelling/), /één centrale naam/)
+  assert.match(reason(/Oufkir/, /Galavoorstelling/), nee)
   assert.match(reason(/Crisisoverleg/, /Hoe premier Jetten/), /één centrale naam \(jetten\)/)
   assert.ok(!byStory.has(story(/Israel’s economy/).id), 'Nvidia en de Israëlische economie is een ander onderwerp')
   assert.ok(!byStory.has(story(/Trump, Xi and Putin/).id))

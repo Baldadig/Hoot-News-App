@@ -7,6 +7,7 @@
 //   node scripts/luister-proef.mjs --json                ruwe rijen
 //   node scripts/luister-proef.mjs --kern <kern.json>    een bewaarde kern in plaats van de live feed
 //   node scripts/luister-proef.mjs --opslag <x.json>     de afleveringen bewaren en hergebruiken (hooguit eens per half uur)
+//   node scripts/luister-proef.mjs --naam PROEF-2         de titel van het verslag (standaard PROEF-2)
 //
 // Per dagdeel: het huidige dagdeel met de verhalen zoals de server ze nu heeft; een eerder dagdeel van vandaag als nabouw
 // (de stukken die er toen al waren, opnieuw gebundeld zoals op de server, en de afleveringen die toen al verschenen).
@@ -65,15 +66,16 @@ if (args.includes('--json')) {
 
 const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim()
 const out = []
-out.push(`# Luister verder · PROEF-1`)
+out.push(`# Luister verder · ${opt('--naam') || 'PROEF-2'}`)
 out.push('')
 out.push(`Gedraaid op ${new Date().toISOString().slice(0, 10)} op de live feeds: de verhalen van gethoot.app (feed van ${kern.meta?.updatedAt?.slice(0, 16).replace('T', ' ')} UTC) en ${FETCHED.length} officiële podcastfeeds (${episodes.length} afleveringen van de afgelopen drie dagen). Code: branch \`luister\`, \`netlify/lib/luister.mjs\` (de koppeling) en \`scripts/luister-proef.mjs\` (dit verslag). Lezers zien nog niets.`)
 out.push('')
 out.push('## Regels')
 out.push('')
-out.push(`- **Hetzelfde**: de aflevering linkt naar een stuk in het verhaal, of titel en eerste zinnen delen twee centrale namen (of één plus dezelfde handeling) én dezelfde gebeurtenis (sameEvent). Hooguit ${FRESH_H} uur oud, niet meer dan ${BEFORE_H} uur vóór het eerste stuk.`)
+out.push(`- **Hetzelfde**: de aflevering linkt naar een stuk in het verhaal (hooguit ${FRESH_H} uur oud, niet meer dan ${BEFORE_H} uur vóór het eerste stuk), of titel en beschrijving delen twee centrale namen (of één plus dezelfde handeling) én dezelfde gebeurtenis (sameEvent) en de aflevering verscheen ná het eerste stuk van het verhaal. Anders hooguit verdiepend.`)
 out.push(`- **Verdiepend**: dezelfde hoofdnamen (twee centrale namen, één in de titel) en dezelfde kwestie, als achtergrond. Hooguit ${DEEP_H / 24} dagen oud. Nooit één gedeelde naam.`)
-out.push('- Een artikellink telt alleen met een gedeelde naam in de titel van de aflevering. Overzichtsshows nooit; shows met meer onderwerpen en weekshows alleen via een artikellink.')
+out.push('- Een artikellink telt alleen met een gedeelde naam in de titel van de aflevering; links naar de eigen uitgever tellen ook (alleen de pagina van de show valt weg). Overzichtsshows nooit; shows met meer onderwerpen en weekshows alleen via een artikellink.')
+out.push('- Zonder artikellink ook (keuring 14 november): de aflevering gaat over één onderwerp (geen "Ook…", "Verder ook aandacht voor…", inhoudsopgave), het eerste onderwerp van de beschrijving is het verhaal, de rest van de beschrijving gaat niet over iets anders, en noemt de kop van het verhaal namen, dan staat er een in de aflevering. Een vooruitblik van vóór de kop koppelt nooit. Een samengestelde naam ("Jong Oranje") telt als één naam.')
 out.push('- Eén aflevering per verhaal; past een aflevering bij twee verhalen, dan krijgt geen van beide haar. Voorrang: dezelfde uitgever als de kop, dan een bron die de lezer volgt (voor de algemene lezer de basisbronnen), dan een Nederlandstalige show. Taal volgt de bronkeuze: een Engelse show alleen voor wie die bron volgt.')
 out.push('')
 out.push('## Shows')

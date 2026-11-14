@@ -42,7 +42,10 @@
 // nieuws (COUNTRIES, FOREIGN_NEWS), onder de landenregel.
 // 14 november 2026, luister · stap 1: een aflevering (podcast, audio, video; shared/aflevering.mjs) is geen bron meer:
 // ze telt niet mee in het aantal bronnen, coverageOf, groot nieuws en Waar iedereen over schrijft, en is geen kop.
-export const EDITOR_REVISION = 'redacteur-2026-11-14-luister'
+// Herstel na de keuring (luister-2): ook niet in de tijden per uitgever voor "nieuw feit" (pubAt, keyAt, newFact, op
+// server en toestel), het Haagse dossier en de centrale namen van een verhaal (clusterCore). De revisie
+// redacteur-2026-11-14-luister is nooit op main geweest; daarom staat wapo (de huidige van main) vooraan.
+export const EDITOR_REVISION = 'redacteur-2026-11-14-luister-2'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
 // met de rekenkern die erin zit. Veranderde de afdruk bij elke revisie, dan paste de Editie van de server nooit bij
