@@ -30,6 +30,7 @@ const catOf = (feed) => new Map(feed.sources.map((s) => [s.id, s.cat]))
 const LIGHT = new Set(['muziek', 'film', 'boeken', 'kunst', 'media', 'games', 'voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
 const lightPlace = (feed, byId) => (e) => {
   const it = byId.get(e.leadId || e.id)
+  // Sinds punt 6 zet De Redacteur Sport of Cultuur als rubriek boven zo'n plek (`rubriek`); `desk` blijft leeg.
   return e.desk == null && !!it && (['cultuur', 'sport', 'games'].includes(catOf(feed).get(it.source)) || (it.topics || []).some((t) => LIGHT.has(t)))
 }
 

@@ -467,7 +467,7 @@
       }
     },
     {
-      "name": "sportbron, maar een sterk onderwerp dat je volgt gaat voor",
+      "name": "sportbron: sport gaat voor de geografie, ook voor een plaats die je volgt (persona's 14 november, punt 6)",
       "input": {
         "cat": "sport",
         "topics": [
@@ -483,7 +483,7 @@
         ]
       },
       "expect": {
-        "kicker": "Politiek · Den Haag",
+        "kicker": "Sport",
         "why": null,
         "outside": false
       }
@@ -1051,6 +1051,156 @@
           "code": "groot",
           "text": "Groot nieuws · 9 bronnen"
         },
+        "outside": false
+      }
+    },
+    {
+      "name": "sport vóór geografie: schaatsen in Peking op een plek onder Sport (persona's 14 november, punt 6)",
+      "input": {
+        "topics": [
+          "azie"
+        ],
+        "mainTopics": [
+          "azie"
+        ],
+        "follows": [
+          "azie",
+          "oekraine"
+        ],
+        "desk": "sport",
+        "deskLabel": "Sport"
+      },
+      "expect": {
+        "kicker": "Sport",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "sport vóór geografie: een sportonderwerp dat je volgt staat erbij",
+      "input": {
+        "topics": [
+          "wintersport",
+          "azie"
+        ],
+        "mainTopics": [
+          "azie"
+        ],
+        "follows": [
+          "wintersport",
+          "azie"
+        ],
+        "desk": "sport",
+        "deskLabel": "Sport"
+      },
+      "expect": {
+        "kicker": "Sport · Schaatsen & wintersport",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "cultuur in de kop gaat voor Binnenland · Verkeer & OV (NS Publieksprijs voor een roman)",
+      "input": {
+        "topics": [
+          "verkeer",
+          "boeken"
+        ],
+        "mainTopics": [
+          "verkeer",
+          "boeken"
+        ],
+        "follows": [
+          "verkeer",
+          "boeken",
+          "nederland"
+        ]
+      },
+      "expect": {
+        "kicker": "Cultuur · Boeken",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "subonderwerp alleen als de indeling zeker is: beurstips met SpaceX op een plek onder Tech",
+      "input": {
+        "topics": [
+          "tech",
+          "ruimte"
+        ],
+        "mainTopics": [
+          "tech",
+          "ruimte"
+        ],
+        "follows": [
+          "ruimte",
+          "klimaat"
+        ],
+        "desk": "tech",
+        "deskLabel": "Tech"
+      },
+      "expect": {
+        "kicker": "Tech",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "subonderwerp alleen als de indeling zeker is: Miss Universe op een VS-plek",
+      "input": {
+        "topics": [
+          "afrika",
+          "ruimte"
+        ],
+        "mainTopics": [
+          "afrika",
+          "ruimte"
+        ],
+        "follows": [
+          "ruimte",
+          "afrika"
+        ],
+        "desk": "vs",
+        "deskLabel": "VS"
+      },
+      "expect": {
+        "kicker": "VS",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "een plek onder Cultuur zonder onderwerp heet Cultuur",
+      "input": {
+        "desk": "cultuur",
+        "deskLabel": "Cultuur"
+      },
+      "expect": {
+        "kicker": "Cultuur",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "sport vóór geografie geldt niet op een vakplek: een sportbedrijf onder Economie",
+      "input": {
+        "topics": [
+          "voetbal",
+          "economie"
+        ],
+        "mainTopics": [
+          "voetbal"
+        ],
+        "follows": [
+          "economie"
+        ],
+        "desk": "economie",
+        "deskLabel": "Economie"
+      },
+      "expect": {
+        "kicker": "Economie · Markten & beurs",
+        "why": null,
         "outside": false
       }
     }

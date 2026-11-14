@@ -9,7 +9,8 @@ import Foundation
 //            Sterk is een onderwerp dat je volgt en dat het verhaal echt draagt: het past bij de rubriek
 //            van de plek (Binnenland → Binnenland of Politiek), of het staat in de kop of is het vak van
 //            de bron (`mainTopics`, van de server). Een losse vermelding in de samenvatting ("omroep" →
-//            Media bij een verhaal over migranten) is zwak en geeft geen kicker.
+//            Media bij een verhaal over migranten) is zwak en geeft geen kicker. Sport en cultuur gaan voor de
+//            geografie, en een subonderwerp alleen als de indeling zeker is (persona's 14 november, punt 6).
 //            Buiten je bubbel en Waar iedereen over schrijft houden hun eigen label.
 //   Waarom:  de regel van De Redacteur, alleen als die iets toevoegt: nooit "Omdat je X volgt" (bij een
 //            sterke treffer zegt de kicker het al, bij een zwakke klopt het niet). Wel "Vervolg op wat je
@@ -38,6 +39,9 @@ enum StoryLabel {
         "wetenschap": ["wetenschap"],
         "tech": ["tech"],
         "economie": ["economie"],
+        // Sport en Cultuur zet De Redacteur voor de lezer (persona's 14 november, punt 6).
+        "sport": ["sport"],
+        "cultuur": ["cultuur"],
     ]
 
     private static let rubriekOf: [String: Rubriek] = Dictionary(Rubriek.alle.flatMap { r in r.topics.map { ($0, r) } }, uniquingKeysWith: { a, _ in a })
@@ -50,11 +54,32 @@ enum StoryLabel {
     ]
 
     // Draagt dit onderwerp het verhaal? Het past bij de rubriek van de plek, of het staat in de kop.
+    // Een subonderwerp alleen als de indeling zeker is (persona's 14 november, punt 6): past het onderwerp niet bij de
+    // rubriek van de plek, dan telt de kop alleen als al zijn onderwerpen bij één interesse horen (gelijk aan label.js).
     static func strong(_ t: String, desk: String?, mainTopics: [String]) -> Bool {
         if geographicTopics.contains(t), desk == "buitenland", !mainTopics.contains(t) { return false }
         if geographicTopics.contains(t), let allowed = desk.flatMap({ placeTopics[$0] }), !allowed.contains(t) { return false }
         let past = rubriekOf[t].map { r in (desk.flatMap { deskInterests[$0] } ?? []).contains(r.id) } ?? false
-        return past || mainTopics.contains(t)
+        if past { return true }
+        let family = rubriekOf[t]?.id
+        return mainTopics.contains(t) && mainTopics.allSatisfy { rubriekOf[$0]?.id == family }
+    }
+
+    // Sport en cultuur gaan voor de geografie (persona's 14 november, punt 6; gelijk aan lightOf in label.js): een plek
+    // onder Sport of Cultuur, een sportbron, of een sport- of cultuuronderwerp in de kop maakt de kicker Sport of Cultuur,
+    // met het onderwerp erbij als je dat volgt. Niet op een plek onder Tech, Economie of Wetenschap. Media en Games tellen
+    // hier niet.
+    private static let lightTopics: Set<String> = ["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch", "muziek", "film", "boeken", "kunst", "showbizz"]
+    private static let vakDesks: Set<String> = ["tech", "economie", "wetenschap"]
+    private static func geographic(_ t: String) -> Bool {
+        geographicTopics.contains(t) || ["binnenland", "wereld"].contains(rubriekOf[t]?.id ?? "")
+    }
+    static func light(mainTopics: [String], topics: [String], cat: String?, desk: String?) -> (interest: String, topic: String?)? {
+        if let desk, vakDesks.contains(desk) { return nil }
+        if let t = mainTopics.first(where: { lightTopics.contains($0) }), let r = rubriekOf[t] { return (r.id, t) }
+        if desk == "sport" || cat == "sport" { return ("sport", topics.first { rubriekOf[$0]?.id == "sport" }) }
+        if desk == "cultuur" { return ("cultuur", topics.first { lightTopics.contains($0) && rubriekOf[$0]?.id == "cultuur" }) }
+        return nil
     }
 
     // `topics`: de onderwerpen van het verhaal. `mainTopics`: de onderwerpen uit de kop en het vak van de
@@ -65,9 +90,14 @@ enum StoryLabel {
     static func label(topics: [String] = [], mainTopics: [String] = [], follows: [String] = [], cat: String? = nil, desk: String? = nil, deskLabel: String? = nil, section: String? = nil, whyCode: String? = nil, whyText: String? = nil, whyDetail: Bool = false, followed: Bool? = nil) -> Result {
         let outside = followed == false || (followed == nil && (desk == "extern" || whyCode == "extern"))
         let mine = topics.first { follows.contains($0) && Taste.labels[$0] != nil && rubriekOf[$0] != nil && strong($0, desk: desk, mainTopics: mainTopics) }
+        let lt = light(mainTopics: mainTopics, topics: topics, cat: cat, desk: desk)
         var kicker: String?
         if desk == "bubbel" || desk == "breed" {
             kicker = deskLabel // "Buiten je bubbel · via …", "Waar iedereen over schrijft · N bronnen"
+        } else if let lt, mine == nil || geographic(mine!) || rubriekOf[mine!]?.id == lt.interest, let r = Rubriek.alle.first(where: { $0.id == lt.interest }) {
+            let own: String? = (mine.flatMap { rubriekOf[$0]?.id == lt.interest ? $0 : nil }) ?? lt.topic.flatMap { follows.contains($0) ? $0 : nil }
+            let topic = own.map { Taste.label($0) }
+            kicker = topic.map { $0 != r.label ? "\(r.label) · \($0)" : r.label } ?? r.label
         } else if let mine, let r = rubriekOf[mine] {
             let topic = Taste.label(mine)
             kicker = r.label == topic ? r.label : "\(r.label) · \(topic)"

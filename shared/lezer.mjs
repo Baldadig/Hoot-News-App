@@ -1,6 +1,20 @@
-// Wat Hoot uit je bronnen afleidt (persona's 14 november 2026): je regio, en later ook je thuisland en je leestaal.
+// Wat Hoot uit je bronnen afleidt (persona's 14 november 2026): je regio en je thuisland.
 // Alleen uit de bronnen die je volgt en de catalogus (`cat`, `lang`, `about`), zonder iets te vragen. Puur, en in de
 // rekenkern: web, server en app rekenen hetzelfde.
+import { VL_HOME } from '../netlify/lib/desks.mjs'
+
+// Je thuisland: België als je meer Vlaamse dan Nederlandse nieuwsbronnen volgt (Nederland, Vlaanderen, Regio), anders
+// Nederland. Vakbronnen (cultuur, tech, sport) en Engelstalige bronnen zeggen niets over waar je woont.
+export function readerHome({ followed = new Set(), sources = [] } = {}) {
+  let vl = 0
+  let nl = 0
+  for (const s of sources) {
+    if (!followed.has(s.id) || !['nl', 'vl', 'regio'].includes(s.cat) || s.lang !== 'nl') continue
+    if (VL_HOME.has(s.id) || s.cat === 'vl') vl++
+    else nl++
+  }
+  return vl > nl ? 'BE' : 'NL'
+}
 
 // De plaatsen in de omschrijving van een regionale bron: "Groningen en Drenthe." geeft groningen en drenthe, "Den Haag,
 // Leiden en omgeving, de regionale omroep." geeft den haag en leiden. Geen lijst van provincies: de catalogus zegt het.

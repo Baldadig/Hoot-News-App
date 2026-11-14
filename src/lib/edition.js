@@ -21,7 +21,8 @@ export function resolveEditionEntry(e, { storiesById, itemsById, published = new
   // het (live) nu in zit, anders geen bundel. De rubriek hoort bij wat we tonen.
   const contains = (s) => s && s.itemIds.includes(item.id)
   let story = contains(named) ? named : null
-  let desk = e.desk
+  // De rubriek die De Redacteur voor jou boven de plek zet (`rubriek`: sport en cultuur, je thuisland), anders die van het verhaal.
+  let desk = e.rubriek || e.desk
   if (!story) {
     const liveId = itemsById.get(item.id)?.storyId
     const now = liveId ? storiesById.get(liveId) : null

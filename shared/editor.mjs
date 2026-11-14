@@ -420,7 +420,8 @@ export const chosenReason = (parts = {}) => {
 // Zegt de plek iets bij zichzelf? Een punt van minstens MIN_WHY_PTS dat het waarom ook kan noemen (whyOf).
 export const visibleReason = (parts = {}) => Object.entries(parts).some(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === 'interest' && x.shown === false))
 export const FRONT_SOURCES = 8 // vijf uitgevers uit twee landen wordt via entry.big bewezen
-export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio' }
+// Sport en Cultuur: de rubriek die De Redacteur boven een plek zet voor de lezer (persona's 14 november, punt 6).
+export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio', sport: 'Sport', cultuur: 'Cultuur' }
 const WHY_ORDER = ['followUp', 'cross', 'interest', 'favorite', 'mine', 'sourceRead']
 const topicLabel = (t) => topicById(t)?.label || t
 

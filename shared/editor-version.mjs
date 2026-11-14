@@ -53,6 +53,8 @@
 // excludedFromEdition, ook in de algemene Editie); Foreign Policy "Argument" is opinie (opinieRubriek).
 // Persona · 5: Buiten je bubbel per lezer: niet van een bron die je volgt, niet uit een gekozen rubriek of je regio
 // (shared/lezer.mjs), gratis en leesbaar; uit wat overblijft kiest je eigen zaad (jitter), niet voor iedereen hetzelfde.
+// Persona · 6: de rubriek boven een plek kent de lezer (`rubriek` naast `desk`): sport en cultuur vóór de geografie, de
+// geografie vanaf je thuisland (readerHome, belgianSubject); het label toont een subonderwerp alleen als het zeker is.
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

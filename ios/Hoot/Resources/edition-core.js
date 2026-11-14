@@ -1394,6 +1394,14 @@ var HootCore = (() => {
     "tonga"
   ]);
   var NL_ANCHOR = W(["nederland\\p{L}*", "dutch", "holland\\p{L}*"]);
+  function belgianSubject(it = {}) {
+    const head = String(it.title || "");
+    if (!head) return false;
+    if (countriesIn(head).some((c) => c !== "be") || RE2.oekraine.test(head) || RE2.middenoosten.test(head) || usPoliticsIn(head) || NL_ANCHOR.test(head) || placeSignals({ title: head }).strong) return false;
+    const t = `${head} ${it.summary || ""}`.replace(/zeeuws-vlaanderen/gi, "");
+    if (BE.test(t) || BE_CASE.test(t)) return true;
+    return VL_HOME.has(it.source) && /\/(binnenland|belgie|politiek|regio)\//i.test(`${it.section || ""} ${String(it.url || "").split("?")[0]}`);
+  }
   function foreignHead(title = "") {
     const t = String(title || "");
     if (!t || !(WORLD.test(t) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || countriesIn(t).some((c) => c !== "nl"))) return false;
@@ -1800,7 +1808,7 @@ var HootCore = (() => {
   }
   var MIN_WHY_PTS = 5;
   var FRONT_SOURCES = 8;
-  var DESK_NAMES = { ...DESK_LABEL, tech: "Tech", economie: "Economie", regio: "Regio" };
+  var DESK_NAMES = { ...DESK_LABEL, tech: "Tech", economie: "Economie", regio: "Regio", sport: "Sport", cultuur: "Cultuur" };
   var WHY_ORDER = ["followUp", "cross", "interest", "favorite", "mine", "sourceRead"];
   var topicLabel = (t) => topicById(t)?.label || t;
   function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.desk ?? null, plannedDesk = false, labelOf = topicLabel, sourceName = (s) => s, deskLabel = (d) => DESK_NAMES[d] || d } = {}) {
@@ -4148,6 +4156,16 @@ var HootCore = (() => {
   }
 
   // shared/lezer.mjs
+  function readerHome({ followed = /* @__PURE__ */ new Set(), sources = [] } = {}) {
+    let vl = 0;
+    let nl = 0;
+    for (const s of sources) {
+      if (!followed.has(s.id) || !["nl", "vl", "regio"].includes(s.cat) || s.lang !== "nl") continue;
+      if (VL_HOME.has(s.id) || s.cat === "vl") vl++;
+      else nl++;
+    }
+    return vl > nl ? "BE" : "NL";
+  }
   function regionWordsOf(source) {
     if (!source || source.cat !== "regio" || !source.about) return [];
     return String(source.about).replace(/,?\s*de regionale omroep\.?/i, "").replace(/\.$/, "").split(/,|\s+en\s+/i).map((w) => w.trim().toLowerCase()).filter((w) => w.length >= 3 && w !== "omgeving" && !/\s(?:en|van|de)$/.test(w));
@@ -4222,6 +4240,7 @@ var HootCore = (() => {
       return !catOf.size || NEWS_CATS.has(cat) ? "nieuws" : cat;
     };
   }
+  var CULTURE_HEAD = /* @__PURE__ */ new Set(["muziek", "film", "boeken", "kunst", "showbizz"]);
   var NEWS_RUBRIC = /* @__PURE__ */ new Set(["nl", "vl", "regio", "int"]);
   var rubricOfCat = (cat) => !cat || NEWS_RUBRIC.has(cat) ? "nieuws" : cat;
   function languageRule({ followed = /* @__PURE__ */ new Set(), sources = [] } = {}) {
@@ -4522,14 +4541,14 @@ var HootCore = (() => {
         if (lead.id !== bubbleEntry.id) bubbleEntry = { kind: "item", id: lead.id, desk: "bubbel", terms: alt.terms };
         bubbleEntry = withHistory(bubbleEntry, lead.id, alt.storyId || lead.storyId);
       } else {
-        const home = strongestFamily(prof);
-        const next = new Set(NEIGHBOURS[home] || []);
+        const home2 = strongestFamily(prof);
+        const next = new Set(NEIGHBOURS[home2] || []);
         const recent = stories.filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5).sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id)).map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }));
         const fits = (w) => w?.item?.id && !!bubbleLeadOf(w.storyId, w.item.id) && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
         const nearLead = (w) => bubbleLeadOf(w.storyId, w.item.id);
         const pick0 = [...global.near || [], ...recent].find((w) => fits(w) && nearLead(w));
         const pick = pick0 && nearLead(pick0) !== pick0.item ? { ...pick0, item: nearLead(pick0) } : pick0;
-        bubbleEntry = pick ? withHistory({ kind: "story", id: pick.storyId, leadId: pick.item.id, desk: "bubbel", near: home }, pick.item.id, pick.storyId) : null;
+        bubbleEntry = pick ? withHistory({ kind: "story", id: pick.storyId, leadId: pick.item.id, desk: "bubbel", near: home2 }, pick.item.id, pick.storyId) : null;
         if (pick) {
           nearItem = pick.item;
           for (const id of [pick.item.id, ...storyById.get(pick.storyId)?.itemIds || []]) taken.add(id);
@@ -4664,8 +4683,20 @@ var HootCore = (() => {
     const itemOf = (id) => poolById.get(id) || wideById.get(id) || globalItems.get(id) || itemAny.get(id);
     const srcName = new Map(sources.map((s) => [s.id, s.name]));
     const mineDesks = chosenDesks(prof);
+    const home = readerHome({ followed, sources });
+    const shownDesk = (e) => {
+      if (["bubbel", WIDE, EXTERN].includes(e.desk)) return e.desk;
+      const head = itemAny.get(e.leadId || e.id);
+      if (!head) return e.desk;
+      if (storyOfEntry(e).sport || isSport(head, catOf)) return "sport";
+      if (catOf.get(head.source) === "cultuur" || (head.mainTopics || []).some((t) => CULTURE_HEAD.has(t))) return "cultuur";
+      if (home === "BE" && (e.desk === "buitenland" || !e.desk) && belgianSubject(head)) return "binnenland";
+      if (home === "BE" && ["binnenland", "regio"].includes(e.desk) && !belgianSubject(head)) return "buitenland";
+      return e.desk;
+    };
     const out = entries.map((e) => {
-      let why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s });
+      const desk = shownDesk(e);
+      let why = whyOf(desk === e.desk ? e : { ...e, desk }, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk, plannedDesk: !!e.planned && mineDesks.has(desk), sourceName: (s) => srcName.get(s) || s });
       if (e.supplement && !e.vervolg) {
         const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
         const hit = personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest;
@@ -4678,7 +4709,7 @@ var HootCore = (() => {
       const itemIds0 = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const itemIds = mergedIds.has(e) ? [.../* @__PURE__ */ new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0;
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
-      return { ...rest, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
+      return { ...rest, ...desk !== e.desk ? { rubriek: desk } : {}, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
     });
     let supply = null;
     const regularCount = editionStoryCount(out);

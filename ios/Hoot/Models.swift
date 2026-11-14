@@ -328,6 +328,7 @@ struct EditionEntry: Codable, Hashable {
     var leadId: String?
     var formerId: String? // het verhaal heette in een vorige editie anders (samengevoegd of gesplitst)
     var desk: String?
+    var rubriek: String? // de rubriek boven de plek voor deze lezer (sport en cultuur, je thuisland), als die afwijkt van desk
     var fromDesk: String? // aangevuld uit de algemene Editie: de rubriek die het daar had
     var sourceCount: Int?
     var terms: [EntryTerm]?

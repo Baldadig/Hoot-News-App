@@ -17,13 +17,13 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
-import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
+import { deskOfStory, storyForeignOf, VL_HOME, belgianSubject } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN, jitter } from '../../shared/editor.mjs'
-import { readerRegions, inRegion } from '../../shared/lezer.mjs'
+import { readerRegions, inRegion, readerHome } from '../../shared/lezer.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
 export const WIDE = 'breed' // "Waar iedereen over schrijft"
@@ -114,6 +114,8 @@ function kindOfWith(catOf) {
   }
 }
 
+// Cultuur in de kop (voor de rubriek boven de plek, punt 6): zonder Media en Games ("omroep" in een kop is geen cultuur).
+const CULTURE_HEAD = new Set(['muziek', 'film', 'boeken', 'kunst', 'showbizz'])
 const NEWS_RUBRIC = new Set(['nl', 'vl', 'regio', 'int'])
 export const rubricOfCat = (cat) => (!cat || NEWS_RUBRIC.has(cat) ? 'nieuws' : cat)
 export function languageRule({ followed = new Set(), sources = [] } = {}) {
@@ -776,8 +778,30 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    toestel zelf niet kent (developedSince).
   const srcName = new Map(sources.map((s) => [s.id, s.name]))
   const mineDesks = chosenDesks(prof) // "Jouw rubriek" alleen voor een rubriek die bij je keuzes hoort
+  // De rubriek boven de plek (persona's 14 november, punt 6), pas hier en apart (`rubriek`, alleen als die afwijkt): `desk`
+  // blijft de rubriek van het verhaal, voor iedereen gelijk, waarmee de samenstelling en de toetsen rekenen; wat je ziet
+  // (web: resolveEditionEntry, app: EditionView), volgt jou.
+  // - Sport en cultuur vóór de geografie: een sportverhaal (story.sport van de server, of de kop is sport: isSport) heet
+  //   Sport, ook als de server het onder Buitenland zette (Daleman op de 500 meter); een cultuurstuk (de kop van een
+  //   cultuurbron, of een cultuuronderwerp in de kop: CULTURE_HEAD) heet Cultuur. Zo krijgen ook sport en cultuur uit het
+  //   extra blok een rubriek; wat daar alleen via een onderwerp in de intro kwam, houdt er geen.
+  // - De geografie vanaf je thuisland (readerHome in shared/lezer.mjs: meer Vlaamse dan Nederlandse nieuwsbronnen is
+  //   België): voor een lezer in Vlaanderen is een Belgisch stuk Binnenland (belgianSubject) en Nederlands nieuws Buitenland.
+  // Niet voor Buiten je bubbel, Waar iedereen over schrijft of een aanvulling (die houden hun eigen label).
+  const home = readerHome({ followed, sources })
+  const shownDesk = (e) => {
+    if (['bubbel', WIDE, EXTERN].includes(e.desk)) return e.desk
+    const head = itemAny.get(e.leadId || e.id)
+    if (!head) return e.desk
+    if (storyOfEntry(e).sport || isSport(head, catOf)) return 'sport'
+    if (catOf.get(head.source) === 'cultuur' || (head.mainTopics || []).some((t) => CULTURE_HEAD.has(t))) return 'cultuur'
+    if (home === 'BE' && (e.desk === 'buitenland' || !e.desk) && belgianSubject(head)) return 'binnenland'
+    if (home === 'BE' && ['binnenland', 'regio'].includes(e.desk) && !belgianSubject(head)) return 'buitenland'
+    return e.desk
+  }
   const out = entries.map((e) => {
-    let why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s })
+    const desk = shownDesk(e)
+    let why = whyOf(desk === e.desk ? e : { ...e, desk }, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk, plannedDesk: !!e.planned && mineDesks.has(desk), sourceName: (s) => srcName.get(s) || s })
     if (e.supplement && !e.vervolg) {
       const p = policyOf(e.leadId || e.id,e.kind === 'story' ? e.id : null,e)
       const hit = personalParts(p.members,prof,{}, {desk:p.desk,foreign:p.abroad}).interest
@@ -790,7 +814,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const itemIds0 = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
     const itemIds = mergedIds.has(e) ? [...new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
-    return { ...rest, itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front }
+    return { ...rest, ...(desk !== e.desk ? { rubriek: desk } : {}), itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front }
   })
   // Bij een korte Editie geen blinde minimumverlaging: elke bekende kandidaat krijgt een
   // terminale reden uit dezelfde selectieroute. Dit is lokaal debugbewijs, geen accountpayload.

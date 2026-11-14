@@ -179,6 +179,18 @@ const WORLD = W([
   'fiji', 'nieuw-zeeland', 'new zealand', `papoea${L}`, `papua${L}`, 'samoa', 'tonga',
 ])
 const NL_ANCHOR = W(['nederland\\p{L}*', 'dutch', 'holland\\p{L}*'])
+// Gaat dit stuk over België? Voor de rubriek boven een plek bij een lezer in Vlaanderen (persona's 14 november, punt 6: voor
+// een Gentse lezer heette Belgisch nieuws Buitenland). Een Belgische plaats, instelling, persoon of partij in kop of intro
+// (BE), of een Vlaamse bron die het zelf onder Binnenland of Politiek zet; nooit met een ander land, Oekraïne, het
+// Midden-Oosten, Amerikaanse politiek of een Nederlands anker in de kop.
+export function belgianSubject(it = {}) {
+  const head = String(it.title || '')
+  if (!head) return false
+  if (countriesIn(head).some((c) => c !== 'be') || RE.oekraine.test(head) || RE.middenoosten.test(head) || usPoliticsIn(head) || NL_ANCHOR.test(head) || placeSignals({ title: head }).strong) return false
+  const t = `${head} ${it.summary || ''}`.replace(/zeeuws-vlaanderen/gi, '')
+  if (BE.test(t) || BE_CASE.test(t)) return true
+  return VL_HOME.has(it.source) && /\/(binnenland|belgie|politiek|regio)\//i.test(`${it.section || ''} ${String(it.url || '').split('?')[0]}`)
+}
 export function foreignHead(title = '') {
   const t = String(title || '')
   if (!t || !(WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || countriesIn(t).some((c) => c !== 'nl'))) return false
