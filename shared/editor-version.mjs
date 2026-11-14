@@ -110,6 +110,8 @@
 // een Nederlands bedrijf (NL_ANCHOR, HERE_CORP) in de kop maakt het geen lokaal nieuws van elders (localAbroad).
 // Persona · keuring na herstelkeuring 3, punt 7: de bijvoeglijke vormen en inwonersnamen van alle landen van countriesIn en
 // WORLD, Nederlands en Engels, in één tabel (COUNTRY_FORMS, alleen in localAbroad).
+// Persona · keuring na herstelkeuring 3, kleiner punt: Holland als achternaam (Tom Holland) is geen anker van hier
+// (NAME_HOLLAND, alleen in localAbroad).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-3'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

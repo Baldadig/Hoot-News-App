@@ -422,6 +422,10 @@ const COUNTRY_FORMS = [
   ['samoa', `samoaan${L}`, 'samoan', 'samoans'],
   ['tonga', `tongaan${L}`, 'tongan', 'tongans'],
 ].map(([c, ...forms]) => [c, W(forms)])
+// "Holland" als achternaam is geen Nederlands anker (keuring na herstelkeuring 3: "Tom Holland" in NL_ANCHOR). Een woord met
+// een hoofdletter direct ervoor maakt er een naam van, behalve een voorzetsel, lidwoord of windrichting ("naar Holland",
+// "Visit Holland", "Noord Holland"). Alleen voor het anker van hier in localAbroad, zoals COUNTRY_FORMS.
+const NAME_HOLLAND = /(?<![\p{L}\p{N}])(?!(?:In|Uit|Naar|Van|Voor|Met|En|De|Het|Een|Over|Via|Bij|Tegen|Om|Door|To|From|Of|For|And|The|A|At|Across|Around|Into|Near|Against|Beat|Beats|Visit|Team|Made|Noord|Zuid|North|South)\s)\p{Lu}[\p{Ll}'’.-]+\s+Holland(?![\p{L}\p{N}])/gu
 const formsIn = (t, own = []) => COUNTRY_FORMS.some(([c, re]) => !own.includes(c) && re.test(t))
 const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || WORLD.test(t) || formsIn(t, own) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
 export function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
@@ -431,8 +435,9 @@ export function localAbroad(items = [], { desk = null, homePublishers = [] } = {
   const elsewhere = () => new Set(homePublishers).size >= HOME_MIN
   const usHere = desk === 'vs' || usPoliticsIn(t) || countriesIn(t).includes('us')
   // Een anker van hier in de kop maakt het geen lokaal nieuws van elders: Nederlands bezit (placeSignals), ook een Nederlands
-  // bedrijf of de beurs (HERE_CORP), en een Nederlander of "Nederlandse" (NL_ANCHOR).
-  const hereAnchor = () => placeSignals({ title: t }).home || HERE_CORP.test(t) || NL_ANCHOR.test(t)
+  // bedrijf of de beurs (HERE_CORP), en een Nederlander of "Nederlandse" (NL_ANCHOR; Holland niet als achternaam).
+  const here = t.replace(NAME_HOLLAND, ' ')
+  const hereAnchor = () => placeSignals({ title: here }).home || HERE_CORP.test(here) || NL_ANCHOR.test(here)
   if (usHere) return !beyondIn(t, ['us']) && !hereAnchor() && !elsewhere()
   if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || '').split('?')[0]))) return false
   return !beyondIn(t.replace(OWN_COUNTRY, ' '), ['au', 'ca', 'gb']) && !hereAnchor() && !elsewhere()

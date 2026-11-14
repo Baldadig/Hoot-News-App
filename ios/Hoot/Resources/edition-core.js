@@ -1623,6 +1623,7 @@ var HootCore = (() => {
     ["samoa", `samoaan${L}`, "samoan", "samoans"],
     ["tonga", `tongaan${L}`, "tongan", "tongans"]
   ].map(([c, ...forms]) => [c, W(forms)]);
+  var NAME_HOLLAND = /(?<![\p{L}\p{N}])(?!(?:In|Uit|Naar|Van|Voor|Met|En|De|Het|Een|Over|Via|Bij|Tegen|Om|Door|To|From|Of|For|And|The|A|At|Across|Around|Into|Near|Against|Beat|Beats|Visit|Team|Made|Noord|Zuid|North|South)\s)\p{Lu}[\p{Ll}'’.-]+\s+Holland(?![\p{L}\p{N}])/gu;
   var formsIn = (t, own2 = []) => COUNTRY_FORMS.some(([c, re]) => !own2.includes(c) && re.test(t));
   var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || WORLD.test(t) || formsIn(t, own2) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
   function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
@@ -1631,7 +1632,8 @@ var HootCore = (() => {
     if (!t) return false;
     const elsewhere = () => new Set(homePublishers).size >= HOME_MIN;
     const usHere = desk === "vs" || usPoliticsIn(t) || countriesIn(t).includes("us");
-    const hereAnchor = () => placeSignals({ title: t }).home || HERE_CORP.test(t) || NL_ANCHOR.test(t);
+    const here = t.replace(NAME_HOLLAND, " ");
+    const hereAnchor = () => placeSignals({ title: here }).home || HERE_CORP.test(here) || NL_ANCHOR.test(here);
     if (usHere) return !beyondIn(t, ["us"]) && !hereAnchor() && !elsewhere();
     if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || "").split("?")[0]))) return false;
     return !beyondIn(t.replace(OWN_COUNTRY, " "), ["au", "ca", "gb"]) && !hereAnchor() && !elsewhere();

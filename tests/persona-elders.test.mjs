@@ -105,6 +105,15 @@ test('lokaal van elders: elk land als bijvoeglijk naamwoord of inwonersnaam is e
   assert.ok(!localAbroad([{ title: 'Polish workers protest in English town', url: 'https://www.theguardian.com/uk-news/2026/nov/13/x' }], {}))
 })
 
+// Keuring na herstelkeuring 3, kleiner punt: "Holland" als achternaam (Tom Holland) is geen Nederlands anker; Holland als
+// plaats of als begin van een naam van hier blijft dat wel.
+test('lokaal van elders: Holland als achternaam is geen anker van hier', () => {
+  for (const title of ['Tom Holland krijgt ster op Walk of Fame in Los Angeles', 'Jools Holland tours Texas']) assert.ok(localAbroad([{ title }], { desk: 'vs' }), title)
+  for (const title of ['Spelers uit Holland winnen toernooi in Texas', 'Holland Casino opent vestiging in Las Vegas', 'Noord-Holland stuurt handelsmissie naar Texas', 'Nederlandse toerist omgekomen in Florida']) {
+    assert.ok(!localAbroad([{ title }], { desk: 'vs' }), title)
+  }
+})
+
 for (const f of FEEDS) {
   test(`${f}: lokaal nieuws van elders staat nooit op 01, nooit als Waar iedereen over schrijft, en anders achteraan`, () => {
     const feed = load(f)
@@ -115,13 +124,19 @@ for (const f of FEEDS) {
       const ed = composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed: new Set(p.followed), interests: p.welkom.interests, topics: p.prefs.topics || [], now, builtAt: feed.edition.builtAt })
       if (!ed) continue
       const regular = ed.entries.filter((e) => e.desk !== 'bubbel')
-      // Zoals rawLocal in composePersonal: een los stuk hoort bij zijn serververhaal (formerId of item.storyId), en de stukken
-      // van dat verhaal tellen mee (herstelkeuring 3: zonder die koppeling leek de RTL-kop over Mississippi lokaal).
+      // Precies zoals rawLocal in composePersonal: een los stuk hoort bij zijn serververhaal (formerId of item.storyId), en de
+      // stukken tellen zoals membersOf ze telt: de kop, bij een verhaal de stukken van het serververhaal en van de plek, bij een
+      // los stuk alleen die van het serververhaal (herstelkeuring 3: zonder die koppeling leek de RTL-kop over Mississippi
+      // lokaal; keuring daarna: de eigen itemIds van een los stuk telden in de toets wel mee en in de code niet). De stukken
+      // komen uit dezelfde bronnen als itemAny.
+      const itemAny = new Map([...feed.items, ...(feed.edition.items || []), ...[...(feed.edition.wide || []), ...(feed.edition.near || [])].map((w) => w?.item).filter(Boolean)].map((i) => [i.id, i]))
       const isLocal = (e) => {
-        const head = byId.get(e.leadId || e.id)
-        const sid = e.kind === 'story' ? e.id : e.formerId || head?.storyId || null
+        const head = itemAny.get(e.leadId || e.id)
+        if (!head || e.desk === 'bubbel') return false
+        const sid = e.kind === 'story' ? e.id : e.formerId || head.storyId || null
         const st = storyById.get(sid) || {}
-        const xs = [...new Set([...(e.itemIds || []), ...(st.itemIds || [])])].map((x) => byId.get(x)).filter(Boolean)
+        const members = new Set([e.leadId || e.id, ...(e.kind === 'story' ? [...(st.itemIds || []), ...(e.itemIds || [])] : st.itemIds || [])])
+        const xs = [...members].map((x) => itemAny.get(x)).filter(Boolean)
         return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, homePublishers: homePublishersOf([head, ...xs], st) }) && !majorNews(st, xs)
       }
       // Alleen een onderwerp dat je zelf aantikte, redt een plek van het zakken (debugveld `_local`); een onderwerp dat het
