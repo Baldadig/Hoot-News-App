@@ -23,10 +23,11 @@ import { followGroups } from '../src/lib/follow-welcome.js'
 import { SOURCE_CATS, STARTER } from '../src/lib/topics.js'
 
 const byId = new Map(SOURCES.map((s) => [s.id, s]))
-const NIEUWS = ['france24', 'rfi', 'euronews', 'abc-au', 'kyivindependent', 'haaretz', 'timesofisrael']
+// The Times of Israel viel af (dubbelcheck 14 november, A2): Cloudflare weigert de server; dat omzeilen we niet.
+const NIEUWS = ['france24', 'rfi', 'euronews', 'abc-au', 'kyivindependent', 'haaretz']
 const OPINIE = ['vox', 'nationalreview', 'thefp']
 const NIEUW = [...NIEUWS, ...OPINIE]
-const LAND = { vox: 'US', nationalreview: 'US', thefp: 'US', france24: 'FR', rfi: 'FR', euronews: 'FR', 'abc-au': 'AU', kyivindependent: 'UA', haaretz: 'IL', timesofisrael: 'IL' }
+const LAND = { vox: 'US', nationalreview: 'US', thefp: 'US', france24: 'FR', rfi: 'FR', euronews: 'FR', 'abc-au': 'AU', kyivindependent: 'UA', haaretz: 'IL' }
 
 test('nieuwe bronnen: Engelstalig, onder Internationaal, voor niemand ongevraagd aan', () => {
   for (const id of NIEUW) {
@@ -95,7 +96,7 @@ test('feeds, kleur, merkbeeld en logo: elke nieuwe bron heeft ze', () => {
 // Op een bewaarde live feed (7 november) nemen de nieuwe bronnen de plaats in van de Engelse nieuwsbronnen die er al waren:
 // zo hebben ze verhalen, brede verhalen en plekken in de algemene Editie, en moet de regel echt iets doen.
 const load = (f) => JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/${f}`, import.meta.url))).toString('utf8'))
-const RUIL = { nyt: 'haaretz', guardian: 'france24', bbc: 'euronews', aljazeera: 'timesofisrael', dw: 'rfi', atlantic: 'kyivindependent', lemonde: 'abc-au' }
+const RUIL = { nyt: 'haaretz', guardian: 'france24', bbc: 'euronews', dw: 'rfi', atlantic: 'kyivindependent', lemonde: 'abc-au' }
 const ruil = (it) => (it && RUIL[it.source] ? { ...it, source: RUIL[it.source], sourceName: byId.get(RUIL[it.source]).name } : it)
 function geruild() {
   const feed = load('live-feed-2026-11-07.json.gz')

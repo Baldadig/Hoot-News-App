@@ -44,6 +44,7 @@
 // nooit de kop van een plek, ook niet met een eigen intro; een plek met alleen afleveringen valt weg. De rubriek van een
 // plek: Buitenland vraagt bewijs (een Vlaamse bron alleen is het niet), een musicus is cultuur, en een Amerikaanse staat
 // of stad of het VK is een buitenlandse plek (desks.mjs, countriesIn).
+// The Times of Israel uit de catalogus en uit FOREIGN_NEWS (Cloudflare weigert de server; Haaretz blijft voor Israël).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-dubbelcheck'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
