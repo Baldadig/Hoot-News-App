@@ -85,16 +85,19 @@ export function hardMark(item = {}) {
 // nooit de kop van een plek in de Editie, ook niet met een eigen intro: het mag wel als lid bij een verhaal (Vergelijken).
 // Een plek met alleen afleveringen valt weg. Dit is strenger dan hardMark (dat weert het stuk helemaal), want hier blijft
 // het stuk in de Editie, alleen niet bovenaan.
-// Een video wel (besluit chief of staff over B2, 14 november): een videostuk van RTL of de NOS is vaak gewoon nieuws, met
-// een kop en intro die het verhaal vertellen. Een video gaat dus mee als elk ander stuk; de bestaande regels voor een kop
-// met een kijklabel (VIDEO_HEAD) en filter B blijven gelden.
+// Een video niet (besluit chief of staff over B2, 14 november): een videostuk van RTL of de NOS is vaak gewoon nieuws, met
+// een kop en intro die het verhaal vertellen. Een video is dus geen harde uitsluiting als kop. Wel gaat elke aflevering,
+// ook een video, achter een nieuwsstuk bij de keuze van de kop en telt ze niet als bron (isAflevering in
+// shared/aflevering.mjs, Luister verder); de regels voor een kop met een kijklabel (VIDEO_HEAD) en filter B blijven.
+// Dezelfde tekens als afleveringSoort(...) === 'podcast', maar ook met een eigen intro.
+const AUDIO_EPISODE_DIR = new Set([...AUDIO_RUBRIC, 'audio'])
 export function audioEpisode(item = {}) {
   if (!item || item.kind === 'post') return false
   if (item.feedMark === 'podcast') return true
   if (/^audio\//i.test(String(item.mediaType || ''))) return true
   if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true
-  if (rubricSegments(item.url).some((s) => AUDIO_RUBRIC.has(s))) return true
-  return AUDIO_LABEL.test(String(item.title || ''))
+  if (rubricSegments(item.url).some((s) => AUDIO_EPISODE_DIR.has(s))) return true
+  return AUDIO_LABEL.test(String(item.title || '')) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || ''))
 }
 
 // Eén toelating voor alle Editieroutes. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag

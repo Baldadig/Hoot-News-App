@@ -32,6 +32,8 @@ test('herkenning: feedmarkering, enclosure, iTunes, rubriek in de link en luiste
     { ...NOS, url: 'https://www.example.nl/luister/aflevering-12' },
     { ...NOS, title: 'Podcast: wat de val van Huang betekent' },
     { ...NOS, title: 'Luister | De val van Huang' },
+    { ...NOS, url: 'https://www.example.com/audio/huang-valt-12' },
+    { ...NOS, title: 'Nvidia After Huang (Podcast)' },
   ]) assert.ok(audioEpisode(it), `${it.title} ${it.url} ${it.feedMark || ''}${it.mediaType || ''}`)
   // Nieuws óver een podcast, een slug met "podcast", een rubriek ná een datum, en elke video: geen aflevering.
   for (const it of [

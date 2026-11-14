@@ -4,6 +4,7 @@ import { storyForeignOf, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 import { keywordTopics } from '../netlify/lib/topics.mjs'
 import { opinieBron } from './opinie.mjs'
+import { isAflevering } from './aflevering.mjs'
 
 // Expliciete uitgeverlanden; taal en het land in een artikel zijn nooit bewijs hiervoor.
 // Onbekende uitgevers leveren geen extra land op. Sectiefeeds blijven dezelfde uitgever.
@@ -51,9 +52,11 @@ export function countedPublishers(publishers = []) {
   return n
 }
 // Een opinieblad telt niet mee (shared/opinie.mjs, opinieBron): tien opiniebladen over één debat maken het nog geen
-// groot nieuws.
+// groot nieuws. Een aflevering ook niet (shared/aflevering.mjs, 14 november 2026): vier podcasts over Nvidia zijn geen
+// vier bronnen.
+export const countsAsSource = i => !!i && !opinieBron(i.source) && !isAflevering(i)
 export function coverageOf(items = []) {
-  const ids = [...new Set(items.filter(i => !opinieBron(i.source)).map(i => publisherOf(i.source)).filter(Boolean))].sort()
+  const ids = [...new Set(items.filter(countsAsSource).map(i => publisherOf(i.source)).filter(Boolean))].sort()
   return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() }
 }
 // ---- Noodfix 2 november 2026: sport op niveau van het verhaal, en de galerij ----
@@ -93,7 +96,7 @@ export function majorNews(story = {}, items = []) {
   if (onlyGalleries(items)) return false
   const coverage = coverageOf(items)
   // Nieuwe backendvelden bevatten de volledige gebeurtenis, ook bij een gedeeltelijke clientpool.
-  const observedSources = new Set(items.map(i => i.source).filter(Boolean)).size
+  const observedSources = new Set(items.filter(i => !isAflevering(i)).map(i => i.source).filter(Boolean)).size
   const count = story.publisherCount ?? (observedSources >= (story.sourceCount || Infinity) ? coverage.publisherCount : story.sourceCount) ?? coverage.publisherCount
   const countries = new Set(story.publisherCountries || coverage.publisherCountries)
   return count >= FRONT_BIG || (count >= 5 && countries.size >= 2)
@@ -157,7 +160,7 @@ export function specialistMatch(prof, items = [], desk = null) {
 export const OPEN_WORLD_MIN = 4
 export const emptyProfile = (prof) => !prof?.interests?.size && !Object.keys(prof?.family || {}).length
 export function publishersOf(story = {}, items = []) {
-  const observedSources = new Set(items.map(i => i?.source).filter(Boolean)).size
+  const observedSources = new Set(items.filter(i => i && !isAflevering(i)).map(i => i.source).filter(Boolean)).size
   return story?.publisherCount ?? (observedSources >= (story?.sourceCount || Infinity) ? coverageOf(items).publisherCount : story?.sourceCount) ?? coverageOf(items).publisherCount
 }
 export const openWorld = (prof, items = [], story = null) => emptyProfile(prof) && !onlyGalleries(items) && publishersOf(story || {}, items) >= OPEN_WORLD_MIN

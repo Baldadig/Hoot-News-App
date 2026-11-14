@@ -12,6 +12,7 @@ import { keywordTopics } from './topics.mjs'
 import { hash } from '../../shared/util.mjs'
 import { SOURCES } from './sources.mjs'
 import { opinieBron } from '../../shared/opinie.mjs'
+import { isAflevering } from '../../shared/aflevering.mjs'
 import { SLOT_START, hhmm, amsterdamClock } from '../../shared/slot-times.mjs'
 import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, chosenDesks, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
@@ -503,7 +504,7 @@ export function sameEvent(a, b, ext = false) {
 // Strenger dan sameEvent: twee algemene namen ("Israël", "Netanyahu") plus hetzelfde soort
 // gebeurtenis ("verkiezingen") is genoeg om maar één plek te krijgen. Zo staan er geen drie stukken
 // over één verkiezingsdag in tien verhalen.
-const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland', 'republicans', 'democrats'])
+export const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland', 'republicans', 'democrats'])
 const SUBJECT_WINDOW = 12 * 60 * 60 * 1000
 // De kernwoorden en getallen van kop en tekst samen, één keer per kenmerk.
 const textCache = new WeakMap()
@@ -730,10 +731,11 @@ export function leadCandidates(items, mainIds, preferred = null, now = null, { r
   // de voorkeuren ook zeggen (column in de Editie, 13 november 2026). Tot dan was het −16 punten en alleen bij
   // `type === 'opinie'`: een voorkeursbron (+12) met basisbron (+8) haalde dat in, en een column die alleen aan link of
   // kop herkend was (isOpinion) kreeg niets af ("There's a New Roy Cohn in Town" boven de Volkskrant, 9 november).
-  // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
+  // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk); een aflevering
+  // (shared/aflevering.mjs: podcast, audio of video) evenmin.
   // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
   // Een fotogalerij of slideshow is nooit het hoofdbericht als er iets anders is (isGallery).
-  const score = (i) => (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
+  const score = (i) => (/\bpodcast\b/i.test(i.title || '') || isAflevering(i) || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
   const scores = new Map(items.map(i => [i, score(i)]))
   // Een aflevering om te luisteren (audioEpisode, dubbelcheck A3; een video wel, besluit B2) gaat net als opinie achter elk nieuwsstuk.
   const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : audioEpisode(i) ? 1 : 0]))
@@ -940,7 +942,10 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
   const stories = []
   const used = new Set()
   for (const [gid, items] of groups) {
-    const sourceIds = new Set(items.map((i) => i.source))
+    // Een aflevering (shared/aflevering.mjs) blijft lid, maar is geen bron: ze telt niet mee in het aantal bronnen, de
+    // namen van de bronnen of de eigen bronnen, en een verhaal heeft minstens twee bronnen zonder haar (14 november 2026).
+    const counted = items.filter((i) => !isAflevering(i))
+    const sourceIds = new Set(counted.map((i) => i.source))
     if (sourceIds.size < 2) continue
     const votes = {}
     for (const i of items) {
@@ -951,9 +956,9 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
     let id = known[0] || 's' + hash(items[items.length - 1].id)
     while (used.has(id)) id = 's' + hash(id + '+')
     used.add(id)
-    const own = items.filter((i) => mainIds.has(i.source))
+    const own = counted.filter((i) => mainIds.has(i.source))
     const names = []
-    for (const i of items) if (!names.includes(i.sourceName)) names.push(i.sourceName)
+    for (const i of counted) if (!names.includes(i.sourceName)) names.push(i.sourceName)
     stories.push({
       id,
       formerIds: known.slice(1).filter((x) => x !== id),
@@ -968,7 +973,9 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
-      ...(keys ? { keys: storyKeys(items, keySig), keyAt: storyKeyAt(items, keySig), pubAt: storyPubAt(items) } : {}),
+      // De tijden per uitgever voor "nieuw feit" (keyAt, pubAt) alleen uit de stukken die als bron tellen: een nieuwe
+      // aflevering is geen uitgever met een nieuw stuk (keuring luister, 14 november 2026).
+      ...(keys ? { keys: storyKeys(items, keySig), keyAt: storyKeyAt(counted, keySig), pubAt: storyPubAt(counted) } : {}),
     })
     // Sport op niveau van het verhaal (shared/edition-policy.mjs): alleen gezet als het zo is, zodat andere
     // verhalen byte-gelijk blijven. De lead hoeft geen sporttag te hebben (een NYT-fotogalerij).
@@ -1407,7 +1414,8 @@ export function developedSince(st, items, previous, sig, { mainIds = new Set(), 
   if (!fresh.length) return null
   const keysOf = keysWith(sig)
   const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
-  const whole = [...new Set([...all, ...items])]
+  // Een aflevering (shared/aflevering.mjs) telt niet mee voor een nieuw feit: niet als nieuw stuk, niet als wat er al was.
+  const whole = [...new Set([...all, ...items])].filter((i) => !isAflevering(i))
   const freshAll = whole.filter(isNew)
   // Met de kenmerken van het hele verhaal (`st.keyAt`, van de server) telt newFact zelf de nieuwe stukken van alle
   // uitgevers; zonder alleen wat het toestel kent.
@@ -1465,6 +1473,8 @@ const stemCount = (keys) => {
 const keyAtOf = (st) => (st?.keyAt && typeof st.keyAt === 'object' && !Array.isArray(st.keyAt) ? st.keyAt : null)
 const pubAtOf = (st) => (st?.pubAt && typeof st.pubAt === 'object' && !Array.isArray(st.pubAt) ? st.pubAt : null)
 export function newFact(fresh, then, keysOf, story = null) {
+  // Een aflevering is geen uitgever met een nieuw stuk (keuring luister, 14 november 2026): ook niet op het toestel.
+  fresh = fresh.filter((i) => !isAflevering(i))
   const keyAt = keyAtOf(story)
   const pubAt = pubAtOf(story)
   const cutoff = story?.cutoff ?? 0
@@ -1505,13 +1515,13 @@ export function factHeads(fresh, fact, sig) {
   const named = fresh.filter((i) => { const s = sig.get(i.id); return !!s && [...s.strong, ...s.concepts].some((k) => facts.has(k)) })
   return newsHeads(named.length ? named : fresh)
 }
-export const newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || '') && !isLive(i))
+export const newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || '') && !isAflevering(i) && !isLive(i))
 // Wat je las (personalParts, `ctx.newFacts`): brengen de stukken `fresh` (van het hele verhaal, ná wat je las) een nieuw
 // feit tegenover `old` (de rest van het verhaal)? Dan { keys, heads } met `heads` uit `own` (de nieuwe stukken uit je
 // eigen bronnen; bij voorkeur met het nieuwe feit in de kop), anders null.
 export function newFactIn(fresh, old, sig, own = fresh, story = null) {
   const keysOf = keysWith(sig)
-  const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story)
+  const fact = newFact(fresh, new Set(old.filter((i) => !isAflevering(i)).flatMap(keysOf)), keysOf, story)
   return fact ? { keys: fact.keys, heads: own.length ? factHeads(own, fact, sig) : [] } : null
 }
 // Leeftijd (13 november 2026): het nieuwe feit van een lopend verhaal (isRunning) binnen het venster. De stukken van de
@@ -1524,7 +1534,7 @@ export function runningFact(st, items, sig, now) {
   if (!fresh.length) return null
   const keysOf = keysWith(sig)
   const then = new Set()
-  for (const i of items) if (!(timeOf(i) > cutoff)) for (const k of keysOf(i)) then.add(k)
+  for (const i of items) if (!(timeOf(i) > cutoff) && !isAflevering(i)) for (const k of keysOf(i)) then.add(k)
   return newFact(fresh, then, keysOf, { keyAt: st?.keyAt, pubAt: st?.pubAt, cutoff, pubs: st?.publisherCount })
 }
 
@@ -1767,7 +1777,7 @@ function clusterCore(sig, items) {
     for (const k of h.strong) {
       if (BROAD.has(k) || conceptWord(k)) continue
       const n = names.get(k) || names.set(k, { pubs: new Set(), heads: [] }).get(k)
-      n.pubs.add(publisherOf(i.source))
+      if (!isAflevering(i)) n.pubs.add(publisherOf(i.source)) // een aflevering is geen uitgever (shared/aflevering.mjs)
       n.heads.push(h)
     }
     for (const run of h.titleRuns || []) if (run.length > 1) runs.push(run)
@@ -2922,7 +2932,7 @@ export function widelyCovered(stories = [], byId = new Map(), { isFree = () => f
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     if (st.sourceCount < min && !majorNews(st, items)) continue
     if (!items.length || items.filter(isSport).length * 2 >= items.length) continue
-    const free = items.filter((i) => isFree(i.source) && !isLive(i) && !isOpinion(i))
+    const free = items.filter((i) => isFree(i.source) && !isLive(i) && !isOpinion(i) && !isAflevering(i))
     // De kop eerst uit de Nederlandstalige stukken (`isDutch`, Nederlands vóór Vlaams: dutchFirst), daarbinnen dezelfde
     // kwaliteit en actualiteit, geen landbonus (taalregel, 7 november 2026: de paus in Uruguay kreeg de Engelse Al
     // Jazeera-kop terwijl de VRT het bracht). Pas zonder Nederlandstalig gratis stuk een anderstalig.
