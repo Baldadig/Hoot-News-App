@@ -16,7 +16,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
 import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
-import { excludedFromEdition, mediaEpisode } from '../../shared/editie-filter.mjs'
+import { excludedFromEdition, audioEpisode } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT, showbizzKind } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
@@ -266,7 +266,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // al het grote nieuws toe (selectForReader).
   let bubbleEntry = global.entries.find((e) => e.desk === 'bubbel') || null
   // Alleen nieuws telt als "je bron schrijft erover": een opiniestuk (ook van een opinieblad) wordt nooit de kop.
-  const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !mediaEpisode(i)).map((i) => i.id))
+  const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !audioEpisode(i)).map((i) => i.id))
   const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
   const bigWide = w => majorNews(storyById.get(w.storyId) || w, [w.item])
   // De kop van een breed verhaal: je eigen stuk als je bron erover schrijft, anders dat van de server, mits leesbaar
@@ -301,7 +301,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const relead = (head, xs) => {
     if (readable(head)) return head
     const rubric = rubricOf(head)
-    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && !mediaEpisode(i) && readableIn(i, rubric))
+    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric))
     if (!ok.length) return null
     // Eerst wat niet verouderd is, dan je eigen bronnen, dan Nederlands vóór Vlaams; daarbinnen leadPool (kern, vers).
     const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok

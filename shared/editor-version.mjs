@@ -42,12 +42,14 @@
 // nieuws (COUNTRIES, FOREIGN_NEWS), onder de landenregel.
 // 14 november 2026, dubbelcheck: de persoonlijke bubbel herhaalt geen gebeurtenis uit je vorige Editie (sameEvent, zoals
 // pickBubble); de derde taal met de korte woorden (shared/lang.mjs) en dutchTier op niet Nederlands; de landenregel ook voor lichte verhalen (majorGeneralNews eist uit één land buiten NL en BE
-// een tweede land) en voor de familiebonus (familyBonus); Achterklap weert alleen showbizz als soort (showbizzKind), nooit groot nieuws; een aflevering om te luisteren of te kijken (mediaEpisode in shared/editie-filter.mjs) is
+// een tweede land) en voor de familiebonus (familyBonus); Achterklap weert alleen showbizz als soort (showbizzKind), nooit groot nieuws; een aflevering om te luisteren (audioEpisode in shared/editie-filter.mjs; een video wel, besluit B2) is
 // nooit de kop van een plek, ook niet met een eigen intro; een plek met alleen afleveringen valt weg. De rubriek van een
 // plek: een musicus in de kop is cultuur, en een Amerikaanse staat of stad of het VK is een buitenlandse plek (desks.mjs,
 // countriesIn); een stuk van een Vlaamse bron blijft Buitenland.
 // The Times of Israel uit de catalogus en uit FOREIGN_NEWS (Cloudflare weigert de server; Haaretz blijft voor Israël).
-// Samengevoegd met main (wapo) als redacteur-2026-11-14-dubbelcheck2: dubbelcheck is nooit live geweest.
+// 14 november 2026, dubbelcheck2: samengevoegd met main (wapo); dubbelcheck is nooit live geweest. Na de tweede keuring:
+// "noch" is ook Nederlands en Von der Leyen is een naam (shared/lang.mjs); een musicus of acteur in een misdaadkop is een
+// beroep (desks.mjs) en een plaats in een bedrijfsnaam geen plek (countriesIn); een video mag de kop van een plek zijn.
 export const EDITOR_REVISION = 'redacteur-2026-11-14-dubbelcheck2'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

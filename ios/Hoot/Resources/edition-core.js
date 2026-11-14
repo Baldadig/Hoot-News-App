@@ -2416,6 +2416,7 @@ var HootCore = (() => {
   var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
   var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
   var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  var AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i;
   function rubricSegments(url) {
     const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
     if (!m) return [];
@@ -2456,14 +2457,13 @@ var HootCore = (() => {
     if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
     return null;
   }
-  var VIDEO_RUBRIC = /* @__PURE__ */ new Set(["video", "videos", "video's", "kijk"]);
-  function mediaEpisode(item = {}) {
+  function audioEpisode(item = {}) {
     if (!item || item.kind === "post") return false;
-    if (item.feedMark === "podcast" || item.feedMark === "video") return true;
-    if (/^(audio|video)\//i.test(String(item.mediaType || ""))) return true;
+    if (item.feedMark === "podcast") return true;
+    if (/^audio\//i.test(String(item.mediaType || ""))) return true;
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true;
-    if (rubricSegments(item.url).some((s) => AUDIO_RUBRIC.has(s) || VIDEO_RUBRIC.has(s))) return true;
-    return LABEL2.test(String(item.title || ""));
+    if (rubricSegments(item.url).some((s) => AUDIO_RUBRIC.has(s))) return true;
+    return AUDIO_LABEL.test(String(item.title || ""));
   }
   var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null);
 
@@ -3229,7 +3229,7 @@ var HootCore = (() => {
   function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
     const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
     const scores = new Map(items.map((i) => [i, score(i)]));
-    const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : mediaEpisode(i) ? 1 : 0]));
+    const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : audioEpisode(i) ? 1 : 0]));
     return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b));
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b|(^|:\s*)(bekijk|vind|volg|lees) hier\b|^\W*praat mee\b|^\W*spoorboekje\b|\bresults live\b|\blive results\b|\blive briefing\b|:\s*all the news\s*$/i;
@@ -3610,7 +3610,7 @@ var HootCore = (() => {
   };
   function leadPool(cands, items, now, own2 = null, total = items.length, coreItems = centralItems) {
     let xs = prefer(cands, (i) => !isOpinion(i));
-    xs = prefer(xs, (i) => !mediaEpisode(i));
+    xs = prefer(xs, (i) => !audioEpisode(i));
     xs = prefer(xs, (i) => !isStale(i, now));
     if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
     if (own2) xs = prefer(xs, own2);
@@ -3764,7 +3764,7 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie");
         continue;
       }
-      if (!items.some((i) => !isOpinion(i) && !mediaEpisode(i))) {
+      if (!items.some((i) => !isOpinion(i) && !audioEpisode(i))) {
         reject("story", st.id, st.itemIds, "alleen-aflevering");
         continue;
       }
@@ -3827,14 +3827,14 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie-nieuw");
         continue;
       }
-      if (heads?.length && !heads.some((i) => !isOpinion(i) && !mediaEpisode(i))) {
+      if (heads?.length && !heads.some((i) => !isOpinion(i) && !audioEpisode(i))) {
         reject("story", st.id, st.itemIds, "alleen-aflevering-nieuw");
         continue;
       }
       cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
     }
     for (const it of pool) {
-      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || mediaEpisode(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
+      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || audioEpisode(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
         reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
         continue;
       }
@@ -4298,7 +4298,7 @@ var HootCore = (() => {
     const newsPool = pool.filter((i) => kindOf(i) === "nieuws" || !sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i]) || bigLight(i));
     const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)));
     let bubbleEntry = global.entries.find((e) => e.desk === "bubbel") || null;
-    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !mediaEpisode(i)).map((i) => i.id));
+    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !audioEpisode(i)).map((i) => i.id));
     const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id));
     const bigWide = (w) => majorNews(storyById.get(w.storyId) || w, [w.item]);
     const wideLeads = /* @__PURE__ */ new Map();
@@ -4322,7 +4322,7 @@ var HootCore = (() => {
     const relead = (head, xs) => {
       if (readable(head)) return head;
       const rubric = rubricOf(head);
-      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !mediaEpisode(i) && readableIn(i, rubric));
+      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric));
       if (!ok.length) return null;
       const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok;
       const mine = fresh.filter((i) => followed.has(i.source));

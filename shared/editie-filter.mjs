@@ -21,6 +21,7 @@ const AUDIO_RUBRIC = new Set(['podcast', 'podcasts', 'luister'])
 // Alleen echte taal-/landsegmenten (herstel AI-keuring 1: "tv" in /tv/deals/ is een rubriek, geen taal).
 const LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i
 const LABEL = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i
+const AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i
 
 // De padsegmenten vóór de slug (het laatste segment), in kleine letters.
 export function rubricSegments(url) {
@@ -78,20 +79,22 @@ export function hardMark(item = {}) {
   return null
 }
 
-// Een aflevering om te luisteren of te kijken (dubbelcheck 14 november, A3): de feed markeert hem (hoofdcategorie
-// Podcast of Video, een audio- of video-enclosure, een iTunes-afleveringsnummer), de link staat in een podcast- of
-// videorubriek van de uitgever (/podcast/, /luister/, /video/, /kijk/, een segment vóór de slug) of de kop begint met een
-// programmalabel ("Video |", "Podcast:", "Kijk:"). Zo'n stuk is nooit de kop van een plek in de Editie, ook niet met een
-// eigen intro: het mag wel als lid bij een verhaal (Vergelijken). Een plek met alleen afleveringen valt weg. Dit is
-// strenger dan hardMark (dat weert het stuk helemaal), want hier blijft het stuk in de Editie, alleen niet bovenaan.
-const VIDEO_RUBRIC = new Set(['video', 'videos', "video's", 'kijk'])
-export function mediaEpisode(item = {}) {
+// Een aflevering om te luisteren (dubbelcheck 14 november, A3): de feed markeert hem (hoofdcategorie Podcast, een
+// audio-enclosure, een iTunes-afleveringsnummer), de link staat in een podcastrubriek van de uitgever (/podcast/,
+// /luister/, een segment vóór de slug) of de kop begint met een luisterlabel ("Podcast:", "Luister |"). Zo'n stuk is
+// nooit de kop van een plek in de Editie, ook niet met een eigen intro: het mag wel als lid bij een verhaal (Vergelijken).
+// Een plek met alleen afleveringen valt weg. Dit is strenger dan hardMark (dat weert het stuk helemaal), want hier blijft
+// het stuk in de Editie, alleen niet bovenaan.
+// Een video wel (besluit chief of staff over B2, 14 november): een videostuk van RTL of de NOS is vaak gewoon nieuws, met
+// een kop en intro die het verhaal vertellen. Een video gaat dus mee als elk ander stuk; de bestaande regels voor een kop
+// met een kijklabel (VIDEO_HEAD) en filter B blijven gelden.
+export function audioEpisode(item = {}) {
   if (!item || item.kind === 'post') return false
-  if (item.feedMark === 'podcast' || item.feedMark === 'video') return true
-  if (/^(audio|video)\//i.test(String(item.mediaType || ''))) return true
+  if (item.feedMark === 'podcast') return true
+  if (/^audio\//i.test(String(item.mediaType || ''))) return true
   if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true
-  if (rubricSegments(item.url).some((s) => AUDIO_RUBRIC.has(s) || VIDEO_RUBRIC.has(s))) return true
-  return LABEL.test(String(item.title || ''))
+  if (rubricSegments(item.url).some((s) => AUDIO_RUBRIC.has(s))) return true
+  return AUDIO_LABEL.test(String(item.title || ''))
 }
 
 // Eén toelating voor alle Editieroutes. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag
