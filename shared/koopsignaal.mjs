@@ -26,6 +26,9 @@
 // aanbodlabel vooraan dat geen gewoon kopwoord is ("Dagdeal:", "Aanbieding:", "Kortingscode:"), een prijs bij een
 // winkel ("nu voor €199 bij Bol", "drops to $199 at Amazon") of een kortingscode met een bedrag of percentage.
 // Bij twijfel blijft het stuk staan.
+// Herstel 3 (vierde keuring, vorm in plaats van woorden): een winactie telt bij een nieuwsbron alleen als label of
+// uitnodiging en nooit met het veto; een koopdaglabel en een prijs bij een winkel alleen met een aanbodvorm erachter;
+// aankopen en financiering vallen onder het smalle veto; vakbronnen over een industrie krijgen de strikte stand.
 // Inhoudelijk gelijk aan isBuying van de Selectie (netlify/lib/vak.mjs in de tak selectie: BUY_ALWAYS, DEAL_HEAD,
 // SHOP_DAY met SHOP_WORD, ABOUT_SALES); dit is daar een uitbreiding van met de Engelse koopvormen, zodat de Selectie
 // later deze ene functie kan gebruiken. Alleen eenvoudige, deterministische toetsen: web, server en toestel (edition-core.js).
@@ -106,6 +109,8 @@ const ABOUT = new RegExp([
   // Selectie (ABOUT_SALES): omzet, gedrag, onderzoek, oplichting, toezicht.
   'omzet\\w*', 'sales', 'record\\w*', 'spending', 'uitgaven', 'besteding\\w*', 'besteed\\w*', 'consument\\w*', 'shoppers', 'onderzoek\\w*', 'survey', 'research',
   'cijfers', 'waarom', 'why', 'analyse', 'analysis', 'nep\\w*', 'fakes?', 'scams?', 'oplicht\\w*', 'misleid\\w*', 'fraude', 'acm',
+  // Vierde keuring: phishing en valse acties, ook in een samenstelling ("phishingmail", "sms-phishing", "nep-winactie").
+  '\\w*phishing\\w*', 'valse?',
   // Toezicht, recht en beleid.
   'ftc', 'regulators?', 'toezicht\\w*', 'waarschuw\\w*', 'warns?', 'boetes?', 'fined?', 'probe', 'lawsuit', 'rechter\\w*', 'court', 'kabinet', 'minister\\w*',
   'overheid', 'government', 'gemeenten?', 'zorgtoeslag', 'toeslag\\w*', 'belasting\\w*', 'tax(?:es)?', 'subsidie\\w*', 'cao', 'pensioen\\w*', 'zorgpremie\\w*',
@@ -113,6 +118,9 @@ const ABOUT = new RegExp([
   'm&a', 'mergers?', 'acquisitions?', 'overnames?', 'takeovers?', 'fusies?', 'trade', 'handels\\w*', 'transfers?', 'contracts?', 'billion', 'miljard\\w*',
   '\\d+\\s?bn', 'funding', 'investments?', 'investering\\w*', 'licens\\w*', 'sponsor\\w*', 'peace', 'vrede\\w*', 'ceasefire', 'bestand', 'tariffs?',
   'akkoord', 'coalitie\\w*', 'senate', 'congress', 'eu', 'brexit', 'nuclear', 'kernwapen\\w*',
+  // Aankopen en financiering (vierde keuring): "Netflix buys Spielberg drama", "DPG koopt RTL", "AI funding deals".
+  'buys', 'bought', 'koopt', 'kocht', 'gekocht', 'acquires?', 'acquired', 'raises', 'raised', 'vc', 'venture', 'investors?', 'investeerders?', 'startups?',
+  'valuation', 'waardering', 'ipo', 'scrutiny', '(?:data|figures|report|rapport|cijfers)\\s+(?:shows?|showed|suggests?|toont|tonen|laat zien|laten zien)',
   // Markten en grondstoffen.
   'oil', 'olie\\w*', 'brent', 'gas', 'gasprijs\\w*', 'stroomprijs\\w*', 'energieprijs\\w*', 'bitcoin', 'crypto\\w*', 'stocks?', 'shares', 'aandel\\w*', 'beurs\\w*',
   'koers\\w*', 'markets', 'wall street', 'nasdaq', 'dow', 'aex', 'gold price', 'goudprijs', 'huizen\\w*', 'housing', 'huur\\w*', 'rente\\w*', 'inflati\\w*', 'economie\\w*',
@@ -161,12 +169,19 @@ const NARROW = new RegExp([
   '\\bhow\\b[^?]*\\b(?:works?|actually work)\\b',
   // Nep, oplichting en toezicht.
   '\\bnep\\w*', '\\bfakes?\\b', '\\bscams?\\b', '\\boplicht\\w*', '\\bmisleid\\w*', '\\bmisleading\\b', '\\bfraude\\b', '\\bacm\\b', '\\bftc\\b', '\\bcma\\b',
+  '\\b\\w*phishing\\w*', '\\bvalse?\\b', '\\bscrutiny\\b',
   '\\bregulators?\\b', '\\btoezicht\\w*', '\\bwaarschuw\\w*', '\\bwarns?\\b', '\\bboetes?\\b', '\\bfined?\\b', '\\bprobe\\b', '\\blawsuit\\b', '\\bsue[sd]\\b', '\\brechter\\w*',
   '\\brechtbank\\b', '\\bcourt\\b', '\\beuropese commissie\\b',
   // Zaken: overnames, akkoorden, handel, werk en faillissementen.
   '\\bm&a\\b', '\\bmergers?\\b', '\\bacquisitions?\\b', '\\bovernames?\\b', '\\btakeovers?\\b', '\\bfusies?\\b', '\\bakkoord\\b', '\\btrade\\b', '\\bhandels\\w*',
   '\\bbillion\\b', '\\bmiljard\\w*', '\\b\\d+\\s?bn\\b', '\\bretailers\\b', '\\bwinkeliers\\b', '\\bwebwinkels\\b', '\\bworkers\\b', '\\bwerknemers\\b', '\\bpersoneel\\b',
   '\\bstrikes?\\b', '\\bstaking\\w*', '\\bbankrupt\\w*', '\\bfaillis\\w*', '\\bfailliet\\b',
+  // Aankopen en financiering (vierde keuring): een akkoord tussen bedrijven, geen aanbod aan de lezer ("AFM's top deals:
+  // Netflix buys Spielberg drama", "De beste deals van het mediajaar: DPG koopt RTL", "The top 25 AI funding deals").
+  '\\bbuys\\b', '\\bbought\\b', '\\bkoopt\\b', '\\bkocht\\b', '\\bgekocht\\b', '\\bacquires?\\b', '\\bacquired\\b', '\\bfunding\\b', '\\braises\\b',
+  '\\braised\\b', '\\bvc\\b', '\\bventure\\b', '\\binvest\\w*', '\\binvesteer\\w*', '\\bstartups?\\b', '\\bvaluation\\b', '\\bipo\\b',
+  // Een cijfer als onderwerp: "Amazon's best Prime Day deals were on its own devices, data shows".
+  '\\b(?:data|figures|report|rapport|cijfers)\\s+(?:shows?|showed|suggests?|toont|tonen|laat zien|laten zien)\\b',
   // Sport: transfers, contracten en free agency ("NFL free agency 2026: Best and worst deals so far", "De beste deals van de
   // transferzomer: Ajax verdient 80 miljoen"). Een rangschikking van zaken, geen aanbod aan de lezer.
   '\\btransfer\\w*', '\\bfree[- ]agen\\w*', '\\bcontracts?\\b', '\\bcontract(?:en)?\\b', '\\bsignings?\\b', '\\boff-?season\\b', '\\btrade deadline\\b',
@@ -199,20 +214,36 @@ const strongForm = (t) => STRONG_HEAD.test(t) || (SHOP_DAY.test(t) && STRONG_DAY
 // Bij een nieuwsbron alleen de ondubbelzinnige signalen: de uitgever noemt het zelf een winactie, advertentie, dagdeal,
 // aanbieding of kortingscode, of de kop zet een prijs bij een winkel. Ook dan houdt een tegenvoorbeeld (ABOUT) het vast.
 // Een winactie vooraan in de gebiedende wijs ("Win kaarten voor U2 in de Johan Cruijff Arena") is ook zo'n eigen signaal.
+// Herstel 3 (vierde keuring): ook een winactie is alleen een aanbod als de uitgever haar zo aanbiedt, als label vooraan
+// ("Winactie: ...", "Winactie |") of als uitnodiging aan de lezer ("Maak kans op ...", "Win kaarten voor ..."). Staat het
+// woord in een gewone zin ("Winactie van Kruidvat op Instagram is nep", "Winactie radiozender loopt uit de hand"), dan
+// is het nieuws over een winactie. Ook dan houdt het veto het vast (phishing, nep en oplichting maken er nieuws van). Dat is
+// het smalle veto, zoals bij elke onmiskenbare vorm: de prijs zelf ("tickets", "fans") is geen tegenvoorbeeld.
 const STRICT_ALWAYS = new RegExp([
-  '\\bwinactie\\b', '\\bmaak kans op\\b', '\\((?:adv|advertentie)\\)', '\\[(?:adv|advertentie)\\]',
+  '^[\\s"\'‘“([]*winactie\\s*[:|.!–—-]\\s', '\\bmaak kans op\\b', '\\((?:adv|advertentie)\\)', '\\[(?:adv|advertentie)\\]',
   '^[\\s"\'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b',
 ].join('|'), 'iu')
-const STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial|(?:black friday|cyber monday|prime day|singles day)-deals?)\s*[:|.!–—-]\s/iu
+const STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial)\s*[:|.!–—-]\s/iu
+// Een koopdaglabel ("Black Friday-deals:") is bij een nieuwsbron ook een kopvorm voor uitleg aan de lezer ("Black
+// Friday-deals: hoe goed zijn ze echt?"). Alleen een aanbod met een prijs, een percentage of een winkel erachter.
+const DAY_LABEL = /^[\s"'‘“([]*(?:black friday|cyber monday|prime day|singles day)-deals?\s*[:|.!–—-]\s/iu
 const STORE = /\b(?:at|bij|via|from)\s+(?:amazon(?:\.\w+)?|bestbuy|walmart|target|costco|newegg|currys|john lewis|bol(?:\.com)?|coolblue|mediamarkt|media markt|alternate|megekko|wehkamp|belsimpel|azerty|fnac|zalando)\b/iu
 const PRICE = /(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b/iu
+const PERCENT = /\b\d+\s?(?:%|procent|percent)/iu
+// Een prijs bij een winkel is alleen een aanbod met een aanbodvorm: de prijsval van een product (PRICE_DROP: "nu voor",
+// "drops to", "is $X off", "on sale for"), korting, "van X voor Y" of "in de aanbieding". Een bedrag met een winkel in een
+// gewone zin ("Pakketjes van €20 bij Bol krijgen extra heffing", "costs $58 at Walmart", "raise from Amazon") is nieuws.
+const OFFER = /\bkorting\w*|\bafgeprijsd\w*|\bin de aanbieding\b|\bvan\s+(?:€\s?)?\d[\d.,]*(?:\s?euro)?\s+(?:nu\s+)?voor\s+(?:€\s?)?\d/iu
+const offerForm = (t) => PRICE_DROP.test(t) || OFFER.test(t)
 const CODE = /\b(?:(?:promo|coupon|discount)\s+codes?|kortingscodes?|actiecodes?)\b/iu
 const CODE_AMOUNT = /\b\d+\s?(?:%|procent|percent)|(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b|\b20\d\d\b/iu
 function strictGrond(t) {
-  if (STRICT_ALWAYS.test(t)) return 'aanbod'
+  if (STRICT_ALWAYS.test(t)) return NARROW.test(t) ? null : 'aanbod'
+  const rest = t.replace(DAY_LABEL, '')
   const grond = STRICT_LABEL.test(t) ? 'label'
+    : DAY_LABEL.test(t) ? (PRICE.test(rest) || PERCENT.test(rest) || STORE.test(rest) ? 'label' : null)
     : PRICE_LABEL.test(t) ? (STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? 'label' : null)
-    : PRICE.test(t) && STORE.test(t) ? 'prijsval'
+    : PRICE.test(t) && STORE.test(t) ? (offerForm(t) ? 'prijsval' : null)
     : CODE.test(t) && CODE_AMOUNT.test(t) ? 'kortingscode' : null
   return grond && !ABOUT.test(t) ? grond : null
 }
@@ -223,7 +254,8 @@ export function koopGrond(title = '', { ruim = true } = {}) {
   const t = clean(title)
   if (!t) return null
   if (!ruim) return strictGrond(t)
-  if (BUY_ALWAYS.test(t)) return 'aanbod'
+  // Ook bij een koopbron houdt het smalle veto een winactie vast (vierde keuring: nep, phishing en oplichting).
+  if (BUY_ALWAYS.test(t)) return NARROW.test(t) ? null : 'aanbod'
   if (GIFT_GUIDE.test(t) && !GIFT_SUBJECT.test(t) && !NARROW.test(t)) return 'aanbod'
   if (LABEL.test(t)) return ABOUT.test(t) ? null : 'label'
   if (PRICE_LABEL.test(t)) return priceLabelOffer(t) && !ABOUT.test(t) ? 'label' : null
@@ -259,10 +291,15 @@ export function shopCategory(cats = []) {
 // /indybest/, /thefilter/, /black-friday/ …) het stuk zo indeelt. Ook dan houdt het veto nieuws over omzet of toezicht vast. `segs`: de padsegmenten voor de slug (rubricSegments in editie-filter.mjs).
 const KOOP_CATS = new Set(['tech', 'games', 'cultuur', 'muziek', 'lifestyle', 'consument'])
 const CAT_OF = new Map(SOURCES.map((s) => [s.id, s.cat]))
+// Herstel 3 (vierde keuring): bronnen in tech en cultuur die over een industrie berichten (start-ups, film- en mediazaken,
+// journalistiek) of de cultuurredactie van een nieuwsomroep zijn, maken geen koopstukken. Daar is "top deals" bijna altijd
+// een akkoord ("The top AI deals of the week", "The top deals of the Toronto film festival market"). Zij krijgen de strikte
+// stand, net als een nieuwsbron; een deal- of koopgidsrubriek in de feed of het pad opent de poort ook hier.
+const VAKBRON = new Set(['techcrunch', 'mittr', 'variety', 'villamedia', 'mediacourant', 'nos-cultuur'])
 const SHOP_RUBRIC = new Set(['deals', 'deal', 'aanbiedingen', 'aanbieding', 'koopjes', 'coupons', 'kortingscodes', 'dagdeals', 'shopping', 'recommended',
   'indybest', 'thefilter', 'the-filter', 'buying-guide', 'buying-guides', 'gift-guide', 'gift-guides', 'gift-ideas', 'gifts', 'best-buys', 'reviews', 'review',
   'product-reviews', 'recensie', 'recensies', 'gear', 'koopgids', 'koopgidsen', 'cadeaugids', 'cadeaugidsen', 'wirecutter', 'underscored', 'black-friday',
   'cyber-monday', 'prime-day', 'singles-day'])
 export function koopBron(item = {}, segs = []) {
-  return KOOP_CATS.has(CAT_OF.get(item.source)) || item.feedMark === 'aanbod' || segs.some((x) => SHOP_RUBRIC.has(x))
+  return (KOOP_CATS.has(CAT_OF.get(item.source)) && !VAKBRON.has(item.source)) || item.feedMark === 'aanbod' || segs.some((x) => SHOP_RUBRIC.has(x))
 }

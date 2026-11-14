@@ -1703,6 +1703,9 @@ var HootCore = (() => {
     "misleid\\w*",
     "fraude",
     "acm",
+    // Vierde keuring: phishing en valse acties, ook in een samenstelling ("phishingmail", "sms-phishing", "nep-winactie").
+    "\\w*phishing\\w*",
+    "valse?",
     // Toezicht, recht en beleid.
     "ftc",
     "regulators?",
@@ -1760,6 +1763,26 @@ var HootCore = (() => {
     "brexit",
     "nuclear",
     "kernwapen\\w*",
+    // Aankopen en financiering (vierde keuring): "Netflix buys Spielberg drama", "DPG koopt RTL", "AI funding deals".
+    "buys",
+    "bought",
+    "koopt",
+    "kocht",
+    "gekocht",
+    "acquires?",
+    "acquired",
+    "raises",
+    "raised",
+    "vc",
+    "venture",
+    "investors?",
+    "investeerders?",
+    "startups?",
+    "valuation",
+    "waardering",
+    "ipo",
+    "scrutiny",
+    "(?:data|figures|report|rapport|cijfers)\\s+(?:shows?|showed|suggests?|toont|tonen|laat zien|laten zien)",
     // Markten en grondstoffen.
     "oil",
     "olie\\w*",
@@ -1989,6 +2012,9 @@ var HootCore = (() => {
     "\\bacm\\b",
     "\\bftc\\b",
     "\\bcma\\b",
+    "\\b\\w*phishing\\w*",
+    "\\bvalse?\\b",
+    "\\bscrutiny\\b",
     "\\bregulators?\\b",
     "\\btoezicht\\w*",
     "\\bwaarschuw\\w*",
@@ -2026,6 +2052,27 @@ var HootCore = (() => {
     "\\bbankrupt\\w*",
     "\\bfaillis\\w*",
     "\\bfailliet\\b",
+    // Aankopen en financiering (vierde keuring): een akkoord tussen bedrijven, geen aanbod aan de lezer ("AFM's top deals:
+    // Netflix buys Spielberg drama", "De beste deals van het mediajaar: DPG koopt RTL", "The top 25 AI funding deals").
+    "\\bbuys\\b",
+    "\\bbought\\b",
+    "\\bkoopt\\b",
+    "\\bkocht\\b",
+    "\\bgekocht\\b",
+    "\\bacquires?\\b",
+    "\\bacquired\\b",
+    "\\bfunding\\b",
+    "\\braises\\b",
+    "\\braised\\b",
+    "\\bvc\\b",
+    "\\bventure\\b",
+    "\\binvest\\w*",
+    "\\binvesteer\\w*",
+    "\\bstartups?\\b",
+    "\\bvaluation\\b",
+    "\\bipo\\b",
+    // Een cijfer als onderwerp: "Amazon's best Prime Day deals were on its own devices, data shows".
+    "\\b(?:data|figures|report|rapport|cijfers)\\s+(?:shows?|showed|suggests?|toont|tonen|laat zien|laten zien)\\b",
     // Sport: transfers, contracten en free agency ("NFL free agency 2026: Best and worst deals so far", "De beste deals van de
     // transferzomer: Ajax verdient 80 miljoen"). Een rangschikking van zaken, geen aanbod aan de lezer.
     "\\btransfer\\w*",
@@ -2115,27 +2162,32 @@ var HootCore = (() => {
   var clean = (t) => String(t || "").replace(/\s+/g, " ").replace(/[’‘`]/g, "'").replace(/\bbest buy\b/gi, "BestBuy").replace(/\btop shop\b/gi, "Topshop").trim();
   var strongForm = (t) => STRONG_HEAD.test(t) || SHOP_DAY.test(t) && STRONG_DAY_WORD.test(t);
   var STRICT_ALWAYS = new RegExp([
-    "\\bwinactie\\b",
+    `^[\\s"'‘“([]*winactie\\s*[:|.!–—-]\\s`,
     "\\bmaak kans op\\b",
     "\\((?:adv|advertentie)\\)",
     "\\[(?:adv|advertentie)\\]",
     `^[\\s"'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b`
   ].join("|"), "iu");
-  var STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial|(?:black friday|cyber monday|prime day|singles day)-deals?)\s*[:|.!–—-]\s/iu;
+  var STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial)\s*[:|.!–—-]\s/iu;
+  var DAY_LABEL = /^[\s"'‘“([]*(?:black friday|cyber monday|prime day|singles day)-deals?\s*[:|.!–—-]\s/iu;
   var STORE = /\b(?:at|bij|via|from)\s+(?:amazon(?:\.\w+)?|bestbuy|walmart|target|costco|newegg|currys|john lewis|bol(?:\.com)?|coolblue|mediamarkt|media markt|alternate|megekko|wehkamp|belsimpel|azerty|fnac|zalando)\b/iu;
   var PRICE = /(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b/iu;
+  var PERCENT = /\b\d+\s?(?:%|procent|percent)/iu;
+  var OFFER = /\bkorting\w*|\bafgeprijsd\w*|\bin de aanbieding\b|\bvan\s+(?:€\s?)?\d[\d.,]*(?:\s?euro)?\s+(?:nu\s+)?voor\s+(?:€\s?)?\d/iu;
+  var offerForm = (t) => PRICE_DROP.test(t) || OFFER.test(t);
   var CODE = /\b(?:(?:promo|coupon|discount)\s+codes?|kortingscodes?|actiecodes?)\b/iu;
   var CODE_AMOUNT = /\b\d+\s?(?:%|procent|percent)|(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b|\b20\d\d\b/iu;
   function strictGrond(t) {
-    if (STRICT_ALWAYS.test(t)) return "aanbod";
-    const grond = STRICT_LABEL.test(t) ? "label" : PRICE_LABEL.test(t) ? STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? "label" : null : PRICE.test(t) && STORE.test(t) ? "prijsval" : CODE.test(t) && CODE_AMOUNT.test(t) ? "kortingscode" : null;
+    if (STRICT_ALWAYS.test(t)) return NARROW.test(t) ? null : "aanbod";
+    const rest = t.replace(DAY_LABEL, "");
+    const grond = STRICT_LABEL.test(t) ? "label" : DAY_LABEL.test(t) ? PRICE.test(rest) || PERCENT.test(rest) || STORE.test(rest) ? "label" : null : PRICE_LABEL.test(t) ? STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? "label" : null : PRICE.test(t) && STORE.test(t) ? offerForm(t) ? "prijsval" : null : CODE.test(t) && CODE_AMOUNT.test(t) ? "kortingscode" : null;
     return grond && !ABOUT.test(t) ? grond : null;
   }
   function koopGrond(title = "", { ruim = true } = {}) {
     const t = clean(title);
     if (!t) return null;
     if (!ruim) return strictGrond(t);
-    if (BUY_ALWAYS.test(t)) return "aanbod";
+    if (BUY_ALWAYS.test(t)) return NARROW.test(t) ? null : "aanbod";
     if (GIFT_GUIDE.test(t) && !GIFT_SUBJECT.test(t) && !NARROW.test(t)) return "aanbod";
     if (LABEL2.test(t)) return ABOUT.test(t) ? null : "label";
     if (PRICE_LABEL.test(t)) return priceLabelOffer(t) && !ABOUT.test(t) ? "label" : null;
@@ -2151,6 +2203,7 @@ var HootCore = (() => {
   };
   var KOOP_CATS = /* @__PURE__ */ new Set(["tech", "games", "cultuur", "muziek", "lifestyle", "consument"]);
   var CAT_OF = new Map(SOURCES.map((s) => [s.id, s.cat]));
+  var VAKBRON = /* @__PURE__ */ new Set(["techcrunch", "mittr", "variety", "villamedia", "mediacourant", "nos-cultuur"]);
   var SHOP_RUBRIC = /* @__PURE__ */ new Set([
     "deals",
     "deal",
@@ -2190,7 +2243,7 @@ var HootCore = (() => {
     "singles-day"
   ]);
   function koopBron(item = {}, segs = []) {
-    return KOOP_CATS.has(CAT_OF.get(item.source)) || item.feedMark === "aanbod" || segs.some((x) => SHOP_RUBRIC.has(x));
+    return KOOP_CATS.has(CAT_OF.get(item.source)) && !VAKBRON.has(item.source) || item.feedMark === "aanbod" || segs.some((x) => SHOP_RUBRIC.has(x));
   }
 
   // shared/editie-filter.mjs
