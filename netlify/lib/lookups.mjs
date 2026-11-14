@@ -89,19 +89,36 @@ export async function loadBlueskyProfiles(handles) {
 // ---------- Beeld via Bluesky ----------
 // Sommige feeds leveren geen beeld (Tweakers), terwijl de redactie elk artikel op Bluesky deelt
 // met een linkkaart mét beeld (1000 px breed). De site zelf staat achter een toestemmingspoort;
-// die omzeilen we niet. Geeft [{ title, thumb }] van de laatste ~100 posts.
-export async function loadBskyCards(handle) {
+// die omzeilen we niet. Geeft [{ title, thumb, uri }] van de laatste posts (per pagina 100).
+// Alleen de eigen posts van het account (wapo, 14 november 2026): geen repost van een ander, want het beeld moet het beeld
+// zijn dat de uitgever zelf bij zijn artikel deelt, net als og:image (og.mjs). `pages`: hoeveel pagina's van 100 (een
+// drukke uitgever als The Washington Post post 100 keer in ruim een dag); alle pagina's samen hooguit `budget` ms.
+export const cardsOf = (feed = [], handle = '') =>
+  feed
+    .filter((f) => !f?.reason && (!handle || f?.post?.author?.handle === handle))
+    .map((f) => f.post?.embed?.external)
+    .filter((e) => e?.title && e?.thumb)
+    .map((e) => ({ title: e.title, thumb: e.thumb, uri: e.uri || null }))
+export async function loadBskyCards(handle, { pages = 1, budget = 6000, fetchImpl = fetch } = {}) {
+  const out = []
+  const round = AbortSignal.timeout(budget)
+  let cursor = null
   try {
-    const res = await fetch(`${BSKY_API}/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(handle)}&limit=100&filter=posts_no_replies`, {
-      headers: { 'User-Agent': UA },
-      signal: AbortSignal.timeout(6000),
-    })
-    if (!res.ok) return []
-    const d = await res.json()
-    return (d.feed || []).map((f) => f.post?.embed?.external).filter((e) => e?.title && e?.thumb).map((e) => ({ title: e.title, thumb: e.thumb }))
+    for (let p = 0; p < pages; p++) {
+      const res = await fetchImpl(`${BSKY_API}/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(handle)}&limit=100&filter=posts_no_replies${cursor ? '&cursor=' + encodeURIComponent(cursor) : ''}`, {
+        headers: { 'User-Agent': UA },
+        signal: round,
+      })
+      if (!res.ok) break
+      const d = await res.json()
+      out.push(...cardsOf(d.feed || [], handle))
+      cursor = d.cursor
+      if (!cursor) break
+    }
   } catch {
-    return []
+    /* wat binnen is, telt */
   }
+  return out
 }
 
 // `list`: standaard de catalogus; de Selectie geeft haar eigen bronnen mee (alleen wie een `bsky` heeft wordt opgevraagd).

@@ -188,10 +188,22 @@ function pickImage(item) {
   return m ? m[1] : null
 }
 
+// De wachttijd per feed (wapo, 14 november 2026). Standaard FEED_TIMEOUT. Een bron die bekend traag antwoordt, zegt zelf
+// hoe lang we wachten (`timeoutMs` in de catalogus), nooit langer dan FEED_TIMEOUT_MAX: de geplande functie moet op tijd
+// klaar zijn. Een trage bron (`slowSource`) houdt de ronde niet op: build.mjs (fetchSources) wacht er niet op en neemt
+// anders zijn laatste geslaagde lading.
+export const FEED_TIMEOUT = 9000
+export const FEED_TIMEOUT_MAX = 14000
+export function feedTimeout(src) {
+  const t = Number(src?.timeoutMs)
+  return Number.isFinite(t) && t > 0 ? Math.min(FEED_TIMEOUT_MAX, Math.max(1000, Math.round(t))) : FEED_TIMEOUT
+}
+export const slowSource = (src) => feedTimeout(src) > FEED_TIMEOUT
+
 // Zelf ophalen en dan pas lezen: sommige feeds beginnen met een onzichtbaar teken of witregels
 // (The Independent), waar de parser anders over struikelt.
-async function readFeed(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml; q=0.9, */*; q=0.8' }, signal: AbortSignal.timeout(9000) })
+async function readFeed(url, timeout = FEED_TIMEOUT) {
+  const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml; q=0.9, */*; q=0.8' }, signal: AbortSignal.timeout(timeout) })
   if (!res.ok) throw new Error(feedError(res.status, res.headers))
   return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
 }
@@ -224,12 +236,13 @@ export function newestFirst(items = []) {
 // `limit`: hoeveel berichten in de taal van de bron (feedvolgorde). Standaard het oude venster
 // (editionWindowOf: 30, per rubriek minder). De feed-opbouw vraagt alles (Infinity): de Stroom kapt
 // zelf af op tijd en aantal (stream.mjs), de verhalen en de Editie nemen het oude venster (firstOf, stream.mjs).
-export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) } = {}) {
+// `read`: alleen voor toetsen (een nepfeed); krijgt de url en de wachttijd van de bron (feedTimeout).
+export async function loadSource(src, avatarsP, { limit = editionWindowOf(src), read = readFeed } = {}) {
   let lastErr
   for (const url of src.urls) {
     try {
       // Feed en avatars tegelijk ophalen (avatars houden de feed niet meer op).
-      const [feed, avatars] = await Promise.all([readFeed(url), avatarsP])
+      const [feed, avatars] = await Promise.all([read(url, feedTimeout(src)), avatarsP])
       const fetchedAt = Date.now()
       // Mooie merk-avatar: 0) het officiele beeld van de site (`logo`), 1) Bluesky-profiel, 2) het eigen logo van Hoot, 3) favicon.
       const brandAvatar = src.logo || avatars[src.id] || ownLogo(src.id)

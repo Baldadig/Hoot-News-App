@@ -27,7 +27,7 @@ import { haagsDossier } from './dossiers.mjs'
 import { placeDesks } from './rubriek.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, OPINIE_IDS, EDITION_CATS, UA, ownLogo } from './sources.mjs'
-import { loadSourceWithRetry } from './rss.mjs'
+import { loadSourceWithRetry, slowSource } from './rss.mjs'
 import { STORE_KEY, splitFeed, storeOf, withLatest } from './stream.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { loadOgImage } from './og.mjs'
@@ -66,8 +66,9 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
   const profiles = handles.length === 0 ? Promise.resolve({}) : remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
   // De hele feed per bron; daaruit twee lijsten (shared/stroom.mjs).
-  const [fetched, bskyGroups, registry, stored] = await Promise.all([
-    settle(SOURCES, (s) => loadSourceWithRetry(s, avatars, { limit: Infinity })),
+  // Binnen de tijd (fetchSources): een trage bron houdt de rest niet op; wat hij later brengt, bewaart late() aan het eind.
+  const [{ fetched, late }, bskyGroups, registry, stored] = await Promise.all([
+    fetchSources(SOURCES, avatars, { now }),
     settle(BLUESKY_AUTHORS, (a) => loadBluesky(a, now)),
     kvGet('registry-v1').then((r) => (r && typeof r === 'object' ? r : {})),
     kvGet(STORE_KEY).catch(() => null),
@@ -156,6 +157,8 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   for (const it of out) (parts[it.source] ||= []).push(it)
   const storyItems = out.filter((i) => i.storyId)
   const blokken = await verschillen
+  // Wat een trage bron (fetchSources) intussen bracht, voor de volgende ronde. Mislukt het, dan niets.
+  await late().catch(() => 0)
   return {
     sources: sourceList({ mainGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
     items: out.filter(inStroom),
@@ -183,6 +186,61 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
 // ---------- Ophalen ----------
 const settle = async (list, load) =>
   (await Promise.allSettled(list.map(load))).map((r, i) => (r.status === 'fulfilled' ? r.value : { id: list[i].id || list[i].handle, name: list[i].name, ok: false, count: 0, items: [], error: String(r.reason) }))
+
+// De tijd van het ophalen (wapo, 14 november 2026; zelfde aanpak als vak.mjs sinds B13). De planner van Netlify geeft een
+// geplande functie na 15 seconden op, en feed-refresh haalde dat soms niet (499). Daarom:
+// - de gewone bronnen: de ronde wacht hooguit FETCH_MS (vanaf de start) en doet daarna geen herhaling meer; wat dan niet
+//   klaar is, telt als niet aan de beurt (`skipped`). De Stroom houdt zijn berichten (stream.mjs, mergeStream);
+// - een trage bron (`timeoutMs` boven de standaard, rss.mjs slowSource) houdt de ronde niet op: zijn verzoek loopt naast
+//   de rest. Is hij klaar als de gewone bronnen klaar zijn, dan telt hij meteen; anders telt zijn laatste geslaagde lading
+//   (LATE_KEY, hooguit LATE_KEEP oud), en `late()` bewaart aan het eind van de ronde wat er intussen binnenkwam, voor de
+//   volgende ronde. Op een trage bron wacht de ronde nooit langer dan tot LATE_MS na de start.
+export const FETCH_MS = 10000
+export const LATE_MS = 14000
+export const LATE_KEEP = 3 * 60 * MIN
+export const LATE_KEY = 'feed-traag-v1'
+const failed = (s, e) => ({ id: s.id, name: s.name, ok: false, count: 0, items: [], error: String(e?.message || e) })
+export async function fetchSources(list, avatars, { start = Date.now(), now = start, load = loadSourceWithRetry, get = kvGet, set = kvSet, fetchMs = FETCH_MS, lateMs = LATE_MS, keepMs = LATE_KEEP } = {}) {
+  const slow = list.filter(slowSource)
+  const regular = list.filter((s) => !slowSource(s))
+  const ready = new Map()
+  const slowRuns = slow.map((s) =>
+    Promise.resolve()
+      .then(() => load(s, avatars, { limit: Infinity, deadline: start + lateMs }))
+      .catch((e) => failed(s, e))
+      .then((r) => (ready.set(s.id, r), r)),
+  )
+  const cacheP = slow.length ? Promise.resolve().then(() => get(LATE_KEY)).catch(() => null) : Promise.resolve(null)
+  const deadline = start + fetchMs
+  const done = new Map()
+  const runs = Promise.all(regular.map((s) => Promise.resolve().then(() => load(s, avatars, { limit: Infinity, deadline })).catch((e) => failed(s, e)).then((r) => done.set(s.id, r))))
+  let timer
+  await Promise.race([runs, new Promise((r) => (timer = setTimeout(r, Math.max(0, deadline - Date.now()))))])
+  clearTimeout(timer)
+  const stored = await cacheP
+  const cache = stored && typeof stored === 'object' ? stored : {}
+  const fromCache = (s) => {
+    const c = cache[s.id]
+    return c && Array.isArray(c.items) && c.items.length && now - (c.at || 0) <= keepMs ? { id: s.id, name: s.name, ok: true, cached: c.at, used: c.used || null, count: c.items.length, items: c.items } : null
+  }
+  const slowResult = (s) => (ready.get(s.id)?.ok ? ready.get(s.id) : fromCache(s) || ready.get(s.id) || { id: s.id, name: s.name, ok: false, pending: true, count: 0, items: [] })
+  const fetched = list.map((s) => (slowSource(s) ? slowResult(s) : done.get(s.id) || { id: s.id, name: s.name, ok: false, skipped: true, count: 0, items: [] }))
+  // Aan het eind van de ronde: wat de trage bronnen intussen brachten bewaren (alleen een geslaagde lading).
+  const late = async () => {
+    if (!slow.length) return 0
+    let t
+    await Promise.race([Promise.all(slowRuns), new Promise((r) => (t = setTimeout(r, Math.max(0, start + lateMs - Date.now()))))])
+    clearTimeout(t)
+    const good = slow.map((s) => ready.get(s.id)).filter((r) => r?.ok && r.items.length)
+    if (!good.length) return 0
+    const at = now // de tijd van de ronde, net als fromCache
+    const next = Object.fromEntries(Object.entries(cache).filter(([id, c]) => slow.some((s) => s.id === id) && at - (c?.at || 0) <= keepMs))
+    for (const r of good) next[r.id] = { at, used: r.used || null, items: r.items }
+    await set(LATE_KEY, next)
+    return good.length
+  }
+  return { fetched, late }
+}
 
 async function loadBluesky(author, now) {
   const id = 'bsky:' + author.handle
@@ -333,28 +391,60 @@ export async function sizeBingImages(items, now, { load = loadImageSize, get = k
 // Bronnen zonder beeld in de feed (`bskyImages`) krijgen het beeld van hun eigen linkkaart op
 // Bluesky, gekoppeld op de kop. Tweakers zet in de feed "Review - " voor de kop, op Bluesky niet;
 // en past een kop soms nog aan ("om PHP-bug" werd "door PHP-bug"): dan telt sterke overlap.
+// Sinds wapo (14 november 2026) eerst op de link: een kaart die naar hetzelfde artikel wijst (articleKey, zonder
+// utm-parameters) is het zekerst; daarna pas de kop. Een rubriek vóór een verticale streep op de kaart ("Column | …")
+// telt voor de kop niet mee.
 const KICKER = /^(review|preview|videoreview|achtergrond|column|interview|podcast|plan|video)\s*[-–]\s*/i
-export function matchCard(title, cards) {
-  const key = normTitle(title.replace(KICKER, ''))
-  const exact = cards.find((c) => normTitle(c.title.replace(KICKER, '')) === key)
+const LABEL = /^[^|]{1,24}\s\|\s+/
+const bare = (t) => String(t || '').replace(KICKER, '').replace(LABEL, '')
+export function matchCard(title, cards, url = null) {
+  const key = url ? articleKey(url) : null
+  const byLink = key && cards.find((c) => c.uri && articleKey(c.uri) === key)
+  if (byLink) return byLink
+  const exact = cards.find((c) => normTitle(bare(c.title)) === normTitle(bare(title)))
   if (exact) return exact
   const w = sigWords(title)
   if (w.size < 4) return null
   return cards.find((c) => {
-    const cw = sigWords(c.title)
+    const cw = sigWords(bare(c.title))
     return sharedCount(w, cw) / Math.max(w.size, cw.size) >= 0.75
   }) || null
 }
-async function imagesFromBluesky(items, now) {
-  for (const src of SOURCES.filter((s) => s.bskyImages && s.bsky)) {
-    const needs = items.filter((it) => it.source === src.id && it.kind === 'article' && !it.image)
-    if (!needs.length) continue
-    const cards = await remember('bsky-cards-' + src.id, 9 * MIN, () => loadBskyCards(src.bsky), { now, valid: (c) => c.length > 0 }).catch(() => [])
-    for (const it of needs) {
-      const hit = matchCard(it.title, cards || [])
-      if (hit) it.image = safeHttpUrl(hit.thumb)
-    }
+// Per uitgever één keer de kaarten ophalen (twee bronnen van één uitgever delen hun Bluesky-account), alle uitgevers
+// tegelijk, binnen BSKY_CARDS_MS. Een gevonden beeld onthouden we per artikel (BSKY_IMAGES_KEY, net als og-images-v1),
+// zodat een stuk zijn beeld houdt als de post al uit de laatste pagina's is gezakt. Niets gevonden onthouden we niet:
+// de uitgever kan het stuk later nog delen.
+export const BSKY_CARD_PAGES = 2
+export const BSKY_CARDS_MS = 6000
+export const BSKY_IMAGES_KEY = 'bsky-images-v1'
+export async function imagesFromBluesky(items, now, { sources = SOURCES, load = loadBskyCards, get = kvGet, set = kvSet, cache = remember } = {}) {
+  const want = sources.filter((s) => s.bskyImages && s.bsky)
+  const needs = items.filter((it) => it.kind === 'article' && !it.image && want.some((s) => s.id === it.source))
+  if (!needs.length) return 0
+  const stored = await Promise.resolve().then(() => get(BSKY_IMAGES_KEY)).catch(() => null)
+  const store = stored && typeof stored === 'object' ? stored : {}
+  const handles = [...new Set(want.filter((s) => needs.some((it) => it.source === s.id)).map((s) => s.bsky))]
+  const cards = new Map(
+    await Promise.all(
+      handles.map(async (h) => [h, (await Promise.resolve().then(() => cache('bsky-cards-' + h, 9 * MIN, () => load(h, { pages: BSKY_CARD_PAGES, budget: BSKY_CARDS_MS }), { now, valid: (c) => c.length > 0 })).catch(() => [])) || []]),
+    ),
+  )
+  let found = 0
+  for (const it of needs) {
+    const key = articleKey(it.url)
+    const src = want.find((s) => s.id === it.source)
+    const hit = matchCard(it.title, cards.get(src.bsky) || [], it.url)
+    const img = safeHttpUrl(hit?.thumb) || (key && safeHttpUrl(store[key]?.img)) || null
+    if (!img) continue
+    it.image = img
+    if (key && hit) store[key] = { img, at: now }
+    found++
   }
+  if (found) {
+    for (const [k, v] of Object.entries(store)) if (now - (v?.at || 0) > OG_KEEP) delete store[k]
+    await Promise.resolve().then(() => set(BSKY_IMAGES_KEY, store)).catch(() => {})
+  }
+  return found
 }
 
 // ---------- 3c. Beeld van het artikel zelf ----------

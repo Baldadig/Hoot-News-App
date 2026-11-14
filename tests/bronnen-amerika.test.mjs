@@ -3,8 +3,8 @@
 // Hoot-design/bronnen-internationaal-2026-11-14/AMERIKA-VERSLAG.md. De landenregel zelf staat in
 // tests/bronnen-internationaal.test.mjs. Hier:
 //   1. Axios en ProPublica: Engelstalig, Internationaal, Amerikaans, gratis, voor niemand ongevraagd aan;
-//   2. alleen bronnen met een kwalitatieve feed: The Washington Post (feed te traag, geen beeld) en Fox, CBS, PBS en
-//      Semafor (besluit Alex) staan er niet in;
+//   2. alleen bronnen met een kwalitatieve feed: Fox, CBS, PBS en Semafor (besluit Alex) staan er niet in. The Washington
+//      Post kwam er later bij, met een eigen wachttijd en beeld via Bluesky (tests/wapo.test.mjs);
 //   3. de intro uit de feed: geen WordPress-regel "The post … appeared first on …", geen bijschrift bij een foto of grafiek.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -42,10 +42,10 @@ test('Axios en ProPublica: Engelstalig, Internationaal, Amerikaans, gratis en vo
   for (const id of NIEUW) assert.ok(int.sources.some((s) => s.id === id), id)
 })
 
-test('alleen een kwalitatieve feed: geen Washington Post, Fox, CBS, PBS of Semafor', () => {
-  const weg = /washingtonpost\.com|foxnews\.com|cbsnews\.com|pbs\.org|semafor\.com/
+test('alleen een kwalitatieve feed: geen Fox, CBS, PBS of Semafor', () => {
+  const weg = /foxnews\.com|cbsnews\.com|pbs\.org|semafor\.com/
   assert.ok(!SOURCES.some((s) => s.urls.some((u) => weg.test(u))))
-  for (const id of ['wapo', 'fox', 'cbs', 'pbs', 'semafor']) assert.equal(byId.get(id), undefined, id)
+  for (const id of ['fox', 'cbs', 'pbs', 'semafor']) assert.equal(byId.get(id), undefined, id)
 })
 
 test('een stuk van Axios of ProPublica zonder herkende plaats telt voor het plafond als buitenland', () => {
