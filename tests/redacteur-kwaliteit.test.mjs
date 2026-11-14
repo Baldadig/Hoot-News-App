@@ -97,7 +97,12 @@ test('live, schone beginnerseditie: geen licht stuk, tien plekken, bubbel apart'
   const regular = ed.entries.filter((e) => e.desk !== 'bubbel')
   assert.equal(editionStoryCount(ed.entries), 10)
   for (const e of regular) assert.ok(!/podcast/i.test(items.get(e.leadId || e.id)?.title || ''), items.get(e.leadId || e.id)?.title)
-  assert.equal(ed.entries.at(-1).desk, 'bubbel')
+  // Buiten je bubbel is optioneel en staat dan achteraan. Sinds de persona's van 14 november (punt 5) niet van een bron die
+  // je volgt, gratis en buiten je regio: de kandidaten in deze feed (4 november) zijn van vóór de eis "gratis" en vallen
+  // daarop af, dus deze beginner krijgt er geen.
+  const bubble = ed.entries.filter((e) => e.desk === 'bubbel')
+  assert.ok(bubble.length <= 1)
+  if (bubble.length) assert.equal(ed.entries.at(-1).desk, 'bubbel')
 })
 
 test('Martha-vorm: een lifestylestuk van een basisbron vult geen gewone plek bij een beginner; bij Cultuur toegelaten', () => {

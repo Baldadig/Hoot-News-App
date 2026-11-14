@@ -4147,6 +4147,22 @@ var HootCore = (() => {
     };
   }
 
+  // shared/lezer.mjs
+  function regionWordsOf(source) {
+    if (!source || source.cat !== "regio" || !source.about) return [];
+    return String(source.about).replace(/,?\s*de regionale omroep\.?/i, "").replace(/\.$/, "").split(/,|\s+en\s+/i).map((w) => w.trim().toLowerCase()).filter((w) => w.length >= 3 && w !== "omgeving" && !/\s(?:en|van|de)$/.test(w));
+  }
+  function readerRegions({ followed = /* @__PURE__ */ new Set(), sources = [] } = {}) {
+    return new Set(sources.filter((s) => followed.has(s.id)).flatMap(regionWordsOf));
+  }
+  var escape = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function inRegion(item, regions, sourceOf = () => null) {
+    if (!item || !regions?.size) return false;
+    if (regionWordsOf(sourceOf(item.source)).some((w) => regions.has(w))) return true;
+    const text = `${item.title || ""} ${item.summary || ""}`;
+    return [...regions].some((w) => new RegExp(`(^|[^\\p{L}])${escape(w)}([^\\p{L}]|$)`, "iu").test(text));
+  }
+
   // src/lib/personal.js
   var EXTERN = "extern";
   var WIDE = "breed";
@@ -4482,19 +4498,35 @@ var HootCore = (() => {
     const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))];
     const familiesOfStory = (sid, id) => storyById.get(sid)?.sport || (storyById.get(sid)?.itemIds || [id]).some((x) => itemAny.has(x) && isSport(itemAny.get(x), prof.catOf)) ? ["sport"] : [];
     let nearItem = null;
+    const regions = readerRegions({ followed, sources });
+    const sourceById = new Map(sources.map((s) => [s.id, s]));
+    const bubbleDesks = chosenDesks(prof);
+    const outsideItem = (i) => !!i && i.kind !== "post" && !isOpinion(i) && readable(i) && !followed.has(i.source) && !sourceById.get(i.source)?.paid && !inRegion(i, regions, (s) => sourceById.get(s));
+    const bubbleLeadOf = (sid, id) => {
+      const it = itemAny.get(id);
+      if (!it) return null;
+      const story = sid || it.storyId || null;
+      const desk = storyById.get(story)?.desk ?? storyDesk.get(story) ?? deskOfStory([it]);
+      if (desk && bubbleDesks.has(desk) || inRegion(it, regions, (s) => sourceById.get(s))) return null;
+      if (outsideItem(it)) return it;
+      const others = story ? storyMembers(story, id).filter((i) => i.id !== id && outsideItem(i)) : [];
+      return leadCandidates(others, followed, preferred, now)[0] || null;
+    };
     if (bubbleEntry) {
-      const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
+      const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && !!bubbleLeadOf(b.storyId, b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
       const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id };
-      const alt = [first, ...global.bubble || []].find(okB);
+      const seenB = /* @__PURE__ */ new Set();
+      const alt = [first, ...global.bubble || []].filter((b) => b?.id && !seenB.has(b.id) && seenB.add(b.id) && okB(b)).sort((a, b) => jitter(seed, a.id) - jitter(seed, b.id) || byText(a.id, b.id))[0];
       if (alt) {
-        if (alt.id !== bubbleEntry.id) bubbleEntry = { kind: "item", id: alt.id, desk: "bubbel", terms: alt.terms };
-        bubbleEntry = withHistory(bubbleEntry, alt.id, alt.storyId);
+        const lead = bubbleLeadOf(alt.storyId, alt.id);
+        if (lead.id !== bubbleEntry.id) bubbleEntry = { kind: "item", id: lead.id, desk: "bubbel", terms: alt.terms };
+        bubbleEntry = withHistory(bubbleEntry, lead.id, alt.storyId || lead.storyId);
       } else {
         const home = strongestFamily(prof);
         const next = new Set(NEIGHBOURS[home] || []);
         const recent = stories.filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5).sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id)).map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }));
-        const fits = (w) => w?.item?.id && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
-        const nearLead = (w) => relead(w.item, storyMembers(w.storyId, w.item.id));
+        const fits = (w) => w?.item?.id && !!bubbleLeadOf(w.storyId, w.item.id) && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
+        const nearLead = (w) => bubbleLeadOf(w.storyId, w.item.id);
         const pick0 = [...global.near || [], ...recent].find((w) => fits(w) && nearLead(w));
         const pick = pick0 && nearLead(pick0) !== pick0.item ? { ...pick0, item: nearLead(pick0) } : pick0;
         bubbleEntry = pick ? withHistory({ kind: "story", id: pick.storyId, leadId: pick.item.id, desk: "bubbel", near: home }, pick.item.id, pick.storyId) : null;

@@ -142,7 +142,7 @@ export function bubbleRejection(a, { isFree = () => false, isSport = () => false
 }
 
 // ---------- Kandidaten voor de persoonlijke Editie ----------
-export const BUBBLE_CANDIDATES = 6 // zoveel kandidaten naast het stuk in de algemene Editie
+export const BUBBLE_CANDIDATES = 10 // zoveel kandidaten naast het stuk in de algemene Editie (6 tot de persona's van 14 november: meer keus per lezer, ook in zijn leestaal)
 export const BUBBLE_PER_AREA = 2 // hooguit zoveel per gebied: niet zes keer voetbal
 export const NEAR_MAX = 12
 export const NEAR_MIN_SOURCES = 3

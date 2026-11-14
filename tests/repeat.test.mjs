@@ -60,7 +60,9 @@ test('Buiten je bubbel gaat niet over iets wat al in je eigen editie staat', () 
   // Jouw editie: Servië (Nederlands); de bubbel van de server: een Engels liveblog over Servië.
   const serbia = Array.from({ length: 3 }, (_, i) => art('rs' + i, ['nos', 'volkskrant', 'nrc'][i], 'Serviërs vieren verkiezingswinst Studentenlijst, Vučić erkent nederlaag', 2 + i * 0.2, { summary: 'Oud-president Aleksandar Vučić erkent zijn nederlaag bij de verkiezingen in Servië.' }))
   const live = art('gl', 'guardian', 'Serbia wakes up to new reality after student-led movement ousts Vučić – Europe live', 1, { summary: 'Aleksandar Vučić concedes defeat in the Serbian election.' })
-  const other = art('ot', 'guardian', 'Heatwave grips southern Spain as wildfires spread near Valencia', 1, { summary: 'Firefighters battle blazes near Valencia.' })
+  // Het andere signaal ligt buiten Wereld (persona's 14 november, punt 5: geen bubbel uit een rubriek die je koos; de
+  // hittegolf in Spanje van vroeger is voor wie Wereld koos binnen de bubbel).
+  const other = art('ot', 'nu', 'Gemeente Zwolle opent nieuwe fietsenstalling onder het station', 1, { summary: 'De stalling biedt plek aan vijfduizend fietsen.' })
   const st = [{ id: 'st-rs', itemIds: serbia.map((i) => i.id), sourceCount: 3, ownCount: 3, latestAt: serbia[0].publishedAt }]
   const global = { id: 'e', entries: [{ kind: 'story', id: 'st-rs', leadId: 'rs0', desk: 'buitenland' }, { kind: 'item', id: 'gl', desk: 'bubbel', terms: [] }], items: [...serbia, live, other], bubble: [{ id: 'ot', terms: [] }] }
   // Met Wereld: zonder Wereld zijn Servië en de hittegolf in Spanje (geen groot nieuws) sinds de normen

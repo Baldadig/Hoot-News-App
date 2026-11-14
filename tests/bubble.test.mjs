@@ -116,7 +116,9 @@ test('bubbel: ≥ 6 kandidaten, hooguit 2 per gebied, het stuk van de algemene e
   const before = matchTrending(trends, articles.filter((a) => a.lang === 'nl'), { max: 3 })
   assert.equal(picks[0].id, before[0].id)
   const bubble = picks.slice(1) // zo komt het in global.bubble
-  assert.ok(bubble.length >= BUBBLE_CANDIDATES, `kandidaten: ${bubble.length}`)
+  // Deze nacht heeft minder geschikte stukken dan BUBBLE_CANDIDATES (10 sinds de persona's van 14 november): alles wat
+  // kan, staat erin, en minstens de zes van vroeger.
+  assert.ok(bubble.length >= 6 && bubble.length <= BUBBLE_CANDIDATES, `kandidaten: ${bubble.length}`)
   const per = new Map()
   for (const p of picks) for (const a of areasOf(byId.get(p.id))) per.set(a, (per.get(a) || 0) + 1)
   for (const [a, n] of per) assert.ok(n <= BUBBLE_PER_AREA, `${a}: ${n}`)
@@ -127,7 +129,7 @@ test('bubbel: ≥ 6 kandidaten, hooguit 2 per gebied, het stuk van de algemene e
 })
 
 test('bubbel: zonder gebied telt een stuk niet mee voor de spreiding; de grens blijft gelden', () => {
-  const list = Array.from({ length: 10 }, (_, i) => ({ id: 'x' + i }))
+  const list = Array.from({ length: 2 * BUBBLE_CANDIDATES }, (_, i) => ({ id: 'x' + i }))
   assert.equal(bubbleCandidates([list]).length, 1 + BUBBLE_CANDIDATES)
   assert.equal(bubbleCandidates([list], { max: 3 }).length, 3)
   assert.deepEqual(bubbleCandidates([[{ id: 'a', storyId: 's' }], [{ id: 'b', storyId: 's' }, { id: 'a' }, null]]).map((p) => p.id), ['a'])
