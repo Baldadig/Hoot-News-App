@@ -135,6 +135,7 @@ struct EditionKopBalk: View {
             }
         }
         .animation(Beweging.kortAnim, value: stand.kopWeg)
+        .preference(key: RefreshStrip.KopKey.self, value: stand.kopWeg) // de trekstrook wijkt voor de kop
         .accessibilityHidden(true)
     }
 }
