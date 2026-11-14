@@ -68,10 +68,14 @@ test('1. de rest van de beschrijving gaat niet over iets anders (Ronaldo stopt, 
   const r = run(dag(/06-ochtend/))
   assert.equal(r.of(/Cristiano Ronaldo/).l, undefined)
   assert.equal(r.of(/Cristiano Ronaldo/).af(/Ronaldo stopt/), 'de aflevering gaat ook over andere onderwerpen')
-  // Met alleen de zinnen over Ronaldo was het wel dezelfde gebeurtenis.
+  // Met alleen de zinnen over Ronaldo gaat de aflevering niet meer over andere onderwerpen. Toch geen "hetzelfde" (keuring 2,
+  // 14 november): de kop zelf ("Cristiano Ronaldo krijgt boodschap van… Gianni Infantino") deelt alleen de naam Ronaldo met
+  // de aflevering over zijn afscheid, geen kernwoord of uitslag. Bij twijfel niets.
   const e = vi(/Ronaldo stopt/)
   const alleen = { ...e, id: 'ealleen', samenvatting: e.samenvatting.split('. ')[0] + '.' }
-  assert.equal(run(dag(/06-ochtend/), { episodes: [alleen] }).of(/Cristiano Ronaldo/).l?.soort, 'hetzelfde')
+  const r2 = run(dag(/06-ochtend/), { episodes: [alleen] }).of(/Cristiano Ronaldo/)
+  assert.equal(r2.l, undefined)
+  assert.equal(r2.af(/Ronaldo stopt/), 'de kop zelf deelt de gebeurtenis niet met de aflevering (geen kernwoord, uitslag of handeling, alleen namen)')
 })
 
 test('2. een vooruitblik koppelt niet bij de afloop ("Kolkende Kuip moet Feyenoord aan drie punten helpen")', () => {

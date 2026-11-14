@@ -1,0 +1,232 @@
+{
+ "bron": "gethoot.app/api/feed?deel=kern (14 november 2026, avond): het verhaal over Oranje, en de aflevering #583 van de NOS Voetbalpodcast uit de opslag van luister-proef (keuring 2)",
+ "now": "2026-11-14T20:10:51.870Z",
+ "stories": [
+  {
+   "id": "srfd4fh",
+   "leadId": "ev49i2",
+   "itemIds": [
+    "ev49i2",
+    "16rjzo3",
+    "1ou7q23",
+    "1ap6uc5",
+    "11l04lp",
+    "1u3uwiv",
+    "y67nqk",
+    "14q1ruu",
+    "5n1bxc",
+    "1kmze29",
+    "pswwua",
+    "1n7tevn",
+    "14f2gav",
+    "163io6o",
+    "n17tmn",
+    "ktt2x5",
+    "n17tdj",
+    "c8kgln",
+    "n17tea",
+    "n17tcj",
+    "n17tfg",
+    "j9u8rs"
+   ],
+   "sourceCount": 9,
+   "publisherCount": 9
+  }
+ ],
+ "items": [
+  {
+   "id": "ev49i2",
+   "source": "vi",
+   "title": "Vijf Oranje-spelers bij gele kaart tegen Duitsland geschorst voor kwartfinale",
+   "summary": "Vijf spelers van het Nederlands elftal moeten op hun tellen passen in het afsluitende Nations League-duel met Duitsland.",
+   "url": "https://www.vi.nl/nieuws/vijf-oranje-spelers-bij-gele-kaart-tegen-duitsland-geschorst-voor-kwartfinale",
+   "publishedAt": "2026-11-14T20:05:35.000Z"
+  },
+  {
+   "id": "16rjzo3",
+   "source": "ad",
+   "title": "Zweden heeft geen kind aan Bosnië: Alexander Isak maakt derde treffer van de avond",
+   "summary": "De Nations gaat vanavond verder met weer de nodige interessante affiches. Zo neemt Noorwegen het thuis op tegen Wales (aftrap om 18.00 uur).",
+   "url": "https://www.ad.nl/voetbal/zweden-heeft-geen-kind-aan-bosnie-alexander-isak-maakt-derde-treffer-van-de-avond~a90d31e2/",
+   "publishedAt": "2026-11-14T19:45:00.000Z"
+  },
+  {
+   "id": "1ou7q23",
+   "source": "bbc-sport",
+   "title": "Haaland helps Norway to win over Wales in Nations League",
+   "summary": "Watch the best of the action as Norway beat Wales in the Nations League in Oslo.",
+   "url": "https://www.bbc.co.uk/sport/football/videos/cr20vgxv43p8o?at_medium=RSS&at_campaign=rss",
+   "publishedAt": "2026-11-14T19:23:13.000Z"
+  },
+  {
+   "id": "1ap6uc5",
+   "source": "sporza",
+   "title": "Nusa zet Noorwegen op weg naar belangrijke zege tegen Wales, Haaland doet boeken dicht",
+   "summary": "Noorwegen mag weer volop dromen van de kwartfinales van de Nations League. Na een doelpuntloze eerste helft maakten de Noren na rust het verschil tegen Wales (3-1).",
+   "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-nations-league/2026-2027/groep-4/05/noorwegen-wales-nusa-zet-noorwegen-op-weg-naar-belangrijke-zege-tegen-wales-haaland-doet-boeken-dicht~1770982621002/",
+   "publishedAt": "2026-11-14T19:18:22.794Z"
+  },
+  {
+   "id": "11l04lp",
+   "source": "vi",
+   "title": "VI Live: Portugal kan koppositie verzekeren, KKD-avond in volle gang",
+   "summary": "In Groep 4 van Divisie A in de Nations League staat Noorwegen zaterdag om 18.00 uur tegenover Wales. Beide landen maken nog kans op de volgende ronde.",
+   "url": "https://www.vi.nl/nieuws/vi-live-portugal-kan-zich-verzekeren-van-groepswinst-noorwegen-heeft-nog-hoop",
+   "publishedAt": "2026-11-14T19:17:45.000Z"
+  },
+  {
+   "id": "1u3uwiv",
+   "source": "guardian-sport",
+   "title": "Clinical Norway dent Wales’ Nations League top-tier hopes with victory in Oslo",
+   "summary": "Home side avenge October defeat in Cardiff Wales bottom of Group A4 with one game left Wales suffered a 3-1 defeat to Norway in Oslo to dent their hopes of staying in the top tier of the Nations League.",
+   "url": "https://www.theguardian.com/football/2026/nov/14/clinical-norway-dent-wales-nations-league-top-tier-hopes-with-victory-in-oslo",
+   "publishedAt": "2026-11-14T19:17:14.000Z"
+  },
+  {
+   "id": "y67nqk",
+   "source": "gva",
+   "title": "Noorwegen (met Anderlecht-middenvelder Aasgaard in de basis) ontdoet zich moeizaam van Wales en degradatiezorgen in Nations League",
+   "summary": "In de Nations League heeft Noorwegen zaterdag Wales geklopt met 3-1. De Noren doen daardoor nog mee voor kwalificatie voor de volgende ronde.",
+   "url": "https://www.gva.be/sport/voetbal/noorwegen-met-anderlecht-middenvelder-aasgaard-in-de-basis-ontdoet-zich-moeizaam-van-wales-en-degradatiezorgen-in-nations-league/164563464.html",
+   "publishedAt": "2026-11-14T19:12:00.000Z"
+  },
+  {
+   "id": "14q1ruu",
+   "source": "vi",
+   "title": "Noorwegen leeft op in Nations League en krijgt kwartfinale weer in zicht",
+   "summary": "Noorwegen heeft zaterdag een broodnodige overwinning geboekt op Wales.",
+   "url": "https://www.vi.nl/nieuws/noorwegen-leeft-op-in-nations-league-en-krijgt-kwartfinale-weer-in-zicht",
+   "publishedAt": "2026-11-14T18:54:49.000Z"
+  },
+  {
+   "id": "5n1bxc",
+   "source": "telegraaf",
+   "title": "Noorwegen en Haaland ontdoen zich moeizaam van Wales en degradatiezorgen in Nations League",
+   "summary": "Noorwegen heeft in eigen huis moeizaam afgerekend met Wales.",
+   "url": "https://www.telegraaf.nl/sport/voetbal/noorwegen-en-haaland-ontdoen-zich-moeizaam-van-wales-en-degradatiezorgen-in-nations-league/164562521.html",
+   "publishedAt": "2026-11-14T18:54:42.000Z"
+  },
+  {
+   "id": "1kmze29",
+   "source": "vi",
+   "title": "Mbappé terug bij Frankrijk, Zidane verwerpt ‘irritante’ geruchten",
+   "summary": "Zinédine Zidane kan weer beschikken over Kylian Mbappé.",
+   "url": "https://www.vi.nl/nieuws/mbappe-terug-bij-frankrijk-zidane-verwerpt-irritante-geruchten",
+   "publishedAt": "2026-11-14T18:25:25.000Z"
+  },
+  {
+   "id": "pswwua",
+   "source": "sporza",
+   "title": "‘Het deed denken aan Manchester City en het grote Barcelona’: Youri Mulder is lyrisch na Nederlandse zevenklapper",
+   "summary": "Nederland heeft in de Nations League een indrukwekkend statement gemaakt. De ploeg van bondscoach Xavi veegde gisteren Griekenland met 7-0 van de mat.",
+   "url": "https://sporza.be/nl/2026/11/14/-het-deed-denken-aan-manchester-city-en-het-grote-barcelona-youri-mulder-is-lyrisch-na-nederlandse-zevenklapper~1794679670613/",
+   "publishedAt": "2026-11-14T18:21:23.558Z"
+  },
+  {
+   "id": "1n7tevn",
+   "source": "telegraaf",
+   "title": "Samenspel Joey Veerman-Frenkie de Jong biedt perspectief, al blijft vervolg nu uit: ’Het liep hartstikke natuurlijk’",
+   "summary": "Alsof de duvel ermee speelt. Het samenspel van Joey Veerman en Frenkie de Jong was een belangrijke aanjager bij de schitterende 7-0 zege van het Nederlands elftal in de…",
+   "url": "https://www.telegraaf.nl/sport/voetbal/samenspel-joey-veerman-frenkie-de-jong-biedt-perspectief-al-blijft-vervolg-nu-uit-het-liep-hartstikke-natuurlijk/164560730.html",
+   "publishedAt": "2026-11-14T17:16:04.000Z"
+  },
+  {
+   "id": "14f2gav",
+   "source": "ad",
+   "title": "Van Bommel heeft Lukaku terug voor duel met Italië, Frankrijk beschikt weer over Mbappé",
+   "summary": "De komende twee weken staan weer in het teken van interlandvoetbal. Oranje speelt twee duels in de Nations League (tegen Griekenland en Duitsland).",
+   "url": "https://www.ad.nl/voetbal/van-bommel-heeft-lukaku-terug-voor-duel-met-italie-frankrijk-beschikt-weer-over-mbappe~a8c685ae/",
+   "publishedAt": "2026-11-14T15:44:00.000Z"
+  },
+  {
+   "id": "163io6o",
+   "source": "vi",
+   "title": "Dit zijn route en mogelijke tegenstanders Oranje in vervolg Nations League",
+   "summary": "Na de 7-0 overwinning op Griekenland is het Nederlands elftal zo goed als zeker van een plek in de kwartfinale van de Nations League.",
+   "url": "https://www.vi.nl/nieuws/dit-zijn-route-en-mogelijke-tegenstanders-oranje-in-vervolg-nations-league",
+   "publishedAt": "2026-11-14T15:42:12.000Z"
+  },
+  {
+   "id": "n17tmn",
+   "source": "nos-sport",
+   "title": "Niet-fitte De Jong mist Nations League-duel Oranje met Duitsland",
+   "summary": "Frenkie de Jong mist komende maandag de wedstrijd van het Nederlands elftal tegen Duitsland in de strijd om de Nations League in Berlijn.",
+   "url": "https://nos.nl/l/2639482",
+   "publishedAt": "2026-11-14T14:10:49.000Z"
+  },
+  {
+   "id": "ktt2x5",
+   "source": "nu",
+   "title": "Frenkie de Jong mist duel Oranje met Duitsland vanwege lichte klachten",
+   "summary": "Frenkie de Jong is zaterdag met lichte klachten afgehaakt bij Oranje. De middenvelder mist daardoor maandag het Nations League-duel met Duitsland in Berlijn.",
+   "url": "https://www.nu.nl/voetbal/6416584/frenkie-de-jong-mist-duel-oranje-met-duitsland-vanwege-lichte-klachten.html",
+   "publishedAt": "2026-11-14T14:09:57.000Z"
+  },
+  {
+   "id": "n17tdj",
+   "source": "nos-sport",
+   "title": "Oranje begint voorbereiding op duel met Duitsers, reserves trainen buiten",
+   "summary": "Een dag na de galavoorstelling tegen Griekenland is het Nederlands elftal in Zeist begonnen aan de voorbereiding op de Nations League-wedstrijd van maandag tegen Duitsland.",
+   "url": "https://nos.nl/l/2639464",
+   "publishedAt": "2026-11-14T12:01:35.000Z"
+  },
+  {
+   "id": "c8kgln",
+   "source": "nu",
+   "title": "Reijnders glundert na evenaring Van Basten in Oranje: ‘Bal is voor die kleine’",
+   "summary": "De hattrick van Tijjani Reijnders vrijdag in de Nations League-wedstrijd van Oranje tegen Griekenland (7-0) was niet de eerste in zijn carrière, maar wel de bijzonderste.",
+   "url": "https://www.nu.nl/voetbal/6416554/reijnders-glundert-na-evenaring-van-basten-in-oranje-bal-is-voor-die-kleine.html",
+   "publishedAt": "2026-11-14T10:39:42.000Z"
+  },
+  {
+   "id": "n17tea",
+   "source": "nos-sport",
+   "title": "Koppel Veerman-De Jong laat Oranje swingen: ‘Zo bepalend voor het spel’",
+   "summary": "De eerste keer Joey Veerman en Frenkie de Jong aan de aftrap bij Oranje schreeuwt om een vervolg.",
+   "url": "https://nos.nl/l/2639434",
+   "publishedAt": "2026-11-14T07:37:22.000Z"
+  },
+  {
+   "id": "n17tcj",
+   "source": "nos-sport",
+   "title": "Nagenieten bij Oranje van 7-0: ‘Visie duidelijk, maar nog lange weg te gaan’",
+   "summary": "De klinkende overwinning tegen Griekenland (7-0) is volgens Frenkie de Jong ‘een stap in de juiste richting’ voor Oranje.",
+   "url": "https://nos.nl/l/2639417",
+   "publishedAt": "2026-11-13T22:55:37.000Z"
+  },
+  {
+   "id": "n17tfg",
+   "source": "nos-sport",
+   "title": "Blije Xavi prijst Verbruggen en vertelt: ‘De Jong vroeg zelf om wissel’",
+   "summary": "Waar het Nederlands elftal vorige maand in Griekenland nog een loodzwaar duel speelde en ternauwernood een punt redde in de Nations League, wervelde het vrijdagavond in Amsterdam overtuigend langs de Grieken (7-0).",
+   "url": "https://nos.nl/l/2639409",
+   "publishedAt": "2026-11-13T22:19:50.000Z"
+  },
+  {
+   "id": "j9u8rs",
+   "source": "dw",
+   "title": "Germany’s Nmecha won’t repeat controversial goal celebration",
+   "summary": "Germany head coach Jürgen Klopp has said midfielder Felix Nmecha will not repeat a goal celebration that sparked controversy over the past week.",
+   "url": "https://www.dw.com/en/germany-s-nmecha-won-t-repeat-controversial-goal-celebration/a-79937994?maca=en-rss-en-all-1573-rdf",
+   "publishedAt": "2026-11-13T11:04:00.000Z"
+  }
+ ],
+ "episodes": [
+  {
+   "id": "e1tq5tby",
+   "show": "nos-voetbalpodcast",
+   "titel": "#583 - Avondje Hollandse school: 'Grote galavoorstelling van Oranje'",
+   "samenvatting": "Het Nederlands elftal zet een monsterscore neer tegen Griekenland in de Nations League: 7-0. Jeroen Grueter, Jeroen Stekelenburg, Ibrahim Afellay en Thierry Boon praten over de wedstrijd.",
+   "tekst": "Het Nederlands elftal zet een monsterscore neer tegen Griekenland in de Nations League: 7-0. Jeroen Grueter, Jeroen Stekelenburg, Ibrahim Afellay en Thierry Boon praten over de wedstrijd.",
+   "t": 1794612600000,
+   "guid": "WO_NOS_20373619",
+   "duur": 1459,
+   "links": [],
+   "pagina": "https://www.nporadio1.nl/podcasts/nos-voetbalpodcast",
+   "vast": [
+    "Thierry Boon",
+    "Jeroen Stekelenburg"
+   ]
+  }
+ ]
+}

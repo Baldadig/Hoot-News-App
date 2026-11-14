@@ -208,9 +208,11 @@ test('5. een show zonder Hoot-bron: actueel, na het begin van het nieuws of van 
   const r = koppel({ stories, byId, episodes: [oud], now: at, mainIds: MAIN_IDS })
   assert.equal(r.byStory.get(crisis.id), undefined)
   assert.equal(r.rows.afgevallen.find((a) => a.verhaal === crisis.id)?.reden, 'show zonder Hoot-bron: de aflevering is ouder dan de dag voor het begin van het nieuws')
-  // Van de vorige dag mag wel.
+  // Van de vorige dag mag wel (met de andere afleveringen van de ronde erbij, zoals live: die kennen "gesprekken" als gewoon
+  // woord, zodat "Gesprekken" aan het begin van een zin geen naam is; zonder De Dag en de Volkskrant, die zouden voorgaan).
   const gisteren = { ...e, id: 'egisteren', t: firstAt - 20 * 36e5 }
-  assert.equal(koppel({ stories, byId, episodes: [gisteren], now: at, mainIds: MAIN_IDS }).byStory.get(crisis.id)?.showId, 'bnr-studio-den-haag')
+  const ronde = [...X.episodes, ...EPS].filter((x) => x.t <= at && x.id !== e.id && !['nos-de-dag', 'vk-elke-dag'].includes(x.show))
+  assert.equal(koppel({ stories, byId, episodes: [gisteren, ...ronde], now: at, mainIds: MAIN_IDS }).byStory.get(crisis.id)?.showId, 'bnr-studio-den-haag')
 })
 
 test('alle shows: de kop zelf noemt iets uit de aflevering, niet alleen de intro (een mengverhaal over de interlands)', () => {
@@ -270,7 +272,11 @@ test('keuring 1. de kop zelf: één gedeelde naam die alleen het kader is (een c
 test('keuring 2. BNR Beurs die halverwege overstapt: de volgorde-woorden, en één naam buiten het verhaal is genoeg', () => {
   const now = Date.parse(X.now)
   const byId = new Map(X.items.map((i) => [i.id, i]))
-  const st = X.stories.find((s) => /decline of the visionary/.test(byId.get(s.leadId)?.title || ''))
+  // De kop van RTL noemt de gebeurtenis zelf ("het vertrek"); de kop van The Verge ("the decline of the visionary showman")
+  // deelt alleen de naam, en dan is het geen "hetzelfde" (keuring 2: de kop zelf deelt de gebeurtenis).
+  const st0 = X.stories.find((s) => /decline of the visionary/.test(byId.get(s.leadId)?.title || ''))
+  const st = { ...st0, leadId: st0.itemIds.find((id) => /^Wat betekent het vertrek van Jensen Huang/.test(byId.get(id)?.title || '')) }
+  assert.ok(st.leadId)
   const titel = 'Jensen Huang weg bij Nvidia: wat nu voor het aandeel? | Beurs in Zicht'
   const basis = 'Jensen Huang is vertrokken als topman van Nvidia na een tweede affaire. Ook zijn band met president Trump en handelsminister Lutnick ligt onder vuur. Wat betekent dat voor het aandeel Nvidia en voor beleggers? Deze Beurs in Zicht zoeken we het voor je uit.'
   const run = (tekst, show = 'bnr-beurs') => {
@@ -285,7 +291,7 @@ test('keuring 2. BNR Beurs die halverwege overstapt: de volgorde-woorden, en é�
   assert.equal(daarna.l, undefined)
   assert.equal(daarna.af, 'deze aflevering gaat over meer onderwerpen, zonder artikellink')
   // Zonder zo'n woord: één eigen naam buiten de zin van het eerste onderwerp die nergens in het verhaal staat.
-  const stil = basis + ' Intussen zakt Ahold Delhaize hard na zwakke cijfers.'
+  const stil = basis + ' Tegelijk zakt Ahold Delhaize hard na zwakke cijfers.'
   assert.equal(describe(nabouw('bnr-beurs', titel, stil, now), SHOW.get('bnr-beurs')).meer, false, 'de MEER-regel ziet het niet')
   assert.equal(run(stil).l, undefined)
   assert.equal(run(stil).af, 'show zonder Hoot-bron: de beschrijving noemt ook iets anders (Ahold)')
@@ -343,4 +349,93 @@ test('keuring: de makers worden geteld zonder de vaste zinnen ("Wall Street" bij
   // En de inhoud houdt "Wall Street" ("Horror-hangover op Wall Street").
   const e = beurs(/Horror-hangover/)
   assert.ok(!e.vast.includes('Wall Street'))
+})
+
+// ---------- Keuring 2 (14 november): herstel ----------
+// tests/fixtures/luister-keuring2-2026-11-14.json: het verhaal over Oranje van de avond (live kern, met de kop "Vijf
+// Oranje-spelers … geschorst voor kwartfinale") en #583 van de NOS Voetbalpodcast, zoals de opslag van de proef ze had.
+const K2 = JSON.parse(readFileSync(new URL('./fixtures/luister-keuring2-2026-11-14.json', import.meta.url), 'utf8'))
+// Het Huang-verhaal van de middag met de kop van RTL, die de gebeurtenis zelf noemt ("het vertrek van Jensen Huang").
+const huang = () => {
+  const byId = new Map(X.items.map((i) => [i.id, i]))
+  const st0 = X.stories.find((s) => /decline of the visionary/.test(byId.get(s.leadId)?.title || ''))
+  const st = { ...st0, leadId: st0.itemIds.find((id) => /^Wat betekent het vertrek van Jensen Huang/.test(byId.get(id)?.title || '')) }
+  const now = Date.parse(X.now)
+  const titel = 'Jensen Huang weg bij Nvidia: wat nu voor het aandeel? | Beurs in Zicht'
+  const basis = 'Jensen Huang is vertrokken als topman van Nvidia na een tweede affaire. Ook zijn band met president Trump en handelsminister Lutnick ligt onder vuur. Wat betekent dat voor het aandeel Nvidia en voor beleggers?'
+  const run = (tekst, show = 'bnr-beurs', t = titel) => {
+    const r = koppel({ stories: [st], byId, episodes: [nabouw(show, t, tekst, now)], now, mainIds: MAIN_IDS })
+    return { l: r.byStory.get(st.id), af: r.rows.afgevallen[0]?.reden }
+  }
+  return { run, basis }
+}
+
+test('keuring 2.1 "hetzelfde": de kop zelf deelt de gebeurtenis (een kernwoord, een uitslag, twee eigen namen), niet alleen het kader', () => {
+  const byId = new Map(K2.items.map((i) => [i.id, i]))
+  const [st] = K2.stories
+  const run = (re) => {
+    const leadId = K2.items.find((i) => re.test(i.title)).id
+    const r = koppel({ stories: [{ ...st, leadId }], byId, episodes: K2.episodes, now: Date.parse(K2.now), mainIds: MAIN_IDS })
+    return { l: r.byStory.get(st.id), af: r.rows.afgevallen[0]?.reden }
+  }
+  // Live, de avond: #583 (de nabespreking van de 7-0) deelt met de kop over de schorsingen alleen Oranje (en via het verhaal de
+  // Nations League). Dat is het kader, geen gebeurtenis: niets, ook geen verdiepend.
+  const geschorst = run(/^Vijf Oranje-spelers/)
+  assert.equal(geschorst.l, undefined)
+  assert.equal(geschorst.af, 'de kop zelf deelt de gebeurtenis niet met de aflevering (geen kernwoord, uitslag of handeling, alleen namen)')
+  // Hetzelfde verhaal met een kop die de uitslag noemt: wel.
+  assert.equal(run(/^Nagenieten bij Oranje van 7-0/).l?.soort, 'hetzelfde')
+  // De goede van main blijven (twee eigen namen uit de kop, of de uitslag in "7-0-overwinning").
+  const xById = new Map(X.items.map((i) => [i.id, i]))
+  const rx = koppel({ stories: X.stories, byId: xById, episodes: X.episodes, now: Date.parse(X.now), mainIds: MAIN_IDS })
+  assert.ok(rx.rows.koppelingen.some((k) => /Galavoorstelling Oranje/.test(k.aflevering) && /7-0/.test(k.kop) && k.soort === 'hetzelfde'))
+  // Twee eigen namen uit de kop zelf ("Wat betekent het vertrek van Jensen Huang voor Nvidia?") zijn de partijen: wel.
+  const { run: hr, basis } = huang()
+  assert.equal(hr(basis).l?.soort, 'hetzelfde')
+})
+
+test('keuring 2.2 BNR: ook het eerste woord van een zin telt als naam, maar een gewoon woord niet', () => {
+  const { run, basis } = huang()
+  assert.equal(run(basis).l?.soort, 'hetzelfde')
+  // Een naam vooraan in de zin, buiten het verhaal: af.
+  assert.equal(run(basis + ' Unilever opent woensdag de boeken.').af, 'show zonder Hoot-bron: de beschrijving noemt ook iets anders (Unilever)')
+  assert.equal(run(basis + ' Shell verhoogt het dividend fors.').af, 'show zonder Hoot-bron: de beschrijving noemt ook iets anders (Shell)')
+  assert.equal(run(basis + ' “Unilever opent de boeken,” zegt een analist.').af, 'show zonder Hoot-bron: de beschrijving noemt ook iets anders (Unilever)', 'ook na een aanhalingsteken')
+  // Een gewoon woord vooraan in de zin: een functiewoord, een dag, of een woord dat elders met een kleine letter staat
+  // ("beleggers" in de eerste zinnen).
+  for (const zin of [' Wat betekent dat voor Nvidia?', ' Deze Beurs in Zicht zoeken we het uit.', ' Woensdag weten we meer.', ' Beleggers zijn nerveus.']) assert.equal(run(basis + zin).l?.soort, 'hetzelfde', zin)
+  // Alleen bij een show zonder Hoot-bron.
+  assert.equal(run(basis + ' Shell verhoogt het dividend fors.', 'nos-de-dag', 'Jensen Huang weg bij Nvidia: wat nu?').l?.soort, 'hetzelfde')
+})
+
+test('keuring 2.3 BNR: meer woorden voor een tweede onderwerp ("En verder", "Na de pauze", "In het tweede deel", "Ondertussen", "in vogelvlucht")', () => {
+  const zinnen = ['En verder de woningmarkt en de olieprijs.', 'Na de pauze: de kwartaalcijfers van een supermarkt.', 'In het tweede deel gaat het over de woningmarkt.', 'Ondertussen debatteert de Tweede Kamer over de infrastructuur.', 'De rente daalt intussen weer.', 'En natuurlijk de rest van de politieke week in vogelvlucht.', 'De rest van de week bespreken we kort.', 'En: waarom de rente op spaarrekeningen weer daalt.']
+  for (const zin of zinnen) {
+    assert.equal(describe({ titel: 'x', samenvatting: 'Een onderwerp. ' + zin }, SHOW.get('bnr-beurs')).meer, true, zin)
+    assert.equal(describe({ titel: 'x', samenvatting: 'Een onderwerp. ' + zin }, SHOW.get('bnr-studio-den-haag')).meer, true, zin)
+    // Een show van een Hoot-bron: daar staan zulke woorden ook binnen één verhaal.
+    assert.equal(describe({ titel: 'x', samenvatting: 'Een onderwerp. ' + zin }, SHOW.get('nos-de-dag')).meer, false, zin)
+  }
+  // De echte Studio Den Haag van 28 oktober (box 3, en "Ondertussen debatteert de Tweede Kamer over … infrastructuur"):
+  // meer, ook zonder de zin "Hij zei tegen BNR".
+  const e = studio(/Heinen verrast/)
+  assert.match(e.tekst, /Ondertussen debatteert de Tweede Kamer/)
+  const zonder = { ...e, tekst: e.tekst.replace(/Hij zei tegen BNR[^.]*\.\s*/, '') }
+  assert.equal(meer(zonder), true)
+  const { run, basis } = huang()
+  assert.equal(run(basis + ' En verder de woningmarkt en de olieprijs.').af, 'deze aflevering gaat over meer onderwerpen, zonder artikellink')
+  // "Opgenomen voor publiek" of een woord als "verderop" is geen tweede onderwerp.
+  assert.equal(describe({ titel: 'x', samenvatting: 'Een onderwerp. Verderop in de straat bleef het rustig.' }, SHOW.get('bnr-beurs')).meer, false)
+})
+
+test('keuring 2.4 alle shows: "opgenomen voordat … bekend werd" is nieuws van na de opname', () => {
+  for (const zin of ['Deze aflevering is opgenomen voordat bekend werd dat Huang vertrekt.', 'Deze aflevering werd opgenomen vóór de uitspraak.', 'Deze aflevering is opgenomen op donderdagmiddag, voordat het overleg begon.', 'Deze podcast is opgenomen voor het bericht over de schorsingen.', 'This episode was recorded before the news broke.']) assert.ok(describe({ titel: 'x', samenvatting: zin }).naOpname, zin)
+  for (const zin of ['De aflevering is opgenomen voor publiek in Utrecht.', 'Hij werd opgenomen in het ziekenhuis.']) assert.equal(describe({ titel: 'x', samenvatting: zin }).naOpname, null, zin)
+  const { run } = huang()
+  const titel = 'Nvidia: hoe lang blijft Jensen Huang nog?'
+  const tekst = 'Jensen Huang staat onder druk bij Nvidia na een affaire. Deze aflevering is opgenomen voordat bekend werd dat Huang vertrekt.'
+  for (const show of ['bnr-beurs', 'nos-de-dag']) assert.equal(run(tekst, show, titel).af, 'de aflevering zegt dat dit nieuws pas na de opname kwam', show)
+  // Ook zonder naam in die zin: een kernwoord van de kop ("vertrek" in "Wat betekent het vertrek van Jensen Huang …").
+  const zonderNaam = 'Jensen Huang staat onder druk bij Nvidia na een affaire. Deze aflevering is opgenomen voordat zijn vertrek bekend werd.'
+  assert.equal(run(zonderNaam, 'nos-de-dag', titel).af, 'de aflevering zegt dat dit nieuws pas na de opname kwam')
 })

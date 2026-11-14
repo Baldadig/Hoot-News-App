@@ -8,8 +8,10 @@
 //     bestaat (bnr.nl weigert de Hoot-server, dus BNR is geen Hoot-bron). Ze mogen ook als verdieping koppelen, maar een
 //     show zonder Hoot-bron (`zonderBron`) alleen onder strenge voorwaarden: (1) het onderwerp volgt uit de kop van het
 //     verhaal, niet uit één gedeelde naam; (2) één onderwerp per aflevering, met de hele beschrijving gelezen (één eigen naam
-//     buiten het eerste onderwerp die nergens in het verhaal staat, is al genoeg om af te vallen); (3) actueel: na het begin
-//     van het nieuws of van dezelfde of de vorige dag, en niet als de aflevering zegt dat het nieuws pas na de opname kwam;
+//     buiten het eerste onderwerp die nergens in het verhaal staat, ook vooraan in een zin, is al genoeg om af te vallen, en
+//     "En verder", "Na de pauze", "In het tweede deel", "Ondertussen" en "in vogelvlucht" maken er `meer` van); (3) actueel:
+//     na het begin van het nieuws of van dezelfde of de vorige dag, en niet als de aflevering zegt dat het nieuws pas na de
+//     opname kwam (ook "opgenomen voordat … bekend werd");
 //     (4) een aflevering van de eigen bron van het verhaal gaat voor; (5) bij twijfel niets. Een verkeerde koppeling is
 //     erger dan geen;
 //   - een overzichtsshow (vijf onderwerpen per aflevering) koppelt nooit en wordt niet eens opgehaald;
@@ -19,7 +21,8 @@
 //     voor…" en een inhoudsopgave maken er `meer` van), het eerste onderwerp van de beschrijving is het verhaal, de rest van
 //     de beschrijving gaat niet over iets anders, de kop van het verhaal deelt namen met de aflevering (en de kop zelf meer
 //     dan het kader: een naam uit de titel, of de eerste naam van de kop, of twee eigen namen), een samengestelde
-//     naam ("Jong Oranje") telt als één naam, en "hetzelfde" alleen als de aflevering ná het eerste stuk verscheen;
+//     naam ("Jong Oranje") telt als één naam, en "hetzelfde" alleen als de aflevering ná het eerste stuk verscheen en de kop
+//     zelf de gebeurtenis deelt (een kernwoord, een uitslag, een handeling of twee eigen namen uit de kop; keuring 2);
 //   - een vooruitblik van vóór de kop van het verhaal koppelt nooit (de afloop is een ander onderwerp);
 //   - een aflevering die zelf zegt dat het nieuws pas na de opname kwam, koppelt niet aan dat nieuws (alle shows);
 //   - past een aflevering bij twee verhalen, dan krijgt geen van beide haar; een verhaal krijgt er hooguit één.
@@ -426,17 +429,22 @@ const opsomming = (zin, makers = []) => {
   const laatste = delen.pop().split(/\s+(?:en|and|&)\s+/)
   return laatste.length >= 2 && [...delen, ...laatste].every((d) => /\p{L}{2,}/u.test(d))
 }
+// Een show zonder Hoot-bron leest strenger (voorwaarde 2, keuring 2 van 14 november): ook "En verder …", "Na de pauze: …",
+// "In het tweede deel …", "Ondertussen …", "intussen", "… in vogelvlucht", "de rest van de (politieke) week" en een kale
+// "En: …" zeggen dat er een tweede onderwerp komt. Bij een show van een Hoot-bron niet: daar staan ze ook binnen één verhaal.
+const MEER_STRENG = /\ben\s+verder\b|\bna\s+de\s+(pauze|break|reclame)\b|\b(in\s+)?het\s+(tweede|derde|vierde|laatste|volgende|andere)\s+(deel|gedeelte|onderwerp|item|stuk)\b|\b(ondertussen|intussen)\b|\bin\s+vogelvlucht\b|\brest\s+van\s+(de|deze)\s+(\S+\s+)?week\b|(?:^|[.!?]\s+)en\s*:/i
 const VOORUIT = /\b(vooruitbli\w*|vooruitgeblikt|blik(t|ken)\s+(\S+\s+){0,3}vooruit|voorbeschouw\w*|vanavond|morgenavond|preview\w*)\b/i
 // Na de opname (alle shows, 14 november): "kwam net na het opnemen van deze podcast het bericht dat …", "na de opname",
 // "kwam pas na", "ten tijde van de opname", "after we recorded". De zinnen die dat zeggen, noemen het nieuws waar de
-// aflevering juist niet over gaat.
-const NA_OPNAME = /\bna\s+(het\s+)?(opnemen|opname|afronden)\b|\bkwam\s+(\S+\s+){0,3}pas\s+na\b|\bnadat\s+(we|wij)\s+(\S+\s+){0,3}(opgenomen|opnamen)\b|\b(ten tijde van|tijdens|op het moment van)\s+(de\s+|het\s+)?(opname|opnemen)\b|\bafter\s+(we\s+|this\s+episode\s+was\s+)?record(ed|ing)\b|\bat the time of recording\b/i
+// aflevering juist niet over gaat. Keuring 2 (14 november): ook "opgenomen voordat … bekend werd", "opgenomen vóór …",
+// "opgenomen op donderdagmiddag, voordat het overleg begon" en "recorded before …" ("opgenomen voor publiek" niet).
+const NA_OPNAME = /\bopgenomen\s+([^\s.!?]+\s+){0,4}?(voordat|vóór|voor\s+(het|de|dat)\b)|\brecorded\s+([^\s.!?]+\s+){0,4}?before\b|\bna\s+(het\s+)?(opnemen|opname|afronden)\b|\bkwam\s+(\S+\s+){0,3}pas\s+na\b|\bnadat\s+(we|wij)\s+(\S+\s+){0,3}(opgenomen|opnamen)\b|\b(ten tijde van|tijdens|op het moment van)\s+(de\s+|het\s+)?(opname|opnemen)\b|\bafter\s+(we\s+|this\s+episode\s+was\s+)?record(ed|ing)\b|\bat the time of recording\b/i
 export function describe(ep, show = null) {
   const text = `${ep.titel || ''}. ${ep.samenvatting || ''}`
   const heel = ep.tekst || ep.samenvatting || ''
   const zinnen = sentences(heel)
   const naOpname = zinnen.filter((z) => NA_OPNAME.test(z)).join(' ')
-  const meer = MEER.some((re) => re.test(heel)) || (!!show?.opsomming && zinnen.some((z) => !NA_OPNAME.test(z) && opsomming(z, ep.vast)))
+  const meer = MEER.some((re) => re.test(heel)) || (zonderBron(show) && MEER_STRENG.test(heel)) || (!!show?.opsomming && zinnen.some((z) => !NA_OPNAME.test(z) && opsomming(z, ep.vast)))
   return { meer, vooruit: VOORUIT.test(text), naOpname: naOpname || null }
 }
 const ZINNEN = 6
@@ -511,7 +519,9 @@ export function judge(ep, show, story, items, sig, now) {
   if (na) {
     const lk = sig.get((items.find((i) => i.id === story.leadId) || items[0])?.id)
     const kopNaam = [...(lk?.strong || [])].some((k) => !BROAD.has(k) && na.strong.has(k)) || [...(lk?.weak || [])].some((k) => !BROAD.has(k) && na.weak.has(k))
-    if (central.some((k) => na.strong.has(k)) || kopNaam) return { af: 'de aflevering zegt dat dit nieuws pas na de opname kwam', names, kandidaat: true }
+    // Ook een kernwoord van de kop telt ("voordat het overleg begon" bij de kop "Crisisoverleg op landgoed begonnen").
+    const kopWoord = deeltWoord(kernVan(lead?.title, lk), kernVan(ep.naOpname, na))
+    if (central.some((k) => na.strong.has(k)) || kopNaam || kopWoord) return { af: 'de aflevering zegt dat dit nieuws pas na de opname kwam', names, kandidaat: true }
   }
   // Een vooruitblik is geen verdieping van de afloop (keuring: "Kolkende Kuip moet Feyenoord aan drie punten helpen" bij de
   // nasleep van de nederlaag): een aflevering die vooruitkijkt en verscheen vóór de kop van het verhaal, koppelt niet.
@@ -599,6 +609,11 @@ export function judge(ep, show, story, items, sig, now) {
   //    van vrijdag verdiepend, niet hetzelfde). Alleen een artikellink mag eerder (zie 1).
   if (event && (shared >= 2 || action)) {
     if (kopAf && ((fresh && ep.t >= firstAt) || (deep && shared >= 2))) return kopAf
+    // Hetzelfde vraagt ook dat de kop zelf de gebeurtenis deelt, niet alleen namen (keuring 2, 14 november: de kop "Vijf
+    // Oranje-spelers bij gele kaart tegen Duitsland geschorst voor kwartfinale" en de nabespreking van de 7-0 delen alleen
+    // het kader, Oranje en de Nations League; de kop zelf deelt alleen Oranje). Twee eigen namen uit de kop zelf zijn de
+    // partijen van de gebeurtenis en tellen wel. Bij twijfel niets, dus ook geen verdiepend.
+    if (fresh && ep.t >= firstAt && kopSterk(es).size < 2 && !kopGebeurtenis(kt, es, `${ep.titel || ''}. ${ep.tekst || ep.samenvatting || ''}`, lead?.title)) return { af: 'de kop zelf deelt de gebeurtenis niet met de aflevering (geen kernwoord, uitslag of handeling, alleen namen)', names, kandidaat }
     if (fresh && ep.t >= firstAt) return { soort: 'hetzelfde', grond: 'tekst', reden: `${shared >= 2 ? 'twee centrale namen' : 'centrale naam en dezelfde handeling'} (${names.join(', ')}) en dezelfde gebeurtenis` }
     if (deep && shared >= 2) return { soort: 'verdiepend', grond: 'tekst', reden: `twee centrale namen (${names.join(', ')}) en dezelfde kwestie, eerder verschenen` }
     return { af: ep.t < firstAt && deep ? 'zelfde gebeurtenis met één centrale naam, maar van vóór het eerste stuk' : `zelfde gebeurtenis, maar ${Math.round(age)} uur oud`, names, kandidaat }
@@ -611,8 +626,11 @@ export function judge(ep, show, story, items, sig, now) {
   if (kopAf) return kopAf
   return { soort: 'verdiepend', grond: 'tekst', reden: `twee centrale namen (${names.join(', ')}) en dezelfde kwestie (${issue})` }
 }
-// Een eigen naam (een woord met een hoofdletter dat niet de zin begint) in een zin van de beschrijving buiten het eerste
-// onderwerp, die in geen stuk van het verhaal staat (een woord dat met dezelfde vijf letters begint telt als bekend:
+// Een eigen naam (een woord met een hoofdletter) in een zin van de beschrijving buiten het eerste onderwerp, die in geen
+// stuk van het verhaal staat. Het eerste woord van een zin telt ook (keuring 2, 14 november: "Unilever opent woensdag de
+// boeken", "Shell verhoogt intussen het dividend"), maar alleen als het een naam is: geen gewoon woord dat een zin begint
+// (BEGIN), en geen woord dat in de ronde (de stukken en de afleveringen) ook met een kleine letter staat, ook niet als
+// meervoud of vervoeging ("Gesprekken" naast "gesprek", "Analisten" naast "analist") (een woord dat met dezelfde vijf letters begint telt als bekend:
 // "Europese" en "Europa"). De titel van de aflevering, de naam van de show en de makers tellen ook als bekend ("Deze Beurs in
 // Zicht zoeken we het voor je uit"), en het stuk van de zin vanaf het panel telt niet. Geeft de naam, of null.
 const woordenMemo = new WeakMap()
@@ -622,23 +640,53 @@ const verhaalWoorden = (items) => {
   return w
 }
 const woordenVan = (t) => norm(t).split(/[^\p{L}\d]+/u).filter(Boolean)
+const BEGIN = new Set(
+  'de het een en maar of want dus toch ook nog wel niet geen deze dit die dat daar hier er wat wie waar wanneer hoe waarom welke welk hij zij ze wij we jij je u ik men hun haar zijn ons onze mijn jullie is was werd worden wordt kan kun kunnen moet moeten mag mogen wil willen zal zullen zou zouden heeft hebben had hadden in op aan bij met van voor na naar over uit door om tot tegen tussen onder tijdens zonder sinds als toen terwijl nadat voordat omdat hoewel volgens dan daarna daarom daarnaast daardoor verder bovendien intussen ondertussen inmiddels vandaag gisteren morgen vorige volgende nu zo al alle elke ieder veel weinig meer minder eerst eerste tweede kortom ja nee waardoor wellicht misschien bijna echt even net pas juist vooral zelfs waarbij hierbij daarbij tegelijk tegelijkertijd vervolgens eerder later straks binnenkort opnieuw weer maandag dinsdag woensdag donderdag vrijdag zaterdag zondag januari februari maart april mei juni juli augustus september oktober november december the a an and but or so yet this that these those there here what who where when how why which he she they we you i it his her their our its is was are were has have had can could will would should may might in on at by with from for to of after before as while since also now today yesterday tomorrow more most some many every each first then plus but not no yes'.split(' ')
+)
+const kleineWoorden = (t) => (String(t || '').match(/(?<![\p{L}\d])\p{Ll}[\p{L}\d'’-]*/gu) || []).map((w) => norm(w).replace(/[^\p{L}\d]/gu, ''))
+// De woorden met een kleine letter in de ronde, als set van beginstukken (vijf tot twaalf letters): één keer per koppel.
+export function kleinVan(teksten) {
+  const out = new Set()
+  for (const t of teksten) for (const w of kleineWoorden(t)) for (let n = 5; n <= Math.min(12, w.length); n++) out.add(w.slice(0, n))
+  for (const t of teksten) for (const w of kleineWoorden(t)) if (w.length < 5) out.add(w)
+  return out
+}
+const gewoonWoord = (w, klein) => BEGIN.has(w) || (w.length < 5 ? klein.has(w) : klein.has(w.slice(0, Math.min(12, Math.max(5, w.length - 3)))))
 function andereNaam(ep, show, items) {
   const woorden = verhaalWoorden(items)
   const eigen = new Set(woordenVan([ep.titel, show?.naam, ...(ep.vast || [])].join(' ')))
   const zinnen = ep.zinTekst || []
+  const klein = ep.klein || kleinVan([zinnen.join(' '), ...items.map((i) => `${i.title || ''} ${i.summary || ''}`)])
   for (let k = 0; k < zinnen.length; k++) {
     if (k === ep.onderwerpK) continue
     let z = zinnen[k]
     const p = z.search(PANEL)
     if (p >= 0) z = z.slice(0, p)
-    for (const m of z.matchAll(/(?<=\S\s+)\p{Lu}[\p{L}\d'’-]*/gu)) {
+    for (const m of z.matchAll(/(?<![\p{L}\d'’-])\p{Lu}[\p{L}\d'’-]*/gu)) {
       const w = norm(m[0]).replace(/[^\p{L}\d]/gu, '')
       if (w.length < 2) continue
+      // Het eerste woord van de zin (alleen leestekens ervoor): alleen een naam als het geen gewoon woord is.
+      if (!/[\p{L}\d]/u.test(z.slice(0, m.index)) && gewoonWoord(w, klein)) continue
       const pre = w.slice(0, 5)
       if (!eigen.has(w) && !woorden.some((x) => x.startsWith(pre))) return m[0]
     }
   }
   return null
+}
+// Deelt de kop zelf de gebeurtenis met de aflevering? Twee eigen namen uit de kop (de partijen: "PSV" en "Club Brugge"), een
+// gebeurtenisbegrip of een handeling uit de kop, een uitslag uit de kop ("7-0", ook in "7-0-overwinning"), of een kernwoord van de kop (geen naam, minstens vijf letters; "overleg" telt in "crisisoverleg") in de
+// titel of de beschrijving van de aflevering. Generiek: alleen de woorden van de kop, geen lijst met onderwerpen.
+const UITSLAG = /(?<![\d-])(\d{1,2})\s?[-–]\s?(\d{1,2})(?!\d)/g
+const uitslagen = (t) => new Set([...String(t || '').matchAll(UITSLAG)].map((m) => `${+m[1]}-${+m[2]}`))
+const kernVan = (t, s) => [...sigWords(t)].filter((w) => w.length >= 5 && !s?.strong?.has(w) && !s?.weak?.has(w))
+const deeltWoord = (a, b) => a.some((w) => b.some((x) => w === x || (w.length >= 6 && x.includes(w)) || (x.length >= 6 && w.includes(x))))
+function kopGebeurtenis(kt, es, tekst, kop) {
+  if (!kt || !kop) return true
+  if ([...(kt.concepts || [])].some((c) => es.concepts?.has(c))) return true
+  if ([...(kt.actions || [])].some((a) => es.actions?.has(a))) return true
+  const u = uitslagen(tekst)
+  if ([...uitslagen(kop)].some((x) => u.has(x))) return true
+  return deeltWoord(kernVan(kop, kt), kernVan(tekst, es))
 }
 const dagNL = (t) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'Europe/Amsterdam' })
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -679,9 +727,13 @@ export function koppel({ stories = [], byId = new Map(), episodes = [], now = Da
   // namen buiten het verhaal.
   const zonderMakers = (z, vast = []) => vast.reduce((s, n) => s.split(n).join(''), z)
   const zinnen = new Map(eps.map((e) => [e.id, sentences(zonderBron(SHOW.get(e.show)) ? e.tekst || e.samenvatting : e.samenvatting).slice(0, zonderBron(SHOW.get(e.show)) ? ZINNEN_HEEL : ZINNEN).map((z) => zonderMakers(z, e.vast))]))
+  // De woorden met een kleine letter in de ronde (voor het eerste woord van een zin in andereNaam): alleen nodig bij een
+  // show zonder Hoot-bron.
+  const klein = eps.some((e) => zonderBron(SHOW.get(e.show))) ? kleinVan([...pool.map((i) => `${i.title || ''} ${i.summary || ''}`), ...eps.map((e) => `${e.titel || ''} ${e.tekst || e.samenvatting || ''}`)]) : null
   for (const e of eps) {
     e.zinnen = zinnen.get(e.id).length
     e.zinTekst = zinnen.get(e.id)
+    if (klein) e.klein = klein
   }
   const extra = eps.flatMap((e) => {
     const at = new Date(e.t).toISOString()
