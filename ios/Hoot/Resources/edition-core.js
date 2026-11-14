@@ -1527,6 +1527,8 @@ var HootCore = (() => {
   var byId = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   var FAMILY_OF = Object.fromEntries(INTERESTS.flatMap((f) => f.topics.map((t) => [t, f.id])));
   var FAMILY_LABEL = Object.fromEntries(INTERESTS.map((f) => [f.id, f.label]));
+  var FAMILY_INDEX = Object.fromEntries(INTERESTS.map((f, i) => [f.id, i]));
+  var FAMILY_RANK = (f) => FAMILY_INDEX[f] ?? INTERESTS.length;
   var FAMILY_OF_CAT = Object.fromEntries(INTERESTS.flatMap((f) => f.cats.filter((c) => c !== "regio").map((c) => [c, f.id])));
   var W_INHERITED = 0.6;
   var W_READ = 0.8;
@@ -1780,7 +1782,10 @@ var HootCore = (() => {
     const rank = (k) => WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length;
     const [code, p] = Object.entries(parts).filter(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === "interest" && x.shown === false)).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || [];
     if (code === "followUp") return { code, text: `Vervolg op wat je las · ${p.n} nieuwe stukken` };
-    if (parts.cross && (code === "interest" || code === "cross")) return { code: "cross", text: `Raakt ${FAMILY_LABEL[parts.cross.f[0]]} én ${FAMILY_LABEL[parts.cross.f[1]]}` };
+    if (parts.cross && (code === "interest" || code === "cross")) {
+      const [a, b] = [...parts.cross.f].slice(0, 2).sort((x, y) => FAMILY_RANK(x) - FAMILY_RANK(y));
+      return { code: "cross", text: `Raakt ${FAMILY_LABEL[a]} én ${FAMILY_LABEL[b]}` };
+    }
     if (code === "interest") {
       if (p.t.startsWith("bron:")) return { code: "vak", text: `Omdat je ${FAMILY_LABEL[p.f] || "dit gebied"} volgt` };
       if (p.t.startsWith("gebied:")) return { code, text: `Omdat je ${FAMILY_LABEL[p.f] || "dit gebied"} volgt` };
