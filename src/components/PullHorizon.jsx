@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { reduced } from '../lib/motion.js'
-import { T, MS, MSG, GUT, answer, answered, cancelOp, doneAt, drag, extraAt, geom, gesture, glowAt, inHorizontalScroller, release, resist, setAt, stripHeight, svg } from '../lib/pull-horizon.js'
+import { T, MS, MSG, GUT, answer, answered, cancelOp, doneAt, drag, extraAt, geom, gesture, glowAt, inHorizontalScroller, kopTop, release, resist, setAt, stripHeight, stripZicht, svg } from '../lib/pull-horizon.js'
 
 // Trekken om te verversen op het web, zoals in de app (HootRefresh in ios/Hoot/Views/QuietMotion.swift):
 // Horizon v2. Alleen met een vinger (touch), alleen bovenaan de lijst. De rekensom staat in
@@ -43,6 +43,10 @@ export function usePullHorizon(ref, { onRefresh, busy = false, failed = false, l
     const g = geom({ ...drawn, glow: glowAt(now, st.armed, st.glowSince, st.reduce) }, now, inner + 2 * GUT)
     strip.style.height = h.toFixed(2) + 'px'
     c.style.transform = h > 0.01 ? `translate3d(0,${h.toFixed(2)}px,0)` : ''
+    // De meelopende kop blijft tegen de bovenrand (niet h lager), en de strook wijkt voor hem.
+    el.style.setProperty('--pull-kop', kopTop(h).toFixed(2) + 'px')
+    const kop = !!el.querySelector('.edbar.is-aan')
+    strip.style.visibility = stripZicht({ top: strip.offsetTop, h, scrollTop: el.scrollTop, kop }) > 0 ? '' : 'hidden'
     const out = h > 0.01 ? svg(g, { cw: vw, h: 128, mid, id: label }) : ''
     if (out !== lastSvg.current) { artRef.current.innerHTML = out; lastSvg.current = out }
     // De foutzin staat alleen in de DOM zolang hij zichtbaar is: anders duikt hij op in zoeken op de
@@ -149,7 +153,7 @@ export function usePullHorizon(ref, { onRefresh, busy = false, failed = false, l
     }
   }, [ref, enabled, run, finish])
 
-  useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); const c = col(); if (c) c.style.transform = '' }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); const c = col(); if (c) c.style.transform = ''; ref.current?.style.removeProperty('--pull-kop') }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Alleen in ontwikkeling: een stand vastzetten om na te meten (zie tests en de beelden in Hoot-design).
   useEffect(() => {

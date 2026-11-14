@@ -84,6 +84,24 @@ enum RefreshStrip {
         let pulled = amount.isFinite ? max(0, amount) : 0
         return busy ? loading + pulled : pulled
     }
+    // De strook hoort bij de inhoud, zoals de verversknop van iOS zelf: lees je tijdens het verversen verder,
+    // dan schuift hij met de Editie mee omhoog en uit beeld. Zichtbaar blijft alleen wat nog boven de inhoud
+    // ligt, dus nooit iets over de kop, de zon of de meelopende kop heen (build 55: de horizon bleef bovenaan
+    // staan en tekende over de meelopende kop). `scrolled`: hoe ver de inhoud boven zijn rustplek staat.
+    // `kop`: de meelopende kop (naam en zon) staat bovenaan. Dan is de strook er nooit, ook niet een rand.
+    static func zicht(gap: CGFloat, scrolled: CGFloat, kop: Bool = false) -> CGFloat {
+        guard !kop else { return 0 }
+        let g = gap.isFinite ? max(0, gap) : 0
+        let s = scrolled.isFinite ? max(0, scrolled) : 0
+        return max(0, g - s)
+    }
+    // Staat er bovenaan een meelopende kop (EditionKopBalk)? Die meldt zich hier, zodat de strook wijkt.
+    struct KopKey: PreferenceKey {
+        static let defaultValue = false
+        static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
+    }
+    // Verder dan dit hoeft de scroll niet gevolgd te worden: de strook is dan al lang uit beeld.
+    static let volgTot: CGFloat = loading * 4
 }
 
 // De strook met het teken, tussen de bovenrand van de scroll en de inhoud. Trekken: de zichtbare
@@ -119,6 +137,8 @@ private struct HootRefresh: ViewModifier {
     @State private var armedSince: Double? = nil
     @State private var shutT0: Double? = nil // begin van het dichtgaan (ms), zolang de strook dichtgaat
     @State private var failCount = 0
+    @State private var scrolled: CGFloat = 0 // hoe ver de inhoud boven zijn rustplek staat (tot RefreshStrip.volgTot)
+    @State private var kop = false // de meelopende kop staat bovenaan (RefreshStrip.KopKey)
     private func announce(_ text: String) { if indicator { AccessibilityNotification.Announcement(text).post() } }
     private func wait(until ms: Double) async {
         let d = ms - Horizon.now()
@@ -171,14 +191,25 @@ private struct HootRefresh: ViewModifier {
             .onScrollGeometryChange(for: CGFloat.self) { max(0, -$0.contentOffset.y - $0.contentInsets.top) } action: { _, value in
                 pull.move(to: value)
             }
+            // De strook schuift met de inhoud mee (RefreshStrip.zicht); alleen nodig zolang hij er staat.
+            .onScrollGeometryChange(for: CGFloat.self) { min(RefreshStrip.volgTot, max(0, $0.contentOffset.y + $0.contentInsets.top)) } action: { _, value in
+                scrolled = value
+            }
+            .onPreferenceChange(RefreshStrip.KopKey.self) { kop = $0 }
             .onScrollPhaseChange { old, new in
                 if pull.phase(from: old, to: new) { refresh() }
             }
             .onChange(of: pull.armed) { _, _ in armedSince = Horizon.now() }
             .overlay(alignment: .top) {
-                if indicator && (pull.busy || pull.amount >= 1 || closing != nil) {
+                let gap = closing ?? RefreshStrip.gap(amount: pull.amount, busy: pull.busy)
+                let zicht = RefreshStrip.zicht(gap: gap, scrolled: scrolled, kop: kop)
+                if indicator && (pull.busy || pull.amount >= 1 || closing != nil) && zicht >= 0.5 {
                     PullHorizonStrip(amount: pull.amount, busy: pull.busy || closing != nil, mark: mark, reduceMotion: still,
                                      armed: pull.armed, armedSince: armedSince, height: closing)
+                        // Mee met de inhoud omhoog, afgesneden aan de bovenrand: wat erboven valt, is weg.
+                        .offset(y: zicht - gap)
+                        .frame(height: zicht, alignment: .top)
+                        .clipped()
                         // Geen tijdlijn tussen vinger en teken: de hoogte komt van de scroll of van de klok.
                         .transaction { $0.animation = nil }
                 }
@@ -187,6 +218,18 @@ private struct HootRefresh: ViewModifier {
             .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: pull.armed) { old, new in !old && new }
             .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.4), trigger: failCount)
             .accessibilityAction(named: "Verversen") { refresh() }
+            .task(id: indicator) { await trekProef() }
+    }
+    // Alleen Debug (-HootTrekProef): verversen alsof je trok, en daarna verder lezen terwijl het laadt.
+    private func trekProef() async {
+        #if DEBUG
+        guard indicator, label == "Editie", let y = DebugLaunch.trekProef else { return }
+        try? await Task.sleep(for: .seconds(2))
+        refresh()
+        try? await Task.sleep(for: .milliseconds(800))
+        guard let w = DuoEmulatie.venster, let s = DuoEmulatie.grootsteScroll(in: w) else { return }
+        s.setContentOffset(CGPoint(x: 0, y: y - s.adjustedContentInset.top), animated: true)
+        #endif
     }
 }
 extension View {

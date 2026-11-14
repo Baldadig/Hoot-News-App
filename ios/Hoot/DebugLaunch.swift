@@ -41,6 +41,9 @@ import SwiftUI
 //   -HootVerhaal <verhaal-id>   (met -HootScreen verhaal: dit verhaal openen in plaats van dat met de meeste bronnen)
 //   -HootUitleg <begrip>   (het blad met de uitleg van dat begrip gaat open bij de eerste pil die het heeft)
 //   -HootBegrippen YES   (in het verhaal staan de Begrippen en elk begrip opengeklapt)
+//   -HootTrekProef <punten>   (de Editie ververst vanzelf alsof je trok en scrolt daarna zoveel punten omlaag,
+//                             om te zien wat de trekstrook doet als je tijdens het verversen verder leest; samen
+//                             met -HootRefreshDelay)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
     #if DEBUG
@@ -85,6 +88,7 @@ enum DebugLaunch {
     static var verhaal: String? { defaults.string(forKey: "HootVerhaal") }
     static var uitleg: String? { defaults.string(forKey: "HootUitleg") }
     static var begrippen: Bool { defaults.bool(forKey: "HootBegrippen") }
+    static var trekProef: CGFloat? { defaults.object(forKey: "HootTrekProef") != nil ? CGFloat(defaults.double(forKey: "HootTrekProef")) : nil }
     static func verschillen(_ storyId: String) -> StoryVerschillen? {
         guard let pad = defaults.string(forKey: "HootVerschillen"), let data = FileManager.default.contents(atPath: pad) else { return nil }
         return (try? JSONDecoder().decode([String: StoryVerschillen].self, from: data))?[storyId]
@@ -125,6 +129,7 @@ enum DebugLaunch {
     static let slow = 1.0
     static let feature: [(id: String, label: String?)] = []
     static let anchor: UnitPoint? = nil
+    static let trekProef: CGFloat? = nil
     #endif
 
     static func screen(_ name: String) -> Bool { screen == name }
