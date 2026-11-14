@@ -214,6 +214,14 @@ const BASE_FITS = {
 // digitaal ontwerp met Nederlandse woorden erbij.
 const WIDER = ['paid-social', 'ecommerce', 'seo', 'merk', 'ux', 'design']
 const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !(k in BASE_FITS))), ...BASE_FITS, ...Object.fromEntries(WIDER.filter((k) => MORE_FITS[k]).map((k) => [k, MORE_FITS[k]])) }
+// Naast het vak van een kenner (Selectie-review 14 november, punt 2): spullen en spelletjes in de kop. Een kenner die zijn
+// onderwerptoets mist en het over een horloge, een lader, een telefoon of een game heeft, telt die week niet. Alleen de kop:
+// in de intro staan zulke woorden vaak als voorbeeld. De maat, gemeten op week 45 en op 1006 stukken uit de feeds van
+// 14 november: alles wat de onderwerptoets mist eruit haalde 39 van de 83 kennerstukken van week 45 weg, ook echte
+// vakstukken ("Agent Harness: Definition", "Diversification & Drawdowns"); ook de onderwerpregels van film, muziek, eten en
+// reizen op kop en intro vingen er te veel ("Composer 2.11" als muziek, "The Insider" als reizen).
+const BESIDE = /\b(iphone|ipad|macbook|apple watch|airpods|smartwatch|horloges?|watches|dial|bezel|charging guide|chargers?|opladers?|headphones|koptelefoons?|remaster(s|ed)?|playstation|xbox|nintendo|switch 2|steam deck)\b|\bfor mac\b/i
+export const besideField = (it, field) => field !== 'gadgets' && field !== 'gaming' && BESIDE.test(it.title || '')
 
 // Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, vacatures, lijstjes. En geen liveblog of
 // kijkwijzer ("England vs Croatia live updates", "How to watch …"): leesvoer, geen nieuws van de week (fase 3).
@@ -222,7 +230,27 @@ const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !
 // podcastaflevering herkent hardMark, dezelfde regel als de Editie (shared/editie-filter.mjs): een dealrubriek als eerste
 // padsegment, "Podcast:" vooraan, een iTunes-aflevering of een audio-enclosure zonder eigen intro.
 const NOT_READING = /^\W*live\b|\blive ?(updates|blog|event)\b|:\s*the latest (from|on)\b|\bhow to watch\b|\b(sponsored|^sponsor|partner content|advertorial|presented by|webinars?|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
+// Lijstjes: "12 Best Figma Plugins", en (Selectie-review 14 november, punt 2) elk "N beste/best" met een zelfstandig
+// naamwoord erachter: "8 best hotels in Megève", "8 of the best family-friendly hotels", "De 5 beste smartphones".
+// Nieuws over een prijs met zo'n naam blijft: "The 50 Best Restaurants 2026: The Full List of Winners".
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
+const BEST_LIST = /^\s*(?:(?:the|de|our|onze|these|deze)\s+)?\d+\s+(?:of\s+the\s+)?(?:beste|best)\s+[\p{L}-]/iu
+const PRIZE = /\b(winners?|winnaars?|awards?|prijs|prijzen|uitgereikt|uitgeroepen|ranking|genomineerd\w*|nominaties?|shortlist)\b/i
+const isListicle = (t) => LISTICLE.test(t) || (BEST_LIST.test(t) && !PRIZE.test(t))
+// Koopsignaal (Selectie-review, punt 2, vóór Black Friday): een kop die je iets laat kopen of winnen is geen vakstuk.
+// Altijd: "zo claim je", een winactie ("win 2 vliegtickets"), "stunt met", "maak kans op". Een dealkop ("de beste deals",
+// "deals op een rij", "korting op" met een bedrag of actie) en een kop met Black Friday of Cyber Monday en een koopwoord
+// vallen af, tenzij de kop over de omzet of het gedrag gaat: "Black Friday deals drove record online sales" blijft, net als
+// "OpenAI signs $10bn chip deal" en "Wat de deal tussen Ahold en Bol betekent" (geen koopwoord in de zin van een aanbieding).
+const BUY_ALWAYS = /\bzo claim je\b|\bclaim (je|nu) (gratis|jouw|je)\b|\bwinactie\b|\bwin\s+(?:(?:een|twee|drie|\d+|a|two|free)\s+)?(?:[\p{L}-]+\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\b|\bstunt met\b|\bmaak kans op\b/iu
+const DEAL_HEAD = /\b(?:de|the|onze|our)?\s*(?:beste|best|top)\s+deals\b|\bdeals? (?:op een rij|van de (?:dag|week))\b|\b(?:aanbiedingen|koopjes) (?:op een rij|van de (?:dag|week))\b|\bkorting op\b.*\b(?:deal|actie|code|aanbieding|black friday|cyber monday)\b|\b\d+\s?(?:%|procent|euro)\s+korting\b/i
+const SHOP_DAY = /\b(?:black friday|cyber monday|singles'? day|prime day|amazon prime days?)\b/i
+const SHOP_WORD = /\b(?:deals?|korting\w*|aanbieding\w*|koopjes|sale|uitverkoop|goedkoop\w*|cheapest|laagste prijs|prijsdaling|discounts?)\b/i
+const ABOUT_SALES = /\b(?:omzet\w*|sales|record\w*|spending|uitgaven|besteding\w*|besteed\w*|consument\w*|shoppers|onderzoek|survey|research|cijfers|waarom|why|analyse|analysis|nep\w*|fake|scams?|oplicht\w*|misleid\w*|fraude|acm)\b/i
+export const isBuying = (t = '') => BUY_ALWAYS.test(t) || ((DEAL_HEAD.test(t) || (SHOP_DAY.test(t) && SHOP_WORD.test(t))) && !ABOUT_SALES.test(t))
+// Aankondigingen (Selectie-review, punt 2): een congres met alleen een naam en jaartal, "… Announced", een fragment uit
+// een boek. Nieuws óver een congres of boek (met een eigen zin) blijft.
+const ANNOUNCE = /^\s*(?:the\s+)?[\p{L}\p{N}&'’ -]{0,40}\b(?:summit|conference|congres|congress|symposium|festival|meetup)\s+20\d\d\s*$|\b(?:conference|congres|summit|symposium|event)\b[^:]{0,40}\bannounced\b|\bread an excerpt\b|\b(?:lees|een) (?:fragment|voorpublicatie) uit\b|^\s*excerpt\s*:/iu
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
 // Ook vaste rubrieken met een datum in de kop ("New Ecommerce Tools: October 21, 2026",
@@ -230,6 +258,32 @@ export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i,
 // ("… – This Week's Links", "News Digest …", "RPG Print News – …", "RPG Crowdfunding News – …").
 // En uitzendoverzichten van een programma ("12/11 in Nieuwsuur: Cruciaal debat • Hybride oorlog • …").
 const ROUNDUP = /^\s*\d{1,2}\/\d{1,2}(\/\d{2,4})? in [^:]{2,40}:|^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
+// Meer verzamelstukken (Selectie-review 14 november, punt 2), als vorm en niet als lijst van titels:
+// - een nummer achter een vaste titel: "Data Engineering Weekly #295", "Issue 112: …", "Nr. 34";
+// - een weekoverzicht of leeslijst: "Week in review: …", "Weekend reading: …", "Weekoverzicht";
+// - het beste van een periode: "Best of October 2026", "Het beste van de week";
+// - een nieuwsupdate of populairlijst als label: "Nieuwsupdate: …", "10x populair: …", "Meest gelezen: …";
+// - een vast verzamellabel vooraan: "The Scoop: …", "The Rundown: …", "Recap: …";
+// - een rubriek met een weekdag in de naam: "Friday Squid Blogging: …", "Funny on Sunday: …".
+const DAYS = 'monday|tuesday|wednesday|thursday|friday|saturday|sunday|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag'
+const COLLECTION = new RegExp(
+  [
+    '(?:^|\\s)#\\d{2,}\\b',
+    '\\b(?:issue|nummer|nr\\.|vol\\.)\\s*#?\\d+\\b',
+    '\\b(?:week|weekend) in review\\b',
+    '\\bweekend (?:reading|reads|links)\\b',
+    '\\bweekoverzicht\\b',
+    '\\bbest of (?:the )?(?:week|month|year|20\\d\\d|january|february|march|april|may|june|july|august|september|october|november|december)\\b',
+    '\\bhet beste van (?:de |het )?(?:week|maand|jaar|20\\d\\d)\\b',
+    '^\\s*(?:nieuws|news) ?update\\b',
+    '^\\s*(?:\\d+\\s*x\\s+)?(?:populair|meest gelezen|most read|most popular)\\s*[:|–—-]',
+    '^\\s*\\d+\\s*x\\s+populair\\b',
+    '^\\s*(?:the\\s+)?(?:scoop|rundown|recap|wrap-?up|catch-?up|briefing)\\s*:',
+    `\\b(?:funny|fun|links|reads|reading|photos?|quiz|thoughts)\\s+on\\s+(?:${DAYS})\\b`,
+    `^\\s*(?:${DAYS})\\s+(?:[\\p{L}]+\\s+)?(?:blogging|links|reads|reading|funnies|photos?|quiz|thoughts)\\b`,
+  ].join('|'),
+  'iu',
+)
 // Een vast programmalabel van een podcast in de kop, naast "Podcast:" vooraan (hardMark). De Selectie heeft geen AI die
 // twijfel beoordeelt, dus hier ook de vormen die vakbronnen gebruiken, en alleen als label (gescheiden door een pijp of
 // streep), nooit als woord in een zin: "… | The PetaPixel Podcast", "… – All Things Product Podcast with Teresa Torres",
@@ -250,7 +304,8 @@ export function podcastLabel(title = '') {
 }
 // `textOnly` (een bron die ook audio en video plaatst, zoals Paul Krugman): alleen de geschreven stukken.
 const AV = /^(audio|video)\//i
-export const isReading = (it, src = null) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
+export const isReading = (it, src = null) =>
+  !!it.title && !NOT_READING.test(it.title) && !isListicle(it.title) && !ROUNDUP.test(it.title) && !COLLECTION.test(it.title) && !isBuying(it.title) && !ANNOUNCE.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
 const AMS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short' })
@@ -323,11 +378,16 @@ const cleanLink = (u) => (u || '').replace(/[?#].*$/, '').replace(/\/$/, '').rep
 const prettyHost = (u) => hostname(u).replace(/^www\./, '')
 
 // Welk vakgebied krijgt dit stuk? Het eerste dat past; null als geen enkel past.
-export function fieldOf(it, src) {
+// `kenner` (Selectie-review 14 november, punt 2): ook een kenner met één onderwerp en zonder `filter` doet de
+// onderwerptoets. Mist hij die en gaat het stuk over iets naast zijn vak (besideField: games, een horloge, een lader),
+// dan telt het die week niet mee ("Ultima and Wing Commander Remasters" bij Leiderschap & management). Alleen bij het
+// samenstellen: in de voorraad blijft het stuk bewaard.
+export function fieldOf(it, src, { kenner = false } = {}) {
   for (const f of src.fields) {
     if (src.fields.length > 1 || src.filter) {
       if (FITS[f]?.test(`${it.title} ${it.summary || ''}`)) return f
-    } else return f
+    } else if (kenner && src.kind === 'expert' && FITS[f] && !FITS[f].test(`${it.title} ${it.summary || ''}`) && besideField(it, f)) return null
+    else return f
   }
   return null
 }
@@ -371,7 +431,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
   // Alleen onderwerpen met bronnen (een nieuw onderwerp zonder bronnen staat nog niet in de keuze).
   const covered = new Set(sources.flatMap((s) => s.fields))
   const fields = VAK_FIELDS.filter((f) => covered.has(f.id)).map((f) => {
-    const its = inWeek.filter((i) => fieldOf(i, byId.get(i.source)) === f.id)
+    const its = inWeek.filter((i) => fieldOf(i, byId.get(i.source), { kenner: true }) === f.id)
     // Groepen: stukken over hetzelfde, uit verschillende bronnen.
     const groups = []
     for (const it of its) {
