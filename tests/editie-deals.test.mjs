@@ -57,6 +57,64 @@ test('koopkop: echte koopstukken uit de live catalogus en de keuringssets gaan w
   for (const title of WEG) assert.ok(koopKop(title), 'moet weg: ' + title)
 })
 
+// Herstel na de keuring (14 november 2026): bij een sterke koopvorm ("best/top … deals", "best … sales", "deals (2026)",
+// "sale: the best …", een koopdag met deals) houdt een los woord in de productomschrijving de deal niet meer vast. Alleen
+// het smalle veto (zaken, markten, toezicht, nep, uitleg) telt dan. Gangbare Black Friday-koppen, generiek bedoeld.
+const STERK_WEG = [
+  'The best Black Friday sales 2026: Argos, Currys and John Lewis', // was: sales
+  'Best Black Friday gas grill deals', // was: gas
+  'Best early Black Friday record player deals', // was: record
+  'Steam autumn sale: the best games to buy', // was: geen koopvorm
+  'The best Black Friday TV deals in Europe', // was: in europe
+  'Best Black Friday laptop deals for students', // was: students
+  'Best Prime Day deals for families', // was: families
+  'The best Black Friday deals for Fortnite fans', // was: fans
+  'Best Cyber Monday phone plan deals', // was: plan
+  'The best Black Friday deals on concert tickets', // was: tickets
+  'Best Black Friday olive oil deals', // was: oil
+  'Cyber Monday deals on EU-spec e-bikes', // was: eu
+  'Best Boxing Day sales in the UK', // was: sales
+  'Black Friday deals on Disney+ plans', // koopdag met deals
+  'Top Prime Day deals for gamers who say no to cables', // was: say
+  'Best Black Friday Peloton deals: prices slashed', // was: prices
+  'Black Friday 2026: the best deals on Apple gear for families', // was: families
+  'De beste Black Friday-deals voor studenten', // was: studenten
+]
+
+test('sterke koopvorm: een los woord in de productomschrijving houdt de deal niet in de Editie', () => {
+  for (const title of STERK_WEG) assert.ok(koopKop(title), 'moet weg: ' + title)
+  // Ook via de feedcategorie (koopVorm).
+  for (const title of STERK_WEG) assert.ok(hardMark(art({ title, feedMark: 'aanbod' }))?.soort === 'aanbieding', 'moet weg: ' + title)
+})
+
+// Het smalle veto: zaken, omzet, markten, toezicht, nep en uitleg blijven, ook met een sterke koopvorm.
+const STERK_BLIJFT = [
+  'Black Friday online sales hit record $11 billion',
+  'Webwinkels verwachten recordomzet op Black Friday',
+  'Black Friday sales slump as shoppers hold back',
+  'Cyber Monday sales beat forecasts',
+  'Prime Day 2026 sales top $14 billion',
+  'Best Buy sales fall after weak holiday season',
+  'Black Friday: Amazon workers strike in Germany',
+  'Black Friday-deals: ACM ziet minder nepkortingen',
+  'Why the best Black Friday deals are in October now',
+  'Top sales executive leaves Apple',
+  'Black Friday sale at H&M sparks queues',
+  'Salescijfers Black Friday vallen tegen',
+  'Unilever agrees sale of ice cream unit',
+  'Sale of Chelsea FC to US consortium approved',
+  'Sales of electric cars rise 30% in Europe',
+  'Tesla shares fall 8% after sales miss',
+  'Bitcoin is 30% off its peak',
+  'Gold price drops to lowest price in a month',
+  'Top 10 M&A deals of 2026',
+  'Trump signs trade deal with Japan',
+]
+
+test('smal veto: nieuws met een sterke koopvorm blijft', () => {
+  for (const title of STERK_BLIJFT) assert.equal(koopGrond(title), null, 'moet blijven: ' + title)
+})
+
 // Tegenvoorbeelden: nieuws dat een koopwoord draagt (live catalogus, keuringen, en de Selectie-tak).
 const BLIJFT = [
   'Even Black Friday Will Be More Expensive Than Usual', // Wired, live

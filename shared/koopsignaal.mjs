@@ -102,7 +102,45 @@ const ABOUT = new RegExp([
   'explained', 'uitgelegd', 'zo werkt', 'zo zit het',
 ].map((w) => `\\b${w}\\b`).join('|') + "|\\bhow\\b[^?]*\\b(?:works?|actually work)\\b", 'iu')
 
+// Sterke koopvormen (herstel na de keuring, 14 november 2026): een dealkop met "best/top … deals" of "… sales", "today's
+// deals", "deals (2026)", "sale: the best …", en een koopdag met deals. Daar zegt een los woord in de
+// productomschrijving ("gas grill", "record player", "for students", "in Europe", "concert tickets", "phone plan") niets;
+// alleen het smalle veto (NARROW) houdt zo'n kop in de Editie.
+const STRONG_HEAD = new RegExp([
+  '\\b(?:beste|best|top)\\b(?!-)[^:;!?|]{0,50}?\\bdeals\\b',
+  '\\b(?:best|top)\\s+[^:;!?|]{1,50}?\\bsales\\b(?!\\s+(?:executives?|chiefs?|managers?|directors?|teams?|heads?|boss\\w*|staff|reps?|figures|data|growth|tax|volumes?|force|jobs?))', "\\b(?:today'?s|todays|daily|weekend|this week'?s)\\s+(?:top\\s+|best\\s+)?deals\\b",
+  '\\b(?:deals?|sales?)\\b[^()]{0,40}\\(20\\d\\d\\)', '\\bsale\\s*:\\s*(?:the |our |de |onze )?(?:best|beste|top)\\b',
+].join('|'), 'iu')
+const STRONG_DAY_WORD = /\bdeals?\b/i
+// Het smalle veto: de kop gaat over zaken, markten, toezicht, nep of uitleg, niet over een aanbod aan de lezer.
+const NARROW = new RegExp([
+  // Omzet en verkoopcijfers: "sales" telt hier alleen met een omzetwoord erbij.
+  '\\bomzet\\w*', '\\brecordomzet\\b', '\\brevenue\\b', '\\bspending\\b', '\\buitgaven\\b', '\\bbesteding\\w*', '\\bbesteed\\w*', '\\bgeeft\\b.*\\buit\\b',
+  '\\b(?:sales|verkoop)\\s+(?:hit|hits|rise|rises|rose|rising|fall|falls|fell|falling|miss|missed|misses|slump\\w*|jump\\w*|drop\\w*|grow\\w*|grew|surge\\w*|soar\\w*|plunge\\w*|declin\\w*|increas\\w*|beat|top|topped|reach\\w*|figures|data|numbers|up|down|stijgt|daalt|steeg|daalde)\\b',
+  '\\b(?:online|retail|e-commerce|ecommerce)\\s+sales\\b', '\\brecord\\w*\\b.*\\b(?:sales|omzet|spending|revenue)\\b', '\\b(?:sales|omzet)\\b.*\\brecord\\w*',
+  '\\b(?:sales|verkoop|omzet)cijfers\\b', '\\bcijfers\\b', '\\bconsument\\w*', '\\bshoppers\\b', '\\bdrove\\b', '\\blevert\\b.*\\bop\\b',
+  // Onderzoek, uitleg en achtergrond.
+  '\\bonderzoek\\w*', '\\bsurvey\\b', '\\bresearch\\b', '\\bstudy\\b', '\\bstudie\\b', '\\bfinds\\b', '\\bwaarom\\b', '\\bwhy\\b', '\\banalyse\\b', '\\banalysis\\b',
+  '\\bverwacht\\w*', '\\bexpected\\b', '\\banalysts?\\b', '\\banalisten\\b', '\\bexplained\\b', '\\buitgelegd\\b', '\\bzo werkt\\b', '\\bzo zit het\\b',
+  '\\bhow\\b[^?]*\\b(?:works?|actually work)\\b',
+  // Nep, oplichting en toezicht.
+  '\\bnep\\w*', '\\bfakes?\\b', '\\bscams?\\b', '\\boplicht\\w*', '\\bmisleid\\w*', '\\bmisleading\\b', '\\bfraude\\b', '\\bacm\\b', '\\bftc\\b', '\\bcma\\b',
+  '\\bregulators?\\b', '\\btoezicht\\w*', '\\bwaarschuw\\w*', '\\bwarns?\\b', '\\bboetes?\\b', '\\bfined?\\b', '\\bprobe\\b', '\\blawsuit\\b', '\\bsue[sd]\\b', '\\brechter\\w*',
+  '\\brechtbank\\b', '\\bcourt\\b', '\\beuropese commissie\\b',
+  // Zaken: overnames, akkoorden, handel, werk en faillissementen.
+  '\\bm&a\\b', '\\bmergers?\\b', '\\bacquisitions?\\b', '\\bovernames?\\b', '\\btakeovers?\\b', '\\bfusies?\\b', '\\bakkoord\\b', '\\btrade\\b', '\\bhandels\\w*',
+  '\\bbillion\\b', '\\bmiljard\\w*', '\\b\\d+\\s?bn\\b', '\\bretailers\\b', '\\bwinkeliers\\b', '\\bwebwinkels\\b', '\\bworkers\\b', '\\bwerknemers\\b', '\\bpersoneel\\b',
+  '\\bstrikes?\\b', '\\bstaking\\w*', '\\bbankrupt\\w*', '\\bfaillis\\w*', '\\bfailliet\\b',
+  // Politieke akkoorden: "peace deals", "trade deals".
+  '\\bpeace\\b', '\\bvrede\\w*', '\\bceasefire\\b', '\\bdiplomat\\w*', '\\btariffs?\\b', '\\bnuclear\\b', '\\bkernwapen\\w*',
+  // Markten.
+  '\\bstocks?\\b', '\\bshares\\b', '\\baandel\\w*', '\\bbeurs\\w*', '\\bkoers\\w*', '\\bmarkets\\b', '\\bwall street\\b', '\\bbitcoin\\b', '\\bcrypto\\w*',
+  '\\boil (?:price|prices|supplies|market)\\b', '\\bgold price\\b', '\\bgoudprijs\\b', '\\beconomie\\w*', '\\beconomy\\b', '\\binflati\\w*',
+].join('|'), 'iu')
+
 const clean = (t) => String(t || '').replace(/\s+/g, ' ').replace(/[’‘`]/g, "'").trim()
+// Een sterke koopvorm: een onmiskenbare dealkop, of een koopdag met deals. Een koopdag met sale of korting blijft zwak.
+const strongForm = (t) => STRONG_HEAD.test(t) || (SHOP_DAY.test(t) && STRONG_DAY_WORD.test(t))
 
 // De grond van een koopkop, of null. 'aanbod' (altijd), 'label', 'dealkop', 'koopdag', 'prijsval', 'koopgids'.
 export function koopGrond(title = '') {
@@ -110,6 +148,8 @@ export function koopGrond(title = '') {
   if (!t) return null
   if (BUY_ALWAYS.test(t)) return 'aanbod'
   if (LABEL.test(t)) return ABOUT.test(t) ? null : 'label'
+  // Sterke vorm: alleen het smalle veto. Anders (prijsval, koopgids, de rest van de dealkoppen) het brede veto.
+  if (strongForm(t)) return NARROW.test(t) ? null : STRONG_HEAD.test(t) ? 'dealkop' : 'koopdag'
   const grond = DEAL_HEAD.test(t) ? 'dealkop' : SHOP_DAY.test(t) && SHOP_WORD.test(t) ? 'koopdag' : PRICE_DROP.test(t) ? 'prijsval' : GUIDE.test(t) ? 'koopgids' : null
   return grond && !ABOUT.test(t) ? grond : null
 }
