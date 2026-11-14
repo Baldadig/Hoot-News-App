@@ -123,6 +123,32 @@ export const SOURCES = [
   S('scmp', 'South China Morning Post', 'int', 'en', 'Azië en China, vanuit Hongkong.', 'https://www.scmp.com/rss/91/feed', { login: 'https://account.scmp.com/login', paid: true, color: '#FDB813' , bsky: 'scmp.com' }),
   S('independent', 'The Independent', 'int', 'en', 'Brits, liberaal, wereldnieuws.', 'https://www.independent.co.uk/news/world/rss', { login: 'https://www.independent.co.uk/login', color: '#EC1A2E' , bsky: 'the-independent.com' }),
   S('telegraph', 'The Telegraph', 'int', 'en', 'Brits, conservatief, wereldnieuws.', 'https://www.telegraph.co.uk/rss.xml', { login: 'https://secure.telegraph.co.uk/customer/secure/login/', paid: true, color: '#1A1A1A' , bsky: 'telegraph.co.uk' }),
+  // Erbij op 14 november 2026 (Hoot-design/bronnen-internationaal-2026-11-14, ONDERZOEK.md): meer breedte in het
+  // internationale nieuws. Alleen officiele feeds van de uitgever, gemeten met de eigen UA op die dag. Geen pick of base:
+  // voor niemand ongevraagd aan. Een inlogpagina alleen als die met de eigen UA antwoordt (WaPo en National Review niet).
+  // Amerika: krant, tv-netwerken links en rechts van het midden, publieke tv, kort nieuws en onderzoek.
+  S('wapo', 'The Washington Post', 'int', 'en', 'Amerikaanse politiek en wereldnieuws uit Washington.', ['https://feeds.washingtonpost.com/rss/world', 'https://feeds.washingtonpost.com/rss/politics'], { paid: true, color: '#1A1A1A', bsky: 'washingtonpost.com', x: 'washingtonpost' }),
+  S('cbs', 'CBS News', 'int', 'en', 'Het Amerikaanse tv-nieuws van CBS.', 'https://www.cbsnews.com/latest/rss/main', { color: '#1A1A1A', bsky: 'cbsnews.com', x: 'CBSNews' }),
+  S('pbs', 'PBS News', 'int', 'en', 'Het nieuws van de Amerikaanse publieke tv (PBS News Hour).', 'https://www.pbs.org/newshour/feeds/rss/headlines', { color: '#2638C4', bsky: 'pbsnews.org', x: 'NewsHour' }),
+  S('fox', 'Fox News', 'int', 'en', 'Amerikaanse politiek van het tv-netwerk, rechts.', 'https://moxie.foxnews.com/google-publisher/politics.xml', { color: '#003366', logo: 'https://static.foxnews.com/static/orion/styles/img/fox-news/favicons/apple-touch-icon-180x180.png', x: 'FoxNews' }),
+  S('axios', 'Axios', 'int', 'en', 'Amerikaans nieuws, kort en feitelijk.', 'https://api.axios.com/feed/', { color: '#1A1A1A', bsky: 'axios.com', x: 'axios' }),
+  S('semafor', 'Semafor', 'int', 'en', 'Wereldnieuws, met de feiten en de duiding apart.', 'https://www.semafor.com/rss.xml', { color: '#1A1A1A', bsky: 'semafor.com', x: 'semafor' }),
+  S('propublica', 'ProPublica', 'int', 'en', 'Amerikaanse onderzoeksjournalistiek, non-profit.', 'https://www.propublica.org/feeds/propublica/main', { color: '#1A1A1A', bsky: 'propublica.org', x: 'propublica' }),
+  // Europa: publieke zenders in het Engels. France 24 en RFI zijn één uitgever (France Médias Monde).
+  S('france24', 'France 24', 'int', 'en', 'Frans publiek wereldnieuws, in het Engels.', 'https://www.france24.com/en/rss', { publisher: 'france-medias-monde', color: '#00A3E0', bsky: 'france24.com', x: 'France24_en' }),
+  S('rfi', 'RFI English', 'int', 'en', 'Franse publieke radio, sterk in Afrika.', 'https://www.rfi.fr/en/rss', { publisher: 'france-medias-monde', color: '#D7001D', bsky: 'rfi.fr', x: 'RFI_En' }),
+  S('euronews', 'Euronews', 'int', 'en', 'Europees nieuws vanuit Europa.', 'https://www.euronews.com/rss?format=mrss&level=theme&name=news', { color: '#027DF0', bsky: 'euronews.com', x: 'euronews' }),
+  // De wereld van binnenuit: Australië, Oekraïne, en Israël met twee stemmen.
+  S('abc-au', 'ABC News (Australië)', 'int', 'en', 'De publieke omroep van Australië.', 'https://www.abc.net.au/news/feed/51120/rss.xml', { color: '#1A1A1A', logo: 'https://www.abc.net.au/news-assets/touchicon-abc.png', x: 'abcnews' }),
+  S('kyivindependent', 'The Kyiv Independent', 'int', 'en', 'Oekraïne van binnenuit, onafhankelijk.', 'https://kyivindependent.com/news-archive/rss/', { color: '#1A1A1A', bsky: 'kyivindependent.com', x: 'KyivIndependent' }),
+  S('haaretz', 'Haaretz', 'int', 'en', 'Israëlische kwaliteitskrant, links-liberaal.', 'https://www.haaretz.com/srv/haaretz-latest-headlines', { login: 'https://login.haaretz.com/', paid: true, color: '#0E1734', bsky: 'haaretzcom.bsky.social', x: 'haaretzcom' }),
+  S('timesofisrael', 'The Times of Israel', 'int', 'en', 'Israëlisch nieuws, midden.', 'https://www.timesofisrael.com/feed/', { color: '#104F97', bsky: 'timesofisrael.com', x: 'TimesofIsrael' }),
+  // Opinie (`opinie`): links en rechts samen. Vox progressief; National Review conservatief, The Free Press eigenzinnig
+  // centrum-rechts, Reason libertarisch. Allemaal minstens vijf stukken per dag in de feed.
+  S('vox', 'Vox', 'int', 'en', 'Uitleg en opinie, progressief.', 'https://www.vox.com/rss/index.xml', { opinie: true, login: 'https://www.vox.com/auth/login?returnPath=/', paid: true, color: '#FEF100', bsky: 'vox.com', x: 'voxdotcom' }),
+  S('nationalreview', 'National Review', 'int', 'en', 'Amerikaans opinieblad, conservatief.', 'https://www.nationalreview.com/feed/', { opinie: true, paid: true, color: '#0265B1', bsky: 'nationalreview.bsky.social', x: 'NRO' }),
+  S('thefp', 'The Free Press', 'int', 'en', 'Eigenzinnige opinie en reportage, centrum-rechts.', 'https://www.thefp.com/feed', { opinie: true, login: 'https://www.thefp.com/account/login', paid: true, color: '#1A1A1A', bsky: 'thefp.com', x: 'TheFP' }),
+  S('reason', 'Reason', 'int', 'en', 'Opinie en analyse, libertarisch.', 'https://reason.com/feed/', { opinie: true, color: '#F06C34', bsky: 'reason.com', x: 'reason' }),
   // Economie
   // Gratis en Nederlands bij Economie (keuze r5-economiebron, 5 november): de economiefeed van de NOS,
   // zoals NOS Sport en NOS Cultuur. Gecontroleerd op 5 november 2026 (bereikbaar, actueel, 20 berichten).
