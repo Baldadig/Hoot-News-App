@@ -114,7 +114,16 @@ test('vals: een artikellink zonder gedeelde naam in de titel ("lees ook") koppel
   assert.ok(e.links.includes(urlKey(extra.url)))
   const items = new Map([...byId, [extra.id, extra]])
   const stories = [{ ...st, itemIds: [...st.itemIds, extra.id] }]
-  const r = koppel({ stories, byId: items, episodes: [e], now: Date.parse('2026-11-12T12:00:00.000Z'), mainIds: MAIN_IDS })
+  // De beschrijving zegt ook "Ondertussen worden er in twee staten nog steeds stemmen geteld: Alaska en Mississippi": van
+  // vóór de uitslag. Sinds keuring 2 van branch shows valt ze daar al op af (ouder dan de kop, TIJD).
+  const r0 = koppel({ stories, byId: items, episodes: [e], now: Date.parse('2026-11-12T12:00:00.000Z'), mainIds: MAIN_IDS })
+  assert.equal(r0.byStory.size, 0)
+  assert.match(r0.rows.afgevallen.find((x) => x.aflevering === e.titel)?.reden || '', /ouder dan de kop/)
+  // Zonder die zin: de regel voor de artikellink zelf.
+  const zonder = (t) => String(t || '').replace(/\s*Ondertussen[^.]*\./, '')
+  const e2 = { ...e, tekst: zonder(e.tekst), samenvatting: zonder(e.samenvatting) }
+  assert.ok(!/Ondertussen/.test(e2.tekst + e2.samenvatting))
+  const r = koppel({ stories, byId: items, episodes: [e2], now: Date.parse('2026-11-12T12:00:00.000Z'), mainIds: MAIN_IDS })
   assert.equal(r.byStory.size, 0)
   assert.match(r.rows.afgevallen.find((x) => x.aflevering === e.titel)?.reden || '', /artikellink, maar geen gedeelde naam in de titel/)
 })

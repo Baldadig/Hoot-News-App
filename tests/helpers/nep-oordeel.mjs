@@ -1,6 +1,6 @@
 // Een nep-oordeel voor Luister verder (netlify/lib/luister.mjs, het oordeel van De Redacteur): geen echte AI in npm test.
 // De nep-client leest de vraag zoals het model hem krijgt (per verhaal de kop, per aflevering nr, code, show, titel en
-// beschrijving) en antwoordt in het schema. `beslis({ kop, show, titel, beschrijving, nr })` geeft { zaak, eenOnderwerp,
+// beschrijving) en antwoordt in het schema. `beslis({ kop, show, titel, beschrijving, nr })` geeft { voorHetNieuws, zaak, eenOnderwerp,
 // zeker, reden } of null (dan geen oordeel voor dat nummer).
 import { koppel, leesVraag } from '../../netlify/lib/luister.mjs'
 
@@ -27,8 +27,8 @@ export function nepClient(beslis, { wacht = 0, fout = null, hangt = false } = {}
   }
 }
 
-export const JA = { zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }
-export const NEE = { zaak: 'anders', eenOnderwerp: 'ja', zeker: 'ja' }
+export const JA = { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }
+export const NEE = { voorHetNieuws: 'nee', zaak: 'anders', eenOnderwerp: 'ja', zeker: 'ja' }
 
 // Een nep-oordeel dat ja zegt precies bij de paren die de woordregels koppelen (koppel zonder oordeel), en anders nee.
 export function zoalsWoordregels(opts) {

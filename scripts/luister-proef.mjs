@@ -88,7 +88,7 @@ const nep = (opts) => {
   const ja = new Set(koppel(opts).rows.koppelingen.map((k) => `${k.kop}|${k.aflevering}`))
   return { messages: { create: async (req) => {
     const vragen = leesVraag(req.messages[0].content)
-    const oordelen = vragen.map((v) => ({ nr: v.nr, code: v.code, ...(ja.has(`${v.kop}|${v.titel}`) ? { zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier' } : { zaak: 'anders', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier niet' }) }))
+    const oordelen = vragen.map((v) => ({ nr: v.nr, code: v.code, ...(ja.has(`${v.kop}|${v.titel}`) ? { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier' } : { voorHetNieuws: 'nee', zaak: 'anders', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier niet' }) }))
     return { stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ oordelen }) }], usage: { input_tokens: Math.round(req.messages[0].content.length / 3.5), output_tokens: 45 * vragen.length } }
   } } }
 }

@@ -37,19 +37,20 @@ test('alleen een duidelijk ja koppelt: zelfde of verdieping, één onderwerp ja 
   const zelfde = await geval(JA)
   assert.equal(zelfde.length, 1)
   assert.equal(zelfde[0].soort, 'hetzelfde')
-  assert.deepEqual(zelfde[0].oordeel, { zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' })
+  assert.deepEqual(zelfde[0].oordeel, { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' })
   assert.equal(zelfde[0].reden, 'nep')
-  const verdieping = await geval({ zaak: 'verdieping', eenOnderwerp: 'ja', zeker: 'ja' })
+  const verdieping = await geval({ voorHetNieuws: 'nee', zaak: 'verdieping', eenOnderwerp: 'ja', zeker: 'ja' })
   assert.equal(verdieping.length, 1)
   assert.equal(verdieping[0].soort, 'verdiepend')
-  for (const o of [{ zaak: 'zelfde', eenOnderwerp: 'nee', zeker: 'ja' }, { zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'nee' }, { zaak: 'verdieping', eenOnderwerp: 'ja', zeker: 'nee' }, { zaak: 'anders', eenOnderwerp: 'ja', zeker: 'ja' }, null]) {
+  // Ook "gemaakt vóór het nieuws" (voorHetNieuws ja) of een oordeel zonder dat veld koppelt niet (herstel keuring 2 van branch shows).
+  for (const o of [{ ...JA, eenOnderwerp: 'nee' }, { ...JA, zeker: 'nee' }, { ...JA, zaak: 'verdieping', zeker: 'nee' }, NEE, { ...JA, voorHetNieuws: 'ja' }, { zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, null]) {
     assert.equal((await geval(o)).length, 0, JSON.stringify(o))
   }
   // Nee overal: geen enkele koppeling, ook geen artikellink van de eigen uitgever (het model heeft het laatste woord).
   const { get, update } = memKv()
   const r = await koppelMetOordeel({ ...OPTS, client: nepClient(() => NEE), get, update })
   assert.equal(r.byStory.size, 0)
-  assert.ok(r.rows.afgevallen.some((a) => a.oordeel && /^oordeel: zaak anders/.test(a.reden)), 'de afgevallen kandidaten met de reden van het oordeel')
+  assert.ok(r.rows.afgevallen.some((a) => a.oordeel && /^oordeel: vóór het nieuws nee, zaak anders/.test(a.reden)), 'de afgevallen kandidaten met de reden van het oordeel')
 })
 
 test('een oordeel dat niet op tijd is: geen koppeling voor dat paar, nooit terugvallen op losser; de volgende ronde opnieuw', async () => {
@@ -99,7 +100,7 @@ test('de opslag: elk paar (verhaal, aflevering) wordt één keer beoordeeld', as
   assert.equal(r1.ai.gevraagd, r1.ai.kandidaten)
   const doc = kv.get(OORDEEL_KEY)
   assert.equal(Object.keys(doc.o).length, r1.ai.kandidaten)
-  for (const [k, v] of Object.entries(doc.o)) assert.ok(k.includes('|') && v.length === 5 && typeof v[4] === 'number')
+  for (const [k, v] of Object.entries(doc.o)) assert.ok(k.includes('|') && v.length === 6 && typeof v[4] === 'number' && ['ja', 'nee'].includes(v[5]))
   const r2 = await koppelMetOordeel({ ...OPTS, client, get, update })
   assert.equal(client.calls.length, n1, 'de tweede ronde vraagt niets')
   assert.equal(r2.ai.uitOpslag, r1.ai.kandidaten)
