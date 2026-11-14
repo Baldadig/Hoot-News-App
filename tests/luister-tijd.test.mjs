@@ -80,25 +80,30 @@ test('opgenomen vóór precies dit nieuws, in een zin die het vangnet niet kent:
   assert.equal((await koppelingen(GESPREK_VOOR, { ...JA, opgenomenVoorDitNieuws: 'ja' })).length, 0)
 })
 
-test('de tijdgrens per soort: zelfde na het begin van het nieuws, verdieping tot drie dagen ouder dan de kop', () => {
+test('de tijdgrens per soort (herstel keuring 4): zelfde en verdieping tot drie dagen ouder dan de kop', () => {
   const c = paar(CRISIS_GISTEREN)
   const op = (t) => ({ ...c, e: { ...c.e, t } })
-  // Zelfde: vanaf BEFORE_H uur vóór het eerste stuk (een nabespreking verschijnt soms vóór het eerste verslag).
   assert.equal(tijdGrens(op(c.firstAt + H), JA), null)
   assert.equal(tijdGrens(op(c.firstAt - (BEFORE_H - 1) * H), JA), null)
-  assert.match(tijdGrens(op(c.firstAt - (BEFORE_H + 1) * H), JA), /vóór het begin van het nieuws/)
+  // Keuring 4: een "zelfde" van meer dan BEFORE_H uur vóór het eerste stuk valt niet meer helemaal af; het wordt als
+  // verdieping getoetst (kiesOordeel maakt er "verdiepend" van).
+  assert.equal(tijdGrens(op(c.firstAt - (BEFORE_H + 1) * H), JA), null)
+  assert.match(tijdGrens(op(LEAD_AT - (DEEP_H + 1) * H), JA), /precies dit nieuws, en als verdieping meer dan 3 dagen ouder dan de kop/)
   // Verdieping: tot DEEP_H uur ouder dan de kop.
   assert.equal(tijdGrens(op(LEAD_AT - (DEEP_H - 1) * H), VERDIEPING), null)
   assert.match(tijdGrens(op(LEAD_AT - (DEEP_H + 1) * H), VERDIEPING), /dagen ouder dan de kop/)
 })
 
-test('in de ronde: "zelfde" van ruim vóór het nieuws koppelt niet; dezelfde aflevering als verdieping wel', async () => {
+test('in de ronde (herstel keuring 4): "zelfde" van ruim vóór het nieuws koppelt als verdieping, binnen drie dagen', async () => {
   const oud = { ...CRISIS_GISTEREN, id: 'tijd-oud', t: paar(CRISIS_GISTEREN).firstAt - (BEFORE_H + 2) * H }
-  assert.equal((await koppelingen(oud, JA)).length, 0)
-  const { get, update } = memKv()
-  const r = await koppelMetOordeel({ ...opts([oud]), client: nepClient(() => JA), get, update })
-  assert.ok(r.rows.afgevallen.some((a) => a.verhaal === CRISIS && /^tijd: volgens het oordeel precies dit nieuws/.test(a.reden)))
+  assert.ok(oud.t > LEAD_AT - DEEP_H * H, 'binnen drie dagen voor de kop')
+  const k = await koppelingen(oud, JA)
+  assert.equal(k.length, 1)
+  assert.equal(k[0].soort, 'verdiepend', 'nooit hetzelfde: ze verscheen ruim voor het nieuws')
   assert.equal((await koppelingen(oud, VERDIEPING)).length, 1)
+  // Ook als verdieping alleen met de tijdvelden op nee.
+  assert.equal((await koppelingen(oud, { ...JA, vooruitblikOpVoorbij: 'ja' })).length, 0)
+  assert.equal((await koppelingen(oud, { ...JA, opgenomenVoorDitNieuws: 'ja' })).length, 0)
 })
 
 test('ja vraagt alle velden: soort zelfde of verdieping, geen vooruitblik op voorbij, niet opgenomen vóór dit nieuws, één onderwerp, zeker', () => {
@@ -114,10 +119,14 @@ test('het schema en de vraag: soort, vooruitblikOpVoorbij en opgenomenVoorDitNie
   assert.ok(!('voorHetNieuws' in p.properties) && !('zaak' in p.properties))
   assert.deepEqual(p.required, ['nr', 'code', 'reden', 'soort', 'vooruitblikOpVoorbij', 'opgenomenVoorDitNieuws', 'eenOnderwerp', 'zeker'])
   for (const s of ['tot drie dagen ouder zijn dan de kop', 'Waar gaat deze politieke crisis nou echt over?', 'recorded before the news of Mr. Huang', 'Sinds de opname', 'Vrijdag begint het overleg', '"inmiddels" of "ondertussen" zegt dat niet']) assert.ok(OORDEEL_SYSTEM.includes(s), s)
+  // Herstel keuring 4: vooruitblikOpVoorbij geldt voor elk moment dat bij de kop voorbij is, ook een ander moment van
+  // dezelfde zaak; "vandaag" en een weekdag gelden vanaf de dag van verschijnen; een vooruitblik op wat nog komt is "nee".
+  for (const s of ['reken vanaf de dag dat de aflevering verscheen', 'ook een ander moment van dezelfde zaak dat inmiddels geweest is', 'Vandaag het debat over het Belastingplan', 'alleen vooruitblikt op iets dat bij de kop nog moet komen', 'Komen de partijen er samen uit?']) assert.ok(OORDEEL_SYSTEM.includes(s), s)
   const c = paar(CRISIS_GISTEREN)
   const vraag = oordeelPrompt([c])
-  assert.match(vraag, /^Kop verschenen: \d{4}-\d\d-\d\d \d\d:\d\d UTC, \d+ uur na het eerste stuk$/m)
-  assert.match(vraag, /verschenen: [^\n]*, \d+ uur vóór het eerste stuk, \d+ uur vóór de kop$/m)
+  // De dag in Nederland naast elke tijd (herstel keuring 4).
+  assert.match(vraag, /^Kop verschenen: \d{4}-\d\d-\d\d \d\d:\d\d UTC \((maan|dins|woens|donder|vrij|zater|zon)dag \d{4}-\d\d-\d\d in Nederland\), \d+ uur na het eerste stuk$/m)
+  assert.match(vraag, /verschenen: [^\n]* UTC \([a-z]+dag \d{4}-\d\d-\d\d in Nederland\), \d+ uur vóór het eerste stuk, \d+ uur vóór de kop$/m)
   const codes = codesVoor([c])
   const een = (o) => leesOordelen(JSON.stringify({ oordelen: [{ nr: 1, code: codes[0], reden: 'x', ...o }] }), 1, codes)
   assert.equal(een({ soort: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }).size, 0, 'zonder de tijdvelden telt het niet')
@@ -125,8 +134,8 @@ test('het schema en de vraag: soort, vooruitblikOpVoorbij en opgenomenVoorDitNie
   assert.deepEqual({ ...een(VERDIEPING).get(1), reden: undefined }, { ...VERDIEPING, reden: undefined })
 })
 
-test('de opslag: v4 bewaart soort en de twee tijdvelden; een oordeel uit een oudere vorm is nooit een ja', async () => {
-  assert.equal(OORDEEL_KEY, 'luister-oordeel-v4')
+test('de opslag: v5 bewaart soort en de twee tijdvelden; een oordeel uit een oudere vorm is nooit een ja', async () => {
+  assert.equal(OORDEEL_KEY, 'luister-oordeel-v5', 'herstel keuring 4: de vraag over vooruitblikOpVoorbij is anders')
   const { kv, get, update } = memKv()
   await koppelMetOordeel({ ...opts([CRISIS_GISTEREN]), client: nepClient(() => VERDIEPING), get, update })
   const rij = Object.values(kv.get(OORDEEL_KEY).o)[0]

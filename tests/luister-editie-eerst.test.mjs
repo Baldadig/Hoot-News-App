@@ -23,7 +23,8 @@ const NVIDIA = FIX.stories.filter((st) => /Nvidia|Huang/.test(kop(st))).map((st)
 const TIF = FIX.episodes.find((e) => /Why the Nvidia scandal is far from over/.test(e.titel))
 const draai = async (beslis, editie) => {
   const { get, update } = memKv()
-  return koppelMetOordeel({ ...OPTS, client: nepClient(beslis), get, update, editie })
+  // Alle paren in één ronde (sinds keuring 4 halen er meer het oordeel dan MAX_AANROEPEN; dat is hier niet de vraag).
+  return koppelMetOordeel({ ...OPTS, client: nepClient(beslis), get, update, editie, maxAanroepen: Infinity, maxVragen: Infinity })
 }
 
 test('editiePlekken op de echte Editie van de avond: een verhaal-onderdeel telt, het verhaal van toen (formerId) niet', () => {

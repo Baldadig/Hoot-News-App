@@ -69,6 +69,16 @@
 //     Editie eerst: de Editieplek volgt ook een verhaal dat onder een andere id verder ging (editiePlekken), en bij twee
 //     verhalen met dezelfde plek krijgt het grootste de aflevering. Een oordeel geldt alleen voor de kop waarop het gegeven
 //     is (paarKey). De kosten per ronde staan in het log en de proef (kostenUsd).
+//   - Herstel na keuring 4 van branch shows (15 november, nacht): (1) het vangnet op de kop (kopDeelt) was te streng. Een
+//     verdieping deelt zelden een kernwoord of twee namen met de kop van vandaag, dus Alex' eigen voorbeeld ("Hoe premier
+//     Jetten zijn kabinetscrisis (mis)managet" bij "Crisisoverleg op landgoed begonnen") viel af voordat De Redacteur het
+//     zag. Nu sluit kopDeelt alleen nog hard uit bij een mengverhaal (de kop deelt de gebeurtenis niet en de aflevering noemt
+//     niet waar de kop over gaat); de rest beslist het oordeel. (2) vooruitblikOpVoorbij is eenduidig: "ja" bij elk moment
+//     waar de aflevering op vooruitblikt dat bij de kop al voorbij is (ook een ander moment van dezelfde zaak, zoals een
+//     debat van twee dagen eerder), "nee" bij wat nog komt; de vraag noemt bij elke tijd de dag in Nederland. (3) Een
+//     dagplafond voor het oordeel (OORDEEL_DAG_USD), met de kosten van de dag in de opslag en in het log. (4) Een "zelfde"
+//     van ruim vóór het eerste stuk wordt als verdieping getoetst (tijdGrens). (5) Eén gedeeld kernwoord telt in het vangnet
+//     alleen als het geen toeval is (zes letters of meer, geen gewoon woord van de ronde; keuring 3: "terug").
 //   - Herstel na de keuring van 14 november (avond): één verhaal per vraag aan het model (nooit twee verhalen in één vraag),
 //     elke vraag twee keer en alleen twee keer een duidelijk ja koppelt; "de kop deelt de gebeurtenis" is een harde
 //     voorwaarde in het vangnet (kopDeelt), die voor een ja van het model gaat; de zinssplitser knipt niet na "Mr." en andere
@@ -770,19 +780,42 @@ const UITSLAG = /(?<![\d-])(\d{1,2})\s?[-–]\s?(\d{1,2})(?!\d)/g
 const uitslagen = (t) => new Set([...String(t || '').matchAll(UITSLAG)].map((m) => `${+m[1]}-${+m[2]}`))
 const kernVan = (t, s) => [...sigWords(t)].filter((w) => w.length >= 5 && !s?.strong?.has(w) && !s?.weak?.has(w))
 const deeltWoord = (a, b) => a.some((w) => b.some((x) => w === x || (w.length >= 6 && x.includes(w)) || (x.length >= 6 && w.includes(x))))
-function kopGebeurtenis(kt, es, tekst, kop) {
+// `streng` (het vangnet, herstel keuring 4): één gedeeld kernwoord telt alleen als het geen toeval is: minstens zes letters
+// en geen gewoon woord van de ronde (`gewoon`, zie gewoneWoorden). Keuring 3 vond "terug" ("Van Bommel heeft Lukaku terug")
+// als enige gedeelde woord met de nabespreking van de 7-0. Twee gedeelde kernwoorden tellen altijd.
+function kopGebeurtenis(kt, es, tekst, kop, { streng = false, gewoon = null } = {}) {
   if (!kt || !kop) return true
   if ([...(kt.concepts || [])].some((c) => es.concepts?.has(c))) return true
   if ([...(kt.actions || [])].some((a) => es.actions?.has(a))) return true
   const u = uitslagen(tekst)
   if ([...uitslagen(kop)].some((x) => u.has(x))) return true
-  return deeltWoord(kernVan(kop, kt), kernVan(tekst, es))
+  if (!streng) return deeltWoord(kernVan(kop, kt), kernVan(tekst, es))
+  const tw = kernVan(tekst, es)
+  const gedeeld = kernVan(kop, kt).filter((w) => deeltWoord([w], tw))
+  return gedeeld.length >= 2 || gedeeld.some((w) => w.length >= 6 && !gewoon?.has(w))
 }
-// Het vangnet voor een mengverhaal (herstel keuring 14 november): de kop van het verhaal, de regel die de lezer ziet, deelt
-// de gebeurtenis met de aflevering (kopGebeurtenis, of twee eigen namen uit de kop zelf). Een harde voorwaarde die voor een
-// ja van het model gaat, voor elk paar, ook met een artikellink (live: "Schrijnend contrast: Frenkie de Jong gaat van 6
-// procent Oranje-absentie naar 58" kreeg van het model de nabespreking van de 7-0, "Galavoorstelling Oranje").
-export function kopDeelt(ep, story, items, sig) {
+// De gewone woorden van een ronde (herstel keuring 4): een kernwoord (sigWords, minstens vijf letters) dat in minstens 5%
+// van de teksten van de ronde staat (de koppen van de stukken, de titels en beschrijvingen van de afleveringen), en in
+// minstens vijf. Generiek: alleen tellen, geen woordenlijst.
+export function gewoneWoorden(teksten = []) {
+  const n = new Map()
+  for (const t of teksten) for (const w of sigWords(t)) if (w.length >= 5) n.set(w, (n.get(w) || 0) + 1)
+  const min = Math.max(5, Math.ceil(teksten.length * 0.05))
+  return new Set([...n].filter(([, k]) => k >= min).map(([w]) => w))
+}
+// Het vangnet voor een mengverhaal (herstel keuring 14 november; herstel keuring 4). Geeft false alleen bij een mengverhaal:
+// de kop van het verhaal, de regel die de lezer ziet, deelt de gebeurtenis niet met de aflevering (kopGebeurtenis, streng,
+// of twee eigen namen uit de kop) én de kop gaat over iets anders dan de aflevering: de kop heeft eigen namen en de
+// aflevering noemt de eerste daarvan niet (waar de kop over gaat), of de kop heeft alleen zwakke namen (een land) en de
+// aflevering noemt er geen. Dan sluit het vangnet hard uit, ook bij een ja van het model (live: "Schrijnend contrast:
+// Frenkie de Jong gaat van 6 procent Oranje-absentie naar 58" kreeg de nabespreking van de 7-0, "Galavoorstelling Oranje";
+// "Van Bommel heeft Lukaku terug voor duel met Italië" ook).
+// In alle andere gevallen beslist De Redacteur, die de kop ziet en "de kop gaat over een andere kant" zelf beantwoordt
+// (soort anders). Keuring 4: een verdieping van een lopende zaak deelt zelden een kernwoord met de kop van vandaag ("Hoe
+// premier Jetten zijn kabinetscrisis (mis)managet" bij "Crisisoverleg op landgoed begonnen: komen de partijen nader tot
+// elkaar?", een kop zonder namen; "The affair that brought down Jensen Huang" bij "Jensen Huang and the decline of the
+// visionary showman founder CEO", één naam), en die vielen hier af voordat het model ze zag.
+export function kopDeelt(ep, story, items, sig, gewoon = null) {
   const lead = items.find((i) => i.id === story.leadId) || items[0]
   const kt = sig.get(lead?.id + '#kop')
   const es = sig.get(ep.id)
@@ -792,7 +825,16 @@ export function kopDeelt(ep, story, items, sig) {
   const has = (s, k) => !!s && s.strong.has(k) && !dubbel.has(k) && (!bound.has(k) || adjacent(s.runs, k, bound.get(k)))
   const find = grouper([...runs, ...(es.titleRuns || [])])
   const sterk = new Set([...kt.strong].filter((k) => !BROAD.has(k) && has(kt, k) && has(es, k)).map(find))
-  return sterk.size >= 2 || kopGebeurtenis(kt, es, `${ep.titel || ''}. ${ep.tekst || ep.samenvatting || ''}`, lead.title)
+  if (sterk.size >= 2 || kopGebeurtenis(kt, es, `${ep.titel || ''}. ${ep.tekst || ep.samenvatting || ''}`, lead.title, { streng: true, gewoon })) return true
+  // Geen gedeelde gebeurtenis: alleen een mengverhaal sluit uit.
+  const eigen = [...kt.strong].filter((k) => !BROAD.has(k) && has(kt, k))
+  if (eigen.length) {
+    const eerste = (kt.runs || []).map((run) => run.filter((k) => !BROAD.has(k) && has(kt, k))).find((run) => run.length) || [eigen[0]]
+    return eerste.some((k) => has(es, k))
+  }
+  const zwak = [...(kt.weak || [])].filter((k) => !BROAD.has(k))
+  if (zwak.length) return zwak.some((k) => es.weak?.has(k))
+  return true // de kop noemt geen enkele naam: daar zegt de kop niets over een mengverhaal
 }
 const dagNL = (t) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'Europe/Amsterdam' })
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -868,13 +910,15 @@ export function paren({ stories = [], byId = new Map(), episodes = [], now = Dat
     e.onderwerpK = k
   }
   const out = []
+  let gewoon = null
   for (const e of eps) {
     const show = SHOW.get(e.show)
     for (const x of live) {
       const o = judge(e, show, x.st, x.items, sig, now)
       if (!o.soort && !o.kandidaat) continue
       const { firstAt, urls } = prepOf(x.items, sig)
-      out.push({ e, x, o, show, firstAt, linked: e.links.some((u) => urls.has(u)), kop: kopDeelt(e, x.st, x.items, sig) })
+      gewoon ||= gewoneWoorden([...pool.map((i) => i.title), ...eps.map((e) => `${e.titel || ''}. ${e.tekst || e.samenvatting || ''}`)])
+      out.push({ e, x, o, show, firstAt, linked: e.links.some((u) => urls.has(u)), kop: kopDeelt(e, x.st, x.items, sig, gewoon) })
     }
   }
   return { live, eps, paren: out }
@@ -947,9 +991,9 @@ export function vangnet(c, now) {
   if (!c.linked && c.show.soort !== 'verdieping') return c.show.soort === 'week' ? 'weekshow zonder artikellink' : 'meer onderwerpen per aflevering, zonder artikellink'
   // BNR: het onderwerp volgt niet uit één gedeelde naam (voorwaarde 1); minstens twee centrale namen van het verhaal.
   if (zonderBron(c.show) && !c.o.soort && (c.o.names || []).length < 2) return 'show zonder Hoot-bron: deelt geen twee centrale namen met het verhaal'
-  // De kop deelt de gebeurtenis (herstel keuring 14 november; kopDeelt). Alleen `false` sluit uit (een paar zonder dit veld,
+  // Een mengverhaal (herstel keuring 14 november en keuring 4; kopDeelt). Alleen `false` sluit uit (een paar zonder dit veld,
   // uit een oudere aanroep, laat het aan de rest).
-  if (c.kop === false) return 'de kop van het verhaal deelt de gebeurtenis niet met de aflevering (geen kernwoord, uitslag of handeling, geen twee namen uit de kop)'
+  if (c.kop === false) return 'een mengverhaal: de kop van het verhaal deelt de gebeurtenis niet met de aflevering en gaat over iets anders (de aflevering noemt niet waar de kop over gaat)'
   return null
 }
 // Een duidelijk ja (herstel keuring 3 van branch shows): soort zelfde of verdieping, geen vooruitblik op iets dat inmiddels
@@ -964,11 +1008,14 @@ const uitleg = (v) => `soort ${v.soort ?? 'onbekend'}, vooruitblik op voorbij ${
 // al kent, zegt het model (opgenomenVoorDitNieuws, vooruitblikOpVoorbij);
 // "verdieping" (dezelfde lopende zaak) tot DEEP_H uur ouder dan de kop (en het vangnet: hooguit DEEP_H uur oud). Geeft de
 // reden om af te vallen, of null.
+// Herstel keuring 4: een "zelfde" van meer dan BEFORE_H uur vóór het eerste stuk valt niet meer helemaal af, maar wordt
+// getoetst als verdieping (tot DEEP_H uur ouder dan de kop; kiesOordeel maakt er dan "verdiepend" van). Het model wisselt
+// bij een aflevering over de lopende zaak soms tussen zelfde en verdieping; zo hangt een goede verdieping daar niet van af.
+// De tijdvelden (vooruitblikOpVoorbij, opgenomenVoorDitNieuws) moeten dan nog steeds "nee" zijn (ja).
 export function tijdGrens(c, v) {
   const lead = leadVan(c.x)
   const leadAt = Date.parse(lead?.publishedAt) || c.firstAt
-  if (v.soort === 'zelfde' && c.e.t < c.firstAt - BEFORE_H * H) return `volgens het oordeel precies dit nieuws, maar verschenen meer dan ${BEFORE_H} uur vóór het begin van het nieuws`
-  if (v.soort === 'verdieping' && c.e.t < leadAt - DEEP_H * H) return `een verdieping, maar meer dan ${DEEP_H / 24} dagen ouder dan de kop`
+  if ((v.soort === 'zelfde' || v.soort === 'verdieping') && c.e.t < leadAt - DEEP_H * H) return `${v.soort === 'zelfde' ? 'volgens het oordeel precies dit nieuws, en als verdieping' : 'een verdieping, maar'} meer dan ${DEEP_H / 24} dagen ouder dan de kop`
   return null
 }
 // Zonder sleutel of bij een fout van het model: alleen een artikellink van de eigen uitgever (met het woordoordeel).
@@ -977,7 +1024,7 @@ const eigenLink = (c) => !!c.o.soort && c.o.grond === 'link' && publisherOf(c.sh
 // Het besluit van 14 november: het vangnet, dan het oordeel. `oordelen`: Map(paarKey → { soort, vooruitblikOpVoorbij,
 // opgenomenVoorDitNieuws, eenOnderwerp, zeker, reden })
 // of null (geen sleutel). `fout`: Set(paarKey) waarvoor het model een fout gaf.
-function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(), oordelen = null, fout = null, editie = null } = {}) {
+function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(), oordelen = null, fout = null, editie = null, plafond = false } = {}) {
   const rows = { koppelingen: [], afgevallen: [] }
   const plek = plekVan(editie)
   const hits = new Map() // aflevering → [{ x, o }]
@@ -1002,7 +1049,7 @@ function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(
     if (!oordelen || fout?.has(key)) {
       if (eigenLink(c)) hit(c, { ...c.o, reden: `zonder oordeel (${!oordelen ? 'geen sleutel' : 'fout'}): de eigen uitgever linkt naar een stuk in het verhaal` })
       else rows.afgevallen.push(row(c.e, c.x, `geen oordeel (${!oordelen ? 'geen sleutel' : 'fout'}): dan alleen een artikellink van de eigen uitgever`))
-    } else rows.afgevallen.push(row(c.e, c.x, 'geen oordeel op tijd: deze ronde geen koppeling'))
+    } else rows.afgevallen.push(row(c.e, c.x, plafond ? 'geen oordeel: het dagplafond van het oordeel is bereikt, deze ronde geen koppeling' : 'geen oordeel op tijd: deze ronde geen koppeling'))
   }
   const per = new Map()
   for (const e of p.eps) {
@@ -1086,7 +1133,17 @@ export const kostenVan = (invoer = 0, uitvoer = 0) => Math.round(((invoer * OORD
 // v3 (herstel keuring 2 van branch shows): het oordeel heeft een eigen veld voor de tijd (voorHetNieuws).
 // v4 (herstel keuring 3 van branch shows): soort zelfde/verdieping/anders, vooruitblikOpVoorbij en opgenomenVoorDitNieuws, van
 // een ander model; de oordelen van v3 tellen niet.
-export const OORDEEL_KEY = 'luister-oordeel-v4'
+// v5 (herstel keuring 4): vooruitblikOpVoorbij geldt voor elk moment dat bij de kop voorbij is, met de dag van verschijnen
+// in de vraag; de oordelen van v4 tellen niet. De opslag houdt ook de kosten van de dag bij (OORDEEL_DAG_USD).
+export const OORDEEL_KEY = 'luister-oordeel-v5'
+// Het dagplafond (herstel keuring 4): de ronde draait elke tien minuten en mag MAX_AANROEPEN vragen doen, en met de kop in
+// de sleutel wordt een verhaal dat van kop wisselt opnieuw gevraagd. Zonder plafond kon dat oplopen tot ongeveer 21 dollar
+// per dag. Nu: hooguit OORDEEL_DAG_USD per dag (Nederlandse dag). Per ronde niet meer vragen dan er in het budget past
+// (AANROEP_USD per vraag, gemeten in keuring 4: $0,012 tot $0,014 per paar). Een vraag die niet op tijd was, telt voor het
+// budget als AANROEP_USD (de kosten zijn dan onbekend). Is het plafond bereikt, dan wordt er die dag niets meer gevraagd:
+// de bewaarde oordelen gelden nog, een nieuw paar koppelt niet (nooit terugvallen op losser).
+export const OORDEEL_DAG_USD = 3
+export const AANROEP_USD = 0.015
 export const OORDEEL_MS = 8000 // elke aanroep: hooguit zo lang (alle aanroepen van een ronde tegelijk)
 export const OORDEEL_KV_MS = 1500 // de opslag lezen of schrijven: hooguit zo lang
 export const MAX_VRAGEN = 24 // nieuwe paren per ronde (de volgende ronde, tien minuten later, de volgende)
@@ -1110,7 +1167,9 @@ De norm is streng. Een verkeerde koppeling is erger dan geen. Beoordeel elke afl
   - "zelfde": de aflevering gaat over precies het nieuws van het verhaal (dezelfde gebeurtenis, hetzelfde besluit, dezelfde wedstrijd) en kent dat nieuws al. Verscheen ze vóór het eerste stuk, dan alleen als ze het nieuws toch al kent (een nabespreking van de wedstrijd die het verhaal brengt, kort voor het eerste stuk); kent ze het nog niet, dan hooguit "verdieping".
   - "verdieping": de aflevering gaat over dezelfde lopende zaak en geeft achtergrond of duiding. Ze mag tot drie dagen ouder zijn dan de kop en hoeft het nieuws van vandaag nog niet te kennen. Voorbeeld: een aflevering van gisteren over de kabinetscrisis ("Waar gaat deze politieke crisis nou echt over?", "Hoe de premier zijn crisis managet") is een verdieping bij een verhaal over het crisisoverleg van vandaag, ook al is ze opgenomen vóór dat overleg.
   - "anders": in alle andere gevallen. Ook als alleen een persoon, partij, bedrijf, club, land of competitie overeenkomt maar het om een andere kwestie gaat, als de aflevering over een breder thema gaat, of als de kop over een andere kant van het verhaal gaat dan de aflevering (de lezer ziet de kop: een wedstrijd tegenover een blessure, een statistiek over een speler of een andere wedstrijd).
-- vooruitblikOpVoorbij: "ja" als de aflevering vooruitblikt op een gebeurtenis die het verhaal als gebeurd brengt ("Vrijdag begint het overleg" of "Wat mogen we verwachten van het overleg?" bij een verhaal over het begonnen overleg, "morgen stemt de Kamer" als de stemming al geweest is, "ahead of the vote"). Een duiding van een lopende zaak die niet vooruitblikt op wat inmiddels gebeurd is: "nee".
+- vooruitblikOpVoorbij: kijk naar elk moment waar de aflevering op vooruitblikt, en reken vanaf de dag dat de aflevering verscheen: "vandaag", "vanavond", "morgen", "deze week" en een weekdag gelden vanaf die dag, niet vanaf de kop.
+  - "ja" als de aflevering vooruitblikt op een moment dat bij de kop al voorbij is. Dat kan het nieuws van de kop zelf zijn ("Vrijdag begint het overleg" of "Wat mogen we verwachten van het overleg?" bij een verhaal over het begonnen overleg, "Is his job safe?" als hij inmiddels is opgestapt, "ahead of the vote"), maar ook een ander moment van dezelfde zaak dat inmiddels geweest is: een debat, stemming, wedstrijd, uitspraak of overleg ("Vandaag het debat over het Belastingplan" in een aflevering van twee dagen vóór de kop: dat debat is bij de kop al geweest, dus "ja").
+  - "nee" als de aflevering niet vooruitblikt (een duiding, reconstructie of achtergrond van de lopende zaak), of alleen vooruitblikt op iets dat bij de kop nog moet komen ("Komen de partijen er samen uit?" terwijl het overleg nog bezig is).
 - opgenomenVoorDitNieuws: "ja" als de aflevering zelf zegt dat ze is opgenomen of gemaakt vóór precies het nieuws van de kop, of dat dit nieuws pas na de opname kwam ("This episode was recorded before the news of Mr. Huang's resignation was made public" bij een verhaal over dat vertrek; "Sinds de opname is het overleg begonnen" bij een verhaal over het begonnen overleg). Een gewoon tijdwoord als "inmiddels" of "ondertussen" zegt dat niet, en een opmerking over ander nieuws ook niet: dan "nee".
 - eenOnderwerp: "ja" alleen als de hele aflevering over dit ene onderwerp gaat. "nee" bij een overzicht van het nieuws, een terugblik op de week, een speelronde, of zodra de beschrijving een tweede onderwerp noemt, ook zonder woord als "verder" of "ook". Makers en gasten zijn geen onderwerp.
 - zeker: "ja" alleen als je zeker bent van soort, tijd en onderwerp. Bij twijfel "nee".
@@ -1156,7 +1215,14 @@ const tijdTov = (t, ref, wat) => {
   const u = Math.round((t - ref) / H)
   return u === 0 ? `, (bijna) gelijk met ${wat}` : `, ${Math.abs(u)} uur ${u < 0 ? 'vóór' : 'na'} ${wat}`
 }
-const iso = (t) => (Number.isFinite(t) ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : 'onbekend')
+// De tijd in UTC, met de dag in Nederland erbij (herstel keuring 4: "vandaag" en een weekdag in een aflevering gelden vanaf
+// de dag van verschijnen; met de dag naast de kop ziet het model welk moment bij de kop al voorbij is).
+const DAGNAAM = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag']
+const dagVan = (t) => {
+  const [y, m, d] = dagNL(t).split('-').map(Number)
+  return `${DAGNAAM[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${dagNL(t)} in Nederland`
+}
+const iso = (t) => (Number.isFinite(t) ? `${new Date(t).toISOString().slice(0, 16).replace('T', ' ')} UTC (${dagVan(t)})` : 'onbekend')
 // Een code per paar (uit verhaal en aflevering), uniek binnen een aanroep: het model geeft hem terug naast het nummer, zodat
 // een verschoven oordeel wegvalt.
 export function codesVoor(lijst) {
@@ -1276,29 +1342,33 @@ const binnen = (p, ms) => {
 }
 
 // De opslag: { v: 1, o: { paarKey: [soort, eenOnderwerp, zeker, reden, tijd, vooruitblikOpVoorbij, opgenomenVoorDitNieuws] },
-// p: { paarKey: [pogingen, tijd] } }.
+// p: { paarKey: [pogingen, tijd] }, k: [dag, dollars] } (k: de kosten van de Nederlandse dag, voor het dagplafond).
 export function leesOpslag(doc, now) {
   const oordelen = new Map()
   const pogingen = new Map()
   for (const [k, v] of Object.entries(doc?.o && typeof doc.o === 'object' ? doc.o : {})) if (Array.isArray(v) && now - (Number(v[4]) || 0) <= OORDEEL_KEEP) oordelen.set(k, { soort: v[0], eenOnderwerp: v[1], zeker: v[2], reden: String(v[3] || ''), vooruitblikOpVoorbij: v[5], opgenomenVoorDitNieuws: v[6] })
   for (const [k, v] of Object.entries(doc?.p && typeof doc.p === 'object' ? doc.p : {})) if (Array.isArray(v) && now - (Number(v[1]) || 0) <= OORDEEL_KEEP) pogingen.set(k, Number(v[0]) || 0)
-  return { oordelen, pogingen }
+  return { oordelen, pogingen, dagKosten: dagKostenVan(doc, now) }
 }
-export function schrijfOpslag(cur, { nieuw = new Map(), geprobeerd = [], now }) {
+// De kosten van vandaag (Nederlandse dag) uit de opslag; een andere dag telt als 0.
+export const dagKostenVan = (doc, now) => (Array.isArray(doc?.k) && doc.k[0] === dagNL(now) ? Math.max(0, Number(doc.k[1]) || 0) : 0)
+export function schrijfOpslag(cur, { nieuw = new Map(), geprobeerd = [], now, kosten = 0 }) {
   const o = {}
   for (const [k, v] of Object.entries(cur?.o && typeof cur.o === 'object' ? cur.o : {})) if (Array.isArray(v) && now - (Number(v[4]) || 0) <= OORDEEL_KEEP) o[k] = v
   for (const [k, v] of nieuw) o[k] = [v.soort, v.eenOnderwerp, v.zeker, v.reden, now, v.vooruitblikOpVoorbij, v.opgenomenVoorDitNieuws]
   const p = {}
   for (const [k, v] of Object.entries(cur?.p && typeof cur.p === 'object' ? cur.p : {})) if (Array.isArray(v) && !(k in o) && now - (Number(v[1]) || 0) <= OORDEEL_KEEP) p[k] = v
   for (const k of geprobeerd) if (!(k in o)) p[k] = [(Number(p[k]?.[0]) || 0) + 1, now]
-  return { v: 1, o, ...(Object.keys(p).length ? { p } : {}) }
+  // De kosten optellen bij wat er nu staat (een ronde die tegelijk schreef, telt mee).
+  const dag = Math.round((dagKostenVan(cur, now) + Math.max(0, Number(kosten) || 0)) * 1e4) / 1e4
+  return { v: 1, o, ...(Object.keys(p).length ? { p } : {}), ...(dag > 0 ? { k: [dagNL(now), dag] } : {}) }
 }
 
 // De oordelen voor deze kandidaten (paren die het vangnet doorstonden): uit de opslag, en de nieuwe paren gevraagd (de
 // verhalen met een Editieplek eerst, dan de grootste verhalen, dan de nieuwste afleveringen). Geeft { oordelen: Map,
 // fout: Set(paarKey), stats }. Nooit een fout naar buiten.
-export async function oordelenVoor(kandidaten, { client, get, update, now = Date.now(), editie = null, timeoutMs = OORDEEL_MS, kvMs = OORDEEL_KV_MS, maxVragen = MAX_VRAGEN, perVraag = PER_VRAAG, maxPogingen = MAX_POGINGEN, stemmen = STEMMEN, maxAanroepen = MAX_AANROEPEN } = {}) {
-  const stats = { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uitOpslag: 0, gevraagd: 0, vragen: 0, aanroepen: 0, stemmen, beoordeeld: 0, ja: 0, oneens: 0, invoerTokens: 0, uitvoerTokens: 0, kostenUsd: 0, timeouts: 0, fouten: 0 }
+export async function oordelenVoor(kandidaten, { client, get, update, now = Date.now(), editie = null, timeoutMs = OORDEEL_MS, kvMs = OORDEEL_KV_MS, maxVragen = MAX_VRAGEN, perVraag = PER_VRAAG, maxPogingen = MAX_POGINGEN, stemmen = STEMMEN, maxAanroepen = MAX_AANROEPEN, dagUsd = OORDEEL_DAG_USD, aanroepUsd = AANROEP_USD } = {}) {
+  const stats = { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uitOpslag: 0, gevraagd: 0, vragen: 0, aanroepen: 0, stemmen, beoordeeld: 0, ja: 0, oneens: 0, invoerTokens: 0, uitvoerTokens: 0, kostenUsd: 0, timeouts: 0, fouten: 0, dagPlafondUsd: dagUsd }
   const fout = new Set()
   let doc
   try {
@@ -1308,7 +1378,8 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
     for (const c of kandidaten) fout.add(paarKey(c))
     return { oordelen: new Map(), fout, stats: { ...stats, opslag: 'niet te lezen' } }
   }
-  const { oordelen: opgeslagen, pogingen } = leesOpslag(doc, now)
+  const { oordelen: opgeslagen, pogingen, dagKosten } = leesOpslag(doc, now)
+  stats.dagKostenUsd = dagKosten
   const oordelen = new Map()
   for (const c of kandidaten) if (opgeslagen.has(paarKey(c))) oordelen.set(paarKey(c), opgeslagen.get(paarKey(c)))
   stats.uitOpslag = oordelen.size
@@ -1326,7 +1397,10 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
     if (last && last.length < perVraag && last[0].x.st.id === c.x.st.id) last.push(c)
     else vragen.push([c])
   }
-  const deze = vragen.slice(0, maxAanroepen)
+  // Het dagplafond: niet meer vragen dan er vandaag nog in het budget past (elke vraag stemmen aanroepen).
+  const ruimte = Math.max(0, Math.floor((dagUsd - dagKosten) / (aanroepUsd * stemmen) + 1e-9))
+  if (ruimte < Math.min(vragen.length, maxAanroepen)) stats.plafond = true
+  const deze = vragen.slice(0, Math.min(maxAanroepen, ruimte))
   const gevraagd = deze.flat()
   stats.overgeslagen = kandidaten.length - oordelen.size - gevraagd.length
   if (!gevraagd.length || !client) return { oordelen, fout, stats }
@@ -1373,7 +1447,10 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
   stats.beoordeeld = nieuw.size
   stats.ja = [...nieuw.values()].filter(ja).length
   stats.kostenUsd = kostenVan(stats.invoerTokens, stats.uitvoerTokens)
-  if (update && (nieuw.size || geprobeerd.length)) await binnen(update(OORDEEL_KEY, (cur) => schrijfOpslag(cur, { nieuw, geprobeerd, now })), kvMs).catch(() => {})
+  // Voor het dagplafond: de gemeten kosten, en een vraag die niet op tijd was als AANROEP_USD (onbekend, maar wel betaald).
+  const kosten = stats.kostenUsd + stats.timeouts * aanroepUsd
+  stats.dagKostenUsd = Math.round((dagKosten + kosten) * 1e4) / 1e4
+  if (update && (nieuw.size || geprobeerd.length || kosten > 0)) await binnen(update(OORDEEL_KEY, (cur) => schrijfOpslag(cur, { nieuw, geprobeerd, now, kosten })), kvMs).catch(() => {})
   return { oordelen, fout, stats }
 }
 
@@ -1382,7 +1459,7 @@ export async function koppelMetOordeel({ stories = [], byId = new Map(), episode
   const p = paren({ stories, byId, episodes, now })
   const kandidaten = p.paren.filter((c) => !vangnet(c, now))
   const r = client ? await oordelenVoor(kandidaten, { client, get, update, now, editie, ...opts }) : { oordelen: null, fout: new Set(), stats: { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uit: 'geen sleutel' } }
-  return { ...kiesOordeel(p, { byId, mainIds, now, oordelen: r.oordelen, fout: r.fout, editie }), ai: r.stats }
+  return { ...kiesOordeel(p, { byId, mainIds, now, oordelen: r.oordelen, fout: r.fout, editie, plafond: !!r.stats.plafond }), ai: r.stats }
 }
 const day = (t) => new Date(t).toISOString().slice(0, 10)
 function field({ e, o }, lead) {
@@ -1445,7 +1522,7 @@ export async function luisterRonde({ stories, byId, now, episodesP, slot, mainId
     const overTijd = Date.now() > deadline
     for (const st of stories) if (byStory.has(st.id)) st.luister = byStory.get(st.id)
     // Alleen aantallen in het log.
-    if (ai) console.log(`[luister-oordeel] kandidaten ${ai.kandidaten || 0}, uit opslag ${ai.uitOpslag || 0}, gevraagd ${ai.gevraagd || 0} in ${ai.aanroepen || 0} aanroepen, ja ${ai.ja || 0}${ai.oneens ? `, oneens ${ai.oneens}` : ''}, tokens ${ai.invoerTokens || 0}/${ai.uitvoerTokens || 0} ($${kostenVan(ai.invoerTokens, ai.uitvoerTokens)})${ai.timeouts ? `, time-outs ${ai.timeouts}` : ''}${ai.fouten ? `, fouten ${ai.fouten}` : ''}${ai.uit ? `, ${ai.uit}` : ''}${ai.ms ? `, ${ai.ms} ms` : ""}, koppelingen ${byStory.size}`)
+    if (ai) console.log(`[luister-oordeel] kandidaten ${ai.kandidaten || 0}, uit opslag ${ai.uitOpslag || 0}, gevraagd ${ai.gevraagd || 0} in ${ai.aanroepen || 0} aanroepen, ja ${ai.ja || 0}${ai.oneens ? `, oneens ${ai.oneens}` : ''}, tokens ${ai.invoerTokens || 0}/${ai.uitvoerTokens || 0} ($${kostenVan(ai.invoerTokens, ai.uitvoerTokens)})${ai.timeouts ? `, time-outs ${ai.timeouts}` : ''}${ai.fouten ? `, fouten ${ai.fouten}` : ''}${ai.uit ? `, ${ai.uit}` : ''}${ai.ms ? `, ${ai.ms} ms` : ""}${ai.dagKostenUsd != null ? `, vandaag $${ai.dagKostenUsd} van $${ai.dagPlafondUsd}${ai.plafond ? ' (plafond)' : ''}` : ''}, koppelingen ${byStory.size}`)
     if (update && slot) {
       let t
       const write = Promise.resolve().then(() => update(PROEF_KEY, (cur) => withProef(cur, proefEntry({ slot, now, rows, status, episodes, overTijd, ai })))).catch(() => {})

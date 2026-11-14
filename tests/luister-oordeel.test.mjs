@@ -12,6 +12,9 @@ const FIX = JSON.parse(readFileSync(new URL('./fixtures/luister-2026-11-14.json'
 const byId = new Map(FIX.items.map((i) => [i.id, i]))
 const NOW = Date.parse(FIX.now)
 const OPTS = { stories: FIX.stories, byId, episodes: FIX.episodes, now: NOW, mainIds: MAIN_IDS }
+// Alle paren in één ronde (sinds keuring 4 halen meer paren het oordeel dan MAX_AANROEPEN per ronde; het plafond per ronde
+// en per dag heeft eigen toetsen).
+const ALLES = { maxAanroepen: Infinity, maxVragen: Infinity }
 const memKv = () => {
   const kv = new Map()
   return { kv, get: (k) => kv.get(k), update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)) }
@@ -81,7 +84,7 @@ test('zonder sleutel of bij een fout: alleen een artikellink van de eigen uitgev
   // De woordregels koppelen meer, maar die tellen zonder oordeel niet.
   assert.ok(koppel(OPTS).byStory.size > zonder.byStory.size)
   const { get, update } = memKv()
-  const fout = await koppelMetOordeel({ ...OPTS, client: nepClient(() => JA, { fout: new Error('overbelast') }), get, update })
+  const fout = await koppelMetOordeel({ ...OPTS, ...ALLES, client: nepClient(() => JA, { fout: new Error('overbelast') }), get, update })
   assert.deepEqual(lijst(fout), lijst(zonder))
   assert.ok(fout.ai.fouten >= 1)
   // De opslag is niet te lezen: niets vragen, en ook dan alleen de eigen artikellink.
@@ -94,21 +97,21 @@ test('zonder sleutel of bij een fout: alleen een artikellink van de eigen uitgev
 test('de opslag: elk paar (verhaal, aflevering) wordt één keer beoordeeld', async () => {
   const { kv, get, update } = memKv()
   const client = nepClient((v) => (ORANJE(v) ? JA : NEE))
-  const r1 = await koppelMetOordeel({ ...OPTS, client, get, update })
+  const r1 = await koppelMetOordeel({ ...OPTS, ...ALLES, client, get, update })
   const n1 = client.calls.length
   assert.ok(n1 >= 1)
   assert.equal(r1.ai.gevraagd, r1.ai.kandidaten)
   const doc = kv.get(OORDEEL_KEY)
   assert.equal(Object.keys(doc.o).length, r1.ai.kandidaten)
   for (const [k, v] of Object.entries(doc.o)) assert.ok(k.split('|').length === 3 && v.length === 7 && typeof v[4] === 'number' && ['ja', 'nee'].includes(v[5]) && ['ja', 'nee'].includes(v[6]))
-  const r2 = await koppelMetOordeel({ ...OPTS, client, get, update })
+  const r2 = await koppelMetOordeel({ ...OPTS, ...ALLES, client, get, update })
   assert.equal(client.calls.length, n1, 'de tweede ronde vraagt niets')
   assert.equal(r2.ai.uitOpslag, r1.ai.kandidaten)
   assert.deepEqual(lijst(r2), lijst(r1))
   // Een paar zonder geldig oordeel (het model slaat het over): hooguit MAX_POGINGEN keer gevraagd.
   const leeg = memKv()
   const zwijgt = nepClient(() => null)
-  for (let k = 0; k < MAX_POGINGEN + 2; k++) await koppelMetOordeel({ ...OPTS, client: zwijgt, get: leeg.get, update: leeg.update })
+  for (let k = 0; k < MAX_POGINGEN + 2; k++) await koppelMetOordeel({ ...OPTS, ...ALLES, client: zwijgt, get: leeg.get, update: leeg.update })
   const perPaar = new Map()
   for (const c of zwijgt.calls) for (const v of leesVraag(c.messages[0].content)) perPaar.set(`${v.kop}|${v.titel}`, (perPaar.get(`${v.kop}|${v.titel}`) || 0) + 1)
   assert.ok(perPaar.size > 0 && [...perPaar.values()].every((n) => n === MAX_POGINGEN * STEMMEN), 'elke poging is één vraag van STEMMEN aanroepen')

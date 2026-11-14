@@ -218,9 +218,12 @@ test('7. over de tijd: het koppelen gebeurt toch, met wat binnen is; een hangend
   assert.equal(episodes.filter((e) => e.show === 'nos-de-dag').length, FIX.episodes.filter((e) => e.show === 'nos-de-dag').length, 'De Dag uit de opslag')
   const hang = FIX.stories.map((st) => ({ ...st }))
   const m = await luisterRonde({ stories: hang, byId, now, episodesP: Promise.resolve({ episodes, status }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), get: (k) => kv.get(k), client, deadline: Date.now() - 1 })
-  assert.equal(m, verwacht, 'dezelfde koppelingen als zonder hangende feed')
+  // Dit is de tweede ronde op dezelfde opslag (sinds keuring 4 halen meer paren het oordeel dan er in één ronde gevraagd
+  // worden, MAX_AANROEPEN): vergelijk met de tweede ronde op tijd.
+  const tweede = await koppelMetOordeel({ ...opts, client: zoalsWoordregels(opts), get: (k) => opTijd.get(k), update: (k, fn) => opTijd.set(k, fn(opTijd.get(k) ?? null)) })
+  assert.equal(m, tweede.byStory.size, 'dezelfde koppelingen als zonder hangende feed')
   const gekoppeld = (sts) => sts.filter((st) => st.luister).map((st) => `${st.id}: ${st.luister.aflevering}`).sort()
-  assert.deepEqual(gekoppeld(hang), gekoppeld(laat))
+  assert.deepEqual(gekoppeld(hang), [...tweede.byStory].map(([id, l]) => `${id}: ${l.aflevering}`).sort())
 
   // De ronde geeft de grens mee: KOPPEL_MS vanaf de start van buildFeed.
   const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
