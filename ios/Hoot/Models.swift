@@ -212,10 +212,12 @@ struct Story: Codable, Identifiable, Hashable {
     var light: StoryLight?
     // Waar media verschillen (server, achter een vlag): een gekeurd blok, of niets.
     var verschillen: StoryVerschillen?
+    // Luister verder (build 56): de aflevering bij dit verhaal, van de server (Luister.swift), of niets.
+    var luister: StoryLuister?
 
     // `tappedId` hoort niet in de opslag: het geldt alleen voor één keer openen.
     private enum CodingKeys: String, CodingKey {
-        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt, sport, light, verschillen
+        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt, sport, light, verschillen, luister
     }
 }
 
@@ -287,6 +289,7 @@ extension Story {
         sport = try c.decodeIfPresent(Bool.self, forKey: .sport)
         light = try c.decodeIfPresent(StoryLight.self, forKey: .light)
         verschillen = (try? c.decodeIfPresent(StoryVerschillen.self, forKey: .verschillen)) ?? nil
+        luister = (try? c.decodeIfPresent(StoryLuister.self, forKey: .luister)) ?? nil
     }
 }
 

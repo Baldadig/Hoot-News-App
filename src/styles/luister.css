@@ -1,0 +1,74 @@
+/* Luister verder (stap 3, src/components/Luister.jsx): geen kaart, geen vlak, geen rood. Tussen twee lijnen, zoals
+   "Waar media verschillen". Cover 44 (radius sm), titel in de kopletter, de regel in t1 ink-3, de pijl ink-3.
+   Gelijk aan LuisterSectie op iOS. Alleen bestaande tokens. */
+.luister {
+  margin-top: var(--s3);
+  padding-block: var(--s3);
+  border-block: 1px solid var(--rule);
+}
+.luister__label {
+  margin: 0 0 var(--s2);
+  color: var(--ink-3);
+}
+.luister__lijst {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.luister__rij {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--control-md);
+  padding: var(--s2) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.luister__cover {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--surface);
+}
+.luister__cover--leeg {
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink-3);
+}
+.luister__tekst {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+.luister__titel {
+  font-family: var(--serif);
+  font-weight: 800;
+  font-size: var(--t3);
+  line-height: var(--lh-2);
+  color: var(--ink);
+}
+.luister__regel {
+  font-size: var(--t1);
+  line-height: var(--lh-2);
+  color: var(--ink-3);
+}
+.luister__uit {
+  flex: none;
+  color: var(--ink-3);
+}
+.luister__rij:hover .luister__titel {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.luisterbtn {
+  color: var(--ink-3);
+}

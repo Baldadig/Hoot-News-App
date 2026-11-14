@@ -293,6 +293,10 @@ struct RootView: View {
             }
         }
         .task(id: store.editionRows.count) {
+            // `-HootLuister <pad>`: de sleutel "*" geldt voor de eerste twee verhalen van de Editie (opnamen).
+            if UserDefaults.standard.string(forKey: "HootLuister") != nil, DebugLaunch.luisterDemo.isEmpty {
+                DebugLaunch.luisterDemo = Set(store.editionRows.compactMap(\.story?.id).prefix(2))
+            }
             // `-HootScreen lezer`: het eerste artikel van de editie in de lezer.
             // `-HootScreen lezer`: bij voorkeur een gratis, Nederlandstalig stuk (dan het hele artikel), ook
             // als dat niet het hoofdstuk van het verhaal is.
@@ -313,6 +317,8 @@ struct RootView: View {
                 // In de Stroom (de Duo open: de lezer naast de Stroom) een stuk uit de Stroom.
                 let pool = tab == .stroom && store.stream.contains(where: { $0.link != nil }) ? store.stream.filter { $0.link != nil } : all
                 reader.item = pool.first { free($0) && store.source($0.source)?.lang == "nl" } ?? pool.first(where: free) ?? pool.first
+                // Met -HootLuister: het verhaal van dit stuk krijgt de aflevering "*" (de rij in de lezer).
+                if UserDefaults.standard.string(forKey: "HootLuister") != nil, let sid = reader.item?.storyId { DebugLaunch.luisterDemo.insert(sid) }
                 // `-HootLeesPlek <n>`: de lezer begint bij alinea n (vouwproeven: blijft hij daar?).
                 if let item = reader.item, UserDefaults.standard.object(forKey: "HootLeesPlek") != nil {
                     reader.bewaarPlek(LeesPlek(alinea: UserDefaults.standard.integer(forKey: "HootLeesPlek"), binnen: 0), voor: item.id)

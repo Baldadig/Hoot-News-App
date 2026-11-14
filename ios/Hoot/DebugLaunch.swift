@@ -39,6 +39,8 @@ import SwiftUI
 //   -HootVerhaalVast <pad>   (een JSON-bestand verhaal-id → stukken: Vergelijken toont precies die stukken, zoals
 //                            het blok ze zag; alleen voor schermen)
 //   -HootVerhaal <verhaal-id>   (met -HootScreen verhaal: dit verhaal openen in plaats van dat met de meeste bronnen)
+//   -HootLuister <pad>   (Luister verder: een JSON-bestand verhaal-id → luister; "*" voor de lezer en de eerste twee
+//                        verhalen van de Editie)   -HootLuisterApps apple,spotify   -HootPodcastApp spotify|vragen|uit|leeg
 //   -HootUitleg <begrip>   (het blad met de uitleg van dat begrip gaat open bij de eerste pil die het heeft)
 //   -HootBegrippen YES   (in het verhaal staan de Begrippen en elk begrip opengeklapt)
 //   -HootTrekProef <punten>   (de Editie ververst vanzelf alsof je trok en scrolt daarna zoveel punten omlaag,
@@ -99,7 +101,16 @@ enum DebugLaunch {
         guard let pad = defaults.string(forKey: "HootVerhaalVast"), let data = FileManager.default.contents(atPath: pad) else { return nil }
         return (try? JSONDecoder().decode([String: [Item]].self, from: data))?[storyId]
     }
+    // `-HootLuister <pad>`: Luister verder voor schermen, een JSON-bestand verhaal-id → het veld luister zoals de server
+    // het meegeeft. De sleutel "*" geldt voor het verhaal van de lezer (-HootScreen lezer) en de eerste twee verhalen
+    // van de Editie, voor verhalen waar de feed er (nog) geen heeft.
+    static func luister(_ storyId: String) -> StoryLuister? {
+        guard let pad = defaults.string(forKey: "HootLuister"), let data = FileManager.default.contents(atPath: pad), let map = try? JSONDecoder().decode([String: StoryLuister].self, from: data) else { return nil }
+        return map[storyId] ?? (luisterDemo.contains(storyId) ? map["*"] : nil)
+    }
+    nonisolated(unsafe) static var luisterDemo: Set<String> = []
     #else
+    static func luister(_ storyId: String) -> StoryLuister? { nil }
     static func verschillen(_ storyId: String) -> StoryVerschillen? { nil }
     static func vasteStukken(_ storyId: String) -> [Item]? { nil }
     static let verhaal: String? = nil

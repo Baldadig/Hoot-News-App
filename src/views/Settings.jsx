@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { ViewHeader } from '../components/Shell.jsx'
 import { MenuRow, THEME_OPTIONS } from '../components/Display.jsx'
+import { KEUZES } from '../../shared/luister-weergave.mjs'
 import { useHoot } from '../components/Items.jsx'
 import { Switch } from './Sources.jsx'
 import { AccountSettings, Avatar, accountName } from '../components/Account.jsx'
@@ -70,7 +71,7 @@ function LinkRow({ href, onClick, label, value }) {
 const plural = (n, one, many) => (n === 1 ? `1 ${one}` : `${n} ${many}`)
 
 export default function Settings({ meta, account, syncStatus, affinity = null, onForgetTopic, onBack, backLabel, blad = null, onOpen, digest = null }) {
-  const { prefs, setPref, theme, setTheme, themeDark, setThemeDark, sourcesById, muted } = useHoot()
+  const { prefs, setPref, theme, setTheme, themeDark, setThemeDark, sourcesById, muted, luisterAan, podcastKeuze, setPodcastKeuze } = useHoot()
   const followed = [...(sourcesById?.values() || [])].filter((s) => s.kind !== 'sociaal' && !muted?.has(s.id)).length
   const summary = hootSummary({ interests: (prefs.interests || []).length, sources: followed })
   const open = (b) => onOpen?.(b)
@@ -116,6 +117,9 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
                 ]}
               />
               <LinkRow onClick={() => open('tekstgrootte')} label="Tekstgrootte" value={textSizeOf(prefs.textSize).label} />
+              {/* Luister verder (alleen met de schakelaar, src/lib/luister.js): welke podcastapp, in deze browser. Nog niets
+                  gekozen: leeg, en de eerste tik op Luister verder vraagt het. */}
+              {luisterAan ? <MenuRow label="Podcasts" value={podcastKeuze} onChange={setPodcastKeuze} options={[...(podcastKeuze ? [] : [{ value: '', label: '', aria: 'Nog niet gekozen' }]), ...KEUZES.map((k) => ({ value: k.id, label: k.naam }))]} /> : null}
               <LinkRow onClick={() => open('beeld')} label="Beeld en intro" />
             </div>
 

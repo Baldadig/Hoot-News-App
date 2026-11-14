@@ -26,6 +26,7 @@ export const READER_FONTS = [
   ['NewsreaderTekst-700', 'Lezer-NewsreaderTekst-700'],
   ['NewsreaderTekst-400-cursief', 'Lezer-NewsreaderTekst-400-cursief'],
   ['SchibstedGrotesk-400', 'Lezer-SchibstedGrotesk-400'],
+  ['SchibstedGrotesk-600', 'Lezer-SchibstedGrotesk-600'], // de rij Luister verder (regel 1, 15/20 halfvet)
   ['SchibstedGrotesk-800', 'Lezer-SchibstedGrotesk-800'],
 ]
 

@@ -5,7 +5,7 @@ import { Fragment, createContext, useCallback, useContext, useId, useLayoutEffec
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { usePhone } from '../hooks/usePhone.js'
 import { timeAgo, readTime } from '../lib/time.js'
-import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
+import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, HeadphonesIcon, ICON_SM } from './icons.jsx'
 import { portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
@@ -83,6 +83,20 @@ export function SaveButton({ id, kind = 'item', payload }) {
   return (
     <button type="button" className={`iconbtn save${on ? ' is-on' : ''}`} onClick={() => toggleSave(kind, key || id, payload)} aria-pressed={on} aria-label={text} title={text}>
       <BookmarkIcon filled={on} />
+    </button>
+  )
+}
+
+// Luister verder (stap 3): een stil koptelefoontje in de bronregel naast bewaren, alleen bij een verhaal met een
+// aflevering voor deze lezer (en op het web alleen met de schakelaar, src/lib/luister.js). Tik = luister verder.
+export function LuisterButton({ story }) {
+  const { luisterVoor, luisterTik } = useHoot()
+  const a = luisterVoor?.(story)?.[0]
+  if (!a) return null
+  const text = `Luister verder: ${a.show}`
+  return (
+    <button type="button" className="iconbtn luisterbtn" onClick={() => luisterTik(a)} aria-label={text} title={text}>
+      <HeadphonesIcon />
     </button>
   )
 }
@@ -177,6 +191,7 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
         </button>
       ) : null}
       {hasMenu ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
+      {story ? <LuisterButton story={story} /> : null}
       <ShareButton item={item} inMenu={hasMenu} />
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
@@ -237,7 +252,8 @@ const wideOrMouse = () => typeof matchMedia === 'function' && matchMedia('(min-w
 // `withShare` (kaart A+): delen zit altijd in dit menu, niet als eigen knop in de bronregel.
 // Zonder: alleen op een touch-telefoon (web-staten), waar de deelknop ernaast wegvalt.
 export function TasteButton({ entryKey, item, story, withShare = false }) {
-  const { voteOn, itemsById, reportMistake, share, notify } = useHoot()
+  const { voteOn, itemsById, reportMistake, share, notify, luisterVoor, luisterTik } = useHoot()
+  const luister = luisterVoor?.(story)?.[0] || null
   const [open, setOpen] = useState(false)
   const [view, setView] = useState('main')
   const moreRef = useRef(null)
@@ -285,7 +301,8 @@ export function TasteButton({ entryKey, item, story, withShare = false }) {
             </>
           ) : (
             <>
-              {canShare ? <>{row('Deel', () => { close(); share(item) })}<div role="separator" className="popmenu__sep" /></> : null}
+              {canShare ? <>{row('Deel', () => { close(); share(item) })}{luister ? null : <div role="separator" className="popmenu__sep" />}</> : null}
+              {luister ? <>{row('Luister verder', () => { close(); luisterTik(luister) }, <HeadphonesIcon size={ICON_SM} />)}<div role="separator" className="popmenu__sep" /></> : null}
               {voteOn ? <>{row('Meer hiervan', () => pick(1))}{row('Minder hiervan', () => pick(-1))}</> : null}
               {reportMistake ? <>{voteOn ? <div role="separator" className="popmenu__sep" /> : null}{row('Klopt dit niet?', () => setView('report'), <CaretIcon size={ICON_SM} />)}</> : null}
             </>
@@ -450,6 +467,7 @@ export function KaartMeta({ item, story, showSave = true, taste = null, outside 
           {bronnenLabel(others + 1)}
         </button>
       ) : null}
+      {story ? <LuisterButton story={story} /> : null}
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
       {more ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} withShare /> : null}
     </div>

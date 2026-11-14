@@ -5430,7 +5430,8 @@ var HootCore = (() => {
       const lead = e.leadId || e.id;
       const itemIds = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
-      return { ...rest, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
+      const luister = e.kind === "story" ? storyById.get(e.id)?.luister : null;
+      return { ...rest, itemIds, ...keys ? { keys } : {}, ...luister ? { luister } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
     });
     let supply = null;
     const regularCount = editionStoryCount(out);

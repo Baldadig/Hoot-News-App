@@ -15,6 +15,13 @@
 		<string>SchibstedGrotesk-700.ttf</string>
 		<string>SchibstedGrotesk-800.ttf</string>
 	</array>
+	<!-- Luister verder (build 56): alleen om te zien welke podcastapps er staan, zodat de vraag "Waar luister je podcasts?"
+	     alleen die apps toont. De uitkomst blijft op het toestel. Podimo nog niet: eerst een toesteltest. -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>podcasts</string>
+		<string>spotify</string>
+	</array>
 	<!-- Deep links vanuit de widgets: hoot://editie en hoot://verhaal/<id> (HootLink, RootView.onOpenURL). -->
 	<key>CFBundleURLTypes</key>
 	<array>
