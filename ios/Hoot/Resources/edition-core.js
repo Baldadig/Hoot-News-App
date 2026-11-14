@@ -1657,9 +1657,49 @@ var HootCore = (() => {
     "arctic(?!\\s+(?:blast|air|cold|chill|freeze|front|storm|weather))",
     `arctisch${L}`,
     `noordpool${L}`,
-    `poolgebied${L}`
+    `poolgebied${L}`,
+    // Keuring en tweede keuring van herstel 4: de rest van dezelfde reeks. Oceanië zonder stam: "Oceanic" is ook de
+    // Amerikaanse NOAA. De Golfstaten als groep landen; Gulf Coast en de Golf van Mexico zijn Amerikaans en staan er niet in.
+    `antarcti${L}`,
+    `zuidpool${L}`,
+    "south pole",
+    "mideast",
+    "mid-east",
+    "oceanië",
+    "oceanie",
+    "oceania",
+    "nordic",
+    "nordics",
+    "noords",
+    "noordse",
+    "baltics",
+    "golfsta(?:at|ten)",
+    `gulf (?:state|nation|countr|monarch|ally|allies|arab)${L}(?!\\s+park)`
   ]).source + "(?![\\s-]+(?:americ|amerikaan))", "iu");
-  var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || WORLD.test(t) || formsIn(t, own2) || REGIONS.test(t) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
+  var SUMMITS = W([
+    "g-?7",
+    "g-?8",
+    "g-?20",
+    "apec",
+    "asean",
+    "opec",
+    "brics",
+    "oecd",
+    "oeso",
+    "cop[\\s-]?\\d{1,2}",
+    `klimaattop${L}`,
+    `klimaatconferentie${L}`,
+    "climate summit",
+    "davos",
+    "imf",
+    "wto",
+    "navo",
+    "nato",
+    "verenigde naties",
+    "united nations",
+    "veiligheidsraad"
+  ]);
+  var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || WORLD.test(t) || formsIn(t, own2) || REGIONS.test(t) || SUMMITS.test(t) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
   function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
     const head = items.find(Boolean);
     const t = String(head?.title || "");
