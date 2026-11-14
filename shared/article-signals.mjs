@@ -4,11 +4,15 @@ import { isOpinie } from './opinie.mjs'
 const words = pattern => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, 'iu')
 const COUNTRIES = [
   ['nl', 'nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven'],
-  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver'],
+  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver|' +
+    // Amerikaanse staten en grote steden (dubbelcheck 14 november, A6: een aanvaring op de Mississippi werd Binnenland). Niet:
+    // Georgia (ook een land), Arizona (ook de Belgische regeringscoalitie), Indiana, Virginia en Montana (ook een naam), en andere namen die ook een gewoon woord zijn.
+    'mississippi|louisiana|alabama|nevada|oregon|minnesota|illinois|pennsylvania|massachusetts|new jersey|north carolina|south carolina|tennessee|kentucky|missouri|wisconsin|iowa|kansas|utah|alaska|hawaii|oklahoma|arkansas|connecticut|maryland|nebraska|idaho|wyoming|vermont|' +
+    'chicago|los angeles|san francisco|boston|seattle|miami|atlanta|philadelphia|las vegas|new orleans|detroit|houston|dallas|baltimore|minneapolis|pittsburgh'],
   ['in', 'india|indiaas|indiase|indian|new delhi|mumbai|modi'],
   ['fr', 'frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille'],
   ['de', 'duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich'],
-  ['gb', 'verenigd koninkrijk|united kingdom|british|britse?|engeland|england|londen|london'],
+  ['gb', 'verenigd koninkrijk|vk|united kingdom|uk|british|britse?|engeland|england|londen|london'],
   ['be', 'belgi\\p{L}*|belg|belgen|vlaanderen|vlaams\\p{L}*|brussel|brussels|antwerpen|antwerp|gent|brugge'],
   ['ua', 'oekra\\p{L}*|ukrain\\p{L}*|kyiv|kiev|zelensk\\p{L}*'],
   ['ru', 'rusland|russia\\p{L}*|russisch\\p{L}*|moskou|moscow|putin|poetin'],

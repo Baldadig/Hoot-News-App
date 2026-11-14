@@ -448,11 +448,11 @@ var HootCore = (() => {
   var words = (pattern) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, "iu");
   var COUNTRIES = [
     ["nl", "nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven"],
-    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver"],
+    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver|mississippi|louisiana|alabama|nevada|oregon|minnesota|illinois|pennsylvania|massachusetts|new jersey|north carolina|south carolina|tennessee|kentucky|missouri|wisconsin|iowa|kansas|utah|alaska|hawaii|oklahoma|arkansas|connecticut|maryland|nebraska|idaho|wyoming|vermont|chicago|los angeles|san francisco|boston|seattle|miami|atlanta|philadelphia|las vegas|new orleans|detroit|houston|dallas|baltimore|minneapolis|pittsburgh"],
     ["in", "india|indiaas|indiase|indian|new delhi|mumbai|modi"],
     ["fr", "frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille"],
     ["de", "duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich"],
-    ["gb", "verenigd koninkrijk|united kingdom|british|britse?|engeland|england|londen|london"],
+    ["gb", "verenigd koninkrijk|vk|united kingdom|uk|british|britse?|engeland|england|londen|london"],
     ["be", "belgi\\p{L}*|belg|belgen|vlaanderen|vlaams\\p{L}*|brussel|brussels|antwerpen|antwerp|gent|brugge"],
     ["ua", "oekra\\p{L}*|ukrain\\p{L}*|kyiv|kiev|zelensk\\p{L}*"],
     ["ru", "rusland|russia\\p{L}*|russisch\\p{L}*|moskou|moscow|putin|poetin"],
@@ -1089,7 +1089,7 @@ var HootCore = (() => {
   };
   var KIND_TOPICS = /* @__PURE__ */ new Set(["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch", "muziek", "film", "boeken", "kunst", "games"]);
   var KIND_PATH = /\/(sport[\w-]*|voetbal|darts|cultuur|cultuur-media|entertainment|showbizz|boulevard|show|film|muziek|boeken|media)\//i;
-  var CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i;
+  var CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival|\w*drummer|zanger|zangeres|gitarist|bassist|toetsenist|popgroep|popband|rockband|popster|rapper)\b/i;
   var ownKind = (it) => {
     const visible = `${it.title || ""} ${it.summary || ""}`;
     if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || "") || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || "")) return true;
@@ -1511,7 +1511,7 @@ var HootCore = (() => {
     const textForeign = specific || RE2.buitenland.test(geoText) || headCountries.some((c) => c !== "nl");
     if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
       out.add("binnenland");
-    } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
+    } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source) && /binnenland|\/politiek\//.test(sec))) {
       out.add("buitenland");
     }
     if (headHome && out.has("binnenland")) {

@@ -49,8 +49,19 @@ enum StoryLabel {
         "middenoosten": ["middenoosten"], "oekraine": ["oekraine"],
     ]
 
+    // De plek wint van een binnenlands onderwerp (dubbelcheck 14 november, A6; gelijk aan label.js): een onderwerp van
+    // Binnenland is niet sterk op een buitenlandse plek, en ook niet zonder plek als het verhaal een buitenlands
+    // geografisch onderwerp draagt en Den Haag niet.
+    private static let foreignDesks: Set<String> = ["buitenland", "vs", "middenoosten", "oekraine"]
+    private static let foreignTopics: Set<String> = ["vs-politiek", "oekraine", "middenoosten", "azie", "afrika", "latam"]
+    private static func abroad(desk: String?, topics: [String]) -> Bool {
+        if let desk, foreignDesks.contains(desk) { return true }
+        return desk == nil && topics.contains { foreignTopics.contains($0) } && !topics.contains("nederland")
+    }
+
     // Draagt dit onderwerp het verhaal? Het past bij de rubriek van de plek, of het staat in de kop.
-    static func strong(_ t: String, desk: String?, mainTopics: [String]) -> Bool {
+    static func strong(_ t: String, desk: String?, mainTopics: [String], topics: [String] = []) -> Bool {
+        if rubriekOf[t]?.id == "binnenland", abroad(desk: desk, topics: topics) { return false }
         if geographicTopics.contains(t), desk == "buitenland", !mainTopics.contains(t) { return false }
         if geographicTopics.contains(t), let allowed = desk.flatMap({ placeTopics[$0] }), !allowed.contains(t) { return false }
         let past = rubriekOf[t].map { r in (desk.flatMap { deskInterests[$0] } ?? []).contains(r.id) } ?? false
@@ -64,7 +75,7 @@ enum StoryLabel {
     // waarom van De Redacteur. `followed`: de bron staat bij je bronnen.
     static func label(topics: [String] = [], mainTopics: [String] = [], follows: [String] = [], cat: String? = nil, desk: String? = nil, deskLabel: String? = nil, section: String? = nil, whyCode: String? = nil, whyText: String? = nil, whyDetail: Bool = false, followed: Bool? = nil) -> Result {
         let outside = followed == false || (followed == nil && (desk == "extern" || whyCode == "extern"))
-        let mine = topics.first { follows.contains($0) && Taste.labels[$0] != nil && rubriekOf[$0] != nil && strong($0, desk: desk, mainTopics: mainTopics) }
+        let mine = topics.first { follows.contains($0) && Taste.labels[$0] != nil && rubriekOf[$0] != nil && strong($0, desk: desk, mainTopics: mainTopics, topics: topics) }
         var kicker: String?
         if desk == "bubbel" || desk == "breed" {
             kicker = deskLabel // "Buiten je bubbel · via …", "Waar iedereen over schrijft · N bronnen"

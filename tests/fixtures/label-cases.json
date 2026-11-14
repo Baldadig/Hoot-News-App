@@ -1053,6 +1053,144 @@
         },
         "outside": false
       }
+    },
+    {
+      "name": "A6 dubbelcheck: buitenlands misdaadverhaal op de plek Buitenland heet Buitenland (genocideverdachte Rwanda in België)",
+      "input": {
+        "topics": [
+          "misdaad",
+          "afrika"
+        ],
+        "mainTopics": [
+          "misdaad",
+          "afrika"
+        ],
+        "follows": [
+          "misdaad",
+          "verkeer",
+          "nederland",
+          "afrika"
+        ],
+        "desk": "buitenland",
+        "deskLabel": "Buitenland"
+      },
+      "expect": {
+        "kicker": "Wereld · Afrika",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "A6 dubbelcheck: misdaad uit het VK op de plek Buitenland is geen Binnenland (Walliams)",
+      "input": {
+        "topics": [
+          "misdaad"
+        ],
+        "mainTopics": [
+          "misdaad"
+        ],
+        "follows": [
+          "misdaad",
+          "verkeer",
+          "nederland",
+          "afrika"
+        ],
+        "desk": "buitenland",
+        "deskLabel": "Buitenland"
+      },
+      "expect": {
+        "kicker": "Buitenland",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "A6 dubbelcheck: misdaad op de plek VS is geen Binnenland",
+      "input": {
+        "topics": [
+          "misdaad",
+          "vs-politiek"
+        ],
+        "mainTopics": [
+          "misdaad"
+        ],
+        "follows": [
+          "misdaad"
+        ],
+        "desk": "vs",
+        "deskLabel": "VS"
+      },
+      "expect": {
+        "kicker": "VS",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "A6 dubbelcheck: zonder plek wint een buitenlands geografisch onderwerp van misdaad",
+      "input": {
+        "topics": [
+          "misdaad",
+          "afrika"
+        ],
+        "mainTopics": [
+          "misdaad"
+        ],
+        "follows": [
+          "misdaad"
+        ],
+        "section": "Nieuws"
+      },
+      "expect": {
+        "kicker": "Nieuws",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "A6 dubbelcheck: tegenval, misdaad op de plek Binnenland blijft Binnenland · Misdaad & recht",
+      "input": {
+        "topics": [
+          "misdaad"
+        ],
+        "mainTopics": [
+          "misdaad"
+        ],
+        "follows": [
+          "misdaad",
+          "verkeer",
+          "nederland",
+          "afrika"
+        ],
+        "desk": "binnenland",
+        "deskLabel": "Binnenland"
+      },
+      "expect": {
+        "kicker": "Binnenland · Misdaad & recht",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "A6 dubbelcheck: tegenval, zonder plek met Den Haag erbij blijft misdaad sterk",
+      "input": {
+        "topics": [
+          "misdaad",
+          "nederland",
+          "afrika"
+        ],
+        "mainTopics": [
+          "misdaad"
+        ],
+        "follows": [
+          "misdaad"
+        ]
+      },
+      "expect": {
+        "kicker": "Binnenland · Misdaad & recht",
+        "why": null,
+        "outside": false
+      }
     }
   ]
 }

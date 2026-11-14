@@ -41,7 +41,9 @@
 // 14 november 2026, dubbelcheck: de persoonlijke bubbel herhaalt geen gebeurtenis uit je vorige Editie (sameEvent, zoals
 // pickBubble); de derde taal met de korte woorden (shared/lang.mjs) en dutchTier op niet Nederlands; de landenregel ook voor lichte verhalen (majorGeneralNews eist uit één land buiten NL en BE
 // een tweede land) en voor de familiebonus (familyBonus); Achterklap weert alleen showbizz als soort (showbizzKind), nooit groot nieuws; een aflevering om te luisteren of te kijken (mediaEpisode in shared/editie-filter.mjs) is
-// nooit de kop van een plek, ook niet met een eigen intro; een plek met alleen afleveringen valt weg.
+// nooit de kop van een plek, ook niet met een eigen intro; een plek met alleen afleveringen valt weg. De rubriek van een
+// plek: Buitenland vraagt bewijs (een Vlaamse bron alleen is het niet), een musicus is cultuur, en een Amerikaanse staat
+// of stad of het VK is een buitenlandse plek (desks.mjs, countriesIn).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-dubbelcheck'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

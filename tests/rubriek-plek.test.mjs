@@ -1,0 +1,58 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { desksOf, deskOfStory } from '../netlify/lib/desks.mjs'
+import { countriesIn } from '../shared/article-signals.mjs'
+import { labelFor } from '../src/lib/label.js'
+
+// Dubbelcheck 14 november, A6: de rubriek boven een plek klopt. De plek wint van een binnenlands onderwerp, Buitenland
+// vraagt bewijs (een Vlaamse bron alleen is het niet), een musicus is cultuur, en een Amerikaanse staat of stad of het
+// VK is een buitenlandse plek. De koppen zijn de voorbeelden uit OORDEEL.md; de regels gelden voor elk zulk stuk.
+const desks = (it) => [...desksOf(it)]
+
+test('A6: een Amerikaanse staat en het VK zijn een land', () => {
+  assert.deepEqual(countriesIn('Aanvaring vrachtschip met cruiseschip op Mississippi'), ['us'])
+  assert.deepEqual(countriesIn('Politie VK opent zaak naar David Walliams'), ['gb'])
+  assert.deepEqual(countriesIn('Nieuwe wet in Pennsylvania en Illinois'), ['us'])
+  // Tegenval: een voornaam of een land met dezelfde naam is geen staat.
+  assert.deepEqual(countriesIn('Virginia Woolf herlezen'), [])
+  assert.deepEqual(countriesIn('Arizona zocht al naar 42 miljard'), [], 'Arizona is ook de Belgische regeringscoalitie')
+  assert.ok(!countriesIn('Georgia kiest een nieuw parlement').includes('us'))
+})
+
+test('A6: een buitenlands verhaal uit een Nederlandse bron is geen Binnenland', () => {
+  assert.deepEqual(desks({ source: 'nos', title: 'Aanvaring vrachtschip met cruiseschip op Mississippi' }), ['vs'])
+  assert.deepEqual(desks({ source: 'nos', title: 'Politie VK opent zaak naar David Walliams' }), ['buitenland'])
+  assert.deepEqual(desks({ source: 'demorgen', title: '▶ 32 gewonden nadat riviercruiseschip kapseist na aanvaring met tanker: ‘Mirakel op de Mississippi’', url: 'https://www.demorgen.be/nieuws/x' }), ['vs'])
+  assert.equal(deskOfStory([
+    { source: 'nos', title: 'Aanvaring vrachtschip met cruiseschip op Mississippi' },
+    { source: 'nu', title: 'Tientallen gewonden bij aanvaring op Mississippi' },
+    { source: 'demorgen', title: 'Mirakel op de Mississippi', url: 'https://www.demorgen.be/nieuws/x' },
+  ]), 'vs')
+})
+
+test('A6: een musicus is cultuur, geen Buitenland, ook als de intro een ander land noemt', () => {
+  assert.deepEqual(desks({ source: 'nu', title: 'Voormalig Doe Maar-drummer Jan Pijnenburg (70) onverwachts overleden', summary: 'Pijnenburg overleed in zijn huis in Spanje.' }), [])
+  assert.deepEqual(desks({ source: 'nos', title: 'Zangeres van bekende popgroep stopt ermee' }), [])
+  // Tegenval: een misdaad met een land in de kop blijft nieuws (de bestaande uitzondering in ownKind).
+  assert.ok(desks({ source: 'nos', title: 'Rapper doodgeschoten in Frankrijk' }).includes('buitenland'))
+})
+
+test('A6: een Vlaamse bron alleen maakt een stuk geen Buitenland; een Belgische plek of de rubriek wel', () => {
+  assert.deepEqual(desks({ source: 'vrt', title: 'Lize Spit schrijft brief aan diabetes', url: 'https://vrtnws.be/p.mRJK58YWQ' }), [])
+  assert.deepEqual(desks({ source: 'vrt', title: 'Brand in Antwerpse school, drie gewonden' }), ['buitenland'])
+  assert.deepEqual(desks({ source: 'standaard', title: 'Staking legt treinverkeer plat', url: 'https://www.standaard.be/buitenland/x' }), ['buitenland'])
+  assert.deepEqual(desks({ source: 'nieuwsblad', title: 'Lachen op een begrafenis is geen schande', url: 'https://www.nieuwsblad.be/binnenland/x' }), ['buitenland'], 'de eigen rubriek Binnenland van een Vlaamse bron is België')
+  assert.deepEqual(desks({ source: 'demorgen', title: '‘Een inschattingsfout’: nederlaag tegen Bouchez blijft premier De Wever achtervolgen', url: 'https://www.demorgen.be/politiek/x' }), ['buitenland'])
+})
+
+test('A6: het label volgt de plek, niet het binnenlandse onderwerp (web; de app leest dezelfde fixture)', () => {
+  const follows = ['misdaad', 'nederland', 'verkeer']
+  const rwanda = labelFor({ topics: ['misdaad', 'afrika'], mainTopics: ['misdaad', 'afrika'], follows, desk: 'buitenland', deskLabel: 'Buitenland' })
+  assert.equal(rwanda.kicker, 'Buitenland')
+  const walliams = labelFor({ topics: ['misdaad'], mainTopics: ['misdaad'], follows, desk: 'buitenland', deskLabel: 'Buitenland' })
+  assert.equal(walliams.kicker, 'Buitenland')
+  const vs = labelFor({ topics: ['verkeer'], mainTopics: ['verkeer'], follows, desk: 'vs', deskLabel: 'VS' })
+  assert.equal(vs.kicker, 'VS')
+  const thuis = labelFor({ topics: ['misdaad'], mainTopics: ['misdaad'], follows, desk: 'binnenland', deskLabel: 'Binnenland' })
+  assert.equal(thuis.kicker, 'Binnenland · Misdaad & recht')
+})

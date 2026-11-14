@@ -102,7 +102,9 @@ const KIND_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'winterspo
 // De boulevard (RTL) is showbizz (feedback 31 oktober: de voogdij van de ex-man van Halle Berry stond
 // onder Binnenland); darts en andere sport zonder eigen onderwerp is sport (OTHER_SPORT).
 const KIND_PATH = /\/(sport[\w-]*|voetbal|darts|cultuur|cultuur-media|entertainment|showbizz|boulevard|show|film|muziek|boeken|media)\//i
-const CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i
+// Een musicus is cultuur, net als een acteur (dubbelcheck 14 november, A6: de overleden drummer van Doe Maar stond onder
+// Buitenland, omdat de intro Spanje noemde).
+const CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival|\w*drummer|zanger|zangeres|gitarist|bassist|toetsenist|popgroep|popband|rockband|popster|rapper)\b/i
 const ownKind = (it) => {
   const visible = `${it.title || ''} ${it.summary || ''}`
   if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || '') || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || '')) return true
@@ -318,7 +320,11 @@ function deskSet(it, storyForeign) {
   const textForeign = specific || RE.buitenland.test(geoText) || headCountries.some((c) => c !== 'nl')
   if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
     out.add('binnenland') // Nederland gaat voor: een Nederlandse speler in het buitenland is Binnenland
-  } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
+  } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || (VL_HOME.has(it.source) && /binnenland|\/politiek\//.test(sec)))) {
+    // Buitenland vraagt bewijs, net als Binnenland: een plek, land of naam in kop of intro, of de rubriek Buitenland van de
+    // bron. Een Vlaamse bron alleen is geen bewijs meer (dubbelcheck 14 november, A6: "Lize Spit schrijft brief aan
+    // diabetes" stond onder Buitenland). Een Belgische plek of naam (BE), of de eigen rubriek Binnenland of Politiek van een
+    // Vlaamse bron (dat is België), blijft wel Buitenland.
     out.add('buitenland')
   }
   if (headHome && out.has('binnenland')) for (const d of ['buitenland', 'vs', 'middenoosten', 'oekraine']) if (!usPoliticsIn(title) && !RE[d]?.test(title)) out.delete(d)
