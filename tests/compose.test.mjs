@@ -155,7 +155,7 @@ test('De Redacteur: een verhaal op de voorpagina heeft voor iedereen dezelfde ru
   assert.ok(desks.size >= big.length)
 })
 
-// De grens was de nulmeting (0,38). Main (redacteur-2026-11-14-wapo) meet 0,3672. Na de dubbelcheck meet de Redacteur
+// De grens was de nulmeting (0,38). Main (redacteur-2026-11-14-luister-2, en wapo daarvoor) meet 0,3672. Na de dubbelcheck meet de Redacteur
 // 0,3914, en dat komt uit precies twee regels en drie plekken in de momentopname van 30 oktober (gemeten door elke regel
 // apart uit te zetten; tweede keuring van het herstel, 14 november):
 //   1. A3, een podcast is nooit de kop van een plek (audioEpisode in shared/editie-filter.mjs). De Atlantic-podcast "Is
