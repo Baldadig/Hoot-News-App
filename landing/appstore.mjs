@@ -1,7 +1,8 @@
 // De App Store-plekken van de landing: de pil in de held en in het slot, de regel in de belofte van het slot, de vraag
 // "Is er een app?" en de smart app banner in Safari. Aan of uit met één regel in landing/build.mjs (APP_STORE).
-export const APP_ID = '6828037269'
-export const APP_URL = `https://apps.apple.com/nl/app/id${APP_ID}`
+// De link zelf staat in shared/appstore.mjs: de web-app gebruikt hem ook (de kaart onder de eindkaart).
+import { APP_ID, APP_URL } from '../shared/appstore.mjs'
+export { APP_ID, APP_URL }
 
 // Campagnelink uit App Store Connect (App Analytics, Campagnes). Alleen ct= meet niets: Apple telt een campagne
 // pas met de provider-token pt= erbij. Zolang PT leeg is, blijven de links kaal. Alex vult PT in (inloggen in

@@ -31,7 +31,7 @@ import { mutedSet, toggleSource } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
 import { JoinSheet } from './components/Account.jsx'
 import { normalizePrefs } from './lib/prefs.js'
-import { shouldShowInstallTip } from './lib/install.js'
+import { shouldShowInstallTip, shouldShowAppCard } from './lib/install.js'
 import { shouldAskToJoin, JOIN_AUTO } from './lib/join.js'
 import { pendingShown } from './lib/membership.js'
 import { applyWelcome } from './lib/welcome.js'
@@ -266,6 +266,35 @@ export default function App() {
     [rawPrefs.installTipDone]
   )
 
+  // De weg naar de app (onboarding blok 2): op iPhone en iPad in de browser, zodra de rode eindkaart van de
+  // Editie één keer in beeld was, één kaart eronder. Na "Niet nu" of een tik komt hij niet terug (appKaartDone).
+  // Zolang hij er staat, wachten de tip "Zet Hoot op je beginscherm" en de accountvraag.
+  const appCardFits = useMemo(
+    () =>
+      safe(
+        () =>
+          shouldShowAppCard({
+            ua: navigator.userAgent,
+            standalone: !!navigator.standalone,
+            displayStandalone: window.matchMedia('(display-mode: standalone)').matches,
+            dismissed: !!rawPrefs.appKaartDone,
+            maxTouchPoints: navigator.maxTouchPoints,
+            platform: navigator.platform,
+          }),
+        false
+      ),
+    [rawPrefs.appKaartDone]
+  )
+  const [endSeenOnce, setEndSeenOnce] = useState(false)
+  const onEndSeen = useCallback(() => setEndSeenOnce(true), [])
+  const appKaart = appCardFits && endSeenOnce && !!prefs.onboarded
+  // De tik telt (appstore-tik:einde) en de kaart gaat pas na de tik weg: de link moet in de pagina staan om te openen.
+  const appKaartOpen = useCallback(() => {
+    tel('appstore-tik:einde', dagdeelRef.current || slotIdNow())
+    setTimeout(() => setPref('appKaartDone', true), 0)
+  }, [setPref])
+  const appKaartLater = useCallback(() => setPref('appKaartDone', true), [setPref])
+
   // Na verwijderen uit Bewaard: een paar tellen de kans om het terug te zetten.
   const [undo, setUndo] = useState(null) // { id, entry }
   const [announce, setAnnounce] = useState('')
@@ -481,7 +510,7 @@ export default function App() {
   const [joinOpen, setJoinOpen] = useState(false)
   const endSeen = useRef(false)
   const joinAsked = rawPrefs.joinAsked
-  const mayAsk = JOIN_AUTO && account.status === 'out' && prefs.onboarded && !showWelcome
+  const mayAsk = JOIN_AUTO && account.status === 'out' && prefs.onboarded && !showWelcome && !appKaart
   useEffect(() => {
     if (!mayAsk || joinOpen) return
     // Alleen echt lezen telt: scrollen na vinger, muis of toets (niet het terugzetten van je
@@ -729,6 +758,10 @@ export default function App() {
               nextReady={editionNext}
               onSwap={swapEdition}
               storyOpen={!!story}
+              appKaart={appKaart}
+              onAppOpen={appKaartOpen}
+              onAppLater={appKaartLater}
+              onEndSeen={onEndSeen}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}
               statusProps={statusProps}
@@ -811,7 +844,7 @@ export default function App() {
                 Ongedaan maken
               </button>
             </div>
-          ) : installTip && prefs.onboarded ? (
+          ) : installTip && prefs.onboarded && !appKaart ? (
             <div className="toast toast--tip">
               <span>
                 Zet Hoot op je beginscherm: <ShareGlyph /> › <strong>Zet op beginscherm</strong>.

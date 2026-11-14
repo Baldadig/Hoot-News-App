@@ -26,6 +26,7 @@ export function overzicht(r) {
   regels.push(`App Store-tik op de landing: ${som((d) => d.appstore_tik)}`)
   const asPlek = Object.keys(r.dagen[0]?.appstore_plek || {})
   if (asPlek.length) regels.push(`  per plek: ${asPlek.map((p) => `${p} ${som((d) => d.appstore_plek?.[p])}`).join(', ')}`)
+  if (r.dagen[0]?.appstore_app) regels.push(`App Store-tik onder de Editie op het web: ${som((d) => d.appstore_app?.einde)}`)
   const lopen = som((d) => d.landing_open)
   const web = Object.keys(r.dagen[0]?.web_tik || {})
   const webSom = som((d) => Object.values(d.web_tik || {}).reduce((a, b) => a + b, 0))

@@ -3,7 +3,7 @@
 // `v` telt alleen editie-open per appversie. Geen id, geen IP, geen toestel, geen tijdstempel per gebeurtenis;
 // de dag is de dag van het dagdeel. Een gelijktijdige telling gaat atomair (kvUpdate: voorwaardelijk schrijven).
 import { kvUpdate, kvGet } from './kv.mjs'
-import { EVENTS, PLATFORMS, SLOT_NAMES, VERSIONS_MAX, READ_MAX, VIA_LABELS, VIA_ANDERS, WELKOM_STAPPEN, APPSTORE_TIK, LANDING_OPEN, VRAAG_OPEN, WEB_PLEKKEN, APPSTORE_PLEKKEN, counterKey, versionKey, docKey, dayNumber, dayOf } from '../../shared/tel.mjs'
+import { EVENTS, PLATFORMS, SLOT_NAMES, VERSIONS_MAX, READ_MAX, VIA_LABELS, VIA_ANDERS, WELKOM_STAPPEN, APPSTORE_TIK, LANDING_OPEN, VRAAG_OPEN, WEB_PLEKKEN, APPSTORE_PLEKKEN, APPSTORE_APP_PLEKKEN, counterKey, versionKey, docKey, dayNumber, dayOf } from '../../shared/tel.mjs'
 
 const MAX = 1e9
 
@@ -56,6 +56,8 @@ export function shapeDay(date, doc) {
   // De App Store-tik: het totaal over alle plekken (en de oude tik zonder plek), plus de verdeling per plek.
   out.appstore_plek = Object.fromEntries(APPSTORE_PLEKKEN.map((p) => [p, dagtotaal(`${APPSTORE_TIK}:${p}`)]))
   out.appstore_tik = dagtotaal(APPSTORE_TIK) + Object.values(out.appstore_plek).reduce((a, b) => a + b, 0)
+  // De web-app: de tik op "Open in de App Store" onder de eindkaart, apart van de landing.
+  out.appstore_app = Object.fromEntries(APPSTORE_APP_PLEKKEN.map((p) => [p, dagtotaal(`${APPSTORE_TIK}:${p}`)]))
   // De landing: de noemer (één keer per dagdeel per browser), de tikken naar /lees/ per plek, en wie een vraag openklapte.
   out.landing_open = dagtotaal(LANDING_OPEN)
   out.web_tik = Object.fromEntries(WEB_PLEKKEN.map((p) => [p, dagtotaal(`web-tik:${p}`)]))

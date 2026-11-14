@@ -47,7 +47,11 @@ export const APPSTORE_PLEKKEN = ['held', 'slot', 'kiest', 'vraag']
 export const WEB_TIK_EVENTS = WEB_PLEKKEN.map((p) => `web-tik:${p}`)
 export const APPSTORE_PLEK_EVENTS = APPSTORE_PLEKKEN.map((p) => `${APPSTORE_TIK}:${p}`)
 export const LANDING = [LANDING_OPEN, ...WEB_TIK_EVENTS, ...APPSTORE_PLEK_EVENTS, VRAAG_OPEN]
-export const NIEUW = [...VIA_EVENTS, APPSTORE_TIK, ...WELKOM_STAPPEN, ...LANDING]
+// De web-app zelf (onboarding blok 2, 14 november): appstore-tik:einde is een tik op "Open in de App Store" in de
+// kaart onder de rode eindkaart van de Editie. Een plek naast die van de landing, apart opgeteld.
+export const APPSTORE_APP_PLEKKEN = ['einde']
+export const APPSTORE_APP_EVENTS = APPSTORE_APP_PLEKKEN.map((p) => `${APPSTORE_TIK}:${p}`)
+export const NIEUW = [...VIA_EVENTS, APPSTORE_TIK, ...WELKOM_STAPPEN, ...LANDING, ...APPSTORE_APP_EVENTS]
 // Ook deze tellen één keer per dagdeel per browser (herkomst, welkom, het openen van de landing en een vraag);
 // de tikken elke keer.
 export const NIEUW_ONCE = [...VIA_EVENTS, ...WELKOM_STAPPEN, LANDING_OPEN, VRAAG_OPEN]

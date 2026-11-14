@@ -439,6 +439,11 @@ test('review 13 november: de landingstellers in het vocabulaire, op de server en
   assert.equal(tikEvent('as:stroom'), null)
   assert.equal(tikEvent('web:held:x'), null)
   assert.equal(tikEvent(null), null)
+  // de web-app (onboarding blok 2): appstore-tik:einde onder de eindkaart, apart van de landing
+  assert.ok(NIEUW.includes('appstore-tik:einde'))
+  assert.ok(!LANDING.includes('appstore-tik:einde'))
+  assert.equal(parseTel(ok({ e: 'appstore-tik:einde', n: 2 }), NOW, AAN).n, 2)
+  assert.equal(tikEvent('as:einde'), null) // geen plek op de landing
   // de plekken in de pagina bestaan allemaal in het vocabulaire, en andersom
   const src = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8') + readFileSync(new URL('../landing/appstore.mjs', import.meta.url), 'utf8') + readFileSync(new URL('../landing/vragen.mjs', import.meta.url), 'utf8')
   const codes = new Set([...src.matchAll(/data-tel="((?:web|as):\$?\{?[a-z]+\}?)"/g)].map((m) => m[1]).filter((c) => !c.includes('$')))
@@ -452,6 +457,7 @@ test('review 13 november: de landingstellers in het vocabulaire, op de server en
   const d = shapeDay('2026-11-11', mem.get('tel:2026-11-11'))
   assert.equal(d.appstore_tik, 4)
   assert.deepEqual(d.appstore_plek, { held: 2, slot: 1, kiest: 0, vraag: 0 })
+  assert.deepEqual(d.appstore_app, { einde: 0 })
   assert.equal(d.landing_open, 2)
   assert.deepEqual(d.web_tik, { held: 1, toestel: 1, editie: 0, kiest: 0, slot: 0 })
   assert.equal(d.vraag_open, 1)
@@ -473,7 +479,7 @@ test('Meten · 6: geen IP, user-agent, cookie of log in de nieuwe bronnen; de la
 })
 test('Meten · 6: de tellers gaan pas aan samen met het aangepaste privacybeleid', () => {
   const privacy = readFileSync(new URL('../src/views/Privacy.jsx', import.meta.url), 'utf8')
-  const zinnen = [/via welke link je binnenkwam/, /hoe vaak de voorpagina wordt geopend/, /hoe vaak er een vraag wordt opengeklapt/, /waar op die pagina er op een knop naar Hoot of de App Store wordt getikt/]
+  const zinnen = [/via welke link je binnenkwam/, /hoe vaak de voorpagina wordt geopend/, /hoe vaak er een vraag wordt opengeklapt/, /waar op die pagina er op een knop naar Hoot of de App Store wordt getikt/, /onder de Editie op de knop naar de App Store wordt getikt/]
   for (const nieuweZin of zinnen) {
     if (NIEUWE_TELLERS) assert.match(privacy, nieuweZin, 'NIEUWE_TELLERS staat aan, maar het privacybeleid zegt het nog niet')
     else assert.doesNotMatch(privacy, nieuweZin, 'het beleid noemt de tellers al, terwijl ze uit staan')
