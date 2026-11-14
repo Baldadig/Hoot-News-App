@@ -1555,7 +1555,7 @@ var HootCore = (() => {
     "\\bzo claim je\\b",
     "\\bclaim (?:je|nu) (?:gratis|jouw|je)\\b",
     "\\bwinactie\\b",
-    "\\bwin\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b",
+    "\\bwin\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|copy|reis|trip|prijzen)\\b",
     "\\bmaak kans op\\b",
     "\\((?:adv|advertentie)\\)",
     "\\[(?:adv|advertentie)\\]"
@@ -1808,7 +1808,7 @@ var HootCore = (() => {
     "huizen\\w*",
     "housing",
     "huur\\w*",
-    "rente\\w*",
+    "rente(?!rs?\\b)\\w*",
     "inflati\\w*",
     "economie\\w*",
     "economy",
@@ -2008,7 +2008,9 @@ var HootCore = (() => {
     "\\boplicht\\w*",
     "\\bmisleid\\w*",
     "\\bmisleading\\b",
-    "\\bfraude\\b",
+    "\\bfraude\\w*",
+    "\\bpas op\\b",
+    "\\blet op\\b",
     "\\bacm\\b",
     "\\bftc\\b",
     "\\bcma\\b",
@@ -2113,6 +2115,8 @@ var HootCore = (() => {
     "\\bstruck\\b",
     "\\bseals?\\b",
     "\\bsealed\\b",
+    // Herstel 4 (vijfde keuring, advies): een akkoord tussen partijen in een rangschikking ("The best deals Disney made with Marvel, ranked").
+    "\\bdeals?\\s+(?:[\\p{L}'-]+\\s+){1,3}made\\s+with\\b",
     "\\btekent\\b",
     "\\bgetekend\\b",
     "\\bgesloten\\b",
@@ -2166,7 +2170,7 @@ var HootCore = (() => {
     "\\bmaak kans op\\b",
     "\\((?:adv|advertentie)\\)",
     "\\[(?:adv|advertentie)\\]",
-    `^[\\s"'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b`
+    `^[\\s"'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|copy|reis|trip|prijzen)\\b`
   ].join("|"), "iu");
   var STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial)\s*[:|.!–—-]\s/iu;
   var DAY_LABEL = /^[\s"'‘“([]*(?:black friday|cyber monday|prime day|singles day)-deals?\s*[:|.!–—-]\s/iu;
@@ -2180,7 +2184,7 @@ var HootCore = (() => {
   function strictGrond(t) {
     if (STRICT_ALWAYS.test(t)) return NARROW.test(t) ? null : "aanbod";
     const rest = t.replace(DAY_LABEL, "");
-    const grond = STRICT_LABEL.test(t) ? "label" : DAY_LABEL.test(t) ? PRICE.test(rest) || PERCENT.test(rest) || STORE.test(rest) ? "label" : null : PRICE_LABEL.test(t) ? STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? "label" : null : PRICE.test(t) && STORE.test(t) ? offerForm(t) ? "prijsval" : null : CODE.test(t) && CODE_AMOUNT.test(t) ? "kortingscode" : null;
+    const grond = STRICT_LABEL.test(t) ? "label" : DAY_LABEL.test(t) ? !/\?[\s"'’”)]*$/.test(rest) && (PRICE.test(rest) || PERCENT.test(rest) || STORE.test(rest)) ? "label" : null : PRICE_LABEL.test(t) ? STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? "label" : null : PRICE.test(t) && STORE.test(t) ? offerForm(t) ? "prijsval" : null : CODE.test(t) && CODE_AMOUNT.test(t) ? "kortingscode" : null;
     return grond && !ABOUT.test(t) ? grond : null;
   }
   function koopGrond(title = "", { ruim = true } = {}) {
@@ -2199,7 +2203,9 @@ var HootCore = (() => {
   var LOOSE = /\b(?:best|beste|top)\b|\(20\d\d\)|(?:\$|€|£)\s?\d|\b\d+ ?(?:%|percent|procent)\b|\boff\b/i;
   var koopVorm = (title = "") => {
     const t = clean(title);
-    return !!t && (koopKop(t) || (SHOP_WORD.test(t) || LOOSE.test(t)) && !ABOUT.test(t));
+    if (!t) return false;
+    if (koopKop(t) || (SHOP_WORD.test(t) || LOOSE.test(t)) && !ABOUT.test(t)) return true;
+    return (SHOP_DAY.test(t) && SHOP_WORD.test(t) || PRICE_DROP.test(t) || DEAL_HEAD.test(t)) && !NARROW.test(t);
   };
   var KOOP_CATS = /* @__PURE__ */ new Set(["tech", "games", "cultuur", "muziek", "lifestyle", "consument"]);
   var CAT_OF = new Map(SOURCES.map((s) => [s.id, s.cat]));

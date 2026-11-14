@@ -38,7 +38,7 @@ import { SOURCES } from '../netlify/lib/sources.mjs'
 // 1. Altijd een aanbod.
 const BUY_ALWAYS = new RegExp([
   '\\bzo claim je\\b', '\\bclaim (?:je|nu) (?:gratis|jouw|je)\\b', '\\bwinactie\\b',
-  '\\bwin\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b',
+  '\\bwin\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|copy|reis|trip|prijzen)\\b',
   '\\bmaak kans op\\b', '\\((?:adv|advertentie)\\)', '\\[(?:adv|advertentie)\\]',
 ].join('|'), 'iu')
 // Cadeaugidsen: een aanbod, behalve als de gids zelf het onderwerp van het nieuws is ("Gift guides are the new battleground
@@ -123,7 +123,7 @@ const ABOUT = new RegExp([
   'valuation', 'waardering', 'ipo', 'scrutiny', '(?:data|figures|report|rapport|cijfers)\\s+(?:shows?|showed|suggests?|toont|tonen|laat zien|laten zien)',
   // Markten en grondstoffen.
   'oil', 'olie\\w*', 'brent', 'gas', 'gasprijs\\w*', 'stroomprijs\\w*', 'energieprijs\\w*', 'bitcoin', 'crypto\\w*', 'stocks?', 'shares', 'aandel\\w*', 'beurs\\w*',
-  'koers\\w*', 'markets', 'wall street', 'nasdaq', 'dow', 'aex', 'gold price', 'goudprijs', 'huizen\\w*', 'housing', 'huur\\w*', 'rente\\w*', 'inflati\\w*', 'economie\\w*',
+  'koers\\w*', 'markets', 'wall street', 'nasdaq', 'dow', 'aex', 'gold price', 'goudprijs', 'huizen\\w*', 'housing', 'huur\\w*', 'rente(?!rs?\\b)\\w*', 'inflati\\w*', 'economie\\w*',
   'economy', 'retailers', 'winkeliers', 'webwinkels', 'banen', 'jobs', 'layoffs', 'ontslag\\w*',
   // Gevolgen, mensen en plaatsen: nieuws over een aanbieding, geen aanbieding.
   'verwacht\\w*', 'expected', 'analysts?', 'analisten', 'strikes?', 'staking\\w*', 'workers', 'werknemers', 'personeel', 'stampede', 'sparks', 'sued', 'sues',
@@ -168,7 +168,7 @@ const NARROW = new RegExp([
   '\\bverwacht\\w*', '\\bexpected\\b', '\\banalysts?\\b', '\\banalisten\\b', '\\bexplained\\b', '\\buitgelegd\\b', '\\bzo werkt\\b', '\\bzo zit het\\b',
   '\\bhow\\b[^?]*\\b(?:works?|actually work)\\b',
   // Nep, oplichting en toezicht.
-  '\\bnep\\w*', '\\bfakes?\\b', '\\bscams?\\b', '\\boplicht\\w*', '\\bmisleid\\w*', '\\bmisleading\\b', '\\bfraude\\b', '\\bacm\\b', '\\bftc\\b', '\\bcma\\b',
+  '\\bnep\\w*', '\\bfakes?\\b', '\\bscams?\\b', '\\boplicht\\w*', '\\bmisleid\\w*', '\\bmisleading\\b', '\\bfraude\\w*', '\\bpas op\\b', '\\blet op\\b', '\\bacm\\b', '\\bftc\\b', '\\bcma\\b',
   '\\b\\w*phishing\\w*', '\\bvalse?\\b', '\\bscrutiny\\b',
   '\\bregulators?\\b', '\\btoezicht\\w*', '\\bwaarschuw\\w*', '\\bwarns?\\b', '\\bboetes?\\b', '\\bfined?\\b', '\\bprobe\\b', '\\blawsuit\\b', '\\bsue[sd]\\b', '\\brechter\\w*',
   '\\brechtbank\\b', '\\bcourt\\b', '\\beuropese commissie\\b',
@@ -194,6 +194,8 @@ const NARROW = new RegExp([
   // Zakelijke akkoorden: tekenen, sluiten, binnenhalen ("Top Hollywood deals: Netflix lands Spielberg film", "authors land
   // seven-figure advances", "Top 5 defence deals signed at Nato summit").
   '\\bsigns?\\b', '\\bsigned\\b', '\\binks?\\b', '\\binked\\b', '\\blands\\b', '\\blanded\\b', '\\bstruck\\b', '\\bseals?\\b', '\\bsealed\\b',
+  // Herstel 4 (vijfde keuring, advies): een akkoord tussen partijen in een rangschikking ("The best deals Disney made with Marvel, ranked").
+  '\\bdeals?\\s+(?:[\\p{L}\'-]+\\s+){1,3}made\\s+with\\b',
   '\\btekent\\b', '\\bgetekend\\b', '\\bgesloten\\b', '\\badvances?\\b', '\\b[\\p{L}]+-figure\\b', '\\bdefen[cs]e\\b', '\\bnato\\b', '\\barms\\b', '\\bwapen\\w*', '\\bhollywood\\b',
   // Gevolgen voor winkels en winkelstraat ("Black Friday deals failed to lift UK high street footfall").
   '\\bfootfall\\b', '\\bhigh street\\b', '\\bfail\\w*', '\\bdisappoint\\w*', '\\bprofits?\\b', '\\bwinst\\w*', '\\bclos(?:e|es|ed|ing|ure)\\b', '\\bjobs\\b',
@@ -221,7 +223,7 @@ const strongForm = (t) => STRONG_HEAD.test(t) || (SHOP_DAY.test(t) && STRONG_DAY
 // het smalle veto, zoals bij elke onmiskenbare vorm: de prijs zelf ("tickets", "fans") is geen tegenvoorbeeld.
 const STRICT_ALWAYS = new RegExp([
   '^[\\s"\'‘“([]*winactie\\s*[:|.!–—-]\\s', '\\bmaak kans op\\b', '\\((?:adv|advertentie)\\)', '\\[(?:adv|advertentie)\\]',
-  '^[\\s"\'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b',
+  '^[\\s"\'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|copy|reis|trip|prijzen)\\b',
 ].join('|'), 'iu')
 const STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial)\s*[:|.!–—-]\s/iu
 // Een koopdaglabel ("Black Friday-deals:") is bij een nieuwsbron ook een kopvorm voor uitleg aan de lezer ("Black
@@ -241,7 +243,9 @@ function strictGrond(t) {
   if (STRICT_ALWAYS.test(t)) return NARROW.test(t) ? null : 'aanbod'
   const rest = t.replace(DAY_LABEL, '')
   const grond = STRICT_LABEL.test(t) ? 'label'
-    : DAY_LABEL.test(t) ? (PRICE.test(rest) || PERCENT.test(rest) || STORE.test(rest) ? 'label' : null)
+    // Herstel 4 (vijfde keuring, advies): een koopdaglabel boven een vraag is een consumentenvraag ("Black Friday-deals: zijn ze
+    // dit jaar echt goedkoper bij Bol?"), ook met een winkel erachter.
+    : DAY_LABEL.test(t) ? (!/\?[\s"'’”)]*$/.test(rest) && (PRICE.test(rest) || PERCENT.test(rest) || STORE.test(rest)) ? 'label' : null)
     : PRICE_LABEL.test(t) ? (STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? 'label' : null)
     : PRICE.test(t) && STORE.test(t) ? (offerForm(t) ? 'prijsval' : null)
     : CODE.test(t) && CODE_AMOUNT.test(t) ? 'kortingscode' : null
@@ -269,9 +273,14 @@ export const koopKop = (title = '', opts) => koopGrond(title, opts) != null
 // Een losse koopvorm (zwakker): genoeg als de feed het stuk zelf als aanbod indeelt (feedMark 'aanbod', rss.mjs). Ook dan
 // telt een tegenvoorbeeld: Wired zet "Gear / Deals" ook op journalistiek over prijzen ("Here's How Carrier Deals Actually Work").
 const LOOSE = /\b(?:best|beste|top)\b|\(20\d\d\)|(?:\$|€|£)\s?\d|\b\d+ ?(?:%|percent|procent)\b|\boff\b/i
+// Herstel 4 (vijfde keuring): bij een koopdag met koopwoord, een prijsvalvorm of een dealkop telt hier alleen het smalle veto.
+// De feed deelt het stuk al als aanbod in, dus een los woord als "Prices" is geen tegenvoorbeeld ("Rocco's Black Friday
+// Sale: Smart Fridges Hit Their Lowest Prices of 2026", Wired onder "Gear / Deals").
 export const koopVorm = (title = '') => {
   const t = clean(title)
-  return !!t && (koopKop(t) || ((SHOP_WORD.test(t) || LOOSE.test(t)) && !ABOUT.test(t)))
+  if (!t) return false
+  if (koopKop(t) || ((SHOP_WORD.test(t) || LOOSE.test(t)) && !ABOUT.test(t))) return true
+  return ((SHOP_DAY.test(t) && SHOP_WORD.test(t)) || PRICE_DROP.test(t) || DEAL_HEAD.test(t)) && !NARROW.test(t)
 }
 
 // Een feedcategorie die het stuk als aanbod of koopgids indeelt: het laatste deel van de categorie heet zo ("Gear / Deals",

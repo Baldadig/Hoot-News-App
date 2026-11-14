@@ -447,3 +447,33 @@ test('vierde keuring: koopstukken met een aanbodvorm gaan bij een nieuwsbron nog
   assert.equal(bij('Last chance to save $500 on Disrupt 2027 passes', 'techcrunch'), null)
 })
 
+
+// Herstel 4 (vijfde keuring): drie echte koopstukken van koopbronnen bleven staan door een fout in een woordenlijst.
+test('vijfde keuring: de twee Wired-deals onder "Gear / Deals" en de Eurogamer-winactie gaan weg', () => {
+  const wired = JSON.parse(readFileSync(new URL('./fixtures/wired-deals-2026-11-11.json', import.meta.url), 'utf8')).items
+  for (const title of ['Rocco’s Black Friday Sale: Smart Fridges Hit Their Lowest Prices of 2026', 'Get 25 Percent Off My Favorite Renter-Friendly Storage Lockers']) {
+    const it = wired.find((x) => x.title === title)
+    assert.ok(it, title)
+    const item = { kind: 'article', title: it.title, url: it.url, source: 'wired', ...mediaFields({}, it.cats) }
+    assert.equal(item.feedMark, 'aanbod', title)
+    assert.equal(hardMark(item)?.soort, 'aanbieding', `moet weg: ${title}`)
+  }
+  // "Renter" is geen rente: de prijsvalvorm telt ook zonder de feedcategorie.
+  assert.equal(bij('Get 25 Percent Off My Favorite Renter-Friendly Storage Lockers', 'wired')?.soort, 'aanbieding')
+  assert.equal(bij('Tell us your favourite Grand Theft Auto gaming memory and win a copy of GTA 6', 'eurogamer', 'https://www.eurogamer.net/grand-theft-auto-gaming-memory-competition-gta-6-win')?.soort, 'aanbieding')
+  // De andere kant: nieuws met dezelfde woorden blijft.
+  assert.equal(bij('GTA 6 copy leaks', 'eurogamer'), null)
+  assert.equal(bij('Rente op spaarrekening stijgt opnieuw', 'nos'), null)
+  // Op de route via de feedcategorie houdt het smalle veto een tegenvoorbeeld nog steeds vast.
+  assert.equal(hardMark(art({ title: '$1,200 Off the iPhone Duo? Here\'s How Carrier Deals Actually Work', feedMark: 'aanbod', source: 'wired' })), null)
+})
+
+test('vijfde keuring (advies): nieuws over een winactie, een koopdagvraag en een zakenrangschikking blijft', () => {
+  for (const [title, bronnen] of [
+    ['Win kaarten voor Lowlands? Pas op, zegt de Fraudehelpdesk', ['ad', 'nu', 'nos']],
+    ['Black Friday-deals: zijn ze dit jaar echt goedkoper bij Bol?', ['nu', 'nos', 'telegraaf']],
+    ['The best deals Disney made with Marvel, ranked', ['polygon', 'variety', 'theverge']],
+  ]) for (const source of bronnen) assert.equal(bij(title, source), null, `moet blijven bij ${source}: ${title}`)
+  // Zonder vraagteken blijft het koopdaglabel met een winkel een aanbod.
+  assert.equal(bij('Black Friday-deal: Logitech MX Master 4 bij Coolblue', 'nu')?.soort, 'aanbieding')
+})
