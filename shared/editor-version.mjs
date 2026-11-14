@@ -57,6 +57,7 @@
 // geografie vanaf je thuisland (readerHome, belgianSubject); het label toont een subonderwerp alleen als het zeker is.
 // Persona · 7: lokaal nieuws van elders (Amerikaans binnenland, een deelstaat; localAbroad) zakt in de persoonlijke Editie:
 // pas na al het andere, nooit op 01 of als Waar iedereen over schrijft, tenzij groot nieuws.
+// Persona · 8 (keuze Alex): wie geen Nederlandstalige bron volgt, krijgt buiten zijn bronnen geen Nederlands (languageRule).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

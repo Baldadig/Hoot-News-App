@@ -4260,12 +4260,15 @@ var HootCore = (() => {
   function languageRule({ followed = /* @__PURE__ */ new Set(), sources = [] } = {}) {
     const langOfSource = new Map(sources.map((s) => [s.id, s.lang]));
     const readerLangs = /* @__PURE__ */ new Map();
+    const allLangs = /* @__PURE__ */ new Set();
     for (const s of sources) {
       if (!followed.has(s.id) || !s.lang || String(s.id).startsWith("bsky:")) continue;
       const r = rubricOfCat(s.cat);
       if (!readerLangs.has(r)) readerLangs.set(r, /* @__PURE__ */ new Set());
       readerLangs.get(r).add(s.lang);
+      allLangs.add(s.lang);
     }
+    const readsDutch = !allLangs.size || allLangs.has("nl");
     const catOf = new Map(sources.map((s) => [s.id, s.cat]));
     const kindOf = kindOfWith(catOf);
     const rubricOf = (i) => {
@@ -4274,11 +4277,11 @@ var HootCore = (() => {
     };
     const readableIn = (i, rubric) => {
       if (!i || followed.has(i.source)) return true;
-      const ok = (lang) => !lang || lang === "nl" || !!readerLangs.get(rubric)?.has(lang);
+      const ok = (lang) => !lang || (lang === "nl" ? readsDutch : !!readerLangs.get(rubric)?.has(lang));
       return ok(i.lang || langOfSource.get(i.source)) && ok(langOfSource.get(i.source));
     };
     const readable = (i) => !i || readableIn(i, rubricOf(i));
-    return { rubricOf, readableIn, readable, readerLangs };
+    return { rubricOf, readableIn, readable, readerLangs, readsDutch };
   }
   var STALE_INPUT_MS = 12 * 36e5;
   function staleInput({ global, items = [], followed = /* @__PURE__ */ new Set() }) {

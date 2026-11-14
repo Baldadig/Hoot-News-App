@@ -127,21 +127,29 @@ export function languageRule({ followed = new Set(), sources = [] } = {}) {
   // - Rubriek van een plek: die van zijn kop (rubricOf). Sport, cultuur of games als het onderwerp van het stuk dat is
   //   (zoals kindOf), anders de rubriek van de kopbron. Eén vaste regel per plek, ook voor een nieuwe kop of een vervolg.
   // - Taal van een stuk: `it.lang` (de server zet die alleen bij een stuk in een andere taal dan zijn bron), anders die
-  //   van de bron. Nederlands (ook Vlaams) is altijd leesbaar, net als elk stuk van een bron die je volgt. Een stuk van
+  //   van de bron. Nederlands (ook Vlaams) is leesbaar zodra je één Nederlandstalige bron volgt (zie onder), en elk stuk van
+  //   een bron die je volgt altijd. Een stuk van
   //   een anderstalige bron dat de server Nederlands noemt, telt niet als Nederlands: detectLang kent alleen nl en en, en
   //   noemde de Duitse kop "Von allmächtig zu ohnmächtig?" van Politico Europe Nederlands (feed van 5 november).
   // Is de kop onleesbaar, dan kiest relead (in composePersonal) opnieuw uit de leesbare stukken van dezelfde plek: eigen
   // bronnen, dan Nederlands, dan Vlaams, daarbinnen leadPool. Is er geen, dan valt de plek weg en vult de Editie aan zoals
   // altijd, of is ze eerlijk korter. Het gaat om de kop: de bundel achter "+N bronnen" en de bronvergelijking blijven heel.
   // Volg je in elke rubriek een Engelse bron, dan is alles leesbaar en is de Editie precies als zonder deze regel.
+  // Ook andersom (keuze van Alex, persona's 14 november, punt 8): volg je geen enkele Nederlandstalige bron (alleen Engelse,
+  // zoals een expat die geen Nederlands leest), dan is Nederlands buiten je bronnen niet leesbaar: geen Nederlandse kop van
+  // Waar iedereen over schrijft, de aanvulling of Buiten je bubbel. Is er in je taal geen stuk van dat verhaal, dan geen plek.
+  // Wie één Nederlandstalige bron volgt, of nog geen bron met een bekende taal, leest Nederlands zoals altijd.
   const langOfSource = new Map(sources.map((s) => [s.id, s.lang]))
   const readerLangs = new Map()
+  const allLangs = new Set()
   for (const s of sources) {
     if (!followed.has(s.id) || !s.lang || String(s.id).startsWith('bsky:')) continue
     const r = rubricOfCat(s.cat)
     if (!readerLangs.has(r)) readerLangs.set(r, new Set())
     readerLangs.get(r).add(s.lang)
+    allLangs.add(s.lang)
   }
+  const readsDutch = !allLangs.size || allLangs.has('nl')
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   const kindOf = kindOfWith(catOf)
   const rubricOf = (i) => {
@@ -151,11 +159,11 @@ export function languageRule({ followed = new Set(), sources = [] } = {}) {
   // Een onbekend stuk of een stuk zonder bekende taal laten we staan: daarover kunnen we niets zeggen.
   const readableIn = (i, rubric) => {
     if (!i || followed.has(i.source)) return true
-    const ok = (lang) => !lang || lang === 'nl' || !!readerLangs.get(rubric)?.has(lang)
+    const ok = (lang) => !lang || (lang === 'nl' ? readsDutch : !!readerLangs.get(rubric)?.has(lang))
     return ok(i.lang || langOfSource.get(i.source)) && ok(langOfSource.get(i.source))
   }
   const readable = (i) => !i || readableIn(i, rubricOf(i))
-  return { rubricOf, readableIn, readable, readerLangs }
+  return { rubricOf, readableIn, readable, readerLangs, readsDutch }
 }
 
 // `previous`: je vorige editie (zie previousOf in stories.mjs); wat daarin stond, komt alleen
