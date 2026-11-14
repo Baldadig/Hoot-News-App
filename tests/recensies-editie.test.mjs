@@ -196,3 +196,33 @@ test('web, app en server rekenen gelijk: de gebouwde rekenkern weert de recensie
   assert.deepEqual(ids(app), ids(web))
   assert.deepEqual(ids(web), ids(server))
 })
+
+// Tweede keuring, 14 november 2026: "X review" aan het eind van de kop en "-review" aan het eind van de slug zijn in een
+// nieuws- of sportbron vaak een toetsing of onderzoek. Die tellen alleen bij cultuur-, tech- en gamesbronnen, of met een
+// cultuurmap in de link; en een woord als after, following, na, VAR of faces direct voor "review" maakt er een toetsing van.
+test('"review" achteraan in kop of slug telt niet bij nieuws- en sportbronnen, en niet na after, VAR of faces', () => {
+  const nieuws = [
+    ['espn', 'Big hit from Caps’ Chychrun on Sens’ Cousins deemed clean after review', 'https://www.espn.com/nhl/story/_/id/50452880/hit-capitals-chychrun-senators-cousins-deemed-clean'],
+    ['espn', 'Premier League VAR review: Arsenal robbed of a penalty through misapplied law', 'https://www.espn.com/soccer/story/_/id/49703019/premier-league-var-review-red-card-penalty-handball-goal-line-technology'],
+    ['foreignpolicy', 'Trump Promised Poland More Troops. They’re Still Not There.', 'https://foreignpolicy.com/2026/10/30/trump-poland-troops-deployment-delay-europe-review/'],
+    ['espn', 'Arsenal goal ruled out after VAR review', 'https://www.espn.com/soccer/story/_/id/49800000/arsenal-goal-ruled-out-after-var-review'],
+    ['espn', 'Red card overturned after review', 'https://www.espn.com/soccer/story/_/id/49800001/red-card-overturned-after-review'],
+    ['guardian', 'Netflix shares fall after earnings review', 'https://www.theguardian.com/business/2026/nov/14/netflix-shares-fall-after-earnings-review'],
+    ['guardian', 'Starmer’s NHS review', 'https://www.theguardian.com/society/2026/nov/14/starmer-nhs-review'],
+    ['guardian', 'BBC chair faces review', 'https://www.theguardian.com/media/2026/nov/14/bbc-chair-faces-review'],
+    ['nyt', 'Defense secretary orders Afghanistan withdrawal review', 'https://www.nytimes.com/2026/11/14/us/politics/afghanistan-withdrawal-review.html'],
+    ['bloomberg', 'Malaysian King Says No Ambiguity on Najib’s Home Detention Order', 'https://www.bloomberg.com/news/articles/2026-11-07/former-malaysia-pm-najib-s-house-arrest-delayed-pending-review'],
+    ['nos', 'Doelpunt Ajax afgekeurd na VAR-review', 'https://nos.nl/artikel/2639600-doelpunt-ajax-afgekeurd-na-var-review'],
+    // Ook bij een cultuurbron: een toetsingswoord direct voor "review".
+    ['variety', 'Oscars Ceremony Faces Review', 'https://variety.com/2026/film/news/oscars-ceremony-faces-review-1236900002/'],
+  ]
+  const wrong = nieuws.filter(([source, title, url]) => isRecensie(art({ source, title, url }))).map(([s, t, u]) => `${s}: ${t} (${recensieMark(art({ source: s, title: t, url: u }))})`)
+  assert.deepEqual(wrong, [])
+  // Een nieuwsbron met een cultuurmap in de link houdt zijn recensies (The Atlantic /books/, Guardian /film/).
+  assert.equal(recensieMark(art({ source: 'atlantic', title: 'The Writer Who Made Food Fun', url: 'https://www.theatlantic.com/books/2026/11/m-f-k-fisher-made-food-writing-pleasurable-book-review/689398/' })), 'slug')
+  assert.equal(recensieMark(art({ source: 'guardian', title: 'Wicked: For Good review', url: 'https://www.theguardian.com/film/2026/nov/14/wicked-for-good-review' })), 'slug')
+  assert.equal(recensieMark(art({ source: 'guardian', title: 'Wicked: For Good review', url: 'https://www.theguardian.com/film/2026/nov/14/wicked-for-good' })), 'kop')
+  // Cultuur-, tech- en gamesbronnen houden "X review" en "-review" zonder cultuurmap.
+  assert.equal(recensieMark(art({ source: 'ign', title: 'Heartland Review', url: 'https://www.ign.com/articles/heartland-netflix' })), 'kop')
+  assert.equal(recensieMark(art({ source: 'theverge', title: 'A phone', url: 'https://www.theverge.com/2026/11/1/pixel-11-review' })), 'slug')
+})

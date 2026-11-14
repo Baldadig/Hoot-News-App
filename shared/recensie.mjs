@@ -31,6 +31,10 @@ import { urlDelen } from './url-delen.mjs'
 
 // Bronnen waar een werkkop (naam – titel) een plaat of game bespreekt of aanprijst: muziek- en gamesbronnen.
 const WORK_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === 'games').map((s) => s.id))
+// Bronnen waar "X review" in de kop of "-review" achteraan in de slug een bespreking is: cultuur, tech en games. In een
+// nieuws- of sportbron is het vaak een toetsing ("deemed clean after review", Foreign Policy "…-europe-review"); daar
+// telt het alleen met een cultuurmap in de link (keuring 14 november 2026).
+const REVIEW_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === 'cultuur' || s.cat === 'tech' || s.cat === 'games').map((s) => s.id))
 
 // Een feedrubriek (of een deel ervan, "Review / Gaming / Games", "Gear / Reviews") die een recensie of tip is.
 const REVIEW_CAT = /^(recensies?|reviews?|live reviews?|album reviews?|film reviews?|book reviews?|tv reviews?|game reviews?|music reviews?|theatre reviews?|(album|film|boek|theater|concert|game|plaat)recensies?|album van de (dag|week)|plaat van de (dag|week)|album of the (day|week)|reissue of the week|luistertips?|tiplijst|playlists?)$/i
@@ -63,7 +67,7 @@ const TITLE_CAPS = /^\W*(RECENSIE|REVIEW)\.\s/
 // "review"/"recensie" als laatste woord van het eerste deel van de kop, met een woord ervoor dat geen onderzoek of
 // toetsing aanduidt ("Pentagon orders review", "plan under review", "peer review" blijven nieuws).
 const TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?\s*(?:$|[:|–—]|\s-\s)/iu
-const NOT_BEFORE = /^(under|peer|judicial|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne)$/i
+const NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne)$/i
 // Een toetsingswerkwoord twee plaatsen voor "review": "faces ticketing review", "launches independent review".
 const TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt)$/i
 // Is "review" op plaats j een toetsing in plaats van een recensie? Kijkt naar het woord ervoor en dat daarvoor.
@@ -72,7 +76,7 @@ const STARS = /[★☆]{2,}|\(\s*[0-5](?:[.,]5)?\s*\/\s*5\s*\)/
 
 const plainTitle = (s) => String(s || '').replace(/\s+/g, ' ').trim()
 
-function urlSignal(raw) {
+function urlSignal(raw, cultuurBron) {
   const u = urlDelen(raw)
   if (!u) return null
   const parts = u.path.split('/').filter(Boolean).map((s) => {
@@ -88,13 +92,22 @@ function urlSignal(raw) {
   while (k > 0 && /^[\d.]+(\.html?)?$/.test(parts[k])) k--
   const slug = parts[k].replace(/\.html?$/, '').replace(/~[a-z0-9]+$/, '').replace(/-\d{5,}$/, '')
   const dirs = parts.slice(0, k)
+  const cultuurMap = dirs.some((d) => CULTURE_DIR.test(d))
   if (!DIR_NOT.some((h) => h.test(u.host)) && dirs.some((d) => REVIEW_DIR.test(d))) return 'map'
   if (/^recensie-/.test(slug)) return 'slug'
   const tokens = slug.split('-')
   const last = tokens[tokens.length - 1]
-  if ((last === 'review' || last === 'recensie') && tokens.length > 1 && !toetsing(tokens, tokens.length - 1)) return 'slug'
-  if (dirs.some((d) => CULTURE_DIR.test(d)) && tokens.some((t, j) => (t === 'review' || t === 'recensie') && j > 0 && j < tokens.length - 1 && !toetsing(tokens, j))) return 'midden'
+  // "-review" achteraan alleen bij een cultuur-, tech- of gamesbron of onder een cultuurmap.
+  if ((last === 'recensie' || (last === 'review' && (cultuurBron || cultuurMap))) && tokens.length > 1 && !toetsing(tokens, tokens.length - 1)) return 'slug'
+  if (cultuurMap && tokens.some((t, j) => (t === 'review' || t === 'recensie') && j > 0 && j < tokens.length - 1 && !toetsing(tokens, j))) return 'midden'
   return null
+}
+
+// Een cultuurmap in de link (/film/, /books/, /culture/ …).
+function cultuurLink(raw) {
+  const u = urlDelen(raw)
+  if (!u) return false
+  return u.path.split('/').filter(Boolean).slice(0, -1).some((d) => CULTURE_DIR.test(d.toLowerCase()))
 }
 
 // "Naam – Titel": twee korte delen, zonder werkwoord en zonder zinstekens.
@@ -117,7 +130,8 @@ export function recensieMark(item = {}) {
   if (TITLE_LABEL.test(title) || TITLE_CAPS.test(title)) return 'label'
   if (STARS.test(title)) return 'sterren'
   const news = NEWS_VERB.test(title)
-  const url = urlSignal(item.url)
+  const cultuurBron = REVIEW_IDS.has(item.source)
+  const url = urlSignal(item.url, cultuurBron)
   if (url === 'map') return 'map'
   if (news) return null
   // "review" midden in de slug is de zwakste linkaanwijzing: ook een nieuwswoord in de kop houdt die tegen (de kop zelf
@@ -126,7 +140,9 @@ export function recensieMark(item = {}) {
     if (!NEWS_WORD.test(title)) return 'slug'
   } else if (url) return url
   const end = TITLE_END.exec(title)
-  if (end && !toetsing([end[1] || '', end[2], end[3]], 2)) return 'kop'
+  // "X review" aan het eind alleen bij een cultuur-, tech- of gamesbron of met een cultuurmap in de link ("recensie"
+  // overal: dat woord is in het Nederlands geen toetsing).
+  if (end && !toetsing([end[1] || '', end[2], end[3]], 2) && (end[3].toLowerCase() === 'recensie' || cultuurBron || cultuurLink(item.url))) return 'kop'
   if (WORK_IDS.has(item.source) && workTitle(title)) return 'werkkop'
   return null
 }
