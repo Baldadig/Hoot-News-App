@@ -312,9 +312,13 @@ var HootCore = (() => {
     // Erbij op 14 november 2026 (Hoot-design/bronnen-internationaal-2026-11-14, ONDERZOEK.md): meer breedte in het
     // internationale nieuws. Alleen officiele feeds van de uitgever, gemeten met de eigen UA op die dag. Geen pick of base:
     // voor niemand ongevraagd aan. Een inlogpagina alleen als die met de eigen UA antwoordt (National Review niet).
-    // Geen Amerikaanse nieuwsbronnen erbij (keuring 14 november): de server telt per verhaal alle uitgevers uit de catalogus,
-    // en met meer Amerikaanse nieuwsuitgevers haalt een puur binnenlands Amerikaans verhaal in zijn eentje de drempels voor
-    // groot nieuws en de opening. Die volgen pas met een regel die de telling per land begrenst.
+    // Amerikaans nieuws (bronnen-amerika, 14 november 2026): de landenregel (COUNTRY_MAX in shared/edition-policy.mjs)
+    // begrenst de telling per buitenlands land, dus meer Amerikaanse uitgevers maken een binnenlands Amerikaans verhaal niet
+    // groter. Alleen bronnen met een kwalitatieve feed (vers, een echte intro, beeld, alleen nieuws): Axios en ProPublica.
+    // The Washington Post nog niet: de feed antwoordt pas na 8 tot 10 seconden (de grens is 9), zonder beeld, en de site
+    // weigert de eigen UA. Fox, CBS, PBS en Semafor niet (besluit Alex).
+    S("axios", "Axios", "int", "en", "Amerikaans nieuws, kort en feitelijk.", "https://api.axios.com/feed/", { color: "#1A1A1A", bsky: "axios.com", x: "axios" }),
+    S("propublica", "ProPublica", "int", "en", "Amerikaanse onderzoeksjournalistiek, non-profit.", "https://www.propublica.org/feeds/propublica/main", { color: "#1A1A1A", bsky: "propublica.org", x: "propublica" }),
     // Europa: publieke zenders in het Engels. France 24 en RFI zijn één uitgever (France Médias Monde).
     S("france24", "France 24", "int", "en", "Frans publiek wereldnieuws, in het Engels.", "https://www.france24.com/en/rss", { publisher: "france-medias-monde", color: "#00A3E0", bsky: "france24.com", x: "France24_en" }),
     S("rfi", "RFI English", "int", "en", "Franse publieke radio, sterk in Afrika.", "https://www.rfi.fr/en/rss", { publisher: "france-medias-monde", color: "#D7001D", bsky: "rfi.fr", x: "RFI_En" }),
@@ -2005,7 +2009,10 @@ var HootCore = (() => {
       // 14 november 2026 (bronnen-internationaal)
       "vox",
       "nationalreview",
-      "thefp"
+      "thefp",
+      // 14 november 2026 (bronnen-amerika, met de landenregel in coverageOf)
+      "axios",
+      "propublica"
     ],
     GB: ["guardian", "bbc", "economist", "ft", "independent", "telegraph", "eurogamer", "nature", "carbonbrief", "autosport", "quietus"],
     // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
@@ -2019,9 +2026,25 @@ var HootCore = (() => {
   }).flatMap(([country, ids]) => ids.map((id) => [id, country])));
   var publisherOf = (id) => ALIAS[id] || id;
   var publisherCountry = (id) => COUNTRIES2[publisherOf(id)] || null;
+  var COUNTRY_MAX = FRONT_MIN;
+  var UNCAPPED = /* @__PURE__ */ new Set(["NL", "BE"]);
+  function countedPublishers(publishers = []) {
+    const per = /* @__PURE__ */ new Map();
+    let n = 0;
+    for (const p of new Set(publishers)) {
+      const land = publisherCountry(p);
+      if (land && !UNCAPPED.has(land)) {
+        const k = (per.get(land) || 0) + 1;
+        per.set(land, k);
+        if (k > COUNTRY_MAX) continue;
+      }
+      n++;
+    }
+    return n;
+  }
   function coverageOf(items = []) {
     const ids = [...new Set(items.filter((i) => !opinieBron(i.source)).map((i) => publisherOf(i.source)).filter(Boolean))].sort();
-    return { publisherCount: ids.length, publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() };
+    return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() };
   }
   var SPORT_CAT = new Map(SOURCES.map((s) => [s.id, s.cat]));
   var SPORT_NAMES = new Set(SOURCES.filter((s) => s.cat === "sport").map((s) => s.name));
@@ -2081,7 +2104,9 @@ var HootCore = (() => {
     "abc-au",
     "kyivindependent",
     "haaretz",
-    "timesofisrael"
+    "timesofisrael",
+    "axios",
+    "propublica"
   ]);
   var BEAT = /* @__PURE__ */ new Set(["economie", "tech", "wetenschap", "cultuur", "sport"]);
   var generalNews = (item) => !(item?.topics || []).some((t) => BEAT.has(FAMILY_OF[t]));
@@ -2187,7 +2212,8 @@ var HootCore = (() => {
     const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map((id) => voice(id, catFor(id))));
     for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(voice(ID_BY_NAME.get(name), CAT_BY_NAME.get(name)));
     const countries = new Set([...ids].map(publisherCountry).filter(Boolean));
-    return ids.size >= LIGHT_MAJOR || ids.size >= 5 && countries.size >= 2;
+    const n = countedPublishers(ids);
+    return n >= LIGHT_MAJOR || n >= 5 && countries.size >= 2;
   }
   var CULTUUR_KIND = ["muziek", "film", "boeken", "kunst", "media"];
   var cultuurChosen = (prof, min = 0.5) => Math.max(0, ...CULTUUR_KIND.map((t) => prof?.topicP?.[t] || 0)) >= min;
@@ -3332,7 +3358,7 @@ var HootCore = (() => {
         c.fam = head.st.id;
         for (const i of c.items) all.add(publisherOf(i.source));
       }
-      const total = pubsOf(head) + (all.size - own2.size);
+      const total = pubsOf(head) + (countedPublishers(all) - countedPublishers(own2));
       if (all.size > own2.size && total >= FRONT_BIG) extra.set(head, all.size - own2.size);
     }
     for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null;
