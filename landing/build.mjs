@@ -61,11 +61,11 @@ const { vragen, vragenHtml, jsonld } = await import('./vragen.mjs');
 // regionale sufferdjes hoeven erbij"). Landelijk, Vlaams, internationaal en een paar sterke vak- en cultuurtitels; geen
 // regionale kranten of omroepen. Elk merk één keer. Twee keer achter elkaar voor een naadloze lus; de tweede helft is
 // verborgen voor schermlezers. Een id zonder logo in landing/bronnen of zonder bron in de catalogus valt stil weg.
-// 14 november 2026: The Washington Post, France 24 en CBS News erbij (bronnen-internationaal).
+// 14 november 2026: France 24 erbij (bronnen-internationaal).
 const RIJ = [
   'nos', 'nrc', 'volkskrant', 'nu', 'standaard', 'guardian', 'rtl', 'trouw', 'bbc', 'ad', 'parool', 'nyt', 'fd',
-  'telegraaf', 'vrt', 'economist', 'groene', 'humo', 'demorgen', 'ft', 'wapo', 'ftm', 'atlantic', 'tijd', 'newyorker', 'vn',
-  'bloomberg', 'sporza', 'politico', 'france24', 'cbs', 'tweakers', 'theverge', 'vi', 'wired', '3voor12', 'nature', 'rollingstone', 'pitchfork',
+  'telegraaf', 'vrt', 'economist', 'groene', 'humo', 'demorgen', 'ft', 'ftm', 'atlantic', 'tijd', 'newyorker', 'vn',
+  'bloomberg', 'sporza', 'politico', 'france24', 'tweakers', 'theverge', 'vi', 'wired', '3voor12', 'nature', 'rollingstone', 'pitchfork',
 ];
 const rijBronnen = RIJ.map((id) => SOURCES.find((x) => x.id === id)).filter((x) => x && fs.existsSync(path.join(SRC, 'bronnen', x.id + '.webp')));
 const escR = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');

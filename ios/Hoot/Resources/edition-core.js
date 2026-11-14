@@ -311,15 +311,10 @@ var HootCore = (() => {
     S("telegraph", "The Telegraph", "int", "en", "Brits, conservatief, wereldnieuws.", "https://www.telegraph.co.uk/rss.xml", { login: "https://secure.telegraph.co.uk/customer/secure/login/", paid: true, color: "#1A1A1A", bsky: "telegraph.co.uk" }),
     // Erbij op 14 november 2026 (Hoot-design/bronnen-internationaal-2026-11-14, ONDERZOEK.md): meer breedte in het
     // internationale nieuws. Alleen officiele feeds van de uitgever, gemeten met de eigen UA op die dag. Geen pick of base:
-    // voor niemand ongevraagd aan. Een inlogpagina alleen als die met de eigen UA antwoordt (WaPo en National Review niet).
-    // Amerika: krant, tv-netwerken links en rechts van het midden, publieke tv, kort nieuws en onderzoek.
-    S("wapo", "The Washington Post", "int", "en", "Amerikaanse politiek en wereldnieuws uit Washington.", ["https://feeds.washingtonpost.com/rss/world", "https://feeds.washingtonpost.com/rss/politics"], { paid: true, color: "#1A1A1A", bsky: "washingtonpost.com", x: "washingtonpost" }),
-    S("cbs", "CBS News", "int", "en", "Het Amerikaanse tv-nieuws van CBS.", "https://www.cbsnews.com/latest/rss/main", { color: "#1A1A1A", bsky: "cbsnews.com", x: "CBSNews" }),
-    S("pbs", "PBS News", "int", "en", "Het nieuws van de Amerikaanse publieke tv (PBS News Hour).", "https://www.pbs.org/newshour/feeds/rss/headlines", { color: "#2638C4", bsky: "pbsnews.org", x: "NewsHour" }),
-    S("fox", "Fox News", "int", "en", "Amerikaanse politiek van het tv-netwerk, rechts.", "https://moxie.foxnews.com/google-publisher/politics.xml", { color: "#003366", logo: "https://static.foxnews.com/static/orion/styles/img/fox-news/favicons/apple-touch-icon-180x180.png", x: "FoxNews" }),
-    S("axios", "Axios", "int", "en", "Amerikaans nieuws, kort en feitelijk.", "https://api.axios.com/feed/", { color: "#1A1A1A", bsky: "axios.com", x: "axios" }),
-    S("semafor", "Semafor", "int", "en", "Wereldnieuws, met de feiten en de duiding apart.", "https://www.semafor.com/rss.xml", { color: "#1A1A1A", bsky: "semafor.com", x: "semafor" }),
-    S("propublica", "ProPublica", "int", "en", "Amerikaanse onderzoeksjournalistiek, non-profit.", "https://www.propublica.org/feeds/propublica/main", { color: "#1A1A1A", bsky: "propublica.org", x: "propublica" }),
+    // voor niemand ongevraagd aan. Een inlogpagina alleen als die met de eigen UA antwoordt (National Review niet).
+    // Geen Amerikaanse nieuwsbronnen erbij (keuring 14 november): de server telt per verhaal alle uitgevers uit de catalogus,
+    // en met meer Amerikaanse nieuwsuitgevers haalt een puur binnenlands Amerikaans verhaal in zijn eentje de drempels voor
+    // groot nieuws en de opening. Die volgen pas met een regel die de telling per land begrenst.
     // Europa: publieke zenders in het Engels. France 24 en RFI zijn één uitgever (France Médias Monde).
     S("france24", "France 24", "int", "en", "Frans publiek wereldnieuws, in het Engels.", "https://www.france24.com/en/rss", { publisher: "france-medias-monde", color: "#00A3E0", bsky: "france24.com", x: "France24_en" }),
     S("rfi", "RFI English", "int", "en", "Franse publieke radio, sterk in Afrika.", "https://www.rfi.fr/en/rss", { publisher: "france-medias-monde", color: "#D7001D", bsky: "rfi.fr", x: "RFI_En" }),
@@ -2009,13 +2004,6 @@ var HootCore = (() => {
       "stereogum",
       "variety",
       // 14 november 2026 (bronnen-internationaal)
-      "wapo",
-      "cbs",
-      "pbs",
-      "fox",
-      "axios",
-      "semafor",
-      "propublica",
       "vox",
       "nationalreview",
       "thefp",
@@ -2089,13 +2077,6 @@ var HootCore = (() => {
     "lemonde",
     "aljazeera",
     "scmp",
-    "wapo",
-    "cbs",
-    "pbs",
-    "fox",
-    "axios",
-    "semafor",
-    "propublica",
     "france24",
     "rfi",
     "euronews",

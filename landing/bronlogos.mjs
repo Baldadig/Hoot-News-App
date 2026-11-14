@@ -50,8 +50,8 @@ const BETER = {
   rd: 'https://www.rd.nl/RDnl-Apple-iPhone-Retina-180x180.png', // het Bluesky-beeld heeft een grijze lijn langs de linkerrand
 }
 // 13 november 2026: bij 'rd', 'rtvutrecht', 'mediacourant', 'humo' en 'bruzz' raakt het woordmerk de rand.
-// 14 november 2026: ook bij 'fox', 'euronews' en 'thefp' (bronnen-internationaal, nagekeken op een vel met ronde uitsneden).
-const LUCHT = new Set(['tubantia', 'bd', 'ed', 'bndestem', 'pzc', 'nieuwsblad', 'rd', 'rtvutrecht', 'mediacourant', 'humo', 'bruzz', 'fox', 'euronews', 'thefp'])
+// 14 november 2026: ook bij 'euronews' en 'thefp' (bronnen-internationaal, nagekeken op een vel met ronde uitsneden).
+const LUCHT = new Set(['tubantia', 'bd', 'ed', 'bndestem', 'pzc', 'nieuwsblad', 'rd', 'rtvutrecht', 'mediacourant', 'humo', 'bruzz', 'euronews', 'thefp'])
 // Waar elk vierkant beeld van de uitgever een afgesneden woordmerk is, het volledige woordmerk uit het eigen SVG-bestand van
 // de site, met de viewBox om het hele woordmerk en zonder uitsnede, liggend en gecentreerd op wit (past in de ronde uitsnede).
 // 14 november 2026: De Groene toont op site, Bluesky, X, Facebook en Threads "DE GR / AMST"; icon.svg bevat het hele woordmerk.
