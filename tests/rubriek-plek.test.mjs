@@ -72,3 +72,33 @@ test('A6: het label volgt de plek, niet het binnenlandse onderwerp (web; de app 
   const thuis = labelFor({ topics: ['misdaad'], mainTopics: ['misdaad'], follows, desk: 'binnenland', deskLabel: 'Binnenland' })
   assert.equal(thuis.kicker, 'Binnenland · Misdaad & recht')
 })
+
+// Tweede keuring van het herstel (14 november): een musicus of acteur in een kop over misdaad of een rechtszaak is een
+// beroep, geen cultuur. Zulk nieuws blijft Binnenland, met en zonder de onderwerpen die de server erbij zet.
+test('A6: een musicus of acteur haalt misdaad- en rechtszaaknieuws niet uit Binnenland', async () => {
+  const { articleTopics } = await import('../netlify/lib/topics.mjs')
+  for (const title of [
+    'Rapper Boef veroordeeld voor mishandeling in Amsterdam',
+    'Zanger Marco Borsato vrijgesproken van ontucht',
+    'Acteur opgepakt na steekpartij in Utrecht',
+  ]) {
+    const it = { source: 'nos', title, url: 'https://nos.nl/artikel/1-x' }
+    assert.deepEqual(desks(it), ['binnenland'], title)
+    assert.deepEqual(desks({ ...it, ...articleTopics(it) }), ['binnenland'], `${title} (met onderwerpen)`)
+  }
+  // Een misdaad met een buitenlands land in de kop blijft Buitenland.
+  assert.deepEqual(desks({ source: 'nos', title: 'Acteur Johnny Depp wint rechtszaak in Londen' }), ['buitenland'])
+  // Tegenval: zonder misdaad blijft een musicus cultuur, en een rubriek als /boulevard/ blijft showbizz.
+  assert.deepEqual(desks({ source: 'nos', title: 'Zangeres van bekende popgroep stopt ermee' }), [])
+  assert.deepEqual(desks({ source: 'rtl', title: 'Zanger Marco Borsato vrijgesproken van ontucht', url: 'https://www.rtl.nl/boulevard/artikel/1/borsato' }), [])
+})
+
+// Tweede keuring van het herstel: een plaats in een bedrijfsnaam is geen plek.
+test('A6: een Amerikaanse stad in een bedrijfsnaam maakt een stuk niet VS', () => {
+  assert.deepEqual(countriesIn('Boston Consulting Group adviseert ministerie over zorgkosten'), [])
+  assert.deepEqual(desks({ source: 'nos', title: 'Boston Consulting Group adviseert ministerie over zorgkosten' }), ['binnenland'])
+  // Tegenval: de stad zelf blijft de VS, ook naast een bedrijf; "groep" in gewone tekst doet niets.
+  assert.deepEqual(countriesIn('Schietpartij in Boston: drie doden'), ['us'])
+  assert.deepEqual(countriesIn('Boston Scientific schrapt banen in Minnesota'), ['us'])
+  assert.deepEqual(countriesIn('Groep toeristen vast in Boston'), ['us'])
+})

@@ -25,8 +25,26 @@ const COUNTRIES = [
   ['sn', 'senegal\\p{L}*'], ['sa', 'saudi\\p{L}*|saoedi\\p{L}*|saudische?'],
   ['nz', 'new zealand|nieuw-zeeland'],
   ['au', 'australi\\p{L}*'], ['tr', 'turkije|turkey|turks\\p{L}*|erdogan'],
-].map(([id, pattern]) => [id, words(pattern)])
+].map(([id, pattern]) => [id, words(pattern), new RegExp(`^(?:${pattern})$`, 'iu')])
+// Een plaats als deel van een bedrijfsnaam is geen plek: "Boston Consulting Group adviseert ministerie" gaat niet over de
+// VS (tweede keuring van het herstel). Een naam met hoofdletters, gevolgd door een woord als Consulting of Group: eindigt
+// die naam op een plaats uit COUNTRIES, dan telt die plaats niet mee. Hoofdlettergevoelig, zodat "groep" en "group" in
+// gewone tekst niets doen.
+const CORP_NAME = /(\p{Lu}[\p{L}.'’-]*(?:\s+\p{Lu}[\p{L}.'’-]*){0,2}?)(?:\s+(?:Consulting|Group|Partners|Capital|Scientific|Dynamics|Holdings|Insurance|Corporation|Corp|Inc|Labs|Pharma|Pharmaceuticals|Ventures|Associates|Advisors|Analytics|Investments)(?![\p{L}\p{N}]))+/gu
+function withoutCorpPlaces(text) {
+  if (!CORP_NAME.test(text)) return text
+  CORP_NAME.lastIndex = 0
+  return text.replace(CORP_NAME, (all, name) => {
+    const parts = name.split(/\s+/)
+    for (let k = 0; k < parts.length; k++) {
+      const tail = parts.slice(k).join(' ')
+      if (COUNTRIES.some(([, , exact]) => exact.test(tail))) return `${parts.slice(0, k).join(' ')} ${all.slice(name.length)}`
+    }
+    return all
+  })
+}
 export function countriesIn(text = '') {
+  text = withoutCorpPlaces(String(text))
   const found = COUNTRIES.filter(([, re]) => re.test(text)).map(([id]) => id)
   if (/\bUS\b/.test(text) && !found.includes('us')) found.push('us') // niet het Engelse voornaamwoord us
   return found

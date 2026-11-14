@@ -477,8 +477,22 @@ var HootCore = (() => {
     ["nz", "new zealand|nieuw-zeeland"],
     ["au", "australi\\p{L}*"],
     ["tr", "turkije|turkey|turks\\p{L}*|erdogan"]
-  ].map(([id, pattern]) => [id, words(pattern)]);
+  ].map(([id, pattern]) => [id, words(pattern), new RegExp(`^(?:${pattern})$`, "iu")]);
+  var CORP_NAME = /(\p{Lu}[\p{L}.'’-]*(?:\s+\p{Lu}[\p{L}.'’-]*){0,2}?)(?:\s+(?:Consulting|Group|Partners|Capital|Scientific|Dynamics|Holdings|Insurance|Corporation|Corp|Inc|Labs|Pharma|Pharmaceuticals|Ventures|Associates|Advisors|Analytics|Investments)(?![\p{L}\p{N}]))+/gu;
+  function withoutCorpPlaces(text) {
+    if (!CORP_NAME.test(text)) return text;
+    CORP_NAME.lastIndex = 0;
+    return text.replace(CORP_NAME, (all, name) => {
+      const parts = name.split(/\s+/);
+      for (let k = 0; k < parts.length; k++) {
+        const tail = parts.slice(k).join(" ");
+        if (COUNTRIES.some(([, , exact]) => exact.test(tail))) return `${parts.slice(0, k).join(" ")} ${all.slice(name.length)}`;
+      }
+      return all;
+    });
+  }
   function countriesIn(text = "") {
+    text = withoutCorpPlaces(String(text));
     const found = COUNTRIES.filter(([, re]) => re.test(text)).map(([id]) => id);
     if (/\bUS\b/.test(text) && !found.includes("us")) found.push("us");
     return found;
@@ -1097,6 +1111,10 @@ var HootCore = (() => {
   var CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i;
   var MUSICIAN = /\b(\w*drummer|zanger|zangeres|gitarist|bassist|toetsenist|popgroep|popband|rockband|popster|rapper)\b/i;
   var musicianHead = (title) => MUSICIAN.test(title) && !usPoliticsIn(title);
+  var CRIME_HEAD = /\b(drugging|murder\w*|convicted|arrested|acquitted|sentenced|verkracht\w*|ontucht|doodgeschoten|neergeschoten|doodgestoken|mishandel\w*|moord\w*|veroordeeld|vrijgesproken|opgepakt|aangehouden|gearresteerd|aangeklaagd|aanklacht|verdacht\w*|celstraf|gevangenisstraf|taakstraf|strafeis|rechtszaak|rechtbank|rechter|cassatie|hoger beroep|steekpartij|schietpartij)\b/i;
+  var PROFESSION = /\b(acteur|actrice)\b/i;
+  var PROFESSION_TOPICS = /* @__PURE__ */ new Set(["muziek", "film"]);
+  var professionInCrime = (it) => CRIME_HEAD.test(it.title || "") && (MUSICIAN.test(it.title || "") || PROFESSION.test(it.title || ""));
   var ownKind = (it) => {
     const visible = `${it.title || ""} ${it.summary || ""}`;
     if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || "") || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || "")) return true;
@@ -1104,7 +1122,12 @@ var HootCore = (() => {
     const election = /\b(elections?|verkiezing\w*|midterms?|political texts|senaat|senate)\b/i.test(`${it.title || ""} ${(it.url || "").replace(/[-_/]/g, " ")}`);
     if (election && usPoliticsIn(visible + " " + (it.url || "").replace(/[-_/]/g, " ")) && !keywordTopics(visible).some((t) => KIND_TOPICS.has(t))) return false;
     if (/\b(journal article|research finds|study finds)\b/i.test(it.title || "")) return false;
-    return (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || "") || SHOWBIZZ_PATH.test(it.url || "") || /^(sport|cultuur)/i.test(it.section || "") || OTHER_SPORT.test(it.title || "") || CULTURE_SPORT.test(visible) || musicianHead(it.title || "");
+    const path = KIND_PATH.test(it.url || "") || SHOWBIZZ_PATH.test(it.url || "") || /^(sport|cultuur)/i.test(it.section || "") || OTHER_SPORT.test(it.title || "");
+    if (professionInCrime(it)) {
+      const rest = visible.replace(MUSICIAN, " ").replace(PROFESSION, " ");
+      return path || (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t) && !PROFESSION_TOPICS.has(t)) || CULTURE_SPORT.test(rest);
+    }
+    return (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t)) || path || CULTURE_SPORT.test(visible) || musicianHead(it.title || "");
   };
   function placeSignals({ title = "", summary = "", text = "" }) {
     const t = `${title} ${summary || text}`;
@@ -1460,7 +1483,7 @@ var HootCore = (() => {
     if (nl && (home || !abroad)) return true;
     if (!home) return false;
     if (abroad || storyForeign) return false;
-    const ts = it.topics || [];
+    const ts = (it.topics || []).filter((t) => !(PROFESSION_TOPICS.has(t) && professionInCrime(it)));
     if (NL_SECTION.test(sec) || ts.some((t) => NL_TOPICS.has(t)) || NL_WEAK.test(`${it.title || ""} ${it.summary || it.text || ""}`)) return true;
     return it.source !== "fd" && ts.every((t) => NL_TOPICS.has(t)) && !NOT_HOME_SECTION.test(sec);
   }
