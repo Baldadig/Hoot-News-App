@@ -42,7 +42,7 @@
 // pickBubble); de derde taal met de korte woorden (shared/lang.mjs) en dutchTier op niet Nederlands; de landenregel ook voor lichte verhalen (majorGeneralNews eist uit één land buiten NL en BE
 // een tweede land) en voor de familiebonus (familyBonus); Achterklap weert alleen showbizz als soort (showbizzKind), nooit groot nieuws; een aflevering om te luisteren of te kijken (mediaEpisode in shared/editie-filter.mjs) is
 // nooit de kop van een plek, ook niet met een eigen intro; een plek met alleen afleveringen valt weg. De rubriek van een
-// plek: een musicus is cultuur, en een Amerikaanse staat of stad of het VK is een buitenlandse plek (desks.mjs,
+// plek: een musicus in de kop is cultuur, en een Amerikaanse staat of stad of het VK is een buitenlandse plek (desks.mjs,
 // countriesIn); een stuk van een Vlaamse bron blijft Buitenland.
 // The Times of Israel uit de catalogus en uit FOREIGN_NEWS (Cloudflare weigert de server; Haaretz blijft voor Israël).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-dubbelcheck'

@@ -39,6 +39,14 @@ test('A6: een musicus is cultuur, geen Buitenland, ook als de intro een ander la
   assert.ok(desks({ source: 'nos', title: 'Rapper doodgeschoten in Frankrijk' }).includes('buitenland'))
 })
 
+test('A6: een musicus telt alleen in de kop, en niet bij een politieke plek (herstelkeuring)', () => {
+  // Een zanger die in de intro voorbijkomt, maakt een stuk over Trump en Obama geen cultuur.
+  assert.deepEqual(desks({ source: 'volkskrant', title: 'TikTok-gebruikers smeken oud-president om terug te komen en noemen Trump een enge oppas: Obama-video’s verzamelen miljoenen likes', summary: 'In een van de TikTok-filmpjes loopt Obama het podium op en zwaait wat rond, terwijl Hey Daddy van r&b-zanger Usher op de achtergrond klinkt.', url: 'https://www.volkskrant.nl/buitenland/tiktok-gebruikers-smeken-oud-president-om-terug-te-komen~b1/', section: 'Buitenland' }), ['vs'])
+  assert.deepEqual(desks({ source: 'nos', title: 'Trump haalt uit naar zangeres na optreden in Washington' }), ['vs'])
+  // Een musicus in de kop zonder politieke plek blijft cultuur.
+  assert.deepEqual(desks({ source: 'nos', title: 'Britse popster kondigt afscheidstournee aan' }), [])
+})
+
 test('A6: een stuk van een Vlaamse bron blijft Buitenland, ook zonder bekende Belgische plek (herstelkeuring)', () => {
   // De herstelkeuring vond 130 van de 477 Vlaamse stukken die geen Buitenland meer waren: Belgisch binnenlands nieuws
   // ontsnapte zo aan het plafond voor buitenland. Of Belgisch nieuws voor de Vlaamse lezer Buitenland heet, beslist Alex.

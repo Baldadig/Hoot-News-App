@@ -102,9 +102,12 @@ const KIND_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'winterspo
 // De boulevard (RTL) is showbizz (feedback 31 oktober: de voogdij van de ex-man van Halle Berry stond
 // onder Binnenland); darts en andere sport zonder eigen onderwerp is sport (OTHER_SPORT).
 const KIND_PATH = /\/(sport[\w-]*|voetbal|darts|cultuur|cultuur-media|entertainment|showbizz|boulevard|show|film|muziek|boeken|media)\//i
-// Een musicus is cultuur, net als een acteur (dubbelcheck 14 november, A6: de overleden drummer van Doe Maar stond onder
-// Buitenland, omdat de intro Spanje noemde).
-const CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival|\w*drummer|zanger|zangeres|gitarist|bassist|toetsenist|popgroep|popband|rockband|popster|rapper)\b/i
+const CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i
+// Een musicus in de kop is cultuur, net als een acteur (dubbelcheck 14 november, A6: de overleden drummer van Doe Maar
+// stond onder Buitenland, omdat de intro Spanje noemde). Alleen in de kop, en niet als de kop een politieke plek heeft: een
+// zanger die in de intro voorbijkomt, maakt een politiek stuk geen cultuur (herstelkeuring: de Obama-video's met Usher).
+const MUSICIAN = /\b(\w*drummer|zanger|zangeres|gitarist|bassist|toetsenist|popgroep|popband|rockband|popster|rapper)\b/i
+const musicianHead = (title) => MUSICIAN.test(title) && !usPoliticsIn(title)
 const ownKind = (it) => {
   const visible = `${it.title || ''} ${it.summary || ''}`
   if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || '') || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || '')) return true
@@ -117,7 +120,7 @@ const ownKind = (it) => {
   if (/\b(journal article|research finds|study finds)\b/i.test(it.title || '')) return false
   // Showbizz is een eigen soort, met dezelfde rubrieken als het onderwerp (SHOWBIZZ_PATH): NU.nl /achterklap/ werd
   // anders Binnenland (nachttest 14 november, R3).
-  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || SHOWBIZZ_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible)
+  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || SHOWBIZZ_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible) || musicianHead(it.title || '')
 }
 
 
