@@ -153,7 +153,7 @@ test('Selectie zegt overal onderwerpen: "Onderwerpen · 3" en "1 stuk" (C5, zoal
   const vak = read('views/Vak.jsx')
   // Selectie-index B: de laatste rij van de inhoud heet "Onderwerpen" met "3 gekozen" eronder.
   assert.match(vak, /name="Onderwerpen" sub=\{gekozen\}/)
-  assert.match(vak, /`\$\{chosen\.length\} gekozen`/)
+  assert.match(vak, /`\$\{offeredFields\(chosen, digest\)\.length\} gekozen`/) // alleen wat de weekbundel levert (14 november)
   assert.ok(!vak.includes('Onderwerpen ('), 'geen telling tussen haakjes meer')
   assert.match(read('lib/selection-index.js'), /n === 1 \? '1 stuk' : `\$\{n\} stukken`/)
   // 'vakgebied' alleen nog in code en commentaar, nooit in een zichtbare tekst.

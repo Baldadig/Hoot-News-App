@@ -188,8 +188,9 @@ export default function App() {
   const sourcesById = useMemo(() => new Map(sources.map((s) => [s.id, s])), [sources])
   // Uit: wat je zelf uitzette, plus optionele bronnen die je nog niet aanzette.
   const muted = useMemo(() => mutedSet(prefs, sources), [prefs, sources])
-  // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
-  const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
+  // Digest: pas ophalen als je de tab hebt aangezet (of hem opent), en waar je onderwerpen kiest (welkom,
+  // Instellingen › Selectie): wat nog niet in de weekbundel zit, blijft daar verborgen (offersField).
+  const vak = useVak(prefs.vak.length > 0 || route.path === 'digest' || route.path === 'welkom' || !prefs.onboarded || (route.path === 'instellingen' && route.params.blad === 'selectie'))
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
   // `myEdition` is de Editie die je ziet: bij een nieuw dagdeel even de vorige, tot de nieuwe er is en je wisselt
   // (shared/dagdeel-wissel.mjs). `coming`, `nextReady` en `swapEdition` horen bij die wissel.
@@ -766,7 +767,7 @@ export default function App() {
           </Suspense>
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} {...(route.params.blad ? bladBack : backTo)} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} digest={vak.digest} {...(route.params.blad ? bladBack : backTo)} /> : null}
             {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}
@@ -823,7 +824,7 @@ export default function App() {
         </div>
         {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome sources={sources} items={data?.items} edition={data?.edition} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} />
+            <Welcome sources={sources} items={data?.items} edition={data?.edition} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} digest={vak.digest} />
           </Suspense>
         ) : null}
       </div>

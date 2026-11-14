@@ -849,7 +849,7 @@ struct WelcomeView: View {
                     HStack(spacing: Space.s3) {
                         VStack(alignment: .leading, spacing: Space.s0) {
                             Text("Kies onderwerpen voor je Selectie").font(.ui(.body, .semibold)).fixedSize(horizontal: false, vertical: true)
-                            Text(vak.isEmpty ? "Mag ook later" : "\(vak.count) gekozen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
+                            Text(vak.filter(store.offersField).isEmpty ? "Mag ook later" : "\(vak.filter(store.offersField).count) gekozen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                         }
                         Spacer(minLength: Space.s2)
                         Image(systemName: selOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)

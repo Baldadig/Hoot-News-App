@@ -11,11 +11,11 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
 import { reduced } from '../lib/motion.js'
-import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF } from '../lib/selection-index.js'
+import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF, offeredFields } from '../lib/selection-index.js'
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
-import { ownIntro } from '../../shared/kaart-intro.mjs'
+import { ownIntro, VIA_TEKEN } from '../../shared/kaart-intro.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
 
@@ -106,7 +106,7 @@ function Card({ item, rank, feature = false }) {
           {summary ? (
             <p className="clamp clamp--vangnet dcard__sum">
               {summary}
-              {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+              {item.borrowedFrom ? <span className="via">{VIA_TEKEN}{item.borrowedFrom}</span> : null}
             </p>
           ) : null}
         </div>
@@ -196,7 +196,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
       )}
     </nav>
   )
-  const gekozen = `${chosen.length} gekozen`
+  const gekozen = `${offeredFields(chosen, digest).length} gekozen` // wat de bundel niet levert, telt niet (offersField)
   const proef = chosen.length ? [] : voorproefje(vakByDomain(), digest?.fields || [])
   const how = seen > 0 ? (
     <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
@@ -216,7 +216,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
         {/* Kiezen: dezelfde onderwerpen als altijd, per domein, in een blad achter de laatste rij. */}
         <Dialog open={choosing} onClose={() => setChoosing(false)} labelledBy="selectie-kies-title" className="dpick">
           <DialogHeader id="selectie-kies-title" title="Onderwerpen" onClose={() => setChoosing(false)} />
-          {vakByDomain().map((d) => (
+          {vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length).map((d) => (
             <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
               {d.fields.map((f) => (
                 <button key={f.id} type="button" className="pill pill--sm hit" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>

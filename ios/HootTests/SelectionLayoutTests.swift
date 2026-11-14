@@ -37,10 +37,16 @@ final class SelectionLayoutTests: XCTestCase {
         XCTAssertEqual(full.fields.map(\.id),["ux","ai","foto"])
         XCTAssertEqual(full.summary,"5 stukken in 2 onderwerpen")
         XCTAssertEqual(SelectionOverview.pieces(0),"Nog geen stukken")
-        let empty=SelectionOverview([field("foto","Fotografie",0),field("gaming","Games",0)],offered:["gaming"])
+        let empty=SelectionOverview([field("foto","Fotografie",0),field("gaming","Games",0)],offered:["foto","gaming"])
         XCTAssertEqual(empty.state, .empty)
         XCTAssertEqual(empty.names,"Fotografie en Games")
         XCTAssertFalse(empty.unoffered)
+        // "Tot dan verbergen." (14 november): een onderwerp buiten de weekbundel staat er niet, zoals op het web.
+        let half=SelectionOverview([field("foto","Fotografie",0),field("gaming","Games",0)],offered:["gaming"])
+        XCTAssertEqual(half.names,"Games")
+        XCTAssertFalse(half.unoffered)
+        let vol=SelectionOverview([field("ux","UI/UX",2),field("nieuw","Nieuw",0)],offered:["ux"])
+        XCTAssertEqual(vol.fields.map(\.id),["ux"])
         XCTAssertTrue(SelectionOverview([field("foto","Fotografie",0)],offered:[]).unoffered)
         XCTAssertEqual(SelectionOverview.join(["AI","Fotografie","Games"]),"AI, Fotografie en Games")
     }

@@ -5,7 +5,8 @@ import { useHoot } from '../components/Items.jsx'
 import { Switch } from './Sources.jsx'
 import { AccountSettings, Avatar, accountName } from '../components/Account.jsx'
 import { PLACES, NO_WEATHER } from '../lib/weather.js'
-import { VAK_FIELD_IDS, vakByDomain } from '../../shared/vak.mjs'
+import { vakByDomain } from '../../shared/vak.mjs'
+import { offeredFields, allChosen, chooseAll } from '../lib/selection-index.js'
 import { topicById } from '../lib/topics.js'
 import { CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { supplyOf, profileOf, profileSummary } from '../../shared/editor.mjs'
@@ -68,7 +69,7 @@ function LinkRow({ href, onClick, label, value }) {
 
 const plural = (n, one, many) => (n === 1 ? `1 ${one}` : `${n} ${many}`)
 
-export default function Settings({ meta, account, syncStatus, affinity = null, onForgetTopic, onBack, backLabel, blad = null, onOpen }) {
+export default function Settings({ meta, account, syncStatus, affinity = null, onForgetTopic, onBack, backLabel, blad = null, onOpen, digest = null }) {
   const { prefs, setPref, theme, setTheme, themeDark, setThemeDark, sourcesById, muted } = useHoot()
   const followed = [...(sourcesById?.values() || [])].filter((s) => s.kind !== 'sociaal' && !muted?.has(s.id)).length
   const summary = hootSummary({ interests: (prefs.interests || []).length, sources: followed })
@@ -83,7 +84,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
         {page === 'account' ? <AccountSettings account={account} syncStatus={syncStatus} summary={summary} manage /> : null}
         {page === 'editie' ? <EditieBlad meta={meta} account={account} affinity={affinity} onForget={onForgetTopic} /> : null}
         {page === 'stroom' ? <StroomBlad /> : null}
-        {page === 'selectie' ? <SelectieBlad /> : null}
+        {page === 'selectie' ? <SelectieBlad digest={digest} /> : null}
         {page === 'tekstgrootte' ? <TekstgrootteBlad /> : null}
         {page === 'beeld' ? <BeeldBlad /> : null}
         {page === 'over' ? <OverBlad /> : null}
@@ -97,7 +98,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
               <LinkRow href="#/bronnen" label="Bronnen" value={String(followed)} />
               <LinkRow onClick={() => open('editie')} label="Editie" value={prefs.bubble ? 'Met buiten je bubbel' : ''} />
               <LinkRow onClick={() => open('stroom')} label="Stroom" value={(prefs.layout === 'krant' ? 'Krant' : 'Tijdlijn') + (prefs.bluesky ? ' · Bluesky' : '')} />
-              <LinkRow onClick={() => open('selectie')} label="Selectie" value={plural(prefs.vak.length, 'onderwerp', 'onderwerpen')} />
+              <LinkRow onClick={() => open('selectie')} label="Selectie" value={plural(offeredFields(prefs.vak, digest).length, 'onderwerp', 'onderwerpen')} />
             </div>
 
             <h2 className="sect sect--plain">Lezen</h2>
@@ -204,20 +205,22 @@ function StroomBlad() {
 }
 
 // Selectie: de onderwerpen per domein, zoals in de app (DigestFieldsList). Alle onderwerpen in één keer
-// aan of uit (de oude schakelaar Selectie) staat bovenaan.
-function SelectieBlad() {
+// aan of uit (de oude schakelaar Selectie) staat bovenaan. Een onderwerp dat nog niet in de weekbundel zit, staat
+// er niet tot de bundel het heeft (offersField, "Tot dan verbergen."), en telt ook bij Alle onderwerpen niet mee.
+function SelectieBlad({ digest = null }) {
   const { prefs, setPref } = useHoot()
   const chosen = prefs.vak
   const order = vakByDomain().flatMap((d) => d.fields.map((f) => f.id))
+  const offered = offeredFields(order, digest)
   const toggle = (id, on) => setPref('vak', on ? order.filter((f) => f === id || chosen.includes(f)) : chosen.filter((f) => f !== id))
   return (
     <>
       <div className="rows dset__group">
         <Row label="Alle onderwerpen">
-          <Switch checked={chosen.length === VAK_FIELD_IDS.length} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Alle onderwerpen" />
+          <Switch checked={allChosen(chosen, offered)} onChange={(v) => setPref('vak', chooseAll(v, order, chosen, offered))} label="Alle onderwerpen" />
         </Row>
       </div>
-      {vakByDomain().map((d) => (
+      {vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length).map((d) => (
         <div key={d.id}>
           <h2 className="sect sect--plain">{d.label}</h2>
           <div className="rows">
