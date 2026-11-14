@@ -25,7 +25,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import Anthropic from '@anthropic-ai/sdk'
 import { UA, MAIN_IDS } from '../netlify/lib/sources.mjs'
-import { loadEpisodes, koppel, koppelMetOordeel, leesVraag, vastVan, episodeOf, SHOW, SHOWS, FETCHED, FRESH_H, BEFORE_H, DEEP_H } from '../netlify/lib/luister.mjs'
+import { loadEpisodes, koppel, koppelMetOordeel, leesVraag, vastVan, episodeOf, editiePlekken, SHOW, SHOWS, FETCHED, FRESH_H, BEFORE_H, DEEP_H, OORDEEL_MODEL } from '../netlify/lib/luister.mjs'
 import { buildStories, editionSlot } from '../netlify/lib/stories.mjs'
 import { SLOT_START } from '../shared/slot-times.mjs'
 
@@ -88,7 +88,7 @@ const nep = (opts) => {
   const ja = new Set(koppel(opts).rows.koppelingen.map((k) => `${k.kop}|${k.aflevering}`))
   return { messages: { create: async (req) => {
     const vragen = leesVraag(req.messages[0].content)
-    const oordelen = vragen.map((v) => ({ nr: v.nr, code: v.code, ...(ja.has(`${v.kop}|${v.titel}`) ? { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier' } : { voorHetNieuws: 'nee', zaak: 'anders', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier niet' }) }))
+    const oordelen = vragen.map((v) => ({ nr: v.nr, code: v.code, ...(ja.has(`${v.kop}|${v.titel}`) ? { soort: 'zelfde', vooruitblikOpVoorbij: 'nee', opgenomenVoorDitNieuws: 'nee', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier' } : { soort: 'anders', vooruitblikOpVoorbij: 'nee', opgenomenVoorDitNieuws: 'nee', eenOnderwerp: 'ja', zeker: 'ja', reden: 'nep: de woordregels koppelen hier niet' }) }))
     return { stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ oordelen }) }], usage: { input_tokens: Math.round(req.messages[0].content.length / 3.5), output_tokens: 45 * vragen.length } }
   } } }
 }
@@ -105,8 +105,10 @@ for (const slot of ['ochtend', 'middag']) {
 }
 // De Editieplekken van het huidige dagdeel: de verhalen van de algemene Editie zoals de server ze nu heeft (de kern; de
 // Editiepool staat daar niet in). Een nabouw heeft geen Editieplekken.
-const editieIds = (kern.edition?.entries || []).flatMap((e) => (e.kind === 'story' ? [e.id, e.formerId] : [byId.get(e.id)?.storyId]).filter(Boolean))
-const editie = editieIds.length ? { algemeen: new Set(editieIds), pool: new Set() } : null
+// --pool <id,id>: verhalen die in de Editiepool staan (de persoonlijke Edities; die staan niet in de kern).
+const editieIds = editiePlekken(kern.edition?.entries || [], kern.stories || [])
+const poolIds = new Set((opt('--pool') || '').split(',').filter(Boolean))
+const editie = editieIds.size || poolIds.size ? { algemeen: editieIds, pool: poolIds } : null
 const r = await draai({ stories: kern.stories || [], byId, episodes: episodes.filter((e) => e.t <= now), now, mainIds: MAIN_IDS, editie })
 runs.push({ dagdeel: cur.id, nabouw: false, at: now, stories: (kern.stories || []).length, ...r })
 
@@ -116,7 +118,7 @@ if (args.includes('--json')) {
 }
 
 const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim()
-const oordeelTekst = (o) => (o ? `${o.zaak}, één onderwerp ${o.eenOnderwerp}, zeker ${o.zeker}` : 'geen')
+const oordeelTekst = (o) => (o ? `${o.soort}, vooruitblik op voorbij ${o.vooruitblikOpVoorbij}, opgenomen vóór dit nieuws ${o.opgenomenVoorDitNieuws}, één onderwerp ${o.eenOnderwerp}, zeker ${o.zeker}` : 'geen')
 const out = []
 out.push(`# Luister verder · ${opt('--naam') || 'PROEF'}`)
 out.push('')
@@ -124,7 +126,7 @@ out.push(`Gedraaid op ${new Date().toISOString().slice(0, 10)} ${fixtures.length
 out.push('')
 out.push('## Regels')
 out.push('')
-out.push(`- **Het oordeel** (besluit 14 november): de woordregels zoeken de kandidaten (een artikellink, een centrale naam van het verhaal in de titel, of twee centrale namen; bij BNR twee) en sluiten hard uit (na de opname, een vooruitblik van vóór de kop, een kop die de gebeurtenis niet deelt, meer onderwerpen, een week- of meeronderwerpenshow zonder artikellink, ouder dan ${DEEP_H / 24} dagen). Het laatste woord ligt bij De Redacteur (${stand === 'model' ? 'het echte model' : stand === 'nep' ? 'hier een nep-oordeel' : 'hier geen oordeel: zonder sleutel'}): alleen zaak zelfde of verdieping, één onderwerp ja en zeker ja koppelt. Eén verhaal per vraag, elke vraag twee keer (alleen twee keer ja koppelt), met het hele verhaal en de hele beschrijving; elk paar wordt één keer beoordeeld.`)
+out.push(`- **Het oordeel** (besluit 14 november): de woordregels zoeken de kandidaten (een artikellink, een centrale naam van het verhaal in de titel, of twee centrale namen; bij BNR twee) en sluiten hard uit (na de opname, een vooruitblik van vóór de kop, een kop die de gebeurtenis niet deelt, meer onderwerpen, een week- of meeronderwerpenshow zonder artikellink, ouder dan ${DEEP_H / 24} dagen). Het laatste woord ligt bij De Redacteur (${stand === 'model' ? `het echte model, ${OORDEEL_MODEL}` : stand === 'nep' ? 'hier een nep-oordeel' : 'hier geen oordeel: zonder sleutel'}): alleen soort zelfde (na het begin van het nieuws) of verdieping (tot ${DEEP_H / 24} dagen ouder dan de kop), geen vooruitblik op iets voorbijs, niet opgenomen vóór dit nieuws, één onderwerp ja en zeker ja koppelt. Eén verhaal per vraag, één keer gevraagd, met het hele verhaal en de hele beschrijving; elk paar wordt één keer beoordeeld.`)
 out.push(`- **Hetzelfde** alleen vers (hooguit ${FRESH_H} uur oud, zonder artikellink niet van vóór het eerste stuk, met een link niet meer dan ${BEFORE_H} uur ervoor); anders verdiepend.`)
 out.push('- Zonder sleutel of bij een fout van het model: alleen een artikellink van de eigen uitgever. Niet op tijd: geen koppeling, de volgende ronde opnieuw.')
 out.push('- Eén aflevering per verhaal; past een aflevering bij twee verhalen, dan krijgt het verhaal met een Editieplek haar (de algemene Editie, dan de Editiepool), bij dezelfde plek geen van beide. Een aflevering van de eigen bron van het verhaal gaat voor BNR. Voorrang: dezelfde uitgever als de kop, dan een bron die de lezer volgt, dan een Nederlandstalige show. Taal volgt de bronkeuze.')
@@ -139,7 +141,7 @@ for (const run of runs) {
   out.push(`## ${run.dagdeel}${run.nabouw ? ' (nabouw)' : ''}`)
   out.push('')
   const o = run.ai || {}
-  out.push(`${run.stories} verhalen, ${run.rows.koppelingen.length} koppelingen (${run.rows.koppelingen.filter((k) => k.soort === 'hetzelfde').length} hetzelfde, ${run.rows.koppelingen.filter((k) => k.soort === 'verdiepend').length} verdiepend); de woordregels alleen: ${run.woord}. Oordeel (${o.model}): ${o.uit ? `uit, ${o.uit}` : `${o.kandidaten || 0} kandidaten, ${o.uitOpslag || 0} uit de opslag, ${o.gevraagd || 0} gevraagd in ${o.aanroepen || 0} aanroepen, ${o.invoerTokens || 0} en ${o.uitvoerTokens || 0} tokens${o.timeouts ? `, ${o.timeouts} niet op tijd` : ''}${o.fouten ? `, ${o.fouten} fouten` : ''}`}.`)
+  out.push(`${run.stories} verhalen, ${run.rows.koppelingen.length} koppelingen (${run.rows.koppelingen.filter((k) => k.soort === 'hetzelfde').length} hetzelfde, ${run.rows.koppelingen.filter((k) => k.soort === 'verdiepend').length} verdiepend); de woordregels alleen: ${run.woord}. Oordeel (${o.model}): ${o.uit ? `uit, ${o.uit}` : `${o.kandidaten || 0} kandidaten, ${o.uitOpslag || 0} uit de opslag, ${o.gevraagd || 0} gevraagd in ${o.aanroepen || 0} aanroepen, ${o.invoerTokens || 0} en ${o.uitvoerTokens || 0} tokens (ongeveer $${o.kostenUsd ?? 0})${o.timeouts ? `, ${o.timeouts} niet op tijd` : ''}${o.fouten ? `, ${o.fouten} fouten` : ''}`}.`)
   out.push('')
   if (run.rows.koppelingen.length) {
     out.push('### Koppelingen')

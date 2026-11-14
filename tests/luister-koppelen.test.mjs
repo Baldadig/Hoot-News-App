@@ -115,10 +115,11 @@ test('vals: een artikellink zonder gedeelde naam in de titel ("lees ook") koppel
   const items = new Map([...byId, [extra.id, extra]])
   const stories = [{ ...st, itemIds: [...st.itemIds, extra.id] }]
   // De beschrijving zegt ook "Ondertussen worden er in twee staten nog steeds stemmen geteld: Alaska en Mississippi": van
-  // vóór de uitslag. Sinds keuring 2 van branch shows valt ze daar al op af (ouder dan de kop, TIJD).
+  // vóór de uitslag. Sinds keuring 3 van branch shows sluit een tijdwoord alleen niet meer uit (een verdieping mag tot
+  // drie dagen oud zijn); ze valt af op de regel voor de artikellink.
   const r0 = koppel({ stories, byId: items, episodes: [e], now: Date.parse('2026-11-12T12:00:00.000Z'), mainIds: MAIN_IDS })
   assert.equal(r0.byStory.size, 0)
-  assert.match(r0.rows.afgevallen.find((x) => x.aflevering === e.titel)?.reden || '', /ouder dan de kop/)
+  assert.match(r0.rows.afgevallen.find((x) => x.aflevering === e.titel)?.reden || '', /geen gedeelde naam in de titel/)
   // Zonder die zin: de regel voor de artikellink zelf.
   const zonder = (t) => String(t || '').replace(/\s*Ondertussen[^.]*\./, '')
   const e2 = { ...e, tekst: zonder(e.tekst), samenvatting: zonder(e.samenvatting) }
