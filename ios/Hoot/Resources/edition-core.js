@@ -238,8 +238,7 @@ var HootCore = (() => {
     // stukken per week, gemeten in de feed. Links Joop, De Groene, Vrij Nederland en Sargasso; rechts Wynia's Week, TPO
     // en GeenStijl; HP/De Tijd daartussen; Sociale Vraagstukken zonder partijkleur.
     S("joop", "Joop", "nl", "nl", "Opinie en commentaar van BNNVARA, progressief.", "https://www.joop.nl/feed", { opinie: true, color: "#FC3E28", bsky: "joop.nl" }),
-    S("groene", "De Groene Amsterdammer", "nl", "nl", "Opinieweekblad met essays, analyses en reportages, links.", "https://www.groene.nl/rss.xml", { opinie: true, login: "https://www.groene.nl/", paid: true, color: "#E10005", bsky: "groene.nl", x: "DeGroene", logo: own("groene") }),
-    // overal een afgesneden woordmerk; het eigen logo heeft het hele (landing/bronlogos.mjs)
+    S("groene", "De Groene Amsterdammer", "nl", "nl", "Opinieweekblad met essays, analyses en reportages, links.", "https://www.groene.nl/rss.xml", { opinie: true, login: "https://www.groene.nl/", paid: true, color: "#E10005", bsky: "groene.nl", x: "DeGroene" }),
     S("vn", "Vrij Nederland", "nl", "nl", "Opinieblad met essays en reportages, links-liberaal.", "https://www.vn.nl/feed/", { opinie: true, login: "https://www.vn.nl/inloggen/", paid: true, color: "#E20006", bsky: "vn.nl", x: "vrij_nederland" }),
     S("sargasso", "Sargasso", "nl", "nl", "Groepsblog over politiek en beleid, links en genuanceerd.", "https://sargasso.nl/feed/", { opinie: true, color: "#65C26A", bsky: "sargassoblog.bsky.social" }),
     S("hpdetijd", "HP/De Tijd", "nl", "nl", "Opinieblad: eigenzinnig, liberaal en kritisch.", "https://www.hpdetijd.nl/rss", { opinie: true, login: "https://www.hpdetijd.nl/login", paid: true, color: "#E40815", bsky: "hpdetijd.bsky.social", x: "HPdeTijdNL" }),
@@ -1551,6 +1550,165 @@ var HootCore = (() => {
     return sourceCount * 4 + chosen * 2 + freshBonus(latestAt, now) - agePenalty(latestAt, now);
   }
 
+  // shared/recensie.mjs
+  var WORK_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "games").map((s) => s.id));
+  var REVIEW_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "cultuur" || s.cat === "tech" || s.cat === "games").map((s) => s.id));
+  var REVIEW_DIR = /^(recensies?|reviews?|review|[a-z]+(?:-[a-z]+)*-reviews?|album-reviews?|albumrecensies?|album-van-de-(dag|week)|plaat-van-de-(dag|week)|album-of-the-(day|week)|reissue-of-the-week|luistertips?)$/i;
+  var DIR_NOT = [/(^|\.)tweakers\.net$/i];
+  var CULTURE_DIR = /^(film|films|movies|tv|tv-and-radio|television|tv-movies|series|stage|theatre|theater|podium|music|muziek|books|boeken|games|artanddesign|art|kunst|kunst-media|culture|cultuur|cultuur-media|tv-cultuur|uit)$/i;
+  var NEWS_VERB = /(?<![\p{L}\p{N}])(reageert|reageren|reageerde|reacts|responds|wint|winnen|wonnen|wins|overleden|overlijdt|sterft|gestorven|doodt|dies|died|killed|ontslagen|ontslaat|fired|sacked|kondigt|kondigen|aangekondigd|announces?|announced|unveils?|onthult|onthullen|stopt|stoppen|gestopt|uit elkaar|arrested|aangehouden|opgepakt|veroordeeld|sentenced|sued|aangeklaagd|klaagt|cancels?|cancell?ed|geschrapt|afgelast|postponed|uitgesteld|reunites?|reunited|verkoopt|nominated|genomineerd|benoemd|appointed|verlaat|vertrekt)(?![\p{L}\p{N}])/iu;
+  var NEWS_WORD = /(?<![\p{L}\p{N}])(won|winning|dood|dead|death|splits?|quits?|breaks?|record|sells?|sold|named|leaves|grammys?|oscars?|edison|nominaties?)(?![\p{L}\p{N}])/iu;
+  var VERB = /(?<![\p{L}\p{N}])(is|are|was|were|be|been|has|have|had|will|would|can|could|says?|said|gets?|got|makes?|made|takes?|took|brings?|goes|went|comes?|came|zijn|ben|bent|wordt|worden|werd|werden|heeft|hebben|had|hadden|gaat|gaan|ging|komt|komen|kwam|krijgt|krijgen|maakt|maken|brengt|brengen|zegt|zeggen|zei|wil|willen|moet|moeten|kan|kunnen|mag|blijft|staat|ligt|zit)(?![\p{L}\p{N}])/iu;
+  var TITLE_LABEL = /^[\s"'‘“(]*(recensies?|review|reviews|book review|album review|film review|tv review|game review|filmrecensie|albumrecensie|boekrecensie|theaterrecensie|concertrecensie|album van de (dag|week)|plaat van de (dag|week)|album of the (day|week)|reissue of the week|luistertips?|playlist)(\s*\(\d+\))?\s*(?:[:|]|\s[-–—]\s)/i;
+  var TITLE_CAPS2 = /^\W*(RECENSIE|REVIEW)\.\s/;
+  var TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?\s*(?:$|[:|–—]|\s-\s)/iu;
+  var NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne|to|will|charter|antitrust|regulatory|competition|merger|deal|licen[cs]e|licensing|funding|fcc|ftc|cma|sec|doj|ofcom|eu|onder|op|over|om|vernietigende|slechte|negatieve|lovende)$/i;
+  var TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt|after|following|under|na|onder|over|op|om)$/i;
+  var NOT_AFTER = /^(recommends?|recommended|finds?|found|says?|said|concludes?|concluded|urges?|warns?|clears?|cleared|rejects?|rejected|backs?|blames?|critici[sz]es?|into|adviseert|concludeert|oordeelt)$/i;
+  var toetsing = (words2, j) => NOT_BEFORE.test(words2[j - 1] || "") || TOETS_VERB.test(words2[j - 2] || "") || NOT_AFTER.test(words2[j + 1] || "");
+  function kopToetsing(title) {
+    const words2 = title.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    return words2.some((w, j) => {
+      if (w === "reviewing") return true;
+      if (w === "reviewed") return j > 0;
+      return /^(reviews?|recensies?)$/.test(w) && j > 0 && toetsing(words2, j);
+    });
+  }
+  var STARS = /[★☆]{2,}|\(\s*[0-5](?:[.,]5)?\s*\/\s*5\s*\)/;
+  var plainTitle = (s) => String(s || "").replace(/\s+/g, " ").trim();
+  function urlSignal2(raw, cultuurBron) {
+    const u = urlDelen(raw);
+    if (!u) return null;
+    const parts = u.path.split("/").filter(Boolean).map((s) => {
+      try {
+        return decodeURIComponent(s).toLowerCase();
+      } catch {
+        return s.toLowerCase();
+      }
+    });
+    if (!parts.length) return null;
+    let k = parts.length - 1;
+    while (k > 0 && /^[\d.]+(\.html?)?$/.test(parts[k])) k--;
+    const slug = parts[k].replace(/\.html?$/, "").replace(/~[a-z0-9]+$/, "").replace(/-\d{5,}$/, "");
+    const dirs = parts.slice(0, k);
+    const cultuurMap = dirs.some((d) => CULTURE_DIR.test(d));
+    if (!DIR_NOT.some((h) => h.test(u.host)) && dirs.some((d) => REVIEW_DIR.test(d))) return "map";
+    if (/^recensie-/.test(slug)) return "slug";
+    const tokens = slug.split("-");
+    const last = tokens[tokens.length - 1];
+    if ((last === "recensie" || last === "review") && (cultuurBron || cultuurMap) && tokens.length > 1 && !toetsing(tokens, tokens.length - 1)) return "slug";
+    if (cultuurMap && tokens.some((t, j) => (t === "review" || t === "recensie") && j > 0 && j < tokens.length - 1 && !toetsing(tokens, j))) return "midden";
+    return null;
+  }
+  function cultuurLink(raw) {
+    const u = urlDelen(raw);
+    if (!u) return false;
+    return u.path.split("/").filter(Boolean).slice(0, -1).some((d) => CULTURE_DIR.test(d.toLowerCase()));
+  }
+  function workTitle(title) {
+    const t = plainTitle(title).replace(/\s*\((?:feat|ft|prod)\.[^)]*\)/gi, "");
+    if (!t || /[?!:;,]/.test(t) || /[.]$/.test(t)) return false;
+    const parts = t.split(/\s[-–]\s/);
+    if (parts.length !== 2) return false;
+    const words2 = (s) => s.replace(/["“”‘’']/g, "").split(/\s+/).filter(Boolean);
+    const [a, b] = parts.map(words2);
+    if (!a.length || !b.length || a.length > 5 || b.length > 6) return false;
+    return !VERB.test(t) && !NEWS_VERB.test(t) && !NEWS_WORD.test(t);
+  }
+  function recensieMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    if (item.feedMark === "recensie") return "feed";
+    const title = plainTitle(item.title);
+    if (TITLE_LABEL.test(title) || TITLE_CAPS2.test(title)) return "label";
+    if (STARS.test(title)) return "sterren";
+    const news = NEWS_VERB.test(title);
+    const cultuurBron = REVIEW_IDS.has(item.source);
+    const url = urlSignal2(item.url, cultuurBron);
+    if (url === "map") return "map";
+    if (news) return null;
+    if (kopToetsing(title)) return WORK_IDS.has(item.source) && workTitle(title) ? "werkkop" : null;
+    if (url === "midden") {
+      if (!NEWS_WORD.test(title)) return "slug";
+    } else if (url) return url;
+    const end = TITLE_END.exec(title);
+    if (end && !toetsing([end[1] || "", end[2], end[3]], 2) && (cultuurBron || cultuurLink(item.url))) return "kop";
+    if (WORK_IDS.has(item.source) && workTitle(title)) return "werkkop";
+    return null;
+  }
+  var isRecensie = (item) => recensieMark(item) != null;
+
+  // shared/editie-filter.mjs
+  var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
+  var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
+  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
+  var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  function rubricSegments(url) {
+    const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
+    if (!m) return [];
+    const path = m[1];
+    const segs = path.split("/").filter(Boolean).map((s) => {
+      try {
+        return decodeURIComponent(s).toLowerCase();
+      } catch {
+        return s.toLowerCase();
+      }
+    });
+    const before = segs.slice(0, -1);
+    const cut = before.findIndex((x) => /^\d+$/.test(x));
+    return cut === -1 ? before : before.slice(0, cut);
+  }
+  var norm = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  function ownIntro(item = {}) {
+    if (item.borrowedFrom) return false;
+    const s = String(item.summary || item.text || "").trim();
+    const t = norm(item.title);
+    const n = norm(s);
+    if (n.split(" ").filter(Boolean).length < 4) return false;
+    if (n === t || t && n.startsWith(t) && n.length - t.length < 12) return false;
+    if (/appeared first on\b|\blead image\b/i.test(s) && s.length < 200) return false;
+    return true;
+  }
+  function hardMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    const segs = rubricSegments(item.url);
+    const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
+    if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
+    const media = String(item.mediaType || "");
+    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
+    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
+    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
+    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
+    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
+    return null;
+  }
+  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null || isRecensie(item));
+
+  // shared/aflevering.mjs
+  var AUDIO_DIR = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister", "audio"]);
+  var VIDEO_DIR = /* @__PURE__ */ new Set(["video", "videos", "kijk"]);
+  var LABEL3 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  var TAIL = /\(\s*podcast\s*\)\s*$/i;
+  function afleveringSoort(item) {
+    if (!item || item.kind === "post") return null;
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return "podcast";
+    if (item.feedMark === "podcast") return "podcast";
+    if (item.feedMark === "video") return "video";
+    const media = String(item.mediaType || "");
+    if (/^audio\//i.test(media) && !ownIntro(item)) return "podcast";
+    if (/^video\//i.test(media) && !ownIntro(item)) return "video";
+    const segs = rubricSegments(item.url);
+    if (segs.some((s) => AUDIO_DIR.has(s))) return "podcast";
+    if (segs.some((s) => VIDEO_DIR.has(s))) return "video";
+    const title = String(item.title || "");
+    const label2 = LABEL3.exec(title)?.[1]?.toLowerCase();
+    if (label2 === "podcast" || label2 === "luister" || label2 === "listen") return "podcast";
+    if (label2 === "video" || label2 === "kijk" || label2 === "watch") return "video";
+    if (TAIL.test(title)) return "podcast";
+    return null;
+  }
+  var isAflevering = (item) => afleveringSoort(item) !== null;
+
   // shared/editor.mjs
   var FOREIGN_DESKS = /* @__PURE__ */ new Set(["buitenland", "vs", "middenoosten", "oekraine"]);
   var clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -1732,7 +1890,7 @@ var HootCore = (() => {
     if (fav) parts.favorite = { pts: P.FAVORITE, source: fav.source };
     const rs = Math.max(0, ...items.map((i) => prof.sourceP[i.source] || 0));
     if (rs > SOURCE_READ_MIN) parts.sourceRead = { pts: Math.round(P.SOURCE_READ * rs) };
-    const mine = new Set(items.map((i) => i.source)).size;
+    const mine = new Set(items.filter((i) => !isAflevering(i)).map((i) => i.source)).size;
     if (mine >= 2) parts.mine = { pts: P.MINE * Math.min(MINE_MAX, mine - 1), n: mine };
     const whole = ctx.newFacts && story.whole?.length ? story.whole : items;
     const read = ctx.readIds ? whole.filter((i) => ctx.readIds.has(i.id)) : [];
@@ -2050,8 +2208,9 @@ var HootCore = (() => {
     }
     return n;
   }
+  var countsAsSource = (i) => !!i && !opinieBron(i.source) && !isAflevering(i);
   function coverageOf(items = []) {
-    const ids = [...new Set(items.filter((i) => !opinieBron(i.source)).map((i) => publisherOf(i.source)).filter(Boolean))].sort();
+    const ids = [...new Set(items.filter(countsAsSource).map((i) => publisherOf(i.source)).filter(Boolean))].sort();
     return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() };
   }
   var SPORT_CAT = new Map(SOURCES.map((s) => [s.id, s.cat]));
@@ -2081,7 +2240,7 @@ var HootCore = (() => {
   function majorNews(story = {}, items = []) {
     if (onlyGalleries(items)) return false;
     const coverage = coverageOf(items);
-    const observedSources = new Set(items.map((i) => i.source).filter(Boolean)).size;
+    const observedSources = new Set(items.filter((i) => !isAflevering(i)).map((i) => i.source).filter(Boolean)).size;
     const count = story.publisherCount ?? (observedSources >= (story.sourceCount || Infinity) ? coverage.publisherCount : story.sourceCount) ?? coverage.publisherCount;
     const countries = new Set(story.publisherCountries || coverage.publisherCountries);
     return count >= FRONT_BIG || count >= 5 && countries.size >= 2;
@@ -2154,7 +2313,7 @@ var HootCore = (() => {
   var OPEN_WORLD_MIN = 4;
   var emptyProfile = (prof) => !prof?.interests?.size && !Object.keys(prof?.family || {}).length;
   function publishersOf(story = {}, items = []) {
-    const observedSources = new Set(items.map((i) => i?.source).filter(Boolean)).size;
+    const observedSources = new Set(items.filter((i) => i && !isAflevering(i)).map((i) => i.source).filter(Boolean)).size;
     return story?.publisherCount ?? (observedSources >= (story?.sourceCount || Infinity) ? coverageOf(items).publisherCount : story?.sourceCount) ?? coverageOf(items).publisherCount;
   }
   var openWorld = (prof, items = [], story = null) => emptyProfile(prof) && !onlyGalleries(items) && publishersOf(story || {}, items) >= OPEN_WORLD_MIN;
@@ -2431,7 +2590,7 @@ var HootCore = (() => {
   var byRecency = (a, b) => timeOf(b) - timeOf(a);
   var deaccent = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "");
   var wordMemo = null;
-  var norm = (s) => {
+  var norm2 = (s) => {
     if (wordMemo && typeof s === "string" && s.length <= 40) {
       let v = wordMemo.get(s);
       if (v === void 0) wordMemo.set(s, v = deaccent(s).toLowerCase());
@@ -2446,7 +2605,7 @@ var HootCore = (() => {
   );
   function sigWords(title) {
     const out = /* @__PURE__ */ new Set();
-    for (const w of norm(title).replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w);
+    for (const w of norm2(title).replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w);
     return out;
   }
   function numbersOf(text) {
@@ -2820,7 +2979,7 @@ var HootCore = (() => {
         if (!part.trim()) continue;
         const words2 = partTokens(part);
         for (const w of words2) {
-          if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm(w));
+          if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm2(w));
           sentenceStart = false;
         }
         if (/[.!?:;"“‘(]$/.test(part) || /^["“‘(]/.test(part)) sentenceStart = /[.!?:]["”’)]?$/.test(part);
@@ -2849,18 +3008,18 @@ var HootCore = (() => {
     const acronyms = /* @__PURE__ */ new Set();
     const dutchPiece = ext && NL_LANG.has(article.source);
     const nameOf = (w) => {
-      const k = norm(w);
+      const k = norm2(w);
       if (vocab.has(k)) return k;
       return dutchPiece && isCap(w) && k.length >= 6 && k.endsWith("s") && vocab.has(k.slice(0, -1)) && !alias[k] && !alias[k.slice(0, -1)] ? k.slice(0, -1) : null;
     };
     const capName = (w) => {
       if (w.length < minLen || !isCap(w)) return null;
       const k = nameOf(w);
-      return k && !(w.length === 3 && COMMON_3.has(norm(w))) ? k : null;
+      return k && !(w.length === 3 && COMMON_3.has(norm2(w))) ? k : null;
     };
     const strongKey = (w) => {
       let key = null;
-      if (acr(w)) key = norm(w);
+      if (acr(w)) key = norm2(w);
       else key = capName(w);
       if (!key) return null;
       key = aliasOf(key);
@@ -2870,12 +3029,12 @@ var HootCore = (() => {
     };
     for (const w of tokenize(raw, ext)) {
       if (isCap(w) || acr(w)) {
-        const k = aliasOf(norm(w));
+        const k = aliasOf(norm2(w));
         if (weakSet.has(k)) known.add(k);
         if (PARTIES.has(k)) parties.add(k);
       }
       let key = null;
-      if (acr(w)) key = norm(w);
+      if (acr(w)) key = norm2(w);
       else key = capName(w);
       if (!key) continue;
       key = aliasOf(key);
@@ -2883,7 +3042,7 @@ var HootCore = (() => {
       if (weakSet.has(key)) weak.add(key);
       else if (key.length >= 3) strong.add(key);
     }
-    const text = norm(raw);
+    const text = norm2(raw);
     const concepts = /* @__PURE__ */ new Set();
     let rare = 0;
     for (const [id, re, isRare] of concepts_) {
@@ -2902,7 +3061,7 @@ var HootCore = (() => {
           for (const w of tokenize(part)) {
             const k = strongKey(w);
             if (k) run.push(k);
-            else if (!(run.length && CONNECT.has(norm(w)))) run.length && runs.push(run), run = [];
+            else if (!(run.length && CONNECT.has(norm2(w)))) run.length && runs.push(run), run = [];
           }
           if (run.length) runs.push(run);
         }
@@ -2953,7 +3112,7 @@ var HootCore = (() => {
     ["overlijden", /\b(overleden|overlijdt|sterft|dies|died)\b/]
   ];
   var actionsOf = (title) => {
-    const t = norm(title || "");
+    const t = norm2(title || "");
     return new Set(ACTIONS.filter(([, re]) => re.test(t)).map(([id]) => id));
   };
   var WORD_WINDOW = 48 * 60 * 60 * 1e3;
@@ -3057,7 +3216,7 @@ var HootCore = (() => {
     if (!v.cvocab) {
       const titles = (v.articles || []).map((a) => String(a.title || "")).filter(Boolean);
       const lower = /* @__PURE__ */ new Set();
-      for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm(w));
+      for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm2(w));
       v.cvocab = /* @__PURE__ */ new Set([...v.vocab, ...nameVocabulary(titles.filter((t) => !isTitleCase(t)).map((title) => ({ title })), true)]);
       for (const w of [...v.cvocab]) if (w.includes("sj")) v.cvocab.add(translit(w));
       v.tvocab = new Set([...v.cvocab].filter((w) => !lower.has(w)));
@@ -3123,7 +3282,7 @@ var HootCore = (() => {
   var STALE_AFTER = HEAD_MAX_H * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
   function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
-    const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
+    const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isAflevering(i) || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
     const scores = new Map(items.map((i) => [i, score(i)]));
     const op = new Map(items.map((i) => [i, isOpinion(i) ? 1 : 0]));
     return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b));
@@ -3135,7 +3294,7 @@ var HootCore = (() => {
   var RESULT_RE = /\b(wint|winnen|wins?|won|gewonnen|verover\w*|herover\w*|flips?|flipped|verslaat|verslagen|beats?|defeats?|defeating|ousts?|ousting|unseats?|verliest|verliezen|verloren|loses|lost|verkozen|herkozen|elected|re-?elected|elects|clinch\w*|meerderheid|majority|uitslag\w*|results?|zege|monsterzege|overwinning\w*|victory|afstraffing|landslide|blue-?nami|tsunami|blauwe golf|blue wave|erkent verlies|concedes?|crushed|trounces?|rebuke)\b/;
   var OFFICE_RE = /\b(senate|senaat\w*|senator\w*|huiszetel\w*|congress\w*|congres\w*|governor\w*|gouverneur\w*|seats?|zetels?|mayor\w*|burgemeester\w*|parliament\w*|parlement\w*)\b/;
   var PARTY_RE = /\b(democrat\w*|republican\w*|republikein\w*)\b/;
-  var voteText = (i) => norm(`${i.title || ""} ${i.summary || i.text || ""}`);
+  var voteText = (i) => norm2(`${i.title || ""} ${i.summary || i.text || ""}`);
   var voteMemo = /* @__PURE__ */ new WeakMap();
   function voteKind(i) {
     if (!i || typeof i !== "object") return 0;
@@ -3151,7 +3310,7 @@ var HootCore = (() => {
   function votePlace(i) {
     const ds = desksOf(i);
     const t = `${i.title || ""} ${i.summary || ""}`;
-    if (ds.has("vs") || usPoliticsIn(t) || PARTY_RE.test(norm(t)) && OFFICE_RE.test(norm(t))) return "us";
+    if (ds.has("vs") || usPoliticsIn(t) || PARTY_RE.test(norm2(t)) && OFFICE_RE.test(norm2(t))) return "us";
     if (ds.has("binnenland")) return "nl";
     return countriesIn(i.title || "")[0] || null;
   }
@@ -3172,7 +3331,7 @@ var HootCore = (() => {
     if (results.length * 2 < n) return null;
     const place = placeOfGroup(items);
     if (!place) return null;
-    const heads = results.filter((i) => RESULT_RE.test(norm(i.title || ""))).map(timeOf).filter(Boolean).sort((a, b) => a - b);
+    const heads = results.filter((i) => RESULT_RE.test(norm2(i.title || ""))).map(timeOf).filter(Boolean).sort((a, b) => a - b);
     const from = heads.length ? heads[Math.floor(heads.length / 4)] - VOTE_LEAD : Math.min(...items.map(timeOf).filter(Boolean));
     return { place, from, to: Math.max(...items.map(timeOf)) };
   }
@@ -3211,7 +3370,7 @@ var HootCore = (() => {
     return cands.filter((i) => out.includes(i) || far(i));
   }
   var OTHER_LANG = /\b(las|los|del|para|una|segun|antes de|sus|les|une|pour|avec|dans|und|fur|nicht|uma|nao|della|degli)\b/;
-  var otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ""));
+  var otherLangTitle = (i) => OTHER_LANG.test(norm2(i?.title || ""));
   var DEVELOPED_FRESH = 2;
   var DEVELOPED_SIG = 2;
   var previousAt = (st, previous) => previous.atOf?.get(st.id) ?? previous.at ?? 0;
@@ -3226,7 +3385,7 @@ var HootCore = (() => {
     if (!fresh.length) return null;
     const keysOf = keysWith(sig);
     const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items;
-    const whole = [.../* @__PURE__ */ new Set([...all, ...items])];
+    const whole = [.../* @__PURE__ */ new Set([...all, ...items])].filter((i) => !isAflevering(i));
     const freshAll = whole.filter(isNew);
     if (!keyAtOf(st) && freshAll.length < DEVELOPED_FRESH) return null;
     const then = /* @__PURE__ */ new Set();
@@ -3254,6 +3413,7 @@ var HootCore = (() => {
   var keyAtOf = (st) => st?.keyAt && typeof st.keyAt === "object" && !Array.isArray(st.keyAt) ? st.keyAt : null;
   var pubAtOf = (st) => st?.pubAt && typeof st.pubAt === "object" && !Array.isArray(st.pubAt) ? st.pubAt : null;
   function newFact(fresh, then, keysOf, story = null) {
+    fresh = fresh.filter((i) => !isAflevering(i));
     const keyAt = keyAtOf(story);
     const pubAt = pubAtOf(story);
     const cutoff = story?.cutoff ?? 0;
@@ -3290,10 +3450,10 @@ var HootCore = (() => {
     });
     return newsHeads(named.length ? named : fresh);
   }
-  var newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || "") && !isLive(i));
+  var newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || "") && !isAflevering(i) && !isLive(i));
   function newFactIn(fresh, old, sig, own2 = fresh, story = null) {
     const keysOf = keysWith(sig);
-    const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story);
+    const fact = newFact(fresh, new Set(old.filter((i) => !isAflevering(i)).flatMap(keysOf)), keysOf, story);
     return fact ? { keys: fact.keys, heads: own2.length ? factHeads(own2, fact, sig) : [] } : null;
   }
   function runningFact(st, items, sig, now) {
@@ -3302,7 +3462,7 @@ var HootCore = (() => {
     if (!fresh.length) return null;
     const keysOf = keysWith(sig);
     const then = /* @__PURE__ */ new Set();
-    for (const i of items) if (!(timeOf(i) > cutoff)) for (const k of keysOf(i)) then.add(k);
+    for (const i of items) if (!(timeOf(i) > cutoff) && !isAflevering(i)) for (const k of keysOf(i)) then.add(k);
     return newFact(fresh, then, keysOf, { keyAt: st?.keyAt, pubAt: st?.pubAt, cutoff, pubs: st?.publisherCount });
   }
   var LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]));
@@ -3442,7 +3602,7 @@ var HootCore = (() => {
       for (const k of h.strong) {
         if (BROAD.has(k) || conceptWord(k)) continue;
         const n = names.get(k) || names.set(k, { pubs: /* @__PURE__ */ new Set(), heads: [] }).get(k);
-        n.pubs.add(publisherOf(i.source));
+        if (!isAflevering(i)) n.pubs.add(publisherOf(i.source));
         n.heads.push(h);
       }
       for (const run of h.titleRuns || []) if (run.length > 1) runs.push(run);
@@ -3530,12 +3690,12 @@ var HootCore = (() => {
   var CURIO_FORM = /^\W*(opmerkelijk|bizar|curieus|kijk|quiz)\b|\bquiz\b/;
   var SERIOUS = /\b(rechtszaak|rechtbank|rechter|proces|jury|veroordeel\w*|schuldig\w*|celstraf\w*|gevangenis\w*|verkracht\w*|aanranding|misbruik\w*|moord\w*|doodgeschoten|doodgestoken|gedood|doden|dode|dood|omgekomen|dodelijk\w*|geweld\w*|aanslag\w*|schietpartij\w*|steekpartij\w*|mishandel\w*|trial|court|convicted|guilty|sentenced|prison|rape|raped|sexual assault|murder\w*|killed|killing|shooting|stabbing|violence|violent)\b/;
   var curioPiece = (i) => {
-    const title = norm(i?.title || "");
+    const title = norm2(i?.title || "");
     return CURIO_HEAD.test(title) || CURIO_FORM.test(title) || CURIO_PATH.test(String(i?.url || "").split("?")[0].toLowerCase());
   };
   function curioStory(story = {}, items = []) {
     if (!items.length) return false;
-    if (items.filter((i) => SERIOUS.test(norm(`${i?.title || ""}`))).length * 2 >= items.length) return false;
+    if (items.filter((i) => SERIOUS.test(norm2(`${i?.title || ""}`))).length * 2 >= items.length) return false;
     if (lightNews(story, items)) return true;
     return items.filter(curioPiece).length * 3 >= items.length;
   }
@@ -3960,140 +4120,6 @@ var HootCore = (() => {
     Object.defineProperty(entries, "sig", { value: sig, enumerable: false });
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
-
-  // shared/recensie.mjs
-  var WORK_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "games").map((s) => s.id));
-  var REVIEW_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "cultuur" || s.cat === "tech" || s.cat === "games").map((s) => s.id));
-  var REVIEW_DIR = /^(recensies?|reviews?|review|[a-z]+(?:-[a-z]+)*-reviews?|album-reviews?|albumrecensies?|album-van-de-(dag|week)|plaat-van-de-(dag|week)|album-of-the-(day|week)|reissue-of-the-week|luistertips?)$/i;
-  var DIR_NOT = [/(^|\.)tweakers\.net$/i];
-  var CULTURE_DIR = /^(film|films|movies|tv|tv-and-radio|television|tv-movies|series|stage|theatre|theater|podium|music|muziek|books|boeken|games|artanddesign|art|kunst|kunst-media|culture|cultuur|cultuur-media|tv-cultuur|uit)$/i;
-  var NEWS_VERB = /(?<![\p{L}\p{N}])(reageert|reageren|reageerde|reacts|responds|wint|winnen|wonnen|wins|overleden|overlijdt|sterft|gestorven|doodt|dies|died|killed|ontslagen|ontslaat|fired|sacked|kondigt|kondigen|aangekondigd|announces?|announced|unveils?|onthult|onthullen|stopt|stoppen|gestopt|uit elkaar|arrested|aangehouden|opgepakt|veroordeeld|sentenced|sued|aangeklaagd|klaagt|cancels?|cancell?ed|geschrapt|afgelast|postponed|uitgesteld|reunites?|reunited|verkoopt|nominated|genomineerd|benoemd|appointed|verlaat|vertrekt)(?![\p{L}\p{N}])/iu;
-  var NEWS_WORD = /(?<![\p{L}\p{N}])(won|winning|dood|dead|death|splits?|quits?|breaks?|record|sells?|sold|named|leaves|grammys?|oscars?|edison|nominaties?)(?![\p{L}\p{N}])/iu;
-  var VERB = /(?<![\p{L}\p{N}])(is|are|was|were|be|been|has|have|had|will|would|can|could|says?|said|gets?|got|makes?|made|takes?|took|brings?|goes|went|comes?|came|zijn|ben|bent|wordt|worden|werd|werden|heeft|hebben|had|hadden|gaat|gaan|ging|komt|komen|kwam|krijgt|krijgen|maakt|maken|brengt|brengen|zegt|zeggen|zei|wil|willen|moet|moeten|kan|kunnen|mag|blijft|staat|ligt|zit)(?![\p{L}\p{N}])/iu;
-  var TITLE_LABEL = /^[\s"'‘“(]*(recensies?|review|reviews|book review|album review|film review|tv review|game review|filmrecensie|albumrecensie|boekrecensie|theaterrecensie|concertrecensie|album van de (dag|week)|plaat van de (dag|week)|album of the (day|week)|reissue of the week|luistertips?|playlist)(\s*\(\d+\))?\s*(?:[:|]|\s[-–—]\s)/i;
-  var TITLE_CAPS2 = /^\W*(RECENSIE|REVIEW)\.\s/;
-  var TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?\s*(?:$|[:|–—]|\s-\s)/iu;
-  var NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne|to|will|charter|antitrust|regulatory|competition|merger|deal|licen[cs]e|licensing|funding|fcc|ftc|cma|sec|doj|ofcom|eu|onder|op|over|om|vernietigende|slechte|negatieve|lovende)$/i;
-  var TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt|after|following|under|na|onder|over|op|om)$/i;
-  var NOT_AFTER = /^(recommends?|recommended|finds?|found|says?|said|concludes?|concluded|urges?|warns?|clears?|cleared|rejects?|rejected|backs?|blames?|critici[sz]es?|into|adviseert|concludeert|oordeelt)$/i;
-  var toetsing = (words2, j) => NOT_BEFORE.test(words2[j - 1] || "") || TOETS_VERB.test(words2[j - 2] || "") || NOT_AFTER.test(words2[j + 1] || "");
-  function kopToetsing(title) {
-    const words2 = title.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-    return words2.some((w, j) => {
-      if (w === "reviewing") return true;
-      if (w === "reviewed") return j > 0;
-      return /^(reviews?|recensies?)$/.test(w) && j > 0 && toetsing(words2, j);
-    });
-  }
-  var STARS = /[★☆]{2,}|\(\s*[0-5](?:[.,]5)?\s*\/\s*5\s*\)/;
-  var plainTitle = (s) => String(s || "").replace(/\s+/g, " ").trim();
-  function urlSignal2(raw, cultuurBron) {
-    const u = urlDelen(raw);
-    if (!u) return null;
-    const parts = u.path.split("/").filter(Boolean).map((s) => {
-      try {
-        return decodeURIComponent(s).toLowerCase();
-      } catch {
-        return s.toLowerCase();
-      }
-    });
-    if (!parts.length) return null;
-    let k = parts.length - 1;
-    while (k > 0 && /^[\d.]+(\.html?)?$/.test(parts[k])) k--;
-    const slug = parts[k].replace(/\.html?$/, "").replace(/~[a-z0-9]+$/, "").replace(/-\d{5,}$/, "");
-    const dirs = parts.slice(0, k);
-    const cultuurMap = dirs.some((d) => CULTURE_DIR.test(d));
-    if (!DIR_NOT.some((h) => h.test(u.host)) && dirs.some((d) => REVIEW_DIR.test(d))) return "map";
-    if (/^recensie-/.test(slug)) return "slug";
-    const tokens = slug.split("-");
-    const last = tokens[tokens.length - 1];
-    if ((last === "recensie" || last === "review") && (cultuurBron || cultuurMap) && tokens.length > 1 && !toetsing(tokens, tokens.length - 1)) return "slug";
-    if (cultuurMap && tokens.some((t, j) => (t === "review" || t === "recensie") && j > 0 && j < tokens.length - 1 && !toetsing(tokens, j))) return "midden";
-    return null;
-  }
-  function cultuurLink(raw) {
-    const u = urlDelen(raw);
-    if (!u) return false;
-    return u.path.split("/").filter(Boolean).slice(0, -1).some((d) => CULTURE_DIR.test(d.toLowerCase()));
-  }
-  function workTitle(title) {
-    const t = plainTitle(title).replace(/\s*\((?:feat|ft|prod)\.[^)]*\)/gi, "");
-    if (!t || /[?!:;,]/.test(t) || /[.]$/.test(t)) return false;
-    const parts = t.split(/\s[-–]\s/);
-    if (parts.length !== 2) return false;
-    const words2 = (s) => s.replace(/["“”‘’']/g, "").split(/\s+/).filter(Boolean);
-    const [a, b] = parts.map(words2);
-    if (!a.length || !b.length || a.length > 5 || b.length > 6) return false;
-    return !VERB.test(t) && !NEWS_VERB.test(t) && !NEWS_WORD.test(t);
-  }
-  function recensieMark(item = {}) {
-    if (!item || item.kind === "post") return null;
-    if (item.feedMark === "recensie") return "feed";
-    const title = plainTitle(item.title);
-    if (TITLE_LABEL.test(title) || TITLE_CAPS2.test(title)) return "label";
-    if (STARS.test(title)) return "sterren";
-    const news = NEWS_VERB.test(title);
-    const cultuurBron = REVIEW_IDS.has(item.source);
-    const url = urlSignal2(item.url, cultuurBron);
-    if (url === "map") return "map";
-    if (news) return null;
-    if (kopToetsing(title)) return WORK_IDS.has(item.source) && workTitle(title) ? "werkkop" : null;
-    if (url === "midden") {
-      if (!NEWS_WORD.test(title)) return "slug";
-    } else if (url) return url;
-    const end = TITLE_END.exec(title);
-    if (end && !toetsing([end[1] || "", end[2], end[3]], 2) && (cultuurBron || cultuurLink(item.url))) return "kop";
-    if (WORK_IDS.has(item.source) && workTitle(title)) return "werkkop";
-    return null;
-  }
-  var isRecensie = (item) => recensieMark(item) != null;
-
-  // shared/editie-filter.mjs
-  var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
-  var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
-  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
-  var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
-  function rubricSegments(url) {
-    const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
-    if (!m) return [];
-    const path = m[1];
-    const segs = path.split("/").filter(Boolean).map((s) => {
-      try {
-        return decodeURIComponent(s).toLowerCase();
-      } catch {
-        return s.toLowerCase();
-      }
-    });
-    const before = segs.slice(0, -1);
-    const cut = before.findIndex((x) => /^\d+$/.test(x));
-    return cut === -1 ? before : before.slice(0, cut);
-  }
-  var norm2 = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  function ownIntro(item = {}) {
-    if (item.borrowedFrom) return false;
-    const s = String(item.summary || item.text || "").trim();
-    const t = norm2(item.title);
-    const n = norm2(s);
-    if (n.split(" ").filter(Boolean).length < 4) return false;
-    if (n === t || t && n.startsWith(t) && n.length - t.length < 12) return false;
-    if (/appeared first on\b|\blead image\b/i.test(s) && s.length < 200) return false;
-    return true;
-  }
-  function hardMark(item = {}) {
-    if (!item || item.kind === "post") return null;
-    const segs = rubricSegments(item.url);
-    const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
-    if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
-    const media = String(item.mediaType || "");
-    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
-    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
-    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
-    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
-    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
-    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
-    return null;
-  }
-  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null || isRecensie(item));
 
   // shared/stroom.mjs
   var forEdition = (it) => !it?.streamOnly;

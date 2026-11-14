@@ -5,7 +5,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
-import { fnv1a, placeholderBase, placeholderPlan, placeholderSet, placeholderSvg, PLACEHOLDERS, PALETTES, PLACEHOLDER_COUNT, PLACEHOLDER_SHIFT } from '../shared/placeholder.mjs'
+import { fnv1a, placeholderBase, placeholderPlan, placeholderSet, placeholderSvg, PLACEHOLDERS, PALETTES, PLACEHOLDER_COUNT, PLACEHOLDER_SHIFT, PLACEHOLDER_UIT, PLACEHOLDER_KEUZE } from '../shared/placeholder.mjs'
 
 const root = new URL('../', import.meta.url)
 const fixture = JSON.parse(readFileSync(new URL('tests/fixtures/placeholder.json', root), 'utf8'))
@@ -17,8 +17,47 @@ test('placeholder: fnv1a(id) mod 18, op web en in de app dezelfde som', () => {
     assert.equal(fnv1a(id), h, id)
     assert.equal(placeholderBase(id) + 1, beeld, id)
   }
-  // Alle achttien komen voor.
-  assert.equal(new Set(fixture.base.map((b) => b.beeld)).size, PLACEHOLDER_COUNT)
+  // Alle zeventien die gekozen worden komen voor, beeld 14 (Eclips, uit de reeks) nooit.
+  assert.equal(new Set(fixture.base.map((b) => b.beeld)).size, PLACEHOLDER_KEUZE.length)
+  assert.ok(fixture.base.every((b) => b.beeld !== 14))
+})
+
+// 14 november (Alex): "Deze image mag er wel uit." Alleen beeld 14 (Eclips: de rode zon met de maan
+// erover, de ring met een kraal, de kwartcirkel in de hoek); de rest blijft precies zoals het was.
+test('placeholder: beeld 14 (Eclips) wordt nooit meer gekozen, op web en in de app (fixture.uit)', () => {
+  assert.deepEqual(PLACEHOLDER_UIT, [13])
+  assert.equal(PLACEHOLDERS[13].family, 'eclips')
+  assert.deepEqual(fixture.uit, [14])
+  assert.equal(PLACEHOLDER_KEUZE.length, 17)
+  assert.ok(!PLACEHOLDER_KEUZE.includes(13))
+  const ids = Array.from({ length: 40000 }, (_, i) => `https://www.washingtonpost.com/world/2026/11/14/stuk-${i}/`)
+  for (const id of ids) assert.notEqual(placeholderBase(id), 13, id)
+  for (let t = 0; t < 300; t++) {
+    const rows = Array.from({ length: 40 }, (_, i) => ({ id: `wapo-${t}-${i}`, bare: (t + i * 3) % 6 !== 0 }))
+    for (const k of placeholderPlan(rows).values()) assert.notEqual(k, 13)
+  }
+  // De kop twee keer na elkaar: drie verder is Eclips, dus nog eens drie, naar De rij.
+  const kop = Array.from({ length: 2000 }, (_, i) => `kop-${i}`).filter((id) => placeholderBase(id) === 10).slice(0, 2)
+  assert.deepEqual([...placeholderPlan(kop.map((id) => ({ id, bare: true }))).values()], [10, 16])
+})
+
+test('placeholder: de rest blijft gelijk: elk stuk dat geen Eclips had, houdt zijn beeld; de verdeling over de zeventien is eerlijk', () => {
+  const N = 51000
+  const telling = Array(PLACEHOLDER_COUNT).fill(0)
+  let verhuisd = 0
+  for (let i = 0; i < N; i++) {
+    const id = `nos:https://nos.nl/artikel/${i * 31 + 7}`
+    const oud = fnv1a(id) % PLACEHOLDER_COUNT, nu = placeholderBase(id)
+    if (oud !== 13) assert.equal(nu, oud, id)
+    else verhuisd++
+    telling[nu]++
+  }
+  assert.ok(verhuisd > 0)
+  assert.equal(telling[13], 0)
+  // Elk van de zeventien rond een zeventiende (5,9 procent): tussen 5,3 en 6,5 procent.
+  for (const k of PLACEHOLDER_KEUZE) assert.ok(telling[k] > 0.053 * N && telling[k] < 0.065 * N, `beeld ${k + 1}: ${telling[k]}`)
+  // De tekeningen zelf blijven staan, ook die van Eclips (de nummers en bestanden van de rest verschuiven niet).
+  assert.equal(PLACEHOLDERS.length, 18)
 })
 
 // Twee beeldloze buren: nooit hetzelfde beeld, nooit dezelfde set.
@@ -47,14 +86,18 @@ test('placeholder: twee beeldloze rijen direct na elkaar nooit hetzelfde beeld e
   }
 })
 
-test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle achttien door elkaar', () => {
+test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle zeventien door elkaar', () => {
   const rows = Array.from({ length: 5000 }, (_, i) => ({ id: `https://www.nrc.nl/nieuws/2026/11/05/stuk-${i}-a${(i * 7919) % 1000}`, bare: true }))
   const plan = placeholderPlan(rows)
   buren(rows, plan, 'lange reeks')
   const telling = Array(PLACEHOLDER_COUNT).fill(0)
   for (const k of plan.values()) telling[k]++
-  // Elk beeld komt geregeld voor (gemiddeld 5,6 procent): geen beeld onder de 2,5 of boven de 7,5 procent.
-  for (const [k, n] of telling.entries()) assert.ok(n > 0.025 * rows.length && n < 0.075 * rows.length, `beeld ${k + 1}: ${n}`)
+  // Elk beeld dat gekozen wordt komt geregeld voor (gemiddeld 5,9 procent): geen onder de 2,5 of boven de
+  // 7,5 procent. Beeld 14 (uit de reeks) nooit.
+  for (const [k, n] of telling.entries()) {
+    if (PLACEHOLDER_UIT.includes(k)) assert.equal(n, 0, `beeld ${k + 1}`)
+    else assert.ok(n > 0.025 * rows.length && n < 0.075 * rows.length, `beeld ${k + 1}: ${n}`)
+  }
   // En het is geen vast patroon: de reeks herhaalt zich niet met een korte periode.
   const seq = rows.map((r) => plan.get(r.id))
   for (let p = 1; p <= 24; p++) assert.ok(seq.some((v, i) => i >= p && v !== seq[i - p]), `periode ${p}`)

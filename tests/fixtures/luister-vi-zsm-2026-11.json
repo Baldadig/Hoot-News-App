@@ -1,0 +1,2088 @@
+{
+ "bron": "bewaarde feeds van gethoot.app (ijkset 4 tot en met 11 november 2026) en de officiële feed van VI ZSM",
+ "dagdelen": [
+  {
+   "dagdeel": "2026-11-04-middag-1115Z",
+   "now": "2026-11-04T11:10:19.736Z",
+   "stories": [
+    {
+     "id": "s6dd2yu",
+     "leadId": "dw4a5z",
+     "itemIds": [
+      "1q645ys",
+      "za9yp5",
+      "dw4a5z"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "1q645ys",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "‘Het geluid van een stille Kuip is muziek in de oren van Inter’: Italiaanse media niet onder indruk van Feyenoord",
+     "summary": "Het oordeel van de Italiaanse media is duidelijk na de 0-3 overwinning van Inter op Feyenoord. Vrijwel niemand bij de Rotterdammers krijgt een voldoende.",
+     "url": "https://www.ad.nl/voetbal/het-geluid-van-een-stille-kuip-is-muziek-in-de-oren-van-inter-italiaanse-media-niet-onder-indruk-van-feyenoord~a71fa46f/",
+     "publishedAt": "2026-11-04T11:00:52.000Z"
+    },
+    {
+     "id": "za9yp5",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Geen échte blunders, toch zijn Feyenoord-fans cynisch en genadeloos voor Tjark Ernst: dit is waarom",
+     "summary": "Feyenoord-keeper Tjerk Ernst (23) maakte ook tegen Internazionale geen opzichtige blunders. Toch kleeft er aan de Duitser een begrijpelijk sentiment in de Kuip.",
+     "url": "https://www.ad.nl/voetbal/geen-echte-blunders-toch-zijn-feyenoord-fans-cynisch-en-genadeloos-voor-tjark-ernst-dit-is-waarom~aa7e4bf1/",
+     "publishedAt": "2026-11-04T08:00:00.000Z"
+    },
+    {
+     "id": "dw4a5z",
+     "kind": "article",
+     "source": "nrc",
+     "sourceName": "NRC",
+     "title": "’s Middags op Varkenoord imponeert de Feyenoord-jeugd nog tegen Inter, maar ’s avonds bij de profs zijn de Italianen oppermachtig",
+     "summary": "Feyenoord komt zowel fysiek als technisch tekort tegen Europese grootmacht Internazionale.",
+     "url": "https://www.nrc.nl/nieuws/2026/11/03/s-middags-op-varkenoord-imponeert-de-feyenoord-jeugd-nog-tegen-inter-maar-s-avonds-bij-de-profs-zijn-de-italianen-oppermachtig-a4940462",
+     "publishedAt": "2026-11-03T23:55:42.000Z"
+    }
+   ]
+  },
+  {
+   "dagdeel": "2026-11-04-ochtend-1049Z",
+   "now": "2026-11-04T10:40:49.578Z",
+   "stories": [
+    {
+     "id": "s1jbla6e",
+     "leadId": "1r0eegj",
+     "itemIds": [
+      "aszfw0",
+      "1p23km6",
+      "42jhyl",
+      "108b6pb",
+      "1yyickl",
+      "bjqjyv",
+      "1bupret",
+      "4421z6",
+      "gcatyk",
+      "ugs7y1",
+      "17ry3m8",
+      "9ik2wc",
+      "n3378y",
+      "1d60ab3",
+      "n1i8wp",
+      "n1i8wi",
+      "yt3rhv",
+      "99oo9g",
+      "1mewu5r",
+      "1r0eegj",
+      "n1i8z4",
+      "1mla2v4",
+      "xugw76",
+      "bie3xk",
+      "n1i906",
+      "1jgppmt",
+      "mhhmps",
+      "n1ibe8",
+      "n1ibg5"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "aszfw0",
+     "kind": "article",
+     "source": "telegraaf",
+     "sourceName": "De Telegraaf",
+     "title": "Sleutelduel PSV met Club Brugge in Champions League én om coëfficiëntenstrijd",
+     "summary": "Met Real Madrid (uit) en Atletico Madrid (thuis) als volgende duels in de Champions League zou PSV zichzelf een geweldige dienst kunnen bewijzen met een zege in de thuiswedstrijd tegen Club Brugge (vanavond 21.00 uur).",
+     "url": "https://www.telegraaf.nl/sport/voetbal/sleutelduel-psv-met-club-brugge-in-champions-league-en-om-coefficientenstrijd/164053826.html",
+     "publishedAt": "2026-11-04T10:30:00.000Z"
+    },
+    {
+     "id": "1p23km6",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "VI Live: nog geen duidelijkheid over toekomst Kuijt voor clash met Liverpool",
+     "summary": "In de Champions League staan er negen wedstrijden op de rol voor woensdagavond. Het duel van PSV volgen we in een apart liveblog .",
+     "url": "https://www.vi.nl/nieuws/vi-live-volg-hier-champions-league-op-woensdag-4-november",
+     "publishedAt": "2026-11-04T10:28:47.000Z"
+    },
+    {
+     "id": "42jhyl",
+     "kind": "article",
+     "source": "hln",
+     "sourceName": "Het Laatste Nieuws",
+     "title": "Ruud Vormer supportert voor ex-ploeg Club Brugge, maar: “Het wordt écht fifty-fifty”",
+     "summary": "Vanavond wacht met PSV de volgende opdracht voor Club Brugge in de Champions League. Wint blauw-zwart in Eindhoven voor de derde keer op rij op het kampioenenbal?",
+     "url": "https://www.hln.be/champions-league/ruud-vormer-supportert-voor-ex-ploeg-club-brugge-maar-het-wordt-echt-fifty-fifty~ada865c4b/",
+     "publishedAt": "2026-11-04T10:22:00.000Z"
+    },
+    {
+     "id": "108b6pb",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "VI Live: PSV maakt zich op voor vierde speelronde in Champions League",
+     "summary": "PSV staat woensdagavond om 21.00 uur tegenover Club Brugge in de Champions League.",
+     "url": "https://www.vi.nl/nieuws/vi-live-psv-tegen-club-brugge-in-de-champions-league",
+     "publishedAt": "2026-11-04T10:20:41.000Z"
+    },
+    {
+     "id": "1yyickl",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "‘Bulldozer’ PSG maakt verpletterende indruk: ‘Honger naar succes blijft groot’",
+     "summary": "Op Paris Saint-Germain staat dit Champions League-seizoen geen maat en ook tegen Villarreal imponeerde de Champions League-winnaar van de afgelopen twee seizoenen.",
+     "url": "https://www.vi.nl/nieuws/bulldozer-psg-maakt-verpletterende-indruk-honger-naar-succes-blijft-groot",
+     "publishedAt": "2026-11-04T10:06:25.000Z"
+    },
+    {
+     "id": "bjqjyv",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Hoe je gratis naar PSV tegen Club Brugge in de Champions League kijkt",
+     "summary": "PSV neemt het woensdagavond op tegen Club Brugge in de Champions League. Bij winst komen de Eindhovenaren op zeven punten, waarmee het er florissant uit komt te zien.",
+     "url": "https://www.vi.nl/nieuws/hoe-je-gratis-naar-psv-tegen-club-brugge-in-de-champions-league-kijkt",
+     "publishedAt": "2026-11-04T09:55:48.000Z"
+    },
+    {
+     "id": "1bupret",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Hoe goed is Club Brugge? ‘Zeer interessante speler voor Europese topclubs’",
+     "summary": "PSV speelt vanavond in eigen huis tegen Club Brugge.",
+     "url": "https://www.vi.nl/video/hoe-goed-is-club-brugge-zeer-interessante-speler-voor-europese-topclubs",
+     "publishedAt": "2026-11-04T09:30:00.000Z"
+    },
+    {
+     "id": "4421z6",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Dit is de vermoedelijke opstelling van PSV, Ajax-flop is een van de uitblinkers bij Club Brugge",
+     "summary": "PSV won zaterdag met maar liefst 7-0 van Willem II en kon dus in relatieve rust toeleven naar het Champions League-treffen met Club Brugge, de koploper van België.",
+     "url": "https://www.ad.nl/voetbal/dit-is-de-vermoedelijke-opstelling-van-psv-ajax-flop-is-een-van-de-uitblinkers-bij-club-brugge~ae3a62b0/",
+     "publishedAt": "2026-11-04T09:15:00.000Z"
+    },
+    {
+     "id": "gcatyk",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "From Derby to Champions League – Brown’s journey to face Reds",
+     "summary": "Fenerbahce’s Archie Brown on his unorthodox journey to Istanbul, the moment of madness against Galatasaray and what Liverpool can expect in Turkey on Wednesday evening.",
+     "url": "https://www.bbc.co.uk/sport/football/articles/cwp8g7gjy6mro?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T08:58:24.000Z"
+    },
+    {
+     "id": "ugs7y1",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Video-analyse: Valente-truc maakt Feyenoord soms voorspelbaar",
+     "summary": "Hoofdredacteur Pieter Zwart blikt terug op de wedstrijd van Feyenoord in de Champions League tegen Inter, waarbij de Rotterdammers geen antwoord hadden op de verdedigende formule van de Italianen: 0-3.",
+     "url": "https://www.vi.nl/pro/video-analyse-valente-truc-maakt-feyenoord-soms-voorspelbaar",
+     "publishedAt": "2026-11-04T08:50:47.000Z"
+    },
+    {
+     "id": "17ry3m8",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Quiz! Noem alle PSV-trainers in de Champions League",
+     "summary": "Peter Bosz evenaart woensdagavond Guus Hiddink als PSV-trainer met de meeste duels in het hoofdtoernooi van de Champions League.",
+     "url": "https://www.vi.nl/nieuws/quiz-noem-alle-psv-trainers-in-de-champions-league",
+     "publishedAt": "2026-11-04T08:46:45.000Z"
+    },
+    {
+     "id": "9ik2wc",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Dit is het speelschema van Feyenoord in de Champions League",
+     "summary": "Feyenoord speelt dit seizoen nog vier duels in de competitiefase van de Champions League.",
+     "url": "https://www.vi.nl/nieuws/dit-is-het-speelschema-van-feyenoord-in-de-champions-league",
+     "publishedAt": "2026-11-04T08:29:34.000Z"
+    },
+    {
+     "id": "n3378y",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "De vraag van vandaag: welke Nederlandse speler van Club Brugge struikelde ooit over de middenlijn?",
+     "summary": "Feyenoord kende een slechte Europese avond. In de Kuip werd met 0-3 verloren van een gehavend Internazionale.",
+     "url": "https://www.ad.nl/voetbal/de-vraag-van-vandaag-welke-nederlandse-speler-van-club-brugge-struikelde-ooit-over-de-middenlijn~a42af5cd9/",
+     "publishedAt": "2026-11-04T08:00:00.000Z"
+    },
+    {
+     "id": "1d60ab3",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Jackpot voor PSV en Feyenoord in Champions League: dit hebben ze al verdiend",
+     "summary": "PSV en Feyenoord laten de kassa flink rinkelen dit seizoen. De Champions League-deelnemers kregen al een fraaie startpremie en hebben allebei één overwinning te pakken.",
+     "url": "https://www.ad.nl/voetbal/jackpot-voor-psv-en-feyenoord-in-champions-league-dit-hebben-ze-al-verdiend~a548a5fa/",
+     "publishedAt": "2026-11-04T07:27:00.000Z"
+    },
+    {
+     "id": "n1i8wp",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Ondanks nieuwe trainer en intense emoties weet Kuijt zeker: ‘Ik wil bij Fener blijven’",
+     "summary": "‘Eén ding weet ik zeker: ik wil hier graag blijven’, zei Dirk Kuijt dinsdagavond tegen de NOS.",
+     "url": "https://nos.nl/l/2637978",
+     "publishedAt": "2026-11-04T07:23:54.000Z"
+    },
+    {
+     "id": "n1i8wi",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Van Bronckhorst baalt na vuurwerk van buiten De Kuip: ‘Zal wel weer een boete worden’",
+     "summary": "Feyenoord-trainer Giovanni van Bronckhorst baalt ervan dat het Champions League-duel van dinsdagavond werd stilgelegd door vuurwerk.",
+     "url": "https://nos.nl/l/2637973",
+     "publishedAt": "2026-11-04T06:44:17.000Z"
+    },
+    {
+     "id": "yt3rhv",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Kansloze avond voor Van Bronckhorst en Feyenoord: ‘Inter raakt niet in paniek’",
+     "summary": "Giovanni van Bronckhorst beleefde dinsdagavond een kansloze Champions League-avond met Feyenoord tegen Internazionale.",
+     "url": "https://www.nu.nl/voetbal/6415418/kansloze-avond-voor-van-bronckhorst-en-feyenoord-inter-raakt-niet-in-paniek.html",
+     "publishedAt": "2026-11-04T06:14:01.000Z"
+    },
+    {
+     "id": "99oo9g",
+     "kind": "article",
+     "source": "demorgen",
+     "sourceName": "De Morgen",
+     "title": "Waarom België en Nederland hun glorie in het Europese voetbal kwijt zijn",
+     "summary": "Woensdag speelt PSV tegen Club Brugge in de Champions League.",
+     "url": "https://www.demorgen.be/sport/waarom-belgie-en-nederland-hun-glorie-in-het-europese-voetbal-kwijt-zijn~bc8f754df/",
+     "publishedAt": "2026-11-04T02:00:29.000Z"
+    },
+    {
+     "id": "1mewu5r",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Feyenoord moet vrezen voor UEFA-straf: vuurwerk op veld en dak van De Kuip",
+     "summary": "De kansloze 0-3-nederlaag van Feyenoord tegen Internazionale heeft mogelijk meer vervelende gevolgen voor de Rotterdamse club.",
+     "url": "https://www.nu.nl/voetbal/6415420/feyenoord-moet-vrezen-voor-uefa-straf-vuurwerk-op-veld-en-dak-van-de-kuip.html",
+     "publishedAt": "2026-11-04T01:36:31.000Z"
+    },
+    {
+     "id": "1r0eegj",
+     "kind": "article",
+     "source": "nos",
+     "sourceName": "NOS",
+     "title": "Lichtkogels van buiten De Kuip in stadion geschoten, twee arrestaties",
+     "summary": "De politie in Rotterdam heeft twee mensen aangehouden voor het afsteken van vuurwerk buiten het Feyenoord-stadion, zegt de politie tegen persbureau ANP.",
+     "url": "https://nos.nl/l/2637946",
+     "publishedAt": "2026-11-04T00:29:32.000Z"
+    },
+    {
+     "id": "n1i8z4",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Zeperd tegen ‘veel sterker’ Inter komt bij Feyenoord ‘harder aan dan 5-1 in Barcelona’",
+     "summary": "Fris, gretig en dominant. Zo oogde Feyenoord in het vorige Champions League-duel voor eigen publiek. In De Kuip werd Como met 3-1 aan de kant gezet.",
+     "url": "https://nos.nl/l/2637942",
+     "publishedAt": "2026-11-03T23:07:00.000Z"
+    },
+    {
+     "id": "1mla2v4",
+     "kind": "article",
+     "source": "standaard",
+     "sourceName": "De Standaard",
+     "title": "PSV-Club Brugge in de derby der Lage Landen: wie is het sterkst bezig, Nederland of België?",
+     "summary": "PSV-Club Brugge is woensdagavond meer dan een strijd om drie punten in de poulefase van de Champions League.",
+     "url": "https://www.standaard.be/sport/psv-club-brugge-in-de-derby-der-lage-landen-wie-is-het-sterkst-bezig-nederland-of-belgie/164036468.html",
+     "publishedAt": "2026-11-03T22:59:00.000Z"
+    },
+    {
+     "id": "xugw76",
+     "kind": "article",
+     "source": "guardian-sport",
+     "sourceName": "The Guardian Sport",
+     "title": "Lennart Karl steals in behind Atlético Madrid to inspire Bayern Munich win",
+     "summary": "“This stadium brings back bad memories but I hope to be able to replace them with good ones,” Harry Kane had said on Monday night, and 24 hours later this was a start.",
+     "url": "https://www.theguardian.com/football/2026/nov/03/atletico-madrid-bayern-munich-champions-league-match-report",
+     "publishedAt": "2026-11-03T22:28:08.000Z"
+    },
+    {
+     "id": "bie3xk",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Feyenoord verliest kansloos van Internazionale in Champions League",
+     "summary": "Feyenoord heeft dinsdag een kansloze nederlaag geleden in de Champions League-wedstrijd tegen Internazionale. De Italianen wonnen in De Kuip met 0-3.",
+     "url": "https://www.nu.nl/voetbal/6415404/feyenoord-verliest-kansloos-van-internazionale-in-champions-league.html",
+     "publishedAt": "2026-11-03T21:55:35.000Z"
+    },
+    {
+     "id": "n1i906",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Machteloos Feyenoord hard onderuit tegen Inter in Champions League",
+     "summary": "Feyenoord heeft niet kunnen stunten tegen Internazionale in de Champions League.",
+     "url": "https://nos.nl/l/2637933",
+     "publishedAt": "2026-11-03T21:55:05.000Z"
+    },
+    {
+     "id": "1jgppmt",
+     "kind": "article",
+     "source": "guardian-sport",
+     "sourceName": "The Guardian Sport",
+     "title": "Andoni Iraola calls on Liverpool to sharpen up in attack before Fenerbahce test",
+     "summary": "Reds target fourth straight Champions League win Turkish side led by ex-Liverpool forward Dirk Kuyt Andoni Iraola has said Liverpool must improve their attacking play…",
+     "url": "https://www.theguardian.com/football/2026/nov/03/andoni-iraola-calls-on-liverpool-to-sharpen-up-in-attack-before-fenerbahce-test",
+     "publishedAt": "2026-11-03T18:42:11.000Z"
+    },
+    {
+     "id": "mhhmps",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "‘De tijd van selfies nemen is voorbij’: Ivan Leko wil Belgische opmars in Champions League bevestigd zien tegen PSV",
+     "summary": "Elke derby van de Lage Landen geeft wat extra pigment. Zo ook PSV tegen Club Brugge in de Champions League.",
+     "url": "https://sporza.be/nl/2026/11/03/-de-tijd-van-selfies-nemen-is-voorbij-ivan-leko-wil-belgische-opmars-in-champions-league-bevestigd-zien-tegen-psv~1793723304208/",
+     "publishedAt": "2026-11-03T16:53:53.063Z"
+    },
+    {
+     "id": "n1ibe8",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "PSV maakt zich op voor Brugge in Champions League: ‘Gaat hele uitdaging worden’",
+     "summary": "Vlak na de loting voor de groepsfase van de Champions League werd de thuiswedstrijd van PSV tegen Club Brugge gezien als een duel met veel perspectief voor de Eindhovenaren, maar na drie speelronden staan de Belgen er juist erg goed voor.",
+     "url": "https://nos.nl/l/2637861",
+     "publishedAt": "2026-11-03T11:55:15.000Z"
+    },
+    {
+     "id": "n1ibg5",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Geplaagd Inter moet tegen Feyenoord ‘de honger en energie terugvinden’",
+     "summary": "Blessures, een griepvirus en een mentaliteitsprobleem. Het rommelt bij Internazionale, dinsdagavond in Rotterdam tegenstander van Feyenoord in de Champions League.",
+     "url": "https://nos.nl/l/2637846",
+     "publishedAt": "2026-11-03T10:30:25.000Z"
+    }
+   ]
+  },
+  {
+   "dagdeel": "2026-11-04-avond-1748Z",
+   "now": "2026-11-04T17:40:20.760Z",
+   "stories": [
+    {
+     "id": "sa9dg9y",
+     "leadId": "dw4a5z",
+     "itemIds": [
+      "azqnux",
+      "n1i8wi",
+      "dw4a5z",
+      "n1i8z4",
+      "n1i906"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "azqnux",
+     "kind": "article",
+     "source": "rtl",
+     "sourceName": "RTL Nieuws",
+     "title": "Hiermee werden gisteravond lichtkogels op De Kuip afgevuurd",
+     "summary": "Tijdens de wedstrijd Feyenoord tegen Internazionale werden lichtkogels de Kuip in geschoten. Die belandden op het veld en het dak van het stadion.",
+     "url": "https://www.rtl.nl/nieuws/editienl/video/7e3dfea9-79b3-4e48-8585-e7ff595cd8c6/hiermee-werden-gisteravond-lichtkogels",
+     "publishedAt": "2026-11-04T15:38:18.000Z"
+    },
+    {
+     "id": "n1i8wi",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Van Bronckhorst baalt na vuurwerk van buiten De Kuip: ‘Zal wel weer een boete worden’",
+     "summary": "Feyenoord-trainer Giovanni van Bronckhorst baalt ervan dat het Champions League-duel van dinsdagavond werd stilgelegd door vuurwerk.",
+     "url": "https://nos.nl/l/2637973",
+     "publishedAt": "2026-11-04T06:44:17.000Z"
+    },
+    {
+     "id": "dw4a5z",
+     "kind": "article",
+     "source": "nrc",
+     "sourceName": "NRC",
+     "title": "’s Middags op Varkenoord imponeert de Feyenoord-jeugd nog tegen Inter, maar ’s avonds bij de profs zijn de Italianen oppermachtig",
+     "summary": "Feyenoord komt zowel fysiek als technisch tekort tegen Europese grootmacht Internazionale.",
+     "url": "https://www.nrc.nl/nieuws/2026/11/03/s-middags-op-varkenoord-imponeert-de-feyenoord-jeugd-nog-tegen-inter-maar-s-avonds-bij-de-profs-zijn-de-italianen-oppermachtig-a4940462",
+     "publishedAt": "2026-11-03T23:55:42.000Z"
+    },
+    {
+     "id": "n1i8z4",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Zeperd tegen ‘veel sterker’ Inter komt bij Feyenoord ‘harder aan dan 5-1 in Barcelona’",
+     "summary": "Fris, gretig en dominant. Zo oogde Feyenoord in het vorige Champions League-duel voor eigen publiek. In De Kuip werd Como met 3-1 aan de kant gezet.",
+     "url": "https://nos.nl/l/2637942",
+     "publishedAt": "2026-11-03T23:07:00.000Z"
+    },
+    {
+     "id": "n1i906",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Machteloos Feyenoord hard onderuit tegen Inter in Champions League",
+     "summary": "Feyenoord heeft niet kunnen stunten tegen Internazionale in de Champions League.",
+     "url": "https://nos.nl/l/2637933",
+     "publishedAt": "2026-11-03T21:55:05.000Z"
+    }
+   ]
+  },
+  {
+   "dagdeel": "2026-11-06-middag-1101Z",
+   "now": "2026-11-06T11:00:24.027Z",
+   "stories": [
+    {
+     "id": "s1cf84pa",
+     "leadId": "1s9dj2c",
+     "itemIds": [
+      "1i0lkge",
+      "pp28px",
+      "2az7sx",
+      "17h2ms5",
+      "1s9dj2c",
+      "jci6xs",
+      "n15i6s",
+      "1lo9k5w"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "1i0lkge",
+     "kind": "article",
+     "source": "telegraaf",
+     "sourceName": "De Telegraaf",
+     "title": "Ajax-tegenstander in Conference League heeft nieuwe trainer",
+     "summary": "In de rubriek Sport Kort besteedt Telesport aandacht aan het dagelijkse nieuws. Deze rubriek wordt gedurende de dag continu ververst met het laatste nieuws.",
+     "url": "https://www.telegraaf.nl/sport/ajax-tegenstander-in-conference-league-heeft-nieuwe-trainer/159231816.html",
+     "publishedAt": "2026-11-06T10:03:00.000Z"
+    },
+    {
+     "id": "pp28px",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Kwartet Nederlandse clubs ligt op koers in Europa, moeilijk verhaal Feyenoord",
+     "summary": "De Europese week zit erop en daarmee zijn de competitiefases van de Champions League, Europa League en Conference League halverwege.",
+     "url": "https://www.vi.nl/nieuws/de-kansen-van-psv-feyenoord-az-nec-ajax-en-twente-op-volgende-ronde-in-europa",
+     "publishedAt": "2026-11-06T09:42:52.000Z"
+    },
+    {
+     "id": "2az7sx",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Ajax beleeft productiefste seizoensstart in bijna dertig jaar",
+     "summary": "Na de zesklapper tegen FC Midtjylland staat het aantal officiële Ajax-doelpunten dit seizoen op 61.",
+     "url": "https://www.vi.nl/nieuws/ajax-beleeft-productiefste-seizoensstart-in-bijna-dertig-jaar",
+     "publishedAt": "2026-11-06T08:01:08.000Z"
+    },
+    {
+     "id": "17h2ms5",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Baas-experiment bij Ajax pakt goed uit: ‘Iedereen weet wat mijn beste positie is’",
+     "summary": "Met Youri Baas als controlerende middenvelder won Ajax donderdagavond met ruime cijfers van FC Midtjylland in de Conference League.",
+     "url": "https://www.vi.nl/nieuws/baas-hoorde-dag-voor-de-wedstrijd-van-nieuwe-positie-hij-gaf-een-kleine-hint",
+     "publishedAt": "2026-11-06T07:37:21.000Z"
+    },
+    {
+     "id": "1s9dj2c",
+     "kind": "article",
+     "source": "volkskrant",
+     "sourceName": "de Volkskrant",
+     "title": "Ajax beleeft heerlijke avond bij FC Midtjylland: ruime zege (1-6) en scorende spitsen",
+     "summary": "Ajax was voor rust al beter dan FC Midtjylland, maar drukte dat met een man meer pas in de tweede helft dubbel en dwars uit.",
+     "url": "https://www.volkskrant.nl/sport/ajax-beleeft-heerlijke-avond-bij-fc-midtjylland-ruime-zege-1-6-en-scorende-spitsen~b48b78b2/",
+     "publishedAt": "2026-11-05T20:29:00.000Z"
+    },
+    {
+     "id": "jci6xs",
+     "kind": "article",
+     "source": "parool",
+     "sourceName": "Het Parool",
+     "title": "Ajax walst na rust over tiental Midtjylland heen en boekt tweede zege in Conference League",
+     "summary": "Na het gewonnen duel met Atalanta (2-0) staat er voor Ajax opnieuw een pittig potje op het programma.",
+     "url": "https://www.parool.nl/sport/ajax-walst-na-rust-over-tiental-midtjylland-heen-en-boekt-tweede-zege-in-conference-league~b0b8dc34/",
+     "publishedAt": "2026-11-05T20:12:00.000Z"
+    },
+    {
+     "id": "n15i6s",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Arokodare leidt Ajax naar ruime zege op tiental Midtjylland, ook Leonardo scoort",
+     "summary": "Ajax heeft in de Conference League een ruime 1-6 zege geboekt op FC Midtjylland.",
+     "url": "https://nos.nl/l/2638206",
+     "publishedAt": "2026-11-05T19:52:02.000Z"
+    },
+    {
+     "id": "1lo9k5w",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Ajax boekt grootste Europese uitzege sinds 2000 na rode kaart Midtjylland",
+     "summary": "Ajax heeft donderdag een klinkende uitzege op FC Midtjylland in de Conference League geboekt.",
+     "url": "https://www.nu.nl/voetbal/6415648/ajax-boekt-grootste-europese-uitzege-sinds-2000-na-rode-kaart-midtjylland.html",
+     "publishedAt": "2026-11-05T19:50:57.000Z"
+    }
+   ]
+  },
+  {
+   "dagdeel": "2026-11-10-ochtend-1027Z",
+   "now": "2026-11-10T10:20:16.803Z",
+   "stories": [
+    {
+     "id": "s1eu474n",
+     "leadId": "mxsjki",
+     "itemIds": [
+      "mxsjki",
+      "1ewfuw1",
+      "1vjdzas",
+      "1vu1sus",
+      "1ocx2sy",
+      "29n52q",
+      "1aoe85",
+      "n15naz",
+      "n15kon",
+      "n15ks1",
+      "n15leb"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "mxsjki",
+     "kind": "article",
+     "source": "hln",
+     "sourceName": "Het Laatste Nieuws",
+     "title": "Zinédine Zidane roept speler van Duitse tweedeklasser op voor tweeluik in de Nations League",
+     "summary": "Onze Rode Duivels nemen het op tegen Turkije en Italië, maar hoe vergaat het de andere landen? Volg alle nieuwtjes in de liveblog.",
+     "url": "https://www.hln.be/buitenlands-voetbal/zinedine-zidane-roept-speler-van-duitse-tweedeklasser-op-voor-tweeluik-in-de-nations-league~a0325bbd/",
+     "publishedAt": "2026-11-10T09:20:00.000Z"
+    },
+    {
+     "id": "1ewfuw1",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Help Xavi: welke spelers zet jij in de basis tegen de Grieken?",
+     "summary": "Het Nederlands elftal strijdt deze week om een plek in de kwartfinales van de Nations League.",
+     "url": "https://www.ad.nl/voetbal/help-xavi-welke-spelers-zet-jij-in-de-basis-tegen-de-grieken~a121b598/",
+     "publishedAt": "2026-11-10T08:25:00.000Z"
+    },
+    {
+     "id": "1vjdzas",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Roberto Mancini hoopt dat PSV-beul voor Italië kiest, Spanje mist Lamine Yamal tegen Tsjechië",
+     "summary": "De komende twee weken staan weer in het teken van interlandvoetbal. Oranje speelt twee duels in de Nations League (tegen Griekenland en Duitsland).",
+     "url": "https://www.ad.nl/voetbal/roberto-mancini-hoopt-dat-psv-beul-voor-italie-kiest-spanje-mist-lamine-yamal-tegen-tsjechie~a8c685ae/",
+     "publishedAt": "2026-11-10T07:41:00.000Z"
+    },
+    {
+     "id": "1vu1sus",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "VI Discussie: de verdediging van Oranje tegen Griekenland",
+     "summary": "Virgil van Dijk meldde zich maandag in Zeist, maar nog dezelfde dag werd bekend dat de centrumverdediger en aanvoerder van het Nederlands elftal in november toch niet in actie gaat komen voor Oranje.",
+     "url": "https://www.vi.nl/nieuws/vi-discussie-de-verdediging-van-oranje-tegen-griekenland",
+     "publishedAt": "2026-11-10T06:45:00.000Z"
+    },
+    {
+     "id": "1ocx2sy",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "‘Voor de groepsdynamiek had ik Taylor wel opgeroepen’",
+     "summary": "In dit fragment uit VI ZSM bespreken Bart Frouws en Arjan van den IJssel de dag waarop bondscoach Xavi Hernandez zijn selectie voor het Nederlands elftal bekendmaakte.",
+     "url": "https://www.vi.nl/video/voor-de-groepsdynamiek-had-ik-taylor-wel-opgeroepen",
+     "publishedAt": "2026-11-10T06:30:00.000Z"
+    },
+    {
+     "id": "29n52q",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Hebben we bij Oranje na discussie over topspitsen, de Grote Vier en Sneijder-Van der Vaart een nieuw nationaal thema?",
+     "summary": "Kunnen Frenkie de Jong en Joey Veerman bij Oranje samen op één middenveld? Xavi Hernández denkt van wel en wijst op zijn eigen verleden in een tandem met Andrés Iniesta.",
+     "url": "https://www.ad.nl/voetbal/hebben-we-bij-oranje-na-discussie-over-topspitsen-de-grote-vier-en-sneijder-van-der-vaart-een-nieuw-nationaal-thema~af91ddae/",
+     "publishedAt": "2026-11-10T06:30:00.000Z"
+    },
+    {
+     "id": "1aoe85",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "‘Zeldzaam scenario’ op komst? Zo wordt Nations League-groep Oranje beslist",
+     "summary": "Na de interlandperiode van september/oktober werd in Duitsland al volop gespeculeerd over ‘een zeldzaam scenario’ in de Nations League-groep van Nederland.",
+     "url": "https://www.vi.nl/nieuws/zeldzaam-scenario-op-komst-zo-wordt-nations-league-groep-oranje-beslist",
+     "publishedAt": "2026-11-10T06:18:00.000Z"
+    },
+    {
+     "id": "n15naz",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "De Jong moet wilde plannen Xavi bij Oranje versnellen: ‘Hij heeft alles’",
+     "summary": "Met de terugkeer van Frenkie de Jong gaan de verwachtingen bij Oranje omhoog. Hij is namelijk een speler die perfect past in de filosofie van de bondscoach.",
+     "url": "https://nos.nl/l/2638812",
+     "publishedAt": "2026-11-10T06:00:05.000Z"
+    },
+    {
+     "id": "n15kon",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Aanvoerder Van Dijk en Brobbey haken af bij Nederlands elftal",
+     "summary": "Aanvoerder Virgil van Dijk en Brian Brobbey hebben zich bij bondscoach Xavi Hernández afgemeld voor het Nederlands elftal.",
+     "url": "https://nos.nl/l/2638755",
+     "publishedAt": "2026-11-09T16:47:27.000Z"
+    },
+    {
+     "id": "n15ks1",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Xavi rekent op fitte Brobbey en wil Malen vertrouwen geven om ook in Oranje te scoren",
+     "summary": "Het Nederlands elftal beschikt over spitsen in goede vorm voor de Nations League-wedstrijden tegen Griekenland en Duitsland. Toch is er onzekerheid.",
+     "url": "https://nos.nl/l/2638717",
+     "publishedAt": "2026-11-09T12:07:19.000Z"
+    },
+    {
+     "id": "n15leb",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Moet Veerman met terugkeer De Jong een stap opzij zetten in Oranje?",
+     "summary": "De eerste minuten van Joey Veerman als Oranje-international waren ruim drie jaar geleden meteen zijn laatste met Frenkie de Jong.",
+     "url": "https://nos.nl/l/2638663",
+     "publishedAt": "2026-11-09T05:10:46.000Z"
+    }
+   ]
+  },
+  {
+   "dagdeel": "2026-11-11-ochtend",
+   "now": "2026-11-11T06:50:20.913Z",
+   "stories": [
+    {
+     "id": "sqgg6xl",
+     "leadId": "dggfd0",
+     "itemIds": [
+      "dggfd0",
+      "dy56tg",
+      "fi5nut",
+      "e0b487",
+      "1l6fs3o",
+      "1qf2pv7",
+      "n15mfu",
+      "n15neh",
+      "n15nbs",
+      "n15naz"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "dggfd0",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Reiziger verklaart creatieve oplossing na misverstand over Smit",
+     "summary": "Zonder Kees Smit bereidt Jong Oranje voor op de belangrijke uitwedstrijd tegen Denemarken, in de play-offs voor het EK.",
+     "url": "https://www.vi.nl/nieuws/reiziger-verklaart-creatieve-oplossing-na-misverstand-over-smit",
+     "publishedAt": "2026-11-11T06:15:00.000Z"
+    },
+    {
+     "id": "dy56tg",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Reiziger kan bij Jong Oranje ook fluiten naar Zechiël en Van Bommel in cruciaal tweeluik met Denen: ‘Ik conformeer me aan keuze KNVB’",
+     "summary": "Niet alleen de switch van Ayoub Oufkir doet Michael Reiziger pijn.",
+     "url": "https://www.ad.nl/voetbal/reiziger-kan-bij-jong-oranje-ook-fluiten-naar-zechiel-en-van-bommel-in-cruciaal-tweeluik-met-denen-ik-conformeer-me-aan-keuze-knvb~a068be6f/",
+     "publishedAt": "2026-11-10T20:51:00.000Z"
+    },
+    {
+     "id": "fi5nut",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Toekomst in Oranje? Ook deze talenten met dubbele nationaliteit kunnen voor een ander land kiezen",
+     "summary": "De overstap van Ayoub Oufkir naar Marokko staat niet op zichzelf: tal van Nederlandse talenten kunnen nog altijd voor een ander land kiezen.",
+     "url": "https://www.ad.nl/voetbal/toekomst-in-oranje-ook-deze-talenten-met-dubbele-nationaliteit-kunnen-voor-een-ander-land-kiezen~a7ea3d5d/",
+     "publishedAt": "2026-11-10T20:25:52.000Z"
+    },
+    {
+     "id": "e0b487",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Frenkie de Jong straalt bij Oranje: ‘Aanvoerdersband zou supervette eer zijn’",
+     "summary": "Na vervelende maanden is Frenkie de Jong vol motivatie terug bij Oranje.",
+     "url": "https://www.nu.nl/voetbal/6416139/frenkie-de-jong-straalt-bij-oranje-aanvoerdersband-zou-supervette-eer-zijn.html",
+     "publishedAt": "2026-11-10T19:12:31.000Z"
+    },
+    {
+     "id": "1l6fs3o",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Read heeft begrip voor keuze Oufkir: ‘Moet men respecteren’",
+     "summary": "Jong Oranje-aanvoerder Givairo Read sprak met verslaggever Kalum van Oudheusden over Ayoub Oufkir, die de keuze heeft gemaakt om voor Marokko uit te komen.",
+     "url": "https://www.vi.nl/video/read-heeft-begrip-voor-keuze-oufkir-heb-al-grapjes-gemaakt",
+     "publishedAt": "2026-11-10T18:17:18.000Z"
+    },
+    {
+     "id": "1qf2pv7",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Reiziger baalt van situatie Oufkir: ‘Verdient niet de schoonheidsprijs’",
+     "summary": "Michael Reiziger kan voor het belangrijke tweeluik van Jong Oranje met Denemarken niet meer beschikken over Ayoub Oufkir.",
+     "url": "https://www.vi.nl/pro/reiziger-baalt-van-situatie-oufkir-verdient-niet-de-schoonheidsprijs",
+     "publishedAt": "2026-11-10T17:50:00.000Z"
+    },
+    {
+     "id": "n15mfu",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "‘We hadden Oufkirs woord al’, baalt Jong Oranje-bondscoach Reiziger",
+     "summary": "De keuze van Ayoub Oufkir voor Marokko blijft de gemoederen in Zeist nog even bezig houden. Vooral de communicatie, of het gebrek daaraan, wekt verbazing.",
+     "url": "https://nos.nl/l/2638903",
+     "publishedAt": "2026-11-10T17:22:49.000Z"
+    },
+    {
+     "id": "n15neh",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Van den Berg voor het eerst opgeroepen voor Oranje, als vervanger Van Dijk",
+     "summary": "Sepp van den Berg is door bondscoach Xavi Hernández opgeroepen als vervanger van de afgehaakte Virgil van Dijk.",
+     "url": "https://nos.nl/l/2638854",
+     "publishedAt": "2026-11-10T12:06:24.000Z"
+    },
+    {
+     "id": "n15nbs",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Oranje met alle beschikbare spelers begonnen aan eerste groepstraining",
+     "summary": "Het Nederlands elftal is dinsdagmiddag met alle beschikbare spelers van start gegaan aan de eerste groepstraining van deze interlandperiode.",
+     "url": "https://nos.nl/l/2638844",
+     "publishedAt": "2026-11-10T11:16:25.000Z"
+    },
+    {
+     "id": "n15naz",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "De Jong moet wilde plannen Xavi bij Oranje versnellen: ‘Hij heeft alles’",
+     "summary": "Met de terugkeer van Frenkie de Jong gaan de verwachtingen bij Oranje omhoog. Hij is namelijk een speler die perfect past in de filosofie van de bondscoach.",
+     "url": "https://nos.nl/l/2638812",
+     "publishedAt": "2026-11-10T06:00:05.000Z"
+    }
+   ]
+  },
+  {
+   "dagdeel": "2026-11-05-ochtend-0627Z",
+   "now": "2026-11-05T06:20:20.296Z",
+   "stories": [
+    {
+     "id": "swv4tvc",
+     "leadId": "i227gu",
+     "itemIds": [
+      "yn48hm",
+      "1p23km6",
+      "gxo26i",
+      "2b3vja",
+      "8d7rob",
+      "1bgkq4b",
+      "2uo4rn",
+      "phwnw8",
+      "jfqoas",
+      "1qu4a9e",
+      "p518kc",
+      "2dqsn1",
+      "7t2ck1",
+      "5jgwom",
+      "1lh0cox",
+      "1ocpdt",
+      "v069ca",
+      "1ktjdhn",
+      "4rn699",
+      "97hf2l",
+      "n15gpm",
+      "6nvogp",
+      "1ws5byf",
+      "m046cd",
+      "lfp33h",
+      "1wfuk45",
+      "1f5q72w",
+      "4v7ouf",
+      "1vfi8w0",
+      "98seos",
+      "1rgu9q3",
+      "joib6x",
+      "n15gqn",
+      "q2texq",
+      "vudau6",
+      "1a887ps",
+      "1ct29ed",
+      "i227gu",
+      "17whkzx",
+      "1hbg80r",
+      "1tuds0n",
+      "11ctlws",
+      "j3glc3",
+      "1ifknl5",
+      "8p5uhj",
+      "sfgxx5",
+      "1xn2g40",
+      "z1wxgb",
+      "1ex3vhh",
+      "1yfcjhb",
+      "n15gqb",
+      "1gmltx6",
+      "1q3jt26",
+      "m8omi3",
+      "z1n216",
+      "j7cc5b",
+      "c8mq0a",
+      "1bstc0n",
+      "1y1zncm",
+      "11bdgcq",
+      "1yl0fye",
+      "n15gny",
+      "1300wb7",
+      "hpkvw3",
+      "1g4auj5",
+      "1mf6wz7",
+      "1uzyto4",
+      "n1i8wp",
+      "n1i8wi",
+      "n1i8xd",
+      "n1i8z4"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "yn48hm",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "PSV handhaaft zich op het nippertje in de top-24 van de Champions League",
+     "summary": "PSV is woensdag in de Champions League onderuitgegaan tegen Club Brugge . De Belgische landskampioen verliet het Philips Stadion met een zwaarbevochten zege.",
+     "url": "https://www.vi.nl/nieuws/psv-handhaaft-zich-op-het-nippertje-in-de-top-24-van-de-champions-league",
+     "publishedAt": "2026-11-05T06:13:13.000Z"
+    },
+    {
+     "id": "1p23km6",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Como gaat Feyenoord achterna met Europese monsterzege",
+     "summary": "In de Champions League stonden er negen wedstrijden op de rol woensdagavond. Het duel van PSV volgden we in een apart liveblog .",
+     "url": "https://www.vi.nl/nieuws/vi-live-volg-hier-champions-league-op-woensdag-4-november",
+     "publishedAt": "2026-11-05T06:13:00.000Z"
+    },
+    {
+     "id": "gxo26i",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Como laat geen spaan heel van Lens in negenklapper, Porto boekt eerste CL-zege",
+     "summary": "Como heeft woensdagavond gehakt gemaakt van RC Lens. De ploeg van Cesc Fàbregas kende geen genade en scoorde liefst negen (!) keer in Frankrijk.",
+     "url": "https://www.vi.nl/nieuws/como-laat-geen-spaan-heel-van-lens-in-negenklapper-porto-boekt-eerste-cl-zege",
+     "publishedAt": "2026-11-05T06:06:16.000Z"
+    },
+    {
+     "id": "2b3vja",
+     "kind": "article",
+     "source": "telegraaf",
+     "sourceName": "De Telegraaf",
+     "title": "Sven Mijnans baalt na 2-1 nederlaag PSV tegen Club Brugge: ’Niet goed als met twee passes het hele veld openligt’",
+     "summary": "Sven Mijnans zat er terneergeslagen bij na de 1-2 thuisnederlaag van PSV tegen Club Brugge in de Champions League.",
+     "url": "https://www.telegraaf.nl/sport/voetbal/sven-mijnans-baalt-na-2-1-nederlaag-psv-tegen-club-brugge-niet-goed-als-met-twee-passes-het-hele-veld-openligt/164110408.html",
+     "publishedAt": "2026-11-05T06:06:00.000Z"
+    },
+    {
+     "id": "8d7rob",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Belgische media smullen van ‘Usain Forbs’ en zijn kritisch over ‘naïef’ PSV",
+     "summary": "‘Weggehoond in Nederland, nu florerend bij Club Brugge.’",
+     "url": "https://www.vi.nl/nieuws/belgische-media-smullen-van-usain-forbs-en-zijn-kritisch-over-naief-psv",
+     "publishedAt": "2026-11-05T05:52:09.000Z"
+    },
+    {
+     "id": "1bgkq4b",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Bosz vindt dat er te negatief gesproken wordt over de Eredivisie",
+     "summary": "Dat PSV nog weinig potten breekt in de Champions League, heeft volgens Peter Bosz niet direct te maken met het niveau in de Eredivisie.",
+     "url": "https://www.vi.nl/video/bosz-vindt-dat-er-te-negatief-gesproken-wordt-over-de-eredivisie",
+     "publishedAt": "2026-11-05T05:48:21.000Z"
+    },
+    {
+     "id": "2uo4rn",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Janssen looft Sano: ‘Deze jongen overstijgt het niveau van PSV al’",
+     "summary": "Theo Janssen is een groot bewonderaar van Kodai Sano. De analyticus was woensdagavond lyrisch over de Japanner van PSV.",
+     "url": "https://www.vi.nl/nieuws/janssen-looft-sano-na-dit-seizoen-voor-heel-veel-geld-weer-weg-bij-psv",
+     "publishedAt": "2026-11-05T05:45:00.000Z"
+    },
+    {
+     "id": "phwnw8",
+     "kind": "article",
+     "source": "demorgen",
+     "sourceName": "De Morgen",
+     "title": "Club Brugge boekt derde zege op rij in Champions League en ziet knock-outfase dichterbij komen",
+     "summary": "Club Brugge heeft woensdagavond zijn vierde wedstrijd in de Champions League met 1-2 gewonnen in het Philips Stadion van PSV Eindhoven. Nicolo Tresoldi (25.)",
+     "url": "https://www.demorgen.be/snelnieuws/club-brugge-boekt-derde-zege-op-rij-in-champions-league-en-ziet-knock-outfase-dichterbij-komen~b7f102f5/",
+     "publishedAt": "2026-11-05T05:45:00.000Z"
+    },
+    {
+     "id": "jfqoas",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Bosz neemt Dest niets kwalijk en legt ‘tactisch steekspel’ uit",
+     "summary": "Geen negatief woord van Peter Bosz over Sergiño Dest, hoewel de PSV’er tegen Club Brugge meerdere kansen om te scoren miste. Op de training maakt de verdediger ze wél.",
+     "url": "https://www.vi.nl/video/bosz-neemt-dest-niets-kwalijk-en-legt-tactisch-steekspel-uit",
+     "publishedAt": "2026-11-05T05:43:08.000Z"
+    },
+    {
+     "id": "1qu4a9e",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Peter Bosz zag geen geschikte optie om Carlos Forbs af te stoppen: ‘Maar hij is niet alleen het verhaal van de wedstrijd’",
+     "summary": "PSV-trainer Peter Bosz overwoog in de thuiswedstrijd tegen Club Brugge in de Champions League (1-2) niet om Filip Kostić vroegtijdig naar de kant te halen.",
+     "url": "https://www.ad.nl/voetbal/peter-bosz-zag-geen-geschikte-optie-om-carlos-forbs-af-te-stoppen-maar-hij-is-niet-alleen-het-verhaal-van-de-wedstrijd~a10c70f5/",
+     "publishedAt": "2026-11-05T05:42:59.000Z"
+    },
+    {
+     "id": "p518kc",
+     "kind": "article",
+     "source": "hln",
+     "sourceName": "Het Laatste Nieuws",
+     "title": "🎧 “Daar lachte Ivan Leko eens mee”: HLN Voetbalpodcast blikt terug op PSV-Club Brugge",
+     "summary": "Drie op een rij in de Champions League. En negen op negen. In een nieuwe HLN Voetbalpodcast blikt Yanko Beeckman terug op PSV-Club Brugge met onze chef voetbal Niels…",
+     "url": "https://www.hln.be/champions-league/daar-lachte-ivan-leko-eens-mee-hln-voetbalpodcast-blikt-terug-op-psv-club-brugge~af7665be/",
+     "publishedAt": "2026-11-05T05:39:10.000Z"
+    },
+    {
+     "id": "2dqsn1",
+     "kind": "article",
+     "source": "hln",
+     "sourceName": "Het Laatste Nieuws",
+     "title": "Bewogen moment tijdens 1-9 van Como tegen Lens: Nico Paz draagt doelpunt op aan overleden Jesús de Miguel",
+     "summary": "Dé spektakelmatch van deze Champions League-avond speelde zich af op de velden van Lens.",
+     "url": "https://www.hln.be/champions-league-en-europa-league/bewogen-moment-tijdens-1-9-van-como-tegen-lens-nico-paz-draagt-doelpunt-op-aan-overleden-jesus-de-miguel~a301dbaaa/",
+     "publishedAt": "2026-11-05T05:24:00.000Z"
+    },
+    {
+     "id": "7t2ck1",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Gebrek aan verschilmaker breekt PSV op: ‘Zijn individuele klasse kwijtgeraakt’",
+     "summary": "Alleen Sergiño Dest had woensdag al drie keer kunnen scoren voor PSV tegen Club Brugge in de Champions League.",
+     "url": "https://www.nu.nl/voetbal/6415539/gebrek-aan-verschilmaker-breekt-psv-op-zijn-individuele-klasse-kwijtgeraakt.html",
+     "publishedAt": "2026-11-05T05:02:18.000Z"
+    },
+    {
+     "id": "5jgwom",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Een zinnetje dat we niet mochten horen, zei alles: de turbosprint van fenomeen Forbs, die ‘amateuristisch’ PSV tonnen kritiek oplevert",
+     "summary": "Het was een blauwe flits in Eindhoven. Dankzij een waanzinnige sprint van Carlos Forbs greep Club Brugge gisteren de macht tegen PSV.",
+     "url": "https://sporza.be/nl/2026/11/05/een-zinnetje-dat-we-niet-mochten-horen-zei-alles-de-turbosprint-van-fenomeen-forbs-die-amateuristisch-psv-tonnen-kritiek-oplevert~1793837888325/",
+     "publishedAt": "2026-11-05T02:34:47.252Z"
+    },
+    {
+     "id": "1lh0cox",
+     "kind": "article",
+     "source": "rtl",
+     "sourceName": "RTL Nieuws",
+     "title": "PSV-coach Bosz zag geen geschikte optie om Forbs af te stoppen",
+     "summary": "PSV-trainer Peter Bosz overwoog in de thuiswedstrijd tegen Club Brugge in de Champions League (1-2) niet om Filip Kostić vroegtijdig naar de kant te halen.",
+     "url": "https://www.rtl.nl/nieuws/sport/artikel/5663048/psv-coach-bosz-zag-geen-geschikte-optie-om-forbs-af-te-stoppen",
+     "publishedAt": "2026-11-05T00:58:50.000Z"
+    },
+    {
+     "id": "1ocpdt",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "PSV op Rapport: één duidelijke dissonant op vervelende CL-avond tegen Club",
+     "summary": "PSV heeft woensdagavond een dreun moeten verwerken in de Champions League. Club Brugge bleek in Eindhoven te sterk : 1-2.",
+     "url": "https://www.vi.nl/nieuws/psv-op-rapport-een-duidelijke-dissonant-op-vervelende-cl-avond-tegen-club",
+     "publishedAt": "2026-11-05T00:40:37.000Z"
+    },
+    {
+     "id": "v069ca",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Bosz legt vinger op zere plek: ‘We kregen moeilijk grip op Forbs’",
+     "summary": "Peter Bosz vindt dat PSV de nederlaag tegen Club Brugge in de Champions League voor een groot deel aan zichzelf te wijten te heeft.",
+     "url": "https://www.vi.nl/video/bosz-legt-vinger-op-zere-plek-we-kregen-moeilijk-grip-op-forbs",
+     "publishedAt": "2026-11-05T00:17:56.000Z"
+    },
+    {
+     "id": "1ktjdhn",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "‘Open kansen missen is het verhaal van deze Champions League-campagne van PSV’",
+     "summary": "PSV wilde een resultaat tegen Club Brugge, maar stond na negentig minuten weer met lege handen. Ondanks een karrenvracht aan kansen.",
+     "url": "https://www.ad.nl/voetbal/open-kansen-missen-is-het-verhaal-van-deze-champions-league-campagne-van-psv~a42af5cd9/",
+     "publishedAt": "2026-11-05T00:08:00.000Z"
+    },
+    {
+     "id": "4rn699",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Ivan Leko ziet ‘casinovoetbal’ weer goed uitpakken en prikt terug: ‘Noem me maar naïef, maar ik heb plezier’",
+     "summary": "Rien ne va plus? In het casino van Ivan Leko lijkt zowat alles te lukken.",
+     "url": "https://sporza.be/nl/2026/11/05/ivan-leko-ziet-casinovoetbal-weer-goed-uitpakken-en-prikt-terug-noem-me-maar-naief-maar-ik-heb-plezier~1793833576803/",
+     "publishedAt": "2026-11-04T23:34:31.050Z"
+    },
+    {
+     "id": "97hf2l",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Why Iraola’s Liverpool are still a work in progress",
+     "summary": "Champions League analyst Stephen Warnock and Guillem Balague believe Liverpool’s defensive weaknesses combined with the experimentation of playing Bradley Barcola up…",
+     "url": "https://www.bbc.co.uk/sport/football/videos/c9rky37kx37lo?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T23:22:35.000Z"
+    },
+    {
+     "id": "n15gpm",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Bosz verklaart Champions League-nederlaag: ‘Kansen niet afmaken en geen grip op Forbs’",
+     "summary": "Voor PSV-coach Peter Bosz was de thuisnederlaag tegen Club Brugge in de Champions League (1-2) op twee manieren te verklaren.",
+     "url": "https://nos.nl/l/2638082",
+     "publishedAt": "2026-11-04T23:19:57.000Z"
+    },
+    {
+     "id": "6nvogp",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "‘De voorzitter zal blij zijn met de extra miljoentjes’: 4 (!) smaakmakers stelen show bij Club, dat nieuwe droom koestert",
+     "summary": "De MVP-trofee is een wisselbeker geworden bij Club Brugge. Tegen PSV speelden opnieuw heel wat smaakmakers zich in de kijker op het kampioenenbal.",
+     "url": "https://sporza.be/nl/2026/11/04/-de-voorzitter-zal-blij-zijn-met-de-extra-miljoentjes-4-smaakmakers-stelen-show-bij-club-dat-nieuwe-droom-koestert~1793825599935/",
+     "publishedAt": "2026-11-04T23:14:21.901Z"
+    },
+    {
+     "id": "1ws5byf",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Kos Karetsas loodst Dortmund met eerste goal naar zege en reageert goudeerlijk: ‘Mijn wissel? Ik zat net op toilet’",
+     "summary": "Uitgerekend in de Champions League heeft Konstantinos Karetsas (ex-Genk) getoond dat hij er weer helemaal staat.",
+     "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-champions-league/2026-2027/leaguefase/04/borussia-dortmund-real-betis-kos-karetsas-loodst-dortmund-met-eerste-goal-naar-zege-en-reageert-goudeerlijk-mijn-wissel-ik-zat-net-op-toilet~1781706843789/",
+     "publishedAt": "2026-11-04T23:11:52.115Z"
+    },
+    {
+     "id": "m046cd",
+     "kind": "article",
+     "source": "guardian-sport",
+     "sourceName": "The Guardian Sport",
+     "title": "Champions League: Como clobber Lens 9-1 after Real Madrid roar back to deny AEK Athens",
+     "summary": "Valverde hits late winner as Madrid win 3-2 in Athens Napoli thrashed by Porto, Club Brugge win at PSV Anastasios Douvikas led the rout with a hat-trick as Como cruised…",
+     "url": "https://www.theguardian.com/football/2026/nov/04/champions-league-roundup-aek-athens-real-madrid-borussia-dortmund-napoli",
+     "publishedAt": "2026-11-04T23:08:05.000Z"
+    },
+    {
+     "id": "lfp33h",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Bosz ziet waar het misging tegen Club Brugge: ‘Dat mag niet’",
+     "summary": "Volgens Peter Bosz speelde PSV een prima wedstrijd tegen Club Brugge, maar hield zijn ploeg daar uiteindelijk niets aan over.",
+     "url": "https://www.vi.nl/nieuws/bosz-ziet-waar-het-misging-tegen-club-brugge-dat-mag-niet",
+     "publishedAt": "2026-11-04T22:55:49.000Z"
+    },
+    {
+     "id": "1wfuk45",
+     "kind": "article",
+     "source": "telegraph",
+     "sourceName": "The Telegraph",
+     "title": "Gyokeres the creator and executioner to see nervous Arsenal past Slavia Prague",
+     "url": "https://www.telegraph.co.uk/football/2026/11/04/slavia-prague-vs-arsenal-score-and-updates-champions-league/",
+     "publishedAt": "2026-11-04T22:49:40.000Z"
+    },
+    {
+     "id": "1f5q72w",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Club Brugge bezorgt Nederland nieuwe dreun op coëfficiëntenlijst met zege op PSV",
+     "summary": "De nederlaag van PSV tegen Club Brugge bevestigt een trend: Nederland is voorbijgestreefd door België op de UEFA-coëfficiëntenlijst en voelt ook de hete adem van Turkije.",
+     "url": "https://www.vi.nl/nieuws/club-brugge-bezorgt-nederland-nieuwe-dreun-op-coefficientenlijst-met-zege-op-psv",
+     "publishedAt": "2026-11-04T22:46:36.000Z"
+    },
+    {
+     "id": "4v7ouf",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Como score nine to make Champions League history",
+     "summary": "Anastasios Douvikas scores a hat-trick as Como produce a stunning 9-1 away win over Lens on match day four, recording the biggest away win in Champions League history.",
+     "url": "https://www.bbc.co.uk/sport/football/videos/c6wyr8gzzr1zo?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T22:45:45.000Z"
+    },
+    {
+     "id": "1vfi8w0",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "PSV in cijfers: veel kansen, veel te weinig goals",
+     "summary": "PSV heeft woensdagavond een onnodige nederlaag geleden tegen Club Brugge in de Champions League. De Eindhovenaren gingen in eigen huis met 1-2 onderuit.",
+     "url": "https://www.vi.nl/pro/psv-in-cijfers-veel-kansen-veel-te-weinig-goals",
+     "publishedAt": "2026-11-04T22:43:59.000Z"
+    },
+    {
+     "id": "98seos",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Zelfs op top 8 maakt Club plots 41% kans: de situatie na speeldag 4, met blauw-zwart tussen Europese elite",
+     "summary": "Dankzij een 9 op 9 heeft Club Brugge zich naar de hoogste regionen van de League Phase gekatapulteerd.",
+     "url": "https://sporza.be/nl/2026/10/14/zelfs-op-top-8-maakt-club-plots-41-kans-de-situatie-na-speeldag-4-met-blauw-zwart-tussen-europese-elite~1792009142330/",
+     "publishedAt": "2026-11-04T22:40:02.680Z"
+    },
+    {
+     "id": "1rgu9q3",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Another ‘miracle’ in Istanbul – but this one hurt Liverpool",
+     "summary": "Liverpool conceded ‘cheap’ and ‘messy’ goals in their defeat by Fenerbahce, says boss Andoni Iraola, as former Reds hero Dirk Kuyt celebrates a ‘miracle’ in Istanbul.",
+     "url": "https://www.bbc.co.uk/sport/football/articles/cwx28z712rd8o?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T22:38:24.000Z"
+    },
+    {
+     "id": "joib6x",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Dest en Mauro Júnior leggen pijnpunt PSV bloot: ‘Niet goed georganiseerd’",
+     "summary": "PSV heeft de thuisnederlaag tegen Club Brugge te wijten aan een gebrekkige organisatie in de restdefensie. Dat was de conclusie van Mauro Júnior en Sergiño Dest.",
+     "url": "https://www.vi.nl/nieuws/dest-en-mauro-junior-leggen-pijnpunt-psv-bloot-niet-goed-georganiseerd",
+     "publishedAt": "2026-11-04T22:36:11.000Z"
+    },
+    {
+     "id": "n15gqn",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Como boekt grootste Champions League-zege ooit (1-9), Feyenoord-opponent Porto wint",
+     "summary": "Como heeft zich in de vierde speelronde van de competitiefase van de Champions League flink in de kijker gevoetbald.",
+     "url": "https://nos.nl/l/2638078",
+     "publishedAt": "2026-11-04T22:35:05.000Z"
+    },
+    {
+     "id": "q2texq",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Teleurstelling groot bij scorende Sano: ‘Ik voel niks op het moment’",
+     "summary": "PSV verloor in eigen huis van Club Brugge, ondanks dat het een hoop kansen bij elkaar speelde.",
+     "url": "https://www.vi.nl/video/teleurstelling-groot-bij-scorende-sano-ik-voel-niks-op-het-moment",
+     "publishedAt": "2026-11-04T22:24:00.000Z"
+    },
+    {
+     "id": "vudau6",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Speelwijze Bosz gefileerd na nederlaag tegen Club: ‘Dit is echt amateuristisch’",
+     "summary": "Theo Janssen en Boudewijn Zenden waren woensdagavond niet onder de indruk van het spelidee van Peter Bosz.",
+     "url": "https://www.vi.nl/nieuws/forse-kritiek-op-psv-bosz-heeft-het-heel-slecht-gedaan-vandaag",
+     "publishedAt": "2026-11-04T22:18:51.000Z"
+    },
+    {
+     "id": "1a887ps",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Haaland scores winner as Man City beat Leipzig",
+     "summary": "Erling Haaland scores the winning goal as Manchester City overcome being pegged back twice to beat RB Leipzig 3-2 on match day four of the UEFA Champions League group phase.",
+     "url": "https://www.bbc.co.uk/sport/football/videos/ckz65ey5q29zo?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T22:15:31.000Z"
+    },
+    {
+     "id": "1ct29ed",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Ongelooflijke uitslag: Como eerste ploeg in 55 jaar (toen Feyenoord) met negen goals in Europees uitduel",
+     "summary": "Como heeft in de vierde speelronde van de Champions League een recordzege geboekt bij RC Lens.",
+     "url": "https://www.ad.nl/voetbal/ongelooflijke-uitslag-como-eerste-ploeg-in-55-jaar-toen-feyenoord-met-negen-goals-in-europees-uitduel~a78f0b74/",
+     "publishedAt": "2026-11-04T22:15:00.000Z"
+    },
+    {
+     "id": "i227gu",
+     "kind": "article",
+     "source": "volkskrant",
+     "sourceName": "de Volkskrant",
+     "title": "Defensieve naïviteit breekt PSV op tegen Club Brugge (1-2)",
+     "summary": "Carlos Forbs is geen geweldige voetballer, maar zijn ontzagwekkende snelheid was te veel voor PSV.",
+     "url": "https://www.volkskrant.nl/sport/defensieve-naiviteit-breekt-psv-op-tegen-club-brugge-1-2~b5061f4a/",
+     "publishedAt": "2026-11-04T22:13:06.000Z"
+    },
+    {
+     "id": "17whkzx",
+     "kind": "article",
+     "source": "telegraaf",
+     "sourceName": "De Telegraaf",
+     "title": "Champions League: Arsenal dankt oud-PSV’er, Joey Veerman wint met Borussia Dortmund, Napoli hard onderuit",
+     "summary": "Arsenal heeft de derde zege geboekt in de leaguefase van de Champions League. De Engelse kampioen was met 2-1 te sterk bij Slavia Praag.",
+     "url": "https://www.telegraaf.nl/sport/voetbal/champions-league-arsenal-dankt-oud-psver-joey-veerman-wint-met-borussia-dortmund-napoli-hard-onderuit/164009065.html",
+     "publishedAt": "2026-11-04T22:12:00.000Z"
+    },
+    {
+     "id": "1hbg80r",
+     "kind": "article",
+     "source": "rtl",
+     "sourceName": "RTL Nieuws",
+     "title": "Timber wint in Champions League met Arsenal, Veerman met Dortmund",
+     "summary": "Arsenal heeft de derde zege geboekt in de leaguefase van de Champions League. De Engelse kampioen was met 2-1 te sterk bij Slavia Praag.",
+     "url": "https://www.rtl.nl/nieuws/sport/artikel/5663034/timber-wint-champions-league-met-arsenal-veerman-met-dortmund",
+     "publishedAt": "2026-11-04T22:10:52.000Z"
+    },
+    {
+     "id": "1tuds0n",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Arsenal survive late Slavia scare for hard-fought win",
+     "summary": "Arsenal earn their third win from four in the Champions League as goals from Noni Madueke and Victor Gyokeres are too much for Slavia Prague, despite a valiant late fight from the hosts to get back into the game.",
+     "url": "https://www.bbc.co.uk/sport/football/videos/cq4g1jwnzmyro?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T22:10:07.000Z"
+    },
+    {
+     "id": "11ctlws",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Club Brugge bezorgt PSV volgende Belgische kater in de Champions League",
+     "summary": "PSV heeft zich in de Champions League opnieuw verslikt in een Belgische tegenstander.",
+     "url": "https://www.vi.nl/nieuws/club-brugge-bezorgt-psv-volgende-belgische-kater-in-de-champions-league",
+     "publishedAt": "2026-11-04T22:06:42.000Z"
+    },
+    {
+     "id": "j3glc3",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Waarom PSV veel kansen creëerde, maar geen grip kreeg op Forbs",
+     "summary": "Club Brugge heeft gewonnen bij PSV: 1-2. De organisatie van de ploeg van Peter Bosz is niet sterk genoeg gebleken om Carlos Forbs te bedwingen.",
+     "url": "https://www.vi.nl/pro/analyse-psv-club-brugge-waarom-psv-veel-creeerde-maar-geen-grip-kreeg-op-forbs",
+     "publishedAt": "2026-11-04T22:05:58.000Z"
+    },
+    {
+     "id": "1ifknl5",
+     "kind": "article",
+     "source": "standaard",
+     "sourceName": "De Standaard",
+     "title": "Negen op twaalf in de Champions League: Club Brugge geeft ook PSV een les in efficiëntie",
+     "summary": "Club Brugge blijft maar winnen in de Champions League. Na de Franse vicekampioen Lens kreeg ook de Nederlandse titelhouder PSV een les in efficiëntie.",
+     "url": "https://www.standaard.be/sport/voetbal/negen-op-twaalf-in-de-champions-league-club-brugge-geeft-ook-psv-een-les-in-efficientie/164087285.html",
+     "publishedAt": "2026-11-04T22:05:35.000Z"
+    },
+    {
+     "id": "8p5uhj",
+     "kind": "article",
+     "source": "guardian-sport",
+     "sourceName": "The Guardian Sport",
+     "title": "Viktor Gyökeres the difference as Arsenal claim nervy win against Slavia Prague",
+     "summary": "Another European away day, another victory for Arsenal: albeit only just.",
+     "url": "https://www.theguardian.com/football/2026/nov/04/slavia-prague-arsenal-champions-league-match-report",
+     "publishedAt": "2026-11-04T22:05:11.000Z"
+    },
+    {
+     "id": "sfgxx5",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Liverpool crumble at Kuyt’s Fenerbahce",
+     "summary": "Liverpool are defeated by Turkish side Fenerbahce, who twice fought back from behind to seal a famous victory, ending the Reds’ perfect start to this year’s Champions League after four games.",
+     "url": "https://www.bbc.co.uk/sport/football/videos/cqy7ljmzx6d6o?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T22:04:16.000Z"
+    },
+    {
+     "id": "1xn2g40",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Valverde stunner earns Real Madrid late win at AEK Athens",
+     "summary": "Real Madrid continue their 100% start to their Champions League campaign with another late win, this time through captain Federico Valverde to inflict Athens’ third loss in a row.",
+     "url": "https://www.bbc.co.uk/sport/football/videos/ck7vpj0ggqr8o?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T22:04:13.000Z"
+    },
+    {
+     "id": "z1wxgb",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Bayern continue unbeaten CL start with win at Atletico",
+     "summary": "Bayern Munich continued their unbeaten start to the Champions League season with an assured 2-0 victory at Atletico Madrid.",
+     "url": "https://www.bbc.co.uk/sport/football/videos/cxm23ry19n9po?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-04T22:03:54.000Z"
+    },
+    {
+     "id": "1ex3vhh",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "PSV en Feyenoord zakken weg op ranglijst na slechte week, dit is het resterende programma",
+     "summary": "PSV en Feyenoord moeten vol aan de bak om zich te plaatsen voor de tussenronde van de Champions League.",
+     "url": "https://www.ad.nl/voetbal/psv-en-feyenoord-zakken-weg-op-ranglijst-na-slechte-week-dit-is-het-resterende-programma~a7ceca5d/",
+     "publishedAt": "2026-11-04T22:00:00.000Z"
+    },
+    {
+     "id": "1yfcjhb",
+     "kind": "article",
+     "source": "telegraaf",
+     "sourceName": "De Telegraaf",
+     "title": "Oud-FC Utrecht-spits Tasos Douvikas steelt de show bij negenklapper Como in Champions League",
+     "summary": "Como 1907 heeft in de Champions League keihard uitgehaald tegen RC Lens.",
+     "url": "https://www.telegraaf.nl/sport/voetbal/oud-fc-utrecht-spits-tasos-douvikas-steelt-de-show-bij-negenklapper-como-in-champions-league/164109039.html",
+     "publishedAt": "2026-11-04T21:55:32.000Z"
+    },
+    {
+     "id": "n15gqb",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "PSV lijdt ongelukkige Champions League-nederlaag tegen counterend Club Brugge",
+     "summary": "PSV heeft in de Champions League een ongelukkige thuisnederlaag geleden tegen Club Brugge: 1-2.",
+     "url": "https://nos.nl/l/2638074",
+     "publishedAt": "2026-11-04T21:54:20.000Z"
+    },
+    {
+     "id": "1gmltx6",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "PSV doet slechte zaken in Champions League met nederlaag tegen Club Brugge",
+     "summary": "PSV heeft woensdag een onnodige thuisnederlaag geleden tegen Club Brugge in de Champions League.",
+     "url": "https://www.nu.nl/voetbal/6415519/psv-doet-slechte-zaken-in-champions-league-met-nederlaag-tegen-club-brugge.html",
+     "publishedAt": "2026-11-04T21:54:01.000Z"
+    },
+    {
+     "id": "1q3jt26",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Frustrerende avond voor PSV: oud-Ajacied Forbs bezorgt Eindhovenaren dure nederlaag tegen Club Brugge",
+     "summary": "PSV heeft geen punten overgehouden aan het Champions League-thuisduel met Club Brugge.",
+     "url": "https://www.ad.nl/voetbal/frustrerende-avond-voor-psv-oud-ajacied-forbs-bezorgt-eindhovenaren-dure-nederlaag-tegen-club-brugge~ae3a62b0/",
+     "publishedAt": "2026-11-04T21:54:00.000Z"
+    },
+    {
+     "id": "m8omi3",
+     "kind": "article",
+     "source": "telegraaf",
+     "sourceName": "De Telegraaf",
+     "title": "Frustrerende nederlaag PSV tegen Club Brugge met een hoofdrol voor oud-Ajacied Carlos Forbs",
+     "summary": "PSV en Belgische tegenstanders blijft een ongelukkige combinatie.",
+     "url": "https://www.telegraaf.nl/sport/voetbal/frustrerende-nederlaag-psv-tegen-club-brugge-met-een-hoofdrol-voor-oud-ajacied-carlos-forbs/164071121.html",
+     "publishedAt": "2026-11-04T21:53:00.000Z"
+    },
+    {
+     "id": "z1n216",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Op verplaatsing lukt het maar niet: Napoli en De Bruyne slikken in Porto al 7e nederlaag in 8 CL-matchen buitenshuis",
+     "summary": "Oost, west, thuis best. Het dramatische rapport bij Europese verplaatsingen (1 op 24) blijft Napoli achtervolgen.",
+     "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-champions-league/2026-2027/leaguefase/04/fc-porto-napoli-op-verplaatsing-lukt-het-maar-niet-napoli-en-de-bruyne-slikken-in-porto-al-7e-nederlaag-in-8-cl-matchen-buitenshuis~1781706909042/",
+     "publishedAt": "2026-11-04T21:36:13.310Z"
+    },
+    {
+     "id": "j7cc5b",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Blijft Dirk Kuyt assistent-trainer bij Fenerbahçe? ‘Als de voorzitter en Emre het willen, blijf ik hier’",
+     "summary": "Dirk Kuyt weet niet of hij bij Fenerbahçe werkzaam blijft als assistent-trainer onder de nieuwe hoofdtrainer Emre Belözoglu.",
+     "url": "https://www.ad.nl/voetbal/blijft-dirk-kuyt-assistent-trainer-bij-fenerbahce-als-de-voorzitter-en-emre-het-willen-blijf-ik-hier~af63d6f3/",
+     "publishedAt": "2026-11-04T21:30:00.000Z"
+    },
+    {
+     "id": "c8mq0a",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Volgende ronde nu al bijna een feit: Club Brugge wint knipperlichtduel van PSV dankzij flits van Forbs en uitstekende Sommer",
+     "summary": "Waar eindigt deze campagne van Club Brugge?",
+     "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-champions-league/2026-2027/leaguefase/04/psv-club-brugge-volgende-ronde-nu-al-bijna-een-feit-club-brugge-wint-knipperlichtduel-van-psv-dankzij-flits-van-forbs-en-uitstekende-sommer~1781707208074/",
+     "publishedAt": "2026-11-04T21:29:44.174Z"
+    },
+    {
+     "id": "1bstc0n",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "1-9! Na nederlaag in Brugge gaat Lens nu helemaal met de billen bloot tegen Como, dat grootste CL-zege ooit evenaart",
+     "summary": "Het Champions League-verhaal van Lens wordt met de week pijnlijker.",
+     "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-champions-league/2026-2027/leaguefase/04/rc-lens-como-1-9-na-nederlaag-in-brugge-gaat-lens-nu-helemaal-met-de-billen-bloot-tegen-como-dat-grootste-cl-zege-ooit-evenaart~1781707445370/",
+     "publishedAt": "2026-11-04T21:29:05.426Z"
+    },
+    {
+     "id": "1y1zncm",
+     "kind": "article",
+     "source": "rtl",
+     "sourceName": "RTL Nieuws",
+     "title": "Kuijt verslaat Liverpool in laatste duel als coach van Fenerbahçe",
+     "summary": "Dirk Kuijt heeft woensdag in Istanbul zijn laatste wedstrijd als coach van Fenerbahçe met 3-2 gewonnen van Liverpool FC.",
+     "url": "https://www.rtl.nl/nieuws/sport/artikel/5663019/kuijt-verslaat-liverpool-laatste-duel-als-coach-van-fenerbahce",
+     "publishedAt": "2026-11-04T20:24:37.000Z"
+    },
+    {
+     "id": "11bdgcq",
+     "kind": "article",
+     "source": "rtl",
+     "sourceName": "RTL Nieuws",
+     "title": "PSV-spits Pepi begint ook tegen Club Brugge op reservebank",
+     "summary": "PSV’er Ricardo Pepi begint ook in de thuiswedstrijd tegen Club Brugge in het hoofdtoernooi van de Champions League op de reservebank.",
+     "url": "https://www.rtl.nl/nieuws/sport/artikel/5663017/psv-spits-pepi-begint-ook-tegen-club-brugge-op-reservebank",
+     "publishedAt": "2026-11-04T20:16:08.000Z"
+    },
+    {
+     "id": "1yl0fye",
+     "kind": "article",
+     "source": "guardian-sport",
+     "sourceName": "The Guardian Sport",
+     "title": "Muriqi caps Fenerbahce comeback to make Liverpool pay for defensive lapses",
+     "summary": "Andoni Iraola arrived in Istanbul seeking improvement from Liverpool’s attack but departed with sudden cause for concern at the opposite end of the pitch.",
+     "url": "https://www.theguardian.com/football/2026/nov/04/muriqi-caps-fenerbahce-comeback-to-make-liverpool-pay-for-defensive-lapses",
+     "publishedAt": "2026-11-04T19:58:13.000Z"
+    },
+    {
+     "id": "n15gny",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Kuijts Fenerbahçe stunt met zege op Liverpool, assist Dumfries bij Real Madrid",
+     "summary": "Fenerbahçe heeft onder leiding van interim-trainer Dirk Kuijt een knappe Champions League-zege geboekt op Liverpool, dat daarmee in de competitiefase z’n eerste nederlaag te slikken kreeg.",
+     "url": "https://nos.nl/l/2638068",
+     "publishedAt": "2026-11-04T19:55:43.000Z"
+    },
+    {
+     "id": "1300wb7",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "Dirk Kuyt flikt het! Fenerbahçe boekt tegen Liverpool eerste Champions League-zege sinds april 2008",
+     "summary": "Een memorabele avond voor Dirk Kuyt. De 46-jarige Katwijker heeft als interim-trainer van de Turkse topclub Fenerbahçe een 3-2 overwinning geboekt op zijn oude liefde…",
+     "url": "https://www.ad.nl/voetbal/dirk-kuyt-flikt-het-fenerbahce-boekt-tegen-liverpool-eerste-champions-league-zege-sinds-april-2008~a678f5ad/",
+     "publishedAt": "2026-11-04T19:44:00.000Z"
+    },
+    {
+     "id": "hpkvw3",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Dirk Kuijt stunt tegen oude liefde Liverpool in laatste duel als Fenerbahçe-coach",
+     "summary": "Dirk Kuijt heeft woensdag gestunt tegen zijn oude liefde Liverpool in zijn laatste wedstrijd als interim-coach van Fenerbahçe.",
+     "url": "https://www.nu.nl/voetbal/6415522/dirk-kuijt-stunt-tegen-oude-liefde-liverpool-in-laatste-duel-als-fenerbahce-coach.html",
+     "publishedAt": "2026-11-04T19:38:57.000Z"
+    },
+    {
+     "id": "1g4auj5",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Vervanger van Lukaku doet het: Fenerbahçe smeert Liverpool eerste nederlaag in Champions League aan",
+     "summary": "De eerste overwinning voor Fenerbahçe in de Champions League, de eerste nederlaag voor Liverpool.",
+     "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-champions-league/2026-2027/leaguefase/04/fenerbahce-liverpool-vervanger-van-lukaku-doet-het-fenerbahce-smeert-liverpool-eerste-nederlaag-in-champions-league-aan~1781707511896/",
+     "publishedAt": "2026-11-04T19:38:32.491Z"
+    },
+    {
+     "id": "1mf6wz7",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Dan toch weer een remontada: raket van Valverde redt Real in Athene, ex-STVV’er ziet heldenrol in rook opgaan",
+     "summary": "Moeten we hen stilaan de koning van de remontada’s noemen? Real Madrid heeft diep in het slot alweer een scheve situatie omgekeerd in de Champions League.",
+     "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-champions-league/2026-2027/leaguefase/04/aek-athene-real-madrid-dan-toch-weer-een-remontada-raket-van-valverde-redt-real-in-athene-ex-stvv-er-ziet-heldenrol-in-rook-opgaan~1788019264384/",
+     "publishedAt": "2026-11-04T19:19:47.099Z"
+    },
+    {
+     "id": "1uzyto4",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Ongeslagen status in Youth League is weg: zoon van Van Nistelrooij nekt youngsters van Club diep in slotfase",
+     "summary": "Club Brugge is opnieuw de Belgische vertegenwoordiger in de Youth League, de grootste Europese competitie voor U19-ploegen.",
+     "url": "https://sporza.be/nl/2026/09/08/ongeslagen-status-in-youth-league-is-weg-zoon-van-van-nistelrooij-nekt-youngsters-van-club-diep-in-slotfase~1788870627086/",
+     "publishedAt": "2026-11-04T15:37:40.151Z"
+    },
+    {
+     "id": "n1i8wp",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Ondanks nieuwe trainer en intense emoties weet Kuijt zeker: ‘Ik wil bij Fener blijven’",
+     "summary": "‘Eén ding weet ik zeker: ik wil hier graag blijven’, zei Dirk Kuijt dinsdagavond tegen de NOS.",
+     "url": "https://nos.nl/l/2637978",
+     "publishedAt": "2026-11-04T07:23:54.000Z"
+    },
+    {
+     "id": "n1i8wi",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Van Bronckhorst baalt na vuurwerk van buiten De Kuip: ‘Zal wel weer een boete worden’",
+     "summary": "Feyenoord-trainer Giovanni van Bronckhorst baalt ervan dat het Champions League-duel van dinsdagavond werd stilgelegd door vuurwerk.",
+     "url": "https://nos.nl/l/2637973",
+     "publishedAt": "2026-11-04T06:44:17.000Z"
+    },
+    {
+     "id": "n1i8xd",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Oog voor talent, zwaardere competitie: waarom Belgische clubs het beter doen dan Nederlandse",
+     "summary": "Belgische clubs winnen de laatste jaren veel vaker van Nederlandse tegenstanders dan andersom.",
+     "url": "https://nos.nl/l/2637961",
+     "publishedAt": "2026-11-04T05:31:05.000Z"
+    },
+    {
+     "id": "n1i8z4",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Zeperd tegen ‘veel sterker’ Inter komt bij Feyenoord ‘harder aan dan 5-1 in Barcelona’",
+     "summary": "Fris, gretig en dominant. Zo oogde Feyenoord in het vorige Champions League-duel voor eigen publiek. In De Kuip werd Como met 3-1 aan de kant gezet.",
+     "url": "https://nos.nl/l/2637942",
+     "publishedAt": "2026-11-03T23:07:00.000Z"
+    }
+   ]
+  },
+  {
+   "dagdeel": "2026-11-06-ochtend-0825Z",
+   "now": "2026-11-06T08:20:19.433Z",
+   "stories": [
+    {
+     "id": "s1qzuakj",
+     "leadId": "m881jg",
+     "itemIds": [
+      "m881jg",
+      "1y1kvro",
+      "tobmom",
+      "n15fy5",
+      "h6595x",
+      "1y4uaos",
+      "2t6xhd",
+      "n15fud",
+      "1j9q979",
+      "11c5sbp",
+      "n15frr"
+     ]
+    },
+    {
+     "id": "sku4a8j",
+     "leadId": "1s9dj2c",
+     "itemIds": [
+      "1y06zod",
+      "17h2ms5",
+      "10xlgxj",
+      "64wf6o",
+      "1n43qgd",
+      "3zo334",
+      "s56gt8",
+      "1qyox2a",
+      "n15i9c",
+      "1s9dj2c",
+      "jci6xs",
+      "n15i6s",
+      "1lo9k5w",
+      "1e245so"
+     ]
+    }
+   ],
+   "items": [
+    {
+     "id": "m881jg",
+     "kind": "article",
+     "source": "hln",
+     "sourceName": "Het Laatste Nieuws",
+     "title": "“Weinig spelers hebben zo’n indruk achtergelaten”: Cristiano Ronaldo krijgt boodschap van… Gianni Infantino (al zat hij daar wellicht niet op te wachten)",
+     "summary": "Een persoonlijke boodschap van de grote FIFA-baas. Cristiano Ronaldo (41) trok donderdag definitief de deur van de Portugese nationale ploeg achter zich dicht.",
+     "url": "https://www.hln.be/buitenlands-voetbal/weinig-spelers-hebben-zon-indruk-achtergelaten-cristiano-ronaldo-krijgt-boodschap-van-gianni-infantino-al-zat-hij-daar-wellicht-niet-op-te-wachten~ab75a7b5/",
+     "publishedAt": "2026-11-06T06:37:27.000Z"
+    },
+    {
+     "id": "1y1kvro",
+     "kind": "article",
+     "source": "telegraaf",
+     "sourceName": "De Telegraaf",
+     "title": "Zus Cristiano Ronaldo komt met mysterieuze boodschap: ’Morgen worden dingen duidelijker’",
+     "summary": "Katia Aveiro, de zus van Cristiano Ronaldo, heeft op Instagram gereageerd op het pensioen van haar broer bij het Portugese nationale elftal.",
+     "url": "https://www.telegraaf.nl/sport/voetbal/zus-cristiano-ronaldo-komt-met-mysterieuze-boodschap-morgen-worden-dingen-duidelijker/164169858.html",
+     "publishedAt": "2026-11-06T06:16:40.000Z"
+    },
+    {
+     "id": "tobmom",
+     "kind": "article",
+     "source": "standaard",
+     "sourceName": "De Standaard",
+     "title": "Cristiano Ronaldo was tot een bitter interlandafscheid gedoemd",
+     "summary": "Na 23 jaar dienst, 234 opdrachten en 146 voltreffers, zet Cristiano Ronaldo (41) een punt achter zijn interlandcarrière.",
+     "url": "https://www.standaard.be/sport/voetbal/cristiano-ronaldo-was-tot-een-bitter-interlandafscheid-gedoemd/164161741.html",
+     "publishedAt": "2026-11-05T22:59:00.000Z"
+    },
+    {
+     "id": "n15fy5",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "‘Spelen voor Portugal was voor Ronaldo egostrelend, daarom kon hij het niet loslaten’",
+     "summary": "Het besluit van Cristiano Ronaldo om een punt te zetten achter zijn interlandcarrière is een verstandig besluit, zo vinden Rafael van der Vaart en Khalid Boulahrouz.",
+     "url": "https://nos.nl/l/2638195",
+     "publishedAt": "2026-11-05T18:16:49.000Z"
+    },
+    {
+     "id": "h6595x",
+     "kind": "article",
+     "source": "espn",
+     "sourceName": "ESPN",
+     "title": "Ronaldo retired from Portugal duty after (another) row with his coach",
+     "summary": "Cristiano Ronaldo has retired from international soccer with Portugal after being benched by coach Jorge Jesus. It is far from the first high-profile row of his career.",
+     "url": "https://www.espn.com/soccer/story/_/id/50075485/cristiano-ronaldo-long-history-rows-portugal-manchester-united-real-madrid-juventus-coaches",
+     "publishedAt": "2026-11-05T15:12:15.000Z"
+    },
+    {
+     "id": "1y4uaos",
+     "kind": "article",
+     "source": "espn",
+     "sourceName": "ESPN",
+     "title": "Ronaldo’s Portugal career ended in shame, but at his peak he was a dominant force",
+     "summary": "Though his national team career finished in parody and mockery, we should remember Cristiano Ronaldo for what he was at his peak: an almost unstoppable player for his country.",
+     "url": "https://www.espn.com/soccer/story/_/id/50387949/cristiano-ronaldo-portugal-retirement-reaction-analysis-euro-2016-fifa-world-cup",
+     "publishedAt": "2026-11-05T15:12:15.000Z"
+    },
+    {
+     "id": "2t6xhd",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "A bitter end for Ronaldo – the icon who transformed Portugal",
+     "summary": "As Cristiano Ronaldo retires from international football, Guillem Balague looks at why and what is next for the Portugal legend.",
+     "url": "https://www.bbc.co.uk/sport/football/articles/ckn9rwr2zzpvo?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-05T14:29:40.000Z"
+    },
+    {
+     "id": "n15fud",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Portugees icoon Ronaldo was onstuitbare doelpuntenmachine wiens ster langzaam doofde",
+     "summary": "Van een dribbelaar met twee diamanten oorbellen en geblondeerde kuif tot ontstuitbare doelpuntenmachine.",
+     "url": "https://nos.nl/l/2638151",
+     "publishedAt": "2026-11-05T13:46:27.000Z"
+    },
+    {
+     "id": "1j9q979",
+     "kind": "article",
+     "source": "bbc-sport",
+     "sourceName": "BBC Sport",
+     "title": "Six tournaments, 11 goals – Ronaldo’s World Cup legacy",
+     "summary": "Portugal legend Cristiano Ronaldo retires from international football having scored 146 goals and 234 caps for his country.",
+     "url": "https://www.bbc.co.uk/sport/football/videos/cwr5y0yj716do?at_medium=RSS&at_campaign=rss",
+     "publishedAt": "2026-11-05T13:15:21.000Z"
+    },
+    {
+     "id": "11c5sbp",
+     "kind": "article",
+     "source": "dw",
+     "sourceName": "Deutsche Welle",
+     "title": "Cristiano Ronaldo announces retirement from international football",
+     "summary": "The announcement by the footballing legend comes just weeks after a public spat with Portugal coach Jorge Jesus over playing time.",
+     "url": "https://www.dw.com/en/cristiano-ronaldo-announces-retirement-from-international-football/a-79864361?maca=en-rss-en-all-1573-rdf",
+     "publishedAt": "2026-11-05T11:52:00.000Z"
+    },
+    {
+     "id": "n15frr",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Cristiano Ronaldo (41) stopt als Portugees international: ‘Tijd gekomen om nummer 7 terug te geven’",
+     "summary": "Cristiano Ronaldo keert niet meer terug bij de Portugese nationale ploeg.",
+     "url": "https://nos.nl/l/2638124",
+     "publishedAt": "2026-11-05T10:36:27.000Z"
+    },
+    {
+     "id": "1y06zod",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Portugal is de kwelduivel: België kent alweer topweek met Europese coëfficiënt, maar dat levert weinig op",
+     "summary": "Voor de tweede Europese week op rij het op één na beste land.",
+     "url": "https://sporza.be/nl/2026/11/06/portugal-is-de-kwelduivel-belgie-kent-alweer-topweek-met-europese-coefficient-maar-dat-levert-weinig-op~1793949259439/",
+     "publishedAt": "2026-11-06T08:04:05.797Z"
+    },
+    {
+     "id": "17h2ms5",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Baas-experiment bij Ajax pakt goed uit: ‘Iedereen weet wat mijn beste positie is’",
+     "summary": "Met Youri Baas als controlerende middenvelder won Ajax donderdagavond met ruime cijfers van FC Midtjylland in de Conference League.",
+     "url": "https://www.vi.nl/nieuws/baas-hoorde-dag-voor-de-wedstrijd-van-nieuwe-positie-hij-gaf-een-kleine-hint",
+     "publishedAt": "2026-11-06T07:37:21.000Z"
+    },
+    {
+     "id": "10xlgxj",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Van den Brom lyrisch over Twente-uitblinker: ‘Hij is achttien jaar, hè’",
+     "summary": "FC Twente heeft ook de derde wedstrijd in de competitiefase van de Conference League gewonnen .",
+     "url": "https://www.vi.nl/nieuws/van-den-brom-lyrisch-over-twente-uitblinker-hij-is-achttien-jaar-he",
+     "publishedAt": "2026-11-06T00:09:08.000Z"
+    },
+    {
+     "id": "64wf6o",
+     "kind": "article",
+     "source": "vi",
+     "sourceName": "Voetbal International",
+     "title": "Míchel sluit niet uit dat Amrabat en Brandt aanwezig zijn tegen FC Twente",
+     "summary": "Ajax beleefde tegen Midtjylland een zorgeloze avond in de Conference League . In de tweede helft liepen de Amsterdammers uit naar een riante zege.",
+     "url": "https://www.vi.nl/video/michel-sluit-niet-uit-dat-amrabat-en-brandt-aanwezig-zijn-tegen-fc-twente",
+     "publishedAt": "2026-11-05T23:48:13.000Z"
+    },
+    {
+     "id": "1n43qgd",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "AD Voetbalpodcast | ‘Owen Wijndal was de gangmaker van de Ajax-feestavond in Denemarken’",
+     "summary": "Ajax, NEC en FC Twente kenden een uitstekende Europese avond.",
+     "url": "https://www.ad.nl/voetbal/ad-voetbalpodcast-owen-wijndal-was-de-gangmaker-van-de-ajax-feestavond-in-denemarken~a42af5cd9/",
+     "publishedAt": "2026-11-05T23:44:00.000Z"
+    },
+    {
+     "id": "3zo334",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "FC Twente draait het na rust om tegen Pafos en blijft foutloos in Conference League",
+     "summary": "FC Twente is na drie speelrondes nog altijd zonder puntenverlies in de Conference League.",
+     "url": "https://www.ad.nl/voetbal/fc-twente-draait-het-na-rust-om-tegen-pafos-en-blijft-foutloos-in-conference-league~ac5e84da/",
+     "publishedAt": "2026-11-05T22:53:00.000Z"
+    },
+    {
+     "id": "s56gt8",
+     "kind": "article",
+     "source": "ad",
+     "sourceName": "AD",
+     "title": "FC Twente mede aan kop in Conference League, ook Ajax doet goede zaken, NEC voorbij AZ op ranglijst Europa League",
+     "summary": "Drie Nederlandse clubs wonnen donderdag in Europees verband.",
+     "url": "https://www.ad.nl/voetbal/fc-twente-mede-aan-kop-in-conference-league-ook-ajax-doet-goede-zaken-nec-voorbij-az-op-ranglijst-europa-league~a1e478e4/",
+     "publishedAt": "2026-11-05T22:02:00.000Z"
+    },
+    {
+     "id": "1qyox2a",
+     "kind": "article",
+     "source": "rtl",
+     "sourceName": "RTL Nieuws",
+     "title": "FC Twente neemt na rust afstand van Pafos en wint ook derde duel",
+     "summary": "FC Twente is ook na drie wedstrijden in het hoofdtoernooi van de Conference League nog zonder puntenverlies.",
+     "url": "https://www.rtl.nl/nieuws/sport/artikel/5663312/fc-twente-neemt-na-rust-afstand-van-pafos-en-wint-ook-derde-duel",
+     "publishedAt": "2026-11-05T21:57:24.000Z"
+    },
+    {
+     "id": "n15i9c",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Twente blijft foutloos in Conference League dankzij thuiszege op Pafos",
+     "summary": "FC Twente is dankzij een 3-1 zege op het Cypriotische Pafos FC nog altijd foutloos in de competitiefase van de Conference League.",
+     "url": "https://nos.nl/l/2638213",
+     "publishedAt": "2026-11-05T21:54:40.000Z"
+    },
+    {
+     "id": "1s9dj2c",
+     "kind": "article",
+     "source": "volkskrant",
+     "sourceName": "de Volkskrant",
+     "title": "Ajax beleeft heerlijke avond bij FC Midtjylland: ruime zege (1-6) en scorende spitsen",
+     "summary": "Ajax was voor rust al beter dan FC Midtjylland, maar drukte dat met een man meer pas in de tweede helft dubbel en dwars uit.",
+     "url": "https://www.volkskrant.nl/sport/ajax-beleeft-heerlijke-avond-bij-fc-midtjylland-ruime-zege-1-6-en-scorende-spitsen~b48b78b2/",
+     "publishedAt": "2026-11-05T20:29:00.000Z"
+    },
+    {
+     "id": "jci6xs",
+     "kind": "article",
+     "source": "parool",
+     "sourceName": "Het Parool",
+     "title": "Ajax walst na rust over tiental Midtjylland heen en boekt tweede zege in Conference League",
+     "summary": "Na het gewonnen duel met Atalanta (2-0) staat er voor Ajax opnieuw een pittig potje op het programma.",
+     "url": "https://www.parool.nl/sport/ajax-walst-na-rust-over-tiental-midtjylland-heen-en-boekt-tweede-zege-in-conference-league~b0b8dc34/",
+     "publishedAt": "2026-11-05T20:12:00.000Z"
+    },
+    {
+     "id": "n15i6s",
+     "kind": "article",
+     "source": "nos-sport",
+     "sourceName": "NOS Sport",
+     "title": "Arokodare leidt Ajax naar ruime zege op tiental Midtjylland, ook Leonardo scoort",
+     "summary": "Ajax heeft in de Conference League een ruime 1-6 zege geboekt op FC Midtjylland.",
+     "url": "https://nos.nl/l/2638206",
+     "publishedAt": "2026-11-05T19:52:02.000Z"
+    },
+    {
+     "id": "1lo9k5w",
+     "kind": "article",
+     "source": "nu",
+     "sourceName": "NU.nl",
+     "title": "Ajax boekt grootste Europese uitzege sinds 2000 na rode kaart Midtjylland",
+     "summary": "Ajax heeft donderdag een klinkende uitzege op FC Midtjylland in de Conference League geboekt.",
+     "url": "https://www.nu.nl/voetbal/6415648/ajax-boekt-grootste-europese-uitzege-sinds-2000-na-rode-kaart-midtjylland.html",
+     "publishedAt": "2026-11-05T19:50:57.000Z"
+    },
+    {
+     "id": "1e245so",
+     "kind": "article",
+     "source": "sporza",
+     "sourceName": "Sporza",
+     "title": "Even bezinnen voor de Buffalo’s: Gent gunt zichzelf geen goal tegen KuPS en loopt zo overbodig puntenverlies op in Europa",
+     "summary": "Dit zal KAA Gent zich toch beklagen. Tegen het bescheiden KuPS kregen de Buffalo’s een gouden kans om zichzelf nog eens vanouds een vertrouwensboost te geven, maar de…",
+     "url": "https://sporza.be/nl/matches/voetbal/eur/uefa-conference-league/2026-2027/leaguefase/03/kups-kaa-gent-even-bezinnen-voor-de-buffalo-s-gent-gunt-zichzelf-geen-goal-tegen-kups-en-loopt-zo-overbodig-puntenverlies-op-in-europa~1781705892878/",
+     "publishedAt": "2026-11-05T19:39:33.539Z"
+    }
+   ]
+  }
+ ],
+ "episodes": [
+  {
+   "id": "e1fh2xbs",
+   "show": "vi-zsm",
+   "titel": "De onwerkelijke week van Carrick: 'Zo groot is de shitshow bij Man Utd'",
+   "samenvatting": "In de nieuwe aflevering gaan Tim Tempelaars en Jarno Verweij uitgebreid in op de chaos bij Manchester United. Verder ook aandacht voor Justin Kluivert en Cambuur-aanvaller Ilyes Hamache. See omnystudio.com/listener for privacy information.",
+   "t": 1794438300000,
+   "guid": "50851928-8186-4d26-911d-b4ff01673161",
+   "duur": 1388,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/de-onwerkelijke-week-van-carrick-zo-groot-is-de-shitshow-bij-man-utd"
+  },
+  {
+   "id": "e1udfirh",
+   "show": "vi-zsm",
+   "titel": "Interessant experiment: een middenveld met Frenkie en Veerman?",
+   "samenvatting": "In de nieuwe aflevering van VI ZSM bespreken Ton Molenaar en Dave Aalbers de laatste ontwikkelingen rondom het Nederlands elftal, met speciale aandacht voor Frenkie de Jong, Joey Veerman, Virgil van Dijk en Sepp van den Berg. Verder ook aandacht voor Etienne Vaessen, Michael Carrick en het schakelprogramma van de KKD. See omnystudio.com/listener for privacy information.",
+   "t": 1794373200000,
+   "guid": "d7cf020c-a63e-40fc-ad4d-b4fe0173a753",
+   "duur": 1118,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/interessant-experiment-een-middenveld-met-frenkie-en-veerman"
+  },
+  {
+   "id": "e1uhlonj",
+   "show": "vi-zsm",
+   "titel": "‘Frenkie de Jong komt dankzij Xavi in warm bad bij Oranje’",
+   "samenvatting": "In de ZSM bespreken Arjan van den IJssel en Bart Frouws het nieuws dat Maurice Steijn de nieuwe trainer wordt van ADO Den Haag. Geen verrassing, maar qua speelstijl wel een bijzondere keuze na Robin Peter. Oranje is bijeengekomen in Zeist voor de Nations League-duels met Griekenland en Duitsland. Virgil van Dijk en Brian Brobbey haakten af en worden vooralsnog niet vervangen.",
+   "t": 1794286800000,
+   "guid": "db4e60c4-2f0a-43e7-8140-b4fd0153a96f",
+   "duur": 741,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/frenkie-de-jong-komt-dankzij-xavi-in-warm-bad-bij-oranje"
+  },
+  {
+   "id": "e1jyvhgr",
+   "show": "vi-zsm",
+   "titel": "Waarom zou FC Twente niet mee kunnen doen om de titel?",
+   "samenvatting": "In de nieuwe aflevering van VI ZSM blikken Pieter Zwart en Jarno Verweij uitgebreid terug op de Eredivisie-wedstrijden van zondag, met speciale aandacht voor PSV, Feyenoord, Ajax, FC Twente en AZ. See omnystudio.com/listener for privacy information.",
+   "t": 1794200400000,
+   "guid": "cea0de90-514f-4959-b3ca-b4fc017a65a9",
+   "duur": 1729,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/waarom-zou-fc-twente-niet-mee-kunnen-doen-om-de-titel"
+  },
+  {
+   "id": "e6hsfcp",
+   "show": "vi-zsm",
+   "titel": "'Danny Buijs haalt het maximale uit zijn selectie'",
+   "samenvatting": "In de nieuwe aflevering van VI ZSM blikken Geert-Jan Jakobs en Jarno Verweij terug op de Eredivisie-wedstrijden van zaterdagavond. Verder blikken de heren ook vooruit op FC Twente-Ajax. See omnystudio.com/listener for privacy information.",
+   "t": 1794114000000,
+   "guid": "58891f63-31cf-4789-80a7-b4fb017c99a5",
+   "duur": 1198,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/danny-buijs-haalt-het-maximale-uit-zijn-selectie"
+  },
+  {
+   "id": "etd3vh3",
+   "show": "vi-zsm",
+   "titel": "Weghorst vs. Tolu: maakt Twente het Ajax wéér lastig? | Scorebordjournalistiek",
+   "samenvatting": "In deze aflevering van Scorebordjournalistiek duiken cijferman Bart Frouws en presentator Kalum van Oudheusden in de cijfers richting de aankomende speelronde. Daarin wordt uitgebreid vooruitgeblikt op de wedstrijden ADO Den Haag- Sparta, FC Twente - Ajax en FC Utrecht tegen NEC. 0:00 ADO - Sparta 7:37 FC Twente - Ajax 17:35 FC Utrecht - NEC See omnystudio.com/listener for privacy information.",
+   "t": 1794049649000,
+   "guid": "b5e3febe-f9bb-4c83-9623-b4fb00b682e9",
+   "duur": 1457,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/weghorst-vs-tolu-maakt-twente-het-ajax-w-r-lastig-scorebordjournalistiek"
+  },
+  {
+   "id": "ertzkkl",
+   "show": "vi-zsm",
+   "titel": "Ronaldo stopt en Ajax wint wéér: 'Huntelaar-vibes bij zien Tolu'",
+   "samenvatting": "In deze aflevering van VI ZSM bespreken Ton Molenaar en Jos Boesveld het afscheid van Cristiano Ronaldo bij Portugal &eacute;n de Europese avond van de Nederlandse clubs. Ajax maakt indruk met een ruime overwinning op FC Midtjylland, NEC draait een achterstand om en FC Twente boekt eveneens een belangrijke zege. AZ moet ondanks een sterke tweede helft zijn meerdere erkennen in Juventus.",
+   "t": 1793941200000,
+   "guid": "5ab4e721-0c7d-43e1-8040-b4f90179bc23",
+   "duur": 1072,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/ronaldo-stopt-en-ajax-wint-w-r-huntelaar-vibes-bij-zien-tolu"
+  },
+  {
+   "id": "eh3jw8w",
+   "show": "vi-zsm",
+   "titel": "Casino-voetbal PSV risicovol: 'Maar het heeft ze ook veel opgeleverd'",
+   "samenvatting": "In de nieuwe aflevering van VI ZSM blikken Marco Timmer en Kalum van Oudheusden uitgebreid terug op het Champions League-duel tussen PSV en Club Brugge, met extra aandacht voor Filip Kostic, Sergi&ntilde;o Dest en de spitspositie. See omnystudio.com/listener for privacy information.",
+   "t": 1793836879000,
+   "guid": "e47126e9-aca9-435f-9fc5-b4f801872dc4",
+   "duur": 778,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/casino-voetbal-psv-risicovol-maar-het-heeft-ze-ook-veel-opgeleverd"
+  },
+  {
+   "id": "ek1qh6k",
+   "show": "vi-zsm",
+   "titel": "Tandenloos Feyenoord verliest van Inter: 'Zeer teleurstellend'",
+   "samenvatting": "In deze aflevering van VI ZSM bespreekt Bas van den Hoven samen met presentator Kalum van Oudheusden de Champions League-wedstrijden van de dinsdagavond. Daarop kwam onder meer Feyenoord in actie, dat met duidelijke cijfers verloor in eigen huis van Internazionale. Uiteraard ook aandacht voor de andere wedstrijden in het Miljardenbal.",
+   "t": 1793746800000,
+   "guid": "2d7c51a8-9657-4ee1-8470-b4f701774836",
+   "duur": 1281,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/tandeloos-feyenoord-verliest-van-inter-zeer-teleurstellend"
+  },
+  {
+   "id": "e1h25x13",
+   "show": "vi-zsm",
+   "titel": "'Kolkende Kuip moet Feyenoord aan drie punten helpen'",
+   "samenvatting": "In de ZSM van dinsdag 3 november bespreken Bart Kruijt en Bart Frouws het ontslag van Robin Peter bij ADO Den Haag. De 39-jarige Duitser is al de derde Eredivisie-trainer die de laan uit wordt gestuurd dit jaar. Ook een vooruitblik op de Champions League-wedstrijd van Feyenoord van vanavond tegen Inter. Een belangrijk duel voor de kansen van de Rotterdammers om de volgende ronde te halen.",
+   "t": 1793682000000,
+   "guid": "0458538d-e3be-487c-9011-b4f601678151",
+   "duur": 935,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/kolkende-kuip-moet-feyenoord-aan-drie-punten-helpen"
+  },
+  {
+   "id": "e18y5zgh",
+   "show": "vi-zsm",
+   "titel": "'Weghorst doet dingen die je niet van hem verwacht'",
+   "samenvatting": "De historische 0-9 overwinning van FC Twente tegen Excelsior wordt natuurlijk besproken in een nieuwe VI ZSM met Pieter Zwart en Matthijs Vegter. Wout Weghorst scoorde liefst vier keer: is er nog perspectief voor de spits bij Oranje?",
+   "t": 1793595600000,
+   "guid": "2294a62b-6148-4e50-822a-b4f5014367cc",
+   "duur": 1216,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/weghorst-doet-dingen-die-je-niet-van-hem-verwacht"
+  },
+  {
+   "id": "eficr6a",
+   "show": "vi-zsm",
+   "titel": "Ajax doet uitstekende zaken na domper Feyenoord: 'Titelkandidaat, maar geen favoriet'",
+   "samenvatting": "Een zaterdag vol voetbal wordt uitgebreid nabesproken in VI ZSM door Lentin Goodijk en Kalum van Oudheusden. Vanuit de Johan Cruijff Arena komt natuurlijk de 1-0 overwinning van Ajax op AZ aan bod, maar het gaat in deze aflevering ook over de wedstrijden van koploper Feyenoord, PSV en meer.",
+   "t": 1793508862000,
+   "guid": "5456ae42-fbdc-4663-932c-b4f5004cb165",
+   "duur": 1269,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/ajax-doet-uitstekende-zaken-en-nadert-feyenoord-tot-een-punt"
+  },
+  {
+   "id": "e186bz2b",
+   "show": "vi-zsm",
+   "titel": "Ajax - AZ: ploeg met minste balbezit wint",
+   "samenvatting": "Cijferman Bart Frouws en presentator Sjoerd Keizer blikken in Scorebordjournalistiek vooruit op speelronde 11 van de Eredivisie! Deze week bespreken de mannen Ajax - AZ, Willem II en Sparta. 00:00 Willem II 08:00 Ajax - AZ (met nadruk op AZ) 15:00 Sparta Rotterdam See omnystudio.com/listener for privacy information.",
+   "t": 1793422800000,
+   "guid": "7f29ed2b-54a5-4ba3-886b-b4f300d3070a",
+   "duur": 1461,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/ajax-az-ploeg-met-minste-balbezit-wint"
+  },
+  {
+   "id": "emv19ch",
+   "show": "vi-zsm",
+   "titel": "'Theo Janssen zou een aanwinst zijn voor de Eredivisie'",
+   "samenvatting": "Het was ook donderdag weer raak in de eerste ronde van de KNVB Beker. De amateurs van De Treffers schakelden onder leiding van trainer Theo Janssen de koplopver van de Keuken Kampioen Divisie uit: namelijk Heracles Almelo. Verslaggever Dave Aalbers en Ton Molenaar bespreken het in VI ZSM. Uiteraard komen ook andere wedstrijden aan bod.",
+   "t": 1793344856000,
+   "guid": "c9640990-fbf7-471c-973f-b4f2018046a1",
+   "duur": 1090,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/theo-janssen-zou-een-aanwinst-zijn-voor-de-eredivisie"
+  }
+ ]
+}
