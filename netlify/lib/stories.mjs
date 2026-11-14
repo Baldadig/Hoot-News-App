@@ -1618,6 +1618,8 @@ const familyRelated = (a, b) => !!a.vote && a.vote === b.vote
 // Zet op elke verhaalkandidaat `fam` (de familie-id, het id van het hoofd) en `vote` (stembusplaats of null);
 // het hoofd krijgt `famPubs` (alle uitgevers). Ook `voteFrom`: per stembusplaats het uitslagmoment van de
 // grootste uitslag. Uitvoer: { extra(c) } met de extra uitgevers voor het gewicht.
+// De extra uitgevers van een familie voor het gewicht van het hoofd: begrensd met de landenregel, net als de drempel.
+export const familyBonus = (own, all) => countedPublishers(all) - countedPublishers(own)
 function families(cands) {
   const stories = cands.filter((c) => c.kind === 'story')
   const voteFrom = new Map()
@@ -1649,8 +1651,11 @@ function families(cands) {
     }
     // De landenregel (countedPublishers, shared/edition-policy.mjs) telt ook hier: de familie van een binnenlands verhaal van
     // één buitenlands land haalt FRONT_BIG niet door het aantal uitgevers van dat land in de catalogus.
-    const total = pubsOf(head) + (countedPublishers(all) - countedPublishers(own))
-    if (all.size > own.size && total >= FRONT_BIG) extra.set(head, all.size - own.size)
+    // De bonus telt begrensd zoals de drempel (dubbelcheck A9): zeven Amerikaanse uitgevers in de familie geven niet meer
+    // gewicht dan zes.
+    const bonus = familyBonus(own, all)
+    const total = pubsOf(head) + bonus
+    if (bonus > 0 && total >= FRONT_BIG) extra.set(head, bonus)
   }
   for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null
   // Een los stuk over dezelfde stembus (leeftijd, 13 november 2026: met minder lopende verhalen kwam bij de midterms een

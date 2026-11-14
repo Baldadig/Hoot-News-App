@@ -78,3 +78,31 @@ test('intro: een bijschrift bij een grafiek bovenaan ("Data: …; Chart: …") h
   // "Data:" midden in een zin, of zonder regeleinde, blijft staan.
   assert.match(introOf({ contentSnippet: 'Data: the new oil is cheap, says a report.' }, 'Data'), /^Data: the new oil/)
 })
+
+test('de landenregel ook voor lichte verhalen: uit één buitenlands land eist groot licht nieuws een tweede land (dubbelcheck A8)', async () => {
+  const { majorGeneralNews, majorNews } = await import('../shared/edition-policy.mjs')
+  const it = (source) => ({ id: source, source, title: 'Taylor Swift brengt verrassingsalbum uit', topics: ['muziek'] })
+  const VS = ['nyt', 'atlantic', 'newyorker', 'politico', 'npr', 'axios', 'propublica', 'foreignpolicy']
+  // Zes, zeven of acht Amerikaanse redacties: geen groot licht nieuws, en ook geen groot nieuws.
+  for (const n of [6, 7, 8]) {
+    assert.equal(majorGeneralNews({}, VS.slice(0, n).map(it)), false, `${n} Amerikaans`)
+    assert.equal(majorNews({}, VS.slice(0, n).map(it)), false, `${n} Amerikaans (majorNews)`)
+  }
+  // Met een tweede land wel, zoals de regel van vijf uit twee landen.
+  assert.equal(majorGeneralNews({}, [...VS.slice(0, 4), 'guardian'].map(it)), true)
+  assert.equal(majorGeneralNews({}, [...VS.slice(0, 6), 'bbc'].map(it)), true)
+  // Nederland en Vlaanderen: zes uit één land blijft genoeg, vijf niet (de Dutch Podcast Awards).
+  assert.equal(majorGeneralNews({}, ['nos', 'nu', 'rtl', 'telegraaf', 'parool', 'ad'].map(it)), true)
+  assert.equal(majorGeneralNews({}, ['nos', 'rtl', 'telegraaf', 'parool', 'ad'].map(it)), false)
+  assert.equal(majorGeneralNews({}, ['vrt', 'standaard', 'demorgen', 'hln', 'nieuwsblad', 'gva'].map(it)), true)
+})
+
+test('de familiebonus telt begrensd met de landenregel, net als de drempel (dubbelcheck A9)', async () => {
+  const { familyBonus } = await import('../netlify/lib/stories.mjs')
+  const own = new Set(['nos', 'nu'])
+  // Acht Amerikaanse uitgevers erbij tellen als zes.
+  assert.equal(familyBonus(own, new Set([...own, 'nyt', 'atlantic', 'newyorker', 'politico', 'npr', 'axios', 'propublica', 'foreignpolicy'])), 6)
+  // Nederlandse en gemengde families tellen zoals voorheen.
+  assert.equal(familyBonus(own, new Set([...own, 'rtl', 'nrc', 'volkskrant'])), 3)
+  assert.equal(familyBonus(own, new Set([...own, 'nyt', 'guardian', 'rtl'])), 3)
+})

@@ -2222,7 +2222,9 @@ var HootCore = (() => {
     for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(voice(ID_BY_NAME.get(name), CAT_BY_NAME.get(name)));
     const countries = new Set([...ids].map(publisherCountry).filter(Boolean));
     const n = countedPublishers(ids);
-    return n >= LIGHT_MAJOR || n >= 5 && countries.size >= 2;
+    const land = countries.size === 1 ? [...countries][0] : null;
+    const oneForeign = !!land && !UNCAPPED.has(land) && [...ids].every((id) => publisherCountry(id) === land);
+    return n >= LIGHT_MAJOR && !oneForeign || n >= 5 && countries.size >= 2;
   }
   var CULTUUR_KIND = ["muziek", "film", "boeken", "kunst", "media"];
   var cultuurChosen = (prof, min = 0.5) => Math.max(0, ...CULTUUR_KIND.map((t) => prof?.topicP?.[t] || 0)) >= min;
@@ -3396,6 +3398,7 @@ var HootCore = (() => {
   var FAMILY_SECOND_PUBS = 4;
   var SECOND_FRESH_H = 6;
   var familyRelated = (a, b) => !!a.vote && a.vote === b.vote;
+  var familyBonus = (own2, all) => countedPublishers(all) - countedPublishers(own2);
   function families(cands) {
     const stories = cands.filter((c) => c.kind === "story");
     const voteFrom = /* @__PURE__ */ new Map();
@@ -3423,8 +3426,9 @@ var HootCore = (() => {
         c.fam = head.st.id;
         for (const i of c.items) all.add(publisherOf(i.source));
       }
-      const total = pubsOf(head) + (countedPublishers(all) - countedPublishers(own2));
-      if (all.size > own2.size && total >= FRONT_BIG) extra.set(head, all.size - own2.size);
+      const bonus = familyBonus(own2, all);
+      const total = pubsOf(head) + bonus;
+      if (bonus > 0 && total >= FRONT_BIG) extra.set(head, bonus);
     }
     for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null;
     for (const c of cands) {

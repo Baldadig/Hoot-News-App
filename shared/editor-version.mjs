@@ -38,7 +38,8 @@
 // 14 november 2026, amerika: de landenregel (COUNTRY_MAX in shared/edition-policy.mjs): per land buiten Nederland en
 // Vlaanderen tellen hooguit FRONT_MIN uitgevers mee voor de telling van een verhaal (publisherCount, groot nieuws, het
 // plafond voor buitenland, de familie van een verhaal). Axios en ProPublica erbij in de catalogus.
-// 14 november 2026, dubbelcheck: Achterklap weert alleen showbizz als soort (showbizzKind), nooit groot nieuws; een aflevering om te luisteren of te kijken (mediaEpisode in shared/editie-filter.mjs) is
+// 14 november 2026, dubbelcheck: de landenregel ook voor lichte verhalen (majorGeneralNews eist uit één land buiten NL en BE
+// een tweede land) en voor de familiebonus (familyBonus); Achterklap weert alleen showbizz als soort (showbizzKind), nooit groot nieuws; een aflevering om te luisteren of te kijken (mediaEpisode in shared/editie-filter.mjs) is
 // nooit de kop van een plek, ook niet met een eigen intro; een plek met alleen afleveringen valt weg.
 export const EDITOR_REVISION = 'redacteur-2026-11-14-dubbelcheck'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
