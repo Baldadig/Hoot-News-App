@@ -3969,15 +3969,53 @@ var HootCore = (() => {
     "\\bwin\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b",
     "\\bmaak kans op\\b",
     "\\((?:adv|advertentie)\\)",
-    "\\[(?:adv|advertentie)\\]",
-    // Cadeaugidsen.
+    "\\[(?:adv|advertentie)\\]"
+  ].join("|"), "iu");
+  var GIFT_GUIDE = new RegExp([
     "\\bgift guides?\\b",
     "\\bcadeaugids\\w*",
     "\\bcadeautips\\b",
     "\\bcadeau-?idee(?:ën|en)\\b",
     "\\bgifts? for (?:him|her|men|women|kids|teens|dads?|moms?|mothers?|fathers?|parents|grandparents|everyone|anyone|the \\w+ lover|\\w+ lovers)\\b"
   ].join("|"), "iu");
-  var LABEL2 = /^[\s"'‘“([]*(?:(?:[\p{L}]+-)?deals?|dagdeals?|dagaanbieding|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsdaling|prijsverlaging|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert)\s*[:|.!–—-]\s/iu;
+  var GIFT_SUBJECT = /\b(?:gift guides?|cadeaugids(?:en)?)\s+(?:are|is|were|was|have|has|had|become|became|draw\w*|fac\w*|get|gets|zijn|is|waren|worden|wordt|krijgen|trekken)\b/i;
+  var LABEL2 = /^[\s"'‘“([]*(?:(?:[\p{L}]+-)?deals?|dagdeals?|dagaanbieding|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert)\s*[:|.!–—-]\s/iu;
+  var PRICE_LABEL = /^[\s"'‘“([]*(?:prijsdaling|prijsverlaging)\s*[:|.!–—-]\s/iu;
+  var PRICE_LABEL_OFFER = /(?:€|eur\b)\s?\d|\b\d[\d.,]*\s?euro\b|\bbij\s+(?:de\s+)?\p{Lu}/u;
+  var PRICE_LABEL_MARKET = new RegExp([
+    "energie\\w*",
+    "stroom\\w*",
+    "gas\\w*",
+    "benzine\\w*",
+    "brandstof\\w*",
+    "diesel\\w*",
+    "tank\\w*",
+    "pomp\\w*",
+    "elektriciteit\\w*",
+    "huizen\\w*",
+    "huis",
+    "woning\\w*",
+    "huur\\w*",
+    "huren",
+    "hypothe\\w*",
+    "rente\\w*",
+    "auto'?s",
+    "auto",
+    "occasions?",
+    "tweedehands",
+    "boodschappen",
+    "supermarkt\\w*",
+    "voedsel\\w*",
+    "levensmiddelen",
+    "zorgpremie\\w*",
+    "premie\\w*",
+    "graan",
+    "tarwe",
+    "koffie\\w*",
+    "cacao",
+    "melk\\w*"
+  ].map((w) => `\\b${w}\\b`).join("|"), "iu");
+  var priceLabelOffer = (t) => PRICE_LABEL_OFFER.test(t.replace(PRICE_LABEL, "")) && !PRICE_LABEL_MARKET.test(t);
   var DEAL_HEAD = new RegExp([
     // Selectie (isBuying).
     "\\b(?:de|the|onze|our)?\\s*(?:beste|best|top)\\s+deals\\b",
@@ -4252,6 +4290,36 @@ var HootCore = (() => {
     "peak",
     "piek",
     "resale",
+    // Sport: transfers, contracten en free agency ("Grading the best NFL free agency deals").
+    "transfer\\w*",
+    "free[- ]agen\\w*",
+    "contract(?:en)?",
+    "signings?",
+    "off-?season",
+    "trade deadline",
+    "salary cap",
+    "(?:nfl|nba|mlb|nhl|mls) draft",
+    "draft picks?",
+    "miskop\\w*",
+    "best and worst",
+    "beste en slechtste",
+    // Prijsbeleid: de prijs zelf is het onderwerp ("Insulin price falls to $35 under new law"), of een wet, regeling of geneesmiddel.
+    "(?:price|prijs|prices|prijzen|cost|costs|kosten|fee|fees|premium|premiums|premie|tarief|tarieven)\\s+(?:now\\s+|will\\s+|to\\s+)?(?:drops?|dropped|falls?|fell|cuts?|slashed|daalt|daalde|zakt|zakte|omlaag|verlaagd)",
+    "under (?:a |the |new |an? )?(?:[\\p{L}-]+\\s+){0,2}(?:law|act|bill|deal|plan|agreement|order|rule)",
+    "medicare",
+    "medicaid",
+    "insulin\\w*",
+    "insuline",
+    "drugs?",
+    "drugmakers?",
+    "medicijn\\w*",
+    "geneesmiddel\\w*",
+    "pharma\\w*",
+    "patients",
+    "patiënten",
+    "prescriptions?",
+    "generics?",
+    "cash buyers",
     // Uitleg en achtergrond.
     "explained",
     "uitgelegd",
@@ -4354,6 +4422,25 @@ var HootCore = (() => {
     "\\bbankrupt\\w*",
     "\\bfaillis\\w*",
     "\\bfailliet\\b",
+    // Sport: transfers, contracten en free agency ("NFL free agency 2026: Best and worst deals so far", "De beste deals van de
+    // transferzomer: Ajax verdient 80 miljoen"). Een rangschikking van zaken, geen aanbod aan de lezer.
+    "\\btransfer\\w*",
+    "\\bfree[- ]agen\\w*",
+    "\\bcontracts?\\b",
+    "\\bcontract(?:en)?\\b",
+    "\\bsignings?\\b",
+    "\\boff-?season\\b",
+    "\\btrade deadline\\b",
+    "\\bsalary cap\\b",
+    "\\b(?:nfl|nba|mlb|nhl|mls) draft\\b",
+    "\\bdraft picks?\\b",
+    "\\bmillion\\b",
+    "\\bmiljoen\\b",
+    "\\bmiskop\\w*",
+    "\\bbest and worst\\b",
+    "\\bbeste en slechtste\\b",
+    "\\bworst deals\\b",
+    "\\bslechtste deals\\b",
     // Politieke akkoorden: "peace deals", "trade deals".
     "\\bpeace\\b",
     "\\bvrede\\w*",
@@ -4385,7 +4472,9 @@ var HootCore = (() => {
     const t = clean(title);
     if (!t) return null;
     if (BUY_ALWAYS.test(t)) return "aanbod";
+    if (GIFT_GUIDE.test(t) && !GIFT_SUBJECT.test(t) && !NARROW.test(t)) return "aanbod";
     if (LABEL2.test(t)) return ABOUT.test(t) ? null : "label";
+    if (PRICE_LABEL.test(t)) return priceLabelOffer(t) && !ABOUT.test(t) ? "label" : null;
     if (strongForm(t)) return NARROW.test(t) ? null : STRONG_HEAD.test(t) ? "dealkop" : "koopdag";
     const grond = DEAL_HEAD.test(t) ? "dealkop" : SHOP_DAY.test(t) && SHOP_WORD.test(t) ? "koopdag" : PRICE_DROP.test(t) ? "prijsval" : GUIDE.test(t) ? "koopgids" : null;
     return grond && !ABOUT.test(t) ? grond : null;

@@ -167,6 +167,87 @@ test('keuringen: geen nieuwskop gaat weg, en A vangt nu veel meer deals', () => 
   assert.ok(deals.filter((x) => hardMark(art(x))).length >= 250, String(deals.filter((x) => hardMark(art(x))).length))
 })
 
+// Tweede keuring (14 november 2026): drie generieke gaten. Sportnieuws over transfers, contracten en free agency, prijsbeleid
+// als nieuws ("X price drops to $Y under ... law") en "Prijsdaling:" als kopvorm voor marktnieuws bleven niet staan. Elk
+// voorbeeld uit de keuring, plus eigen varianten; daarnaast de koopstukken die wel weg moeten blijven gaan.
+const SPORT_BLIJFT = [
+  'NFL free agency 2026: Best and worst deals so far',
+  'Ranking the best contracts and deals of MLB free agency',
+  'The best deals of the NBA offseason, ranked',
+  'Grading the best NFL free agency deals',
+  'Top 5 transfer deals of the summer (2026)',
+  'De beste deals van de transferzomer: Ajax verdient 80 miljoen',
+  'Transferzomer: de beste deals en grootste miskopen in de Eredivisie',
+  // Eigen varianten.
+  'The best NHL trade deadline deals, graded',
+  'Top 10 signings of the Premier League summer window',
+  'Best and worst deals of the MLS offseason (2026)',
+  'Ranking the top contract deals of the NBA off-season',
+  'The best free-agent deals of the winter, ranked',
+  'Top transfers: de beste deals van de winterstop',
+  'Beste deals van de Eredivisie: PSV verkoopt voor 40 miljoen',
+  'The 10 best value contracts in the NFL right now',
+  'Best $1 million deals of NBA free agency',
+  'Today\'s best deals in college football NIL contracts',
+]
+
+test('tweede keuring: sportnieuws over transfers, contracten en free agency blijft', () => {
+  for (const title of SPORT_BLIJFT) assert.equal(koopGrond(title), null, 'moet blijven: ' + title)
+  for (const title of SPORT_BLIJFT) assert.equal(hardMark(art({ title })), null, 'moet blijven: ' + title)
+})
+
+const PRIJSBELEID_BLIJFT = [
+  'Wegovy price drops to $199 a month under Trump deal',
+  'Ozempic price drops to $199 for cash buyers',
+  'Insulin price falls to $35 under new law',
+  'Netflix price drops to $5 with ads',
+  // Eigen varianten.
+  'Zepbound price falls to $349 for patients without insurance',
+  'Inhaler costs drop to $35 under Medicare rule',
+  'Spotify Premium price cut to $9 in India',
+  'Disney+ price falls to $6 for students under new plan',
+  'EpiPen generic drops to $110 after FDA approval of rival drugs',
+  'Prijs van insuline daalt naar €20 door nieuwe regeling',
+  'Generic drug prices fall to $4 at Walmart pharmacies',
+  'Medicijn tegen overgewicht nu voor €150 vergoed onder nieuwe wet',
+]
+
+test('tweede keuring: prijsbeleid als nieuws blijft, ook met een bedrag erachter', () => {
+  for (const title of PRIJSBELEID_BLIJFT) assert.equal(koopGrond(title), null, 'moet blijven: ' + title)
+})
+
+const PRIJSDALING_BLIJFT = [
+  'Prijsdaling: energie wordt goedkoper in december',
+  'Prijsdaling: tweedehands auto\'s fors goedkoper',
+  'Prijsdaling: benzine voor het eerst sinds 2021 onder 1,80',
+  // Eigen varianten.
+  'Prijsdaling: huizen in Amsterdam voor het eerst goedkoper',
+  'Prijsdaling: huren in de vrije sector stabiliseren',
+  'Prijsverlaging: rente op hypotheken zakt verder',
+  'Prijsdaling: diesel onder €1,70 per liter',
+  'Prijsdaling: stroom en gas weer goedkoper voor huishoudens',
+  'Prijsdaling: koffie en cacao op de wereldmarkt fors goedkoper',
+  'Prijsverlaging: zorgpremie 2027 lager dan verwacht',
+  'Prijsdaling: occasions kosten gemiddeld €1.500 minder',
+  'Prijsdaling: boodschappen bij de supermarkt iets goedkoper',
+]
+
+test('tweede keuring: "Prijsdaling:" vooraan is marktnieuws, tenzij er een productprijs of winkel achter staat', () => {
+  for (const title of PRIJSDALING_BLIJFT) assert.equal(koopGrond(title), null, 'moet blijven: ' + title)
+  // Een aanbodlabel met een productprijs of een winkel blijft een aanbod.
+  for (const title of ['Prijsdaling: AirPods Pro 3 nu voor €199 bij Bol', 'Prijsverlaging: Samsung Galaxy S26 voor 649 euro',
+    'Prijsdaling: Philips Hue-starterset bij Coolblue', 'Prijsdaling: Sony WH-1000XM6 tijdelijk €299']) assert.equal(koopGrond(title), 'label', 'moet weg: ' + title)
+})
+
+test('tweede keuring: koopstukken in dezelfde vormen gaan nog steeds weg', () => {
+  for (const title of ['AirPods Pro 3 drop to $199 at Amazon', 'PS5 Pro Drops to $599 at Walmart for Black Friday', 'The best Black Friday TV deals you can get right now',
+    'Best Black Friday sports gear deals', 'The best Black Friday deals on NFL jerseys', 'Best NBA 2K27 deals for Black Friday', 'Top Cyber Monday deals on football boots',
+    'The Verge\'s 2026 gift guide for dads', 'Gift guide: 20 cadeaus onder de 50 euro'])
+    assert.ok(koopKop(title), 'moet weg: ' + title)
+  // Een cadeaugids als onderwerp van het nieuws blijft (gevonden bij de hertelling op de bewaarde feeds).
+  assert.equal(koopGrond('Gift guides are the new battleground for Amazon and Temu'), null)
+})
+
 test('feedcategorie: "Gear / Deals" en "Buying Guides" zijn aanbod, "Business / Deals" niet', () => {
   assert.equal(shopCategory(['Gear', 'Gear / Deals', 'Gear / Products / Outdoor']), true)
   assert.equal(shopCategory(['Gear', 'Gear / Buying Guides']), true)
