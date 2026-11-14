@@ -43,7 +43,12 @@ test('vakgebied: een brede bron telt alleen mee als het stuk erbij past', () => 
 test('hetzelfde onderwerp: zeldzame gedeelde woorden, niet alleen "Meta" en "AI"', () => {
   const df = new Map([['meta', 12], ['ads', 9], ['apple', 2], ['music', 2], ['linkedin', 3]])
   assert.equal(sameSubject({ title: 'The new, handmade Apple Music logo leans into the science of sound' }, { title: 'Apple Music’s new brand identity is ‘made by sound’' }, df), true)
-  assert.equal(sameSubject({ title: 'LinkedIn’s B2B Audiences Are Now Available On CTV Via Google DV360' }, { title: 'LinkedIn job-title targeting reaches Google DV360 CTV buys in the US' }, df), true)
+  // Alleen namen en een getal in de koppen (LinkedIn, Google, DV360) is sinds de Selectie-review (punt 3) geen grond meer;
+  // met een gedeeld gewoon woord in de intro ("connected TV") wel.
+  const li1 = { title: 'LinkedIn’s B2B Audiences Are Now Available On CTV Via Google DV360', summary: 'Advertisers can now reach LinkedIn audiences on connected TV through Google DV360.' }
+  const li2 = { title: 'LinkedIn job-title targeting reaches Google DV360 CTV buys in the US', summary: 'Advertisers can now target LinkedIn job titles on connected TV bought through DV360.' }
+  assert.equal(sameSubject({ title: li1.title }, { title: li2.title }, df), false)
+  assert.equal(sameSubject(li1, li2, df), true)
   assert.equal(sameSubject({ title: 'Meta says shopping is Muse’s primary use case' }, { title: 'Meta offers creative targeting for ads' }, df), false)
 })
 
@@ -60,8 +65,8 @@ test('samenstellen: drie per vak, afwisselend, bedrijfsblog alleen met bijval, m
   const pool = [
     it('a', 'jonloomer', 'Choose an Audience for Each Ad Creative', { author: 'Jon Loomer' }),
     it('b', 'jonloomer', 'Restriction Period for Political Ads on Facebook', { author: 'Jon Loomer' }),
-    it('c', 'adexchanger', 'LinkedIn’s B2B Audiences Are Now Available On CTV Via Google DV360'),
-    it('d', 'ppcland', 'LinkedIn job-title targeting reaches Google DV360 CTV buys for advertisers'),
+    it('c', 'adexchanger', 'LinkedIn’s B2B Audiences Are Now Available On CTV Via Google DV360', { summary: 'Advertisers can now reach LinkedIn audiences on connected TV through Google DV360.' }),
+    it('d', 'ppcland', 'LinkedIn job-title targeting reaches Google DV360 CTV buys for advertisers', { summary: 'Advertisers can now target LinkedIn job titles on connected TV bought through DV360.' }),
     it('e', 'meta', 'Meta launches new tools for small business advertisers'),
     it('f', 'socialmediatoday', 'Instagram tests new ad format in Reels'),
     it('old', 'socialmediatoday', 'TikTok ads update from last month', { publishedAt: '2026-09-01T09:00:00.000Z' }),
@@ -70,7 +75,7 @@ test('samenstellen: drie per vak, afwisselend, bedrijfsblog alleen met bijval, m
   const ps = d.fields.find((f) => f.id === 'paid-social')
   assert.equal(ps.top.length, 3)
   assert.equal(ps.top[0].id, 'c') // twee vakbronnen schreven erover
-  assert.match(ps.top[0].why[0], /2 vakbronnen/)
+  assert.ok(!ps.top[0].why.some((w) => /vakbronnen/.test(w))) // geen telregel meer (Selectie-review, punt 3): de bron staat bij naam
   assert.equal(ps.top[0].also[0].sourceName, 'PPC Land')
   assert.ok(!ps.top.some((e) => e.id === 'e')) // Meta Newsroom zonder bijval: niet in de top
   assert.equal(ps.top.filter((e) => e.source === 'vak:jonloomer').length, 1) // hooguit één per bron
