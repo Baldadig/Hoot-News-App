@@ -109,8 +109,8 @@ test('de 12 persona\'s: met de samenvatting geeft de server dezelfde Editie als 
   // De meting van redacteur-server (zonder gelezen berichten, op het tijdstip van de momentopname): 9 van 12. Hier, met
   // wat elke persona las en op de start van het dagdeel zoals de server rekent: 11 van 12 (alleen 'nieuw' heeft geen
   // leesprofiel). Met de samenvatting: 0 van 12.
-  // Dubbelcheck 14 november (A6): sinds de rubriek bewijs vraagt (een Vlaamse bron alleen is geen Buitenland, een musicus
-  // is cultuur) geeft ook de gamer zonder samenvatting toevallig dezelfde Editie: 10 van 12. De toets die ertoe doet, met
+  // Dubbelcheck 14 november (A6): sinds de rubriek van een plek beter klopt (Amerikaanse staten en het VK als land, een
+  // musicus in de kop is cultuur) geeft ook de gamer zonder samenvatting toevallig dezelfde Editie: 10 van 12. De toets die ertoe doet, met
   // de samenvatting 0 van 12, blijft gelijk.
   t.diagnostic(`zonder samenvatting ${anders} van 12 anders, met samenvatting 0 van 12; gelijk: ${gelijk.join(', ')}`)
   assert.equal(anders, 10)
