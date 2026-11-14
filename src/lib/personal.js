@@ -22,7 +22,7 @@ import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
-import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN, jitter } from '../../shared/editor.mjs'
+import { supplyOf, profileOf, personalParts, sumParts, PLACE_HIT, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN, jitter } from '../../shared/editor.mjs'
 import { readerRegions, inRegion, readerHome } from '../../shared/lezer.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
@@ -687,6 +687,17 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Lokaal nieuws van elders zakt (persona's 14 november, punt 7): een plek over Amerikaans binnenland of een deelstaat
   // elders (localAbroad) die geen groot nieuws is, komt pas aan bod als al het andere toegelaten aanbod een plek kreeg (eigen
   // nieuws, sport en cultuur, de vulling uit de algemene Editie), en staat dan achteraan.
+  // Behalve een plek die een gekozen interesse of onderwerp raakt (keuring 14 november: wie Politiek koos, met het onderwerp
+  // Verenigde Staten, verloor de uitslag van de Democraten "Omdat je Politiek volgt"; punt 1 en 3 zeggen dat een gekozen
+  // interesse ruimte krijgt). Een gekozen onderwerp of een onderwerp van een gekozen interesse, niet geleerd uit lezen. Geen
+  // plaats (PLACE_HIT: geen land, werelddeel of terugval op de bron) en niet Wereld: Wereld is zelf een gebied (het
+  // buitenland), en juist voor wie dat koos is Amerikaans binnenland lokaal nieuws van elders (een Engelse lezer met de NYT
+  // kreeg zes zulke plekken). Voor wie het onderwerp niet koos, zakt de plek wel.
+  const touchesChoice = (e) => {
+    const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
+    const hit = p.members?.length ? personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest : null
+    return !!hit && hit.pts > 0 && hit.shown !== false && !PLACE_HIT(hit) && hit.f !== 'wereld' && hit.origin !== 'geleerd'
+  }
   let deferLocal = true
   const deferred = []
   const localOf = (e) => {
@@ -694,7 +705,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (!head || e.desk === 'bubbel') return false
     const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
     const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean)
-    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs)
+    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs) && !touchesChoice(e)
   }
   const fillDesks = new Map() // wie niets koos: vulplekken per rubriek (NO_CHOICE_FILL_MAX)
   let capFill = true
@@ -904,7 +915,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const itemIds0 = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
     const itemIds = mergedIds.has(e) ? [...new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
-    return { ...rest, ...(desk !== e.desk ? { rubriek: desk } : {}), itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front }
+    return { ...rest, ...(desk !== e.desk ? { rubriek: desk } : {}), itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front, _local: localOf(e) }
   })
   // Bij een korte Editie geen blinde minimumverlaging: elke bekende kandidaat krijgt een
   // terminale reden uit dezelfde selectieroute. Dit is lokaal debugbewijs, geen accountpayload.

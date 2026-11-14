@@ -47,7 +47,10 @@ for (const f of FEEDS) {
         const st = storyById.get(e.id) || {}
         return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs)
       }
-      const flags = regular.map(isLocal)
+      // Een plek die een gekozen interesse of onderwerp raakt, zakt niet (keuring 14 november); composePersonal zegt het in
+      // het debugveld `_local`. Wat volgens localAbroad lokaal is maar niet zakt, heeft een interesse als reden, nooit Wereld.
+      for (const e of regular) if (isLocal(e) && !e._local) assert.match(e.why?.text || '', /^(Omdat je (?!Wereld)|Raakt )/, `${p.id}: "${byId.get(e.leadId || e.id)?.title}" zakt niet zonder gekozen interesse`)
+      const flags = regular.map((e) => isLocal(e) && e._local)
       const title = (e) => byId.get(e.leadId || e.id)?.title
       if (regular.length) assert.ok(!flags[0], `${p.id}: plek 01 "${title(regular[0])}"`)
       for (const e of regular) if (e.desk === 'breed') assert.ok(!isLocal(e), `${p.id}: Waar iedereen over schrijft "${title(e)}"`)
@@ -61,3 +64,20 @@ for (const f of FEEDS) {
     }
   })
 }
+
+// Keuring 14 november: een plek die een gekozen interesse of onderwerp raakt, zakt niet. Wie Politiek koos (met het
+// onderwerp Verenigde Staten) houdt de Amerikaanse uitslag; wie dat niet koos, ziet hem zakken.
+test('lokaal van elders: een gekozen interesse of onderwerp zakt niet, voor wie het niet koos wel', () => {
+  const feed = load('feed-2026-11-05-ochtend')
+  const now = Date.parse(feed.edition.builtAt)
+  const byId = new Map([...(feed.related || []), ...feed.items, ...feed.edition.items].map((i) => [i.id, i]))
+  const followed = new Set(['nos', 'nu', 'rtl', 'nrc', 'volkskrant', 'trouw', 'ad', 'telegraaf'])
+  const run = (interests) => composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed, interests, topics: [], now, builtAt: feed.edition.builtAt })
+  const usResult = (ed) => ed.entries.find((e) => e.itemIds.some((x) => /veroveringstocht Democraten/.test(byId.get(x)?.title || '')))
+  const withPol = usResult(run(['politiek', 'binnenland', 'wereld']))
+  assert.ok(withPol, 'met Politiek: de uitslag staat erin')
+  assert.ok(!withPol._local, 'en zakt niet')
+  assert.match(withPol.why?.text || '', /Politiek/)
+  const without = usResult(run(['binnenland', 'wereld']))
+  assert.ok(!without || without._local, 'zonder Politiek zakt hij (of valt hij weg)')
+})

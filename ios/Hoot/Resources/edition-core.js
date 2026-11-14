@@ -4623,6 +4623,11 @@ var HootCore = (() => {
       for (const x of add) finalTaken.add(x);
       acceptedItems[k] = [...acceptedItems[k], ...add.map((x) => itemAny.get(x)).filter(Boolean)];
     };
+    const touchesChoice = (e) => {
+      const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
+      const hit = p.members?.length ? personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest : null;
+      return !!hit && hit.pts > 0 && hit.shown !== false && !PLACE_HIT(hit) && hit.f !== "wereld" && hit.origin !== "geleerd";
+    };
     let deferLocal = true;
     const deferred = [];
     const localOf = (e) => {
@@ -4630,7 +4635,7 @@ var HootCore = (() => {
       if (!head || e.desk === "bubbel") return false;
       const st = storyById.get(e.kind === "story" ? e.id : serverStory(e)) || {};
       const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean);
-      return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs);
+      return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs) && !touchesChoice(e);
     };
     const fillDesks = /* @__PURE__ */ new Map();
     let capFill = true;
@@ -4781,7 +4786,7 @@ var HootCore = (() => {
       const itemIds0 = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const itemIds = mergedIds.has(e) ? [.../* @__PURE__ */ new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0;
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
-      return { ...rest, ...desk !== e.desk ? { rubriek: desk } : {}, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
+      return { ...rest, ...desk !== e.desk ? { rubriek: desk } : {}, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front, _local: localOf(e) };
     });
     let supply = null;
     const regularCount = editionStoryCount(out);
