@@ -495,7 +495,7 @@ p {
 }
 /* Uitlegzinnen: de zin onder een kop in het welkom, de tekst van een lege bladzijde, de Selectie en de
    pagina's Over en Privacy. Schreefloos (--uitleg), op de maat van een intro: 17/24. */
-:is(.ob__sub, .ob__lede, .ob__ttext, .ob__empty, .empty__text, .dempty__text, .prose p, .prose ul) {
+:is(.ob__sub, .ob__lede, .ob__empty, .empty__text, .dempty__text, .prose p, .prose ul) {
   font-family: var(--uitleg);
   font-weight: var(--fw-lees);
   font-optical-sizing: auto;
@@ -3073,8 +3073,8 @@ select.input {
 }
 
 /* ---------- Welkom ----------
-   Vier schermen (Welcome.jsx, gelijk aan WelcomeView.swift): de rode intro, Zo werkt Hoot, Wat
-   interesseert je? en Volg je bronnen. Welkom ligt over de app heen. Bovenaan op elk scherm het kleine
+   Drie schermen (Welcome.jsx, gelijk aan WelcomeView.swift): de rode intro, Wat interesseert je? en
+   Volg je bronnen. Welkom ligt over de app heen. Bovenaan op elk scherm het kleine
    woordmerk linksboven (rechts Terug, Sluiten of Inloggen), daaronder een kolom die scrolt en
    onderaan een vaste voet met één hoofdknop (.btn--lg) en een stille link. Eén merkmoment: de intro
    in merkrood, met alles erop papier. Eén kolom van --measure, ook op desktop: één linkerlijn.
@@ -3259,39 +3259,6 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   width: auto;
   height: clamp(6.5rem, 27dvh, 14rem);
   max-width: 100%;
-}
-
-/* Zo werkt Hoot: Editie, Stroom en Selectie als gelijken, in een lijst met lijnen (een dikke
-   bovenlijn, dunne ertussen). Links de zon van elk onderdeel, op één maat (4,5rem breed); hij
-   groeit met de tekst mee, zodat de kop ernaast op dezelfde hoogte blijft. */
-.ob__trio {
-  margin: var(--s5) 0 0;
-  padding: 0;
-  list-style: none;
-  border-top: 2px solid var(--ink);
-}
-.ob__trow {
-  display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  gap: var(--s4);
-  align-items: center;
-  padding: var(--s4) 0;
-  border-bottom: 1px solid var(--rule);
-}
-.ob__tart {
-  width: 100%;
-  height: auto;
-}
-.ob__tname {
-  font-family: var(--serif);
-  font-size: var(--t5);
-  line-height: var(--lh-display);
-  font-weight: var(--fw-head);
-  letter-spacing: var(--ls-display);
-}
-.ob__ttext {
-  margin-top: var(--s1);
-  color: var(--ink-2);
 }
 
 /* Volg je bronnen: zoekveld, twee pillen (Aanbevolen, Gevolgd) en de lijst per rubriek. Breed
@@ -3618,7 +3585,7 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   --btn-fill: var(--on-brand-red);
   --btn-ink: var(--brand-red);
 }
-/* Later kiezen, Liever meteen lezen: een .linkbtn--plain onder de hoofdknop. */
+/* Liever meteen lezen: een .linkbtn--plain onder Begin op de rode intro. */
 .ob__skip {
   display: flex;
   margin: 0 auto;

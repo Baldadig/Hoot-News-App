@@ -16,13 +16,12 @@ test('Stroom-instelling heet "Lees de Stroom als" (W1)', () => {
   assert.ok(allSrc().every((s) => !s.includes('Indeling van lijsten')))
 })
 
-test('Welkom 1.1.0: vier schermen, Editie, Stroom en Selectie als gelijken, zonder oude stappen (W2)', () => {
+test('Welkom: drie schermen (Zo werkt Hoot is weg), zonder oude stappen (W2)', () => {
   const s = read('views/Welcome.jsx')
-  const i = ["title: 'Editie'", "title: 'Stroom'", "title: 'Selectie'"].map((t) => s.indexOf(t))
-  assert.ok(i.every((x) => x >= 0), 'alle drie staan erin')
-  assert.ok(i[0] < i[1] && i[1] < i[2], 'Editie, Stroom, Selectie')
-  // Elk met zijn eigen zon (de zon achter de horizon), op één scherm.
-  assert.match(s, /<SunArt kind=\{t\.kind\} className="ob__tart" \/>/)
+  // Sinds 14 november geen uitlegscherm meer: de rode intro, de interesses en de bronnen.
+  assert.ok(!s.includes('Zo werkt Hoot') && !s.includes('ob__trio') && !s.includes('function Uitleg'), 'geen uitlegscherm')
+  assert.match(s, /<SunArt kind="intro" className="ob__art" \/>/)
+  assert.ok(!read('styles.css').includes('.ob__trio'), 'de opmaak van het uitlegscherm is weg')
   assert.ok(!/STEPS|Pagina \$\{/.test(s), 'geen stapteller of paginateller')
   assert.match(s, /ob__login[\s\S]{0,120}>\s*Account\s*</) // r5-namen: het Hoot-account heet Account
   // Later kiezen is weg (1.1.1, keuze r5-later-kiezen): de hoofdknop werkt altijd, één knop, één weg.
@@ -265,7 +264,8 @@ test('woordenlijst: Vergelijken, Instellingen, Account, "Hoot kiest" en één ri
   assert.doesNotMatch(read('components/Shell.jsx'), /Account en weergave/)
   for (const f of ['components/Account.jsx', 'views/Settings.jsx', 'views/Welcome.jsx']) assert.doesNotMatch(read(f), />\s*Inloggen\s*<|: 'Inloggen'/, f)
   const welkom = read('views/Welcome.jsx')
-  assert.match(welkom, /Drie keer per dag tien verhalen\./)
+  // "Drie keer per dag tien verhalen." stond op het uitlegscherm; dat is weg (14 november).
+  assert.doesNotMatch(welkom, /Drie keer per dag tien verhalen\./)
   assert.doesNotMatch(welkom, /hooguit tien|[Ee]én keer per week/)
   const landing = readFileSync(join(root, '../landing/index.src.html'), 'utf8')
   assert.match(landing, /Hoot kiest elke Editie/)

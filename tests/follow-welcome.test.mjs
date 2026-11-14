@@ -184,10 +184,17 @@ test('opslaan gebruikt bestaande voorkeuren; een geannuleerd concept wijzigt ze 
 test('web en app: hetzelfde gratis begin en dezelfde schermen', () => {
   const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
   const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
-  for (const text of ['Zo werkt Hoot', 'Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alles', 'Meer bronnen', 'Gratis aanrader', 'Voor jou', 'Liever meteen lezen', 'Kies je interesses', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
+  for (const text of ['Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alles', 'Meer bronnen', 'Gratis aanrader', 'Voor jou', 'Liever meteen lezen', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
     assert.ok(web.includes(text), `web: ${text}`)
     assert.ok(swift.includes(text), `app: ${text}`)
   }
+  // "Zo werkt Hoot" is weg (14 november): het welkom telt drie schermen, op web en app.
+  for (const gone of ['Zo werkt Hoot', 'Kies je interesses', 'Drie manieren om bij te blijven']) {
+    assert.ok(!web.includes(gone), `web: ${gone} is weg`)
+    assert.ok(!swift.includes(gone), `app: ${gone} is weg`)
+  }
+  assert.doesNotMatch(web, /'uitleg'/)
+  assert.doesNotMatch(swift, /case intro, uitleg|\.uitleg/)
   for (const gone of ['Later kiezen']) {
     assert.ok(!web.includes(`>${gone}<`) && !new RegExp(`>\\s*${gone}\\s*<`).test(web), `web: ${gone} is weg`)
     assert.ok(!swift.includes(`"${gone}"`), `app: ${gone} is weg`)
@@ -205,11 +212,14 @@ test('web en app: hetzelfde gratis begin en dezelfde schermen', () => {
 test('volgorde: eerst de interesses, dan de bronnen (web en app)', () => {
   const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
   const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
-  // Uitleg → interesses → bronnen → Editie; opnieuw kiezen begint bij de interesses.
-  assert.match(web, /onClick=\{\(\) => show\('interesses'\)\}>\s*Kies je interesses/)
+  // Rode intro → interesses → bronnen → Editie; opnieuw kiezen begint bij de interesses. Begin gaat naar de
+  // interesses (de iris sluit daar), Liever meteen lezen staat er stil onder; terug vanaf de interesses is de intro.
+  assert.match(web, /leaveIntro\(\(\) => setView\('interesses'\)\)\}>\s*Begin\s*<\/button>\s*<button[^>]*ob__skip[^>]*onClick=\{startQuick\}[^>]*>\s*Liever meteen lezen/)
+  assert.match(web, /view === 'interesses'\) reopen \? onClose\(\) : backToIntro/)
+  assert.match(swift, /ctaButton\("Begin", onRed: true[^\n]*go\(\.interesses\) \}\s*\n\s*linkButton\("Liever meteen lezen", onRed: true, action: quickStart\)/)
+  assert.match(swift, /case \.interesses: if again \{ onCancel\?\(\) \} else \{ go\(\.intro\) \}/)
   assert.match(web, /onClick=\{\(\) => show\('bronnen'\)\}>\s*Verder/)
   assert.match(web, /useState\(reopen \? 'interesses' : 'intro'\)/)
-  assert.match(swift, /ctaButton\("Kies je interesses"[^\n]*go\(\.interesses\)/)
   assert.match(swift, /ctaButton\("Verder"[^\n]*go\(\.bronnen\)/)
   assert.match(swift, /reopen \? \.interesses : start/)
   // Geen rood in de bronnenlijst: Gratis staat in inkt.

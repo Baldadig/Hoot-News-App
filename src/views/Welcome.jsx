@@ -13,13 +13,13 @@ import { sourcesOn, pickedFrom, sourceLine, proofHeadline } from '../lib/welcome
 import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines, chosenIn, startsOpen, foldCount } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
-// Welkom (1.1.0), gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Vier schermen:
-//   1. welkom (rood)   de zon komt op achter de horizon; Begin. Account klein rechtsboven.
-//   2. Zo werkt Hoot   Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
-//                      (components/SunArt.jsx: de zon achter de horizon, rustig; Minder beweging stil).
-//                      Kies je interesses, of Liever meteen lezen (de gratis startset, zonder sport).
-//   3. Wat interesseert je?  de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
-//   4. Volg je bronnen zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
+// Welkom, gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Drie schermen (sinds 14 november is
+// het uitlegscherm weg; Editie, Stroom en Selectie leer je kennen door ze te lezen):
+//   1. welkom (rood)   de zon komt op achter de horizon; Begin (naar de interesses) en eronder de stille
+//                      knop Liever meteen lezen (de gratis startset, zonder sport). Account klein
+//                      rechtsboven. Op het web alleen nog via de route welkom zonder eerdere keuze.
+//   2. Wat interesseert je?  de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
+//   3. Volg je bronnen zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
 //                      nieuws, het gratis begin voorop), dan per gekozen interesse een blok met een
 //                      gratis aanrader; de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie
 //                      groeit mee (breed rechts, smal in een uitklapbalk boven de knop).
@@ -29,20 +29,14 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 // Van rood naar papier krimpt het rood als iris tot de punt van het kleine woordmerk (lib/motion.js);
 // terug speelt het omgekeerd. Bij Minder beweging één fade van 0,35 s. Tussen papieren schermen even
 // uit en weer in.
-// Opnieuw kiezen (Bronnen of Instellingen, `onClose` is er dan): geen intro en geen uitleg; je begint
+// Opnieuw kiezen (Bronnen of Instellingen, `onClose` is er dan): geen intro; je begint
 // bij je interesses met wat nu aan staat, en Sluiten (ook Escape) slaat niets op.
-
-const TRIO = [
-  { kind: 'editie', title: 'Editie', text: 'Drie keer per dag tien verhalen. Dan ben je bij.' },
-  { kind: 'stroom', title: 'Stroom', text: 'Alles van je bronnen, nieuwste eerst.' },
-  { kind: 'selectie', title: 'Selectie', text: 'Elke maandag het beste over wat jou bezighoudt.' },
-]
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
 export default function Welcome({ sources, items = [], edition = null, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {}, digest = null }) {
   const reopen = !!onClose
-  const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | uitleg | interesses | bronnen
+  const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | interesses | bronnen
   const [interests, setInterests] = useState(() => prefs.interests || [])
   const picked = useMemo(() => pickedFrom(prefs.topics || [], prefs.interests || [], INTERESTS), [prefs.topics, prefs.interests])
   const [edited, setEdited] = useState(null) // je eigen bronnenkeuze; zolang null geldt het begin
@@ -216,8 +210,7 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
   const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable, quick: true })
 
   const previous = () => {
-    if (view === 'uitleg') backToIntro(() => setView('intro'))
-    else if (view === 'interesses') reopen ? onClose() : show('uitleg')
+    if (view === 'interesses') reopen ? onClose() : backToIntro(() => setView('intro'))
     else if (view === 'bronnen') show('interesses')
   }
   const topLink = reopen && view === 'interesses' ? (
@@ -245,9 +238,7 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
           </div>
           <div className="ob__scroll" ref={scroller} inert={red ? '' : undefined}>
             <div className={`col ob__col${view === 'bronnen' ? ' ob__col--split' : ''}`} ref={paperCol}>
-              {view === 'uitleg' ? (
-                <Uitleg head={head} />
-              ) : view === 'bronnen' ? (
+              {view === 'bronnen' ? (
                 <Bronnen head={head} sources={pickable} items={items} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
                 <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} digest={digest} />
@@ -257,16 +248,7 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
           <div className="ob__foot" inert={red ? '' : undefined}>
             {view === 'bronnen' ? <PeekBar open={peekOpen} setOpen={setPeekOpen} sources={pickable} items={items} mine={mine} /> : null}
             <div className="col">
-              {view === 'uitleg' ? (
-                <>
-                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('interesses')}>
-                    Kies je interesses
-                  </button>
-                  <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={startQuick} disabled={!pickable.length}>
-                    Liever meteen lezen
-                  </button>
-                </>
-              ) : view === 'bronnen' ? (
+              {view === 'bronnen' ? (
                 <>
                   <p className="ob__status" role="status">
                     {pickable.length ? followedLine(mine.length) : 'Bronnen laden…'}
@@ -325,8 +307,11 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
           </div>
           <div className="ob__foot">
             <div className="col">
-              <button type="button" className="btn btn--lg ob__cta" onClick={() => leaveIntro(() => setView('uitleg'))}>
+              <button type="button" className="btn btn--lg ob__cta" onClick={() => leaveIntro(() => setView('interesses'))}>
                 Begin
+              </button>
+              <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={startQuick} disabled={!pickable.length}>
+                Liever meteen lezen
               </button>
             </div>
           </div>
@@ -336,30 +321,7 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
   )
 }
 
-// ---- 2. Zo werkt Hoot: drie gelijken, elk met zijn eigen zon ----
-function Uitleg({ head }) {
-  return (
-    <>
-      <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-        Zo werkt Hoot
-      </h1>
-      <p className="ob__sub">Drie manieren om bij te blijven. Jij kiest de bronnen.</p>
-      <ul className="ob__trio">
-        {TRIO.map((t) => (
-          <li key={t.kind} className="ob__trow">
-            <SunArt kind={t.kind} className="ob__tart" />
-            <div>
-              <h2 className="ob__tname">{t.title}</h2>
-              <p className="ob__ttext">{t.text}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </>
-  )
-}
-
-// ---- 4. Volg je bronnen: de Basis, dan een blok per gekozen interesse ----
+// ---- 3. Volg je bronnen: de Basis, dan een blok per gekozen interesse ----
 // Bovenaan het voorstel (shared/voorstel.mjs, 1.1.1): opgebouwd uit je interesses, met per bron een korte
 // reden. Zonder interesses de vaste Basis met het gratis begin. Met een voorstel staan de kranten van de Basis
 // als eigen groep "Nederlands nieuws" eronder (ingeklapt, tenzij je er iets in volgt).
@@ -582,7 +544,7 @@ function PeekBar({ open, setOpen, sources, items, mine }) {
   )
 }
 
-// ---- 3. Wat interesseert je? Rubrieken en, uitklapbaar, je Selectie ----
+// ---- 2. Wat interesseert je? Rubrieken en, uitklapbaar, je Selectie ----
 function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, digest = null }) {
   // Alleen onderwerpen die in de weekbundel zitten (offersField, "Tot dan verbergen."), zoals het welkom in de app.
   const domains = useMemo(() => vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length), [digest])

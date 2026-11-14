@@ -1,23 +1,22 @@
 import SwiftUI
 
-// Het welkom (1.1.0), gelijk aan de website (src/views/Welcome.jsx). Vier schermen:
-//   1. de rode intro: de zon komt op achter de horizon, "Begin". Account klein rechtsboven.
-//   2. Zo werkt Hoot: Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
-//      (OnboardingArt: de zon achter de horizon, rustig; bij Verminder beweging stil). Kies je
-//      interesses, of Liever meteen lezen (de gratis startset, zonder sport).
-//   3. Wat interesseert je?: de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
-//   4. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
+// Het welkom, gelijk aan de website (src/views/Welcome.jsx). Drie schermen (1.3.1: het uitlegscherm is
+// weg; Editie, Stroom en Selectie leer je kennen door ze te lezen):
+//   1. de rode intro: de zon komt op achter de horizon, "Begin" (naar de interesses) en eronder de stille
+//      knop Liever meteen lezen (de gratis startset, zonder sport). Account klein rechtsboven.
+//   2. Wat interesseert je?: de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
+//   3. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
 //      nieuws, het gratis begin voorop), dan per gekozen interesse een blok met een gratis aanrader;
 //      de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie met echte koppen groeit mee
 //      (breed rechts, smal in een uitklapbalk boven de knop).
 // Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos. De hoofdknop
 // werkt altijd (de knop Later kiezen is weg sinds 1.1.1, keuze r5-later-kiezen). Het seintje komt pas na de eerste Editie (EditionView, AlertOffer), niet hier.
 // Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro, en bij
-// het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
-// Opnieuw kiezen (Instellingen, `reopen`) en na even rondkijken (een blad met `onCancel`): geen intro
-// en geen uitleg; je begint bij je interesses met wat nu aan staat, en Sluiten slaat niets op.
+// het eerste papier (de interesses) sluit het rood zich als een iris tot de punt van "hoot." op papier.
+// Opnieuw kiezen (Instellingen, `reopen`) en na even rondkijken (een blad met `onCancel`): geen intro;
+// je begint bij je interesses met wat nu aan staat, en Sluiten slaat niets op.
 struct WelcomeView: View {
-    enum Step: String { case intro, uitleg, interesses, bronnen }
+    enum Step: String { case intro, interesses, bronnen }
 
     var reopen = false
     var start: Step = .intro
@@ -30,7 +29,6 @@ struct WelcomeView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.nachtActief) private var nacht
     @ScaledMetric(relativeTo: .largeTitle) private var hero: CGFloat = 38
-    @ScaledMetric(relativeTo: .body) private var trioArt: CGFloat = 72
 
     @State private var step: Step
     @State private var query = ""
@@ -64,7 +62,7 @@ struct WelcomeView: View {
     init(reopen: Bool = false, start: Step = .intro, onCancel: (() -> Void)? = nil, onDone: @escaping () -> Void) {
         var first = reopen ? .interesses : start
         #if DEBUG
-        // `-HootWelcomeStep uitleg|bronnen|interesses`
+        // `-HootWelcomeStep bronnen|interesses`
         if first == .intro, let name = DebugLaunch.welcomeStep, let s = Step(rawValue: name) { first = s }
         #endif
         self.reopen = reopen
@@ -161,8 +159,7 @@ struct WelcomeView: View {
 
     private func back() {
         switch step {
-        case .uitleg: go(.intro)
-        case .interesses: if again { onCancel?() } else { go(.uitleg) }
+        case .interesses: if again { onCancel?() } else { go(.intro) }
         case .bronnen: go(.interesses)
         case .intro: break
         }
@@ -292,7 +289,8 @@ struct WelcomeView: View {
         return nil
     }
 
-    // Merkrood, alles erop papier (ook in donker). Het rood is de schijf van de iris. Eén knop: Begin.
+    // Merkrood, alles erop papier (ook in donker). Het rood is de schijf van de iris. Begin en eronder de
+    // stille knop Liever meteen lezen, zoals de voet op papier (één knop en een link).
     private var introStep: some View {
         VStack(spacing: 0) {
             topRow(onRed: true)
@@ -330,11 +328,14 @@ struct WelcomeView: View {
             }
             .padding(.horizontal, Space.s5)
             Spacer(minLength: 0)
-            ctaButton("Begin", onRed: true, off: false) { go(.uitleg) }
-                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                .padding(.horizontal, Space.s4)
-                .padding(.top, Space.s3)
-                .padding(.bottom, Space.s3 + Space.tap + Space.s1) // de knop op dezelfde hoogte als op papier
+            VStack(spacing: Space.s1) {
+                ctaButton("Begin", onRed: true, off: false) { go(.interesses) }
+                linkButton("Liever meteen lezen", onRed: true, action: quickStart).disabled(store.newsSources.isEmpty)
+            }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+            .padding(.horizontal, Space.s4)
+            .padding(.top, Space.s3)
+            .padding(.bottom, Space.s3)
         }
         .column()
         .foregroundStyle(Self.paperWhite)
@@ -353,7 +354,6 @@ struct WelcomeView: View {
             ScrollView {
                 Group {
                     switch step {
-                    case .uitleg: uitleg
                     case .bronnen: bronnen
                     default: interessesView
                     }
@@ -431,44 +431,6 @@ struct WelcomeView: View {
                     .foregroundStyle(Theme.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                     .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-            }
-        }
-    }
-
-    // ---- 2. Zo werkt Hoot ----
-
-    private static let trio: [(art: OnboardingArt.Kind, title: String, text: String)] = [
-        (.editie, "Editie", "Drie keer per dag tien verhalen. Dan ben je bij."),
-        (.stroom, "Stroom", "Alles van je bronnen, nieuwste eerst."),
-        (.selectie, "Selectie", "Elke maandag het beste over wat jou bezighoudt."),
-    ]
-
-    private var uitleg: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            heading("Zo werkt Hoot", "Drie manieren om bij te blijven. Jij kiest de bronnen.")
-            Rectangle().fill(Theme.ink).frame(height: 2).padding(.top, Space.s5)
-            ForEach(Self.trio, id: \.title) { t in
-                let art = OnboardingArt(kind: t.art, active: step == .uitleg, scale: min(trioArt, 120) / OnboardingArt.size.width)
-                let words = VStack(alignment: .leading, spacing: Space.s1) {
-                    Text(t.title)
-                        .font(.kop(.title2))
-                        .accessibilityAddTraits(.isHeader)
-                    Text(t.text)
-                        .zin() // zoals .ob__ttext
-                        .foregroundStyle(Theme.ink2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Group {
-                    if typeSize.isAccessibilitySize {
-                        VStack(alignment: .leading, spacing: Space.s2) { art; words }
-                    } else {
-                        HStack(alignment: .center, spacing: Space.s4) { art; words }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, Space.s4)
-                .accessibilityElement(children: .combine)
-                Rectangle().fill(Theme.rule).frame(height: 1)
             }
         }
     }
@@ -828,7 +790,7 @@ struct WelcomeView: View {
         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
-    // ---- 4. Wat interesseert je? ----
+    // ---- 2. Wat interesseert je? ----
 
     private var interessesView: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -892,9 +854,6 @@ struct WelcomeView: View {
     private var foot: some View {
         VStack(spacing: Space.s1) {
             switch step {
-            case .uitleg:
-                ctaButton("Kies je interesses", onRed: false, off: false) { go(.interesses) }
-                linkButton("Liever meteen lezen", action: quickStart).disabled(store.newsSources.isEmpty)
             case .interesses:
                 ctaButton("Verder", onRed: false, off: false) { go(.bronnen) }
             default:
@@ -936,9 +895,12 @@ struct WelcomeView: View {
         .opacity(off ? 0.4 : 1)
     }
 
-    private func linkButton(_ label: String, action: @escaping () -> Void) -> some View {
+    // Een stille knop onder de hoofdknop. Op merkrood in papier (de kleur expliciet: anders erft de knop
+    // de inkt van de tint en verdwijnt hij in het rood).
+    private func linkButton(_ label: String, onRed: Bool = false, action: @escaping () -> Void) -> some View {
         Button(label, action: action)
             .buttonStyle(.plain)
+            .foregroundStyle(onRed ? Self.paperWhite : Theme.ink)
             .font(.ui(.subheadline, .bold))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
