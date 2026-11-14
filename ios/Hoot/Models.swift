@@ -688,6 +688,14 @@ struct Rubriek: Identifiable {
     static let optIn: Set<String> = ["showbizz"]
     var base: [String] { topics.filter { !Rubriek.optIn.contains($0) } }
 
+    // Een optIn-onderwerp aantikken in het welkom (persona's 14 november, punt 9; withOptIn op het web): `topics` zonder
+    // optIn-onderwerpen, plus wat je aantikte (`on`) als je de interesse waar het onder valt nog kiest.
+    static func withOptIn(_ topics: [String], interests: [String], on: [String]) -> [String] {
+        var seen = Set<String>()
+        let extra = on.filter { t in optIn.contains(t) && alle.contains { interests.contains($0.id) && $0.topics.contains(t) } && seen.insert(t).inserted }
+        return topics.filter { !optIn.contains($0) } + extra
+    }
+
     // Wat je volgt (resolveTopics op de website): per gekozen interesse de onderwerpen die je
     // aantikte, of alle (zonder optIn) als je er geen koos. Op de volgorde van de rubrieken.
     static func resolve(_ interests: [String], picked: [String]) -> [String] {
