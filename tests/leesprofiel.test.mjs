@@ -106,9 +106,11 @@ test('de 12 persona\'s: met de samenvatting geeft de server dezelfde Editie als 
   }
   // De meting van redacteur-server (zonder gelezen berichten, op het tijdstip van de momentopname): 9 van 12. Hier, met
   // wat elke persona las en op de start van het dagdeel zoals de server rekent: 11 van 12 (alleen 'nieuw' heeft geen
-  // leesprofiel). Met de samenvatting: 0 van 12.
+  // leesprofiel). Met de samenvatting: 0 van 12. Sinds het meegroeiende plafond voor sport en cultuur (persona's 14
+  // november, extraMaxOf) vult wie alleen Sport koos (koers) de helft van zijn Editie uit die keuze, met of zonder leesprofiel:
+  // 10 van 12. Wat telt, blijft: met de samenvatting 0 van 12.
   t.diagnostic(`zonder samenvatting ${anders} van 12 anders, met samenvatting 0 van 12`)
-  assert.equal(anders, 11)
+  assert.equal(anders, 10)
 })
 
 test('web = iPhone: voor elk profiel dezelfde samenvatting (tests/fixtures/leesprofiel-golden.json, ook in EditionServerTests)', () => {

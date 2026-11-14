@@ -4085,6 +4085,13 @@ var HootCore = (() => {
   var NEWS_CATS = /* @__PURE__ */ new Set(["nl", "vl", "regio", "int", "economie", "tech", "wetenschap"]);
   var EXTRA_MAX = 2;
   var EXTRA_MIN = 0.5;
+  var EXTRA_KIND_OF = { sport: "sport", cultuur: "cultuur" };
+  function extraMaxOf(interests = [], kinds = /* @__PURE__ */ new Set(), size = EDITION_SIZE) {
+    const chosen = [...new Set(interests)].filter((id) => INTERESTS.some((f) => f.id === id));
+    const light = chosen.filter((id) => EXTRA_KIND_OF[id] && kinds.has(EXTRA_KIND_OF[id])).length;
+    if (!light) return EXTRA_MAX;
+    return Math.max(EXTRA_MAX, Math.floor(size * light / (2 * chosen.length)));
+  }
   var TOPIC_KIND = { voetbal: "sport", f1: "sport", wielrennen: "sport", tennis: "sport", wintersport: "sport", olympisch: "sport", muziek: "cultuur", film: "cultuur", boeken: "cultuur", kunst: "cultuur", games: "games" };
   var SPECIALIST = /* @__PURE__ */ new Set(["tech", "economie", "wetenschap"]);
   var NEAR_MIN_SOURCES = 3;
@@ -4296,7 +4303,8 @@ var HootCore = (() => {
     const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId) && wideLead(w));
     const size = EDITION_SIZE - (wideAny ? 1 : 0);
     const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed };
-    const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false }) : [];
+    const extraMax = extraMaxOf(interests, extraKinds);
+    const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * extraMax, plan: false }) : [];
     const extraN = Math.min(EXTRA_MAX, extraAll.length);
     const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source);
     const sel = selectForReader(mineStories, newsPool, { ...opts, size: size - extraN });
@@ -4313,6 +4321,24 @@ var HootCore = (() => {
       const un = unchosenAbroad(e.leadId || e.id, e.kind === "story" ? e.id : null);
       if (!eligible(e.leadId || e.id, e.kind === "story" ? e.id : null, e)) continue;
       if (un) abroad++;
+      extra.push({ ...e, desk: null });
+    }
+    const extraIds = new Set(extra.flatMap((e) => e.itemIds || [e.id]));
+    const isMajor = (e) => majorNews(storyById.get(e.id) || e, (e.itemIds || [e.leadId || e.id]).map((id) => itemAny.get(id)).filter(Boolean));
+    for (const e of extraAll) {
+      if (extra.length >= extraMax) break;
+      if (extra.includes(e) || extra.some((x) => x.id === e.id)) continue;
+      const ids = e.itemIds || [e.id];
+      if (ids.some((id) => inNews.has(id) || extraIds.has(id))) continue;
+      if (!eligible(e.leadId || e.id, e.kind === "story" ? e.id : null, e)) continue;
+      const kernIn = (es) => new Set(es.map((x) => x.desk).filter((d) => KERN.includes(d))).size;
+      const keeps = (x) => kernIn(news.filter((y) => y !== x)) >= Math.min(KERN_MIN, kernIn(news));
+      const light = news.map((x, i) => ({ x, i })).filter(({ x }) => !x.front && !isMajor(x) && keeps(x)).sort((a, b) => (a.x.parts?.interest ? 1 : 0) - (b.x.parts?.interest ? 1 : 0) || (a.x.w || 0) - (b.x.w || 0) || byText(b.x.id, a.x.id))[0];
+      if (!light) break;
+      news.splice(light.i, 1);
+      if (sel.counted.has(light.x.id)) abroad--;
+      if (unchosenAbroad(e.leadId || e.id, e.kind === "story" ? e.id : null)) abroad++;
+      for (const id of ids) extraIds.add(id);
       extra.push({ ...e, desk: null });
     }
     const own2 = [...news, ...extra];
@@ -4452,6 +4478,12 @@ var HootCore = (() => {
       accepted.push(e);
     };
     entries.forEach(accept);
+    const extraIn = () => accepted.filter((e) => extra.includes(e) || e._extra).length;
+    for (const e of extraAll) {
+      if (accepted.length >= EDITION_SIZE || extraIn() >= extraMax) break;
+      if (extra.some((x) => x.id === e.id)) continue;
+      accept({ ...e, desk: null, _extra: true });
+    }
     if (accepted.length < EDITION_SIZE) selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept);
     for (const { g } of fillCands) {
       if (accepted.length >= EDITION_SIZE) break;
@@ -4500,7 +4532,7 @@ var HootCore = (() => {
         const reasons = { groot: `Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`, passend: `Aanvulling bij ${family}`, basis: "Actueel nieuws uit Nederland", eigen: "Uit je gekozen bronnen" };
         if (reasons[e.supplement]) why = { ...why, text: reasons[e.supplement], detail: true };
       }
-      const { w, parts, planned, front, vervolg, big, ...rest } = e;
+      const { w, parts, planned, front, vervolg, big, _extra, ...rest } = e;
       const lead = e.leadId || e.id;
       const itemIds = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
@@ -4511,7 +4543,7 @@ var HootCore = (() => {
     if (regularCount < EDITION_AUDIT_BELOW) {
       const decisions = [];
       selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions });
-      if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions });
+      if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * extraMax, plan: false, audit: decisions });
       const selectedIds = new Set(out.flatMap((e) => e.itemIds || [e.leadId || e.id]));
       const selectedSigs = out.map((e) => sigAll.get(e.leadId || e.id)).filter(Boolean);
       const represented = (ids) => ids.some((id) => selectedIds.has(id) || sigAll.has(id) && selectedSigs.some((s) => sameSubject(sigAll.get(id), s)));

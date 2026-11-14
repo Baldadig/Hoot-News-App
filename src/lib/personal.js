@@ -37,6 +37,18 @@ export const INTEREST_BONUS = 10
 export const NEWS_CATS = new Set(['nl', 'vl', 'regio', 'int', 'economie', 'tech', 'wetenschap'])
 export const EXTRA_MAX = 2
 export const EXTRA_MIN = 0.5 // zo sterk moet sport, cultuur of games in je profiel zijn
+// Het plafond groeit mee met wat je koos (persona's 14 november: wie alleen Cultuur en Sport koos, kreeg in elke Editie
+// precies twee van zulke plekken en acht plekken nieuws uit de rubriekvulling). Het aandeel van de gekozen interesses dat
+// sport of cultuur is, krijgt hooguit de helft van de Editie: alleen Cultuur en Sport (2 van 2) geeft 5, Cultuur en
+// Sport naast één nieuwsinteresse 3; wie meer nieuws koos, houdt EXTRA_MAX. Alleen een gebied dat ook in het extra blok
+// meedoet (`kinds`, uit het profiel) telt. Zonder interesses blijft het EXTRA_MAX. Alleen gehele getallen (web en app gelijk).
+export const EXTRA_KIND_OF = { sport: 'sport', cultuur: 'cultuur' }
+export function extraMaxOf(interests = [], kinds = new Set(), size = EDITION_SIZE) {
+  const chosen = [...new Set(interests)].filter((id) => INTERESTS.some((f) => f.id === id))
+  const light = chosen.filter((id) => EXTRA_KIND_OF[id] && kinds.has(EXTRA_KIND_OF[id])).length
+  if (!light) return EXTRA_MAX
+  return Math.max(EXTRA_MAX, Math.floor((size * light) / (2 * chosen.length)))
+}
 // Ook uit een gewone nieuwsbron (NU.nl, de Volkskrant) is een voetbalbericht sport.
 const TOPIC_KIND = { voetbal: 'sport', f1: 'sport', wielrennen: 'sport', tennis: 'sport', wintersport: 'sport', olympisch: 'sport', muziek: 'cultuur', film: 'cultuur', boeken: 'cultuur', kunst: 'cultuur', games: 'games' }
 // Een bericht van een vakbron krijgt die rubriek, niet een rubriek uit de tekst ("Britse
@@ -356,7 +368,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
   // Het extra blok kiest er een paar meer, zodat een verhaal dat het nieuws al heeft (de dood van een
   // acteur, met een stuk van NOS Cultuur) er niet twee keer in staat.
-  const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false }) : []
+  // Het plafond groeit mee met je keuze (extraMaxOf); de eerste EXTRA_MAX plekken gaan zoals altijd van het nieuws af,
+  // de groei daarna ruilt alleen lichte plekken (hieronder), zodat groot nieuws en de voorpagina blijven.
+  const extraMax = extraMaxOf(interests, extraKinds)
+  const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * extraMax, plan: false }) : []
   const extraN = Math.min(EXTRA_MAX, extraAll.length)
 
   // 3. Het nieuws, met jouw indeling. Een plek buiten de indeling en de voorpagina met een kop van
@@ -378,6 +393,27 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const un = unchosenAbroad(e.leadId || e.id, e.kind === 'story' ? e.id : null)
     if (!eligible(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)) continue
     if (un) abroad++
+    extra.push({ ...e, desk: null })
+  }
+  // De groei boven EXTRA_MAX (extraMaxOf): per extra plek ruilt de lichtste nieuwsplek, eerst een zonder gekozen interesse.
+  // Nooit de voorpagina of groot nieuws: dat blijft staan, ook als er dan minder groei is.
+  const extraIds = new Set(extra.flatMap((e) => e.itemIds || [e.id]))
+  const isMajor = (e) => majorNews(storyById.get(e.id) || e, (e.itemIds || [e.leadId || e.id]).map((id) => itemAny.get(id)).filter(Boolean))
+  for (const e of extraAll) {
+    if (extra.length >= extraMax) break
+    if (extra.includes(e) || extra.some((x) => x.id === e.id)) continue
+    const ids = e.itemIds || [e.id]
+    if (ids.some((id) => inNews.has(id) || extraIds.has(id))) continue
+    if (!eligible(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)) continue
+    // Ook niet de enige plek van een kernrubriek als de Editie er dan te weinig heeft (KERN_MIN, zoals bij het brede verhaal).
+    const kernIn = (es) => new Set(es.map((x) => x.desk).filter((d) => KERN.includes(d))).size
+    const keeps = (x) => kernIn(news.filter((y) => y !== x)) >= Math.min(KERN_MIN, kernIn(news))
+    const light = news.map((x, i) => ({ x, i })).filter(({ x }) => !x.front && !isMajor(x) && keeps(x)).sort((a, b) => (a.x.parts?.interest ? 1 : 0) - (b.x.parts?.interest ? 1 : 0) || (a.x.w || 0) - (b.x.w || 0) || byText(b.x.id, a.x.id))[0]
+    if (!light) break
+    news.splice(light.i, 1)
+    if (sel.counted.has(light.x.id)) abroad--
+    if (unchosenAbroad(e.leadId || e.id, e.kind === 'story' ? e.id : null)) abroad++
+    for (const id of ids) extraIds.add(id)
     extra.push({ ...e, desk: null })
   }
   const own = [...news, ...extra]
@@ -587,6 +623,14 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     accepted.push(e)
   }
   entries.forEach(accept)
+  // Valt er een plek weg, dan eerst de volgende kandidaat uit je gekozen sport of cultuur (tot het plafond), pas daarna
+  // de vulling met nieuws.
+  const extraIn = () => accepted.filter((e) => extra.includes(e) || e._extra).length
+  for (const e of extraAll) {
+    if (accepted.length >= EDITION_SIZE || extraIn() >= extraMax) break
+    if (extra.some((x) => x.id === e.id)) continue
+    accept({ ...e, desk: null, _extra: true })
+  }
   if (accepted.length < EDITION_SIZE) selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept)
   // Dan pas aanvullen uit de algemene Editie, met dezelfde toelating en zonder dubbel verhaal.
   for (const { g } of fillCands) {
@@ -651,7 +695,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       const reasons = {groot:`Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`,passend:`Aanvulling bij ${family}`,basis:'Actueel nieuws uit Nederland',eigen:'Uit je gekozen bronnen'}
       if (reasons[e.supplement]) why = {...why,text:reasons[e.supplement],detail:true}
     }
-    const { w, parts, planned, front, vervolg, big, ...rest } = e
+    const { w, parts, planned, front, vervolg, big, _extra, ...rest } = e
     const lead = e.leadId || e.id
     const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
@@ -664,7 +708,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (regularCount < EDITION_AUDIT_BELOW) {
     const decisions = []
     selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions })
-    if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions })
+    if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * extraMax, plan: false, audit: decisions })
     const selectedIds = new Set(out.flatMap(e => e.itemIds || [e.leadId || e.id]))
     const selectedSigs = out.map(e => sigAll.get(e.leadId || e.id)).filter(Boolean)
     const represented = ids => ids.some(id => selectedIds.has(id) || (sigAll.has(id) && selectedSigs.some(s => sameSubject(sigAll.get(id), s))))
