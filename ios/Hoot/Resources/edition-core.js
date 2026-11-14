@@ -1511,7 +1511,7 @@ var HootCore = (() => {
     const textForeign = specific || RE2.buitenland.test(geoText) || headCountries.some((c) => c !== "nl");
     if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
       out.add("binnenland");
-    } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source) && /binnenland|\/politiek\//.test(sec))) {
+    } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
       out.add("buitenland");
     }
     if (headHome && out.has("binnenland")) {

@@ -4,9 +4,9 @@ import { desksOf, deskOfStory } from '../netlify/lib/desks.mjs'
 import { countriesIn } from '../shared/article-signals.mjs'
 import { labelFor } from '../src/lib/label.js'
 
-// Dubbelcheck 14 november, A6: de rubriek boven een plek klopt. De plek wint van een binnenlands onderwerp, Buitenland
-// vraagt bewijs (een Vlaamse bron alleen is het niet), een musicus is cultuur, en een Amerikaanse staat of stad of het
-// VK is een buitenlandse plek. De koppen zijn de voorbeelden uit OORDEEL.md; de regels gelden voor elk zulk stuk.
+// Dubbelcheck 14 november, A6: de rubriek boven een plek klopt. De plek wint van een binnenlands onderwerp, een musicus
+// in de kop is cultuur, en een Amerikaanse staat of stad of het VK is een buitenlandse plek. Een stuk van een Vlaamse
+// bron blijft Buitenland (herstelkeuring). De koppen zijn de voorbeelden uit OORDEEL.md; de regels gelden voor elk zulk stuk.
 const desks = (it) => [...desksOf(it)]
 
 test('A6: een Amerikaanse staat en het VK zijn een land', () => {
@@ -39,12 +39,18 @@ test('A6: een musicus is cultuur, geen Buitenland, ook als de intro een ander la
   assert.ok(desks({ source: 'nos', title: 'Rapper doodgeschoten in Frankrijk' }).includes('buitenland'))
 })
 
-test('A6: een Vlaamse bron alleen maakt een stuk geen Buitenland; een Belgische plek of de rubriek wel', () => {
-  assert.deepEqual(desks({ source: 'vrt', title: 'Lize Spit schrijft brief aan diabetes', url: 'https://vrtnws.be/p.mRJK58YWQ' }), [])
+test('A6: een stuk van een Vlaamse bron blijft Buitenland, ook zonder bekende Belgische plek (herstelkeuring)', () => {
+  // De herstelkeuring vond 130 van de 477 Vlaamse stukken die geen Buitenland meer waren: Belgisch binnenlands nieuws
+  // ontsnapte zo aan het plafond voor buitenland. Of Belgisch nieuws voor de Vlaamse lezer Buitenland heet, beslist Alex.
+  assert.deepEqual(desks({ source: 'vrt', title: 'Vier everzwijnen aangereden op 1 dag in Geel: politie waarschuwt voor overstekend wild', summary: 'Op de Zuiderring (R14) in Geel zijn gisteren 4 everzwijnen aangereden.', url: 'https://vrtnws.be/p.VLN9mBP4V' }), ['buitenland'])
+  assert.deepEqual(desks({ source: 'vrt', title: 'Kernkabinet zit sinds vanmiddag weer bijeen over de begroting', url: 'https://vrtnws.be/p.nwvwmBOBR' }), ['buitenland'])
+  assert.deepEqual(desks({ source: 'vrt', title: 'Proces gestart tegen Liberty in Geraardsbergen: 191 mensen opgelicht met valse verzekeringen', url: 'https://vrtnws.be/p.3Bw05XZdP' }), ['buitenland'])
   assert.deepEqual(desks({ source: 'vrt', title: 'Brand in Antwerpse school, drie gewonden' }), ['buitenland'])
   assert.deepEqual(desks({ source: 'standaard', title: 'Staking legt treinverkeer plat', url: 'https://www.standaard.be/buitenland/x' }), ['buitenland'])
-  assert.deepEqual(desks({ source: 'nieuwsblad', title: 'Lachen op een begrafenis is geen schande', url: 'https://www.nieuwsblad.be/binnenland/x' }), ['buitenland'], 'de eigen rubriek Binnenland van een Vlaamse bron is België')
-  assert.deepEqual(desks({ source: 'demorgen', title: '‘Een inschattingsfout’: nederlaag tegen Bouchez blijft premier De Wever achtervolgen', url: 'https://www.demorgen.be/politiek/x' }), ['buitenland'])
+  assert.deepEqual(desks({ source: 'nieuwsblad', title: 'Lachen op een begrafenis is geen schande', url: 'https://www.nieuwsblad.be/binnenland/x' }), ['buitenland'])
+  // Cultuur en sport van een Vlaamse bron hebben hun eigen soort, geen rubriek (ownKind).
+  assert.deepEqual(desks({ source: 'sporza', title: 'Evenepoel wint de tijdrit in Tirreno', mainTopics: ['wielrennen'], url: 'https://sporza.be/nl/x' }), [])
+  assert.deepEqual(desks({ source: 'standaard', title: 'Nieuwe roman van Lize Spit verschijnt in maart', url: 'https://www.standaard.be/cultuur/x' }), [])
 })
 
 test('A6: het label volgt de plek, niet het binnenlandse onderwerp (web; de app leest dezelfde fixture)', () => {

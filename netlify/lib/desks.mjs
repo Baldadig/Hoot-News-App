@@ -320,11 +320,11 @@ function deskSet(it, storyForeign) {
   const textForeign = specific || RE.buitenland.test(geoText) || headCountries.some((c) => c !== 'nl')
   if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
     out.add('binnenland') // Nederland gaat voor: een Nederlandse speler in het buitenland is Binnenland
-  } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || (VL_HOME.has(it.source) && /binnenland|\/politiek\//.test(sec)))) {
-    // Buitenland vraagt bewijs, net als Binnenland: een plek, land of naam in kop of intro, of de rubriek Buitenland van de
-    // bron. Een Vlaamse bron alleen is geen bewijs meer (dubbelcheck 14 november, A6: "Lize Spit schrijft brief aan
-    // diabetes" stond onder Buitenland). Een Belgische plek of naam (BE), of de eigen rubriek Binnenland of Politiek van een
-    // Vlaamse bron (dat is België), blijft wel Buitenland.
+  } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
+    // Een stuk van een Vlaamse bron blijft Buitenland: Belgisch nieuws noemt zelden een Belgische plek die we kennen (Geel,
+    // het kernkabinet), en zonder deze regel ontsnapt het aan het plafond voor buitenland. Cultuur en sport hebben hun
+    // eigen soort en komen hier niet (ownKind). Of Belgisch nieuws voor de Vlaamse lezer geen Buitenland heet, is een
+    // besluit voor Alex (herstelkeuring dubbelcheck 14 november, A6).
     out.add('buitenland')
   }
   if (headHome && out.has('binnenland')) for (const d of ['buitenland', 'vs', 'middenoosten', 'oekraine']) if (!usPoliticsIn(title) && !RE[d]?.test(title)) out.delete(d)
