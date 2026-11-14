@@ -315,10 +315,16 @@ var HootCore = (() => {
     // Amerikaans nieuws (bronnen-amerika, 14 november 2026): de landenregel (COUNTRY_MAX in shared/edition-policy.mjs)
     // begrenst de telling per buitenlands land, dus meer Amerikaanse uitgevers maken een binnenlands Amerikaans verhaal niet
     // groter. Alleen bronnen met een kwalitatieve feed (vers, een echte intro, beeld, alleen nieuws): Axios en ProPublica.
-    // The Washington Post nog niet: de feed antwoordt pas na 8 tot 10 seconden (de grens is 9), zonder beeld, en de site
-    // weigert de eigen UA. Fox, CBS, PBS en Semafor niet (besluit Alex).
+    // Fox, CBS, PBS en Semafor niet (besluit Alex).
     S("axios", "Axios", "int", "en", "Amerikaans nieuws, kort en feitelijk.", "https://api.axios.com/feed/", { color: "#1A1A1A", bsky: "axios.com", x: "axios" }),
     S("propublica", "ProPublica", "int", "en", "Amerikaanse onderzoeksjournalistiek, non-profit.", "https://www.propublica.org/feeds/propublica/main", { color: "#1A1A1A", bsky: "propublica.org", x: "propublica" }),
+    // The Washington Post (wapo, 14 november 2026, akkoord Alex): World en Politics als twee bronnen van één uitgever
+    // (`publisher`; `urls` is een lijst terugvallers, geen samenvoeging). De feedserver antwoordt pas na 8 tot 10,5 seconden:
+    // `timeoutMs` (rss.mjs, feedTimeout), en de ronde wacht er niet op (build.mjs, fetchSources). De feed heeft geen beeld en
+    // de site weigert de eigen UA (dus ook geen og:image): `bskyImages`, het beeld van de linkkaart in de eigen Bluesky-post
+    // van de uitgever bij hetzelfde artikel. Betaald, zonder inlogpagina: die antwoordt niet met de eigen UA.
+    S("wapo", "The Washington Post", "int", "en", "Wereldnieuws uit Washington.", "https://feeds.washingtonpost.com/rss/world", { publisher: "wapo", paid: true, timeoutMs: 14e3, bskyImages: true, color: "#1A1A1A", bsky: "washingtonpost.com", x: "washingtonpost" }),
+    S("wapo-politics", "The Washington Post Politiek", "int", "en", "Amerikaanse politiek, uit Washington.", "https://feeds.washingtonpost.com/rss/politics", { publisher: "wapo", paid: true, timeoutMs: 14e3, bskyImages: true, color: "#1A1A1A", bsky: "washingtonpost.com", x: "washingtonpost" }),
     // Europa: publieke zenders in het Engels. France 24 en RFI zijn één uitgever (France Médias Monde).
     S("france24", "France 24", "int", "en", "Frans publiek wereldnieuws, in het Engels.", "https://www.france24.com/en/rss", { publisher: "france-medias-monde", color: "#00A3E0", bsky: "france24.com", x: "France24_en" }),
     S("rfi", "RFI English", "int", "en", "Franse publieke radio, sterk in Afrika.", "https://www.rfi.fr/en/rss", { publisher: "france-medias-monde", color: "#D7001D", bsky: "rfi.fr", x: "RFI_En" }),
@@ -2012,7 +2018,9 @@ var HootCore = (() => {
       "thefp",
       // 14 november 2026 (bronnen-amerika, met de landenregel in coverageOf)
       "axios",
-      "propublica"
+      "propublica",
+      // 14 november 2026 (wapo): World en Politics zijn één uitgever (`publisher`)
+      "wapo"
     ],
     GB: ["guardian", "bbc", "economist", "ft", "independent", "telegraph", "eurogamer", "nature", "carbonbrief", "autosport", "quietus"],
     // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
@@ -2106,7 +2114,9 @@ var HootCore = (() => {
     "haaretz",
     "timesofisrael",
     "axios",
-    "propublica"
+    "propublica",
+    "wapo",
+    "wapo-politics"
   ]);
   var BEAT = /* @__PURE__ */ new Set(["economie", "tech", "wetenschap", "cultuur", "sport"]);
   var generalNews = (item) => !(item?.topics || []).some((t) => BEAT.has(FAMILY_OF[t]));
@@ -4248,12 +4258,135 @@ var HootCore = (() => {
     "zo werkt",
     "zo zit het"
   ].map((w) => `\\b${w}\\b`).join("|") + "|\\bhow\\b[^?]*\\b(?:works?|actually work)\\b", "iu");
+  var STRONG_HEAD = new RegExp([
+    "\\b(?:beste|best|top)\\b(?!-)[^:;!?|]{0,50}?\\bdeals\\b",
+    "\\b(?:best|top)\\s+[^:;!?|]{1,50}?\\bsales\\b(?!\\s+(?:executives?|chiefs?|managers?|directors?|teams?|heads?|boss\\w*|staff|reps?|figures|data|growth|tax|volumes?|force|jobs?))",
+    "\\b(?:today'?s|todays|daily|weekend|this week'?s)\\s+(?:top\\s+|best\\s+)?deals\\b",
+    "\\b(?:deals?|sales?)\\b[^()]{0,40}\\(20\\d\\d\\)",
+    "\\bsale\\s*:\\s*(?:the |our |de |onze )?(?:best|beste|top)\\b"
+  ].join("|"), "iu");
+  var STRONG_DAY_WORD = /\bdeals?\b/i;
+  var NARROW = new RegExp([
+    // Omzet en verkoopcijfers: "sales" telt hier alleen met een omzetwoord erbij.
+    "\\bomzet\\w*",
+    "\\brecordomzet\\b",
+    "\\brevenue\\b",
+    "\\bspending\\b",
+    "\\buitgaven\\b",
+    "\\bbesteding\\w*",
+    "\\bbesteed\\w*",
+    "\\bgeeft\\b.*\\buit\\b",
+    "\\b(?:sales|verkoop)\\s+(?:hit|hits|rise|rises|rose|rising|fall|falls|fell|falling|miss|missed|misses|slump\\w*|jump\\w*|drop\\w*|grow\\w*|grew|surge\\w*|soar\\w*|plunge\\w*|declin\\w*|increas\\w*|beat|top|topped|reach\\w*|figures|data|numbers|up|down|stijgt|daalt|steeg|daalde)\\b",
+    "\\b(?:online|retail|e-commerce|ecommerce)\\s+sales\\b",
+    "\\brecord\\w*\\b.*\\b(?:sales|omzet|spending|revenue)\\b",
+    "\\b(?:sales|omzet)\\b.*\\brecord\\w*",
+    "\\b(?:sales|verkoop|omzet)cijfers\\b",
+    "\\bcijfers\\b",
+    "\\bconsument\\w*",
+    "\\bshoppers\\b",
+    "\\bdrove\\b",
+    "\\blevert\\b.*\\bop\\b",
+    // Onderzoek, uitleg en achtergrond.
+    "\\bonderzoek\\w*",
+    "\\bsurvey\\b",
+    "\\bresearch\\b",
+    "\\bstudy\\b",
+    "\\bstudie\\b",
+    "\\bfinds\\b",
+    "\\bwaarom\\b",
+    "\\bwhy\\b",
+    "\\banalyse\\b",
+    "\\banalysis\\b",
+    "\\bverwacht\\w*",
+    "\\bexpected\\b",
+    "\\banalysts?\\b",
+    "\\banalisten\\b",
+    "\\bexplained\\b",
+    "\\buitgelegd\\b",
+    "\\bzo werkt\\b",
+    "\\bzo zit het\\b",
+    "\\bhow\\b[^?]*\\b(?:works?|actually work)\\b",
+    // Nep, oplichting en toezicht.
+    "\\bnep\\w*",
+    "\\bfakes?\\b",
+    "\\bscams?\\b",
+    "\\boplicht\\w*",
+    "\\bmisleid\\w*",
+    "\\bmisleading\\b",
+    "\\bfraude\\b",
+    "\\bacm\\b",
+    "\\bftc\\b",
+    "\\bcma\\b",
+    "\\bregulators?\\b",
+    "\\btoezicht\\w*",
+    "\\bwaarschuw\\w*",
+    "\\bwarns?\\b",
+    "\\bboetes?\\b",
+    "\\bfined?\\b",
+    "\\bprobe\\b",
+    "\\blawsuit\\b",
+    "\\bsue[sd]\\b",
+    "\\brechter\\w*",
+    "\\brechtbank\\b",
+    "\\bcourt\\b",
+    "\\beuropese commissie\\b",
+    // Zaken: overnames, akkoorden, handel, werk en faillissementen.
+    "\\bm&a\\b",
+    "\\bmergers?\\b",
+    "\\bacquisitions?\\b",
+    "\\bovernames?\\b",
+    "\\btakeovers?\\b",
+    "\\bfusies?\\b",
+    "\\bakkoord\\b",
+    "\\btrade\\b",
+    "\\bhandels\\w*",
+    "\\bbillion\\b",
+    "\\bmiljard\\w*",
+    "\\b\\d+\\s?bn\\b",
+    "\\bretailers\\b",
+    "\\bwinkeliers\\b",
+    "\\bwebwinkels\\b",
+    "\\bworkers\\b",
+    "\\bwerknemers\\b",
+    "\\bpersoneel\\b",
+    "\\bstrikes?\\b",
+    "\\bstaking\\w*",
+    "\\bbankrupt\\w*",
+    "\\bfaillis\\w*",
+    "\\bfailliet\\b",
+    // Politieke akkoorden: "peace deals", "trade deals".
+    "\\bpeace\\b",
+    "\\bvrede\\w*",
+    "\\bceasefire\\b",
+    "\\bdiplomat\\w*",
+    "\\btariffs?\\b",
+    "\\bnuclear\\b",
+    "\\bkernwapen\\w*",
+    // Markten.
+    "\\bstocks?\\b",
+    "\\bshares\\b",
+    "\\baandel\\w*",
+    "\\bbeurs\\w*",
+    "\\bkoers\\w*",
+    "\\bmarkets\\b",
+    "\\bwall street\\b",
+    "\\bbitcoin\\b",
+    "\\bcrypto\\w*",
+    "\\boil (?:price|prices|supplies|market)\\b",
+    "\\bgold price\\b",
+    "\\bgoudprijs\\b",
+    "\\beconomie\\w*",
+    "\\beconomy\\b",
+    "\\binflati\\w*"
+  ].join("|"), "iu");
   var clean = (t) => String(t || "").replace(/\s+/g, " ").replace(/[’‘`]/g, "'").trim();
+  var strongForm = (t) => STRONG_HEAD.test(t) || SHOP_DAY.test(t) && STRONG_DAY_WORD.test(t);
   function koopGrond(title = "") {
     const t = clean(title);
     if (!t) return null;
     if (BUY_ALWAYS.test(t)) return "aanbod";
     if (LABEL2.test(t)) return ABOUT.test(t) ? null : "label";
+    if (strongForm(t)) return NARROW.test(t) ? null : STRONG_HEAD.test(t) ? "dealkop" : "koopdag";
     const grond = DEAL_HEAD.test(t) ? "dealkop" : SHOP_DAY.test(t) && SHOP_WORD.test(t) ? "koopdag" : PRICE_DROP.test(t) ? "prijsval" : GUIDE.test(t) ? "koopgids" : null;
     return grond && !ABOUT.test(t) ? grond : null;
   }
