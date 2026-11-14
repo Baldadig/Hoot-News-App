@@ -64,12 +64,15 @@ export async function decodeMove(encoded) {
 export function mergeUnusedPrefs(current, incoming) {
   let mine
   try { mine = JSON.parse(current) } catch { mine = null }
-  // Zonder vlag geldt onboarded als waar (prefs.js): alleen een expliciet onafgerond welkom telt als ongebruikt.
-  if (mine && typeof mine === 'object' && mine.onboarded !== false) return null
+  // Zonder vlag geldt onboarded als waar (prefs.js): alleen een expliciet onafgerond welkom telt als ongebruikt,
+  // of een eerste bezoek dat meteen las en nog niets koos (`browsing`, App.jsx startMeteen).
+  if (mine && typeof mine === 'object' && mine.onboarded !== false && !mine.browsing) return null
   if (!incoming || typeof incoming !== 'object') return null
   const base = mine && typeof mine === 'object' ? { ...mine } : {}
   // Zonder schema in de meegebrachte instellingen moet migrate.js ze straks nog omzetten.
   if (!('schema' in incoming)) delete base.schema
+  // Meteen gelezen zonder keuze: de meegebrachte Hoot is je echte, dus geen "Maak Hoot van jou" meer.
+  if (base.browsing && incoming.onboarded !== false) delete base.browsing
   const out = { ...base, ...incoming }
   // Oude instellingen zonder vlag zijn van een bestaande lezer: geen welkom (zoals migrate.js en prefs.js).
   if (!('onboarded' in incoming)) out.onboarded = true

@@ -9,10 +9,15 @@ import { CHOOSE, VOORPROEF } from '../src/lib/selection-index.js'
 const read = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 
 test('lege Selectie, blad Onderwerpen en welkom: drie stukken, web en app gelijk', () => {
-  assert.equal(CHOOSE, 'Voor je werk of uit interesse: elke maandag drie stukken per onderwerp.')
-  assert.match(read('ios/Hoot/Views/DigestView.swift'), /static let choose = "Voor je werk of uit interesse: elke maandag drie stukken per onderwerp\."/)
+  // De lege Selectie vraagt het zelf (onboarding 14 november, blok 5), met "drie stukken" (Selectie-review, punt 12).
+  assert.equal(CHOOSE, 'Elke maandag drie stukken over je werk of hobby. Kies waarover.')
+  assert.match(read('ios/Hoot/Views/DigestView.swift'), /static let choose = "Elke maandag drie stukken over je werk of hobby\. Kies waarover\."/)
   for (const p of ['src/views/Vak.jsx', 'src/views/Settings.jsx', 'ios/Hoot/Views/SettingsView.swift']) assert.ok(read(p).includes('Elke maandag drie stukken per onderwerp.'), p)
-  for (const p of ['src/views/Welcome.jsx', 'ios/Hoot/Views/WelcomeView.swift']) assert.ok(read(p).includes('Elke maandag drie stukken over wat jou bezighoudt.'), p)
+  // Het uitlegscherm "Zo werkt Hoot" is weg (onboarding blok 3); de uitklapper bij opnieuw kiezen belooft drie stukken.
+  for (const p of ['src/views/Welcome.jsx', 'ios/Hoot/Views/WelcomeView.swift']) {
+    assert.ok(read(p).includes('Elke maandag drie stukken over je werk of hobby.'), p)
+    assert.ok(!read(p).includes('het beste over'), p)
+  }
   assert.ok(!/beste/.test(VOORPROEF))
   assert.ok(read('ios/Hoot/Views/DigestView.swift').includes(`static let voorproef = "${VOORPROEF}"`))
 })

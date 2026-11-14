@@ -9,6 +9,7 @@ struct DigestView: View {
     private static var fields: [DigestFieldsList.Field] { DigestFieldsList.fields }
     @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     @State private var choosing = false
+    @State private var draft: [String] = [] // de lege Selectie: wat je kiest, tot Bewaar
     @State private var folding = SelectionFoldState()
     @State private var flash: String?
     @AccessibilityFocusState private var focusedField: String?
@@ -41,7 +42,7 @@ struct DigestView: View {
                     ScreenTitle("Selectie") // de schermtitel in de scroll (C7)
                     let o = overview
                     if store.digestFields.isEmpty {
-                        empty(title: "Kies je onderwerpen", text: SelectionOverview.choose, row: "Kies onderwerpen", sub: "Nog niets gekozen")
+                        kies
                         voorproef(SelectionOverview.voorproefje(store.digest))
                     } else if let d = store.digest {
                         Group {
@@ -159,6 +160,51 @@ struct DigestView: View {
                 .padding(.top, Space.s2)
         }
         .padding(.top, Space.s5)
+    }
+
+    // De lege Selectie vraagt het zelf (onboarding blok 5, gelijk aan .dkies in Vak.jsx): één zin, de onderwerpen
+    // per domein als keuzes, en één knop. Bewaar zet de keuze in de vaste volgorde van de lijst.
+    private var kies: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(SelectionOverview.choose).uitleg().foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
+            ForEach(DigestFieldsList.domains, id: \.label) { d in
+                let fields = d.fields.filter { store.offersField($0.id) }
+                if !fields.isEmpty {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        GroupTitle(text: d.label)
+                        Flow {
+                            ForEach(fields, id: \.id) { f in
+                                ChoiceChip(label: f.label, on: draft.contains(f.id)) {
+                                    draft = draft.contains(f.id) ? draft.filter { $0 != f.id } : draft + [f.id]
+                                }
+                            }
+                        }
+                    }
+                    .padding(.top, Space.s5)
+                    .disabled(!preferencesReady)
+                }
+            }
+            Button {
+                let keuze = Set(draft)
+                store.digestFields = Self.fields.map(\.id).filter { keuze.contains($0) }
+                draft = []
+            } label: {
+                Text(SelectionOverview.bewaarLabel(draft.count))
+                    .font(.ui(.headline, .heavy))
+                    .lineLimit(1).minimumScaleFactor(0.7)
+                    .foregroundStyle(Theme.paper)
+                    .padding(.horizontal, Space.s4)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Theme.ink, in: Capsule())
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(ChoicePress())
+            .disabled(draft.isEmpty || !preferencesReady)
+            .opacity(draft.isEmpty || !preferencesReady ? 0.4 : 1)
+            .padding(.top, Space.s6)
+            .accessibilityIdentifier("selectie-bewaar")
+        }
+        .padding(.top, Space.s4)
     }
 
     // Een voorproefje onder "Kies onderwerpen" (keuze r5-selectie-onderwerpen, gelijk aan .dproef op het web):
@@ -282,7 +328,9 @@ struct SelectionOverview {
     static let slot = ["Je weet genoeg.", "Maandag een nieuwe."]
     static let emptyField = "Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw."
     static let noSources = "Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer."
-    static let choose = "Voor je werk of uit interesse: elke maandag drie stukken per onderwerp."
+    static let choose = "Elke maandag drie stukken over je werk of hobby. Kies waarover."
+    // De knop onder de lege Selectie (gelijk aan bewaarLabel in src/lib/selection-index.js).
+    static func bewaarLabel(_ n: Int) -> String { n == 0 ? "Kies een onderwerp" : n == 1 ? "Bewaar 1 onderwerp" : "Bewaar \(n) onderwerpen" }
     // Het voorproefje bij een lege Selectie (gelijk aan voorproefje() in src/lib/selection-index.js): per domein
     // (de vaste volgorde van shared/vak.mjs) het eerste onderwerp met stukken, hooguit `max`, met zijn beste stuk.
     static let voorproef = "Zo ziet het eruit: per onderwerp een stuk uit de Selectie van deze week."

@@ -24,7 +24,7 @@ extension SelectieReviewTests {
 extension SelectieReviewTests {
     // Punt 12: "drie stukken" in plaats van "het beste", gelijk aan CHOOSE in src/lib/selection-index.js.
     func testCopyPromisesThreePieces() {
-        XCTAssertEqual(SelectionOverview.choose, "Voor je werk of uit interesse: elke maandag drie stukken per onderwerp.")
+        XCTAssertEqual(SelectionOverview.choose, "Elke maandag drie stukken over je werk of hobby. Kies waarover.")
         XCTAssertFalse(SelectionOverview.voorproef.contains("beste"))
     }
 }

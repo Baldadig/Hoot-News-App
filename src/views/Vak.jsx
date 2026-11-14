@@ -11,7 +11,7 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
 import { reduced } from '../lib/motion.js'
-import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF, offeredFields, SLOT } from '../lib/selection-index.js'
+import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF, offeredFields, bewaarLabel, SLOT } from '../lib/selection-index.js'
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
@@ -198,6 +198,10 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
       )}
     </nav>
   )
+  // De lege Selectie: eerst kies je hier (draft), "Bewaar" zet het in prefs.vak. Alleen wat de bundel levert.
+  const [draft, setDraft] = useState([])
+  useEffect(() => { if (chosen.length) setDraft([]) }, [chosen.length])
+  const domains = vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length)
   const gekozen = `${offeredFields(chosen, digest).length} gekozen` // wat de bundel niet levert, telt niet (offersField)
   const proef = chosen.length ? [] : voorproefje(vakByDomain(), digest?.fields || [])
   const how = seen > 0 ? (
@@ -232,9 +236,22 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
 
         {!chosen.length ? (
           <div className="dempty">
-            <h2 className="head-lg">Kies je onderwerpen</h2>
-            <p className="dempty__text">{CHOOSE}</p>
-            {pickRow('Kies onderwerpen', 'Nog niets gekozen')}
+            {/* De lege Selectie vraagt het zelf (onboarding blok 5): de onderwerpen hier, per domein, en één knop. */}
+            <p className="dempty__text dkies__tekst">{CHOOSE}</p>
+            {domains.map((d) => (
+              <ChipGroup key={d.id} label={d.label} className="dkies__domein">
+                {d.fields.map((f) => (
+                  <button key={f.id} type="button" className="pill" aria-pressed={draft.includes(f.id)} disabled={!selectionReady} onClick={() => setDraft((l) => (l.includes(f.id) ? l.filter((x) => x !== f.id) : [...l, f.id]))}>
+                    {f.label}
+                  </button>
+                ))}
+              </ChipGroup>
+            ))}
+            <div className="dkies__voet">
+              <button type="button" className="btn btn--lg dkies__knop" disabled={!draft.length || !selectionReady} onClick={() => setPref('vak', order.filter((f) => draft.includes(f)))}>
+                {bewaarLabel(draft.length)}
+              </button>
+            </div>
             {/* Een voorproefje: wat je krijgt, uit de Selectie van deze week (echte stukken, gewoon te lezen). */}
             {proef.length ? (
               <section className="dproef" aria-labelledby="dproef-kop">

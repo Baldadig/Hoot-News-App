@@ -46,7 +46,9 @@ export const summaryLine = (o) => `${pieces(o.picked)} in ${o.live.length === 1 
 export const SLOT = ['Je weet genoeg.', 'Maandag een nieuwe.']
 export const EMPTY_FIELD = 'Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw.'
 export const NO_SOURCES = 'Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer.'
-export const CHOOSE = 'Voor je werk of uit interesse: elke maandag drie stukken per onderwerp.'
+export const CHOOSE = 'Elke maandag drie stukken over je werk of hobby. Kies waarover.'
+// De knop onder de lege Selectie (gelijk aan SelectionOverview.bewaarLabel in DigestView.swift).
+export const bewaarLabel = (n) => (n === 0 ? 'Kies een onderwerp' : n === 1 ? 'Bewaar 1 onderwerp' : `Bewaar ${n} onderwerpen`)
 
 // Een voorproefje voor een lege Selectie (keuze r5-selectie-onderwerpen, 5 november; review G13): uit de
 // Selectie van deze week per domein het eerste onderwerp met stukken, hooguit `max`, elk met zijn beste stuk.

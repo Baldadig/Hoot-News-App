@@ -10,7 +10,7 @@ import '../../src/placeholder.css'
 import '../../src/staten.css'
 import '../../src/styles/rust.css'
 import '../../src/styles/inklap.css'
-import '../../src/styles/welkom-bewijs.css'
+import '../../src/styles/welkom-intro.css'
 import fixture from '../fixtures/onboarding-sources.json'
 import { SOURCES } from '../../netlify/lib/sources.mjs'
 // De aanbevelingen uit de echte catalogus erbij (pick, for, forTopic), zoals de server ze meestuurt (netlify/lib/build.mjs).

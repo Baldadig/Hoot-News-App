@@ -1,0 +1,44 @@
+/* "Hoot staat ook in de App Store" (components/AppKaart.jsx), gelijk aan de seintje-vraag in de app
+   (AlertOffer): een kaart op papier (surface) in de lijst, onder de rode eindkaart, op de leesbreedte
+   en links verankerd zoals de eindkaart. Niet zwevend: hij houdt zijn eigen plek. */
+.appkaart {
+  max-inline-size: var(--measure);
+  margin-block: 0 var(--s6);
+  padding: var(--s4);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--elev-edge);
+}
+.appkaart__tekst {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--t2);
+  line-height: var(--lh-2-read);
+  text-wrap: pretty;
+}
+.appkaart__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s4);
+  margin-block-start: var(--s3);
+}
+.appkaart__acts .btn {
+  text-decoration: none;
+}
+.appkaart__later {
+  color: var(--ink-2);
+}
+
+/* Breed: op dezelfde kolommaat en linkerlijn als de eindkaart erboven (rust.css §3). */
+@container front (width > 48rem) {
+  .col--front > .appkaart {
+    max-inline-size: calc((100cqi - var(--s6)) / 2);
+  }
+}
+/* Tablet staand: op de lijn van de tekst, zoals de eindkaart. */
+@container front (40rem <= width <= 48rem) {
+  .col--front > .appkaart {
+    margin-inline-start: calc(2ch + var(--s3));
+  }
+}
