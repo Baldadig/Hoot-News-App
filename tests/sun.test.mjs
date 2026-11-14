@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { K, W, H, HZ, CX, LINE, STILL, WATER_PT_S, breathe, halo, introSun, editieSun, kopSun, eindeSun, waterShift, WATER_ROWS } from '../src/lib/sun.js'
+import { K, W, H, HZ, CX, LINE, STILL, WATER_PT_S, breathe, halo, introSun, editieSun, eindeSun, waterShift, WATER_ROWS } from '../src/lib/sun.js'
 
 const near = (a, b, e = 1e-6) => assert.ok(Math.abs(a - b) < e, `${a} ≉ ${b}`)
 
@@ -50,19 +50,6 @@ test('Editie: 6 s op en 6 s onder', () => {
 
 test('stilbeelden voor Verminder beweging', () => {
   assert.deepEqual(STILL, { intro: 1.6, editie: 4, stroom: 1.6, selectie: 1.6, einde: 6 })
-})
-
-test('de zon in de Editie: de kop toont hoe ver je bent, recht omlaag, zonder dagdeel', () => {
-  // Bij 01 hoog, bij het laatste verhaal op de horizon, bij het einde onder met gloed.
-  near(kopSun(0, 10).cy, 9)
-  near(kopSun(9, 10).cy, 20)
-  near(kopSun(10, 10).cy, 30)
-  near(kopSun(10, 10).gloed, 1)
-  near(kopSun(9, 10).gloed, 0)
-  for (let p = 0; p < 10; p += 0.5) assert.ok(kopSun(p + 0.5, 10).cy > kopSun(p, 10).cy, `zakt bij ${p}`)
-  for (const p of [0, 3, 9, 10]) near(kopSun(p, 10).cx, 22) // recht omlaag: x blijft
-  assert.ok(kopSun(10, 10).cy - 8 > 20, 'bij het einde helemaal onder de horizon')
-  assert.equal(kopSun.length, 1, 'de stand en het aantal, geen dagdeel') // n heeft een standaard
 })
 
 test('de zon onderaan de Editie: één keer op in 6 s, dan stil; stil bij Verminder beweging', () => {

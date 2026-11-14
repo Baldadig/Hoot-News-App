@@ -86,19 +86,12 @@ enum RefreshStrip {
     }
     // De strook hoort bij de inhoud, zoals de verversknop van iOS zelf: lees je tijdens het verversen verder,
     // dan schuift hij met de Editie mee omhoog en uit beeld. Zichtbaar blijft alleen wat nog boven de inhoud
-    // ligt, dus nooit iets over de kop, de zon of de meelopende kop heen (build 55: de horizon bleef bovenaan
-    // staan en tekende over de meelopende kop). `scrolled`: hoe ver de inhoud boven zijn rustplek staat.
-    // `kop`: de meelopende kop (naam en zon) staat bovenaan. Dan is de strook er nooit, ook niet een rand.
-    static func zicht(gap: CGFloat, scrolled: CGFloat, kop: Bool = false) -> CGFloat {
-        guard !kop else { return 0 }
+    // ligt, dus nooit iets over de kop of de krant heen (build 55: de horizon bleef bovenaan staan).
+    // `scrolled`: hoe ver de inhoud boven zijn rustplek staat.
+    static func zicht(gap: CGFloat, scrolled: CGFloat) -> CGFloat {
         let g = gap.isFinite ? max(0, gap) : 0
         let s = scrolled.isFinite ? max(0, scrolled) : 0
         return max(0, g - s)
-    }
-    // Staat er bovenaan een meelopende kop (EditionKopBalk)? Die meldt zich hier, zodat de strook wijkt.
-    struct KopKey: PreferenceKey {
-        static let defaultValue = false
-        static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
     }
     // Verder dan dit hoeft de scroll niet gevolgd te worden: de strook is dan al lang uit beeld.
     static let volgTot: CGFloat = loading * 4
@@ -138,7 +131,6 @@ private struct HootRefresh: ViewModifier {
     @State private var shutT0: Double? = nil // begin van het dichtgaan (ms), zolang de strook dichtgaat
     @State private var failCount = 0
     @State private var scrolled: CGFloat = 0 // hoe ver de inhoud boven zijn rustplek staat (tot RefreshStrip.volgTot)
-    @State private var kop = false // de meelopende kop staat bovenaan (RefreshStrip.KopKey)
     private func announce(_ text: String) { if indicator { AccessibilityNotification.Announcement(text).post() } }
     private func wait(until ms: Double) async {
         let d = ms - Horizon.now()
@@ -195,14 +187,13 @@ private struct HootRefresh: ViewModifier {
             .onScrollGeometryChange(for: CGFloat.self) { min(RefreshStrip.volgTot, max(0, $0.contentOffset.y + $0.contentInsets.top)) } action: { _, value in
                 scrolled = value
             }
-            .onPreferenceChange(RefreshStrip.KopKey.self) { kop = $0 }
             .onScrollPhaseChange { old, new in
                 if pull.phase(from: old, to: new) { refresh() }
             }
             .onChange(of: pull.armed) { _, _ in armedSince = Horizon.now() }
             .overlay(alignment: .top) {
                 let gap = closing ?? RefreshStrip.gap(amount: pull.amount, busy: pull.busy)
-                let zicht = RefreshStrip.zicht(gap: gap, scrolled: scrolled, kop: kop)
+                let zicht = RefreshStrip.zicht(gap: gap, scrolled: scrolled)
                 if indicator && (pull.busy || pull.amount >= 1 || closing != nil) && zicht >= 0.5 {
                     PullHorizonStrip(amount: pull.amount, busy: pull.busy || closing != nil, mark: mark, reduceMotion: still,
                                      armed: pull.armed, armedSince: armedSince, height: closing)

@@ -28,115 +28,15 @@ enum EditionNumbering {
     static func count(_ rows: [EditionRowModel]) -> Int { rows.compactMap(\.number).max() ?? 0 }
 }
 
-// De kop van de Editie; de verversmarkering staat niet in de kop maar in de trekstrook erboven (QuietMotion).
-// Naast de naam de kleine zon die toont hoe ver je bent (zon-voortgang, EditionSun). Past de naam er bij grote
-// tekst niet meer naast, dan valt de zon onder de naam: als voortgang verdwijnt hij nooit. VoiceOver hoort de
-// stand bij de naam ("Avondeditie, 4 van 10 gelezen"), één keer, niet bij elke stap; de zon zelf is een beeld.
+// De kop van de Editie: de naam als grote schermtitel, die gewoon met de krant mee wegscrolt. Geen meelopende kop
+// en geen zon als voortgang (besluit Alex, 14 november): bovenaan staan alleen de bedieningselementen van iOS en
+// de app. De verversmarkering staat niet in de kop maar in de trekstrook erboven (QuietMotion).
 struct EditionHeader: View {
     let title: String
-    var stand: LeesStand? = nil
-    var count = 10
-    var eind: String? = nil
-    var sun = true
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .bottom, spacing: Space.s3) {
-                    ScreenTitle(title, gap: 0).fixedSize()
-                    Spacer(minLength: 0)
-                    if sun { EditionSun(stand: stand, count: count).padding(.bottom, Space.s1) }
-                }
-                VStack(alignment: .leading, spacing: Space.s1) {
-                    ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
-                    if sun { EditionSun(stand: stand, count: count) }
-                }
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(title)
-        .accessibilityValue(sun && count > 0 ? LeesStand.waarde(stap: stand?.stap ?? 0, count: count, eind: eind) : "")
-        .accessibilityAddTraits(.isHeader)
-    }
-}
-
-// De zon als voortgang (zon-voortgang, variant B): hoe ver je in de Editie bent, uit de scrollpositie. Gelijk
-// aan src/lib/leesstand.js. De leeslijn ligt bovenaan net onder de meelopende kop en schuift tot helemaal
-// onderaan gelijkmatig naar de onderkant van het scherm; elk verhaal dat hij passeert telt. Alleen scrollen
-// verandert de stand, niets beweegt uit zichzelf. Waargenomen worden alleen `p`, `stap` en `kopWeg`, zodat
-// alleen de zon, de waarde en de meelopende kop opnieuw tekenen, niet de hele Editie.
-@MainActor @Observable final class LeesStand {
-    var p: Double = 0 // de stand, 0 (01 bovenaan) tot het aantal (het einde)
-    var stap = 0 // de hele stap: zoveel verhalen ben je voorbij
-    var kopWeg = false // de naam is uit beeld: de meelopende kop staat er
-    @ObservationIgnored var tops: [Int: CGFloat] = [:] // de bovenkant van elk genummerd verhaal, in de inhoud
-    @ObservationIgnored var einde: CGFloat? // de bovenkant van het einde
-    @ObservationIgnored var kopOnder: CGFloat = 0 // de onderkant van de naam
-    static let balk: CGFloat = Space.tap // de meelopende kop
-
-    struct Geo: Equatable { var top: CGFloat; var max: CGFloat; var hoogte: CGFloat }
-
-    // `starts`: per verhaal zijn bovenkant, of nil als de lijst hem nog niet tekende (lazy: na een sprong of een
-    // teruggezette plek). Dan telt het laatste bekende verhaal boven de lijn, en loopt de stand naar het volgende
-    // bekende punt; met alle verhalen bekend is dit precies leesStand op het web.
-    static func stand(top: CGFloat, max maxTop: CGFloat, kop: CGFloat, hoogte: CGFloat, starts: [CGFloat?], einde: CGFloat?) -> Double {
-        let n = starts.count
-        guard n > 0 else { return 0 }
-        let f = maxTop > 0 ? min(1, Swift.max(0, top / maxTop)) : 1
-        let lijn = top + kop + Swift.max(0, hoogte - kop) * f
-        var punten = starts.enumerated().compactMap { i, y in y.map { (i: i, y: $0) } }
-        if let einde { punten.append((n, einde)) }
-        guard let first = punten.first, lijn >= first.y else { return 0 }
-        guard let j = punten.lastIndex(where: { $0.y <= lijn }) else { return 0 }
-        let a = punten[j]
-        if a.i >= n { return Double(n) }
-        guard j + 1 < punten.count else { return einde == nil && a.i == n - 1 && starts.allSatisfy({ $0 != nil }) ? Double(n) : Double(a.i) }
-        let b = punten[j + 1]
-        return Double(a.i) + Double(b.i - a.i) * min(1, Swift.max(0, Double((lijn - a.y) / Swift.max(1, b.y - a.y))))
-    }
-    static func stap(_ p: Double, _ n: Int) -> Int { min(n, Swift.max(0, Int((p + 0.05).rounded(.down)))) }
-    static func waarde(stap: Int, count: Int, eind: String?) -> String {
-        if stap >= count, let eind { return eind }
-        return "\(stap) van \(count) gelezen"
-    }
-
-    func reset() { tops = [:]; einde = nil; p = 0; stap = 0; kopWeg = false }
-
-    func werkBij(_ g: Geo, count n: Int) {
-        let weg = kopOnder > 0 && kopOnder <= g.top + Self.balk
-        if weg != kopWeg { kopWeg = weg }
-        guard n > 0 else { return }
-        let raw = Self.stand(top: g.top, max: g.max, kop: Self.balk, hoogte: g.hoogte, starts: (1...n).map { tops[$0] }, einde: einde)
-        let q = (raw * 50).rounded() / 50 // fijn genoeg voor een zon die ruim een punt per verhaal zakt
-        if q != p { p = q }
-        let s = Self.stap(raw, n)
-        if s != stap { stap = s }
-    }
-}
-
-// De meelopende kop: is de naam van de Editie uit beeld, dan blijven naam en zon bovenaan staan, klein en
-// rustig, zoals de titel in de balk van Podcasts of Muziek. Komt en gaat met een korte fade; voor VoiceOver
-// staat de stand bij de naam bovenaan, hier niet nog eens (gelijk aan .edbar op het web).
-struct EditionKopBalk: View {
-    let title: String
-    let stand: LeesStand
-    let count: Int
-    var body: some View {
-        ZStack {
-            if stand.kopWeg {
-                HStack(spacing: Space.s2) {
-                    Text(title).font(.ui(.headline)).foregroundStyle(Theme.ink).lineLimit(1)
-                    EditionSun(stand: stand, count: count)
-                }
-                .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-                .frame(maxWidth: .infinity, minHeight: LeesStand.balk)
-                .background(Theme.paper)
-                .overlay(alignment: .bottom) { Rule() }
-                .transition(.opacity)
-            }
-        }
-        .animation(Beweging.kortAnim, value: stand.kopWeg)
-        .preference(key: RefreshStrip.KopKey.self, value: stand.kopWeg) // de trekstrook wijkt voor de kop
-        .accessibilityHidden(true)
+        ScreenTitle(title, gap: 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -280,7 +180,6 @@ struct EditionView: View {
     @State private var tien = TienModel() // je eerste Editie na het welkom (FirstEditionMark.swift)
     @MainActor private static var debugTien = false // `-HootTien YES`: één keer per start
     @State private var endVisible = false // de zon onderaan is in beeld
-    @State private var stand = LeesStand() // hoe ver je bent: de zon in de kop (zon-voortgang)
     @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
@@ -311,8 +210,6 @@ struct EditionView: View {
     // Titel, datum en einde horen bij de Editie die je ziet: bij de dagdeelwissel even de vorige (DagdeelWissel).
     private var shown: Edition? { store.shownEdition ?? store.edition }
     private var title: String { shown?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
-    // Het aantal genummerde verhalen: daarvan telt de zon in de kop (zon-voortgang).
-    private var leesCount: Int { EditionNumbering.count(EditionNumbering.rows(store.editionRows).filter { $0.desk != "bubbel" }) }
     private var dateLine: String {
         guard let d = shown?.date, let date = HootDate.day(d) else { return "" }
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
@@ -465,12 +362,8 @@ struct EditionView: View {
     // Een plek in de Editie: het verhaal met meer of minder hiervan in het menu (lang drukken), of
     // ingeklapt tot één regel als je er minder van wilde.
     // Elk verhaal is een anker voor je plek bij vouwen en draaien (Krant.swift, PlekBewaren).
-    // Een genummerd verhaal meldt waar het begint: zo weet de zon in de kop hoe ver je bent (LeesStand).
     private func slot<Content: View>(_ row: EditionRowModel, @ViewBuilder content: () -> Content) -> some View {
         slotKern(row, content: content).plekAnker(row.id)
-            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).minY } action: { [stand] y in
-                if let n = row.number { stand.tops[n] = y }
-            }
     }
     @ViewBuilder private func slotKern<Content: View>(_ row: EditionRowModel, @ViewBuilder content: () -> Content) -> some View {
         let items = [row.item] + (row.story?.itemIds ?? []).filter { $0 != row.item.id }.compactMap { store.itemsById[$0] }
@@ -538,7 +431,6 @@ struct EditionView: View {
     }
 
     var body: some View {
-        let lees = leesCount // één keer per tekenbeurt, niet bij elke scrolstap
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
             ScrollView {
@@ -546,13 +438,11 @@ struct EditionView: View {
                     let numbered = EditionNumbering.rows(store.editionRows)
                     let rows = numbered.filter { $0.desk != "bubbel" }
                     let outsideRows = numbered.filter { $0.desk == "bubbel" }
-                    // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
-                    // Met een kleine zon ernaast die toont hoe ver je bent (zon-voortgang): hij zakt alleen als
-                    // jij scrolt. Past de naam er bij grote tekst niet meer naast, dan valt de zon eronder.
-                    // Naam, eindzin en telling horen bij de Editie die je ziet (shown), ook tijdens de dagdeelwissel.
+                    // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web). Hij scrolt
+                    // gewoon mee weg: geen meelopende kop (besluit Alex, 14 november). De naam hoort bij de Editie
+                    // die je ziet (shown), ook tijdens de dagdeelwissel.
                     HootKop().id(Self.boven) // bovenaan: hierheen bij een tik op "staat klaar"
-                    EditionHeader(title: title, stand: stand, count: EditionNumbering.count(rows), eind: EditionEnd.line(date: shown?.date, slot: shown?.slot), sun: shown?.slot != nil)
-                        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).maxY } action: { stand.kopOnder = $0 }
+                    EditionHeader(title: title)
                         .tienAnchor() // je eerste Editie: het teken staat hieronder
                     if rows.isEmpty && loaderShown {
                         if tien.active {
@@ -740,7 +630,6 @@ struct EditionView: View {
                         .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         .frame(maxWidth: grid == .paren ? .infinity : linkerKolom ?? Layout.readable) // op de leesbreedte; A (paren): over de hele breedte van het raster, zoals op het web (Alex 7-11); de Duo: de linkerkolom
                         .padding(.leading, grid == .kolom ? hang : 0)
-                        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).minY } action: { stand.einde = $0 }
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         .tienBlock(tien, 8)
@@ -776,23 +665,13 @@ struct EditionView: View {
                 .offset(y: rising ? 8 : 0)
                 .environment(\.placeholderPlan, placeholderPlan)
             }
-            // De zon als voortgang: de scrollpositie zet de stand; alleen de zon en de meelopende kop tekenen opnieuw.
-            .onScrollGeometryChange(for: LeesStand.Geo.self) { g in
-                let zicht = g.containerSize.height - g.contentInsets.top - g.contentInsets.bottom
-                return LeesStand.Geo(top: g.contentOffset.y + g.contentInsets.top, max: g.contentSize.height - zicht, hoogte: zicht)
-            } action: { _, geo in
-                stand.werkBij(geo, count: lees)
-            }
-            // Een andere getoonde Editie (ook na de dagdeelwissel): de zon begint weer bovenaan.
-            .onChange(of: store.shownEdition?.id) { _, _ in stand.reset() }
-            // Bovenin, over de krant heen (er verspringt niets): eerst de meelopende kop, daaronder "De Avondeditie
-            // staat klaar". Eén stapel, zodat de melding nooit onder de kop valt: staat de kop er, dan schuift de
-            // melding mee omlaag. Tik = bovenaan en wisselen.
+            // Geen eigen kop meer bovenaan: de krant schuift onder de statusbalk en de zwevende tabbalk door met
+            // de zachte rand van iOS zelf, zoals in Podcasts en Muziek (besluit Alex, 14 november).
+            .scrollEdgeEffectStyle(.soft, for: .top)
+            // Bovenin, over de krant heen (er verspringt niets): "De Avondeditie staat klaar", net onder de
+            // statusbalk, zoals de pil met nieuwe berichten in de Stroom. Tik = bovenaan en wisselen.
             .overlay(alignment: .top) {
                 VStack(spacing: 0) {
-                    if shown?.slot != nil, EditionLimits.hasMinimum(lees) {
-                        EditionKopBalk(title: title, stand: stand, count: lees)
-                    }
                     if let slot = store.editionReady, !store.editionRows.isEmpty {
                         Button {
                             withAnimation(still ? nil : Beweging.gewoonAnim) { proxy.scrollTo(Self.boven, anchor: .top) }
@@ -811,7 +690,7 @@ struct EditionView: View {
             }
             .animation(Beweging.kies(Beweging.gewoonAnim, still: still), value: store.editionReady)
             .animation(Beweging.kies(Beweging.gewoonAnim, still: still), value: store.editionComing)
-            // Bovenaan of niet (DagdeelWissel): een tweede, losse luisteraar naast die van de zon.
+            // Bovenaan of niet (DagdeelWissel): een eigen, losse scroll-luisteraar.
             .onScrollGeometryChange(for: Bool.self) { g in g.contentOffset.y + g.contentInsets.top <= DagdeelWissel.atTop } action: { _, top in atTop = top }
             .onChange(of: store.editionReady, initial: true) { swapIfIdle() }
             .onChange(of: scenePhase) { _, p in if p == .active { swapIfIdle() } }
@@ -1153,70 +1032,5 @@ struct AlertOffer: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         .accessibilityElement(children: .contain)
-    }
-}
-
-// De kleine zon naast de naam van de Editie: het merkteken van 44 × 26, horizon op 20, zon r 8, alles onder de
-// horizon geknipt. Hij toont hoe ver je bent (zon-voortgang, variant B: recht omlaag): bij 01 hoog, bij het
-// laatste verhaal op de horizon, bij het einde onder met een korte gloed. Geen dagdeel: dat zegt de naam.
-// Verminder beweging: niet meeschuiven, maar per verhaal een korte fade. Gelijk aan kopSun in src/lib/sun.js
-// (tests/fixtures/zon-voortgang.json, ZonVoortgangTests).
-struct EditionSun: View {
-    var stand: LeesStand? = nil
-    var count = 10
-    @Environment(\.accessibilityReduceMotion) private var still
-    static let kader = (w: 44.0, h: 26.0, hz: 20.0, r: 8.0, cx: 22.0, hoog: 9.0, onder: 30.0)
-
-    static func stand(_ p: Double, count n: Int) -> (cy: Double, gloed: Double) {
-        let k = kader
-        let last = Double(max(1, n - 1))
-        let q = min(Double(max(1, n)), max(0, p))
-        let t = min(q, last) / last
-        let e = min(1, max(0, q - last))
-        return (k.hoog + (k.hz - k.hoog) * t + (k.onder - k.hz) * e, e)
-    }
-
-    var body: some View {
-        let p = stand?.p ?? 0
-        let stap = LeesStand.stap(p, count)
-        ZStack {
-            Tekening(p: still ? Double(stap) : p, count: count)
-                .id(still ? stap : -1)
-                .transition(.opacity)
-        }
-        .animation(still ? Beweging.minderAnim : nil, value: stap)
-        // Rustig nazweven (keuze Alex, 13 nov): de zon loopt zacht naar de stand in plaats van elke scrollstap
-        // direct mee te springen. Kritisch gedempt, gelijk aan ZON_VOLG_MS in src/lib/leesstand.js.
-        .animation(still ? nil : Self.volg, value: p)
-        .frame(width: 44, height: 26)
-        .accessibilityHidden(true)
-    }
-
-    static let volg = Animation.spring(response: 0.75, dampingFraction: 1)
-
-    private struct Tekening: View, Animatable {
-        var p: Double
-        let count: Int
-        nonisolated var animatableData: Double {
-            get { p }
-            set { p = newValue }
-        }
-        var body: some View {
-            let v = EditionSun.stand(p, count: count)
-            return Canvas { ctx, _ in
-                let k = EditionSun.kader
-                if v.gloed > 0 {
-                    var glow = ctx
-                    glow.opacity = v.gloed
-                    glow.translateBy(x: k.cx, y: k.hz)
-                    glow.scaleBy(x: 1, y: 4.5 / 14)
-                    glow.fill(Path(ellipseIn: CGRect(x: -14, y: -14, width: 28, height: 28)), with: .radialGradient(Gradient(colors: [Theme.accent.opacity(0.55), Theme.accent.opacity(0)]), center: .zero, startRadius: 0, endRadius: 14))
-                }
-                var sky = ctx
-                sky.clip(to: Path(CGRect(x: -10, y: -10, width: k.w + 20, height: k.hz + 10)))
-                sky.fill(Path(ellipseIn: CGRect(x: k.cx - k.r, y: v.cy - k.r, width: 2 * k.r, height: 2 * k.r)), with: .color(Theme.accent))
-                ctx.stroke(Path { $0.move(to: CGPoint(x: 4, y: k.hz)); $0.addLine(to: CGPoint(x: 40, y: k.hz)) }, with: .color(Theme.ink), lineWidth: 1.5)
-            }
-        }
     }
 }

@@ -30,7 +30,7 @@ import UIKit
         return host.sizeThatFits(in: CGSize(width: width, height: 4000)).height
     }
 
-    // De kopregel van de Editie zoals EditionView hem zet: woordmerk, titel met zon, metaregel 20 + 16, sterke lijn + 16.
+    // De kopregel van de Editie zoals EditionView hem zet: woordmerk, titel, metaregel 20 + 16, sterke lijn + 16.
     private func kopregel() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HootKop()

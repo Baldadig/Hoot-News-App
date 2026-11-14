@@ -16,15 +16,13 @@ import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ArrowUpIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
-import { KopSun, EindeSun } from '../components/SunArt.jsx'
+import { EindeSun } from '../components/SunArt.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { eindzin } from '../../shared/eindzin.mjs'
 import { tel } from '../lib/tel.js'
 import { watch } from '../lib/inview.js'
-import { volgLeesStand, leesWaarde } from '../lib/leesstand.js'
-import { reduced } from '../lib/motion.js'
 import { resolveEditionEntry, heroFirst, numberRows, countOf, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { SLOTS } from '../../shared/slots.mjs'
 import { opinieInStroom } from '../../shared/opinie.mjs'
@@ -215,15 +213,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     return watch(endRef.current, { threshold: 0.5 }, (e) => e.isIntersecting && onEndSeen())
   }, [active, hasMinimum, ready, onEndSeen])
 
-  // De zon als voortgang (zon-voortgang, variant B): één scroll-luisteraar zet de stand op de zon in de
-  // kop en in de meelopende kop, en de waarde voor VoiceOver. Bij Minder beweging per verhaal een fade.
-  // Een andere getoonde Editie (ook na de dagdeelwissel): opnieuw beginnen, de zon weer bovenaan.
-  const eind = edition?.date ? eindzin(edition.date, edition.slot) : null
-  useEffect(() => {
-    if (!active || !ready || !hasMinimum) return undefined
-    return volgLeesStand(ref.current, { n: count, eind, still: reduced })
-  }, [active, ready, hasMinimum, count, eind, phone, edition?.id])
-
   // Eerste laden: de laadstrepen. Klaar: het bovenste vel wordt de kopstreep, de andere drie de
   // onderlijnen van de kop van het hoofdverhaal (src/lib/load-lines.js); dan geen tweede "druk".
   const hostRef = useRef(null)
@@ -325,15 +314,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
             eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan
             maken. De ingang naar het overzicht staat ónder de lijn, als stille bedieningsrij. */}
-        {/* De meelopende kop: naam en zon blijven bovenaan zodra de naam uit beeld is (styles/zon-voortgang.css). */}
-        {ready && hasMinimum && edition?.slot ? (
-          <div className="edbar" aria-hidden="true">
-            <div className="edbar__in">
-              <span className="edbar__naam">{title}</span>
-              <KopSun n={count} />
-            </div>
-          </div>
-        ) : null}
         <div className="edtop">
           {/* Het kleine woordmerk linksboven, zoals in de app (Wordmark in EditionView): je ziet waar
               je bent zonder dat het de krant overneemt, en het opstartscherm landt erop. Op breed
@@ -346,10 +326,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               edition?.slot ? (
                 <span className="edtitle">
                   <span className="edtitle__text">{title}</span>
-                  {/* De kleine zon toont hoe ver je bent (zon-voortgang): hij zakt alleen als jij scrolt. */}
-                  <KopSun n={count || EDITION_SIZE} />
-                  {/* Voor VoiceOver bij de naam: "4 van 10 gelezen", aan het einde de eindzin (lib/leesstand.js). */}
-                  {ready && hasMinimum ? <span className="visually-hidden" data-leesstand="">, {leesWaarde(0, count, eind)}</span> : null}
                 </span>
               ) : (
                 title

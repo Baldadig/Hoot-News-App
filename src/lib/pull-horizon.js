@@ -255,18 +255,14 @@ export function stripHeight(st, now) {
   return h * shutAt(now - shut)
 }
 
-// De strook en de zon als voortgang vallen nooit over elkaar heen (iOS: RefreshStrip.zicht, build 56).
-// De strook staat in het scrollgebied en schuift met de inhoud mee omhoog, zoals de verversknop van iOS.
-// Zichtbaar is alleen wat nog onder de bovenrand ligt; staat de meelopende kop er (kop), dan niets.
+// De strook hoort bij de inhoud (iOS: RefreshStrip.zicht): hij staat in het scrollgebied en schuift met de
+// inhoud mee omhoog, zoals de verversknop van iOS. Zichtbaar is alleen wat nog onder de bovenrand ligt.
 // top: de bovenkant van de strook in de inhoud; h: zijn hoogte; scrollTop: hoe ver je gescrold bent.
-export function stripZicht({ top = 0, h = 0, scrollTop = 0, kop = false }) {
-  if (kop || !(h > 0)) return 0
+export function stripZicht({ top = 0, h = 0, scrollTop = 0 }) {
+  if (!(h > 0)) return 0
   const s = Number.isFinite(scrollTop) ? Math.max(0, scrollTop) : 0
   return Math.max(0, Math.min(h, top + h - s))
 }
-// De kolom schuift tijdens verversen h omlaag (transform). De meelopende kop zit in die kolom en zou dan h
-// onder de bovenrand blijven hangen, met de krant erboven zichtbaar; zijn sticky top schuift h terug.
-export const kopTop = (h) => (h > 0.01 ? -h : 0)
 
 // --- de tekening als svg ---
 // Dezelfde volgorde als de proef en als PullHorizon.swift: 1 boog en merktekens, 2 horizon,
