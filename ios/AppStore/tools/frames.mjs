@@ -4,7 +4,7 @@
 import sharp from 'sharp'
 import fs from 'node:fs'
 const [S, A] = process.argv.slice(2)
-const caps = { editie: ['Drie keer per dag', 'tien verhalen. Met een einde.'], stroom: ['Al je bronnen,', 'nieuwste eerst.'], digest: ['Elke maandag', 'het beste uit je vak.'] }
+const caps = { editie: ['Drie keer per dag', 'tien verhalen. Met een einde.'], stroom: ['Al je bronnen,', 'nieuwste eerst.'], digest: ['Elke maandag', 'drie stukken uit je vak.'] }
 async function frame(src, out, W, H, shotW, fontSize, tab) {
   const meta = await sharp(src).metadata()
   const shotH = Math.round(meta.height * shotW / meta.width)

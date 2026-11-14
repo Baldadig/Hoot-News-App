@@ -46,7 +46,7 @@ export const summaryLine = (o) => `${pieces(o.picked)} in ${o.live.length === 1 
 export const SLOT = ['Je weet genoeg.', 'Maandag een nieuwe.']
 export const EMPTY_FIELD = 'Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw.'
 export const NO_SOURCES = 'Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer.'
-export const CHOOSE = 'Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week.'
+export const CHOOSE = 'Voor je werk of uit interesse: elke maandag drie stukken per onderwerp.'
 
 // Een voorproefje voor een lege Selectie (keuze r5-selectie-onderwerpen, 5 november; review G13): uit de
 // Selectie van deze week per domein het eerste onderwerp met stukken, hooguit `max`, elk met zijn beste stuk.
@@ -61,4 +61,4 @@ export function voorproefje(domains = [], fields = [], max = 3) {
   }
   return out
 }
-export const VOORPROEF = 'Zo ziet het eruit: per onderwerp de beste stukken van de week.'
+export const VOORPROEF = 'Zo ziet het eruit: per onderwerp een stuk uit de Selectie van deze week.'

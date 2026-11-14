@@ -282,10 +282,10 @@ struct SelectionOverview {
     static let slot = ["Je weet genoeg.", "Maandag een nieuwe."]
     static let emptyField = "Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw."
     static let noSources = "Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer."
-    static let choose = "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week."
+    static let choose = "Voor je werk of uit interesse: elke maandag drie stukken per onderwerp."
     // Het voorproefje bij een lege Selectie (gelijk aan voorproefje() in src/lib/selection-index.js): per domein
     // (de vaste volgorde van shared/vak.mjs) het eerste onderwerp met stukken, hooguit `max`, met zijn beste stuk.
-    static let voorproef = "Zo ziet het eruit: per onderwerp de beste stukken van de week."
+    static let voorproef = "Zo ziet het eruit: per onderwerp een stuk uit de Selectie van deze week."
     static func voorproefje(_ digest: Digest?, max: Int = 3) -> [(id: String, label: String, item: DigestItem)] {
         let byId = Dictionary((digest?.fields ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         var out: [(id: String, label: String, item: DigestItem)] = []

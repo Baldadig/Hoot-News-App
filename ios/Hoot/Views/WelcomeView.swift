@@ -440,7 +440,7 @@ struct WelcomeView: View {
     private static let trio: [(art: OnboardingArt.Kind, title: String, text: String)] = [
         (.editie, "Editie", "Drie keer per dag tien verhalen. Dan ben je bij."),
         (.stroom, "Stroom", "Alles van je bronnen, nieuwste eerst."),
-        (.selectie, "Selectie", "Elke maandag het beste over wat jou bezighoudt."),
+        (.selectie, "Selectie", "Elke maandag drie stukken over wat jou bezighoudt."),
     ]
 
     private var uitleg: some View {
@@ -864,7 +864,7 @@ struct WelcomeView: View {
             }
             .padding(.top, Space.s6)
             if selOpen {
-                Text("Elke maandag het beste over je werk of hobby.")
+                Text("Elke maandag drie stukken over je werk of hobby.")
                     .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
                     .padding(.top, Space.s4)
                 ForEach(DigestFieldsList.domains, id: \.label) { d in

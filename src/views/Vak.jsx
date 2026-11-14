@@ -227,7 +227,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
               ))}
             </ChipGroup>
           ))}
-          <p className="sheet__note">Elke maandag het beste per onderwerp.</p>
+          <p className="sheet__note">Elke maandag drie stukken per onderwerp.</p>
         </Dialog>
 
         {!chosen.length ? (

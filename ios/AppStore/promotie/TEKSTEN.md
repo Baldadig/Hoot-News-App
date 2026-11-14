@@ -16,7 +16,7 @@ Hoot is een rustige nieuwslezer. Geen eindeloze tijdlijn: drie keer per dag een 
 >
 > Wat ik zelf het meest gebruik:
 > • "+N bronnen": zie hoe verschillende kranten hetzelfde verhaal brengen.
-> • De Selectie: elke maandag de drie belangrijkste stukken uit mijn vak (paid social, UI/UX, digital design), gekozen op hoeveel vakbronnen erover schreven. Alleen stukken van mensen.
+> • De Selectie: elke maandag drie stukken uit mijn vak (paid social, UI/UX, digital design), van kenners en vakbladen. Alleen stukken van mensen.
 >
 > Gratis, zonder account, zonder tracking. Voor iPhone en iPad (ook opengevouwen op de iPhone Duo).
 >
