@@ -2442,7 +2442,7 @@ var HootCore = (() => {
     "the a an and to for with on at by from are were be been has have will would could should not this that these those its he she they you your his her their our my who what when where why how which after before about into than but or as says said there here just all more year years while against between without because its it's don't doesn't didn't won't can't isn't aren't i'm you're they're we're what's here's there's people being does did makes made gets got".split(/\s+/)
   );
   var XX = new Set(
-    "le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur el una del para con por según sobre también más pero muy está fue y".split(/\s+/)
+    "le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où la et il ils elle elles nous vous au aux avant après sans chez depuis selon contre lors ses der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur im von zu noch dieser diese dieses einen einem dass bei wurde nur schon gegen el una del para con por según sobre también más pero muy está fue y que entre desde porque cuando".split(/\s+/)
   );
   var ELISIE = /^(?:l|d|qu|j|n|s|c)'\p{L}{2,}/u;
   var KNOWN_PATHS = [{ host: /(^|\.)parool\.nl$/, path: /^\/(amsterdam-news|guide)(\/|$)/, lang: "en" }];
@@ -2456,15 +2456,17 @@ var HootCore = (() => {
     for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.path)) return k.lang;
     return null;
   }
+  var CAP = /^\p{Lu}/u;
   function langCounts(text) {
-    const words2 = String(text || "").toLowerCase().replace(/[‘’ʼ]/g, "'").match(/\p{L}+(?:'\p{L}+)*/gu) || [];
+    const raw = String(text || "").replace(/[‘’ʼ]/g, "'").match(/\p{L}+(?:'\p{L}+)*/gu) || [];
     let nl = 0;
     let en = 0;
     let xx = 0;
-    for (const w of words2) {
+    for (let k = 0; k < raw.length; k++) {
+      const w = raw[k].toLowerCase();
       if (NL.has(w)) nl++;
       if (EN.has(w)) en++;
-      if (XX.has(w) || ELISIE.test(w)) xx++;
+      if ((XX.has(w) || ELISIE.test(w)) && !(CAP.test(raw[k]) && CAP.test(raw[k + 1] || ""))) xx++;
     }
     return { nl, en, xx };
   }
@@ -3363,7 +3365,11 @@ var HootCore = (() => {
     return newFact(fresh, then, keysOf, { keyAt: st?.keyAt, pubAt: st?.pubAt, cutoff, pubs: st?.publisherCount });
   }
   var LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]));
-  var dutchTier = (i) => LANG_OF.get(i.source) !== "nl" || detectLang(i) === "en" ? 2 : VL_HOME.has(i.source) ? 1 : 0;
+  var notDutch = (i) => {
+    const d = detectLang(i);
+    return d !== null && d !== "nl";
+  };
+  var dutchTier = (i) => LANG_OF.get(i.source) !== "nl" || notDutch(i) ? 2 : VL_HOME.has(i.source) ? 1 : 0;
   var LEAD_CORE = 10;
   function centralItems(items, total = items.length) {
     if (total < LEAD_CORE || items.length < 3) return items;

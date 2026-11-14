@@ -1389,7 +1389,7 @@ export function linkedItems(items, cands, sig = signatures(items)) {
   return cands.filter((i) => out.includes(i) || far(i))
 }
 // Een kop in een andere taal dan Nederlands of Engels (een Spaanstalig stuk van een Engelstalige bron): herkend aan
-// lidwoorden en voegwoorden die in het Nederlands en Engels niet voorkomen. detectLang kent alleen nl en en.
+// lidwoorden en voegwoorden die in het Nederlands en Engels niet voorkomen. (detectLang kent sinds 14 november ook 'xx'.)
 const OTHER_LANG = /\b(las|los|del|para|una|segun|antes de|sus|les|une|pour|avec|dans|und|fur|nicht|uma|nao|della|degli)\b/
 export const otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ''))
 export const DEVELOPED_FRESH = 2
@@ -1539,7 +1539,9 @@ export function runningFact(st, items, sig, now) {
 // 2. Taal: Hoot is Nederlandstalig. Een Nederlands stuk gaat voor, dan een Vlaams, dan de rest; pas daarbinnen
 //    eigen bronnen eerst. Taal van het stuk zelf (shared/lang.mjs): een Engelstalig Parool-stuk is Engels.
 const LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]))
-const dutchTier = (i) => (LANG_OF.get(i.source) !== 'nl' || detectLang(i) === 'en' ? 2 : VL_HOME.has(i.source) ? 1 : 0)
+// Niet Nederlands (Engels of een derde taal, 'xx') telt als anderstalig, ook bij een Nederlandse bron (dubbelcheck A10).
+const notDutch = (i) => { const d = detectLang(i); return d !== null && d !== 'nl' }
+const dutchTier = (i) => (LANG_OF.get(i.source) !== 'nl' || notDutch(i) ? 2 : VL_HOME.has(i.source) ? 1 : 0)
 export const LEAD_CORE = 10
 // `total`: hoeveel stukken het hele verhaal heeft (een toestel kent alleen die van de eigen bronnen).
 export function centralItems(items, total = items.length) {

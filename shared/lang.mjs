@@ -31,10 +31,14 @@ const EN = new Set(
 // "de", "die", "en", "van", "los", "las"). Wint die duidelijk, dan is het stuk in een andere taal ('xx'), en toont
 // visibleFor het niet aan een Nederlandse lezer (nachttest 14 november: Franse koppen van Politico Europe telden als
 // Nederlands, want "de" is ook Frans). Ook de Franse elisies (l', d', qu', j', n', s', c') tellen.
+// Dubbelcheck 14 november (A10): ook de meest voorkomende korte woorden (Frans la, et, il, elle, nous, vous, au, aux;
+// Duits im, von, zu, noch, dieser; Spaans que, entre, desde, sin). Niet "pas" en "son" (gewoon Nederlands en Engels).
 const XX = new Set(
   ('le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où ' +
+    'la et il ils elle elles nous vous au aux avant après sans chez depuis selon contre lors ses ' +
     'der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur ' +
-    'el una del para con por según sobre también más pero muy está fue y').split(/\s+/),
+    'im von zu noch dieser diese dieses einen einem dass bei wurde nur schon gegen ' +
+    'el una del para con por según sobre también más pero muy está fue y que entre desde porque cuando').split(/\s+/),
 )
 const ELISIE = /^(?:l|d|qu|j|n|s|c)'\p{L}{2,}/u
 
@@ -55,18 +59,21 @@ export function langFromUrl(url) {
 }
 
 // Telt de functiewoorden per taal in een tekst.
+// Een woord van de derde telling met een hoofdletter vóór een woord met een hoofdletter is een naam, geen lidwoord: Le Pen,
+// La La Land, Des Moines, El Salvador, Der Spiegel (dubbelcheck A10). Dat telt dan niet mee.
+const CAP = /^\p{Lu}/u
 export function langCounts(text) {
-  const words = String(text || '')
-    .toLowerCase()
+  const raw = String(text || '')
     .replace(/[‘’ʼ]/g, "'")
     .match(/\p{L}+(?:'\p{L}+)*/gu) || []
   let nl = 0
   let en = 0
   let xx = 0
-  for (const w of words) {
+  for (let k = 0; k < raw.length; k++) {
+    const w = raw[k].toLowerCase()
     if (NL.has(w)) nl++
     if (EN.has(w)) en++
-    if (XX.has(w) || ELISIE.test(w)) xx++
+    if ((XX.has(w) || ELISIE.test(w)) && !(CAP.test(raw[k]) && CAP.test(raw[k + 1] || ''))) xx++
   }
   return { nl, en, xx }
 }
