@@ -31,7 +31,9 @@ test('wie niets koos en zes verse Tweakers-stukken heeft: hooguit twee Tech-plek
   assert.equal(regular.length, 10, 'en toch een volle Editie')
 })
 
-for (const [f, min] of [['live-feed-2026-11-09-middag', 5], ['live-feed-2026-11-11-ochtend', 5], ['live-feed-2026-11-07', 5]]) {
+// 9 november middag: 4, want een deel van de plekken van de algemene Editie heeft alleen een betaalde kop van een bron die Jan niet
+// volgt (buiten je bronnen alleen gratis, tweede keuring).
+for (const [f, min] of [['live-feed-2026-11-09-middag', 4], ['live-feed-2026-11-11-ochtend', 5], ['live-feed-2026-11-07', 5]]) {
   test(`${f}: wie niets koos, krijgt de algemene Editie als basis`, () => {
     const feed = load(f)
     const ed = compose(feed)

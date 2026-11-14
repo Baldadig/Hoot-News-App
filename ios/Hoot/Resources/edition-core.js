@@ -5298,11 +5298,14 @@ var HootCore = (() => {
     };
     const preferred = new Set(favorites.filter((id) => followed.has(id)));
     const { rubricOf, readableIn, readable } = _langRule ? languageRule({ followed, sources }) : { rubricOf: () => "nieuws", readableIn: () => true, readable: () => true };
+    const paidSource = new Set(sources.filter((s) => s.paid).map((s) => s.id));
+    const freeOrOwn = (i) => !i || followed.has(i.source) || !paidSource.has(i.source);
+    const leadOk = (i) => readable(i) && freeOrOwn(i);
     const storyMembers = (sid, id) => [.../* @__PURE__ */ new Set([id, ...storyById.get(sid)?.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
     const relead = (head, xs) => {
-      if (readable(head)) return head;
+      if (leadOk(head)) return head;
       const rubric = rubricOf(head);
-      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric));
+      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric) && freeOrOwn(i));
       if (!ok.length) return null;
       const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok;
       const mine = fresh.filter((i) => followed.has(i.source));
@@ -5310,7 +5313,7 @@ var HootCore = (() => {
     };
     const releadEntry = (e) => {
       const head = itemAny.get(e.leadId || e.id);
-      if (readable(head)) return e;
+      if (leadOk(head)) return e;
       const next = e.kind === "story" ? relead(head, [...membersOf(e)].map((x) => itemAny.get(x))) : null;
       return next ? { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} } : null;
     };
@@ -5473,7 +5476,7 @@ var HootCore = (() => {
     const regions = readerRegions({ followed, sources });
     const sourceById = new Map(sources.map((s) => [s.id, s]));
     const bubbleDesks = chosenDesks(prof);
-    const outsideItem = (i) => !!i && i.kind !== "post" && !isOpinion(i) && readable(i) && !followed.has(i.source) && !sourceById.get(i.source)?.paid && !inRegion(i, regions, (s) => sourceById.get(s));
+    const outsideItem = (i) => !!i && i.kind !== "post" && !isOpinion(i) && leadOk(i) && !followed.has(i.source) && !inRegion(i, regions, (s) => sourceById.get(s));
     const bubbleLeadOf = (sid, id) => {
       const it = itemAny.get(id);
       if (!it) return null;
@@ -5580,7 +5583,10 @@ var HootCore = (() => {
         return;
       }
       const id = e.leadId || e.id;
-      if (!readable(itemAny.get(id))) return;
+      if (!leadOk(itemAny.get(id))) {
+        const next = releadEntry(e);
+        return next && leadOk(itemAny.get(next.leadId || next.id)) ? accept(next) : void 0;
+      }
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
       if (ids.some((x) => finalTaken.has(x))) return;

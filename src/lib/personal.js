@@ -321,12 +321,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // De taalregel (languageRule hierboven): een kop die je kunt lezen. `_langRule: false` alleen voor de toets dat de
   // regel niets verandert voor wie in elke rubriek een Engelse bron volgt (tests/taalregel.test.mjs).
   const { rubricOf, readableIn, readable } = _langRule ? languageRule({ followed, sources }) : { rubricOf: () => 'nieuws', readableIn: () => true, readable: () => true }
+  // Buiten je bronnen alleen gratis (persona's 14 november, punt 10, tweede keuring): wat de bubbel al eiste, geldt voor elke
+  // kop van een bron die je niet volgt, ook de basis uit de algemene Editie en de aanvulling (Jan, die alleen gratis wil,
+  // kreeg vijf betaalde plekken). Een betaalde bron die je volgt, blijft. Eén toets voor de kop: leesbaar en dit (leadOk).
+  const paidSource = new Set(sources.filter((s) => s.paid).map((s) => s.id))
+  const freeOrOwn = (i) => !i || followed.has(i.source) || !paidSource.has(i.source)
+  const leadOk = (i) => readable(i) && freeOrOwn(i)
   const storyMembers = (sid, id) => [...new Set([id, ...(storyById.get(sid)?.itemIds || [])])].map((x) => itemAny.get(x)).filter(Boolean)
   // De kop van een plek met kop `head` en stukken `xs`: dezelfde kop als die leesbaar is, anders de beste leesbare.
   const relead = (head, xs) => {
-    if (readable(head)) return head
+    if (leadOk(head)) return head
     const rubric = rubricOf(head)
-    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric))
+    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric) && freeOrOwn(i))
     if (!ok.length) return null
     // Eerst wat niet verouderd is, dan je eigen bronnen, dan Nederlands vóór Vlaams; daarbinnen leadPool (kern, vers).
     const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok
@@ -337,7 +343,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // bericht of een verhaal zonder leesbaar stuk).
   const releadEntry = (e) => {
     const head = itemAny.get(e.leadId || e.id)
-    if (readable(head)) return e
+    if (leadOk(head)) return e
     const next = e.kind === 'story' ? relead(head, [...membersOf(e)].map((x) => itemAny.get(x))) : null
     return next ? { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) } : null
   }
@@ -578,7 +584,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const regions = readerRegions({ followed, sources })
   const sourceById = new Map(sources.map((s) => [s.id, s]))
   const bubbleDesks = chosenDesks(prof)
-  const outsideItem = (i) => !!i && i.kind !== 'post' && !isOpinion(i) && readable(i) && !followed.has(i.source) && !sourceById.get(i.source)?.paid && !inRegion(i, regions, (s) => sourceById.get(s))
+  const outsideItem = (i) => !!i && i.kind !== 'post' && !isOpinion(i) && leadOk(i) && !followed.has(i.source) && !inRegion(i, regions, (s) => sourceById.get(s))
   const bubbleLeadOf = (sid, id) => {
     const it = itemAny.get(id)
     if (!it) return null
@@ -742,8 +748,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       return
     }
     const id = e.leadId || e.id
-    // Vangnet van de taalregel: geen plek met een onleesbare kop, langs welke route ook.
-    if (!readable(itemAny.get(id))) return
+    // Vangnet van de taalregel en van "buiten je bronnen alleen gratis": geen plek met een onleesbare of betaalde kop van
+    // elders, langs welke route ook. Eerst een andere kop uit hetzelfde verhaal; is die er niet, dan geen plek.
+    if (!leadOk(itemAny.get(id))) {
+      const next = releadEntry(e)
+      return next && leadOk(itemAny.get(next.leadId || next.id)) ? accept(next) : undefined
+    }
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
     if (ids.some(x => finalTaken.has(x))) return
