@@ -11,6 +11,7 @@ import { profileOf } from '../shared/editor.mjs'
 import { relinkEdition, buildStories, selectEdition } from '../netlify/lib/stories.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { composePersonal } from '../src/lib/personal.js'
+import { isRecensie } from '../shared/recensie.mjs'
 import { loadLive, liveGeneral, liveBeginner, beginnerFollowed } from '../scripts/redacteur-live.mjs'
 
 const live = loadLive()
@@ -97,7 +98,12 @@ test('live, schone beginnerseditie: geen licht stuk, tien plekken, bubbel apart'
   const regular = ed.entries.filter((e) => e.desk !== 'bubbel')
   assert.equal(editionStoryCount(ed.entries), 10)
   for (const e of regular) assert.ok(!/podcast/i.test(items.get(e.leadId || e.id)?.title || ''), items.get(e.leadId || e.id)?.title)
-  assert.equal(ed.entries.at(-1).desk, 'bubbel')
+  // Geen recensie, ook niet als bubbel (shared/recensie.mjs, 14 november). Het bubbelstuk van de server staat niet in deze
+  // bewaarde feed (4 november); tot 14 november nam het toestel dan een Parool-recensie ("In The One About Matthew Perry
+  // …", /recensie-…). Zonder ander bubbelstuk blijft die plek leeg: er staan tien plekken, en een bubbel staat achteraan.
+  for (const e of ed.entries) assert.ok(!isRecensie(items.get(e.leadId || e.id) || {}), items.get(e.leadId || e.id)?.title)
+  const k = ed.entries.findIndex((e) => e.desk === 'bubbel')
+  assert.ok(k === -1 || k === ed.entries.length - 1)
 })
 
 test('Martha-vorm: een lifestylestuk van een basisbron vult geen gewone plek bij een beginner; bij Cultuur toegelaten', () => {

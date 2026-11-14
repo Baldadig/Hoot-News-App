@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs'
 import { isNoise, noiseReason, loadSource } from '../netlify/lib/rss.mjs'
 import { toClient } from '../netlify/lib/build.mjs'
 import { excludedFromEdition, hardMark } from '../shared/editie-filter.mjs'
+import { isRecensie } from '../shared/recensie.mjs'
 import { weakSignal } from '../netlify/lib/editie-ai.mjs'
 
 const read = (f) => JSON.parse(readFileSync(new URL(`./fixtures/${f}`, import.meta.url), 'utf8')).items
@@ -98,7 +99,9 @@ test('ruis: in de Editie weert alleen A (harde aanwijzing); geen gelabelde nieuw
     const x = byUrl.get(i.url)
     return toClient({ ...i, ...(x.borrowedFrom ? { borrowedFrom: x.borrowedFrom } : {}) })
   })
-  const weg = items.filter((i) => excludedFromEdition(i)).map((i) => `${byUrl.get(i.url).set}: ${i.title}`)
+  // Een recensie gaat sinds 14 november ook uit de Editie (shared/recensie.mjs, eigen toetsen in recensies-editie.test.mjs):
+  // die koppen zijn hier als "geen aanbieding" (N) gelabeld, niet als nieuws, en tellen hier niet.
+  const weg = items.filter((i) => excludedFromEdition(i) && !isRecensie(i)).map((i) => `${byUrl.get(i.url).set}: ${i.title}`)
   // Alleen de randgevallen van AI-keuring 1 en 2 (bekende ontwerprisico's van A, geen eis en vastgelegd in AI-VERSLAG.md en
   // AI-KEURING-2.md: "/deals/" als eerste segment, "Podcast:" vooraan, een podcastrubriek of "Luister:" zonder eigen intro).
   assert.deepEqual(weg.filter((w) => !/^ai-k[12]-rand:/.test(w)), [])
