@@ -41,6 +41,19 @@ test('verzamelstukken: nummer achter een vaste titel, weekoverzicht, best of, ni
   ])
 })
 
+test('verzamelstukken: een nummer telt alleen als label van een vaste titel (keuring 14 november)', () => {
+  weg(['Nr. 34', 'Nummer 12: de stand van de Nederlandse podcast', 'The Product Letter Issue 88', 'Vakblad nr. 7: zorg in de wijk', 'Design notes – Vol. 3', 'Field Guide (No. 14)'])
+  blijft([
+    'Taylor Swift opnieuw op nummer 1 in de Top 40',
+    'World’s 50 Best Restaurants presenteert nieuwe nummer 1, terwijl Nederland wéér ontbreekt in lijst',
+    'Koploper Heracles wint ruim van Roda en loopt uit op nummer 2 VVV',
+    'Wiki Drops New Mixtape Papiseed Street Vol. 2',
+    'Downing Street nummer 10 ontkent lek',
+    'Nummer 1-hit van Raye blijft drie weken staan',
+    'Een los stuk nummer 3 over filmkrant zonder overlap 21', // de weekendtoets in selectie-bundel
+  ])
+})
+
 test('koopsignaal: Black Friday-proef (Androidworld, iCulture, Bright, Tweakers) en acties vallen weg', () => {
   weg([
     'Black Friday 2026: de beste deals voor Android-telefoons', // Androidworld
@@ -70,6 +83,72 @@ test('koopsignaal: nieuws over omzet, gedrag of een overname blijft', () => {
     'Who will win the AI race? Five experts weigh in',
     'Ajax wint van PSV na sterke tweede helft',
     'Why ad discounts hurt your brand',
+  ])
+})
+
+test('koopsignaal: een aanbieding aan de lezer, niet elk woord over korting (keuring 14 november)', () => {
+  // Gedrag en omzet rond een koopdag, en rechtszaken over deals.
+  blijft([
+    'Singles Day-sale levert Alibaba minder op dan verwacht',
+    'Black Friday-sale: winkeliers in binnenstad zien 30 procent minder bezoekers',
+    'Black Friday sale at Primark sparks stampede in Manchester',
+    'Black Friday sale: Best Buy workers strike over holiday pay',
+    'Black Friday sale: 40% off claims misleading, CMA rules',
+    'The Best Black Friday Deals Are Often Fakes, Study Finds',
+    'FTC sues Amazon over Prime Day ‘deal’ badges it says were deceptive',
+    'Amazon sued over Prime Day “deals” that were never discounted',
+    'Winkeliers doen dit jaar minder mee aan Black Friday-kortingen',
+    'Black Friday: retailers kiezen voor minder korting',
+  ])
+  // Kortingen als nieuws: van de overheid, een vervoerder, een verhuurder.
+  blijft([
+    'NS-reizigers krijgen vanaf januari 40 procent korting in de daluren',
+    'Kabinet: 50 procent korting op kinderopvang voor middeninkomens',
+    'Energierekening: huishoudens krijgen 200 euro korting in januari',
+    'Huurders krijgen 15 procent korting bij Vesteda na lekkages',
+    'Subsidie op elektrische auto’s keert terug: 2950 euro korting',
+  ])
+  // "stunt met", "zo claim je" en "win" in een gewone zin.
+  blijft(['Kuijts Fenerbahçe stunt met zege op Liverpool', 'Zo claim je je recht op schadevergoeding na datalek', 'Feyenoord win reis naar Champions League-finale niet'])
+  // De aanbiedingsvorm buiten een koopdag gaat wel weg.
+  weg([
+    'MacBook Air M5 nu met 25 procent korting bij Coolblue',
+    'Sony WH-1000XM6 nu voor 299 euro',
+    'Pixel 10 Pro voor de laagste prijs ooit',
+    'Bespaar 200 euro op de Galaxy S26',
+    'Save $150 on the DJI Mini 5 Pro',
+    'Black Friday deals for photographers: lenses, bags and memory cards',
+    'The best Black Friday deals',
+    'Provider stunt met lage prijs voor glasvezel',
+    'Gratis drie maanden Disney+: zo claim je het',
+    'Ecoflow Power Bank Deal: Save $80',
+    'Early Black Friday Mattress Deals: Get Up to 35% Off',
+    'Kortingscode: 20 procent korting bij Zalando',
+    'Booking.com Promo Codes: 20% Off | November 2026',
+    'The MacBook Pro Max Just Dropped to Its Lowest Price Ever',
+    'De beste Black Friday-deals van 2026 op een rij',
+    'The 10 Best Early Black Friday Headphone Deals (2026)',
+    'Greenlight Digital Wall Calendar Black Friday Sale (2026)',
+    'PS5 Pro Black Friday Deal: Get a Free Game With Purchase',
+    'Get a Nintendo Switch 2 for $448 During the Early Black Friday Sale',
+    'Met deze vroege Black Friday-deals bij Bol bespaar je nu al fors',
+    'Krijg 50 procent korting op je eerste maand Videoland',
+    'Decathlon stunt met racefietsen voor nog geen 5.000 euro',
+  ])
+  // Dezelfde woorden in nieuws: geen gebiedende wijs, een markt, een toezichthouder, een uitleg.
+  blijft([
+    'Families can get $500 off energy bills under new UK plan',
+    'Students can now get 50% off rail fares, Spain announces',
+    'Save 10% of income for pension, Dutch funds tell young workers',
+    'Energy crisis: save 15% on gas this winter, EU urges households',
+    'Brent crude drops to its lowest price of the year',
+    'Coffee hits its lowest price of the year as Brazil harvest booms',
+    'Trump’s approval rating hits all-time low as prices rise',
+    'Europese Commissie onderzoekt kortingscodes van Temu',
+    'Rechtbank: kortingscodes van influencers zijn verkapte reclame',
+    'Nu 30 procent korting op de energierekening? Zo zit het',
+    'Black Friday sale: politie waarschuwt voor zakkenrollers',
+    'Prime Day deal: Amazon workers strike in Germany',
   ])
 })
 

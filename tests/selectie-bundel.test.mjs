@@ -3,7 +3,7 @@
 // het weekend gaan de beelden van de komende bundel voor.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { composeVak, recomposing, beforeNextBundle, nextBundleAt, topIds, VAK_SOURCES } from '../netlify/lib/vak.mjs'
+import { composeVak, isReading, recomposing, beforeNextBundle, nextBundleAt, topIds, VAK_SOURCES } from '../netlify/lib/vak.mjs'
 import { refreshVak } from '../netlify/lib/vakRefresh.mjs'
 import { kvSet, kvGet, readDoc, writeDoc, KEYS } from '../netlify/lib/kv.mjs'
 
@@ -110,6 +110,8 @@ test('vak-refresh: in het weekend krijgen de stukken van de komende bundel eerst
     for (const [x, y] of fields) for (let k = 0; k < 8; k++) oud.push(it(k % 2 ? y : x, `Een los stuk nummer ${k} over ${x} zonder overlap ${k * 7}`, '2026-11-12T09:00:00.000Z', { image: null }))
     // De komende bundel (week 47): vijf nieuwe stukken, ook zonder beeld.
     const nieuw = fields.map(([x], k) => it(x, `Een nieuw stuk voor de komende week over ${x} ${k}`, '2026-11-19T09:00:00.000Z', { image: null }))
+    // Het zijn gewone leesstukken (keuring 14 november: "nummer 0" in een zin is geen verzamelstuk).
+    for (const x of [...oud, ...nieuw]) assert.ok(isReading(x), 'leesstuk: ' + x.title)
     await kvSet(KEYS.vakPool, [...oud, ...nieuw])
     const doc = await refreshVak({ now: ams('2026-11-21T10:05:00Z') }) // zaterdag
     assert.equal(doc.week, '2026-W46')

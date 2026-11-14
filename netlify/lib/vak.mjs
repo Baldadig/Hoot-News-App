@@ -239,17 +239,56 @@ const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples
 const BEST_LIST = /^\s*(?:(?:the|de|our|onze|these|deze)\s+)?\d+\s+(?:of\s+the\s+)?(?:beste|best)\s+[\p{L}-]/iu
 const PRIZE = /\b(winners?|winnaars?|awards?|prijs|prijzen|uitgereikt|uitgeroepen|ranking|genomineerd\w*|nominaties?|shortlist)\b/i
 const isListicle = (t) => LISTICLE.test(t) || (BEST_LIST.test(t) && !PRIZE.test(t))
-// Koopsignaal (Selectie-review, punt 2, vóór Black Friday): een kop die je iets laat kopen of winnen is geen vakstuk.
-// Altijd: "zo claim je", een winactie ("win 2 vliegtickets"), "stunt met", "maak kans op". Een dealkop ("de beste deals",
-// "deals op een rij", "korting op" met een bedrag of actie) en een kop met Black Friday of Cyber Monday en een koopwoord
-// vallen af, tenzij de kop over de omzet of het gedrag gaat: "Black Friday deals drove record online sales" blijft, net als
-// "OpenAI signs $10bn chip deal" en "Wat de deal tussen Ahold en Bol betekent" (geen koopwoord in de zin van een aanbieding).
-const BUY_ALWAYS = /\bzo claim je\b|\bclaim (je|nu) (gratis|jouw|je)\b|\bwinactie\b|\bwin\s+(?:(?:een|twee|drie|\d+|a|two|free)\s+)?(?:[\p{L}-]+\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\b|\bstunt met\b|\bmaak kans op\b/iu
-const DEAL_HEAD = /\b(?:de|the|onze|our)?\s*(?:beste|best|top)\s+deals\b|\bdeals? (?:op een rij|van de (?:dag|week))\b|\b(?:aanbiedingen|koopjes) (?:op een rij|van de (?:dag|week))\b|\bkorting op\b.*\b(?:deal|actie|code|aanbieding|black friday|cyber monday)\b|\b\d+\s?(?:%|procent|euro)\s+korting\b/i
+// Koopsignaal (Selectie-review, punt 2, vóór Black Friday): een kop die jou als lezer iets laat kopen of winnen is geen
+// vakstuk. Het signaal is een aanbieding aan de lezer, nooit elk woord over korting (keuring 14 november): nieuws over
+// omzet, gedrag, een rechtszaak of een korting van de overheid of een bedrijf blijft.
+// - Altijd: een winactie ("en win 2 vliegtickets", "maak kans op"). "zo claim je" en "stunt met" alleen met een prijs of iets
+//   gratis in de kop ("stunt met een gratis Switch 2: zo claim je hem"); "Fenerbahçe stunt met zege" en "Zo claim je je recht
+//   op schadevergoeding" blijven.
+// - Een aanbiedingsvorm: "de beste deals", "op een rij", een kortingscode, "nu voor 899 euro", "met 30 procent korting",
+//   "voor de laagste prijs", en de gebiedende wijs met een bedrag vooraan een zin ("Bespaar 200 euro", "Deal: Save $80").
+//   "Families can get $500 off" en "Students can now get 50% off" zijn geen gebiedende wijs.
+// - Een koopdag (Black Friday, Cyber Monday, Prime Day) met een aanbieding: korting óp iets, een deal of sale als label
+//   ("Black Friday-deal: …", "… Sale (2026)"), deals bij een winkel, of een prijs ("for $448").
+// Een nieuwszin wint altijd van de aanbiedingsvorm: omzet, gedrag, onderzoek, een rechtszaak of toezichthouder, een staking,
+// een waarschuwing, een markt of grondstof ("Brent crude drops to its lowest price"), een groep die korting krijgt ("NS-reizigers krijgen 40 procent korting", "Kabinet: 50 procent korting").
+const PRICE = /[€$£]\s?\d|\b\d+(?:[.,]\d+)?\s?(?:euro|%|procent)|\b(?:gratis|free|korting\w*|cadeau|tegoed|prijs\w*|aanbieding\w*|deals?|\w*goedkop\w*)\b/i
+const BUY_ALWAYS = new RegExp(
+  [
+    '\\bclaim (?:je|nu) (?:gratis|jouw)\\b',
+    '\\bwinactie\\b',
+    '\\bmaak kans op\\b',
+    // "win" met een aantal ("en win 2 vliegtickets"), of zonder aantal alleen vooraan een zin ("Win kaarten voor …").
+    // "Feyenoord win reis naar de finale niet" is een zin over een club, geen winactie.
+    '\\bwin\\s+(?:een|twee|drie|vier|vijf|\\d+|a|two|three|free)\\s+(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b',
+    '(?:^|[:!?–—]\\s*|\\ben\\s+|\\band\\s+)win\\s+(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|copies|reis|trip|prijzen)\\b',
+  ].join('|'),
+  'iu',
+)
+const WITH_PRICE = /\bzo claim je\b|\bstunt met\b/i
+const DAY = '(?:black friday|cyber monday|prime day)'
+const AMOUNT = '(?:up to\\s+|tot\\s+)?(?:[€$£]\\s?\\d[\\d.,]*|\\d+\\s?(?:%|procent|euro))(?!\\s+(?:of|van)\\b)'
+const DEAL_HEAD = new RegExp(
+  [
+    '\\b(?:beste|best|top)\\s+(?:deals|offers|aanbiedingen)\\b',
+    `\\b(?:beste|best|top)\\s+(?:[\\p{L}'’-]+\\s+){0,3}?${DAY}[\\s-](?:[\\p{L}'’-]+\\s+){0,3}?(?:deals|offers|aanbiedingen)\\b`,
+    '\\b(?:deals?|aanbieding\\w*|koopjes|korting\\w*)\\b.*\\bop een rij\\b',
+    '\\b(?:deals?|aanbiedingen|koopjes) van de (?:dag|week)\\b',
+    '\\b(?:kortingscodes?|promo ?codes?|discount codes?|coupon codes?)\\b',
+    '\\bkorting op\\b.*\\b(?:deal|actie|code|aanbieding)\\b',
+    '\\b(?:nu|met|tot)\\s+(?:wel\\s+|maar liefst\\s+)?(?:[€$£]\\s?\\d+|\\d+\\s?(?:%|procent|euro))\\s+korting\\b',
+    '\\bnu (?:voor|vanaf)\\s+(?:[€$£]\\s?\\d|\\d+(?:[.,]\\d+)?\\s?euro)',
+    '\\b(?:its|their)\\s+lowest prices?\\b',
+    '\\b(?:nu|voor de)\\s+(?:de\\s+)?laagste prijs\\b',
+    `(?:^|[:|–—!?(]\\s*|\\b(?:en|and|to|hier|nu)\\s+)(?:bespaar|scoor|krijg|save|get|grab|snag)\\s+${AMOUNT}`,
+  ].join('|'),
+  'iu',
+)
 const SHOP_DAY = /\b(?:black friday|cyber monday|singles'? day|prime day|amazon prime days?)\b/i
-const SHOP_WORD = /\b(?:deals?|korting\w*|aanbieding\w*|koopjes|sale|uitverkoop|goedkoop\w*|cheapest|laagste prijs|prijsdaling|discounts?)\b/i
-const ABOUT_SALES = /\b(?:omzet\w*|sales|record\w*|spending|uitgaven|besteding\w*|besteed\w*|consument\w*|shoppers|onderzoek|survey|research|cijfers|waarom|why|analyse|analysis|nep\w*|fake|scams?|oplicht\w*|misleid\w*|fraude|acm)\b/i
-export const isBuying = (t = '') => BUY_ALWAYS.test(t) || ((DEAL_HEAD.test(t) || (SHOP_DAY.test(t) && SHOP_WORD.test(t))) && !ABOUT_SALES.test(t))
+const OFFER = /\b(?:deals?|korting(?:en)?|aanbieding(?:en)?|koopjes|discounts?|sale)\s+(?:op|on|voor|for|bij|under)\b|\b(?:deals?|sale)\s*(?::|\(20\d\d\)\s*$|$)|\b(?:for|voor)\s+(?:[€$£]\s?\d|\d+(?:[.,]\d+)?\s?euro)/i
+const NEWS = /\b(?:omzet\w*|sales|record\w*|spending|uitgaven|besteding\w*|besteed\w*|consument\w*|shoppers|onderzo\w*|survey|research|stud(?:y|ie)|cijfers|waarom|why|analyse|analysis|nep\w*|fakes?|scams?|oplicht\w*|misleid\w*|misleading|deceptive|fraude|acm|cma|ftc|sues?|sued|rechter|rechtbank|rechtszaak|markt\w*|markets?|beurs|koers\w*|crude|olie|oil|goud|gold|harvest|oogst|grondstof\w*|commodit\w*|waarschuw\w*|warns?|urges?|vraagt|roept|staking|strike|crisis|problemen|zo zit het|krijg(?:en|t)|geeft|verdwijnt|kabinet|overheid|government|huurders|reizigers|studenten|students|huishoudens|households|gezinnen|families|klanten|winkeliers|retailers)\b/i
+export const isBuying = (t = '') =>
+  BUY_ALWAYS.test(t) || (WITH_PRICE.test(t) && PRICE.test(t.replace(WITH_PRICE, ''))) || ((DEAL_HEAD.test(t) || (SHOP_DAY.test(t) && OFFER.test(t))) && !NEWS.test(t))
 // Aankondigingen (Selectie-review, punt 2): een congres met alleen een naam en jaartal, "… Announced", een fragment uit
 // een boek. Nieuws óver een congres of boek (met een eigen zin) blijft.
 const ANNOUNCE = /^\s*(?:the\s+)?[\p{L}\p{N}&'’ -]{0,40}\b(?:summit|conference|congres|congress|symposium|festival|meetup)\s+20\d\d\s*$|\b(?:conference|congres|summit|symposium|event)\b[^:]{0,40}\bannounced\b|\bread an excerpt\b|\b(?:lees|een) (?:fragment|voorpublicatie) uit\b|^\s*excerpt\s*:/iu
@@ -261,7 +300,7 @@ export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i,
 // En uitzendoverzichten van een programma ("12/11 in Nieuwsuur: Cruciaal debat • Hybride oorlog • …").
 const ROUNDUP = /^\s*\d{1,2}\/\d{1,2}(\/\d{2,4})? in [^:]{2,40}:|^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
 // Meer verzamelstukken (Selectie-review 14 november, punt 2), als vorm en niet als lijst van titels:
-// - een nummer achter een vaste titel: "Data Engineering Weekly #295", "Issue 112: …", "Nr. 34";
+// - een nummer als label van een vaste titel: "Data Engineering Weekly #295", "Issue 112: …", "Nr. 34";
 // - een weekoverzicht of leeslijst: "Week in review: …", "Weekend reading: …", "Weekoverzicht";
 // - het beste van een periode: "Best of October 2026", "Het beste van de week";
 // - een nieuwsupdate of populairlijst als label: "Nieuwsupdate: …", "10x populair: …", "Meest gelezen: …";
@@ -271,7 +310,12 @@ const DAYS = 'monday|tuesday|wednesday|thursday|friday|saturday|sunday|maandag|d
 const COLLECTION = new RegExp(
   [
     '(?:^|\\s)#\\d{2,}\\b',
-    '\\b(?:issue|nummer|nr\\.|vol\\.)\\s*#?\\d+\\b',
+    // Een nummer alleen als label van een vaste titel (keuring 14 november): vooraan, of direct na een korte titel met een
+    // dubbele punt of het einde van de kop erachter, of achter een scheidingsteken aan het eind. Nooit een nummer in een
+    // zin ("op nummer 1 in de Top 40", "nieuwe nummer 1", "Downing Street nummer 10") en nooit "Vol. 2" van een plaat.
+    '^\\s*(?:issue|nummer|nr\\.?|no\\.|vol\\.)\\s*#?\\d+(?:\\s*[:|–—]|\\s+-\\s|\\s*$)',
+    '^[^:|–—]{1,50}?\\s(?:issue|nr\\.)\\s*#?\\d+\\s*(?:[:|–—]|$)',
+    '(?:[:|–—(]|\\s-)\\s*(?:issue|nummer|nr\\.?|no\\.|vol\\.)\\s*#?\\d+\\)?\\s*$',
     '\\b(?:week|weekend) in review\\b',
     '\\bweekend (?:reading|reads|links)\\b',
     '\\bweekoverzicht\\b',
