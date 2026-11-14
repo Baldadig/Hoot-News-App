@@ -518,18 +518,20 @@ export function healthOf(h, now = Date.now()) {
 // Welke bronnen we deze ronde ophalen: alles op maandag tussen 05:00 en 07:00 (Amsterdam), en
 // anders wat niet op pauze staat, om het uur de ene of de andere helft (een feed bewaart dagen,
 // en zo blijft één ronde ruim binnen de tijd van een geplande functie).
+// Gezond: wat we ophalen en wat het weekoverzicht als gezond telt. Een nieuwe bron heeft nog geen oordeel en telt mee.
+const GEZOND = ['ok', 'nieuw']
 const half = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2
 export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURCES, { split = sources.length > 150 } = {}) {
   const p = Object.fromEntries(AMS.formatToParts(new Date(now)).map((x) => [x.type, x.value]))
   if (p.weekday === 'Mon' && Number(p.hour) >= 5 && Number(p.hour) < 7) return sources
-  return sources.filter((s) => ['ok', 'nieuw'].includes(healthOf(health[s.id], now)) && (!split || half(s.id) === Number(p.hour) % 2))
+  return sources.filter((s) => GEZOND.includes(healthOf(health[s.id], now)) && (!split || half(s.id) === Number(p.hour) % 2))
 }
 // Het weekoverzicht: per onderwerp hoeveel bronnen gezond zijn, en welke op pauze staan.
 export function healthReport(health = {}, now = Date.now(), sources = VAK_SOURCES) {
   const rows = sources.map((s) => ({ id: s.id, name: s.name, fields: s.fields, url: s.urls[0], state: healthOf(health[s.id], now), lastOk: health[s.id]?.lastOk || null, newest: health[s.id]?.newest || null }))
   const fields = VAK_FIELDS.map((f) => {
     const mine = rows.filter((r) => r.fields.includes(f.id))
-    return { id: f.id, label: f.label, sources: mine.length, healthy: mine.filter((r) => r.state === 'ok').length }
+    return { id: f.id, label: f.label, sources: mine.length, healthy: mine.filter((r) => GEZOND.includes(r.state)).length }
   }).filter((f) => f.sources)
   return { at: new Date(now).toISOString(), fields, paused: rows.filter((r) => r.state === 'kapot' || r.state === 'stil') }
 }

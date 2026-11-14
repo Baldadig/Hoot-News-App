@@ -46,7 +46,7 @@ export default function Privacy({ onBack, backLabel }) {
             te geven vanaf welke pagina.
           </li>
           <li>
-            <strong>Beelden en logo's van elders:</strong> sommige nieuwsbeelden komen van Bing (Microsoft), de logo's van bronnen deels van Google (favicons) en van unavatar.io. Die laad je
+            <strong>Beelden en logo's van elders:</strong> sommige nieuwsbeelden komen van Bing (Microsoft), de logo's van bronnen deels van Bluesky en van Google (favicons). Die laad je
             daar rechtstreeks, zoals elk beeld op een website: zij zien dan je IP-adres en je browser, niet wie je bent of wat je leest.
           </li>
           <li>

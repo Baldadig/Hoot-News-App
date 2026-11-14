@@ -460,7 +460,7 @@ struct DigestFieldsList: View {
     typealias Field = (id: String, label: String, icon: String)
     // Gelijk aan shared/vak.mjs (de server): acht domeinen, elk met zijn onderwerpen. De app toont
     // alleen wat de server levert; een onderwerp zonder bronnen staat er (nog) niet bij.
-    static let domains: [(label: String, fields: [Field])] = [
+    nonisolated static let domains: [(label: String, fields: [Field])] = [
         ("Marketing & communicatie", [("merk", "Merk & reclame", "tag"), ("paid-social", "Online adverteren", "megaphone"), ("seo", "SEO & content", "magnifyingglass"), ("pr", "PR & communicatie", "bubble.left.and.text.bubble.right"), ("social", "Social media & creators", "person.wave.2")]),
         ("Design & creatie", [("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digitaal ontwerp", "paintpalette"), ("architectuur", "Architectuur & wonen", "building.2"), ("fotografie", "Fotografie", "camera")]),
         ("Tech & product", [("ai", "AI", "sparkles"), ("dev", "Development", "chevron.left.forwardslash.chevron.right"), ("product", "Productmanagement", "square.stack.3d.up"), ("data", "Data & analytics", "chart.bar.xaxis"), ("security", "Hacks & privacy", "lock.shield"), ("gadgets", "Gadgets", "iphone")]),

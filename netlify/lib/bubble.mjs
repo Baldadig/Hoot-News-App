@@ -8,8 +8,23 @@ import { opinieBron } from '../../shared/opinie.mjs'
 // De persoonlijke Editie (De Redacteur, src/lib/personal.js) kiest daaruit wat buiten jóúw profiel
 // valt; daarom levert de server meer kandidaten, gespreid over de gebieden (bubbleCandidates), en
 // een twaalftal brede verhalen voor de terugval "Naast je bubbel" (nearStories).
-import { FAMILY_OF } from '../../shared/editor.mjs'
+import { FAMILY_OF, isSport as sportVanStuk } from '../../shared/editor.mjs'
 import { INTERESTS } from '../../src/lib/topics.js'
+import { keywordTopics } from './topics.mjs'
+
+// Sport hoort niet op de bubbelplek. Eén regel voor de server (pickBubble) en de scorekaart: de broncategorie, een
+// sportonderwerp of -trefwoord, een sportrubriek in de link of sport zonder eigen onderwerp (isSport in
+// shared/editor.mjs), of een verhaal dat sport is (`story.sport`, stories.mjs). Nachttest 14 november (R1): een
+// RTL-stuk onder /nieuws/sport/ zonder onderwerpen stond als Buiten je bubbel in de algemene Avondeditie.
+const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
+export function sportOpBubbel(i, { catOf = null, story = null } = {}) {
+  if (!i) return false
+  if (story?.sport) return true
+  if (catOf?.get(i.source) === 'sport') return true
+  if ((i.topics || []).some((t) => SPORT_TOPICS.has(t))) return true
+  if (keywordTopics(`${i.title || ''} ${i.summary || ''}`).some((t) => SPORT_TOPICS.has(t))) return true
+  return sportVanStuk(i, catOf)
+}
 
 const STOP = new Set(['the', 'and', 'van', 'het', 'een', 'de', 'in', 'of', 'on', 'to', 'for', 'vs', 'with', 'met', 'voor', 'naar', 'over', 'bij', 'uit', 'aan', 'als', 'dat', 'die', 'is', 'zijn', 'wordt', 'week', 'day', 'dag', 'news', 'nieuws', 'live', 'results', 'poll', 'results', 'film', 'miniserie', 'miniseries', 'novel', 'popgroep', 'uit', 'list', 'deaths', 'page', 'main', 'special', 'speciaal', 'hoofdpagina', 'wikipedia', 'search', 'zoeken'])
 // Pagina's en termen die nooit nieuws zijn.

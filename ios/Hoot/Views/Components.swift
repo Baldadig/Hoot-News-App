@@ -772,7 +772,7 @@ struct SourceLine: View {
     }
 
     // "N bronnen ›": altijd het totaal, in ink2. Gelijk aan bronnenLabel in src/components/Items.jsx.
-    static func label(_ count: Int) -> String { count == 1 ? "1 bron" : "\(count) bronnen" }
+    nonisolated static func label(_ count: Int) -> String { count == 1 ? "1 bron" : "\(count) bronnen" }
 
     @ViewBuilder private var more: some View {
         if let story, let count = story.sourceCount, count > 1 {

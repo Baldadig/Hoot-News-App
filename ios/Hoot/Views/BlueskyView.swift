@@ -214,7 +214,7 @@ struct BlueskyAccountsView: View {
                 } header: {
                     FormHeader("Iemand volgen")
                 } footer: {
-                    if let error { Text(error).foregroundStyle(Theme.warn) } else { Text("Je ziet hun eigen posts van de afgelopen 36 uur: geen reposts en geen antwoorden.").foregroundStyle(Theme.ink3) }
+                    if let error { Text(error).foregroundStyle(Theme.warn) } else { Text("Je ziet hun eigen posts van de afgelopen anderhalve dag: geen reposts en geen antwoorden.").foregroundStyle(Theme.ink3) }
                 }
                 .hootRows()
                 let own = store.socialSources.filter { store.isOwn($0.id) }

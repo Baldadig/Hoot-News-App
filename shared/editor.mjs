@@ -25,6 +25,8 @@ const byId = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 
 export const FAMILY_OF = Object.fromEntries(INTERESTS.flatMap((f) => f.topics.map((t) => [t, f.id])))
 export const FAMILY_LABEL = Object.fromEntries(INTERESTS.map((f) => [f.id, f.label]))
+const FAMILY_INDEX = Object.fromEntries(INTERESTS.map((f, i) => [f.id, i]))
+const FAMILY_RANK = (f) => FAMILY_INDEX[f] ?? INTERESTS.length
 // Het gebied van een vakbron (de rubriek in de catalogus): een cultuursite is Cultuur.
 const FAMILY_OF_CAT = Object.fromEntries(INTERESTS.flatMap((f) => f.cats.filter((c) => c !== 'regio').map((c) => [c, f.id])))
 
@@ -370,8 +372,10 @@ export function tempoWindows(items = []) {
 // volgt (≥ 0,5). Een wielerfan krijgt dus geen voetbal als bubbelstuk.
 export const OUTSIDE_TOPIC = 0.3
 export const OUTSIDE_FAMILY = 0.5
-export const outsideProfile = (topics = [], prof) =>
-  !topics.some((t) => (prof.topicP[t] || 0) >= OUTSIDE_TOPIC || (prof.family[FAMILY_OF[t]] || 0) >= OUTSIDE_FAMILY)
+// `families`: gebieden die het verhaal zeker raakt zonder onderwerp (sport onder /sport/, personal.js).
+export const outsideProfile = (topics = [], prof, families = []) =>
+  !topics.some((t) => (prof.topicP[t] || 0) >= OUTSIDE_TOPIC || (prof.family[FAMILY_OF[t]] || 0) >= OUTSIDE_FAMILY) &&
+  !families.some((f) => (prof.family[f] || 0) >= OUTSIDE_FAMILY)
 
 // Buren: gebieden die op elkaar aansluiten. Serendipiteit met een idee: niet willekeurig, maar
 // één stap van wat je al leest.
@@ -431,7 +435,12 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
   const rank = (k) => (WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length)
   const [code, p] = Object.entries(parts).filter(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === 'interest' && x.shown === false)).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || []
   if (code === 'followUp') return { code, text: `Vervolg op wat je las · ${p.n} nieuwe stukken` }
-  if (parts.cross && (code === 'interest' || code === 'cross')) return { code: 'cross', text: `Raakt ${FAMILY_LABEL[parts.cross.f[0]]} én ${FAMILY_LABEL[parts.cross.f[1]]}` }
+  if (parts.cross && (code === 'interest' || code === 'cross')) {
+    // De twee gebieden in de vaste volgorde van de gebieden (INTERESTS), zodat één Editie niet "Raakt Wereld én
+    // Politiek" naast "Raakt Politiek én Wereld" zet (nachttest 14 november, R7).
+    const [a, b] = [...parts.cross.f].slice(0, 2).sort((x, y) => FAMILY_RANK(x) - FAMILY_RANK(y))
+    return { code: 'cross', text: `Raakt ${FAMILY_LABEL[a]} én ${FAMILY_LABEL[b]}` }
+  }
   if (code === 'interest') {
     // Een vakbron zonder onderwerp: het gebied dat je koos (feedback 31 oktober: "Uit je vakbronnen" bij
     // NOS Cultuur over de dood van Patrick Stewart zei de vriendin niets; zij koos Cultuur).

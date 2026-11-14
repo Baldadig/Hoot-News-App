@@ -1,3 +1,4 @@
+import { urlDelen } from './url-delen.mjs'
 // Taal per bericht. Een bron heeft een hoofdtaal (sources.mjs `lang`), maar brengt soms een stuk
 // in een andere taal: het Parool heeft Engelstalige rubrieken (amsterdam-news, guide), een
 // Engelstalige bron citeert een Nederlands stuk. Zo'n bericht hoort niet bij lezers van de
@@ -26,6 +27,17 @@ const EN = new Set(
     'people being does did makes made gets got').split(/\s+/),
 )
 
+// Een derde telling: Frans, Duits en Spaans, alleen met woorden die in het Nederlands en Engels niet voorkomen (niet
+// "de", "die", "en", "van", "los", "las"). Wint die duidelijk, dan is het stuk in een andere taal ('xx'), en toont
+// visibleFor het niet aan een Nederlandse lezer (nachttest 14 november: Franse koppen van Politico Europe telden als
+// Nederlands, want "de" is ook Frans). Ook de Franse elisies (l', d', qu', j', n', s', c') tellen.
+const XX = new Set(
+  ('le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où ' +
+    'der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur ' +
+    'el una del para con por según sobre también más pero muy está fue y').split(/\s+/),
+)
+const ELISIE = /^(?:l|d|qu|j|n|s|c)'\p{L}{2,}/u
+
 // Rubrieken waarvan we de taal zeker weten (de uitgever zet ze apart), op host + eerste padstuk.
 // Engelstalig bij het Parool: "Amsterdam News" en de uitgaansgids "Guide".
 const KNOWN_PATHS = [{ host: /(^|\.)parool\.nl$/, path: /^\/(amsterdam-news|guide)(\/|$)/, lang: 'en' }]
@@ -35,13 +47,10 @@ export const LANG_SHARE = 0.75 // en minstens dit aandeel van alle getelde funct
 const INTRO_CHARS = 300
 
 export function langFromUrl(url) {
-  try {
-    const u = new URL(url)
-    const host = u.hostname.replace(/^www\./, '')
-    for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.pathname)) return k.lang
-  } catch {
-    /* geen geldige link: geen signaal */
-  }
+  const u = urlDelen(url) // zonder URL-object: JavaScriptCore heeft er geen; geen geldige link: geen signaal
+  if (!u) return null
+  const host = u.host.replace(/^www\./, '')
+  for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.path)) return k.lang
   return null
 }
 
@@ -53,19 +62,23 @@ export function langCounts(text) {
     .match(/\p{L}+(?:'\p{L}+)*/gu) || []
   let nl = 0
   let en = 0
+  let xx = 0
   for (const w of words) {
     if (NL.has(w)) nl++
     if (EN.has(w)) en++
+    if (XX.has(w) || ELISIE.test(w)) xx++
   }
-  return { nl, en }
+  return { nl, en, xx }
 }
 
-// 'nl', 'en' of null (onzeker). Kop plus het begin van de intro.
+// 'nl', 'en', 'xx' (een andere taal: Frans, Duits, Spaans) of null (onzeker). Kop plus het begin van de intro.
+// 'xx' alleen bij minstens LANG_MIN woorden van de derde telling en meer dan Nederlands en Engels samen.
 export function detectLang({ title = '', summary = '', text = '', url = '' } = {}) {
   const byUrl = langFromUrl(url)
   if (byUrl) return byUrl
   const intro = String(summary || text || '').slice(0, INTRO_CHARS)
-  const { nl, en } = langCounts(`${title} ${intro}`)
+  const { nl, en, xx } = langCounts(`${title} ${intro}`)
+  if (xx >= LANG_MIN && xx > nl + en) return 'xx'
   const top = Math.max(nl, en)
   if (top < LANG_MIN || top / (nl + en) < LANG_SHARE) return null
   return en > nl ? 'en' : 'nl'

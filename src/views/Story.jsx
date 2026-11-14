@@ -166,7 +166,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
             {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}.
           </p>
           <p>
-            Hoot bundelt berichten die over dezelfde gebeurtenis lijken te gaan, op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Dat gaat automatisch en kan er een keer naast zitten. Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen: redacties nemen vaak hetzelfde persbureaubericht over. Liveblogs, die een heel onderwerp volgen, tellen niet mee.
+            Hoot bundelt berichten die over dezelfde gebeurtenis lijken te gaan, op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Dat gaat automatisch en kan er een keer naast zitten. Meerdere bronnen betekent dat er veel over geschreven wordt, niet dat ze elkaar onafhankelijk bevestigen: redacties nemen vaak hetzelfde persbureaubericht over. Liveblogs, die een heel onderwerp volgen, tellen niet mee.
           </p>
         </Disclosure>
 
@@ -205,7 +205,7 @@ export function StoryIndex({ stories = [], onClose, lastId }) {
   return (
     <div className="story">
       <header className="story__head">
-        <p className="label label--meta story__eyebrow">Bronnen vergelijken</p>
+        <p className="label label--meta story__eyebrow">Vergelijken</p>
         <div className="story__acts">
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
             <CloseIcon />

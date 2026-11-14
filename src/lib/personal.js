@@ -19,7 +19,7 @@ import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
-import { INTERESTS, baseTopics } from './topics.js'
+import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN } from '../../shared/editor.mjs'
@@ -339,7 +339,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null
     // Buiten je bubbel (de plek zelf of een kandidaat ervoor) mag licht zijn; zie newsRejection.
     const bubble = entry.desk === 'bubbel' || entry.bubble === true
-    const reason = newsRejection(prof, meta, members, desk, { bubble })
+    // Een onderwerp dat je zelf aantikt (OPT_IN, Achterklap & showbizz) komt alleen bij wie het aantikte (besluit 13
+    // november); geen gewicht was niet genoeg, het stuk bleef als gewoon nieuws toegelaten (nachttest 14 november, R3).
+    const lead = itemAny.get(id) || members[0]
+    const optIn = (lead?.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))
+    const reason = optIn ? 'niet-aangetikt' : newsRejection(prof, meta, members, desk, { bubble })
     return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof,members,desk,meta), members, meta, desk }
   }
   const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped
@@ -489,12 +493,15 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    verhaal in een gebied naast je sterkste interesse: "Naast je bubbel".
   const clashes = (id) => taken.has(id) || (sigAll.has(id) && [...taken].some((x) => sigAll.has(x) && sameEvent(sigAll.get(id), sigAll.get(x))))
   const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))]
+  // Sport zonder onderwerp (een stuk onder /sport/, of een verhaal met `sport: true`) is voor de sportlezer niet buiten
+  // zijn profiel (nachttest 14 november, R1): het gebied telt dan mee in outsideProfile.
+  const familiesOfStory = (sid, id) => (storyById.get(sid)?.sport || (storyById.get(sid)?.itemIds || [id]).some((x) => itemAny.has(x) && isSport(itemAny.get(x), prof.catOf)) ? ['sport'] : [])
   let nearItem = null
   if (bubbleEntry) {
     // Zonder Wereld geen buitenlands bubbelstuk (feedback 31 oktober: Seedorf bij Corinthians, Braziliaans
     // voetbal, ook voor wie alleen Binnenland koos): dan het volgende signaal, of "Naast je bubbel".
     // Een los bericht met een onleesbare kop (de taalregel) slaan we over: dan het volgende signaal.
-    const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
+    const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
     // Eerst het signaal dat de algemene editie koos, dan de andere kandidaten van de server.
     const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id }
     const alt = [first, ...(global.bubble || [])].find(okB)

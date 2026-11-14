@@ -1,9 +1,10 @@
 import { countriesIn, usPoliticsIn } from '../../shared/article-signals.mjs'
+import { urlDelen } from '../../shared/url-delen.mjs'
 // Rubrieken voor de editie — pure functies (getest in tests/desks.test.mjs).
 // Elke editie probeert per rubriek het belangrijkste verhaal van het moment te hebben:
 // binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap (plus, in feed.mjs,
 // één verhaal van buiten je bubbel).
-import { OTHER_SPORT, keywordTopics } from './topics.mjs'
+import { OTHER_SPORT, keywordTopics, SHOWBIZZ_PATH } from './topics.mjs'
 
 export const DESKS = ['binnenland', 'buitenland', 'vs', 'middenoosten', 'oekraine', 'wetenschap']
 export const DESK_LABEL = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
@@ -112,7 +113,9 @@ const ownKind = (it) => {
   // géén zichtbaar sport/cultuuronderwerp gaan dan vóór die oude tag (bv. verkiezingsopinie met f1).
   if (election && usPoliticsIn(visible + ' ' + (it.url || '').replace(/[-_/]/g, ' ')) && !keywordTopics(visible).some(t => KIND_TOPICS.has(t))) return false
   if (/\b(journal article|research finds|study finds)\b/i.test(it.title || '')) return false
-  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible)
+  // Showbizz is een eigen soort, met dezelfde rubrieken als het onderwerp (SHOWBIZZ_PATH): NU.nl /achterklap/ werd
+  // anders Binnenland (nachttest 14 november, R3).
+  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || SHOWBIZZ_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible)
 }
 
 
@@ -284,7 +287,7 @@ export function subjectPlaceOf(it = {}) {
   if (fromHead.length) return {countries:fromHead,basis:'kop',text:head}
   if (usPoliticsIn(head)) return {countries:['us'],basis:'kop-institutie',text:head}
   let path = ''
-  try { path = new URL(it.url).pathname.replace(/[-_/]/g,' ') } catch {}
+  path = (urlDelen(it.url)?.path || '').replace(/[-_/]/g,' ') // zonder URL-object (shared/url-delen.mjs)
   if (/\/us\//i.test(String(it.url || '').split('?')[0])) return {countries:['us'],basis:'bronrubriek',text:`United States ${head}`}
   const fromPath = countriesIn(path)
   if (fromPath.length) return {countries:fromPath,basis:'url',text:`${head} ${path}`}

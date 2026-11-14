@@ -25,6 +25,7 @@
 // Een opinieblad (besluit Alex 13 november 2026): de catalogus zegt het per bron (`opinie` in
 // netlify/lib/sources.mjs), en dan is alles van die bron opinie. Ook dat zegt de uitgever zelf.
 import { OPINIE_IDS } from '../netlify/lib/sources.mjs'
+import { urlDelen } from './url-delen.mjs'
 
 // Is deze bron een opinieblad? Dan draagt hij geen plek in de Editie en telt hij niet mee in de drempels voor groot
 // nieuws (coverageOf in shared/edition-policy.mjs, het aantal bronnen van een verhaal in netlify/lib/stories.mjs).
@@ -46,17 +47,13 @@ const TITLE_CAPS = /^\W*(OPINIE|COLUMN|COMMENTAAR)\.\s/
 const plain = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 
 function urlSignal(raw) {
-  let u
-  try {
-    u = new URL(String(raw || ''))
-  } catch {
-    return false
-  }
-  const parts = u.pathname.split('/').filter(Boolean)
+  const u = urlDelen(raw) // zonder URL-object: JavaScriptCore heeft er geen
+  if (!u) return false
+  const parts = u.path.split('/').filter(Boolean)
   if (!parts.length) return false
   const dirs = parts.slice(0, -1)
   if (dirs.some((d) => DIR.test(d))) return true
-  const host = u.hostname
+  const host = u.host
   if (HOST_DIR.some(([h, d]) => h.test(host) && dirs.some((x) => d.test(x)))) return true
   return SLUG.test(parts[parts.length - 1])
 }
@@ -104,12 +101,8 @@ const HOST_CAT = [[/(^|\.)nrc\.nl$/i, /^ondertussen$/i]]
 export function opinieRubriek(cats = [], url = '') {
   const list = (Array.isArray(cats) ? cats : [cats]).map((c) => String(c || '').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim()).filter(Boolean)
   if (list.some((c) => c.split(CAT_SPLIT).filter(Boolean).every((p) => CAT_PART.test(p)))) return true
-  let host = ''
-  try {
-    host = new URL(String(url || '')).hostname
-  } catch {
-    return false
-  }
+  const host = urlDelen(url)?.host
+  if (!host) return false
   return HOST_CAT.some(([h, c]) => h.test(host) && list.some((x) => c.test(x)))
 }
 

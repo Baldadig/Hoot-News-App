@@ -463,3 +463,11 @@ test('Binnenland: wie het koos, krijgt Nederlands nieuws ook zonder trefwoord ("
   // Hooguit zo sterk als een geërfde interesse.
   assert.ok(parts.interest.pts <= Math.round(G.P.INTEREST * G.W_INHERITED))
 })
+
+// Nachttest 14 november (A20, R7): "Raakt X én Y" in de vaste volgorde van de gebieden, hoe het snijvlak ook binnenkwam.
+test('waarom: Raakt X én Y altijd in de volgorde van de gebieden', () => {
+  const cross = (f) => ({ interest: { pts: G.P.INTEREST, t: 'x', f: f[0] }, cross: { pts: G.P.CROSS, f } })
+  assert.equal(G.whyOf({}, { parts: cross(['wereld', 'politiek']) }).text, 'Raakt Politiek én Wereld')
+  assert.equal(G.whyOf({}, { parts: cross(['politiek', 'wereld']) }).text, 'Raakt Politiek én Wereld')
+  assert.equal(G.whyOf({}, { parts: cross(['cultuur', 'tech']) }).text, 'Raakt Tech én Cultuur')
+})

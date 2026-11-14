@@ -26,12 +26,12 @@ export default function Over({ onBack, backLabel }) {
         <h2 className="label label--section sect">Veelgestelde vragen</h2>
         <h3 className="head-4">Hoe kies ik mijn bronnen?</h3>
         <p>
-          Op de website via <a href="#/bronnen">Bronnen</a>; in de app via het tandwiel rechtsboven → Bronnen. Gratis bronnen zijn gemarkeerd.
+          Op de website via <a href="#/bronnen">Bronnen</a>; in de app via Instellingen (rechtsboven) › Bronnen. Gratis bronnen zijn gemarkeerd.
         </p>
         <h3 className="head-4">Waarom zie ik een betaalmuur?</h3>
         <p>
           Sommige bronnen vragen een abonnement. Op de website opent Hoot het artikel bij de uitgever zelf. In de app opent een artikel standaard in de Hoot-lezer: log daar één keer
-          in bij je abonnement, via het tandwiel rechtsboven → Artikelen → Abonnementen. Liever Safari, waar je al bent ingelogd? Kies bij het tandwiel → Artikelen → Artikelen openen voor In
+          in bij je abonnement, via Instellingen (rechtsboven) › Artikelen › Abonnementen. Liever Safari, waar je al bent ingelogd? Kies bij Instellingen › Artikelen › Artikelen openen voor In
           Safari. Safari kan per site onthouden dat je de Lezer-weergave wilt (aA › Gebruik Lezer automatisch).
         </p>
         <h3 className="head-4">Wanneer verschijnt de Editie?</h3>

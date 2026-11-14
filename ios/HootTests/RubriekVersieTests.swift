@@ -97,8 +97,12 @@ import XCTest
     func testVersieGaatMee() throws {
         let body = HootStore.serverBody(followed: ["nos"], interests: ["cultuur"], topics: [], favorites: [], taste: Taste(), readIds: [], reading: nil)
         XCTAssertEqual(body["rubrieken"] as? Int, 2)
+        // Het gedrag, niet de broncode (nachttest 14 november, A14): syncedPrefs draagt beide versies.
+        let prefs = HootStore().syncedPrefs
+        XCTAssertEqual(prefs["rubrieken"] as? Int, RubriekVersie.current, "syncedPrefs draagt de rubriekversie")
+        XCTAssertEqual(prefs["onderwerpen"] as? Int, OnderwerpVersie.current, "syncedPrefs draagt de onderwerpversie")
+        XCTAssertEqual(prefs["onboarded"] as? Bool, true)
         let src = try String(contentsOf: EditionServerTests.repo.appending(path: "ios/Hoot/HootStore.swift"), encoding: .utf8)
-        XCTAssertTrue(src.contains("\"rubrieken\": RubriekVersie.current, \"favorites\": favorites, \"onboarded\": true"), "syncedPrefs draagt de versie")
         XCTAssertTrue(src.contains("p?.rubrieken != RubriekVersie.current"), "een account zonder versie gaat eerst om")
     }
 }

@@ -44,6 +44,7 @@ import Splash from './components/Splash.jsx'
 import { startSysteemTekst, setSchaal } from './lib/systeemtekst.js'
 import { textSizeOf } from './lib/tekstgrootte.js'
 import { stroomTabsUit } from '../shared/stroom-tabs.mjs'
+import { bubbleFromEdition } from './lib/stroom-bubbel.js'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
@@ -220,12 +221,12 @@ export default function App() {
   // De Stroom-tabs van de server (shared/stroom-tabs.mjs); een feed zonder de lijst: Opinie.
   const stroomTabs = useMemo(() => stroomTabsUit(data), [data])
 
-  // "Buiten je bubbel": de berichten bij de signalen van deze editie (als ze er zijn).
+  // "Buiten je bubbel" in de Stroom: de bubbelplekken van de Editie die je ziet, zoals de app (lib/stroom-bubbel.js).
   // Zoals gepubliceerd (vast), en juist ook uit bronnen die je niet volgt: daar is dit blok voor.
   const bubble = useMemo(() => {
     if (!prefs.bubble) return []
-    const published = new Map([...(data?.edition?.items || []), ...(myEdition?.items || [])].map((i) => [i.id, i]))
-    return (data?.edition?.bubble || []).map((b) => ({ ...b, item: published.get(b.id) || itemsById.get(b.id) })).filter((b) => b.item)
+    const lookup = new Map([...itemsById, ...(data?.edition?.items || []).map((i) => [i.id, i])])
+    return bubbleFromEdition(myEdition, lookup)
   }, [prefs.bubble, data, itemsById, myEdition])
 
   // ---- Handelingen ----

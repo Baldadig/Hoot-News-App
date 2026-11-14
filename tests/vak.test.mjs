@@ -165,6 +165,10 @@ test('gezondheid: kapot na een week zonder laden, stil na twee maanden zonder ni
   const report = healthReport(h, t0 + 9 * day, [{ id: 'a', name: 'A', fields: ['film'], urls: ['u'] }, { id: 'b', name: 'B', fields: ['film'], urls: ['v'] }])
   assert.deepEqual(report.fields, [{ id: 'film', label: 'Film & series', sources: 2, healthy: 0 }])
   assert.equal(report.paused.length, 2)
+  // Een nieuwe bron (nog geen oordeel) telt als gezond, net als bij het ophalen (nachttest 14 november, A25).
+  const nieuw = healthReport({}, t0, [{ id: 'c', name: 'C', fields: ['film'], urls: ['w'] }])
+  assert.deepEqual(nieuw.fields, [{ id: 'film', label: 'Film & series', sources: 1, healthy: 1 }])
+  assert.equal(nieuw.paused.length, 0)
 })
 
 test('op pauze: niet elk uur, wel op maandagochtend', () => {

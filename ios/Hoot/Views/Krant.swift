@@ -590,7 +590,7 @@ struct KrantGekozen: ViewModifier {
     var hoogte: CGFloat = 0 // de hoogte van het zichtbare deel
     var raster = false // de ankers meten zich in de inhoud (de Editie): dan eerst naar boven en zoeken
     var inhoud: [AnyHashable: CGFloat] = [:] // de bovenkant van elk anker in de inhoud (alleen met `plekInhoud`)
-    static let ruimte = "plek-inhoud"
+    nonisolated static let ruimte = "plek-inhoud" // ook in de Sendable-closure van onGeometryChange
     private var taak: Task<Void, Never>?
     /// Na een vouw of draai: zo vaak (ms na elkaar) zet de lijst het anker terug bovenaan, tot de opmaak stilstaat.
     static let herstelMomenten = [60, 32, 40, 80, 160]
@@ -637,7 +637,7 @@ struct PlekAnker: ViewModifier {
         content
             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .scrollView).minY } action: { boek?.boven[id] = $0; boek?.plan() }
             // De plek in de inhoud zelf (schuift niet mee met scrollen): daarmee kan de lijst zelf terugscrollen.
-            .onGeometryChange(for: CGFloat.self) { inhoud ? $0.frame(in: .named(PlekBoek.ruimte)).minY : .nan } action: { if inhoud { boek?.inhoud[id] = $0; boek?.raster = true } }
+            .onGeometryChange(for: CGFloat.self) { [inhoud] g in inhoud ? g.frame(in: .named(PlekBoek.ruimte)).minY : .nan } action: { if inhoud { boek?.inhoud[id] = $0; boek?.raster = true } }
             .onDisappear { boek?.boven[id] = nil; boek?.inhoud[id] = nil }
     }
 }

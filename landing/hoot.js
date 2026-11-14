@@ -47,7 +47,8 @@
 
     /* ---- 01 Editie: de telefoon staat op regel 08 en rolt bij binnenkomst in 1,6 s naar "Je bent bij.". Daar blijft hij.
        De knoppen Ochtend, Middag en Avond lezen hun dagdeel één keer uit, van boven tot de rode kaart. ---- */
-    var TXT = { ochtend: ['Ochtendeditie', 'vanmiddag'], middag: ['Middageditie', 'vanavond'], avond: ['Avondeditie', 'morgenochtend'] };
+    /* naam en 'volgende' zoals shared/slots.json (web en app); getoetst in tests/landing.test.mjs */
+    var TXT = { ochtend: ['Ochtendeditie', 'in de middag'], middag: ['Middageditie', 'in de vroege avond'], avond: ['Avondeditie', 'morgenochtend'] };
     var T = { ochtend: 0, middag: .5, avond: 1 };
     var dagen = $('.dagen'), zon = dagen && $('.dagzon', dagen);
     var scE = $('.sc-editie'), tst = scE && $('.toestel', scE), rol = scE && $('.sc-rol', scE);
@@ -390,9 +391,21 @@
     /* De terugval: is de bewaarde Editie ouder dan een dag, dan geen datum (hij is echt, maar niet van gisteren of vandaag). */
     var vd = dagnr(vandaagIso());
     $$('.js-datum[data-vast]').forEach(function (s) { if (vd - dagnr(s.getAttribute('data-iso')) > 1) s.textContent = ''; });
-    /* 'Vandaag' alleen als de Editie van vandaag is; anders de dag zelf ("11 november"). Nooit een tijdstip. */
-    function wanneer(iso) {
-      if (iso && iso === vandaagIso()) return 'Vandaag';
+    /* De Editie die nu geldt, met dezelfde regel als slotIdNow in shared/tel.mjs: vóór de Ochtendeditie geldt de
+       Avondeditie van gisteren nog. OCHTEND en de grenzen zijn SLOT_START uit shared/slot-times.mjs (getoetst). */
+    var OCHTEND = 390, MIDDAG = 720, AVOND = 1020;
+    function nuSlotId() {
+      try {
+        var p = {}; new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+        var iso = p.year + '-' + p.month + '-' + p.day, m = Number(p.hour) * 60 + Number(p.minute);
+        if (m < OCHTEND) { var g = new Date(Date.parse(iso + 'T12:00:00Z') - 864e5).toISOString().slice(0, 10); return g + '-avond'; }
+        return iso + '-' + (m < MIDDAG ? 'ochtend' : m < AVOND ? 'middag' : 'avond');
+      } catch (e) { return ''; }
+    }
+    /* 'Vandaag' als de Editie van vandaag is of nu nog geldt (na middernacht de Avondeditie); anders de dag zelf
+       ("11 november"). Nooit een tijdstip. */
+    function wanneer(iso, slot) {
+      if (iso && (iso === vandaagIso() || (slot && iso + '-' + slot === nuSlotId()))) return 'Vandaag';
       var p = String(iso || '').split('-'); return p.length === 3 ? Number(p[2]) + ' ' + MND[Number(p[1]) - 1] : '';
     }
     /* metRubriek: false in de held (besluit Alex: de grote kop zonder rubriek). Rubriek alleen als de server hem zeker weet. */
@@ -454,7 +467,7 @@
           /* Hoot kiest blijft bewaard als er geen drie verschillende redenen zijn, of als de bubbel over hetzelfde gaat
              als plek 01 (dan klopt "Iets wat je anders niet had gelezen" niet). De held toont hoe dan ook de Editie van nu. */
           var kiesLive = !!rd && !(bub && overlap(bub.title, en[0].title));
-          var dag = '', wn = wanneer(ed.date), vannu = wn === 'Vandaag';
+          var dag = '', wn = wanneer(ed.date, ed.slot), vannu = wn === 'Vandaag';
           try { dag = new Date(ed.date + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
           /* held: het hoofdverhaal, de regel bij het toestel en het label van de link */
           var lead = $('.js-held-lead');

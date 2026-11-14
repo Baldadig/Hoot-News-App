@@ -326,7 +326,8 @@ struct SourcesView: View {
 struct SourcesList: View {
     @Environment(HootStore.self) private var store
     @State private var open: Set<String> = []
-    private static let cats: [(String, String)] = [("nl", "Nederland"), ("int", "Internationaal"), ("vl", "Vlaanderen"), ("regio", "Regio"), ("economie", "Economie"), ("tech", "Tech"), ("wetenschap", "Wetenschap"), ("sport", "Sport"), ("cultuur", "Cultuur"), ("games", "Games")]
+    // Dezelfde namen en volgorde als het web (SOURCE_CATS) en het welkom: FollowList.cats.
+    static var cats: [(String, String)] { FollowList.cats.map { ($0.id, $0.label) } }
 
     var body: some View {
         let mine = store.newsSources.filter { store.isOn($0) }
@@ -380,6 +381,10 @@ struct SourcesList: View {
         }
     }
 
+    @ViewBuilder private func paidLabel(_ s: Source) -> some View {
+        if s.paid == true { Text("Abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("Gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
+    }
+
     @ViewBuilder private func row(_ s: Source) -> some View {
         HStack(spacing: Space.s1) {
             if store.isOn(s) {
@@ -395,9 +400,11 @@ struct SourcesList: View {
             }
             Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
                 VStack(alignment: .leading, spacing: Space.s0) {
-                    HStack(spacing: Space.s2) {
-                        Text(s.name)
-                        if s.paid == true { Text("Abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("Gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
+                    // Naam en label op één regel als dat past; anders het label onder de naam, zodat een naam bij
+                    // grote tekst nooit midden in een woord afbreekt ("de Volkskran/t", nachttest 14 november).
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: Space.s2) { Text(s.name); paidLabel(s) }
+                        VStack(alignment: .leading, spacing: Space.s0) { Text(s.name); paidLabel(s) }
                     }
                     if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
                 }
