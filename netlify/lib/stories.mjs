@@ -626,6 +626,54 @@ function clusterHead(sig, item) {
   memo.set(item.id, h)
   return h
 }
+// Eén onderwerp, hooguit TOPIC_MAX plekken (persona's 14 november: de kabinetscrisis stond bij één lezer op vier plekken
+// van één Editie, de Amerikaanse tussentijdse verkiezingen op drie). Ruimer dan sameSubject en het cluster, die maar één
+// plek laten: twee invalshoeken van één dossier mogen allebei, een derde niet. Daarom mag dit grover zijn: twee echte
+// verhalen over één organisatie (KLM) houden allebei hun plek. `x`, `y`: de koppen van twee plekken (stukken met een
+// kenmerk in `sig`). Hetzelfde onderwerp, binnen EVENT_WINDOW, als:
+// - sameSubject het al zegt, of
+// - ze twee namen delen (eigen namen, bekende algemene namen of partijen; niet het land zelf, TOPIC_GENERIC), waarvan
+//   minstens één in een van de koppen staat, of
+// - ze één naam delen en hun koppen een woordstam (TOPIC_STEM letters vooraan; ook vooraan in het ene en achteraan in het
+//   andere woord: "kabinetscrisis" en "crisisoverleg"), of
+// - er één naam in beide koppen staat en ze een gebeurtenis-begrip delen.
+// Zonder lijst van onderwerpen of namen.
+export const TOPIC_MAX = 2
+export const TOPIC_STEM = 6
+const TOPIC_GENERIC = new Set(['nederland', 'us', 'uk', 'europe', 'un'])
+const topicNames = (s) => new Set([...s.strong, ...s.known, ...(s.parties || [])].filter((k) => !TOPIC_GENERIC.has(k)))
+const topicStems = (words) => {
+  const head = new Set()
+  const tail = new Set()
+  for (const w of words) if (w.length >= TOPIC_STEM && !/\d/.test(w)) (head.add(w.slice(0, TOPIC_STEM)), tail.add(w.slice(-TOPIC_STEM)))
+  return { head, tail }
+}
+// Dezelfde gebeurtenis in de koppen van twee stukken (sameHeadEvent op alleen de kop, met de woordenschat van `sig`): voor
+// wie na de selectie plekken samenvoegt (composePersonal).
+export const sameHeadEventOf = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(headSignature(sig, x), headSignature(sig, y))
+export function sameTopic(sig, x, y) {
+  const a = x && sig.get(x.id)
+  const b = y && sig.get(y.id)
+  if (!a || !b || a === b) return false
+  if (sameSubject(a, b)) return true
+  if (Math.abs(a.t - b.t) > EVENT_WINDOW) return false
+  const na = topicNames(a)
+  const nb = topicNames(b)
+  const shared = [...na].filter((k) => nb.has(k))
+  if (!shared.length) return false
+  const ha = headSignature(sig, x) || a
+  const hb = headSignature(sig, y) || b
+  const hna = topicNames(ha)
+  const hnb = topicNames(hb)
+  if (shared.length >= 2 && shared.some((k) => hna.has(k) || hnb.has(k))) return true
+  // Een naam is geen woordstam ("Lumora-vlucht" en "Lumora schrapt banen" delen alleen de naam).
+  const plain = (w) => !na.has(w) && !nb.has(w) && !a.weak.has(w) && !b.weak.has(w)
+  const sa = topicStems([...sigWords(x.title)].filter(plain))
+  const sb = topicStems([...sigWords(y.title)].filter(plain))
+  if ([...sa.head].some((w) => sb.head.has(w) || sb.tail.has(w)) || [...sb.head].some((w) => sa.tail.has(w))) return true
+  return shared.some((k) => hna.has(k) && hnb.has(k)) && sharedCount(a.concepts, b.concepts) >= 1
+}
+
 // Eén plek per onderwerp: gaat een kandidaat over iets wat al een plek heeft (`placed`: kenmerken)?
 // Een ander hoofdonderwerp is een ander verhaal (toets 4 november 2026): een verhaal van minstens OWN_STORY
 // uitgevers is een eigen gebeurtenis en wordt alleen afgewezen als een van zijn koppen over hetzelfde

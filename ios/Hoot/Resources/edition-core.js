@@ -1658,6 +1658,8 @@ var HootCore = (() => {
   var SUM_MIN = -30;
   var SUM_MAX = 40;
   var GEO_NL = "geo:nl";
+  var PLACE_TOPICS = /* @__PURE__ */ new Set(["oekraine", "middenoosten", "azie", "afrika", "latam"]);
+  var PLACE_HIT = (h) => h.t === GEO_NL || PLACE_TOPICS.has(h.t) || h.t.startsWith("gebied:") || h.t.startsWith("bron:");
   var SPORT_URL = /\/(sport|voetbal|premier-league|eredivisie|formule-1|wielrennen|tennis)\//i;
   function isSport(item, catOf = null) {
     if ((item.topics || []).some((t) => FAMILY_OF[t] === "sport")) return true;
@@ -1719,9 +1721,9 @@ var HootCore = (() => {
       const label2 = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()].map((h) => ({ ...h, c: coverOf(h) * h.v })).sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0];
       parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label2.t, f: label2.f, origin: prof.origin?.[label2.t] || "gekozen", cov: coverOf(label2), ...seenPos.length ? {} : { shown: false } };
       const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)];
-      const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && (!famCat(h) || famCat(h) === h.f)));
+      const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && !PLACE_HIT(h) && (!famCat(h) || famCat(h) === h.f)));
       const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length;
-      const cross = pos.filter((h) => h.v >= CROSS_MIN && h.seen && famCover(h.f));
+      const cross = pos.filter((h) => h.v >= CROSS_MIN && h.seen && !PLACE_HIT(h) && famCover(h.f));
       const first = cross[0];
       const second = first && cross.find((h) => h.f !== first.f);
       if (second) parts.cross = { pts: P.CROSS, f: [first.f, second.f] };
@@ -3065,6 +3067,38 @@ var HootCore = (() => {
     h = signature({ ...item, text: "", summary: "" }, isTitleCase(item.title) ? v.tvocab : v.cvocab, true);
     memo2.set(item.id, h);
     return h;
+  }
+  var TOPIC_MAX = 2;
+  var TOPIC_STEM = 6;
+  var TOPIC_GENERIC = /* @__PURE__ */ new Set(["nederland", "us", "uk", "europe", "un"]);
+  var topicNames = (s) => new Set([...s.strong, ...s.known, ...s.parties || []].filter((k) => !TOPIC_GENERIC.has(k)));
+  var topicStems = (words2) => {
+    const head = /* @__PURE__ */ new Set();
+    const tail = /* @__PURE__ */ new Set();
+    for (const w of words2) if (w.length >= TOPIC_STEM && !/\d/.test(w)) head.add(w.slice(0, TOPIC_STEM)), tail.add(w.slice(-TOPIC_STEM));
+    return { head, tail };
+  };
+  var sameHeadEventOf = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(headSignature(sig, x), headSignature(sig, y));
+  function sameTopic(sig, x, y) {
+    const a = x && sig.get(x.id);
+    const b = y && sig.get(y.id);
+    if (!a || !b || a === b) return false;
+    if (sameSubject(a, b)) return true;
+    if (Math.abs(a.t - b.t) > EVENT_WINDOW) return false;
+    const na = topicNames(a);
+    const nb = topicNames(b);
+    const shared = [...na].filter((k) => nb.has(k));
+    if (!shared.length) return false;
+    const ha = headSignature(sig, x) || a;
+    const hb = headSignature(sig, y) || b;
+    const hna = topicNames(ha);
+    const hnb = topicNames(hb);
+    if (shared.length >= 2 && shared.some((k) => hna.has(k) || hnb.has(k))) return true;
+    const plain2 = (w) => !na.has(w) && !nb.has(w) && !a.weak.has(w) && !b.weak.has(w);
+    const sa = topicStems([...sigWords(x.title)].filter(plain2));
+    const sb = topicStems([...sigWords(y.title)].filter(plain2));
+    if ([...sa.head].some((w) => sb.head.has(w) || sb.tail.has(w)) || [...sb.head].some((w) => sa.tail.has(w))) return true;
+    return shared.some((k) => hna.has(k) && hnb.has(k)) && sharedCount(a.concepts, b.concepts) >= 1;
   }
   var OWN_STORY = 5;
   function subjectTaken(sig, c, placed, items, meta = null) {
@@ -4454,17 +4488,33 @@ var HootCore = (() => {
       const st = storyById.get(e.kind === "story" ? e.id : serverStory(e));
       return st && isRunning(st, known2, now) ? st : null;
     };
+    const mergedIds = /* @__PURE__ */ new Map();
+    const mergeInto = (k, ids) => {
+      const t = accepted[k];
+      if (t.kind !== "story") return;
+      const have = /* @__PURE__ */ new Set([...t.itemIds || storyById.get(t.id)?.itemIds || [t.leadId || t.id], ...mergedIds.get(t) || []]);
+      const add = ids.filter((x) => !have.has(x) && !finalTaken.has(x));
+      if (!add.length) return;
+      mergedIds.set(t, [...mergedIds.get(t) || [], ...add]);
+      for (const x of add) finalTaken.add(x);
+      acceptedItems[k] = [...acceptedItems[k], ...add.map((x) => itemAny.get(x)).filter(Boolean)];
+    };
     const accept = (e) => {
       if (accepted.length >= capacity) return;
       const id = e.leadId || e.id;
       if (!readable(itemAny.get(id))) return;
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
-      if (ids.some((x) => finalTaken.has(x)) || sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
+      if (ids.some((x) => finalTaken.has(x))) return;
+      const head = itemAny.get(id);
+      const known2 = ids.map((x) => itemAny.get(x)).filter(Boolean);
+      const same = sigAll.has(id) ? finalLeads.findIndex((x) => sigAll.has(x) && (sameEvent(sigAll.get(id), sigAll.get(x)) || sameHeadEventOf(sigAll, head, itemAny.get(x)))) : -1;
+      const k = same >= 0 ? same : acceptedItems.findIndex((xs) => sameCluster(sigAll, known2, xs));
+      if (k >= 0) return mergeInto(k, known2.map((i) => i.id));
+      if (sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
       const fam = famKey(e);
       if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return;
-      const known2 = ids.map((x) => itemAny.get(x)).filter(Boolean);
-      if (acceptedItems.some((xs) => sameCluster(sigAll, known2, xs))) return;
+      if (head && finalLeads.filter((x) => sameTopic(sigAll, head, itemAny.get(x))).length >= TOPIC_MAX) return;
       const allowed = p.allowed || floorLight && p.reason === "licht-buiten-interesse";
       if (!allowed || capAbroad && p.capped && internationalCount >= INT_MAX) return;
       const run = runningStory(e, known2);
@@ -4498,6 +4548,14 @@ var HootCore = (() => {
     if (bubbleEntry) {
       capacity = accepted.length + 1;
       accept(bubbleEntry);
+    }
+    const placedStories = new Set(accepted.filter((e) => e.kind === "story").map((e) => e.id));
+    for (const st of stories) {
+      if (placedStories.has(st.id) || !(now - Date.parse(st.latestAt) < 24 * 36e5)) continue;
+      const xs = st.itemIds.filter((x) => !finalTaken.has(x)).map((x) => itemAny.get(x)).filter((i) => i && i.kind !== "post");
+      if (!xs.length) continue;
+      const k = accepted.findIndex((e, j) => e.kind === "story" && e.desk !== "bubbel" && (xs.some((i) => sameHeadEventOf(sigAll, i, itemAny.get(e.leadId || e.id))) || sameCluster(sigAll, xs, acceptedItems[j])));
+      if (k >= 0) mergeInto(k, xs.map((i) => i.id));
     }
     entries = accepted;
     const knownOf = (e) => [...membersOf(e)].map((id) => itemAny.get(id)).filter(Boolean);
@@ -4534,7 +4592,8 @@ var HootCore = (() => {
       }
       const { w, parts, planned, front, vervolg, big, _extra, ...rest } = e;
       const lead = e.leadId || e.id;
-      const itemIds = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
+      const itemIds0 = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
+      const itemIds = mergedIds.has(e) ? [.../* @__PURE__ */ new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0;
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
       return { ...rest, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
     });

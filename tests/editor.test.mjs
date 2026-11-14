@@ -221,7 +221,12 @@ test('waarom: het label komt van de treffer die het verhaal het best dekt', () =
   assert.equal(parts.cross, undefined)
   assert.equal(G.whyOf({}, { parts }).text, 'Omdat je Midden-Oosten volgt')
   const metCross = G.personalParts([its[0], it('d', 'nrc', ['vs-politiek', 'middenoosten'], { title: 'Trump en het Witte Huis over Gaza' }), its[1]], p)
-  assert.equal(G.whyOf({}, { parts: metCross }).text, 'Raakt Politiek én Wereld')
+  // Persona's 14 november: een werelddeel is een plaats, geen tweede gebied; politiek in het Midden-Oosten krijgt geen
+  // "Raakt Politiek én Wereld" meer (PLACE_HIT). Twee onderwerpen wel: Nederland en Zorg.
+  assert.equal(metCross.cross, undefined)
+  const pk = prof({ interests: ['politiek', 'binnenland'], topics: ['nederland', 'zorg'] })
+  const zorg = [it('e', 'nos', ['nederland', 'zorg'], { title: 'Kabinet wil eigen risico in de zorg verlagen' }), it('f', 'nrc', ['nederland', 'zorg'], { title: 'Tweede Kamer en de zorgpremie' })]
+  assert.equal(G.whyOf({}, { parts: G.personalParts(zorg, pk, {}, { desk: 'binnenland' }) }).text, 'Raakt Politiek én Binnenland')
 })
 
 test('waarom: vaste plekken, voorkeursbron, eigen bronnen en de volgorde bij gelijke stand', () => {

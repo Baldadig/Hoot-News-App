@@ -14,7 +14,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem } from '../../netlify/lib/stories.mjs'
+import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
@@ -597,6 +597,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e))
     return st && isRunning(st, known, now) ? st : null
   }
+  // Samengevoegde stukken per plek (de plek zelf blijft hetzelfde object): alleen een verhaal neemt stukken op.
+  const mergedIds = new Map()
+  const mergeInto = (k, ids) => {
+    const t = accepted[k]
+    if (t.kind !== 'story') return
+    const have = new Set([...(t.itemIds || storyById.get(t.id)?.itemIds || [t.leadId || t.id]), ...(mergedIds.get(t) || [])])
+    const add = ids.filter((x) => !have.has(x) && !finalTaken.has(x))
+    if (!add.length) return
+    mergedIds.set(t, [...(mergedIds.get(t) || []), ...add])
+    for (const x of add) finalTaken.add(x)
+    acceptedItems[k] = [...acceptedItems[k], ...add.map((x) => itemAny.get(x)).filter(Boolean)]
+  }
   const accept = e => {
     if (accepted.length >= capacity) return
     const id = e.leadId || e.id
@@ -604,12 +616,22 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (!readable(itemAny.get(id))) return
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
-    if (ids.some(x => finalTaken.has(x)) || (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x))))) return
+    if (ids.some(x => finalTaken.has(x))) return
+    // Dezelfde gebeurtenis als een plek die er al staat (dezelfde kop-gebeurtenis, sameSubject, of hetzelfde cluster): geen
+    // tweede plek, en de stukken gaan bij die plek (persona's 14 november: één feit in twee verhalen, de Donbas-ruil op 02 en
+    // 05, het Amerikaanse vliegverbod op 04 en 06). Zo staat het verhaal één keer, met alle bronnen, en weet de volgende
+    // Editie dat beide helften er stonden.
+    const head = itemAny.get(id)
+    const known = ids.map((x) => itemAny.get(x)).filter(Boolean)
+    // Alleen hetzelfde onderwerp (sameSubject zonder dezelfde gebeurtenis): geen tweede plek, maar ook niet samenvoegen.
+    const same = sigAll.has(id) ? finalLeads.findIndex(x => sigAll.has(x) && (sameEvent(sigAll.get(id), sigAll.get(x)) || sameHeadEventOf(sigAll, head, itemAny.get(x)))) : -1
+    const k = same >= 0 ? same : acceptedItems.findIndex((xs) => sameCluster(sigAll, known, xs))
+    if (k >= 0) return mergeInto(k, known.map((i) => i.id))
+    if (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return
     const fam = famKey(e)
     if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return
-    // Eén onderwerp op één dag, één plek (sameCluster), langs elke route: ook een breed verhaal of een aanvulling.
-    const known = ids.map((x) => itemAny.get(x)).filter(Boolean)
-    if (acceptedItems.some((xs) => sameCluster(sigAll, known, xs))) return
+    // Eén onderwerp hooguit TOPIC_MAX plekken (sameTopic), langs elke route.
+    if (head && finalLeads.filter((x) => sameTopic(sigAll, head, itemAny.get(x))).length >= TOPIC_MAX) return
     const allowed = p.allowed || (floorLight && p.reason === 'licht-buiten-interesse')
     if (!allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
     const run = runningStory(e, known)
@@ -646,6 +668,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   }
   // Pas na hooguit tien gewone plekken: één optionele bubbel, met dezelfde inhouds- en dubbelgrenzen.
   if (bubbleEntry) { capacity = accepted.length + 1; accept(bubbleEntry) }
+  // Uiteengevallen verhalen samenvoegen (persona's 14 november): een verhaal dat geen plek kreeg maar over dezelfde
+  // gebeurtenis gaat als een plek (dezelfde kop-gebeurtenis of hetzelfde cluster, binnen een dag), geeft zijn stukken aan
+  // die plek. Zo staat het feit één keer met al zijn bronnen, en komt de andere helft in het volgende dagdeel niet terug
+  // als nieuw (de vorige Editie kent dan beide helften).
+  const placedStories = new Set(accepted.filter((e) => e.kind === 'story').map((e) => e.id))
+  for (const st of stories) {
+    if (placedStories.has(st.id) || !(now - Date.parse(st.latestAt) < 24 * 36e5)) continue
+    const xs = st.itemIds.filter((x) => !finalTaken.has(x)).map((x) => itemAny.get(x)).filter((i) => i && i.kind !== 'post')
+    if (!xs.length) continue
+    const k = accepted.findIndex((e, j) => e.kind === 'story' && e.desk !== 'bubbel' && (xs.some((i) => sameHeadEventOf(sigAll, i, itemAny.get(e.leadId || e.id))) || sameCluster(sigAll, xs, acceptedItems[j])))
+    if (k >= 0) mergeInto(k, xs.map((i) => i.id))
+  }
   entries = accepted
   // Binnenland blijft de opening, ook bij een combinatie met Wereld en bij serveraanvulling.
   // De stukken van een plek die dit toestel kent (voor plek 01: openWithNews).
@@ -697,7 +731,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     }
     const { w, parts, planned, front, vervolg, big, _extra, ...rest } = e
     const lead = e.leadId || e.id
-    const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
+    const itemIds0 = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
+    const itemIds = mergedIds.has(e) ? [...new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
     return { ...rest, itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front }
   })

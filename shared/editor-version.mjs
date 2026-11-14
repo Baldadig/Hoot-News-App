@@ -44,6 +44,9 @@
 // mee met het aandeel daarvan in je keuze (extraMaxOf in src/lib/personal.js): alleen Cultuur en Sport geeft de helft van de
 // Editie; de groei ruilt alleen lichte nieuwsplekken, nooit groot nieuws of de voorpagina. Valt een plek weg, dan eerst de
 // volgende kandidaat uit je sport of cultuur, pas daarna de vulling.
+// Persona · 2: één onderwerp hooguit TOPIC_MAX (2) plekken per persoonlijke Editie (sameTopic in netlify/lib/stories.mjs),
+// één gebeurtenis in twee verhalen wordt één plek met de stukken van beide (samenvoegen in composePersonal), en geen
+// snijvlak met een plaats (PLACE_HIT in shared/editor.mjs: Binnenland als plaats, een werelddeel of land).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
