@@ -7,15 +7,16 @@
 //   4. betaalde titels zeggen het, een inlogpagina alleen waar die bestaat;
 //   5. de taalregel: wie geen Engelse bron koos, krijgt van deze bronnen geen kop in zijn Editie;
 //   6. web en app tonen ze in dezelfde rubriek, de rekenkern op de iPhone kent ze, en de landing heeft hun logo;
-//   7. geen land buiten Nederland en Vlaanderen krijgt zoveel nieuwsuitgevers dat een binnenlands verhaal daar in zijn eentje
-//      de drempels voor groot nieuws haalt (keuring 14 november; daarom deze ronde geen Amerikaanse nieuwsbronnen).
+//   7. de landenregel: per land buiten Nederland en Vlaanderen tellen hooguit FRONT_MIN uitgevers mee, zodat een binnenlands
+//      verhaal van één buitenlands land in zijn eentje de drempels voor groot nieuws niet haalt (keuring 14 november,
+//      bronnen-amerika).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { SOURCES, MAIN_IDS, OPINIE_IDS, MUSIC_IDS } from '../netlify/lib/sources.mjs'
 import { opinieBron, isOpinie } from '../shared/opinie.mjs'
-import { coverageOf, publisherOf, publisherCountry, majorNews } from '../shared/edition-policy.mjs'
+import { coverageOf, publisherOf, publisherCountry, majorNews, majorGeneralNews, newsRejection, countedPublishers, COUNTRY_MAX } from '../shared/edition-policy.mjs'
 import { FRONT_MIN, FRONT_BIG } from '../shared/editor.mjs'
 import { composePersonal, languageRule } from '../src/lib/personal.js'
 import { followGroups } from '../src/lib/follow-welcome.js'
@@ -153,21 +154,78 @@ test('de rekenkern op de iPhone kent de nieuwe bronnen (taal, rubriek, opinie, u
   for (const id of [...NIEUW, 'france-medias-monde']) assert.ok(core.includes(`'${id}'`) || core.includes(`"${id}"`), id)
 })
 
-// De server telt per verhaal alle uitgevers uit de hele catalogus (sourceCount, publisherCount), voor elke lezer. Hoe meer
-// nieuwsuitgevers één land in de catalogus heeft, hoe makkelijker een binnenlands verhaal uit dat land de drempels haalt
-// (FRONT_MIN voor de opening, FRONT_BIG voor groot nieuws) en door het plafond voor buitenland heen komt. Zolang er geen regel
-// is die de telling per land begrenst, heeft geen land buiten Nederland en Vlaanderen meer algemene nieuwsuitgevers
-// (rubriek Internationaal, geen opinie) dan FRONT_MIN; zo blijft er afstand tot FRONT_BIG.
-test('drempels: geen land buiten Nederland en Vlaanderen heeft meer nieuwsuitgevers dan FRONT_MIN', () => {
-  assert.ok(FRONT_MIN < FRONT_BIG)
-  const perLand = new Map()
-  for (const s of SOURCES) {
-    const land = publisherCountry(s.id)
-    if (s.cat !== 'int' || !land || land === 'NL' || land === 'BE' || opinieBron(s.id)) continue
-    if (!perLand.has(land)) perLand.set(land, new Set())
-    perLand.get(land).add(publisherOf(s.id))
+// De server telt per verhaal alle uitgevers uit de hele catalogus (sourceCount, publisherCount), voor elke lezer. Zonder
+// grens zou een binnenlands verhaal van één buitenlands land makkelijker groot nieuws worden naarmate dat land meer
+// uitgevers in de catalogus heeft. De landenregel (bronnen-amerika, 14 november 2026; COUNTRY_MAX in
+// shared/edition-policy.mjs): per land buiten Nederland en Vlaanderen tellen hooguit FRONT_MIN uitgevers mee. De toetsen
+// hieronder houden de regel zelf vast, los van welke bronnen er nu in de catalogus staan.
+const nieuwsVan = (land) => [...new Set(SOURCES.filter((s) => publisherCountry(s.id) === land && !opinieBron(s.id)).map((s) => publisherOf(s.id)))]
+const stukken = (ids) => ids.map((source, k) => ({ id: `${source}-${k}`, source, title: 'A headline' }))
+
+test('landenregel: per buitenlands land tellen hooguit FRONT_MIN uitgevers, ook met de hele catalogus', () => {
+  assert.equal(COUNTRY_MAX, FRONT_MIN)
+  assert.ok(COUNTRY_MAX < FRONT_BIG)
+  const landen = new Set(SOURCES.map((s) => publisherCountry(s.id)).filter((l) => l && l !== 'NL' && l !== 'BE'))
+  assert.ok(landen.has('US') && landen.has('GB'))
+  for (const land of landen) {
+    const alle = nieuwsVan(land)
+    const cov = coverageOf(stukken(alle))
+    assert.equal(cov.publisherCount, Math.min(alle.length, COUNTRY_MAX), land)
+    assert.ok(cov.publisherCount < FRONT_BIG, land)
+    assert.equal(majorNews({}, stukken(alle)), false, `${land}: een verhaal van één buitenlands land is in zijn eentje geen groot nieuws`)
+    assert.equal(majorNews({ ...cov, sourceCount: alle.length }, stukken(alle)), false, `${land}: ook niet met de telling van de server`)
   }
-  for (const [land, uitgevers] of perLand) assert.ok(uitgevers.size <= FRONT_MIN, `${land}: ${[...uitgevers].join(', ')}`)
-  // Elke nieuwe nieuwsbron hoort bij een land en telt dus mee in deze toets.
-  for (const id of NIEUWS) assert.ok(perLand.get(publisherCountry(id))?.has(publisherOf(id)), id)
+})
+
+test('landenregel: een puur Amerikaans verhaal met alle Amerikaanse uitgevers haalt FRONT_BIG en het plafond voor buitenland niet', () => {
+  const vs = nieuwsVan('US')
+  assert.ok(vs.length > FRONT_BIG, 'de catalogus heeft meer Amerikaanse uitgevers dan FRONT_BIG (anders toetst dit niets)')
+  const items = stukken(vs)
+  assert.equal(coverageOf(items).publisherCount, FRONT_MIN)
+  assert.equal(majorNews({}, items), false)
+  // Een licht verhaal (majorGeneralNews, zes algemene nieuwsuitgevers) telt ook met de landenregel: alle Amerikaanse
+  // uitgevers wegen niet zwaarder dan de zes Amerikaanse nieuwsuitgevers die er vóór deze ronde al waren.
+  const eerder = stukken(['nyt', 'atlantic', 'newyorker', 'foreignpolicy', 'politico', 'npr'])
+  assert.equal(majorGeneralNews({}, items), majorGeneralNews({}, eerder))
+  // Wie Wereld niet koos, krijgt zo'n verhaal niet langs het plafond voor buitenland (groot nieuws mag dat wel).
+  const binnenland = { interests: new Set(['binnenland']), family: { binnenland: 1 }, topicP: {}, favorites: new Set() }
+  assert.equal(newsRejection(binnenland, coverageOf(items), items, 'vs'), 'internationaal-niet-groot-genoeg')
+})
+
+test('landenregel: een wereldverhaal met Nederland, Amerika en Groot-Brittannië telt zoals voorheen', () => {
+  const wereld = stukken(['nos', 'nu', 'nrc', 'nyt', 'politico', 'npr', 'bbc', 'guardian'])
+  assert.deepEqual(coverageOf(wereld), { publisherCount: 8, publisherCountries: ['GB', 'NL', 'US'] })
+  assert.equal(majorNews({}, wereld), true)
+  const klein = stukken(['nos', 'nyt', 'politico', 'bbc', 'guardian'])
+  assert.equal(coverageOf(klein).publisherCount, 5)
+  assert.equal(majorNews({}, klein), true, 'vijf uit minstens twee landen, zoals voorheen')
+  // Met alle Amerikaanse uitgevers erbij tellen er zes Amerikaanse mee, naast de andere landen.
+  const groot = stukken(['nos', 'bbc', ...nieuwsVan('US')])
+  assert.equal(coverageOf(groot).publisherCount, 2 + FRONT_MIN)
+  assert.equal(majorNews({}, groot), true)
+  const binnenland = { interests: new Set(['binnenland']), family: { binnenland: 1 }, topicP: {}, favorites: new Set() }
+  assert.notEqual(newsRejection(binnenland, coverageOf(wereld), wereld, 'vs'), 'internationaal-niet-groot-genoeg')
+})
+
+test('landenregel: Nederlands en Vlaams nieuws telt onbegrensd, precies als voorheen', () => {
+  for (const land of ['NL', 'BE']) {
+    const alle = nieuwsVan(land)
+    assert.ok(alle.length > COUNTRY_MAX, `${land} heeft meer dan ${COUNTRY_MAX} uitgevers (anders toetst dit niets)`)
+    assert.equal(coverageOf(stukken(alle)).publisherCount, alle.length, land)
+    assert.equal(majorNews({}, stukken(alle)), true, land)
+  }
+  // Zonder buitenlands land boven de grens is de telling gelijk aan het aantal uitgevers.
+  const ids = ['nos', 'nos-economie', 'rtl', 'nu', 'vrt', 'nyt', 'bbc', 'guardian', 'aljazeera']
+  assert.equal(coverageOf(stukken(ids)).publisherCount, new Set(ids.map(publisherOf)).size)
+  assert.equal(countedPublishers(ids.map(publisherOf)), new Set(ids.map(publisherOf)).size)
+  // Een uitgever zonder bekend land telt gewoon mee; dubbelen tellen één keer.
+  assert.equal(countedPublishers(['onbekend-a', 'onbekend-b', 'nyt', 'nyt']), 3)
+})
+
+test('landenregel: web, app en server rekenen met dezelfde regel', () => {
+  const core = readFileSync(new URL('../ios/Hoot/Resources/edition-core.js', import.meta.url), 'utf8')
+  assert.ok(core.includes('COUNTRY_MAX = FRONT_MIN') && core.includes('function countedPublishers('), 'de rekenkern van de app heeft de landenregel')
+  const server = readFileSync(new URL('../netlify/lib/stories.mjs', import.meta.url), 'utf8')
+  assert.ok(server.includes('...coverageOf(items)'), 'de server zet publisherCount met coverageOf')
+  assert.ok(server.includes('countedPublishers(all) - countedPublishers(own)'), 'de familie van een verhaal telt met de landenregel')
 })

@@ -1,5 +1,5 @@
 // Vastgestelde redactionele normen, 1 november 2026. Geen modelcalls.
-import { geoOf, isSport, FRONT_BIG, FAMILY_OF, personalParts } from './editor.mjs'
+import { geoOf, isSport, FRONT_MIN, FRONT_BIG, FAMILY_OF, personalParts } from './editor.mjs'
 import { storyForeignOf, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 import { keywordTopics } from '../netlify/lib/topics.mjs'
@@ -14,7 +14,9 @@ const COUNTRIES = Object.fromEntries(Object.entries({
   BE: [...VL_HOME, 'cuttingedge'],
   US: ['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','theverge','wired','ars','techcrunch','mittr','ign','gamespot','polygon','quanta','sciam','espn','pitchfork','rollingstone','stereogum','variety',
     // 14 november 2026 (bronnen-internationaal)
-    'vox','nationalreview','thefp'],
+    'vox','nationalreview','thefp',
+    // 14 november 2026 (bronnen-amerika, met de landenregel in coverageOf)
+    'axios','propublica'],
   GB: ['guardian','bbc','economist','ft','independent','telegraph','eurogamer','nature','carbonbrief','autosport','quietus'],
   // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
   DE: ['dw'], FR: ['lemonde','france-medias-monde','euronews'], QA: ['aljazeera'], HK: ['scmp'],
@@ -22,11 +24,35 @@ const COUNTRIES = Object.fromEntries(Object.entries({
 }).flatMap(([country, ids]) => ids.map(id => [id, country])))
 export const publisherOf = id => ALIAS[id] || id
 export const publisherCountry = id => COUNTRIES[publisherOf(id)] || null
+// De landenregel (bronnen-amerika, 14 november 2026): per land buiten Nederland en Vlaanderen tellen hooguit COUNTRY_MAX
+// uitgevers mee, gelijk aan FRONT_MIN. Zo hangt de telling van een verhaal niet af van hoeveel uitgevers één buitenlands
+// land in de catalogus heeft: een binnenlands verhaal van één land haalt in zijn eentje nooit FRONT_BIG of groot nieuws
+// (majorNews eist dan een tweede land) en komt daarmee niet door het plafond voor buitenland. FRONT_MIN is ook het
+// grootste aantal algemene nieuwsuitgevers dat een buitenlands land vóór deze regel had (Amerika en Groot-Brittannië,
+// elk zes). Nederland en Vlaanderen tellen onbegrensd: groot Nederlands en Vlaams nieuws telt precies als voorheen.
+// Een uitgever zonder bekend land telt gewoon mee.
+export const COUNTRY_MAX = FRONT_MIN
+const UNCAPPED = new Set(['NL', 'BE'])
+// Het aantal uitgevers (al ontdubbeld: publisherOf) volgens de landenregel.
+export function countedPublishers(publishers = []) {
+  const per = new Map()
+  let n = 0
+  for (const p of new Set(publishers)) {
+    const land = publisherCountry(p)
+    if (land && !UNCAPPED.has(land)) {
+      const k = (per.get(land) || 0) + 1
+      per.set(land, k)
+      if (k > COUNTRY_MAX) continue
+    }
+    n++
+  }
+  return n
+}
 // Een opinieblad telt niet mee (shared/opinie.mjs, opinieBron): tien opiniebladen over één debat maken het nog geen
 // groot nieuws.
 export function coverageOf(items = []) {
   const ids = [...new Set(items.filter(i => !opinieBron(i.source)).map(i => publisherOf(i.source)).filter(Boolean))].sort()
-  return { publisherCount: ids.length, publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() }
+  return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() }
 }
 // ---- Noodfix 2 november 2026: sport op niveau van het verhaal, en de galerij ----
 // Een bundel van 64 stukken over een F1-titel, een marathon en meer sport had een NYT-fotogalerij als kop
@@ -80,9 +106,9 @@ export const sportChosen = prof => prof.interests ? prof.interests.has('sport') 
 // is geen buitenlands nieuws: The Economist over Google of NPR over AI blijft onbekend.
 // `story.publisherCountries` (de hele gebeurtenis, van de server) gaat voor: een lezer die alleen de NYT
 // volgt, ziet niet dat NOS het ook bracht.
-// 14 november 2026: de nieuwe algemene nieuwsbronnen van buiten (bronnen-internationaal); opiniebladen niet, die dragen geen plek.
+// 14 november 2026: de nieuwe algemene nieuwsbronnen van buiten (bronnen-internationaal, bronnen-amerika); opiniebladen niet, die dragen geen plek.
 const FOREIGN_NEWS = new Set(['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','guardian','bbc','economist','ft','independent','telegraph','dw','lemonde','aljazeera','scmp',
-  'france24','rfi','euronews','abc-au','kyivindependent','haaretz','timesofisrael'])
+  'france24','rfi','euronews','abc-au','kyivindependent','haaretz','timesofisrael','axios','propublica'])
 const BEAT = new Set(['economie','tech','wetenschap','cultuur','sport'])
 const generalNews = item => !(item?.topics || []).some(t => BEAT.has(FAMILY_OF[t]))
 const homeCovered = (items, story) => story?.homeCovered === true || (story?.publisherCountries || []).some(c => c === 'NL' || c === 'BE') || items.some(i => ['NL','BE'].includes(publisherCountry(i?.source)))
@@ -227,7 +253,8 @@ export function majorGeneralNews(story = {}, items = [], catOf = null) {
   const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map((id) => voice(id, catFor(id))))
   for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(voice(ID_BY_NAME.get(name), CAT_BY_NAME.get(name)))
   const countries = new Set([...ids].map(publisherCountry).filter(Boolean))
-  return ids.size >= LIGHT_MAJOR || (ids.size >= 5 && countries.size >= 2)
+  const n = countedPublishers(ids) // de landenregel (COUNTRY_MAX), ook hier
+  return n >= LIGHT_MAJOR || (n >= 5 && countries.size >= 2)
 }
 // Cultuur als soort (muziek, film, boeken, kunst, media): het gebied Cultuur zonder Games. Games staat sinds 1.3
 // onder Cultuur, maar is een eigen soort (lightKind, kindOf): wie alleen Games koos, krijgt geen cultuurstukken.

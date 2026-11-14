@@ -108,14 +108,28 @@ export const isNoise = (it, cats = [], src = null) => noiseReason(it, cats, src)
 // contentSnippet) een eigen korte dek (<summary>). Die dek is de intro die de redactie schreef en past
 // vaker op een plek in de Editie dan de eerste alinea (kaartkwaliteit, 7 november): hij gaat voor,
 // als hij iets zegt (minstens 40 tekens, niet de kop) en korter is dan de artikeltekst.
+// Geen intro (bronnen-amerika, 14 november 2026): de vaste WordPress-regel "The post <kop> appeared first on <site>." die
+// sommige feeds als hele samenvatting geven (ProPublica) of achter een samenvatting plakken; dan telt de artikeltekst
+// (content:encoded), zonder foto's en bijschriften (<figure>). En een bijschrift bij een grafiek bovenaan ("Data: FactSet;
+// Chart: … /Axios", "Note: …") staat op een eigen regel vóór de eerste alinea: die regel hoort niet bij de intro.
 const DEK_MIN = 40
 const same = (a) => a.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
+const WP_FOOTER = /(?:^|\s)The post\s[^\n]{1,400}?\sappeared first on\s[^\n]{1,120}?\.?\s*$/i
+const withoutFooter = (s) => (typeof s === 'string' ? s.replace(WP_FOOTER, '').trim() : s)
+const withoutFigures = (s) => (typeof s === 'string' ? s.replace(/<figure\b[^]*?<\/figure>/gi, ' ').replace(/<figcaption\b[^]*?<\/figcaption>/gi, ' ') : s)
+const CREDIT_LINE = /^(?:data|sources?|notes?|charts?|photos?|illustrations?|maps?|graphics?):[^\n]*\n+/i
+const withoutCredits = (s) => {
+  let v = String(s).replace(/^\s+/, '')
+  for (let n = 0; n < 3 && CREDIT_LINE.test(v); n++) v = v.replace(CREDIT_LINE, '')
+  return v
+}
 export function introOf(it, title = '') {
-  const dek = typeof it.summary === 'string' ? toText(it.summary).trim() : ''
-  const body = it.contentSnippet ? toText(it.contentSnippet).trim() : ''
+  const dek = typeof it.summary === 'string' ? toText(withoutFooter(it.summary)).trim() : ''
+  const snippet = withoutFooter(it.contentSnippet)
+  const body = snippet ? toText(snippet).trim() : ''
   const useDek = dek.length >= DEK_MIN && body && dek.length < body.length && same(dek) !== same(title)
-  const raw = useDek ? dek : it.contentSnippet || it.summary || it.description || it.contentEncoded || ''
-  const text = toText(raw)
+  const raw = useDek ? dek : snippet || withoutFooter(it.summary) || withoutFooter(it.description) || withoutFigures(it.contentEncoded) || ''
+  const text = toText(withoutCredits(raw))
     .replace(/^[^.;]{0,60}Published online:[^;]*;\s*doi:\s*\S+\s*/i, '')
     .trim()
   return text && same(text) !== same(title) ? text : ''

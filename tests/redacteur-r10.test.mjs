@@ -22,7 +22,7 @@ test('A: de revisie, de eerdere revisies en de sleutels', () => {
   assert.ok(!EARLIER_REVISIONS.includes(EDITOR_REVISION), 'de huidige revisie staat niet bij de eerdere')
   assert.ok(EARLIER_REVISIONS.includes('redacteur-2026-11-02-beta2'), 'de revisie die live draait')
   assert.equal(new Set(EARLIER_REVISIONS).size, EARLIER_REVISIONS.length)
-  assert.equal(EARLIER_REVISIONS[0], 'redacteur-2026-11-14-raakt-volgorde', 'de vorige revisie staat vooraan')
+  assert.equal(EARLIER_REVISIONS[0], 'redacteur-2026-11-14-internationaal', 'de vorige revisie staat vooraan')
   assert.equal(EDITION_REBUILD_SLOT, null, 'geen bewuste herbouw in de code die uitgerold wordt')
   assert.equal(editionCacheKey('2026-11-07-middag'), `edition-${EDITOR_REVISION}-2026-11-07-middag`)
   assert.equal(editionCacheKey('2026-11-07-middag', 'redacteur-2026-11-02-beta2'), 'edition-redacteur-2026-11-02-beta2-2026-11-07-middag')

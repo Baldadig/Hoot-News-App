@@ -1,5 +1,5 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf, openWorld } from '../../shared/edition-policy.mjs'
+import { EDITION_TARGET, coverageOf, countedPublishers, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf, openWorld } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, verdictTitle } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -1645,7 +1645,9 @@ function families(cands) {
       c.fam = head.st.id
       for (const i of c.items) all.add(publisherOf(i.source))
     }
-    const total = pubsOf(head) + (all.size - own.size)
+    // De landenregel (countedPublishers, shared/edition-policy.mjs) telt ook hier: de familie van een binnenlands verhaal van
+    // één buitenlands land haalt FRONT_BIG niet door het aantal uitgevers van dat land in de catalogus.
+    const total = pubsOf(head) + (countedPublishers(all) - countedPublishers(own))
     if (all.size > own.size && total >= FRONT_BIG) extra.set(head, all.size - own.size)
   }
   for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null
