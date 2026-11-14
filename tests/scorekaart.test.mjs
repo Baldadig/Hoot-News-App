@@ -119,6 +119,6 @@ test('/api/scorekaart: de dag en de dag ervoor naast elkaar; tekst als tabel', a
 
 test('refresh bewaart de feed in het archief en stuurt `archive` nooit mee naar de app', () => {
   const src = readFileSync(new URL('../netlify/lib/refresh.mjs', import.meta.url), 'utf8')
-  assert.match(src, /const \{ parts, items, archive, \.\.\.rest \} = await buildFeed/)
+  assert.match(src, /const \{ parts, items, archive, late, \.\.\.rest \} = await build\(\{ now \}\)/)
   assert.match(src, /if \(archive\) await writeArchive\(ARCHIVE_FEED_KEY\(rest\.edition\.id\)/)
 })

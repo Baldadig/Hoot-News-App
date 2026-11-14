@@ -56,8 +56,8 @@ test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () =>
   const welkom = read('ios/Hoot/Views/WelcomeView.swift')
   assert.match(welkom, /Button\("Account"\) \{ login = true \}/)
   assert.match(welkom, /"Drie keer per dag tien verhalen\. Dan ben je bij\."/)
-  assert.match(welkom, /"Elke maandag het beste over wat jou bezighoudt\."/)
-  assert.match(welkom, /"Elke maandag het beste over je werk of hobby\."/)
+  assert.match(welkom, /"Elke maandag drie stukken over wat jou bezighoudt\."/)
+  assert.match(welkom, /"Elke maandag drie stukken over je werk of hobby\."/)
   assert.doesNotMatch(welkom, /hooguit tien|[Ee]én keer per week|Button\("Inloggen"\)/)
   // De accountrij zonder account heet Account. Bovenaan Instellingen staat sinds 1.2.1 "Inloggen" met de knoppen
   // er meteen onder (advies instellingen-positie), want daar doe je het.
@@ -69,7 +69,7 @@ test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () =>
   assert.match(read('ios/Hoot/Views/AccountView.swift'), /struct AccountKnop[\s\S]*?accessibilityLabel\("Instellingen"\)/)
   // Gelijk aan het web.
   const web = read('src/views/Welcome.jsx')
-  for (const zin of ['Drie keer per dag tien verhalen. Dan ben je bij.', 'Elke maandag het beste over wat jou bezighoudt.', 'Elke maandag het beste over je werk of hobby.']) assert.ok(web.includes(zin), zin)
+  for (const zin of ['Drie keer per dag tien verhalen. Dan ben je bij.', 'Elke maandag drie stukken over wat jou bezighoudt.', 'Elke maandag drie stukken over je werk of hobby.']) assert.ok(web.includes(zin), zin)
 })
 
 test('r5-apple-web: de inlogpagina van de app zegt dat je op gethoot.app (nog) met Google inlogt, en het web kent alleen Google', () => {

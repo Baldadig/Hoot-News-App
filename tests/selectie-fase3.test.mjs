@@ -62,7 +62,7 @@ test('weging: in de leesvoer-onderwerpen beslist het gewicht van de schrijver, n
   const merk = composeVak(pool('m'), { now: NOW, sources: merkS })
   // Politiek: de expert eerst, ook al schreven drie vakbladen over het kabinet.
   assert.deepEqual(topOf(pol, 'politiek')[0], 'p4')
-  assert.ok(pol.fields.find((x) => x.id === 'politiek').top[1].why.includes('3 vakbronnen schreven erover'), 'bij gelijke stand telt het aantal bronnen nog')
+  assert.equal(pol.fields.find((x) => x.id === 'politiek').top[1].also.length, 2, 'bij gelijke stand telt het aantal bronnen nog (bij naam, zonder telregel)')
   // Merk (geen leesvoer-onderwerp): drie bronnen over hetzelfde wint het nog van de expert.
   assert.equal(topOf(merk, 'merk')[0], 'm1')
 })
