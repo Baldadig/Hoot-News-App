@@ -147,16 +147,16 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(FollowList.followed(Self.catalog, ["tweakers", "nos", "weg"]).map(\.id), ["tweakers", "nos"])
     }
 
-    @MainActor func testPreviewShowsNewestHeadlinePerFollowedSource() {
-        let items = [
-            Item(id: "a", source: "nos", kind: "article", title: "Oud", url: "https://example.org", publishedAt: "2026-11-04T06:00:00Z"),
-            Item(id: "b", source: "nos", kind: "article", title: "Nieuw", url: "https://example.org", publishedAt: "2026-11-04T08:00:00Z"),
-            Item(id: "c", source: "tweakers", kind: "article", title: "Tech", url: "https://example.org", publishedAt: "2026-11-04T07:00:00Z"),
-            Item(id: "d", source: "vi", kind: "article", title: "Sport", url: "https://example.org", publishedAt: "2026-11-04T09:00:00Z"),
-        ]
-        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos", "tweakers"]).map(\.title), ["Nieuw", "Tech"])
-        XCTAssertEqual(FollowList.preview(items, Self.catalog, []).map(\.id), ["b"]) // nog niets: het gratis begin
-        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos"]).first?.source, "NOS")
+    // Onboarding blok 4 (1.3.1): de kranten als eigen groep direct onder Voor jou, open; de knop noemt het gratis begin.
+    @MainActor func testKrantenEnBeginKnop() {
+        let g = FollowList.groups(Self.catalog, [], voorstel: nil)
+        XCTAssertEqual(g.basis.map(\.id), FollowList.freeStart(Self.catalog).map(\.id))
+        XCTAssertTrue(g.kranten.allSatisfy { FollowList.basisKranten.contains($0.id) })
+        XCTAssertTrue(g.kranten.allSatisfy { !FollowList.freeStart.contains($0.id) })
+        XCTAssertTrue(FollowList.startsOpen("kranten", chosen: 0))
+        XCTAssertEqual(FollowList.beginLabel(Self.catalog), "Begin met NOS, NU.nl en RTL Nieuws")
+        XCTAssertEqual(FollowList.beginLabel(Self.catalog.filter { $0.id != "rtl" }), "Begin met NOS en NU.nl")
+        XCTAssertEqual(FollowList.beginLabel([]), "Naar je Editie")
     }
 
     // Nachttest 14 november (A13): Instellingen › Bronnen heeft dezelfde rubrieken, namen en volgorde als het welkom en het web.
@@ -164,16 +164,6 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(SourcesList.cats.map(\.0), FollowList.cats.map(\.id))
         XCTAssertEqual(SourcesList.cats.map(\.1), FollowList.cats.map(\.label))
         XCTAssertTrue(SourcesList.cats.contains { $0.1 == "Regionaal" })
-    }
-
-    // Nachttest 14 november (A6): opinie draagt geen plek in de Editie, dus ook niet in het voorbeeld (gelijk aan het web).
-    @MainActor func testPreviewSkipsOpinion() {
-        let items = [
-            Item(id: "a", source: "nos", kind: "article", title: "Nieuws", url: "https://example.org", publishedAt: "2026-11-04T06:00:00Z"),
-            Item(id: "b", source: "nos", kind: "article", title: "Column", url: "https://example.org", publishedAt: "2026-11-04T08:00:00Z", opinion: true),
-            Item(id: "c", source: "tweakers", kind: "article", title: "Oud type", url: "https://example.org", publishedAt: "2026-11-04T07:00:00Z", type: "opinie"),
-        ]
-        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos", "tweakers"]).map(\.id), ["a"])
     }
 
     // ---- Week · 2: de intro toont de eerste kop van de huidige algemene Editie als bewijs ----

@@ -3261,33 +3261,8 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   max-width: 100%;
 }
 
-/* Volg je bronnen: zoekveld, twee pillen (Aanbevolen, Gevolgd) en de lijst per rubriek. Breed
-   (vanaf 834) staat het meegroeiende voorbeeld rechts; smaller in een uitklapbalk boven de knop. */
-.ob__split {
-  display: block;
-}
-.ob__peek {
-  display: none;
-}
-@media (min-width: 834px) {
-  .ob__split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 16rem;
-    gap: var(--s6);
-    align-items: start;
-  }
-  .ob__peek {
-    position: sticky;
-    top: 0;
-    display: block;
-    margin-top: var(--s4);
-    padding-top: var(--s3);
-    border-top: 2px solid var(--ink);
-  }
-  .ob__peekbar {
-    display: none;
-  }
-}
+/* Volg je bronnen: zoekveld, bij opnieuw kiezen twee pillen (Aanbevolen, Gevolgd), en de lijst per
+   rubriek. Sinds onboarding blok 4 zonder voorbeeld-Editie ernaast. */
 .ob__search {
   position: relative;
   display: flex;
@@ -3423,93 +3398,6 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   margin-top: var(--s5);
   color: var(--ink-2);
 }
-/* Het voorbeeld: genummerde koppen in de krantenletter, de bron eronder. */
-.ob__peektitle {
-  margin-top: var(--s1);
-  font-family: var(--serif);
-  font-size: var(--t4);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-head);
-}
-.ob__lines {
-  margin: var(--s2) 0 0;
-  padding: 0;
-  list-style: none;
-}
-.ob__line {
-  display: grid;
-  grid-template-columns: 1.25rem minmax(0, 1fr);
-  gap: var(--s2);
-  padding: var(--s2) 0;
-  border-bottom: 1px solid var(--rule);
-}
-.ob__line:last-child {
-  border-bottom: 0;
-}
-.ob__ln {
-  color: var(--ink-3);
-  font-family: var(--serif);
-  font-size: var(--t3);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-head);
-}
-.ob__lt {
-  display: block;
-  font-family: var(--serif);
-  font-size: var(--t3);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-action);
-}
-.ob__ls,
-.ob__peeknote {
-  display: block;
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-1-read);
-}
-.ob__peeknote {
-  margin-top: var(--s2);
-}
-.ob__peekbar {
-  border-bottom: 1px solid var(--rule);
-}
-.ob__peekbar > .col {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.ob__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s3);
-  width: 100%;
-  min-height: var(--tap);
-  padding: var(--s2) 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-}
-.ob__bartitle {
-  display: block;
-  font-family: var(--serif);
-  font-size: var(--t3);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-head);
-}
-.ob__barsub {
-  display: block;
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-1);
-}
-.ob__barbody {
-  max-height: 38dvh;
-  overflow-y: auto;
-  padding-bottom: var(--s3);
-}
-
 /* Wat interesseert je?: de acht rubrieken als pillen, daaronder één uitklapper voor de Selectie
    (een rij met lijnen, zoals een rij in Instellingen) met per domein een groep pillen. */
 .ob__rubrieken {
@@ -5654,7 +5542,7 @@ html[data-systeem='ax'] .edmeta > span {
 
 /* Hints op --ink-2 alleen in Nacht (brand guide v2.3, gelijk aan iOS Theme.hint): Schibsted is op 12 en 13 zachter dan Inter, en
    --ink-3 is op zwart te stil voor uitleg die je moet kunnen lezen. In Donker blijven hints --ink-3. Kickers en tijden blijven --ink-3. */
-:root[data-theme='night'] :is(.hint, .setrow__hint, .sheet__note, .ob__peeknote, .ob__barsub, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub) {
+:root[data-theme='night'] :is(.hint, .setrow__hint, .sheet__note, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub) {
   color: var(--ink-2);
 }
 

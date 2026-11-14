@@ -5,10 +5,10 @@ import SwiftUI
 //   1. de rode intro: de zon komt op achter de horizon, "Begin" (naar de interesses) en eronder de stille
 //      knop Liever meteen lezen (de gratis startset, zonder sport). Account klein rechtsboven.
 //   2. Wat interesseert je?: de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
-//   3. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
-//      nieuws, het gratis begin voorop), dan per gekozen interesse een blok met een gratis aanrader;
-//      de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie met echte koppen groeit mee
-//      (breed rechts, smal in een uitklapbalk boven de knop).
+//   3. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan Voor jou (het voorstel,
+//      of het gratis begin), direct daaronder open de kranten ("Lees je een krant?"), dan per gekozen
+//      interesse een blok met een gratis aanrader; de rest ingeklapt; zoeken vindt alles. Sinds 1.3.1
+//      geen voorbeeld-Editie meer, en de filters Aanbevolen en Gevolgd alleen bij opnieuw kiezen.
 // Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos. De hoofdknop
 // werkt altijd (de knop Later kiezen is weg sinds 1.1.1, keuze r5-later-kiezen). Het seintje komt pas na de eerste Editie (EditionView, AlertOffer), niet hier.
 // Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro, en bij
@@ -32,12 +32,11 @@ struct WelcomeView: View {
 
     @State private var step: Step
     @State private var query = ""
-    @State private var showFollowed = false // de pil Gevolgd (anders Aanbevolen)
+    @State private var showFollowed = false // de pil Gevolgd (anders Aanbevolen); alleen bij opnieuw kiezen
     @State private var more = false // Meer bronnen uitgeklapt
     @State private var sourcesEdited = false // jij koos zelf een bron aan of uit: dan zet het voorstel niets meer aan
     @State private var voorstel: [EditionEngine.VoorstelBron]? = nil // het voorstel bovenaan (shared/voorstel.mjs); nil: de vaste Basis
     @State private var fold: [String: Bool] = [:] // inklapbare categorieën: wat jij open- of dichtklapte (anders FollowList.startsOpen)
-    @State private var peekOpen = false
     @State private var selOpen = false
     @State private var chosen: [String]? // je bronnen; pas ingevuld als ze er zijn
     @State private var original: [String] = [] // wat er aan stond (opnieuw kiezen)
@@ -46,7 +45,6 @@ struct WelcomeView: View {
     @State private var vak: [String] = [] // de eerste keer leeg: een nieuwe lezer kiest zijn vak zelf, of later
     @State private var prepared = false
     @State private var login = false
-    @State private var width: CGFloat = 0
     @State private var fade = 1.0 // wisselen tussen papieren pagina's
     @State private var turning = false // midden in zo'n wissel: een tweede tik telt niet
     @State private var introSince: Date? // sinds wanneer de zon op de rode intro opkomt
@@ -76,7 +74,6 @@ struct WelcomeView: View {
     // Opnieuw kiezen of na even rondkijken: je begint bij wat je nu hebt.
     private var again: Bool { reopen || onCancel != nil }
     private var slow: Double { DebugLaunch.slow } // `-HootSlowSplash 6`: ook de iris in slow motion
-    private var wide: Bool { width >= 834 } // het voorbeeld naast de lijst (iPad), zoals het web
     private static let paperWhite = SplashView.paperWhite // op merkrood is alles papier (ook in donker)
 
     var body: some View {
@@ -174,7 +171,6 @@ struct WelcomeView: View {
         turn {
             step = next
             query = ""
-            peekOpen = false
         }
     }
 
@@ -366,12 +362,10 @@ struct WelcomeView: View {
             }
             .id(step) // elk scherm bovenaan
             .scrollDismissesKeyboard(.interactively)
-            if step == .bronnen && !wide && !typeSize.isAccessibilitySize { peekBar } // bij heel grote tekst onder de lijst
             Rectangle().fill(Theme.rule).frame(height: 1)
             foot.opacity(fade)
         }
         .column()
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
         .foregroundStyle(Theme.ink)
         .background(Theme.paper.ignoresSafeArea())
     }
@@ -438,51 +432,34 @@ struct WelcomeView: View {
     // ---- 3. Volg je bronnen ----
 
     private var bronnen: some View {
-        HStack(alignment: .top, spacing: Space.s6) {
-            VStack(alignment: .leading, spacing: 0) {
-                heading("Volg je bronnen", "Kies wie je wilt lezen. Je Editie komt uit wat je volgt.", compact: true)
-                searchField.padding(.top, Space.s5)
-                    .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+        VStack(alignment: .leading, spacing: 0) {
+            heading("Volg je bronnen", "Kies wie je wilt lezen. Je Editie komt uit wat je volgt.", compact: true)
+            searchField.padding(.top, Space.s5)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+            if again { // de filters alleen bij opnieuw kiezen; de eerste keer is er één lijst (gelijk aan het web)
                 Flow {
                     ChoiceChip(label: "Aanbevolen", on: !showFollowed && query.isEmpty) { showFollowed = false; query = "" }
                     ChoiceChip(label: mine.isEmpty ? "Gevolgd" : "Gevolgd · \(mine.count)", on: showFollowed && query.isEmpty) { showFollowed = true; query = "" }
                 }
                 .padding(.top, Space.s3)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-                sourceList
-                    .onChange(of: mine) { before, _ in freezeFolds(before: before) }
-                    .task(id: "\(interests)|\(picked)|\(store.newsSources.count)") {
-                        // Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt Nederlandse bronnen; Engelstalige alleen
-                        // als je er bij opnieuw kiezen al een volgt (gelijk aan `english` in src/views/Welcome.jsx).
-                        let english = again && store.followed.contains { $0.lang == "en" }
-                        let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked, english: english)
-                        guard !Task.isCancelled else { return }
-                        voorstel = next ?? nil
-                        // De eerste keer staat het gratis deel van Voor jou alvast aan (review G2, keuze
-                        // r5-voorstel-betaald), zolang je zelf nog niets koos.
-                        fill()
-                        if !again && !sourcesEdited && chosen != nil { chosen = FollowList.alvast(next ?? nil) }
-                    }
-                if !wide && typeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Rectangle().fill(Theme.ink).frame(height: 2).padding(.bottom, Space.s3)
-                        peek(bare: false)
-                    }
-                    .padding(.top, Space.s6)
-                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            if wide {
-                VStack(alignment: .leading, spacing: 0) {
-                    Rectangle().fill(Theme.ink).frame(height: 2).padding(.bottom, Space.s3)
-                    peek(bare: false)
+            sourceList
+                .onChange(of: mine) { before, _ in freezeFolds(before: before) }
+                .task(id: "\(interests)|\(picked)|\(store.newsSources.count)") {
+                    // Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt Nederlandse bronnen; Engelstalige alleen
+                    // als je er bij opnieuw kiezen al een volgt (gelijk aan `english` in src/views/Welcome.jsx).
+                    let english = again && store.followed.contains { $0.lang == "en" }
+                    let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked, english: english)
+                    guard !Task.isCancelled else { return }
+                    voorstel = next ?? nil
+                    // De eerste keer staat het gratis deel van Voor jou alvast aan (review G2, keuze
+                    // r5-voorstel-betaald), zolang je zelf nog niets koos.
+                    fill()
+                    if !again && !sourcesEdited && chosen != nil { chosen = FollowList.alvast(next ?? nil) }
                 }
-                .frame(width: 256)
-                .padding(.top, Space.s4)
-                .accessibilityElement(children: .contain)
-                .accessibilityLabel("Voorbeeld van je Editie")
-            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var searchField: some View {
@@ -512,7 +489,7 @@ struct WelcomeView: View {
     // zoals hij vóór die wijziging was.
     private func freezeFolds(before: [String]) {
         let g = FollowList.groups(store.newsSources, interests, voorstel: voorstel)
-        var groups: [(String, [Source])] = [("basis", g.basis), ("nl", g.kranten)]
+        var groups: [(String, [Source])] = [("basis", g.basis), ("kranten", g.kranten)]
         groups += g.blocks.map { ("b-\($0.id)", $0.sources) }
         groups += g.more.map { ("g-\($0.cat)", $0.sources) }
         for (id, list) in groups where fold[id] == nil { fold[id] = isOpen(id, list, in: before) }
@@ -530,10 +507,10 @@ struct WelcomeView: View {
             } else {
                 rows(hits).padding(.top, Space.s3)
             }
-        } else if showFollowed {
+        } else if again && showFollowed {
             let list = FollowList.followed(all, mine)
             if list.isEmpty {
-                Text(voorstel == nil ? "Je volgt nog niets. Begin bij de Basis." : "Je volgt nog niets. Begin bij Voor jou.")
+                Text("Je volgt nog niets. Begin bij Voor jou.")
                     .zin().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
             } else {
                 rows(list).padding(.top, Space.s3)
@@ -551,7 +528,7 @@ struct WelcomeView: View {
             let note: String? = voorstel != nil && !again && !sourcesEdited && !planOn.isEmpty && planOn.allSatisfy(mine.contains)
                 ? FollowList.alvastLine(withPaid: planOn.count < (voorstel?.count ?? 0)) : nil
             if !basis.isEmpty {
-                foldGroup(id: "basis", title: voorstel == nil ? "Basis" : "Voor jou", list: basis, picks: Set(start.map(\.id)), count: false, note: note) {
+                foldGroup(id: "basis", title: "Voor jou", list: basis, picks: Set(start.map(\.id)), count: false, note: note) {
                     if start.count > 1 {
                         Button(startOn ? "Alles gevolgd" : "Volg alles") {
                             let ids = start.map(\.id)
@@ -570,7 +547,7 @@ struct WelcomeView: View {
                 }
             }
             if !groups.kranten.isEmpty {
-                foldGroup(id: "nl", title: "Nederlands nieuws", list: groups.kranten) { EmptyView() }
+                foldGroup(id: "kranten", title: "Lees je een krant?", list: groups.kranten) { EmptyView() }
             }
             ForEach(blocks, id: \.id) { b in
                 foldGroup(id: "b-\(b.id)", title: b.label, list: b.sources, picks: Set([b.pick].compactMap { $0 })) { EmptyView() }
@@ -593,14 +570,14 @@ struct WelcomeView: View {
         }
     }
 
-    // Is deze categorie open? Wat jij koos, anders de beginstand (de Basis, of er staat al iets gevolgd in).
+    // Is deze categorie open? Wat jij koos, anders de beginstand (Voor jou en de kranten, of er staat al iets gevolgd in).
     private func isOpen(_ id: String, _ list: [Source], in followed: [String]) -> Bool {
         fold[id] ?? FollowList.startsOpen(id, chosen: FollowList.chosenIn(list, followed))
     }
 
     // Een inklapbare categorie (1.1.1, gelijk aan Fold in src/views/Welcome.jsx): de kop is een knop met de
     // naam, het aantal gekozen bronnen en een pijl (dicht naar rechts, open omlaag); ingeklapt alleen de kop.
-    // `action`: een knop naast de kop (Volg alles in de Basis). `note`: één stille regel direct onder de kop.
+    // `action`: een knop naast de kop (Volg alles in Voor jou). `note`: één stille regel direct onder de kop.
     @ViewBuilder private func foldGroup<Action: View>(id: String, title: String, list: [Source], picks: Set<String> = [], count: Bool = true, note: String? = nil, @ViewBuilder action: () -> Action) -> some View {
         let open = isOpen(id, list, in: mine)
         VStack(spacing: 0) {
@@ -611,7 +588,7 @@ struct WelcomeView: View {
                     HStack(alignment: .center, spacing: Space.s2) {
                         GroupTitle(text: title, tone: Theme.ink)
                         Spacer(minLength: Space.s2)
-                        if count { // niet bij de Basis of het voorstel: daar staat "Volg alle …" al (Alex, ronde 2)
+                        if count { // niet bij Voor jou: daar staat "Volg alle …" al (Alex, ronde 2)
                             Text(FollowList.foldCount(FollowList.chosenIn(list, mine), list.count))
                                 .font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
                                 .lineLimit(1)
@@ -719,77 +696,6 @@ struct WelcomeView: View {
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 
-    // Het meegroeiende voorbeeld: de nieuwste kop van elke bron die je volgt (echte koppen).
-    @ViewBuilder private func peek(bare: Bool) -> some View {
-        let lines = FollowList.preview(Array(store.itemsById.values), store.newsSources, mine)
-        VStack(alignment: .leading, spacing: 0) {
-            if !bare {
-                GroupTitle(text: "Voorbeeld")
-                Text("Zo ziet je Editie eruit")
-                    .font(.kop(.headline))
-                    .padding(.top, Space.s1)
-            }
-            if lines.isEmpty {
-                Text("Uit \(FollowList.sourceLine((mine.isEmpty ? FollowList.freeStart(store.newsSources) : FollowList.followed(store.newsSources, mine)).map(\.name))).")
-                    .font(.ui(.footnote)).foregroundStyle(Theme.hint).padding(.top, Space.s2)
-            } else {
-                ForEach(Array(lines.enumerated()), id: \.element.id) { i, l in
-                    HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
-                        Text("\(i + 1)").font(.kop(.body)).foregroundStyle(Theme.ink3).frame(width: 20, alignment: .leading)
-                        VStack(alignment: .leading, spacing: Space.s0) {
-                            Text(l.title).font(.leesVet(.body)).fixedSize(horizontal: false, vertical: true)
-                            Text(l.source).font(.ui(.footnote)).foregroundStyle(Theme.hint)
-                        }
-                    }
-                    .padding(.vertical, Space.s2)
-                    .accessibilityElement(children: .combine)
-                    if i < lines.count - 1 { Rectangle().fill(Theme.rule).frame(height: 1) }
-                }
-                // Review G1: volg je meer bronnen dan er koppen staan, dan zegt het voorbeeld dat ook (gelijk aan Peek op het web).
-                let shown = Set(lines.map(\.source))
-                let missing = lines.count < 4 ? FollowList.followed(store.newsSources, mine).map(\.name).filter { !shown.contains($0) } : []
-                if !mine.isEmpty && !missing.isEmpty {
-                    Text("Ook uit \(FollowList.sourceLine(missing)).").font(.ui(.footnote)).foregroundStyle(Theme.hint).padding(.top, Space.s2)
-                }
-            }
-            if mine.isEmpty {
-                Text("Je volgt nog niets; dit is het gratis begin.").font(.ui(.footnote)).foregroundStyle(Theme.hint).padding(.top, Space.s2)
-            }
-        }
-    }
-
-    // Op een smal scherm: het voorbeeld in een uitklapbalk boven de knop.
-    private var peekBar: some View {
-        VStack(spacing: 0) {
-            Rectangle().fill(Theme.rule).frame(height: 1)
-            Button {
-                peekOpen.toggle() // zonder beweging: de lijst erboven krimpt, er schuift niets over elkaar
-            } label: {
-                HStack(spacing: Space.s3) {
-                    VStack(alignment: .leading, spacing: Space.s0) {
-                        Text("Zo ziet je Editie eruit").font(.kop(.body))
-                        Text(mine.isEmpty ? "Gratis begin" : "Uit \(FollowList.sourceLine(FollowList.followed(store.newsSources, mine).map(\.name)))")
-                            .font(.ui(.footnote)).foregroundStyle(Theme.hint).lineLimit(2)
-                    }
-                    Spacer(minLength: Space.s2)
-                    Image(systemName: peekOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
-                }
-                .frame(maxWidth: .infinity, minHeight: Space.tap, alignment: .leading)
-                .padding(.vertical, Space.s2)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityValue(peekOpen ? "Open" : "Dicht")
-            if peekOpen {
-                ScrollView { peek(bare: true).frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, Space.s3) }
-                    .frame(maxHeight: 260)
-                    .fixedSize(horizontal: false, vertical: true) // zo hoog als het voorbeeld, hooguit 260
-            }
-        }
-        .padding(.horizontal, Space.s4)
-        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-    }
-
     // ---- 2. Wat interesseert je? ----
 
     private var interessesView: some View {
@@ -857,13 +763,14 @@ struct WelcomeView: View {
             case .interesses:
                 ctaButton("Verder", onRed: false, off: false) { go(.bronnen) }
             default:
-                if !typeSize.isAccessibilitySize { // bij heel grote tekst staat het aantal al in "Gevolgd · n"
+                if !(typeSize.isAccessibilitySize && again) { // bij opnieuw kiezen en heel grote tekst staat het aantal al in "Gevolgd · n"
                     Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
                         .font(.ui(.footnote)).foregroundStyle(Theme.hint)
                         .accessibilityAddTraits(.updatesFrequently)
                 }
-                // Review G3: de knop is nooit dood. Volg je niets, dan begin je met het gratis begin, en dat zegt hij.
-                ctaButton(mine.isEmpty ? "Begin met het gratis begin" : "Naar je Editie", onRed: false, off: store.newsSources.isEmpty) {
+                // Review G3: de knop is nooit dood. Volg je niets, dan begin je met het gratis begin, en de knop noemt
+                // die bronnen bij naam ("Begin met NOS, NU.nl en RTL Nieuws", gelijk aan beginLabel op het web).
+                ctaButton(mine.isEmpty ? FollowList.beginLabel(store.newsSources) : "Naar je Editie", onRed: false, off: store.newsSources.isEmpty) {
                     if mine.isEmpty { chosen = FollowList.freeStart(store.newsSources).map(\.id) }
                     finish(interests: interests, vak: vak)
                 }
@@ -910,8 +817,8 @@ struct WelcomeView: View {
 }
 
 // Volg je bronnen, als zuiver rekenwerk (getoetst in OnboardingTests), gelijk aan
-// src/lib/follow-welcome.js: de Basis, de blokken per interesse, Meer bronnen, zoeken, de startset en
-// het voorbeeld.
+// src/lib/follow-welcome.js: de Basis, de kranten, de blokken per interesse, Meer bronnen, zoeken, de
+// startset en de hoofdknop.
 enum FollowList {
     static let freeStart = ["nos", "nu", "rtl"]
     static let sport = "sport"
@@ -928,6 +835,13 @@ enum FollowList {
         freeStart.compactMap { id in sources.first { $0.id == id && $0.paid != true } }
     }
 
+    // De hoofdknop als je niets volgt: "Begin met NOS, NU.nl en RTL Nieuws", gebouwd uit het gratis begin, zodat
+    // de tekst klopt als er een ontbreekt. Zonder gratis begin "Naar je Editie" (gelijk aan beginLabel op het web).
+    static func beginLabel(_ sources: [Source]) -> String {
+        let names = freeStart(sources).map(\.name)
+        return names.isEmpty ? "Naar je Editie" : "Begin met \(sourceLine(names))"
+    }
+
     // Later kiezen en Liever meteen lezen: de startset (gratis, Nederlands, geen sport).
     @MainActor static func startIds(_ sources: [Source]) -> [String] {
         let free = Set(sources.filter { $0.paid != true }.map(\.id))
@@ -942,6 +856,10 @@ enum FollowList {
         let start = freeStart(sources)
         let taken = Set(start.map(\.id))
         return start + basisKranten.compactMap { id in sources.first { $0.id == id && !taken.contains($0.id) } }
+    }
+    // De groep "Lees je een krant?": de kranten van de Basis, zonder wat al in Voor jou staat (krantenSources op het web).
+    static func kranten(_ sources: [Source], exclude: [String] = []) -> [Source] {
+        basis(sources).filter { basisKranten.contains($0.id) && !exclude.contains($0.id) }
     }
 
     // Bij een interesse horen de bronnen uit zijn rubrieken (Wereld krijgt er Internationaal bij), die
@@ -992,18 +910,20 @@ enum FollowList {
         return out.filter { !$0.sources.isEmpty }
     }
 
-    // De groepen van de bronnenstap. Met een voorstel (shared/voorstel.mjs via HootCore): het voorstel bovenaan,
-    // de kranten van de Basis als "Nederlands nieuws" eronder, en de blokken en Meer bronnen zonder wat al boven
-    // staat. Zonder voorstel de vaste Basis, zoals het web (Bronnen in src/views/Welcome.jsx).
+    // De groepen van de bronnenstap, zoals het web (Bronnen in src/views/Welcome.jsx). Voor jou bovenaan: het voorstel
+    // (shared/voorstel.mjs via HootCore), of zonder voorstel het gratis begin. Direct daaronder de kranten als "Lees je
+    // een krant?" (1.3.1), dan de blokken en Meer bronnen zonder wat al boven staat.
     struct Groups { var start: [Source]; var basis: [Source]; var kranten: [Source]; var blocks: [Block]; var more: [(cat: String, label: String, sources: [Source])] }
     static func groups(_ all: [Source], _ interests: [String], voorstel: [EditionEngine.VoorstelBron]?) -> Groups {
         guard let voorstel else {
-            return Groups(start: freeStart(all), basis: basis(all), kranten: [], blocks: blocks(all, interests), more: more(all, interests))
+            let start = freeStart(all)
+            let krant = kranten(all, exclude: start.map(\.id))
+            return Groups(start: start, basis: start, kranten: krant, blocks: blocks(all, interests), more: more(all, interests, exclude: krant.map(\.id)))
         }
         let ids = voorstel.map(\.id)
         let start = ids.compactMap { id in all.first { $0.id == id } }
-        let kranten = basis(all).filter { !ids.contains($0.id) }
-        return Groups(start: start, basis: start, kranten: kranten, blocks: blocks(all, interests, exclude: ids), more: more(all, interests, exclude: ids + kranten.map(\.id)))
+        let krant = kranten(all, exclude: ids)
+        return Groups(start: start, basis: start, kranten: krant, blocks: blocks(all, interests, exclude: ids), more: more(all, interests, exclude: ids + krant.map(\.id)))
     }
     // Telwoord voor drie tot vijf bronnen (de knop zelf zegt sinds 6 november "Volg alles").
     // Wat er de eerste keer alvast aan staat: alleen de gratis bronnen van Voor jou (keuze r5-voorstel-betaald).
@@ -1015,10 +935,10 @@ enum FollowList {
     static func allWord(_ n: Int) -> String { n >= 2 && n <= 5 ? ["twee", "drie", "vier", "vijf"][n - 2] : "\(n)" }
 
     // Inklapbare categorieën (1.1.1, gelijk aan src/lib/follow-welcome.js): hoeveel je in een categorie volgt,
-    // of hij bij het openen van de stap open staat (de Basis altijd, anders als je er iets in volgt) en wat de
+    // of hij bij het openen van de stap open staat (Voor jou en de kranten altijd, anders als je er iets in volgt) en wat de
     // kop rechts zegt ("2 van 8 gevolgd", of zonder keuze "8 bronnen").
     static func chosenIn(_ list: [Source], _ followed: [String]) -> Int { list.filter { followed.contains($0.id) }.count }
-    static func startsOpen(_ id: String, chosen: Int) -> Bool { id == "basis" || chosen > 0 }
+    static func startsOpen(_ id: String, chosen: Int) -> Bool { id == "basis" || id == "kranten" || chosen > 0 }
     static func foldCount(_ chosen: Int, _ total: Int) -> String { chosen > 0 ? "\(chosen) van \(total) gevolgd" : "\(total) \(total == 1 ? "bron" : "bronnen")" }
 
     // Zoeken op naam en omschrijving, in alle bronnen (ook sport: zoeken is een keuze).
@@ -1043,24 +963,6 @@ enum FollowList {
         case 3: "\(names[0]), \(names[1]) en \(names[2])"
         default: "\(names[0]), \(names[1]) en \(names.count - 2) meer"
         }
-    }
-
-    struct Line: Identifiable, Equatable { let id: String; let title: String; let source: String }
-
-    // Het voorbeeld: per gevolgde bron het nieuwste artikel, de nieuwste eerst; nog niets gevolgd: het gratis begin.
-    // Geen opinie: die draagt geen plek in de Editie (gelijk aan previewLines op het web).
-    static func preview(_ items: [Item], _ sources: [Source], _ followed: [String], max: Int = 4) -> [Line] {
-        let ids = Set(followed.isEmpty ? freeStart : followed)
-        var newest: [String: Item] = [:]
-        for it in items where (it.kind ?? "article") == "article" && ids.contains(it.source) && !it.title.isEmpty && it.opinion != true && it.type != "opinie" {
-            if let prev = newest[it.source], (prev.publishedAt ?? "") >= (it.publishedAt ?? "") { continue }
-            newest[it.source] = it
-        }
-        let names = Dictionary(sources.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
-        return newest.values
-            .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
-            .prefix(max)
-            .map { Line(id: $0.id, title: $0.title, source: names[$0.source] ?? $0.sourceName ?? $0.source) }
     }
 }
 

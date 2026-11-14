@@ -4,7 +4,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { toggleFollow, freeStart, startIds, followGroups, basisSources, interestBlocks, moreGroups, freePick, findSources, followedSources, followedLine, previewLines, FREE_START, BASIS_KRANTEN } from '../src/lib/follow-welcome.js'
+import { toggleFollow, freeStart, startIds, followGroups, basisSources, interestBlocks, moreGroups, freePick, findSources, followedSources, followedLine, krantenSources, beginLabel, startsOpen, FREE_START, BASIS_KRANTEN } from '../src/lib/follow-welcome.js'
 import { INTERESTS } from '../src/lib/topics.js'
 import { rubriekRij } from '../src/lib/streamline.js'
 import { applyWelcome } from '../src/lib/welcome.js'
@@ -144,29 +144,39 @@ test('volgen: aan, uit, en de lijst Gevolgd op volgorde van volgen', () => {
   assert.equal(followedLine(4), '4 bronnen gevolgd')
 })
 
-test('het voorbeeld: de nieuwste kop per gevolgde bron, nooit van een andere bron', () => {
-  const items = [
-    { id: 'a', source: 'nos', kind: 'article', title: 'Oud NOS', publishedAt: '2026-11-04T06:00:00Z' },
-    { id: 'b', source: 'nos', kind: 'article', title: 'Nieuw NOS', publishedAt: '2026-11-04T08:00:00Z' },
-    { id: 'c', source: 'tweakers', kind: 'article', title: 'Tweakers', publishedAt: '2026-11-04T07:00:00Z' },
-    { id: 'd', source: 'vi', kind: 'article', title: 'Sport', publishedAt: '2026-11-04T09:00:00Z' },
-    { id: 'e', source: 'tweakers', kind: 'post', title: 'Post', publishedAt: '2026-11-04T10:00:00Z' },
-  ]
-  assert.deepEqual(previewLines(items, catalog, ['nos', 'tweakers']).map((l) => l.title), ['Nieuw NOS', 'Tweakers'])
-  assert.equal(previewLines(items, catalog, ['nos'])[0].source.name, 'NOS')
-  // Nog niets gevolgd: het gratis begin, dus geen sport.
-  assert.deepEqual(previewLines(items, catalog, []).map((l) => l.id), ['b'])
-  assert.equal(previewLines(items, catalog, ['nos', 'tweakers'], 1).length, 1)
+// Onboarding blok 4: de krant naar voren, het voorbeeld eruit.
+test('de kranten: een eigen groep, open, zonder wat al in Voor jou staat; niets staat vooraf aan', () => {
+  assert.deepEqual(krantenSources(catalog).map((s) => s.id), BASIS_KRANTEN.filter((id) => catalog.some((s) => s.id === id)))
+  assert.ok(krantenSources(catalog).every((s) => !FREE_START.includes(s.id)), 'het gratis begin staat in Voor jou, niet bij de kranten')
+  assert.ok(!krantenSources(catalog, ['nrc']).some((s) => s.id === 'nrc'), 'een krant in het voorstel staat er niet nog eens')
+  assert.equal(startsOpen('kranten', 0), true)
+  assert.equal(startsOpen('basis', 0), true)
+  assert.equal(startsOpen('b-tech', 0), false)
 })
 
-// Nachttest 14 november (A6, W-03): opinie draagt geen plek in de Editie, dus ook niet in het voorbeeld ervan.
-test('het voorbeeld: geen opiniekop, ook niet als die de nieuwste is', () => {
-  const items = [
-    { id: 'a', source: 'nos', kind: 'article', title: 'Nieuws', publishedAt: '2026-11-04T06:00:00Z' },
-    { id: 'b', source: 'nos', kind: 'article', title: 'Column', opinion: true, publishedAt: '2026-11-04T08:00:00Z' },
-    { id: 'c', source: 'tweakers', kind: 'article', title: 'Oud type', type: 'opinie', publishedAt: '2026-11-04T07:00:00Z' },
-  ]
-  assert.deepEqual(previewLines(items, catalog, ['nos', 'tweakers']).map((l) => l.id), ['a'])
+test('de hoofdknop zonder gevolgde bronnen noemt het gratis begin bij naam', () => {
+  assert.equal(beginLabel(catalog), 'Begin met NOS, NU.nl en RTL Nieuws')
+  assert.equal(beginLabel(catalog.filter((s) => s.id !== 'rtl')), 'Begin met NOS en NU.nl')
+  assert.equal(beginLabel(catalog.map((s) => (s.id === 'nu' ? { ...s, paid: true } : s))), 'Begin met NOS en RTL Nieuws', 'nooit een betaalde bron')
+  assert.equal(beginLabel([]), 'Naar je Editie')
+})
+
+test('de bronnenstap: geen voorbeeld meer, de filters alleen bij opnieuw kiezen (web en app)', () => {
+  const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
+  const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
+  for (const gone of ['Zo ziet je Editie eruit', 'Begin met het gratis begin', 'Nederlands nieuws', 'PeekBar', 'previewLines']) {
+    assert.ok(!web.includes(gone), `web: ${gone} is weg`)
+    assert.ok(!swift.includes(gone), `app: ${gone} is weg`)
+  }
+  assert.ok(!swift.includes('peekBar') && !swift.includes('FollowList.preview'), 'app: het voorbeeld is weg')
+  assert.match(web, /filters=\{reopen\}/)
+  assert.match(web, /\{filters \? \(\s*<div className="chips ob__filter"/)
+  assert.match(swift, /if again \{ \/\/ de filters alleen bij opnieuw kiezen/)
+  assert.match(web, /<Fold id="kranten" label="Lees je een krant\?"/)
+  assert.match(swift, /foldGroup\(id: "kranten", title: "Lees je een krant\?"/)
+  assert.match(web, /beginLabel\(pickable\)/)
+  assert.match(swift, /FollowList\.beginLabel\(store\.newsSources\)/)
+  assert.match(swift, /static func startsOpen\(_ id: String, chosen: Int\) -> Bool \{ id == "basis" \|\| id == "kranten" \|\| chosen > 0 \}/)
 })
 
 test('opslaan gebruikt bestaande voorkeuren; een geannuleerd concept wijzigt ze niet', () => {
@@ -184,7 +194,7 @@ test('opslaan gebruikt bestaande voorkeuren; een geannuleerd concept wijzigt ze 
 test('web en app: hetzelfde gratis begin en dezelfde schermen', () => {
   const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
   const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
-  for (const text of ['Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alles', 'Meer bronnen', 'Gratis aanrader', 'Voor jou', 'Liever meteen lezen', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
+  for (const text of ['Volg je bronnen', 'Wat interesseert je?', 'Lees je een krant?', 'Volg alles', 'Meer bronnen', 'Gratis aanrader', 'Voor jou', 'Liever meteen lezen', 'Naar je Editie', 'Kies onderwerpen voor je Selectie']) {
     assert.ok(web.includes(text), `web: ${text}`)
     assert.ok(swift.includes(text), `app: ${text}`)
   }
