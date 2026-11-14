@@ -82,6 +82,29 @@ test('lokaal van elders: een land als bijvoeglijk naamwoord, een Nederlander of 
   assert.ok(localAbroad([{ title: 'Welsh council approves new bypass', url: 'https://www.theguardian.com/uk-news/2026/nov/13/bypass' }], {}), 'Wales in de Britse binnenlandrubriek blijft lokaal')
 })
 
+// Keuring van het herstel na herstelkeuring 3, punt 7: de bijvoeglijke vormen en inwonersnamen van alle landen (één tabel,
+// COUNTRY_FORMS), Nederlands en Engels. De 17 vormen die de keuring nog als Amerikaans binnenland zag, en een paar koppen
+// zoals ze in een feed kunnen staan. Amerikaanse vormen (een staat, de VS zelf) blijven binnenland.
+test('lokaal van elders: elk land als bijvoeglijk naamwoord of inwonersnaam is een ander land', () => {
+  for (const adj of ['Venezolaanse', 'Argentijnse', 'Pakistaanse', 'Iraakse', 'Koeweitse', 'Oegandese', 'Armeense', 'Kazachse', 'Surinaamse', 'Guatemalteekse', 'Bengaalse', 'Jordaanse', 'Emiraatse', 'Dominicaanse', 'Spanish', 'Polish', 'Turkish']) {
+    assert.ok(!localAbroad([{ title: `${adj} minister ontmoet Trump` }], { desk: 'vs' }), adj)
+  }
+  for (const title of [
+    'Amerikaanse marine beschiet Venezolaanse boot',
+    'Polish president visits White House',
+    'Pakistaanse premier bij Trump',
+    'Iraakse regering reageert op Amerikaanse aanval',
+    'Venezolanen in Florida vrezen uitzetting',
+  ]) assert.ok(!localAbroad([{ title }], { desk: 'vs' }), title)
+  for (const title of ['Texaanse prediker opgepakt na preek', 'Californische wet tegen deepfakes aangenomen', 'Amerikaanse senator stapt op na schandaal']) {
+    assert.ok(localAbroad([{ title }], { desk: 'vs' }), title)
+  }
+  // Het eigen land van een binnenlandrubriek telt niet, ook niet als bijvoeglijk naamwoord.
+  assert.ok(localAbroad([{ title: 'Scottish council approves new bypass', url: 'https://www.theguardian.com/uk-news/2026/nov/13/bypass' }], {}))
+  assert.ok(localAbroad([{ title: 'English town votes on new bypass', url: 'https://www.theguardian.com/uk-news/2026/nov/13/bypass' }], {}))
+  assert.ok(!localAbroad([{ title: 'Polish workers protest in English town', url: 'https://www.theguardian.com/uk-news/2026/nov/13/x' }], {}))
+})
+
 for (const f of FEEDS) {
   test(`${f}: lokaal nieuws van elders staat nooit op 01, nooit als Waar iedereen over schrijft, en anders achteraan`, () => {
     const feed = load(f)
