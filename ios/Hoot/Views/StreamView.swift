@@ -15,8 +15,9 @@ struct StreamView: View {
     @State private var viewportHeight: CGFloat = 0
     @State private var compact = false // de compacte voorpagina (iPhone Duo dicht): dichte rijen
     @State private var headerHeight: CGFloat = 0
-    // Het einde van de Stroom (StroomEinde.swift): de grens van dit bezoek, en hoeveel ouder nieuws je opende.
-    @State private var grens: StroomEinde.Grens?
+    // Het einde van de Stroom (StroomEinde.swift): wat je echt ziet en de grens per weergave (StroomVolger), en
+    // hoeveel ouder nieuws je opende.
+    @State private var volger = StroomVolger()
     @State private var older = 0
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
@@ -71,11 +72,12 @@ struct StreamView: View {
             let items = rub == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
                 (picks.isEmpty || picks.contains(item.source)) && Self.past(item, rub, cat: cats[item.source] ?? nil)
             })
-            // De lijst houdt op bij je vorige bezoek (of na een dag); ouder nieuws alleen met de knop.
-            let eindGrens = rub == "bubbel" ? nil : grens
-            let bIdx = eindGrens.map { StroomEinde.index(items, at: $0.at) } ?? items.count
+            // De lijst houdt op na het laatste bericht dat je in deze weergave nog niet zag; wat je al zag alleen met
+            // de knop. De grens staat vast zodra de weergave er is (StroomVolger): niets beweegt terwijl je leest.
+            let eindGrens = rub == "bubbel" ? nil : volger.grens(Self.weergave(rub, picks), items: items, gezien: store.streamGezien)
+            let bIdx = eindGrens.map { StroomEinde.index(items, grens: $0) } ?? items.count
             let cap = StroomEinde.cap(count: items.count, grensIndex: bIdx, older: older)
-            let eerder = eindGrens?.eerder == true
+            let eerder = bIdx < items.count // daaronder staat wat je al zag
             ScrollViewReader { scroll in
             ScrollView {
                 VStack(spacing: 0) {
@@ -148,9 +150,9 @@ struct StreamView: View {
                             Group {
                             StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
                             if items.isEmpty { quiet(rub, label: tabs.first { $0.id == rub }?.label, sources: sources) }
-                            // Waar je de vorige keer was (de grens): daaronder heb je alles al gezien. In de lijst
-                            // staat de streep pas als je ouder nieuws opende; anders staat hij bij het einde.
-                            let marker = older > 0 && eerder && bIdx < cap
+                            // De grens: daaronder heb je alles al gezien. In de lijst staat de streep pas als je
+                            // ouder nieuws opende; anders staat hij bij het einde.
+                            let marker = older > 0 && bIdx > 0 && bIdx < cap
                             ForEach(Array(items.prefix(cap).enumerated()), id: \.element.id) { i, item in
                                 if marker && i == bIdx { SeenMarker() }
                                 Group {
@@ -159,6 +161,7 @@ struct StreamView: View {
                                 }
                                     .transition(.identity)
                                     .plekAnker(item.id) // je plek bij vouwen en draaien (Krant.swift)
+                                    .stroomGezien(item.id, volger: volger) { ids in zie(ids, in: items) }
                                 if !(marker && i == bIdx - 1) { Rule() }
                             }
                             if cap >= items.count {
@@ -197,7 +200,18 @@ struct StreamView: View {
             .debugScroll()
             .background(Theme.paper)
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
-            .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
+            .onScrollPhaseChange { _, now in
+                guard now == .interacting else { return }
+                if lijn.open { lijn.open = false }
+                zie(volger.scrolt(), in: items) // zelf scrollen: vanaf nu telt wat je ziet
+            }
+            // Stilstaand kijken telt ook: wat al even helemaal in beeld staat.
+            .task(id: Self.weergave(rub, picks)) {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    zie(volger.tik(), in: items)
+                }
+            }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
             .hootKopScreen(bronnen: { lijn.open = false; showSources = true }) // de bronnen: in de kopregel, of in de verticale balk
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
@@ -211,22 +225,32 @@ struct StreamView: View {
         .onAppear {
             if behindReader { behindReader = false } else {
                 store.openStream()
-                grens = StroomEinde.grens(mark: store.streamMark)
                 older = 0
             }
             // Debug: het startargument gaat vóór de rubriek die iOS uit de vorige sessie terugzet.
             if debugStart, let r = DebugLaunch.startRubriek { rubriek = r }
             debugStart = false
         }
-        .onDisappear { categoryTask?.cancel(); if reader.item != nil { behindReader = true } else { store.leaveStream() } }
+        .onDisappear { categoryTask?.cancel(); if reader.item != nil { behindReader = true } }
         // Een bron die je uitzet, kan geen filter blijven (anders een lege lijst zonder uitweg).
         .onChange(of: store.followed.map(\.id)) { _, ids in
             let kept = picks.intersection(ids)
             if kept != picks { picks = kept }
         }
-        .onChange(of: rubriek) { older = 0 }
-        .onChange(of: picks) { categoryTask?.cancel(); older = 0 }
-        .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
+        .onChange(of: rubriek) { older = 0; volger.nieuweWeergave() }
+        .onChange(of: picks) { categoryTask?.cancel(); older = 0; volger.nieuweWeergave() }
+        // Terug uit de achtergrond is een nieuw bezoek: dan bepalen we elke grens opnieuw.
+        .onChange(of: phase) { _, now in if now == .background { volger.vergeet() } }
+    }
+
+    // De weergave: rubriek en bronkeuze. Elke weergave heeft een eigen grens (positionKey op het web).
+    static func weergave(_ rub: String, _ picks: Set<String>) -> String { rub + "|" + picks.sorted().joined(separator: ",") }
+
+    // Net gezien: bewaren (Buiten je bubbel telt niet mee, die heeft geen grens).
+    private func zie(_ ids: [String], in items: [Item]) {
+        guard !ids.isEmpty, rubriek != "bubbel" else { return }
+        let set = Set(ids)
+        store.markStreamSeen(items.filter { set.contains($0.id) })
     }
 
     // Een rubriek of bronnen zonder berichten: een stille regel, geen groot leeg scherm.
@@ -277,6 +301,16 @@ extension HootStore {
             let leadId = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             return edition.items?.first { $0.id == leadId } ?? itemsById[leadId]
         }
+    }
+}
+
+// Wat een rij aan StroomVolger meldt: waar hij staat ten opzichte van het zichtbare deel (StroomPlek).
+private extension View {
+    func stroomGezien(_ id: String, volger: StroomVolger, zie: @escaping ([String]) -> Void) -> some View {
+        onGeometryChange(for: StroomPlek.self) { StroomPlek(rijHoogte: $0.size.height, beeld: $0.bounds(of: .scrollView)) } action: { p in
+            if volger.meld(id, p) { zie([id]) }
+        }
+        .onDisappear { volger.weg(id) }
     }
 }
 

@@ -133,15 +133,30 @@ final class HootStore {
     private(set) var stream: [Item] = []
     // De Stroom-tabs van de server tussen Sport en Buiten je bubbel (StroomTab); een feed zonder de lijst: Opinie.
     private(set) var stroomTabs: [StroomTab] = StroomTab.terugval
-    // Tot waar je de Stroom zag (het nieuwste bericht toen je hem verliet), en de grens voor dit
-    // bezoek: die schuift niet mee terwijl je leest, pas als je de Stroom opnieuw opent.
-    private var streamSeen: Date? { didSet { save("hoot.streamSeen", streamSeen) } }
-    private(set) var streamMark: Date?
-    func openStream() { rebuildStream(); streamMark = DebugLaunch.seenMinutes.map { Date.now.addingTimeInterval(-$0 * 60) } ?? streamSeen }
-    func leaveStream() { if let newest = stream.first?.date, newest > (streamSeen ?? .distantPast) { streamSeen = newest } }
-    // Geteld zoals de Stroom ze toont: een stuk bij twee zusterkranten is één bericht (anders staat
-    // de streep 'Daaronder heb je alles al gezien' te laag).
-    var newInStream: Int { streamMark.map { mark in withoutCopies(stream).prefix { ($0.date ?? .distantPast) > mark }.count } ?? 0 }
+    // Wat je in de Stroom echt zag (StroomEinde, gelijk aan het web): id → tijd van het bericht. Alleen door zelf
+    // te scrollen, nooit door de Stroom of een rubriek te openen (melding Alex, 14 november). Wat ouder is dan de
+    // Stroom (36 uur) valt eruit. Niet waargenomen: de lijst tekent niet opnieuw bij elk gezien bericht, en de
+    // grens van een weergave staat vast tot je de app opnieuw opent (StroomVolger).
+    @ObservationIgnored private(set) var streamGezien: [String: Date] = [:]
+    func markStreamSeen(_ items: [Item], now: Date = .now) {
+        var gezien = StroomEinde.vers(streamGezien, now: now)
+        var nieuw = false
+        for item in items where gezien[item.id] == nil {
+            gezien[item.id] = item.date ?? now
+            nieuw = true
+        }
+        guard nieuw else { return }
+        streamGezien = gezien
+        save("hoot.streamGezien", gezien.mapValues(\.timeIntervalSince1970))
+    }
+    // Debug (-HootSeenMinutes n): wat ouder is dan n minuten, telt als gezien.
+    func openStream() {
+        rebuildStream()
+        if let m = DebugLaunch.seenMinutes {
+            let grens = Date.now.addingTimeInterval(-m * 60)
+            markStreamSeen(stream.filter { ($0.date ?? .distantPast) <= grens })
+        }
+    }
 
     // `defaults` is de opslag voor instellingen (standaard die van de app). Tests geven een eigen suite mee,
     // zodat ze niet afhangen van wat de app op het toestel al bewaarde.
@@ -180,7 +195,11 @@ final class HootStore {
         // Twee keuzes: de lezer of Safari. Wie "Op de website" had (tot 1.0.1), gaat naar Safari.
         let was: String = load("hoot.openWith") ?? (load("hoot.openInSafari") == true ? "safari" : "lezer")
         openWith = was == "web" ? "safari" : was
-        streamSeen = load("hoot.streamSeen") ?? nil
+        // Tot 14 november: één tijd ("tot hier gezien"), gezet bij het verlaten van de Stroom, ook zonder te lezen.
+        // Die zei niets over echt zien en vervalt.
+        d.removeObject(forKey: "hoot.streamSeen")
+        let gezien: [String: Double] = load("hoot.streamGezien") ?? [:]
+        streamGezien = StroomEinde.vers(gezien.mapValues { Date(timeIntervalSince1970: $0) })
         preview = load("hoot.regels") ?? Self.oldPreview(load("hoot.preview")) ?? Self.introLines
         // Het welkom alleen bij een verse installatie: wie al instellingen of gelezen stukken heeft
         // (bijvoorbeeld van vóór het welkom), heeft het niet nodig.
