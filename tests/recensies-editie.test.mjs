@@ -108,6 +108,45 @@ test('de nieuwskoppen uit de vier keuringen en de corpora: alleen echte recensie
   for (const x of hits) assert.match(`${x.url} ${x.title}`, /review|recensie/i, x.title)
 })
 
+// Keuring 14 november 2026: twee lekken in de echte feeds, juist via een muziekbron in het cultuurblok.
+test('een recensiemap met meer koppeltekens telt (Rolling Stone /music-album-reviews/, /tv-movie-reviews/)', () => {
+  const rs = art({ source: 'rollingstone', title: 'Willi Carlisle Says Life Is Dead Serious, Life Is a Joke on the Brilliant ‘Universal Bubba’', url: 'https://www.rollingstone.com/music/music-album-reviews/willi-carlisle-universal-bubba-1235650000/' })
+  assert.equal(recensieMark(rs), 'map')
+  assert.equal(excludedFromEdition(rs), true)
+  assert.equal(recensieMark(art({ source: 'rollingstone', title: 'Een film', url: 'https://www.rollingstone.com/tv-movies/tv-movie-reviews/een-film-1235650001/' })), 'map')
+  assert.equal(recensieMark(art({ source: 'rollingstone', title: 'Coachella Lineup Revealed', url: 'https://www.rollingstone.com/music/music-news/coachella-lineup-1235650002/' })), null)
+})
+
+test('een nieuwswoord dat geen werkwoord is houdt "X review" niet tegen, wel de zwakste aanwijzingen', () => {
+  const recensies = [
+    ['theverge', 'Soul Glo’s Diaspora Problems is a hardcore record like no other', 'https://www.theverge.com/2026/11/1/soul-glo-diaspora-problems-review'],
+    ['ign', 'Death Stranding 2: On the Beach Review', 'https://www.ign.com/articles/death-stranding-2-on-the-beach-review'],
+    ['eurogamer', 'Split Fiction review: a co-op triumph', 'https://www.eurogamer.net/split-fiction-review'],
+    ['guardian-music', 'Rosalía: Lux review – a towering, holy record', 'https://www.theguardian.com/music/2026/nov/10/rosalia-lux-review'],
+    ['guardian-culture', 'The Dead Don’t Hurt review – a bleak western', 'https://www.theguardian.com/film/2026/nov/10/the-dead-dont-hurt-review'],
+    ['guardian-music', 'Wet Leg live review: record-breaking crowd', 'https://www.theguardian.com/music/2026/nov/10/wet-leg-live-review-record-crowd'],
+    ['ign', 'Fallen Leaves Review', 'https://www.ign.com/articles/fallen-leaves'],
+  ]
+  for (const [source, title, url] of recensies) assert.equal(isRecensie(art({ source, title, url })), true, title)
+  // De werkkop en "review" midden in de slug blijven tegengehouden door zo een woord.
+  assert.equal(workTitle('Ciarán – Grammy'), false)
+  assert.equal(isRecensie(art({ source: 'guardian-culture', title: 'Oscar voters', url: 'https://www.theguardian.com/film/2026/nov/10/oscar-review-of-rules-voters' })), false)
+})
+
+test('een toetsingswerkwoord voor "review" maakt er een onderzoek van; de werkkop alleen bij muziek en games', () => {
+  const nieuws = [
+    ['variety', 'Bafta launches review of voting rules', 'https://variety.com/2026/film/news/bafta-launches-review-of-voting-rules-1236900000/'],
+    ['rollingstone', 'Oasis Reunion Tour Faces Ticketing Review', 'https://www.rollingstone.com/music/music-news/oasis-reunion-tour-faces-ticketing-review-1235650003/'],
+    ['guardian-culture', 'Arts Council opens funding review', 'https://www.theguardian.com/culture/2026/nov/10/arts-council-opens-funding-review'],
+    ['nos-cultuur', 'Boekenweek 2027 – thema bekend', 'https://nos.nl/l/2639000'],
+    ['variety', 'Glastonbury 2027 – first headliners', 'https://variety.com/2026/music/news/glastonbury-2027-first-headliners-1236900001/'],
+    ['mediacourant', 'Paradiso – nieuwe directeur', 'https://www.mediacourant.nl/2026/11/paradiso-nieuwe-directeur/'],
+  ]
+  for (const [source, title, url] of nieuws) assert.equal(isRecensie(art({ source, title, url })), false, title)
+  assert.equal(recensieMark(art({ source: 'stereogum', title: 'yeule – “Lovepill”', url: 'https://stereogum.com/2517001/yeule-lovepill/music/' })), 'werkkop')
+  assert.equal(recensieMark(art({ source: 'eurogamer', title: 'Hollow Knight – Silksong', url: 'https://www.eurogamer.net/hollow-knight-silksong' })), 'werkkop')
+})
+
 test('feedrubriek: een recensierubriek wordt feedMark recensie; podcast of video als hoofdrubriek gaat voor', () => {
   for (const cats of [['Album van de dag', 'Nieuwe Muziek'], ['Recensie'], ['Recensies'], ['News', 'Reviews'], ['Gear', 'Gear / Reviews'], ['Review / Gaming / Games'], ['Live Reviews'], ['Album of the Week'], ['Tiplijst', 'Song van het Jaar']]) {
     assert.equal(mediaFields({}, cats).feedMark, 'recensie', cats.join(','))
