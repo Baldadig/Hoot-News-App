@@ -398,7 +398,13 @@ test('review 13 november: de gedeelde kaart zegt waar hij vandaan komt, met herk
 test('de rij bronnen boven de vragen: elk merk één keer, eigen logo-bestanden, de tweede helft verborgen voor schermlezers', () => {
   assert.match(SRC, /<div class="bronrij js-bronrij"><ul class="bronrij-in" aria-label="Een greep uit de bronnen">\{\{BRONRIJ\}\}<\/ul><\/div>/)
   assert.ok(SRC.indexOf('js-bronrij') > SRC.indexOf('id="vragen"') && SRC.indexOf('js-bronrij') < SRC.indexOf('id="h-vragen"'))
-  assert.match(BUILD, /const DUBBEL = \/\^\(nos-\|guardian-\|bbc-sport\|npr-music\|politico-eu\)\//)
+  // strenge selectie (Alex, 14 november): een vaste lijst, elk merk één keer, geen regionale kranten of omroepen
+  const rij = BUILD.match(/const RIJ = \[([\s\S]*?)\];/)[1].match(/'([a-z0-9-]+)'/g).map((s) => s.slice(1, -1))
+  assert.equal(new Set(rij).size, rij.length)
+  assert.ok(rij.length >= 24 && rij.length <= 40, `${rij.length} titels`)
+  const cats = Object.fromEntries(SOURCES.map((s) => [s.id, s.cat]))
+  assert.deepEqual(rij.filter((id) => cats[id] === 'regio'), [])
+  assert.ok(rij.every((id) => cats[id] && !/^(nos-|guardian-|bbc-sport|npr-music|politico-eu)/.test(id)))
   assert.match(BUILD, /rijBronnen\.map\(\(x\) => pilR\(x, false\)\)\.join\(''\) \+ rijBronnen\.map\(\(x\) => pilR\(x, true\)\)/)
   assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /if \(!reduce && !brSleep && !document\.hidden\) brX -= 30 \* dt \* brRem/)
 })

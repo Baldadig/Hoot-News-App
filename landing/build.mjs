@@ -57,12 +57,16 @@ const HASH = h256(INLINE), HASH_PALET = h256(PALET);
 // aantallen."), de vragen uit landing/vragen.mjs (ook voor het JSON-LD).
 const { SOURCES } = await import('../netlify/lib/sources.mjs');
 const { vragen, vragenHtml, jsonld } = await import('./vragen.mjs');
-// De rij bronnen boven de vragen: elk merk één keer (geen NOS Sport naast NOS), de bekendste eerst en verder de
-// volgorde van de catalogus. Twee keer achter elkaar voor een naadloze lus; de tweede helft is verborgen voor schermlezers.
-const DUBBEL = /^(nos-|guardian-|bbc-sport|npr-music|politico-eu)/;
-// 13 november 2026: drie herkenbare nieuwe titels (opinie, Vlaanderen, een regionale omroep) vooraan in de rij.
-const EERST = ['nos', 'nrc', 'volkskrant', 'nu', 'standaard', 'guardian', 'rtl', 'trouw', 'bbc', 'ad', 'parool', 'nyt', 'fd', 'telegraaf', 'vrt', 'economist', 'groene', 'humo', 'omroepbrabant'];
-const rijBronnen = [...EERST.map((id) => SOURCES.find((x) => x.id === id)).filter(Boolean), ...SOURCES.filter((x) => !EERST.includes(x.id) && !DUBBEL.test(x.id))].filter((x) => fs.existsSync(path.join(SRC, 'bronnen', x.id + '.webp')));
+// De rij bronnen boven de vragen: een vaste, strenge selectie van bekende titels (besluit Alex 14 november: "Niet alle
+// regionale sufferdjes hoeven erbij"). Landelijk, Vlaams, internationaal en een paar sterke vak- en cultuurtitels; geen
+// regionale kranten of omroepen. Elk merk één keer. Twee keer achter elkaar voor een naadloze lus; de tweede helft is
+// verborgen voor schermlezers. Een id zonder logo in landing/bronnen of zonder bron in de catalogus valt stil weg.
+const RIJ = [
+  'nos', 'nrc', 'volkskrant', 'nu', 'standaard', 'guardian', 'rtl', 'trouw', 'bbc', 'ad', 'parool', 'nyt', 'fd',
+  'telegraaf', 'vrt', 'economist', 'groene', 'humo', 'demorgen', 'ft', 'ftm', 'atlantic', 'tijd', 'newyorker', 'vn',
+  'bloomberg', 'sporza', 'politico', 'tweakers', 'theverge', 'vi', 'wired', '3voor12', 'nature', 'rollingstone', 'pitchfork',
+];
+const rijBronnen = RIJ.map((id) => SOURCES.find((x) => x.id === id)).filter((x) => x && fs.existsSync(path.join(SRC, 'bronnen', x.id + '.webp')));
 const escR = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const pilR = (x, verborgen) => `<li${verborgen ? ' aria-hidden="true"' : ''}><img src="/img/bronnen/${x.id}.webp" alt="" width="36" height="36" loading="lazy">${escR(x.name)}</li>`;
 const BRONRIJ = rijBronnen.map((x) => pilR(x, false)).join('') + rijBronnen.map((x) => pilR(x, true)).join('');
