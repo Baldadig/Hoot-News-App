@@ -3973,6 +3973,7 @@ var HootCore = (() => {
   ].join("|"), "iu");
   var GIFT_GUIDE = new RegExp([
     "\\bgift guides?\\b",
+    "\\bgift ideas?\\b",
     "\\bcadeaugids\\w*",
     "\\bcadeautips\\b",
     "\\bcadeau-?idee(?:ën|en)\\b",
@@ -3981,7 +3982,7 @@ var HootCore = (() => {
   var GIFT_SUBJECT = /\b(?:gift guides?|cadeaugids(?:en)?)\s+(?:are|is|were|was|have|has|had|become|became|draw\w*|fac\w*|get|gets|zijn|is|waren|worden|wordt|krijgen|trekken)\b/i;
   var LABEL2 = /^[\s"'‘“([]*(?:(?:[\p{L}]+-)?deals?|dagdeals?|dagaanbieding|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert)\s*[:|.!–—-]\s/iu;
   var PRICE_LABEL = /^[\s"'‘“([]*(?:prijsdaling|prijsverlaging)\s*[:|.!–—-]\s/iu;
-  var PRICE_LABEL_OFFER = /(?:€|eur\b)\s?\d|\b\d[\d.,]*\s?euro\b|\bbij\s+(?:de\s+)?\p{Lu}/u;
+  var PRICE_LABEL_OFFER = /\bbij\s+(?:de\s+)?\p{Lu}/u;
   var PRICE_LABEL_MARKET = new RegExp([
     "energie\\w*",
     "stroom\\w*",
@@ -4303,6 +4304,20 @@ var HootCore = (() => {
     "miskop\\w*",
     "best and worst",
     "beste en slechtste",
+    // Gevolgen van een koopdag en zakelijke akkoorden (derde keuring): "Black Friday-korting bij NS leidt tot storing".
+    "storing\\w*",
+    "footfall",
+    "high street",
+    "signs",
+    "signed",
+    "inks",
+    "inked",
+    "lands",
+    "landed",
+    "seals",
+    "sealed",
+    "tekent",
+    "getekend",
     // Prijsbeleid: de prijs zelf is het onderwerp ("Insulin price falls to $35 under new law"), of een wet, regeling of geneesmiddel.
     "(?:price|prijs|prices|prijzen|cost|costs|kosten|fee|fees|premium|premiums|premie|tarief|tarieven)\\s+(?:now\\s+|will\\s+|to\\s+)?(?:drops?|dropped|falls?|fell|cuts?|slashed|daalt|daalde|zakt|zakte|omlaag|verlaagd)",
     "under (?:a |the |new |an? )?(?:[\\p{L}-]+\\s+){0,2}(?:law|act|bill|deal|plan|agreement|order|rule)",
@@ -4441,6 +4456,48 @@ var HootCore = (() => {
     "\\bbeste en slechtste\\b",
     "\\bworst deals\\b",
     "\\bslechtste deals\\b",
+    // Sportzaken in andere woorden (derde keuring): het venster, de periode of de rol, niet alleen het vakwoord. Wat verder gaat
+    // (competities, clubs) regelt de bronpoort: een sportbron krijgt de kopregels niet.
+    "\\b(?:transfer|january|summer|winter|zomer)\\s?window\\b",
+    "\\bwinterstop\\b",
+    "\\btransferperiode\\b",
+    "\\bwinter meetings\\b",
+    "\\btrade market\\b",
+    "\\bexpansion draft\\b",
+    "\\bquarterbacks?\\b",
+    "\\bslechtste\\b",
+    // Zakelijke akkoorden: tekenen, sluiten, binnenhalen ("Top Hollywood deals: Netflix lands Spielberg film", "authors land
+    // seven-figure advances", "Top 5 defence deals signed at Nato summit").
+    "\\bsigns?\\b",
+    "\\bsigned\\b",
+    "\\binks?\\b",
+    "\\binked\\b",
+    "\\blands\\b",
+    "\\blanded\\b",
+    "\\bstruck\\b",
+    "\\bseals?\\b",
+    "\\bsealed\\b",
+    "\\btekent\\b",
+    "\\bgetekend\\b",
+    "\\bgesloten\\b",
+    "\\badvances?\\b",
+    "\\b[\\p{L}]+-figure\\b",
+    "\\bdefen[cs]e\\b",
+    "\\bnato\\b",
+    "\\barms\\b",
+    "\\bwapen\\w*",
+    "\\bhollywood\\b",
+    // Gevolgen voor winkels en winkelstraat ("Black Friday deals failed to lift UK high street footfall").
+    "\\bfootfall\\b",
+    "\\bhigh street\\b",
+    "\\bfail\\w*",
+    "\\bdisappoint\\w*",
+    "\\bprofits?\\b",
+    "\\bwinst\\w*",
+    "\\bclos(?:e|es|ed|ing|ure)\\b",
+    "\\bjobs\\b",
+    "\\bbanen\\b",
+    "\\bstoring\\w*",
     // Politieke akkoorden: "peace deals", "trade deals".
     "\\bpeace\\b",
     "\\bvrede\\w*",
@@ -4466,11 +4523,29 @@ var HootCore = (() => {
     "\\beconomy\\b",
     "\\binflati\\w*"
   ].join("|"), "iu");
-  var clean = (t) => String(t || "").replace(/\s+/g, " ").replace(/[’‘`]/g, "'").trim();
+  var clean = (t) => String(t || "").replace(/\s+/g, " ").replace(/[’‘`]/g, "'").replace(/\bbest buy\b/gi, "BestBuy").replace(/\btop shop\b/gi, "Topshop").trim();
   var strongForm = (t) => STRONG_HEAD.test(t) || SHOP_DAY.test(t) && STRONG_DAY_WORD.test(t);
-  function koopGrond(title = "") {
+  var STRICT_ALWAYS = new RegExp([
+    "\\bwinactie\\b",
+    "\\bmaak kans op\\b",
+    "\\((?:adv|advertentie)\\)",
+    "\\[(?:adv|advertentie)\\]",
+    `^[\\s"'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b`
+  ].join("|"), "iu");
+  var STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial|(?:black friday|cyber monday|prime day|singles day)-deals?)\s*[:|.!–—-]\s/iu;
+  var STORE = /\b(?:at|bij|via|from)\s+(?:amazon(?:\.\w+)?|bestbuy|walmart|target|costco|newegg|currys|john lewis|bol(?:\.com)?|coolblue|mediamarkt|media markt|alternate|megekko|wehkamp|belsimpel|azerty|fnac|zalando)\b/iu;
+  var PRICE = /(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b/iu;
+  var CODE = /\b(?:(?:promo|coupon|discount)\s+codes?|kortingscodes?|actiecodes?)\b/iu;
+  var CODE_AMOUNT = /\b\d+\s?(?:%|procent|percent)|(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b|\b20\d\d\b/iu;
+  function strictGrond(t) {
+    if (STRICT_ALWAYS.test(t)) return "aanbod";
+    const grond = STRICT_LABEL.test(t) ? "label" : PRICE_LABEL.test(t) ? STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? "label" : null : PRICE.test(t) && STORE.test(t) ? "prijsval" : CODE.test(t) && CODE_AMOUNT.test(t) ? "kortingscode" : null;
+    return grond && !ABOUT.test(t) ? grond : null;
+  }
+  function koopGrond(title = "", { ruim = true } = {}) {
     const t = clean(title);
     if (!t) return null;
+    if (!ruim) return strictGrond(t);
     if (BUY_ALWAYS.test(t)) return "aanbod";
     if (GIFT_GUIDE.test(t) && !GIFT_SUBJECT.test(t) && !NARROW.test(t)) return "aanbod";
     if (LABEL2.test(t)) return ABOUT.test(t) ? null : "label";
@@ -4479,12 +4554,55 @@ var HootCore = (() => {
     const grond = DEAL_HEAD.test(t) ? "dealkop" : SHOP_DAY.test(t) && SHOP_WORD.test(t) ? "koopdag" : PRICE_DROP.test(t) ? "prijsval" : GUIDE.test(t) ? "koopgids" : null;
     return grond && !ABOUT.test(t) ? grond : null;
   }
-  var koopKop = (title = "") => koopGrond(title) != null;
+  var koopKop = (title = "", opts) => koopGrond(title, opts) != null;
   var LOOSE = /\b(?:best|beste|top)\b|\(20\d\d\)|(?:\$|€|£)\s?\d|\b\d+ ?(?:%|percent|procent)\b|\boff\b/i;
   var koopVorm = (title = "") => {
     const t = clean(title);
     return !!t && (koopKop(t) || (SHOP_WORD.test(t) || LOOSE.test(t)) && !ABOUT.test(t));
   };
+  var KOOP_CATS = /* @__PURE__ */ new Set(["tech", "games", "cultuur", "muziek", "lifestyle", "consument"]);
+  var CAT_OF = new Map(SOURCES.map((s) => [s.id, s.cat]));
+  var SHOP_RUBRIC = /* @__PURE__ */ new Set([
+    "deals",
+    "deal",
+    "aanbiedingen",
+    "aanbieding",
+    "koopjes",
+    "coupons",
+    "kortingscodes",
+    "dagdeals",
+    "shopping",
+    "recommended",
+    "indybest",
+    "thefilter",
+    "the-filter",
+    "buying-guide",
+    "buying-guides",
+    "gift-guide",
+    "gift-guides",
+    "gift-ideas",
+    "gifts",
+    "best-buys",
+    "reviews",
+    "review",
+    "product-reviews",
+    "recensie",
+    "recensies",
+    "gear",
+    "koopgids",
+    "koopgidsen",
+    "cadeaugids",
+    "cadeaugidsen",
+    "wirecutter",
+    "underscored",
+    "black-friday",
+    "cyber-monday",
+    "prime-day",
+    "singles-day"
+  ]);
+  function koopBron(item = {}, segs = []) {
+    return KOOP_CATS.has(CAT_OF.get(item.source)) || item.feedMark === "aanbod" || segs.some((x) => SHOP_RUBRIC.has(x));
+  }
 
   // shared/editie-filter.mjs
   var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
@@ -4522,7 +4640,7 @@ var HootCore = (() => {
     const segs = rubricSegments(item.url);
     const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
     if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
-    if (koopGrond(item.title)) return { soort: "aanbieding", grond: "koopkop" };
+    if (koopGrond(item.title, { ruim: koopBron(item, segs) })) return { soort: "aanbieding", grond: "koopkop" };
     if (item.feedMark === "aanbod" && koopVorm(item.title)) return { soort: "aanbieding", grond: "feedcategorie" };
     const media = String(item.mediaType || "");
     const label2 = LABEL3.exec(String(item.title || ""))?.[1]?.toLowerCase();

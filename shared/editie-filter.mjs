@@ -19,9 +19,12 @@
 //      een overname of een markt gaat. Getoetst op de vier keuringen: geen enkele nieuwskop gaat weg;
 //   5. de feed deelt het stuk zelf in als aanbod of koopgids (`feedMark` 'aanbod', rss.mjs: "Gear / Deals", "Buying
 //      Guides", "Aanbiedingen", nooit onder zaken of markten) en de kop heeft een koopvorm (koopVorm).
+//   De kopregels van stap 4 gelden alleen voor een bron die koopstukken maakt (koopBron: tech, games, cultuur, of een deal-,
+//   koopgids- of reviewrubriek in de feed of het pad). Bij een nieuwsbron alleen de ondubbelzinnige signalen (herstel 2,
+//   de bronpoort: een verloren nieuwsstuk is erger dan een gemist koopstuk).
 // Twijfel blijft staan; de AI op de server (netlify/lib/editie-ai.mjs) beoordeelt de rest. De Stroom gebruikt dit niet.
 // Gedeeld door server en toestel (edition-core.js): alleen eenvoudige, deterministische toetsen.
-import { koopGrond, koopVorm } from './koopsignaal.mjs'
+import { koopGrond, koopVorm, koopBron } from './koopsignaal.mjs'
 
 const DEAL_RUBRIC = new Set(['deals', 'aanbiedingen', 'aanbieding', 'koopjes', 'coupons', 'kortingscodes', 'dagdeals'])
 const AUDIO_RUBRIC = new Set(['podcast', 'podcasts', 'luister'])
@@ -69,7 +72,7 @@ export function hardMark(item = {}) {
   const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0]
   if (first && DEAL_RUBRIC.has(first)) return { soort: 'aanbieding', grond: 'rubriek' }
   // Een koopkop, of een stuk dat de feed als aanbod indeelt met een koopvorm in de kop (Redacteur · deals).
-  if (koopGrond(item.title)) return { soort: 'aanbieding', grond: 'koopkop' }
+  if (koopGrond(item.title, { ruim: koopBron(item, segs) })) return { soort: 'aanbieding', grond: 'koopkop' }
   if (item.feedMark === 'aanbod' && koopVorm(item.title)) return { soort: 'aanbieding', grond: 'feedcategorie' }
   const media = String(item.mediaType || '')
   const label = LABEL.exec(String(item.title || ''))?.[1]?.toLowerCase()

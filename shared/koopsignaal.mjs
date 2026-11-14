@@ -18,9 +18,19 @@
 //   record online sales", "ACM waarschuwt voor nepkortingen"), over een overname, handels- of politiek akkoord ("Top 10
 //   M&A deals", "OpenAI signs $10bn chip deal"), over beleid ("korting op de zorgtoeslag"), over een markt of grondstof
 //   ("Oil falls to lowest price since 2021", "Bitcoin 30% off its peak") of legt uit hoe iets werkt.
+// Bronpoort (herstel 2, 14 november 2026, besluit van de chief of staff na drie keuringen waarin elke woordenlijst nieuwe
+// randgevallen opleverde): een verloren nieuwsstuk is erger dan een gemist koopstuk. De kopregels hierboven gelden daarom
+// alleen voor een bron die zulke stukken maakt: de catalogus zet hem bij tech, games of cultuur (koopBron), of de feed of
+// het pad deelt het stuk in als deal, koopgids of review. Bij alle andere bronnen (algemeen nieuws, regio, sport, economie,
+// politiek, buitenland, wetenschap) tellen alleen de ondubbelzinnige signalen (STRICT): een winactie of advertentie, een
+// aanbodlabel vooraan dat geen gewoon kopwoord is ("Dagdeal:", "Aanbieding:", "Kortingscode:"), een prijs bij een
+// winkel ("nu voor €199 bij Bol", "drops to $199 at Amazon") of een kortingscode met een bedrag of percentage.
+// Bij twijfel blijft het stuk staan.
 // Inhoudelijk gelijk aan isBuying van de Selectie (netlify/lib/vak.mjs in de tak selectie: BUY_ALWAYS, DEAL_HEAD,
 // SHOP_DAY met SHOP_WORD, ABOUT_SALES); dit is daar een uitbreiding van met de Engelse koopvormen, zodat de Selectie
 // later deze ene functie kan gebruiken. Alleen eenvoudige, deterministische toetsen: web, server en toestel (edition-core.js).
+
+import { SOURCES } from '../netlify/lib/sources.mjs'
 
 // 1. Altijd een aanbod.
 const BUY_ALWAYS = new RegExp([
@@ -31,7 +41,7 @@ const BUY_ALWAYS = new RegExp([
 // Cadeaugidsen: een aanbod, behalve als de gids zelf het onderwerp van het nieuws is ("Gift guides are the new battleground
 // for Amazon and Temu") of de kop over zaken of toezicht gaat (het smalle veto, NARROW).
 const GIFT_GUIDE = new RegExp([
-  '\\bgift guides?\\b', '\\bcadeaugids\\w*', '\\bcadeautips\\b', '\\bcadeau-?idee(?:ën|en)\\b',
+  '\\bgift guides?\\b', '\\bgift ideas?\\b', '\\bcadeaugids\\w*', '\\bcadeautips\\b', '\\bcadeau-?idee(?:ën|en)\\b',
   '\\bgifts? for (?:him|her|men|women|kids|teens|dads?|moms?|mothers?|fathers?|parents|grandparents|everyone|anyone|the \\w+ lover|\\w+ lovers)\\b',
 ].join('|'), 'iu')
 const GIFT_SUBJECT = /\b(?:gift guides?|cadeaugids(?:en)?)\s+(?:are|is|were|was|have|has|had|become|became|draw\w*|fac\w*|get|gets|zijn|is|waren|worden|wordt|krijgen|trekken)\b/i
@@ -39,10 +49,11 @@ const GIFT_SUBJECT = /\b(?:gift guides?|cadeaugids(?:en)?)\s+(?:are|is|were|was|
 const LABEL = /^[\s"'‘“([]*(?:(?:[\p{L}]+-)?deals?|dagdeals?|dagaanbieding|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert)\s*[:|.!–—-]\s/iu
 
 // "Prijsdaling:" en "Prijsverlaging:" vooraan zijn bij Nederlandse nieuwssites ook een gewone kopvorm voor marktnieuws
-// ("Prijsdaling: benzine voor het eerst sinds 2021 onder 1,80"). Alleen een aanbod met een productprijs (een bedrag in
-// euro) of een winkel ("bij Coolblue") erachter, en nooit over energie, brandstof, wonen, auto's, rente of de boodschappen.
+// ("Prijsdaling: benzine voor het eerst sinds 2021 onder 1,80"), en met alleen een bedrag ook voor het prijsbesluit van
+// een maker ("Prijsverlaging: Tesla Model Y nu voor €39.990", derde keuring). Alleen een aanbod met een winkel erachter
+// ("bij Coolblue"), en nooit over energie, brandstof, wonen, auto's, rente of de boodschappen.
 const PRICE_LABEL = /^[\s"'‘“([]*(?:prijsdaling|prijsverlaging)\s*[:|.!–—-]\s/iu
-const PRICE_LABEL_OFFER = /(?:€|eur\b)\s?\d|\b\d[\d.,]*\s?euro\b|\bbij\s+(?:de\s+)?\p{Lu}/u
+const PRICE_LABEL_OFFER = /\bbij\s+(?:de\s+)?\p{Lu}/u
 const PRICE_LABEL_MARKET = new RegExp([
   'energie\\w*', 'stroom\\w*', 'gas\\w*', 'benzine\\w*', 'brandstof\\w*', 'diesel\\w*', 'tank\\w*', 'pomp\\w*', 'elektriciteit\\w*',
   'huizen\\w*', 'huis', 'woning\\w*', 'huur\\w*', 'huren', 'hypothe\\w*', 'rente\\w*', "auto'?s", 'auto', 'occasions?', 'tweedehands',
@@ -117,6 +128,8 @@ const ABOUT = new RegExp([
   // Sport: transfers, contracten en free agency ("Grading the best NFL free agency deals").
   'transfer\\w*', 'free[- ]agen\\w*', 'contract(?:en)?', 'signings?', 'off-?season', 'trade deadline', 'salary cap', '(?:nfl|nba|mlb|nhl|mls) draft', 'draft picks?',
   'miskop\\w*', 'best and worst', 'beste en slechtste',
+  // Gevolgen van een koopdag en zakelijke akkoorden (derde keuring): "Black Friday-korting bij NS leidt tot storing".
+  'storing\\w*', 'footfall', 'high street', 'signs', 'signed', 'inks', 'inked', 'lands', 'landed', 'seals', 'sealed', 'tekent', 'getekend',
   // Prijsbeleid: de prijs zelf is het onderwerp ("Insulin price falls to $35 under new law"), of een wet, regeling of geneesmiddel.
   "(?:price|prijs|prices|prijzen|cost|costs|kosten|fee|fees|premium|premiums|premie|tarief|tarieven)\\s+(?:now\\s+|will\\s+|to\\s+)?(?:drops?|dropped|falls?|fell|cuts?|slashed|daalt|daalde|zakt|zakte|omlaag|verlaagd)",
   'under (?:a |the |new |an? )?(?:[\\p{L}-]+\\s+){0,2}(?:law|act|bill|deal|plan|agreement|order|rule)', 'medicare', 'medicaid', 'insulin\\w*', 'insuline',
@@ -159,6 +172,17 @@ const NARROW = new RegExp([
   '\\btransfer\\w*', '\\bfree[- ]agen\\w*', '\\bcontracts?\\b', '\\bcontract(?:en)?\\b', '\\bsignings?\\b', '\\boff-?season\\b', '\\btrade deadline\\b',
   '\\bsalary cap\\b', '\\b(?:nfl|nba|mlb|nhl|mls) draft\\b', '\\bdraft picks?\\b', '\\bmillion\\b', '\\bmiljoen\\b', '\\bmiskop\\w*', '\\bbest and worst\\b',
   '\\bbeste en slechtste\\b', '\\bworst deals\\b', '\\bslechtste deals\\b',
+  // Sportzaken in andere woorden (derde keuring): het venster, de periode of de rol, niet alleen het vakwoord. Wat verder gaat
+  // (competities, clubs) regelt de bronpoort: een sportbron krijgt de kopregels niet.
+  '\\b(?:transfer|january|summer|winter|zomer)\\s?window\\b', '\\bwinterstop\\b', '\\btransferperiode\\b', '\\bwinter meetings\\b', '\\btrade market\\b',
+  '\\bexpansion draft\\b', '\\bquarterbacks?\\b', '\\bslechtste\\b',
+  // Zakelijke akkoorden: tekenen, sluiten, binnenhalen ("Top Hollywood deals: Netflix lands Spielberg film", "authors land
+  // seven-figure advances", "Top 5 defence deals signed at Nato summit").
+  '\\bsigns?\\b', '\\bsigned\\b', '\\binks?\\b', '\\binked\\b', '\\blands\\b', '\\blanded\\b', '\\bstruck\\b', '\\bseals?\\b', '\\bsealed\\b',
+  '\\btekent\\b', '\\bgetekend\\b', '\\bgesloten\\b', '\\badvances?\\b', '\\b[\\p{L}]+-figure\\b', '\\bdefen[cs]e\\b', '\\bnato\\b', '\\barms\\b', '\\bwapen\\w*', '\\bhollywood\\b',
+  // Gevolgen voor winkels en winkelstraat ("Black Friday deals failed to lift UK high street footfall").
+  '\\bfootfall\\b', '\\bhigh street\\b', '\\bfail\\w*', '\\bdisappoint\\w*', '\\bprofits?\\b', '\\bwinst\\w*', '\\bclos(?:e|es|ed|ing|ure)\\b', '\\bjobs\\b',
+  '\\bbanen\\b', '\\bstoring\\w*',
   // Politieke akkoorden: "peace deals", "trade deals".
   '\\bpeace\\b', '\\bvrede\\w*', '\\bceasefire\\b', '\\bdiplomat\\w*', '\\btariffs?\\b', '\\bnuclear\\b', '\\bkernwapen\\w*',
   // Markten.
@@ -166,14 +190,39 @@ const NARROW = new RegExp([
   '\\boil (?:price|prices|supplies|market)\\b', '\\bgold price\\b', '\\bgoudprijs\\b', '\\beconomie\\w*', '\\beconomy\\b', '\\binflati\\w*',
 ].join('|'), 'iu')
 
-const clean = (t) => String(t || '').replace(/\s+/g, ' ').replace(/[’‘`]/g, "'").trim()
+// Een winkelnaam is geen overtreffende trap (derde keuring: "Best Buy to close 50 stores despite holiday deals"). Als één
+// woord telt "Best Buy" niet als "best … deals"; "Best Buy's Black Friday deals" blijft een koopdag.
+const clean = (t) => String(t || '').replace(/\s+/g, ' ').replace(/[’‘`]/g, "'").replace(/\bbest buy\b/gi, 'BestBuy').replace(/\btop shop\b/gi, 'Topshop').trim()
 // Een sterke koopvorm: een onmiskenbare dealkop, of een koopdag met deals. Een koopdag met sale of korting blijft zwak.
 const strongForm = (t) => STRONG_HEAD.test(t) || (SHOP_DAY.test(t) && STRONG_DAY_WORD.test(t))
 
-// De grond van een koopkop, of null. 'aanbod' (altijd), 'label', 'dealkop', 'koopdag', 'prijsval', 'koopgids'.
-export function koopGrond(title = '') {
+// Bij een nieuwsbron alleen de ondubbelzinnige signalen: de uitgever noemt het zelf een winactie, advertentie, dagdeal,
+// aanbieding of kortingscode, of de kop zet een prijs bij een winkel. Ook dan houdt een tegenvoorbeeld (ABOUT) het vast.
+// Een winactie vooraan in de gebiedende wijs ("Win kaarten voor U2 in de Johan Cruijff Arena") is ook zo'n eigen signaal.
+const STRICT_ALWAYS = new RegExp([
+  '\\bwinactie\\b', '\\bmaak kans op\\b', '\\((?:adv|advertentie)\\)', '\\[(?:adv|advertentie)\\]',
+  '^[\\s"\'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b',
+].join('|'), 'iu')
+const STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial|(?:black friday|cyber monday|prime day|singles day)-deals?)\s*[:|.!–—-]\s/iu
+const STORE = /\b(?:at|bij|via|from)\s+(?:amazon(?:\.\w+)?|bestbuy|walmart|target|costco|newegg|currys|john lewis|bol(?:\.com)?|coolblue|mediamarkt|media markt|alternate|megekko|wehkamp|belsimpel|azerty|fnac|zalando)\b/iu
+const PRICE = /(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b/iu
+const CODE = /\b(?:(?:promo|coupon|discount)\s+codes?|kortingscodes?|actiecodes?)\b/iu
+const CODE_AMOUNT = /\b\d+\s?(?:%|procent|percent)|(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b|\b20\d\d\b/iu
+function strictGrond(t) {
+  if (STRICT_ALWAYS.test(t)) return 'aanbod'
+  const grond = STRICT_LABEL.test(t) ? 'label'
+    : PRICE_LABEL.test(t) ? (STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? 'label' : null)
+    : PRICE.test(t) && STORE.test(t) ? 'prijsval'
+    : CODE.test(t) && CODE_AMOUNT.test(t) ? 'kortingscode' : null
+  return grond && !ABOUT.test(t) ? grond : null
+}
+
+// De grond van een koopkop, of null. 'aanbod' (altijd), 'label', 'dealkop', 'koopdag', 'prijsval', 'koopgids',
+// 'kortingscode'. `ruim`: de bron maakt koopstukken (koopBron); anders alleen de ondubbelzinnige signalen (strictGrond).
+export function koopGrond(title = '', { ruim = true } = {}) {
   const t = clean(title)
   if (!t) return null
+  if (!ruim) return strictGrond(t)
   if (BUY_ALWAYS.test(t)) return 'aanbod'
   if (GIFT_GUIDE.test(t) && !GIFT_SUBJECT.test(t) && !NARROW.test(t)) return 'aanbod'
   if (LABEL.test(t)) return ABOUT.test(t) ? null : 'label'
@@ -183,7 +232,7 @@ export function koopGrond(title = '') {
   const grond = DEAL_HEAD.test(t) ? 'dealkop' : SHOP_DAY.test(t) && SHOP_WORD.test(t) ? 'koopdag' : PRICE_DROP.test(t) ? 'prijsval' : GUIDE.test(t) ? 'koopgids' : null
   return grond && !ABOUT.test(t) ? grond : null
 }
-export const koopKop = (title = '') => koopGrond(title) != null
+export const koopKop = (title = '', opts) => koopGrond(title, opts) != null
 
 // Een losse koopvorm (zwakker): genoeg als de feed het stuk zelf als aanbod indeelt (feedMark 'aanbod', rss.mjs). Ook dan
 // telt een tegenvoorbeeld: Wired zet "Gear / Deals" ook op journalistiek over prijzen ("Here's How Carrier Deals Actually Work").
@@ -203,4 +252,17 @@ export function shopCategory(cats = []) {
     const parts = String(c || '').trim().toLowerCase().split(/\s*[/>›»|]\s*/).filter(Boolean)
     return parts.length > 0 && SHOP_CAT.has(parts[parts.length - 1]) && !parts.some((p) => BIZ_CAT.test(p))
   })
+}
+
+// De bronpoort. Een bron maakt koop-, deal- en reviewstukken als de catalogus hem bij tech, games of cultuur (of later
+// lifestyle of consument) zet, of als de feed (feedMark 'aanbod') of het pad (/deals/, /reviews/, /recommended/,
+// /indybest/, /thefilter/, /black-friday/ …) het stuk zo indeelt. Ook dan houdt het veto nieuws over omzet of toezicht vast. `segs`: de padsegmenten voor de slug (rubricSegments in editie-filter.mjs).
+const KOOP_CATS = new Set(['tech', 'games', 'cultuur', 'muziek', 'lifestyle', 'consument'])
+const CAT_OF = new Map(SOURCES.map((s) => [s.id, s.cat]))
+const SHOP_RUBRIC = new Set(['deals', 'deal', 'aanbiedingen', 'aanbieding', 'koopjes', 'coupons', 'kortingscodes', 'dagdeals', 'shopping', 'recommended',
+  'indybest', 'thefilter', 'the-filter', 'buying-guide', 'buying-guides', 'gift-guide', 'gift-guides', 'gift-ideas', 'gifts', 'best-buys', 'reviews', 'review',
+  'product-reviews', 'recensie', 'recensies', 'gear', 'koopgids', 'koopgidsen', 'cadeaugids', 'cadeaugidsen', 'wirecutter', 'underscored', 'black-friday',
+  'cyber-monday', 'prime-day', 'singles-day'])
+export function koopBron(item = {}, segs = []) {
+  return KOOP_CATS.has(CAT_OF.get(item.source)) || item.feedMark === 'aanbod' || segs.some((x) => SHOP_RUBRIC.has(x))
 }

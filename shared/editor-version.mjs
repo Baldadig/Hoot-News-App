@@ -45,6 +45,8 @@
 // koopvorm in de kop (feedMark 'aanbod'); nieuws over omzet, toezicht, beleid, overnames of markten blijft.
 // Herstel na de keuring: bij een sterke koopvorm (best/top ... deals, best ... sales, deals (2026), een koopdag met deals)
 // telt alleen een smal veto (zaken, omzet, markten, toezicht, nep, uitleg), geen los woord uit de productomschrijving.
+// Herstel 2, de bronpoort: de kopregels alleen bij een bron die koopstukken maakt (tech, games, cultuur, of een deal- of
+// reviewrubriek in de feed of het pad); bij een nieuwsbron alleen de ondubbelzinnige signalen.
 export const EDITOR_REVISION = 'redacteur-2026-11-14-deals'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

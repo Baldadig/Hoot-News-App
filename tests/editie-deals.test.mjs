@@ -4,12 +4,25 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { koopGrond, koopKop, koopVorm, shopCategory } from '../shared/koopsignaal.mjs'
+import { koopGrond, koopKop, koopVorm, shopCategory, koopBron } from '../shared/koopsignaal.mjs'
 import { hardMark, excludedFromEdition } from '../shared/editie-filter.mjs'
 import { mediaFields } from '../netlify/lib/rss.mjs'
 import { streamItems } from '../netlify/lib/build.mjs'
 
-const art = (o) => ({ kind: 'article', url: 'https://example.test/story/x/', ...o })
+// De bron van een stuk, zoals de server hem meegeeft (item.source). Fixtures zonder bron krijgen die van hun host; de
+// keuringsset "wired-deals" is de dealfeed van Wired.
+const HOST_BRON = [[/theverge\.com$/, 'theverge'], [/wired\.com$/, 'wired'], [/ign\.com$/, 'ign'], [/tweakers\.net$/, 'tweakers'], [/(^|\.)nu\.nl$/, 'nu'],
+  [/(^|\.)nos\.nl$/, 'nos'], [/bbc\.co\.uk$/, 'bbc'], [/rollingstone\.com$/, 'rollingstone'], [/variety\.com$/, 'variety'], [/polygon\.com$/, 'polygon']]
+const bronVan = (o) => {
+  if (o.source === 'wired-deals') return 'wired'
+  if (o.source) return o.source
+  const host = /^https?:\/\/([^/]+)/i.exec(String(o.url || ''))?.[1]?.replace(/^www\./, '') || ''
+  return HOST_BRON.find(([re]) => re.test(host))?.[1]
+}
+const art = (o) => {
+  const x = { kind: 'article', url: 'https://example.test/story/x/', ...o }
+  return { ...x, source: bronVan(x) }
+}
 const read = (f) => JSON.parse(readFileSync(new URL(`./fixtures/${f}`, import.meta.url), 'utf8')).items
 const labels = [...read('editie-filters-sets.json'), ...read('ruis-labels.json')]
 
@@ -235,8 +248,11 @@ const PRIJSDALING_BLIJFT = [
 test('tweede keuring: "Prijsdaling:" vooraan is marktnieuws, tenzij er een productprijs of winkel achter staat', () => {
   for (const title of PRIJSDALING_BLIJFT) assert.equal(koopGrond(title), null, 'moet blijven: ' + title)
   // Een aanbodlabel met een productprijs of een winkel blijft een aanbod.
-  for (const title of ['Prijsdaling: AirPods Pro 3 nu voor €199 bij Bol', 'Prijsverlaging: Samsung Galaxy S26 voor 649 euro',
-    'Prijsdaling: Philips Hue-starterset bij Coolblue', 'Prijsdaling: Sony WH-1000XM6 tijdelijk €299']) assert.equal(koopGrond(title), 'label', 'moet weg: ' + title)
+  for (const title of ['Prijsdaling: AirPods Pro 3 nu voor €199 bij Bol', 'Prijsverlaging: Samsung Galaxy S26 voor 649 euro bij MediaMarkt',
+    'Prijsdaling: Philips Hue-starterset bij Coolblue', 'Prijsdaling: Sony WH-1000XM6 tijdelijk €299 bij Bol']) assert.equal(koopGrond(title), 'label', 'moet weg: ' + title)
+  // Met alleen een bedrag is het ook het prijsbesluit van een maker (derde keuring): dat blijft.
+  for (const title of ['Prijsverlaging: Tesla Model Y nu voor €39.990', 'Prijsverlaging: Samsung Galaxy S26 voor 649 euro', 'Prijsdaling: Sony WH-1000XM6 tijdelijk €299'])
+    assert.equal(koopGrond(title), null, 'moet blijven: ' + title)
 })
 
 test('tweede keuring: koopstukken in dezelfde vormen gaan nog steeds weg', () => {
@@ -276,4 +292,93 @@ test('de Stroom verandert niet: een koopstuk staat er gewoon', () => {
   const xs = [{ id: 'r', kind: 'article', source: 'wired', title: REI.title, url: REI.url, publishedAt: new Date(now).toISOString() }]
   assert.deepEqual(streamItems(xs).map((i) => i.id), ['r'])
   assert.equal(hardMark({ ...xs[0], kind: 'post' }), null)
+})
+
+// Herstel 2, de bronpoort (14 november 2026, besluit van de chief of staff na drie keuringen): een verloren nieuwsstuk is erger
+// dan een gemist koopstuk. De kopregels gelden alleen voor een bron die koopstukken maakt (tech, games, cultuur, of een deal-,
+// koopgids- of reviewrubriek in de feed of het pad); bij een nieuwsbron tellen alleen de ondubbelzinnige signalen.
+const bij = (title, source, url = 'https://example.test/story/x/') => hardMark({ kind: 'article', url, title, source })
+
+test('bronpoort: tech, games en cultuur, of een deal- of reviewrubriek in de feed of het pad', () => {
+  for (const source of ['wired', 'theverge', 'ign', 'tweakers', 'polygon', 'rollingstone', 'variety']) assert.equal(koopBron({ source }), true, source)
+  for (const source of ['nos', 'nu', 'nrc', 'espn', 'vi', 'bbc-sport', 'bloomberg', 'fd', 'politico', 'guardian', 'telegraph', 'nature', 'rtvutrecht', undefined])
+    assert.equal(koopBron({ source }), false, String(source))
+  assert.equal(koopBron({ source: 'nos', feedMark: 'aanbod' }), true)
+  for (const seg of ['deals', 'recommended', 'indybest', 'thefilter', 'reviews', 'black-friday', 'gift-guides']) assert.equal(koopBron({ source: 'telegraph' }, ['x', seg]), true, seg)
+  assert.equal(koopBron({ source: 'nos' }, ['nieuws', 'artikel']), false)
+})
+
+// Alle nieuwskoppen uit de derde keuring blijven, bij de bronnen waar ze vandaan kunnen komen (en de zakelijke en Best Buy-
+// koppen ook bij een koopbron: daar werken de winkelnaam en het smalle veto).
+const DERDE_NIEUWS = [
+  ['Best Buy to close 50 stores despite holiday deals', ['theverge', 'wired', 'nos']],
+  ['Best Buy cuts jobs as holiday deals disappoint', ['theverge', 'wired', 'bloomberg']],
+  ['Best Buy announces holiday deals as profit forecast lags', ['theverge', 'wired', 'bloomberg']],
+  ['The best deals of the January window', ['bbc-sport', 'guardian-sport', 'espn']],
+  ['Eredivisie: de beste deals van deze zomer', ['vi', 'nos-sport']],
+  ['De beste deals van de winterstop: Feyenoord slaat toe', ['vi', 'nos-sport']],
+  ['Top 10 biggest deals in Premier League history', ['bbc-sport', 'guardian-sport', 'guardian']],
+  ['Ranking the best quarterback deals in the NFL', ['espn']],
+  ['The best driver deals for the 2027 F1 grid', ['autosport', 'bbc-sport']],
+  ['Best value deals in the WNBA expansion draft', ['espn']],
+  ['Ajax en PSV: de slechtste aankopen en beste deals van het decennium', ['vi', 'nos-sport']],
+  ['Top 5 defence deals signed at Nato summit', ['bbc', 'guardian', 'politico-eu', 'wired']],
+  ['Spotify signs best podcast deals in industry with Rogan, Cooper', ['variety', 'rollingstone', 'theverge', 'bloomberg']],
+  ['The best book deals of the year: authors land seven-figure advances', ['guardian-culture', 'variety', 'nyt']],
+  ['Top Hollywood deals: Netflix lands Spielberg film', ['variety', 'nyt']],
+  ['Black Friday deals failed to lift UK high street footfall', ['bbc', 'guardian', 'theverge']],
+  ['Black Friday-korting op treinkaartjes bij NS leidt tot storing', ['nos', 'nu', 'tweakers']],
+  ['Prijsverlaging: Tesla Model Y nu voor €39.990', ['nu', 'tweakers', 'ad']],
+  // Eigen varianten.
+  ['Top transfer window deals: Arsenal and Chelsea spend big', ['bbc-sport', 'espn']],
+  ['De beste deals van de transferperiode, met PSV voorop', ['vi', 'nos-sport']],
+  ['Best deals of baseball\'s winter meetings', ['espn']],
+  ['Best Buy reports weak Black Friday as shoppers wait for deals', ['theverge', 'nos']],
+  ['Top 10 film deals: Apple lands Scorsese, Amazon inks Bond', ['variety', 'nyt']],
+  ['Black Friday deals disappoint high street retailers', ['bbc', 'theverge']],
+  ['Prijsdaling: zonnepanelen nu €2.000 goedkoper', ['nos', 'tweakers']],
+  ['Prime Day deals: are they actually worth it?', ['nos', 'nu']],
+  ['Kortingsregeling voor ov-reizigers verdwijnt', ['nos']],
+  ['NS geeft Black Friday-korting op treinkaartjes', ['nos', 'nu']],
+]
+
+test('bronpoort: alle nieuwskoppen uit de derde keuring blijven staan', () => {
+  for (const [title, bronnen] of DERDE_NIEUWS) for (const source of bronnen) assert.equal(bij(title, source), null, `moet blijven bij ${source}: ${title}`)
+})
+
+// Koopkoppen blijven weggaan bij de bronnen waar ze vandaan komen; bij een nieuwsbron alleen de ondubbelzinnige signalen.
+test('bronpoort: koopkoppen van Wired, The Verge, IGN, Tweakers, Rolling Stone, Variety en Polygon gaan weg', () => {
+  const VAN = { 0: 'wired', 1: 'wired', 2: 'wired', 3: 'wired', 4: 'wired', 5: 'wired', 6: 'theverge', 7: 'theverge', 8: 'theverge', 9: 'theverge', 10: 'ign', 11: 'ign',
+    12: 'ign', 13: 'ign', 14: 'polygon', 15: 'rollingstone', 16: 'rollingstone', 17: 'variety', 18: 'hln', 19: 'wielerflits' }
+  WEG.forEach((title, i) => assert.ok(bij(title, VAN[i] ?? 'tweakers')?.soort === 'aanbieding', 'moet weg: ' + title))
+  for (const title of [...STERK_WEG, 'AirPods Pro 3 drop to $199 at Amazon', 'PS5 Pro Drops to $599 at Walmart for Black Friday', 'The Verge\'s 2026 gift guide for dads',
+    'These Gift Ideas and Collectibles Could Be the Next Best Thing', 'Gift ideas for the music lover in your life', 'Best Buy\'s Black Friday deals: AirPods, TVs and more'])
+    assert.ok(['theverge', 'ign', 'rollingstone'].every((source) => bij(title, source)?.soort === 'aanbieding'), 'moet weg: ' + title)
+  // Black Friday-proef (derde keuring): twintig koopkoppen bij een koopbron.
+  for (const title of ['Best Black Friday TV Deals (2026)', 'The best Black Friday laptop deals', 'Sony WH-1000XM6 is $80 off for Black Friday', 'Black Friday Sale: Up to 50% Off Everything',
+    'Black Friday-aanbiedingen bij Bol: dit zijn de beste', 'Samsung Galaxy S26 nu voor €399 bij Coolblue', 'iPad Air tijdelijk goedkoper voor Black Friday',
+    'Cyber Monday deals 2026: the best offers on TVs', 'De beste Black Friday-deals van 2026 op een rij', 'Elden Ring Nightreign Is 40% Off for Black Friday'])
+    assert.ok(['tweakers', 'theverge', 'ign'].every((source) => bij(title, source)?.soort === 'aanbieding'), 'moet weg: ' + title)
+  // Een deal- of Black Friday-rubriek in het pad opent de poort ook bij een nieuwsbron.
+  assert.equal(bij('De beste Black Friday-deals op een rij', 'nu', 'https://www.nu.nl/black-friday/6418010/de-beste-black-friday-deals.html')?.soort, 'aanbieding')
+  assert.equal(bij('The 25 best Christmas gift ideas for her', 'telegraph', 'https://www.telegraph.co.uk/recommended/leisure/best-christmas-gifts-for-her/')?.soort, 'aanbieding')
+})
+
+test('bronpoort: bij een nieuwsbron alleen de ondubbelzinnige signalen', () => {
+  for (const [title, source] of [['Winactie: Maak kans op 2 tickets voor de WielerZesdaagse Rotterdam in Ahoy', 'wielerflits'], ['AirPods Pro 3 nu voor €199 bij Bol', 'nu'],
+    ['AirPods Pro 3 drop to $199 at Amazon', 'nos'], ['Dagdeal: Philips Hue-starterset voor 99 euro', 'telegraaf'], ['Aanbieding: Samsung Galaxy S26 voor 649 euro bij Coolblue', 'ad'],
+    ['Kortingscode: 20 procent korting bij Zalando', 'ad'], ['Prijsdaling: AirPods Pro 3 nu voor €199 bij Bol', 'nu'], ['PROMOJAGERS SUPERTIP. Deze frituren delen dit weekend gratis frituursnacks uit', 'hln'],
+    ['Zalando promo code: 15% off your first order', 'independent'], ['[ADV] Ontdek de nieuwe Volvo EX30', 'telegraaf'],
+    // Gevonden bij de hertelling: een winactie in de gebiedende wijs, een gesponsord stuk en een koopdaglabel.
+    ['Win kaarten voor U2 in de Johan Cruijff Arena op 6 juni 2027', 'parool'], ['Gesponsord: win een reis naar Lapland', 'hln'],
+    ['Black Friday-deals: AirPods Pro 3 nu voor 199 euro', 'nu']])
+    assert.equal(bij(title, source)?.soort, 'aanbieding', `moet weg bij ${source}: ${title}`)
+  // Dezelfde vormen die bij een koopbron weggaan, blijven bij een nieuwsbron staan (twijfel blijft staan).
+  for (const [title, source] of [['The best Black Friday TV deals in Europe', 'guardian'], ['Top 10 deals of the summer', 'bbc-sport'], ['Kindle Paperwhite op Black Friday voor €99', 'nos'],
+    ['Deal: Ajax en Sevilla eens over Brobbey', 'nos-sport'], ['Prijsverlaging: Samsung Galaxy S26 voor 649 euro', 'nu'], ['Gift guides are the new battleground for Amazon and Temu', 'ft'],
+    ['Tesla Model 3 drops to $29,990 in the US', 'bloomberg'], ['Europese Commissie onderzoekt kortingscodes van Temu', 'nos'], ['Kortingscodes van november: zo bespaar je op je boodschappen', 'nu'],
+    ['Black Friday-deals: ACM ziet minder nepkortingen', 'nos'], ['Win for Ajax keeps title hopes alive', 'nos-sport']])
+    assert.equal(bij(title, source), null, `moet blijven bij ${source}: ${title}`)
+  // "land" in een productnaam is geen akkoord: de dealkop van IGN gaat weg.
+  assert.equal(bij('Today’s Top Deals: Kirby and the Forgotten Land for Switch 2, Apple AirTags, and LEGO Santa Minifigure', 'ign')?.soort, 'aanbieding')
 })
