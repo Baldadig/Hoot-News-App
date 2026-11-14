@@ -98,6 +98,9 @@
 // Persona · samengevoegd met main (recensies, deals, dubbelcheck2, onboarding): één regel per onderwerp. Koppen zonder
 // nieuws (koopsignaal, recensie, vorm) samen in excludedFromEdition; de rubriek, de bubbel, de derde taal en het welkom
 // elk met één regel. recensies (de revisie van main) staat vooraan in EARLIER_REVISIONS; persona is nooit uitgerold.
+// Persona · herstel na de tweede keuring, punt 7: alleen een zelf gekozen onderwerp (origin 'gekozen') redt een plek van het
+// zakken; plek 01 en Waar iedereen over schrijft houden de strenge toets (rawLocal); wat ook een Nederlandse of Vlaamse
+// uitgever brengt, is geen lokaal nieuws van elders (localAbroad, publishers).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-3'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

@@ -468,7 +468,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const sameAsPrevious = (id, sid) => shownBefore(id) && !againOf(id, sid).vervolg
   // Lokaal nieuws van elders (persona's 14 november, punt 7; localAbroad in netlify/lib/desks.mjs) is geen "Waar iedereen
   // over schrijft", tenzij het groot nieuws is: het Senaatsleiderschap van de Democraten of een rechtszaak in Delaware.
-  const localWide = (w) => !bigWide(w) && localAbroad([wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)], { desk: storyById.get(w.storyId)?.desk ?? null })
+  const localWide = (w) => {
+    const st = storyById.get(w.storyId) || {}
+    const xs = [wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)]
+    return !bigWide(w) && localAbroad(xs, { desk: st.desk ?? null, publishers: st.publisherCountries || coverageOf(xs.filter(Boolean)).publisherCountries })
+  }
   const free = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId)
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
   const wide0 =
@@ -704,26 +708,29 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Lokaal nieuws van elders zakt (persona's 14 november, punt 7): een plek over Amerikaans binnenland of een deelstaat
   // elders (localAbroad) die geen groot nieuws is, komt pas aan bod als al het andere toegelaten aanbod een plek kreeg (eigen
   // nieuws, sport en cultuur, de vulling uit de algemene Editie), en staat dan achteraan.
-  // Behalve een plek die een gekozen interesse of onderwerp raakt (keuring 14 november: wie Politiek koos, met het onderwerp
-  // Verenigde Staten, verloor de uitslag van de Democraten "Omdat je Politiek volgt"; punt 1 en 3 zeggen dat een gekozen
-  // interesse ruimte krijgt). Een gekozen onderwerp of een onderwerp van een gekozen interesse, niet geleerd uit lezen. Geen
-  // plaats (PLACE_HIT: geen land, werelddeel of terugval op de bron) en niet Wereld: Wereld is zelf een gebied (het
-  // buitenland), en juist voor wie dat koos is Amerikaans binnenland lokaal nieuws van elders (een Engelse lezer met de NYT
-  // kreeg zes zulke plekken). Voor wie het onderwerp niet koos, zakt de plek wel.
+  // Behalve een plek die een onderwerp raakt dat je zelf aantikte (origin 'gekozen': wie in de instellingen Verenigde Staten
+  // aanzet, houdt Amerikaans binnenland). Een onderwerp dat het welkom met een interesse meegeeft (geërfd, zoals Verenigde
+  // Staten onder Politiek) of dat je uit lezen leerde, is geen keuze van de lezer: anders kreeg wie Politiek en Wereld koos
+  // Amerikaans binnenland in de top 3 (tweede keuring 14 november). Geen plaats (PLACE_HIT: geen land, werelddeel of
+  // terugval op de bron) en niet Wereld: Wereld is zelf het buitenland. De zakregel redt zo'n plek; bovenaan zetten doet
+  // hij niet: plek 01 kijkt naar de strenge toets (rawLocal).
   const touchesChoice = (e) => {
     const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
     const hit = p.members?.length ? personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest : null
-    return !!hit && hit.pts > 0 && hit.shown !== false && !PLACE_HIT(hit) && hit.f !== 'wereld' && hit.origin !== 'geleerd'
+    return !!hit && hit.pts > 0 && hit.shown !== false && !PLACE_HIT(hit) && hit.f !== 'wereld' && hit.origin === 'gekozen'
   }
   let deferLocal = true
   const deferred = []
-  const localOf = (e) => {
+  // De strenge toets: lokaal nieuws van elders, geen groot nieuws. Geldt voor plek 01 en Waar iedereen over schrijft.
+  const rawLocal = (e) => {
     const head = itemAny.get(e.leadId || e.id)
     if (!head || e.desk === 'bubbel') return false
     const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
     const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean)
-    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs) && !touchesChoice(e)
+    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, publishers: st.publisherCountries || coverageOf(xs).publisherCountries }) && !majorNews(st, xs)
   }
+  // Zakken: de strenge toets, behalve een plek die een zelf gekozen onderwerp raakt.
+  const localOf = (e) => rawLocal(e) && !touchesChoice(e)
   const fillDesks = new Map() // wie niets koos: vulplekken per rubriek (NO_CHOICE_FILL_MAX)
   let capFill = true
   const fillDeskOf = (e) => (e.desk === EXTERN ? e.fromDesk : e.desk) || null
@@ -845,7 +852,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const storyOfEntry = (e) => storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
   const placeOk = (e) => e.desk !== 'bubbel' && e.desk !== WIDE && !e.held && hasNews(e)
   const opener = (e) => {
-    if (!placeOk(e) || localOf(e)) return false
+    if (!placeOk(e) || rawLocal(e)) return false
     const xs = knownOf(e)
     const head = itemAny.get(e.leadId || e.id)
     if (head && kindOf(head) !== 'nieuws' && !bigLight(head)) return false
@@ -860,12 +867,15 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const chosenHit = (e) => !!e.parts?.interest && e.parts.interest.shown !== false && e.parts.interest.pts > 0
   // De voorpagina van de selectie (`front`, voor iedereen gelijk) blijft op 01 als er geen groter nieuws onder staat.
   // Wat de selectie als groot nieuws bovenaan zette, blijft staan (ook buitenlands nieuws zonder Wereld: dat zakt niet).
-  if (entries.length > 1 && !(placeOk(entries[0]) && bigOpen(entries[0]))) {
+  // Lokaal nieuws van elders opent nooit (persona 7), ook niet als een zelf gekozen onderwerp het van het zakken redde: dan
+  // opent de eerste plek die wel mag.
+  const firstOk = !!entries[0] && placeOk(entries[0]) && !rawLocal(entries[0])
+  if (entries.length > 1 && !(firstOk && bigOpen(entries[0]))) {
     const cands = entries.map((e, i) => ({ e, i })).filter(({ e, i }) => i > 0 && opener(e))
     const big = cands.filter(({ e }) => bigOpen(e)).sort((a, b) => pubsOf(b.e) - pubsOf(a.e) || a.i - b.i)[0]
-    const keep = !big && placeOk(entries[0]) && (entries[0].front || chosenHit(entries[0]))
+    const keep = !big && firstOk && (entries[0].front || chosenHit(entries[0]))
     const strong = !big && !keep && prof.interests.size ? cands.filter(({ e }) => chosenHit(e)).sort((a, b) => (b.e.w || 0) - (a.e.w || 0) || a.i - b.i)[0] : null
-    const pick = big || strong
+    const pick = big || strong || (!keep && placeOk(entries[0]) && !firstOk ? cands[0] : null)
     if (pick) entries.unshift(...entries.splice(pick.i, 1))
   }
   // Curiosa nooit in de top 3 (Redacteur 3b · 5): een kuriositeit of licht verhaal schuift naar plek 6.

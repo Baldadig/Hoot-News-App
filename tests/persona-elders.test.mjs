@@ -9,7 +9,8 @@ import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { composePersonal } from '../src/lib/personal.js'
 import { localAbroad } from '../netlify/lib/desks.mjs'
-import { majorNews } from '../shared/edition-policy.mjs'
+import { majorNews, coverageOf } from '../shared/edition-policy.mjs'
+import { resolveTopics } from '../src/lib/topics.js'
 
 const P = JSON.parse(readFileSync(new URL('../../Hoot-design/personas-2026-11-14/personas.json', import.meta.url), 'utf8')).personas
 const load = (f) => JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/${f}.json.gz`, import.meta.url))).toString('utf8'))
@@ -29,6 +30,12 @@ test('lokaal van elders: Amerikaans binnenland en deelstaten, niet wat breder ga
   assert.ok(!local('Trump threatens to leave NATO', 'vs'))
   assert.ok(!local('Kabinet valt over stikstof', 'binnenland'))
   assert.ok(!local('Storm Charles batters coastline of southern Spain', 'buitenland'))
+  // Brengt ook een uitgever van hier het verhaal (Nederland of Vlaanderen), dan is het geen lokaal nieuws van elders; een
+  // Britse krant over Amerika maakt het niet breder (tweede keuring 14 november).
+  const hegseth = [{ title: 'Republicans Turn Back Effort to Impeach Hegseth' }]
+  assert.ok(localAbroad(hegseth, { desk: 'vs', publishers: ['US', 'GB'] }))
+  assert.ok(!localAbroad(hegseth, { desk: 'vs', publishers: ['US', 'NL'] }))
+  assert.ok(!localAbroad([{ title: 'NSW premier announces inquiry into council' }], { publishers: ['AU', 'BE'] }))
 })
 
 for (const f of FEEDS) {
@@ -45,14 +52,15 @@ for (const f of FEEDS) {
         const head = byId.get(e.leadId || e.id)
         const xs = (e.itemIds || []).map((x) => byId.get(x)).filter(Boolean)
         const st = storyById.get(e.id) || {}
-        return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs)
+        return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, publishers: st.publisherCountries || coverageOf(xs).publisherCountries }) && !majorNews(st, xs)
       }
-      // Een plek die een gekozen interesse of onderwerp raakt, zakt niet (keuring 14 november); composePersonal zegt het in
-      // het debugveld `_local`. Wat volgens localAbroad lokaal is maar niet zakt, heeft een interesse als reden, nooit Wereld.
-      for (const e of regular) if (isLocal(e) && !e._local) assert.match(e.why?.text || '', /^(Omdat je (?!Wereld)|Raakt )/, `${p.id}: "${byId.get(e.leadId || e.id)?.title}" zakt niet zonder gekozen interesse`)
-      const flags = regular.map((e) => isLocal(e) && e._local)
+      // Alleen een onderwerp dat je zelf aantikte, redt een plek van het zakken (debugveld `_local`); een onderwerp dat het
+      // welkom met een interesse meegeeft niet (tweede keuring 14 november). De persona's kozen hele interesses: bij hen zakt
+      // alles wat lokaal is.
+      for (const e of regular) if (isLocal(e)) assert.ok(e._local, `${p.id}: "${byId.get(e.leadId || e.id)?.title}" zakt niet zonder zelf gekozen onderwerp`)
+      const flags = regular.map((e) => isLocal(e))
       const title = (e) => byId.get(e.leadId || e.id)?.title
-      if (regular.length) assert.ok(!flags[0], `${p.id}: plek 01 "${title(regular[0])}"`)
+      if (regular.length) assert.ok(!isLocal(regular[0]), `${p.id}: plek 01 "${title(regular[0])}"`)
       for (const e of regular) if (e.desk === 'breed') assert.ok(!isLocal(e), `${p.id}: Waar iedereen over schrijft "${title(e)}"`)
       // Achteraan: na de eerste lokale plek alleen nog lokale plekken. Uitzondering: wat de opening, curiosaDown en heldDown
       // daarna verschuiven (een kuriositeit naar plek 6, een blijver onder de top 5).
@@ -65,19 +73,39 @@ for (const f of FEEDS) {
   })
 }
 
-// Keuring 14 november: een plek die een gekozen interesse of onderwerp raakt, zakt niet. Wie Politiek koos (met het
-// onderwerp Verenigde Staten) houdt de Amerikaanse uitslag; wie dat niet koos, ziet hem zakken.
-test('lokaal van elders: een gekozen interesse of onderwerp zakt niet, voor wie het niet koos wel', () => {
+// Tweede keuring 14 november. De uitslag van de Democraten op 5 november brengen ook NOS, NRC en de Volkskrant: dat is
+// geen lokaal nieuws van elders, voor wie Politiek koos en voor wie niet. Niet via de interesse: die geeft het welkom met
+// Politiek mee (geërfd) en telt niet als keuze.
+test('lokaal van elders: wat ook een uitgever van hier brengt, zakt niet, met of zonder Politiek', () => {
   const feed = load('feed-2026-11-05-ochtend')
   const now = Date.parse(feed.edition.builtAt)
   const byId = new Map([...(feed.related || []), ...feed.items, ...feed.edition.items].map((i) => [i.id, i]))
   const followed = new Set(['nos', 'nu', 'rtl', 'nrc', 'volkskrant', 'trouw', 'ad', 'telegraaf'])
-  const run = (interests) => composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed, interests, topics: [], now, builtAt: feed.edition.builtAt })
+  const run = (interests) => composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed, interests, topics: resolveTopics(interests, []), now, builtAt: feed.edition.builtAt })
   const usResult = (ed) => ed.entries.find((e) => e.itemIds.some((x) => /veroveringstocht Democraten/.test(byId.get(x)?.title || '')))
   const withPol = usResult(run(['politiek', 'binnenland', 'wereld']))
   assert.ok(withPol, 'met Politiek: de uitslag staat erin')
   assert.ok(!withPol._local, 'en zakt niet')
-  assert.match(withPol.why?.text || '', /Politiek/)
   const without = usResult(run(['binnenland', 'wereld']))
-  assert.ok(!without || without._local, 'zonder Politiek zakt hij (of valt hij weg)')
+  assert.ok(!without || !without._local, 'zonder Politiek zakt hij ook niet')
+})
+
+// Alleen een onderwerp dat je zelf aantikt (origin 'gekozen') redt Amerikaans binnenland van het zakken, en nooit naar
+// plek 01. Wie Politiek en Wereld koos (Verenigde Staten geërfd) ziet het zakken: zo kwam het in de top 3 (tweede keuring).
+test('lokaal van elders: alleen een zelf gekozen onderwerp redt een plek, en nooit naar 01', () => {
+  const feed = load('live-feed-2026-11-11-ochtend')
+  const now = Date.parse(feed.edition.builtAt)
+  const byId = new Map([...(feed.related || []), ...feed.items, ...feed.edition.items].map((i) => [i.id, i]))
+  const followed = new Set(['nyt', 'politico', 'guardian', 'bbc', 'atlantic'])
+  const interests = ['politiek', 'wereld']
+  const run = (picked) => composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed, interests, topics: resolveTopics(interests, picked), now, builtAt: feed.edition.builtAt }).entries.filter((e) => e.desk !== 'bubbel')
+  const at = (entries) => entries.findIndex((e) => /Impeach Hegseth/.test(byId.get(e.leadId || e.id)?.title || ''))
+  const inherited = run([])
+  const k = at(inherited)
+  assert.ok(k === -1 || (k >= 3 && inherited[k]._local), 'geërfd: de Hegseth-plek zakt, buiten de top 3')
+  for (const e of inherited.slice(0, 3)) assert.ok(!e._local, `geërfd: geen lokale plek in de top 3 ("${byId.get(e.leadId || e.id)?.title}")`)
+  const chosen = run(['vs-politiek'])
+  const c = at(chosen)
+  assert.ok(c > 0 && !chosen[c]._local, 'zelf gekozen: de Hegseth-plek zakt niet')
+  assert.ok(c !== 0, 'en staat niet op 01')
 })

@@ -1428,17 +1428,19 @@ var HootCore = (() => {
   ]);
   var NL_ANCHOR = W(["nederland\\p{L}*", "dutch", "holland\\p{L}*"]);
   var OTHER_STATES = W(["new south wales", "nsw", "queensland", "tasmani\\p{L}*", "western australia", "south australia", "northern territory", "victorian", "ontario", "quebec", "québec", "alberta", "british columbia", "manitoba", "saskatchewan", "nova scotia"]);
+  var HOME_PUBLISHERS = /* @__PURE__ */ new Set(["NL", "BE"]);
   var LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i;
   var OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi;
   var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
-  function localAbroad(items = [], { desk = null } = {}) {
+  function localAbroad(items = [], { desk = null, publishers = [] } = {}) {
     const head = items.find(Boolean);
     const t = String(head?.title || "");
     if (!t) return false;
+    const elsewhere = () => publishers.some((c) => HOME_PUBLISHERS.has(String(c).toUpperCase()));
     const usHere = desk === "vs" || usPoliticsIn(t) || countriesIn(t).includes("us");
-    if (usHere) return !beyondIn(t, ["us"]) && !placeSignals({ title: t }).home;
+    if (usHere) return !beyondIn(t, ["us"]) && !placeSignals({ title: t }).home && !elsewhere();
     if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || "").split("?")[0]))) return false;
-    return !beyondIn(t.replace(OWN_COUNTRY, " "), ["au", "ca", "gb"]);
+    return !beyondIn(t.replace(OWN_COUNTRY, " "), ["au", "ca", "gb"]) && !elsewhere();
   }
   function belgianSubject(it = {}) {
     const head = String(it.title || "");
@@ -5399,7 +5401,11 @@ var HootCore = (() => {
     const prevHeads = previous ? previousHeads(sigAll, previous, now) : [];
     const shownBefore = (id) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s));
     const sameAsPrevious = (id, sid) => shownBefore(id) && !againOf(id, sid).vervolg;
-    const localWide = (w) => !bigWide(w) && localAbroad([wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)], { desk: storyById.get(w.storyId)?.desk ?? null });
+    const localWide = (w) => {
+      const st = storyById.get(w.storyId) || {};
+      const xs = [wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)];
+      return !bigWide(w) && localAbroad(xs, { desk: st.desk ?? null, publishers: st.publisherCountries || coverageOf(xs.filter(Boolean)).publisherCountries });
+    };
     const free2 = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
     const wide0 = (global.wide || []).find((w) => free2(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free2(w) && bigWide(w)) || (global.wide || []).find((w) => free2(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free2).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
     let wide = wide0 ? { ...wide0, item: wideLead(wide0) } : null;
@@ -5551,17 +5557,18 @@ var HootCore = (() => {
     const touchesChoice = (e) => {
       const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
       const hit = p.members?.length ? personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest : null;
-      return !!hit && hit.pts > 0 && hit.shown !== false && !PLACE_HIT(hit) && hit.f !== "wereld" && hit.origin !== "geleerd";
+      return !!hit && hit.pts > 0 && hit.shown !== false && !PLACE_HIT(hit) && hit.f !== "wereld" && hit.origin === "gekozen";
     };
     let deferLocal = true;
     const deferred = [];
-    const localOf = (e) => {
+    const rawLocal = (e) => {
       const head = itemAny.get(e.leadId || e.id);
       if (!head || e.desk === "bubbel") return false;
       const st = storyById.get(e.kind === "story" ? e.id : serverStory(e)) || {};
       const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean);
-      return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs) && !touchesChoice(e);
+      return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, publishers: st.publisherCountries || coverageOf(xs).publisherCountries }) && !majorNews(st, xs);
     };
+    const localOf = (e) => rawLocal(e) && !touchesChoice(e);
     const fillDesks = /* @__PURE__ */ new Map();
     let capFill = true;
     const fillDeskOf = (e) => (e.desk === EXTERN ? e.fromDesk : e.desk) || null;
@@ -5650,7 +5657,7 @@ var HootCore = (() => {
     const storyOfEntry = (e) => storyById.get(e.kind === "story" ? e.id : serverStory(e)) || {};
     const placeOk = (e) => e.desk !== "bubbel" && e.desk !== WIDE && !e.held && hasNews(e);
     const opener = (e) => {
-      if (!placeOk(e) || localOf(e)) return false;
+      if (!placeOk(e) || rawLocal(e)) return false;
       const xs = knownOf(e);
       const head = itemAny.get(e.leadId || e.id);
       if (head && kindOf(head) !== "nieuws" && !bigLight(head)) return false;
@@ -5663,12 +5670,13 @@ var HootCore = (() => {
     };
     const bigOpen = (e) => majorNews(storyById.get(e.kind === "story" ? e.id : serverStory(e)) || e, knownOf(e));
     const chosenHit = (e) => !!e.parts?.interest && e.parts.interest.shown !== false && e.parts.interest.pts > 0;
-    if (entries.length > 1 && !(placeOk(entries[0]) && bigOpen(entries[0]))) {
+    const firstOk = !!entries[0] && placeOk(entries[0]) && !rawLocal(entries[0]);
+    if (entries.length > 1 && !(firstOk && bigOpen(entries[0]))) {
       const cands = entries.map((e, i) => ({ e, i })).filter(({ e, i }) => i > 0 && opener(e));
       const big = cands.filter(({ e }) => bigOpen(e)).sort((a, b) => pubsOf(b.e) - pubsOf(a.e) || a.i - b.i)[0];
-      const keep = !big && placeOk(entries[0]) && (entries[0].front || chosenHit(entries[0]));
+      const keep = !big && firstOk && (entries[0].front || chosenHit(entries[0]));
       const strong = !big && !keep && prof.interests.size ? cands.filter(({ e }) => chosenHit(e)).sort((a, b) => (b.e.w || 0) - (a.e.w || 0) || a.i - b.i)[0] : null;
-      const pick = big || strong;
+      const pick = big || strong || (!keep && placeOk(entries[0]) && !firstOk ? cands[0] : null);
       if (pick) entries.unshift(...entries.splice(pick.i, 1));
     }
     curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => e.kind === "story" ? storyById.get(e.id) : null });

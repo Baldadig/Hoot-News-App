@@ -205,21 +205,27 @@ const NL_ANCHOR = W(['nederland\\p{L}*', 'dutch', 'holland\\p{L}*'])
 // - een deelstaat of provincie van een ander land in de kop (Australië, Canada, de VS), of de binnenlandrubriek van een
 //   buitenlandse titel in de link (/australia-news/, /us-news/, /uk-news/, /nyregion/), ook dan zonder ander land.
 // Of het verhaal breder speelt (groot nieuws: majorNews, sinds de landenregel altijd met een tweede land), beslist de
-// aanroeper: `items` zijn de stukken, de kop eerst. Een Amerikaanse staat of stad herkent countriesIn (dubbelcheck A6),
+// aanroeper: `items` zijn de stukken, de kop eerst. Brengt ook een uitgever van hier het verhaal (`publishers`: de landen
+// van de uitgevers van de hele gebeurtenis, publisherCountries; een Nederlandse of Vlaamse, zoals homeCovered in
+// shared/edition-policy.mjs), dan is het geen lokaal nieuws van elders: dan vond de pers hier het nieuws (tweede keuring
+// persona's 14 november: de uitslag van de Democraten bij NOS en NRC). Een Britse krant over Amerika telt niet: de
+// Guardian en de BBC brengen ook Amerikaans binnenland. Een Amerikaanse staat of stad herkent countriesIn (dubbelcheck A6),
 // één lijst voor de rubriek en voor lokaal nieuws van elders.
 const OTHER_STATES = W(['new south wales', 'nsw', 'queensland', 'tasmani\\p{L}*', 'western australia', 'south australia', 'northern territory', 'victorian', 'ontario', 'quebec', 'québec', 'alberta', 'british columbia', 'manitoba', 'saskatchewan', 'nova scotia'])
+const HOME_PUBLISHERS = new Set(['NL', 'BE'])
 const LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i
 // De landen van een deelstaat of binnenlandrubriek: hun eigen naam maakt een stuk niet breder.
 const OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi
 const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
-export function localAbroad(items = [], { desk = null } = {}) {
+export function localAbroad(items = [], { desk = null, publishers = [] } = {}) {
   const head = items.find(Boolean)
   const t = String(head?.title || '')
   if (!t) return false
+  const elsewhere = () => publishers.some((c) => HOME_PUBLISHERS.has(String(c).toUpperCase()))
   const usHere = desk === 'vs' || usPoliticsIn(t) || countriesIn(t).includes('us')
-  if (usHere) return !beyondIn(t, ['us']) && !placeSignals({ title: t }).home
+  if (usHere) return !beyondIn(t, ['us']) && !placeSignals({ title: t }).home && !elsewhere()
   if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || '').split('?')[0]))) return false
-  return !beyondIn(t.replace(OWN_COUNTRY, ' '), ['au', 'ca', 'gb'])
+  return !beyondIn(t.replace(OWN_COUNTRY, ' '), ['au', 'ca', 'gb']) && !elsewhere()
 }
 
 // Gaat dit stuk over België? Voor de rubriek boven een plek bij een lezer in Vlaanderen (persona's 14 november, punt 6: voor
