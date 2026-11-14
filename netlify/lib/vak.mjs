@@ -341,15 +341,55 @@ const textOf = (i) => `${i.title} ${(i.summary || '').slice(0, 300)}`
 // Hetzelfde onderwerp: drie gedeelde woorden in de kop, twee gedeelde zeldzame woorden in de
 // kop, of drie in kop en intro samen. Zeldzaam (`df`): in hooguit twee stukken van de week;
 // "meta" en "ai" staan overal, "dv360" of "apple music" niet.
+//
+// Cijfers en namen (Selectie-review 14 november, punt 3). "Nintendo", "Switch" en "2" maakten van een recensie van
+// Guardians of the Galaxy en drie berichten over de verkoop van de Switch 2 één verhaal. Nu:
+// - een klein getal, een versienummer of een jaartal telt niet als gedeeld woord ("2", "27.3", "2026"); een getal van
+//   drie cijfers of meer wel ("2.800 jaar", "DV360"), maar nooit als enige grond;
+// - er moet minstens één gedeeld inhoudswoord bij zijn dat geen naam is ("prijsverhoging", "biennial", "minus"), of
+//   minstens vier gedeelde namen en getallen samen (Peter Isaac, Jumbo, België: dezelfde persoon bij hetzelfde bedrijf).
+// Een naam herkennen we aan de schrijfwijze in de twee stukken zelf: in een gewone zin (kop of intro) met een hoofdletter
+// en nergens met een kleine letter, of met een hoofdletter binnen het woord (iPhone, watchOS). Een kop met Elk Woord Met
+// Een Hoofdletter zegt alleen iets via zijn kleine letters; komt een woord verder nergens voor, dan telt het als gewoon
+// woord. Een gewoon woord vooraan in de zin ("Recensie", "Kabinet") kan zo voor een naam doorgaan; dat is de veilige kant.
+const CASE_TOKEN = /[\p{L}\p{N}+]+/gu
+const titleCase = (t = '') => {
+  const ws = (t.match(/\p{L}{4,}/gu) || []).filter((w) => !STOP.has(w.toLowerCase()))
+  return ws.length >= 3 && ws.filter((w) => /^\p{Lu}/u.test(w)).length / ws.length >= 0.75
+}
+function nameWords(...items) {
+  const up = new Set()
+  const low = new Set()
+  const mixed = new Set()
+  for (const it of items) {
+    for (const [text, plain] of [
+      [it.title || '', !titleCase(it.title)],
+      [(it.summary || '').slice(0, 300), true],
+    ]) {
+      for (const [tok] of text.matchAll(CASE_TOKEN)) {
+        const w = tok.toLowerCase()
+        if (/\p{Ll}\p{Lu}/u.test(tok)) mixed.add(w)
+        if (/^\p{Ll}/u.test(tok)) low.add(w)
+        else if (plain && /^\p{Lu}/u.test(tok)) up.add(w)
+      }
+    }
+  }
+  return new Set([...mixed, ...[...up].filter((w) => !low.has(w))])
+}
+const counts = (w) => !/\d/.test(w) || (w.replace(/\D/g, '').length >= 3 && !/^(19|20)\d\d$/.test(w))
 export function sameSubject(a, b, df = new Map()) {
   if (a.url && a.url === b.url) return true
   const rare = (w) => (df.get(w) || 0) <= 2
+  const names = nameWords(a, b)
+  const content = (w) => !/\d/.test(w) && !names.has(w)
+  const grounded = (ws) => ws.some(content) || ws.length >= 4
   const ta = words(a.title)
   const tb = words(b.title)
-  const shared = [...ta].filter((w) => tb.has(w))
-  if (shared.length >= 3 || shared.filter(rare).length >= 2) return true
+  const shared = [...ta].filter((w) => tb.has(w) && counts(w))
+  if ((shared.length >= 3 || shared.filter(rare).length >= 2) && grounded(shared)) return true
   const wb = words(textOf(b))
-  return [...words(textOf(a))].filter((w) => wb.has(w) && rare(w)).length >= 3
+  const both = [...words(textOf(a))].filter((w) => wb.has(w) && rare(w) && counts(w))
+  return both.length >= 3 && grounded(both)
 }
 
 const WEIGHT = { expert: 3, vakblad: 2, curator: 2, community: 1, officieel: 1 }
@@ -441,18 +481,20 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
     }
     const hidden = new Set() // stond deze week al in een Editie: niet in de top
     const scored = groups.map((g) => {
-      const srcs = new Set(g.items.map((i) => i.source))
+      // Bronnen die erover schreven: een curator (Sidebar) linkt alleen en telt niet mee (Selectie-review, punt 3).
+      const srcs = new Set(g.items.filter((i) => byId.get(i.source).kind !== 'curator').map((i) => i.source))
       // Gekozen door Sidebar telt als signaal als een andere bron het stuk (of onderwerp) ook heeft.
       const picked = g.items.some((i) => byId.get(i.source).kind === 'curator') && g.items.some((i) => byId.get(i.source).kind !== 'curator')
       // Het stuk dat we tonen: van de zwaarste bron; Sidebar zelf alleen als er niets anders is.
       const rank = (i) => (byId.get(i.source).kind === 'curator' ? 0 : WEIGHT[byId.get(i.source).kind]) * 10 + (i.author ? 2 : 0) + (i.summary ? 1 : 0)
       const lead = [...g.items].sort((a, b) => rank(b) - rank(a) || (a.publishedAt < b.publishedAt ? -1 : 1))[0]
       const src = byId.get(lead.source)
-      const extra = 2.5 * (srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
+      const extra = 2.5 * Math.max(0, srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
       // Leesvoer: het gewicht eerst, de rest alleen bij gelijke stand (extra blijft ruim onder de 100).
       const score = LEESVOER.has(f.id) ? WEIGHT[src.kind] * 100 + extra : WEIGHT[src.kind] + extra
+      // Geen telregel ("N vakbronnen schreven erover") meer: de andere bronnen staan bij naam onder de kaart ("Ook bij …",
+      // `also`), web en app gelijk (Selectie-review, punt 3).
       const why = []
-      if (srcs.size > 1) why.push(`${srcs.size} vakbronnen schreven erover`)
       const chooser = g.items.map((i) => byId.get(i.source)).find((x) => x.kind === 'curator')
       if (picked || src.kind === 'curator') why.push(`Gekozen door de redactie van ${chooser.name}`)
       if (src.kind === 'expert' && src.about) why.push(src.about) // de naam staat al bij de bron
@@ -464,7 +506,11 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
         sourceName: curator ? prettyHost(lead.url) : lead.sourceName,
         via: curator ? src.name : null,
         why,
-        also: g.items.filter((i) => i.source !== lead.source && byId.get(i.source).kind !== 'curator' && cleanLink(i.url) !== cleanLink(lead.url)).map((i) => ({ sourceName: i.sourceName, url: i.url, title: i.title })),
+        // Ook bij: elke andere bron één keer, bij naam (niet drie keer Eurogamer).
+        also: g.items
+          .filter((i) => i.source !== lead.source && byId.get(i.source).kind !== 'curator' && cleanLink(i.url) !== cleanLink(lead.url))
+          .filter((i, k, all) => all.findIndex((x) => x.sourceName === i.sourceName) === k)
+          .map((i) => ({ sourceName: i.sourceName, url: i.url, title: i.title })),
         score,
       }
       if (inEditie(g.items)) hidden.add(entry)
