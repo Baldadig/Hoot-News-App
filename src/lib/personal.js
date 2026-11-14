@@ -14,7 +14,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem } from '../../netlify/lib/stories.mjs'
+import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
@@ -681,16 +681,45 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (k >= 0) mergeInto(k, xs.map((i) => i.id))
   }
   entries = accepted
-  // Binnenland blijft de opening, ook bij een combinatie met Wereld en bij serveraanvulling.
-  // De stukken van een plek die dit toestel kent (voor plek 01: openWithNews).
+  // De opening (persona's 14 november, punt 3; keuze van Alex: groot nieuws gaat voor). Plek 01 is groot nieuws of het
+  // sterkste stuk uit een gekozen interesse, niet vanzelf Binnenland: wie Binnenland koos, opende elke Editie met het
+  // eerste binnenlandse stuk, ook een regionaal stuk van negen uur oud met één bron boven een wereldwijde storing met 27.
+  // - Staat er groot nieuws (majorNews) in de Editie en is plek 01 dat niet, dan opent het grootste (de meeste uitgevers;
+  //   bij gelijke stand de volgorde van de Editie). Is plek 01 al groot nieuws, dan blijft die staan.
+  // - Geen groot nieuws: is plek 01 de voorpagina of een gekozen interesse, dan blijft die; anders opent het sterkste stuk
+  //   met een gekozen interesse als reden (het gewicht van de selectie). Binnenland is dan een interesse als alle andere.
+  // Nooit Buiten je bubbel, Waar iedereen over schrijft of een plek die zonder nieuw feit blijft staan; alleen een plek
+  // met nieuws (geen sport of cultuur uit het extra blok), geen kuriositeit of verhaal over een bekend persoon dat geen
+  // zwaar nieuws is, en zonder Wereld geen buitenlands verhaal onder het plafond (31 oktober: wie Binnenland koos zonder
+  // Wereld, opent met Nederland, niet met de paus of Wall Street). De stukken van een plek die dit toestel kent (ook voor
+  // openWithNews).
   const knownOf = (e) => [...membersOf(e)].map((id) => itemAny.get(id)).filter(Boolean)
   const hasNews = (e) => knownOf(e).some((i) => !isOpinion(i))
-  if (prof.interests.has('binnenland')) {
-    const first = entries.findIndex(e => {
-      const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
-      return e.desk !== 'bubbel' && !e.held && !p.abroad && ['binnenland','regio'].includes(p.desk) && hasNews(e)
-    })
-    if (first > 0) entries.unshift(...entries.splice(first, 1))
+  const storyOfEntry = (e) => storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
+  const placeOk = (e) => e.desk !== 'bubbel' && e.desk !== WIDE && !e.held && hasNews(e)
+  const opener = (e) => {
+    if (!placeOk(e)) return false
+    const xs = knownOf(e)
+    const head = itemAny.get(e.leadId || e.id)
+    if (head && kindOf(head) !== 'nieuws' && !bigLight(head)) return false
+    if (curioStory(storyOfEntry(e), xs) || (peopleStory(xs, sources.length ? sources : undefined) && !weightyStory(storyOfEntry(e), xs, sources.length ? sources : undefined))) return false
+    return !(capAbroad && policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e).capped)
+  }
+  const pubsOf = (e) => {
+    const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e))
+    return st?.publisherCount ?? st?.sourceCount ?? e.sourceCount ?? 1
+  }
+  const bigOpen = (e) => majorNews(storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || e, knownOf(e))
+  const chosenHit = (e) => !!e.parts?.interest && e.parts.interest.shown !== false && e.parts.interest.pts > 0
+  // De voorpagina van de selectie (`front`, voor iedereen gelijk) blijft op 01 als er geen groter nieuws onder staat.
+  // Wat de selectie als groot nieuws bovenaan zette, blijft staan (ook buitenlands nieuws zonder Wereld: dat zakt niet).
+  if (entries.length > 1 && !(placeOk(entries[0]) && bigOpen(entries[0]))) {
+    const cands = entries.map((e, i) => ({ e, i })).filter(({ e, i }) => i > 0 && opener(e))
+    const big = cands.filter(({ e }) => bigOpen(e)).sort((a, b) => pubsOf(b.e) - pubsOf(a.e) || a.i - b.i)[0]
+    const keep = !big && placeOk(entries[0]) && (entries[0].front || chosenHit(entries[0]))
+    const strong = !big && !keep && prof.interests.size ? cands.filter(({ e }) => chosenHit(e)).sort((a, b) => (b.e.w || 0) - (a.e.w || 0) || a.i - b.i)[0] : null
+    const pick = big || strong
+    if (pick) entries.unshift(...entries.splice(pick.i, 1))
   }
   // Curiosa nooit in de top 3 (Redacteur 3b · 5): een kuriositeit of licht verhaal schuift naar plek 6.
   curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => (e.kind === 'story' ? storyById.get(e.id) : null) })

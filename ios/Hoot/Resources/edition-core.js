@@ -3591,6 +3591,20 @@ var HootCore = (() => {
     entries.splice(0, entries.length, ...rest);
     return entries;
   }
+  var PEOPLE_PATH = /\/(koningshuis|royalty|royals?|royal-family|boulevard|showbi\w*|sterren|celebrit\w*|entertainment|people|vips?)\//;
+  var WEIGHTY = /* @__PURE__ */ new Set(["economie", "bedrijven", "werk", "geld", "energie", "nederland", "europa", "verkiezingen", "vs-politiek", "geopolitiek", "oekraine", "middenoosten", "klimaat", "migratie"]);
+  var PEOPLE_SHARE = 4;
+  var WEIGHTY_SHARE = 3;
+  function peopleStory(items = [], sources = SOURCES) {
+    const cat = (id) => (sources === SOURCES ? SOURCE_BY_ID.get(id) : sources.find((x) => x.id === id))?.cat;
+    const people = items.filter((i) => i && (PEOPLE_PATH.test(String(i.url || "").split("?")[0].toLowerCase()) || cat(i.source) === "cultuur"));
+    return items.length > 0 && people.length * PEOPLE_SHARE >= items.length;
+  }
+  function weightyStory(story = {}, items = [], sources = SOURCES) {
+    if (!items.length || peopleStory(items, sources) || curioStory(story, items) || sportStory(story, items)) return false;
+    const heavy = items.filter((i) => i && keywordTopics(`${i.title || ""} ${i.summary || ""}`).some((t) => WEIGHTY.has(t)));
+    return heavy.length * WEIGHTY_SHARE >= items.length;
+  }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   var DESK_MIN_PUBS = 3;
   var SPREAD_MIN = 3;
@@ -4560,12 +4574,29 @@ var HootCore = (() => {
     entries = accepted;
     const knownOf = (e) => [...membersOf(e)].map((id) => itemAny.get(id)).filter(Boolean);
     const hasNews = (e) => knownOf(e).some((i) => !isOpinion(i));
-    if (prof.interests.has("binnenland")) {
-      const first = entries.findIndex((e) => {
-        const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
-        return e.desk !== "bubbel" && !e.held && !p.abroad && ["binnenland", "regio"].includes(p.desk) && hasNews(e);
-      });
-      if (first > 0) entries.unshift(...entries.splice(first, 1));
+    const storyOfEntry = (e) => storyById.get(e.kind === "story" ? e.id : serverStory(e)) || {};
+    const placeOk = (e) => e.desk !== "bubbel" && e.desk !== WIDE && !e.held && hasNews(e);
+    const opener = (e) => {
+      if (!placeOk(e)) return false;
+      const xs = knownOf(e);
+      const head = itemAny.get(e.leadId || e.id);
+      if (head && kindOf(head) !== "nieuws" && !bigLight(head)) return false;
+      if (curioStory(storyOfEntry(e), xs) || peopleStory(xs, sources.length ? sources : void 0) && !weightyStory(storyOfEntry(e), xs, sources.length ? sources : void 0)) return false;
+      return !(capAbroad && policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e).capped);
+    };
+    const pubsOf = (e) => {
+      const st = storyById.get(e.kind === "story" ? e.id : serverStory(e));
+      return st?.publisherCount ?? st?.sourceCount ?? e.sourceCount ?? 1;
+    };
+    const bigOpen = (e) => majorNews(storyById.get(e.kind === "story" ? e.id : serverStory(e)) || e, knownOf(e));
+    const chosenHit = (e) => !!e.parts?.interest && e.parts.interest.shown !== false && e.parts.interest.pts > 0;
+    if (entries.length > 1 && !(placeOk(entries[0]) && bigOpen(entries[0]))) {
+      const cands = entries.map((e, i) => ({ e, i })).filter(({ e, i }) => i > 0 && opener(e));
+      const big = cands.filter(({ e }) => bigOpen(e)).sort((a, b) => pubsOf(b.e) - pubsOf(a.e) || a.i - b.i)[0];
+      const keep = !big && placeOk(entries[0]) && (entries[0].front || chosenHit(entries[0]));
+      const strong = !big && !keep && prof.interests.size ? cands.filter(({ e }) => chosenHit(e)).sort((a, b) => (b.e.w || 0) - (a.e.w || 0) || a.i - b.i)[0] : null;
+      const pick = big || strong;
+      if (pick) entries.unshift(...entries.splice(pick.i, 1));
     }
     curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => e.kind === "story" ? storyById.get(e.id) : null });
     heldDown(entries);
