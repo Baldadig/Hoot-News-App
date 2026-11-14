@@ -143,13 +143,16 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
     : Promise.resolve(new Map())
   // Luister verder: na de Editie (die rekent er niet mee), alleen op de live verhalen. De app toont het; het web pas met
   // HOOT_LUISTER_WEB=aan (meta.luisterWeb hieronder).
-  // Binnen de tijd: na KOPPEL_MS vanaf de start van de ronde wordt er niet meer gekoppeld (luister.mjs, luisterRonde).
-  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), deadline: roundStart + KOPPEL_MS })
+  // Het koppelen gebeurt altijd; na KOPPEL_MS vanaf de start zegt de proef alleen `overTijd` (luister.mjs, luisterRonde).
+  // Het is rekenwerk en loopt terwijl de beelden gemeten worden (wachten op het net): zo kost het de ronde weinig tijd.
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
   // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
   const outById = new Map(out.map(i => [i.id, i]))
   const beforeImages = JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))
-  await measureFeedImages([...edition.public.items, ...stories.map(st => outById.get(st.leadId)).filter(Boolean), ...out, ...edition.snapshot.items], now)
+  const imagesP = measureFeedImages([...edition.public.items, ...stories.map(st => outById.get(st.leadId)).filter(Boolean), ...out, ...edition.snapshot.items], now)
+  imagesP.catch(() => {}) // de fout komt hieronder bij `await imagesP`, niet als losse afwijzing tijdens het koppelen
+  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), deadline: roundStart + KOPPEL_MS })
+  await imagesP
   if (beforeImages !== JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))) {
     await kvSet(editionCacheKey(edition.public.id), edition.snapshot).catch(() => {})
   }
