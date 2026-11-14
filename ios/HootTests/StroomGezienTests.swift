@@ -105,6 +105,20 @@ import XCTest
         XCTAssertEqual(volger.grens(key, items: stroom, gezien: alles), g, "je las alles, maar de lijst blijft staan")
         volger.vergeet()
         XCTAssertEqual(volger.grens(key, items: stroom, gezien: alles)?.id, nil)
+        // Lezen zet niets vast: vastgezet geeft alleen wat er al staat.
+        XCTAssertNil(volger.vastgezet("nieuw"))
+        XCTAssertNil(volger.vastgezet("nieuw"), "een keer lezen zet niets vast")
+        XCTAssertNotNil(volger.vastgezet(key), "wat vaststaat, blijft staan")
+    }
+
+    // Tweede keuring: het tekenen van de Stroom zet geen grens vast; dat gebeurt in .onChange (geen bijwerking in body).
+    func testBodyZetGeenGrensVast() throws {
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Hoot/Views/StreamView.swift")
+        let bron = try String(contentsOf: url, encoding: .utf8)
+        let body = bron.components(separatedBy: "ScrollViewReader { scroll in").first ?? ""
+        XCTAssertFalse(body.contains("volger.grens("), "body leest alleen (volger.vastgezet)")
+        XCTAssertTrue(body.contains("volger.vastgezet("))
+        XCTAssertTrue(bron.contains("_ = volger.grens(weergave, items: items, gezien: store.streamGezien)"), "vastzetten in .onChange")
     }
 
     // Tweede keuring: "Hier was je gebleven" alleen als je onder de grens echt iets zag. Verse opslag: nooit. Gelijk

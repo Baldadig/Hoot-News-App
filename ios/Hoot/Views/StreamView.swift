@@ -19,6 +19,7 @@ struct StreamView: View {
     // hoeveel ouder nieuws je opende.
     @State private var volger = StroomVolger()
     @State private var older = 0
+    @State private var bezoek = 0 // telt op als de app naar de achtergrond gaat: dan staan de grenzen opnieuw vast
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
     @State private var knopAs: CGFloat? // de knop rechtsboven: het voorste logo van de stapel ligt eronder
@@ -74,7 +75,10 @@ struct StreamView: View {
             })
             // De lijst houdt op na het laatste bericht dat je in deze weergave nog niet zag; wat je al zag alleen met
             // de knop. De grens staat vast zodra de weergave er is (StroomVolger): niets beweegt terwijl je leest.
-            let eindGrens = rub == "bubbel" ? nil : volger.grens(Self.weergave(rub, picks), items: items, gezien: store.streamGezien)
+            // Tekenen zet niets vast: dat doet .onChange hieronder. Tot dat moment dezelfde berekening zonder te
+            // bewaren, zodat er niets verspringt.
+            let weergave = Self.weergave(rub, picks)
+            let eindGrens = rub == "bubbel" ? nil : volger.vastgezet(weergave) ?? (items.isEmpty ? nil : StroomEinde.grens(items, gezien: store.streamGezien))
             let bIdx = eindGrens.map { StroomEinde.index(items, grens: $0) } ?? items.count
             let cap = StroomEinde.cap(count: items.count, grensIndex: bIdx, older: older)
             // "Hier was je gebleven" alleen als je onder de grens echt iets zag (vastgelegd met de grens).
@@ -206,8 +210,12 @@ struct StreamView: View {
                 if lijn.open { lijn.open = false }
                 zie(volger.scrolt(), in: items) // zelf scrollen: vanaf nu telt wat je ziet
             }
+            // De grens vastzetten: bij het openen van een weergave, zodra er berichten zijn, en na de achtergrond.
+            .onChange(of: "\(weergave)|\(items.isEmpty)|\(bezoek)", initial: true) {
+                if rub != "bubbel" { _ = volger.grens(weergave, items: items, gezien: store.streamGezien) }
+            }
             // Stilstaand kijken telt ook: wat al even helemaal in beeld staat.
-            .task(id: Self.weergave(rub, picks)) {
+            .task(id: weergave) {
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .milliseconds(500))
                     zie(volger.tik(), in: items)
@@ -241,7 +249,7 @@ struct StreamView: View {
         .onChange(of: rubriek) { older = 0; volger.nieuweWeergave() }
         .onChange(of: picks) { categoryTask?.cancel(); older = 0; volger.nieuweWeergave() }
         // Terug uit de achtergrond is een nieuw bezoek: dan bepalen we elke grens opnieuw.
-        .onChange(of: phase) { _, now in if now == .background { volger.vergeet() } }
+        .onChange(of: phase) { _, now in if now == .background { volger.vergeet(); bezoek += 1 } }
     }
 
     // De weergave: rubriek en bronkeuze. Elke weergave heeft een eigen grens (positionKey op het web).

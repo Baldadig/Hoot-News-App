@@ -104,6 +104,9 @@ final class StroomVolger {
         return g
     }
 
+    // De vastgezette grens van een weergave, zonder iets vast te zetten: voor het tekenen (StreamView.body).
+    func vastgezet(_ sleutel: String) -> StroomEinde.Grens? { grenzen[sleutel] }
+
     // Een nieuw bezoek (de app kwam terug uit de achtergrond): alle grenzen opnieuw bepalen.
     func vergeet() { grenzen = [:] }
 
