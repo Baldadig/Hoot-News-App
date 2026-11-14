@@ -26,7 +26,7 @@ test('geen "abonnement" of "gratis" met kleine letter als label in app of web', 
 
 test('de compacte bronregel en de kaart zeggen allebei "Abonnement"', () => {
   const swift = read('ios/Hoot/Views/Components.swift')
-  assert.match(swift, /paid == true \? "Abonnement" : nil/)
+  assert.match(swift, /(paid == true|isPaid) \? "Abonnement" : nil/) // isPaid: ook een betaalde vakbron in de Selectie (SourceLine.paid)
   assert.match(swift, /Text\("Abonnement"\)\.font\(\.ui\(\.footnote, \.semibold\)\)/)
   const jsx = read('src/components/Items.jsx')
   assert.match(jsx, /<span className="srcbtn__read"> · Abonnement<\/span>/)
