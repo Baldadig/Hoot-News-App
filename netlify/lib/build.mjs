@@ -35,6 +35,7 @@ import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
+import { loadEpisodes, luisterRonde, LUISTER_MS } from './luister.mjs'
 import { isBlog, introShown } from '../../shared/aanhef.mjs'
 export { withoutPromo } from './text.mjs'
 import { kvGet, kvSet, kvUpdate, remember, storageMode } from './kv.mjs'
@@ -65,6 +66,8 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const avatars = remember('avatars-v1', DAY, loadSourceAvatars, { now, valid: (m) => Object.values(m).some(Boolean) })
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
   const profiles = handles.length === 0 ? Promise.resolve({}) : remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
+  // Luister verder (stap 2, stil): de officiële nieuwspodcasts naast de bronnen, binnen dezelfde tijd (netlify/lib/luister.mjs).
+  const episodesP = loadEpisodes({ now, deadline: Date.now() + LUISTER_MS, get: kvGet, set: kvSet }).catch(() => ({ episodes: [], status: {} }))
   // De hele feed per bron; daaruit twee lijsten (shared/stroom.mjs).
   // Binnen de tijd (fetchSources): een trage bron houdt de rest niet op; wat hij later brengt, bewaart late() naast het wegschrijven (refresh.mjs).
   const [{ fetched, late }, bskyGroups, registry, stored] = await Promise.all([
@@ -136,6 +139,8 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
         itemsById: new Map([...edition.snapshot.items, ...articlePool].map((i) => [i.id, i])),
       })
     : Promise.resolve(new Map())
+  // Luister verder: na de Editie (die rekent er niet mee), alleen op de live verhalen. Web en app tonen het nog niet.
+  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }) })
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
   // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
   const outById = new Map(out.map(i => [i.id, i]))

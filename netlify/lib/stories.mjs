@@ -503,7 +503,7 @@ export function sameEvent(a, b, ext = false) {
 // Strenger dan sameEvent: twee algemene namen ("Israël", "Netanyahu") plus hetzelfde soort
 // gebeurtenis ("verkiezingen") is genoeg om maar één plek te krijgen. Zo staan er geen drie stukken
 // over één verkiezingsdag in tien verhalen.
-const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland', 'republicans', 'democrats'])
+export const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland', 'republicans', 'democrats'])
 const SUBJECT_WINDOW = 12 * 60 * 60 * 1000
 // De kernwoorden en getallen van kop en tekst samen, één keer per kenmerk.
 const textCache = new WeakMap()
