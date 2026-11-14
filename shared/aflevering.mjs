@@ -12,7 +12,7 @@
 //   3. een programmalabel vooraan in de kop ("Podcast:", "Video |", "Luister:", "Kijk:", "Watch:", "Listen:") of
 //      "(Podcast)" achteraan (Bloomberg).
 // Een woord in de slug of ergens in de kop telt nooit. Gedeeld door server en toestel (edition-core.js): geen URL-object.
-import { rubricSegments, ownIntro } from './editie-filter.mjs'
+import { rubricSegments, ownIntro, audioEpisode } from './editie-filter.mjs'
 
 const AUDIO_DIR = new Set(['podcast', 'podcasts', 'luister', 'audio'])
 const VIDEO_DIR = new Set(['video', 'videos', 'kijk'])
@@ -40,3 +40,9 @@ export function afleveringSoort(item) {
 }
 
 export const isAflevering = (item) => afleveringSoort(item) !== null
+
+// Wie mag de Editie openen? Eén regel voor kijken en luisteren (persona's 14 november, tweede keuring): een aflevering
+// (podcast, audio of video: isAflevering) en een aflevering om te luisteren (audioEpisode, ook met een eigen intro) opent
+// nooit, ook niet als kop van een verhaal. Een podcast is daarbij nooit de kop van een plek (audioEpisode, dubbelcheck A3);
+// een video mag dat wel zijn (besluit B2), maar niet op plek 01. Onbekend (geen stuk) laat de plek staan.
+export const opensEdition = (item) => !item || (!isAflevering(item) && !audioEpisode(item))

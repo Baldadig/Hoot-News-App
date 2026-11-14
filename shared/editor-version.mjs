@@ -103,6 +103,7 @@
 // uitgever brengt, is geen lokaal nieuws van elders (localAbroad, publishers).
 // Persona · herstel na de tweede keuring, punt 10: buiten je bronnen alleen gratis, ook voor de basis uit de algemene Editie
 // (leadOk in composePersonal: leesbaar en gratis, of een bron die je volgt).
+// Persona · tweede keuring, open punt 1: een video of podcast opent nooit de Editie (opensEdition in openWithNews).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-3'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

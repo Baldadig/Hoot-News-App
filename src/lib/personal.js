@@ -17,6 +17,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, sameEventToMerge, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition, audioEpisode } from '../../shared/editie-filter.mjs'
+import { opensEdition } from '../../shared/aflevering.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME, belgianSubject, localAbroad } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT, showbizzKind } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
@@ -896,11 +897,14 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   heldDown(entries)
   // Plek 01 opent met nieuws, met een nieuwskop; liefst uit je eigen bronnen (keuring 6 november 2026).
   // Alleen een leesbare kop (de taalregel), in de rubriek van de huidige kop van plek 01.
+  // Geen video of podcast op 01 (opensEdition) en geen lokaal nieuws van elders (rawLocal), met een kop die je kunt lezen
+  // en die gratis is als hij niet van je eigen bronnen komt (leadOk).
   openWithNews(entries, {
     itemsOf: knownOf,
+    ok: (e) => !rawLocal(e) && knownOf(e).some((i) => !isOpinion(i) && opensEdition(i) && leadOk(i)),
     pick: (xs, all) => {
       const rubric = rubricOf(itemAny.get(entries[0].leadId || entries[0].id) || xs[0])
-      return leadPool(leadCandidates(xs.filter((i) => readableIn(i, rubric)), followed, preferred, now, { role: 'front' }), all, now, (i) => followed.has(i.source))[0]
+      return leadPool(leadCandidates(xs.filter((i) => readableIn(i, rubric) && freeOrOwn(i)), followed, preferred, now, { role: 'front' }), all, now, (i) => followed.has(i.source))[0]
     },
   })
 

@@ -2529,6 +2529,7 @@ var HootCore = (() => {
     return null;
   }
   var isAflevering = (item) => afleveringSoort(item) !== null;
+  var opensEdition = (item) => !item || !isAflevering(item) && !audioEpisode(item);
 
   // shared/editor.mjs
   var FOREIGN_DESKS = /* @__PURE__ */ new Set(["buitenland", "vs", "middenoosten", "oekraine"]);
@@ -4547,19 +4548,24 @@ var HootCore = (() => {
     xs = prefer(xs, (i) => !/\?/.test(i.title || ""));
     return dutchFirst(freshest(xs));
   }
-  function openWithNews(entries, { itemsOf, pick }) {
+  function openWithNews(entries, { itemsOf, pick, ok = () => true }) {
     const news = (e2) => itemsOf(e2).some((i) => i && !isOpinion(i));
-    const k = entries.findIndex(news);
+    const leadOf = (e2) => itemsOf(e2).find((i) => i && i.id === (e2.leadId || e2.id));
+    const opens = (e2) => ok(e2) && itemsOf(e2).some((i) => i && !isOpinion(i) && opensEdition(i)) && (e2.kind === "story" || opensEdition(leadOf(e2)));
+    let k = entries.findIndex(opens);
+    if (k < 0) k = entries.findIndex(news);
     if (k < 0) return entries;
     if (k > 0) entries.unshift(...entries.splice(k, 1));
     const e = entries[0];
     if (e.kind !== "story") return entries;
     const items = itemsOf(e).filter(Boolean);
     const lead = items.find((i) => i.id === e.leadId);
-    if (!lead || !isOpinion(lead) && !verdictTitle(lead)) return entries;
-    const fresh = items.filter((i) => !isOpinion(i));
+    const playable = !!lead && !opensEdition(lead);
+    if (!lead || !playable && !isOpinion(lead) && !verdictTitle(lead)) return entries;
+    const fresh = items.filter((i) => !isOpinion(i) && opensEdition(i));
+    if (!fresh.length) return entries;
     const plain2 = fresh.filter((i) => !verdictTitle(i));
-    if (!isOpinion(lead) && !plain2.length) return entries;
+    if (!isOpinion(lead) && !playable && !plain2.length) return entries;
     const next = pick(plain2.length ? plain2 : fresh, items);
     if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} };
     return entries;
@@ -5689,9 +5695,10 @@ var HootCore = (() => {
     heldDown(entries);
     openWithNews(entries, {
       itemsOf: knownOf,
+      ok: (e) => !rawLocal(e) && knownOf(e).some((i) => !isOpinion(i) && opensEdition(i) && leadOk(i)),
       pick: (xs, all) => {
         const rubric = rubricOf(itemAny.get(entries[0].leadId || entries[0].id) || xs[0]);
-        return leadPool(leadCandidates(xs.filter((i) => readableIn(i, rubric)), followed, preferred, now, { role: "front" }), all, now, (i) => followed.has(i.source))[0];
+        return leadPool(leadCandidates(xs.filter((i) => readableIn(i, rubric) && freeOrOwn(i)), followed, preferred, now, { role: "front" }), all, now, (i) => followed.has(i.source))[0];
       }
     });
     const poolById = new Map(pool.map((i) => [i.id, i]));

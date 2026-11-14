@@ -15,8 +15,9 @@
 //  2. dagoverzicht: meerdere onderwerpen achter elkaar met een opsommingsteken (" • "), of een label met een datum vooraan
 //     ("Wekdienst 14/11:", "Nieuws 5/11:"). Een overzicht is geen verhaal; de verhalen erin hebben elk hun eigen stuk.
 //  3. lege kop: één woord, of hooguit drie woorden in kapitalen (een dateline of rubriek, geen bericht).
-// Overlap bij de merge: recensies (shared/recensie.mjs, de werkkop van muziek- en gamesbronnen), deals (koopkoppen) en
-// dubbelcheck (podcast en video nooit kop) hebben eigen regels; dit vangt alleen wat daar niet onder valt.
+// Naast recensies (shared/recensie.mjs, de werkkop van muziek- en gamesbronnen) en deals (koopkoppen), alle drie in
+// excludedFromEdition. Een podcast als kop (audioEpisode) en een video of podcast op plek 01 (opensEdition in
+// shared/aflevering.mjs) hebben hun eigen regel; dit vangt alleen wat daar niet onder valt.
 // Gedeeld door server, web en toestel (edition-core.js): alleen deterministische toetsen, geen URL-object.
 
 const LABEL = /^\s*[\p{L}\p{N}][\p{L}\p{N} &'’.-]{0,30}?\s*(?:\/|\|)\s+/u

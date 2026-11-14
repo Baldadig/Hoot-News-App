@@ -12,7 +12,7 @@ import { keywordTopics } from './topics.mjs'
 import { hash } from '../../shared/util.mjs'
 import { SOURCES } from './sources.mjs'
 import { opinieBron } from '../../shared/opinie.mjs'
-import { isAflevering } from '../../shared/aflevering.mjs'
+import { isAflevering, opensEdition } from '../../shared/aflevering.mjs'
 import { SLOT_START, hhmm, amsterdamClock } from '../../shared/slot-times.mjs'
 import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, chosenDesks, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
@@ -1925,19 +1925,28 @@ export function leadPool(cands, items, now, own = null, total = items.length, co
 //   de nieuwsstukken van het verhaal, liefst zonder beschouwende kop. Een opiniestuk blijft gewoon lid.
 // `itemsOf(e)`: de bekende stukken van een plek. `pick(kandidaten, alle stukken)`: de kop. Wijzigt `entries` (de plek
 // met een nieuwe kop is een kopie).
-export function openWithNews(entries, { itemsOf, pick }) {
+// Ook geen aflevering op 01 (opensEdition in shared/aflevering.mjs: een video of podcast opent nooit, persona's 14
+// november): heeft het verhaal een nieuwsstuk dat geen aflevering is, dan wordt dat de kop; anders opent de eerste plek
+// die wel zo'n stuk heeft. `ok(e)`: wat de aanroeper verder van plek 01 eist (de persoonlijke Editie: geen lokaal nieuws
+// van elders, een kop die je kunt lezen). Heeft geen enkele plek zo'n stuk, dan zoals voorheen het eerste nieuws.
+export function openWithNews(entries, { itemsOf, pick, ok = () => true }) {
   const news = (e) => itemsOf(e).some((i) => i && !isOpinion(i))
-  const k = entries.findIndex(news)
+  const leadOf = (e) => itemsOf(e).find((i) => i && i.id === (e.leadId || e.id))
+  const opens = (e) => ok(e) && itemsOf(e).some((i) => i && !isOpinion(i) && opensEdition(i)) && (e.kind === 'story' || opensEdition(leadOf(e)))
+  let k = entries.findIndex(opens)
+  if (k < 0) k = entries.findIndex(news)
   if (k < 0) return entries
   if (k > 0) entries.unshift(...entries.splice(k, 1))
   const e = entries[0]
   if (e.kind !== 'story') return entries
   const items = itemsOf(e).filter(Boolean)
   const lead = items.find((i) => i.id === e.leadId)
-  if (!lead || (!isOpinion(lead) && !verdictTitle(lead))) return entries
-  const fresh = items.filter((i) => !isOpinion(i))
+  const playable = !!lead && !opensEdition(lead)
+  if (!lead || (!playable && !isOpinion(lead) && !verdictTitle(lead))) return entries
+  const fresh = items.filter((i) => !isOpinion(i) && opensEdition(i))
+  if (!fresh.length) return entries
   const plain = fresh.filter((i) => !verdictTitle(i))
-  if (!isOpinion(lead) && !plain.length) return entries
+  if (!isOpinion(lead) && !playable && !plain.length) return entries
   const next = pick(plain.length ? plain : fresh, items)
   if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
   return entries
