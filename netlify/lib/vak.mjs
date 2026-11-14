@@ -36,7 +36,8 @@ export const BASE_SOURCES = [
   V('ppcland', 'PPC Land', 'vakblad', ['paid-social'], 'https://ppc.land/rss/', { filter: true }),
   V('sej-paid', 'Search Engine Journal', 'vakblad', ['paid-social'], 'https://www.searchenginejournal.com/category/paid-media/feed/', { filter: true }),
   V('marketingfacts', 'Marketingfacts', 'vakblad', ['paid-social', 'seo', 'merk'], 'https://www.marketingfacts.nl/rss', { filter: true }),
-  V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ecommerce', 'ai', 'seo', 'ondernemen'], 'https://www.emerce.nl/rss', { filter: true }),
+  // Emerce: /rss stuurt door naar /feed (punt 4 van de Selectie-review, 14 november); meteen de feed zelf.
+  V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ecommerce', 'ai', 'seo', 'ondernemen'], 'https://www.emerce.nl/feed', { filter: true }),
   // UI/UX
   V('nngroup', 'Nielsen Norman Group', 'expert', ['ux'], 'https://www.nngroup.com/feed/rss/', { about: 'Onderzoek naar gebruiksvriendelijkheid' }),
   V('lukew', 'Luke Wroblewski', 'expert', ['ux'], 'https://www.lukew.com/ff/rss.asp', { about: 'Productontwerper, schrijft over interfaces' }),

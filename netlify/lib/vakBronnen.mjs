@@ -75,7 +75,7 @@ export const MORE_SOURCES = [
   V('iculture', 'iCulture', 'vakblad', ['gadgets'], 'https://www.iculture.nl/feed/'),
   V('androidworld', 'Androidworld', 'vakblad', ['gadgets'], 'https://androidworld.nl/feed/'),
   V('bright', 'Bright', 'vakblad', ['gadgets'], 'https://www.bright.nl/rss', { filter: true }),
-  V('techpulse', 'TechPulse', 'vakblad', ['gadgets'], 'https://www.techpulse.be/feed/', { filter: true }),
+  V('techpulse', 'TechPulse', 'vakblad', ['gadgets'], 'https://techpulse.be/feed/', { filter: true }), // de feed die de site zelf aangeeft (www stuurt door)
   V('clickx', 'Clickx', 'vakblad', ['gadgets'], 'https://www.clickx.be/feed/', { filter: true }),
   V('macstories', 'MacStories', 'expert', ['gadgets'], 'https://www.macstories.net/feed/', { about: 'Federico Viticci en team, diepgaand over Apple en apps' }),
   V('sixcolors', 'Six Colors', 'expert', ['gadgets'], 'https://sixcolors.com/feed/', { about: 'Jason Snell (ex-Macworld) over Apple en consumententech' }),
@@ -141,7 +141,7 @@ export const MORE_SOURCES = [
   V('quanta', 'Quanta Magazine', 'vakblad', ['wetenschap'], 'https://api.quantamagazine.org/feed/'),
   V('nemokennislink', 'NEMO Kennislink', 'vakblad', ['wetenschap'], 'https://www.nemokennislink.nl/feed.xml', { about: 'Wetenschap uitgelegd, van NEMO Science Museum', x: 'NEMOKennislink' }),
   V('skipr', 'Skipr', 'vakblad', ['zorg'], 'https://www.skipr.nl/feed/'),
-  V('zorgvisie', 'Zorgvisie', 'vakblad', ['zorg'], 'https://www.zorgvisie.nl/rss'),
+  V('zorgvisie', 'Zorgvisie', 'vakblad', ['zorg'], 'https://www.zorgvisie.nl/feed/'), // /rss stuurt naar een cookiepagina; /feed/ geeft de site zelf aan
   V('zorgwelzijn', 'Zorg+Welzijn', 'vakblad', ['zorg'], 'https://www.zorgwelzijn.nl/feed/'),
   V('nursing', 'Nursing', 'vakblad', ['zorg'], 'https://www.nursing.nl/feed/'),
   V('trouw-gezondheid', 'Trouw Gezondheid', 'vakblad', ['zorg'], 'https://www.trouw.nl/gezondheid/rss.xml'),
@@ -220,7 +220,7 @@ export const MORE_SOURCES = [
   V('filmtotaal', 'FilmTotaal', 'vakblad', ['film'], 'https://rss.filmtotaal.nl/recensies.xml'),
   V('vk-films', 'de Volkskrant Film', 'vakblad', ['film'], 'https://www.volkskrant.nl/films/rss.xml'),
   V('vk-series', 'de Volkskrant Series', 'vakblad', ['film'], 'https://www.volkskrant.nl/series/rss.xml'),
-  V('focus-film', 'Knack Focus Film', 'vakblad', ['film'], 'https://focus.knack.be/film/rss'),
+  V('focus-film', 'Knack Focus Film', 'vakblad', ['film'], 'https://focus.knack.be/film/feed/'), // /film/rss stuurt naar een inlogpagina
   V('indiewire', 'IndieWire', 'vakblad', ['film'], 'https://www.indiewire.com/c/criticism/feed/'),
   V('rogerebert', 'RogerEbert.com', 'vakblad', ['film'], 'https://www.rogerebert.com/feed'),
   // Vlaamse cultuurkritiek (13 november 2026): film, muziek en boeken, elk stuk bij het onderwerp dat past.
