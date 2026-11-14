@@ -1,6 +1,7 @@
-// De voorraad van de vakbronnen bijwerken en, als er een nieuwe week is, de Vakweek samenstellen.
+// De voorraad van de vakbronnen bijwerken en, als er een nieuwe week is, de Vakweek samenstellen. Op maandag tot de
+// middag elk uur opnieuw, met wat al in de top stond op zijn plek (Selectie-review 14 november, punt 10).
 import { kvGet, kvSet, readDoc, writeDoc, KEYS } from './kv.mjs'
-import { loadVakItems, mergePool, composeVak, vakWeek, vakRange, editieSlotIds, addOgImages, updateHealth, sourcesToLoad, oneLine } from './vak.mjs'
+import { loadVakItems, mergePool, composeVak, vakWeek, vakRange, editieSlotIds, addOgImages, updateHealth, sourcesToLoad, oneLine, recomposing, beforeNextBundle, nextBundleAt, topIds } from './vak.mjs'
 import { findEdition } from './edition-history.mjs'
 import { hash } from '../../shared/util.mjs'
 
@@ -57,13 +58,19 @@ export function refreshVak({ now = Date.now(), force = false } = {}) {
       // Wat die week al in een Editie stond, komt niet in de top (lukt het lezen niet, dan zonder).
       const editie = await editieItems(vakRange(now, since).wk).catch(() => [])
       // Beeld van het artikel zelf, waar de feed geen (goed) beeld gaf: eerst voor wat nu in de
-      // digest zou staan.
-      const shown = new Set(composeVak(pool, { now, since, editie }).fields.flatMap((f) => [...f.top, ...f.more].map((e) => e.id)))
+      // digest zou staan; in het weekend voor de komende bundel (Selectie-review, punt 10).
+      const ids = (d) => new Set(d.fields.flatMap((f) => [...f.top, ...f.more].map((e) => e.id)))
+      const shown = beforeNextBundle(now) ? ids(composeVak(pool, { now: nextBundleAt(now), since })) : ids(composeVak(pool, { now, since, editie }))
       await addOgImages(pool, { first: shown, max: 30, deadline: start + OG_MS })
       await kvSet(KEYS.vakPool, pool)
       const current = await readDoc(KEYS.vak)
-      if (current && current.week === vakWeek(now).id && !current.preview && !force) return current
-      const digest = composeVak(pool, { now, since, editie })
+      // De bundel van deze week staat er al: alleen op maandag tot de middag opnieuw samenstellen, met wat al in de top
+      // stond op zijn plek (keep). Verandert er niets, dan blijft hij staan zoals hij was.
+      const same = current && current.week === vakWeek(now).id && !current.preview
+      if (same && !force && !recomposing(now)) return current
+      const before = same ? JSON.parse(current.body) : null
+      const digest = composeVak(pool, { now, since, editie, keep: before && !force ? topIds(before) : {} })
+      if (before && !force && JSON.stringify(digest.fields) === JSON.stringify(before.fields)) return current
       const body = JSON.stringify(digest)
       const doc = { body, builtAt: new Date(now).toISOString(), etag: hash(body), week: vakWeek(now).id, preview: digest.preview }
       await writeDoc(KEYS.vak, doc)

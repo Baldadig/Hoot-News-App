@@ -232,7 +232,7 @@ function SelectieBlad({ digest = null }) {
           </div>
         </div>
       ))}
-      <p className="hint setfoot">Elke maandag het beste per onderwerp.</p>
+      <p className="hint setfoot">Elke maandag drie stukken per onderwerp.</p>
     </>
   )
 }

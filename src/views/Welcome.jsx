@@ -35,7 +35,7 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 const TRIO = [
   { kind: 'editie', title: 'Editie', text: 'Drie keer per dag tien verhalen. Dan ben je bij.' },
   { kind: 'stroom', title: 'Stroom', text: 'Alles van je bronnen, nieuwste eerst.' },
-  { kind: 'selectie', title: 'Selectie', text: 'Elke maandag het beste over wat jou bezighoudt.' },
+  { kind: 'selectie', title: 'Selectie', text: 'Elke maandag drie stukken over wat jou bezighoudt.' },
 ]
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
@@ -610,7 +610,7 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, di
       </button>
       {open ? (
         <div id="ob-sel" className="ob__sel">
-          <p className="ob__selnote">Elke maandag het beste over je werk of hobby.</p>
+          <p className="ob__selnote">Elke maandag drie stukken over je werk of hobby.</p>
           {domains.map((d) => (
             <ChipGroup key={d.id} label={d.label} level={2} className="ob__domain">
               {d.fields.map((f) => (

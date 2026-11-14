@@ -75,7 +75,7 @@ export const MORE_SOURCES = [
   V('iculture', 'iCulture', 'vakblad', ['gadgets'], 'https://www.iculture.nl/feed/'),
   V('androidworld', 'Androidworld', 'vakblad', ['gadgets'], 'https://androidworld.nl/feed/'),
   V('bright', 'Bright', 'vakblad', ['gadgets'], 'https://www.bright.nl/rss', { filter: true }),
-  V('techpulse', 'TechPulse', 'vakblad', ['gadgets'], 'https://www.techpulse.be/feed/', { filter: true }),
+  V('techpulse', 'TechPulse', 'vakblad', ['gadgets'], 'https://techpulse.be/feed/', { filter: true }), // de feed die de site zelf aangeeft (www stuurt door)
   V('clickx', 'Clickx', 'vakblad', ['gadgets'], 'https://www.clickx.be/feed/', { filter: true }),
   V('macstories', 'MacStories', 'expert', ['gadgets'], 'https://www.macstories.net/feed/', { about: 'Federico Viticci en team, diepgaand over Apple en apps' }),
   V('sixcolors', 'Six Colors', 'expert', ['gadgets'], 'https://sixcolors.com/feed/', { about: 'Jason Snell (ex-Macworld) over Apple en consumententech' }),
@@ -141,7 +141,7 @@ export const MORE_SOURCES = [
   V('quanta', 'Quanta Magazine', 'vakblad', ['wetenschap'], 'https://api.quantamagazine.org/feed/'),
   V('nemokennislink', 'NEMO Kennislink', 'vakblad', ['wetenschap'], 'https://www.nemokennislink.nl/feed.xml', { about: 'Wetenschap uitgelegd, van NEMO Science Museum', x: 'NEMOKennislink' }),
   V('skipr', 'Skipr', 'vakblad', ['zorg'], 'https://www.skipr.nl/feed/'),
-  V('zorgvisie', 'Zorgvisie', 'vakblad', ['zorg'], 'https://www.zorgvisie.nl/rss'),
+  V('zorgvisie', 'Zorgvisie', 'vakblad', ['zorg'], 'https://www.zorgvisie.nl/feed/'), // /rss stuurt naar een cookiepagina; /feed/ geeft de site zelf aan
   V('zorgwelzijn', 'Zorg+Welzijn', 'vakblad', ['zorg'], 'https://www.zorgwelzijn.nl/feed/'),
   V('nursing', 'Nursing', 'vakblad', ['zorg'], 'https://www.nursing.nl/feed/'),
   V('trouw-gezondheid', 'Trouw Gezondheid', 'vakblad', ['zorg'], 'https://www.trouw.nl/gezondheid/rss.xml'),
@@ -220,7 +220,7 @@ export const MORE_SOURCES = [
   V('filmtotaal', 'FilmTotaal', 'vakblad', ['film'], 'https://rss.filmtotaal.nl/recensies.xml'),
   V('vk-films', 'de Volkskrant Film', 'vakblad', ['film'], 'https://www.volkskrant.nl/films/rss.xml'),
   V('vk-series', 'de Volkskrant Series', 'vakblad', ['film'], 'https://www.volkskrant.nl/series/rss.xml'),
-  V('focus-film', 'Knack Focus Film', 'vakblad', ['film'], 'https://focus.knack.be/film/rss'),
+  V('focus-film', 'Knack Focus Film', 'vakblad', ['film'], 'https://focus.knack.be/film/feed/'), // /film/rss stuurt naar een inlogpagina
   V('indiewire', 'IndieWire', 'vakblad', ['film'], 'https://www.indiewire.com/c/criticism/feed/'),
   V('rogerebert', 'RogerEbert.com', 'vakblad', ['film'], 'https://www.rogerebert.com/feed'),
   // Vlaamse cultuurkritiek (13 november 2026): film, muziek en boeken, elk stuk bij het onderwerp dat past.
@@ -346,6 +346,29 @@ export const ARCHIVED_SOURCES = [
   V('vi', 'Voetbal International', 'vakblad', ['sport'], 'https://www.vi.nl/rss'),
   V('wielerflits', 'WielerFlits', 'vakblad', ['sport'], 'https://www.wielerflits.nl/feed/'),
 ]
+
+// Betaalde vakbronnen (Selectie-review 14 november, punt 9): hele artikelen alleen voor abonnees, zoals `paid` in de
+// hoofdcatalogus. Twee gronden, per bron nagelopen op 14 november:
+// 1. dezelfde uitgever staat in de hoofdcatalogus als betaald (de Volkskrant, Trouw, Het Parool, AD, De Tijd, HLN, The New
+//    York Times, The Economist, FT, Follow the Money, De Groene, Vrij Nederland);
+// 2. van de nieuwste drie stukken gaf de uitgever er minstens twee zelf op als niet vrij te lezen (isAccessibleForFree
+//    false in de pagina, gelezen met de gewone User-Agent van Hoot; niets omzeild).
+// Bronnen waar maar één van de drie stukken betaald was (Lenny, Noah Smith, Interconnects, Heatmap) tellen als gratis.
+// Niet na te gaan (de site weigert of stuurt naar een toestemmingspagina) en niet in de hoofdcatalogus: Jancis Robinson,
+// Trends en Knack, Helden; die blijven zonder kenmerk tot iemand het nagaat. HP/De Tijd, TPO, FT Big Read, Filosofie
+// Magazine, Garbage Day en Historisch Nieuwsblad hadden het kenmerk al.
+export const PAID_SOURCES = new Set(
+  [
+    // 1. uitgever betaald in de hoofdcatalogus
+    'vk-tech', 'vk-wetenschap', 'vk-films', 'vk-series', 'vk-muziek', 'vk-boeken', 'vk-kunst', 'vk-games', 'vk-eten',
+    'trouw-gezondheid', 'trouw-wetenschap', 'trouw-duurzaamheid', 'trouw-verdieping', 'trouw-onderwijs', 'trouw-boeken',
+    'parool-kunst', 'parool-proefwerk', 'ad-geld', 'ad-wonen', 'ad-eten', 'tijd-ondernemen', 'tijd-mijngeld', 'tijd-cultuur',
+    'hln-wetenschap', 'hln-games', 'hln-reizen', 'nyt-travel', 'economist-fe', 'ft-work', 'ftm', 'groene', 'vn',
+    // 2. minstens twee van de drie nieuwste stukken betaald
+    'archreview', 'cobouw', 'dearchitect', 'deptofproduct', 'distrifood', 'energeia', 'kentbeck', 'missethoreca', 'pensioenpro',
+    'pragmatic', 'pw', 'sifted', 'stat', 'usermag', 'vastgoedmarkt', 'verge-ai', 'verge-creators', 'verna', 'zorgvisie', 'zorgwelzijn',
+  ].map((id) => 'vak:' + id),
+)
 
 // Bestaande bronnen die er een onderwerp bij krijgen (achteraan: het eerste passende onderwerp wint).
 export const EXTEND = [
