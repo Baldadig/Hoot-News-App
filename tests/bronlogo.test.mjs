@@ -21,3 +21,7 @@ test('bronlogo: geen unavatar meer in de terugval; NOS heeft geen Bluesky-handle
     assert.notEqual(s.bsky, 'nos.nl')
   }
 })
+
+test('bronlogo: De Groene toont het eigen logo met het hele woordmerk, niet het afgesneden profielbeeld', () => {
+  assert.equal(SOURCES.find((x) => x.id === 'groene').logo, ownLogo('groene'))
+})
