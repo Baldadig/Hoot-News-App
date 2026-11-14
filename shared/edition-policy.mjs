@@ -14,7 +14,7 @@ const COUNTRIES = Object.fromEntries(Object.entries({
   BE: [...VL_HOME, 'cuttingedge'],
   US: ['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','theverge','wired','ars','techcrunch','mittr','ign','gamespot','polygon','quanta','sciam','espn','pitchfork','rollingstone','stereogum','variety',
     // 14 november 2026 (bronnen-internationaal)
-    'vox','nationalreview','thefp','reason'],
+    'vox','nationalreview','thefp'],
   GB: ['guardian','bbc','economist','ft','independent','telegraph','eurogamer','nature','carbonbrief','autosport','quietus'],
   // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
   DE: ['dw'], FR: ['lemonde','france-medias-monde','euronews'], QA: ['aljazeera'], HK: ['scmp'],

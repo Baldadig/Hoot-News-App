@@ -32,8 +32,8 @@
 // achteraf als lid bij een verhaal en tellen niet in het aantal bronnen of de uitgevers (drempels voor groot nieuws);
 // een uitgever met meer bronnen (`publisher`, de regionale omroepen) telt als één. Keuring: ook "Waar iedereen over
 // schrijft" neemt nooit een opiniestuk als kop of als bewijs dat je bron erover schrijft (personal.js, widelyCovered).
-// 14 november 2026, internationaal: elf Engelstalige bronnen erbij in de catalogus (Europa, de wereld van binnenuit en
-// vier opiniebladen; geen Amerikaanse nieuwsbronnen, die zouden de drempels voor groot nieuws verschuiven); ze doen mee in de verhalen en het plafond voor buitenland (FOREIGN_NEWS), France 24 en
+// 14 november 2026, internationaal: tien Engelstalige bronnen erbij in de catalogus (Europa, de wereld van binnenuit en
+// drie opiniebladen; geen Amerikaanse nieuwsbronnen, die zouden de drempels voor groot nieuws verschuiven); ze doen mee in de verhalen en het plafond voor buitenland (FOREIGN_NEWS), France 24 en
 // RFI zijn één uitgever.
 export const EDITOR_REVISION = 'redacteur-2026-11-14-internationaal'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer

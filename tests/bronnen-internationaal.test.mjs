@@ -23,9 +23,9 @@ import { SOURCE_CATS, STARTER } from '../src/lib/topics.js'
 
 const byId = new Map(SOURCES.map((s) => [s.id, s]))
 const NIEUWS = ['france24', 'rfi', 'euronews', 'abc-au', 'kyivindependent', 'haaretz', 'timesofisrael']
-const OPINIE = ['vox', 'nationalreview', 'thefp', 'reason']
+const OPINIE = ['vox', 'nationalreview', 'thefp']
 const NIEUW = [...NIEUWS, ...OPINIE]
-const LAND = { vox: 'US', nationalreview: 'US', thefp: 'US', reason: 'US', france24: 'FR', rfi: 'FR', euronews: 'FR', 'abc-au': 'AU', kyivindependent: 'UA', haaretz: 'IL', timesofisrael: 'IL' }
+const LAND = { vox: 'US', nationalreview: 'US', thefp: 'US', france24: 'FR', rfi: 'FR', euronews: 'FR', 'abc-au': 'AU', kyivindependent: 'UA', haaretz: 'IL', timesofisrael: 'IL' }
 
 test('nieuwe bronnen: Engelstalig, onder Internationaal, voor niemand ongevraagd aan', () => {
   for (const id of NIEUW) {
@@ -53,7 +53,7 @@ test('elke uitgever heeft een land; France 24 en RFI zijn één uitgever', () =>
   assert.notEqual(byId.get('france24').urls[0], byId.get('rfi').urls[0])
 })
 
-test('opinie: Vox, National Review, The Free Press en Reason zijn helemaal opinie en tellen niet in de drempels', () => {
+test('opinie: Vox, National Review en The Free Press zijn helemaal opinie en tellen niet in de drempels', () => {
   for (const id of OPINIE) {
     assert.ok(OPINIE_IDS.has(id) && opinieBron(id), id)
     assert.ok(isOpinie({ kind: 'article', source: id, title: 'What the election means', url: 'https://www.example.com/2026/11/14/what-the-election-means/' }), id)

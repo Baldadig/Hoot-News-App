@@ -139,11 +139,10 @@ export const SOURCES = [
   S('haaretz', 'Haaretz', 'int', 'en', 'Israëlische kwaliteitskrant, links-liberaal.', 'https://www.haaretz.com/srv/haaretz-latest-headlines', { login: 'https://login.haaretz.com/', paid: true, color: '#0E1734', bsky: 'haaretzcom.bsky.social', x: 'haaretzcom' }),
   S('timesofisrael', 'The Times of Israel', 'int', 'en', 'Israëlisch nieuws, midden.', 'https://www.timesofisrael.com/feed/', { color: '#104F97', bsky: 'timesofisrael.com', x: 'TimesofIsrael' }),
   // Opinie (`opinie`): links en rechts samen. Vox progressief; National Review conservatief, The Free Press eigenzinnig
-  // centrum-rechts, Reason libertarisch. Allemaal minstens vijf stukken per dag in de feed.
+  // centrum-rechts. Reason viel af: te klein (kwaliteit boven aantal, Alex 14 november). Allemaal minstens vijf stukken per dag in de feed.
   S('vox', 'Vox', 'int', 'en', 'Uitleg en opinie, progressief.', 'https://www.vox.com/rss/index.xml', { opinie: true, login: 'https://www.vox.com/auth/login?returnPath=/', paid: true, color: '#FEF100', bsky: 'vox.com', x: 'voxdotcom' }),
   S('nationalreview', 'National Review', 'int', 'en', 'Amerikaans opinieblad, conservatief.', 'https://www.nationalreview.com/feed/', { opinie: true, paid: true, color: '#0265B1', bsky: 'nationalreview.bsky.social', x: 'NRO' }),
   S('thefp', 'The Free Press', 'int', 'en', 'Eigenzinnige opinie en reportage, centrum-rechts.', 'https://www.thefp.com/feed', { opinie: true, login: 'https://www.thefp.com/account/login', paid: true, color: '#1A1A1A', bsky: 'thefp.com', x: 'TheFP' }),
-  S('reason', 'Reason', 'int', 'en', 'Opinie en analyse, libertarisch.', 'https://reason.com/feed/', { opinie: true, color: '#F06C34', bsky: 'reason.com', x: 'reason' }),
   // Economie
   // Gratis en Nederlands bij Economie (keuze r5-economiebron, 5 november): de economiefeed van de NOS,
   // zoals NOS Sport en NOS Cultuur. Gecontroleerd op 5 november 2026 (bereikbaar, actueel, 20 berichten).

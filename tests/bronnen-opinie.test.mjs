@@ -29,7 +29,7 @@ const NIEUW = [...OPINIE, ...OMROEPEN, 'zembla', 'argos', 'rd', 'caribischnetwer
 
 test('opinieblad: elk stuk is opinie, ook met een gewone link en kop; de Stroom zet het onder Opinie', () => {
   // 14 november 2026 kwamen er vier Engelstalige opiniebladen bij (tests/bronnen-internationaal.test.mjs).
-  assert.deepEqual([...OPINIE_IDS].sort(), [...OPINIE, 'vox', 'nationalreview', 'thefp', 'reason'].sort())
+  assert.deepEqual([...OPINIE_IDS].sort(), [...OPINIE, 'vox', 'nationalreview', 'thefp'].sort())
   for (const id of OPINIE) {
     const it = { kind: 'article', source: id, title: 'Het kabinet moet nu kiezen', url: `https://www.example.nl/2026/11/13/het-kabinet-moet-kiezen/` }
     assert.ok(opinieBron(id) && isOpinie(it) && isOpinion(it), id)
