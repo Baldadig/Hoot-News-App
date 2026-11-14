@@ -238,7 +238,8 @@ var HootCore = (() => {
     // stukken per week, gemeten in de feed. Links Joop, De Groene, Vrij Nederland en Sargasso; rechts Wynia's Week, TPO
     // en GeenStijl; HP/De Tijd daartussen; Sociale Vraagstukken zonder partijkleur.
     S("joop", "Joop", "nl", "nl", "Opinie en commentaar van BNNVARA, progressief.", "https://www.joop.nl/feed", { opinie: true, color: "#FC3E28", bsky: "joop.nl" }),
-    S("groene", "De Groene Amsterdammer", "nl", "nl", "Opinieweekblad met essays, analyses en reportages, links.", "https://www.groene.nl/rss.xml", { opinie: true, login: "https://www.groene.nl/", paid: true, color: "#E10005", bsky: "groene.nl", x: "DeGroene" }),
+    S("groene", "De Groene Amsterdammer", "nl", "nl", "Opinieweekblad met essays, analyses en reportages, links.", "https://www.groene.nl/rss.xml", { opinie: true, login: "https://www.groene.nl/", paid: true, color: "#E10005", bsky: "groene.nl", x: "DeGroene", logo: own("groene") }),
+    // overal een afgesneden woordmerk; het eigen logo heeft het hele (landing/bronlogos.mjs)
     S("vn", "Vrij Nederland", "nl", "nl", "Opinieblad met essays en reportages, links-liberaal.", "https://www.vn.nl/feed/", { opinie: true, login: "https://www.vn.nl/inloggen/", paid: true, color: "#E20006", bsky: "vn.nl", x: "vrij_nederland" }),
     S("sargasso", "Sargasso", "nl", "nl", "Groepsblog over politiek en beleid, links en genuanceerd.", "https://sargasso.nl/feed/", { opinie: true, color: "#65C26A", bsky: "sargassoblog.bsky.social" }),
     S("hpdetijd", "HP/De Tijd", "nl", "nl", "Opinieblad: eigenzinnig, liberaal en kritisch.", "https://www.hpdetijd.nl/rss", { opinie: true, login: "https://www.hpdetijd.nl/login", paid: true, color: "#E40815", bsky: "hpdetijd.bsky.social", x: "HPdeTijdNL" }),
