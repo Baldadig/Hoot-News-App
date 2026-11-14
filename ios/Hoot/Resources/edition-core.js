@@ -1394,6 +1394,20 @@ var HootCore = (() => {
     "tonga"
   ]);
   var NL_ANCHOR = W(["nederland\\p{L}*", "dutch", "holland\\p{L}*"]);
+  var US_STATES = W(["alabama", "alaska", "arizona", "arkansas", "californi\\p{L}*", "colorado", "connecticut", "delaware", "florida", "hawaii", "idaho", "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana", "maine", "maryland", "massachusetts", "michigan", "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada", "new hampshire", "new jersey", "new mexico", "north carolina", "north dakota", "ohio", "oklahoma", "oregon", "pennsylvania", "rhode island", "south carolina", "south dakota", "tennessee", "texas", "utah", "vermont", "virginia", "west virginia", "wisconsin", "wyoming"]);
+  var OTHER_STATES = W(["new south wales", "nsw", "queensland", "tasmani\\p{L}*", "western australia", "south australia", "northern territory", "victorian", "ontario", "quebec", "québec", "alberta", "british columbia", "manitoba", "saskatchewan", "nova scotia"]);
+  var LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i;
+  var OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi;
+  var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
+  function localAbroad(items = [], { desk = null } = {}) {
+    const head = items.find(Boolean);
+    const t = String(head?.title || "");
+    if (!t) return false;
+    const usHere = desk === "vs" || usPoliticsIn(t) || US_STATES.test(t) || countriesIn(t).includes("us");
+    if (usHere) return !beyondIn(t, ["us"]) && !placeSignals({ title: t }).home;
+    if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || "").split("?")[0]))) return false;
+    return !beyondIn(t.replace(OWN_COUNTRY, " "), ["au", "ca", "gb"]);
+  }
   function belgianSubject(it = {}) {
     const head = String(it.title || "");
     if (!head) return false;
@@ -4453,7 +4467,8 @@ var HootCore = (() => {
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
     const prevHeads = previous ? previousHeads(sigAll, previous, now) : [];
     const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg;
-    const free2 = (w) => w?.item?.id && !!wideLead(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
+    const localWide = (w) => !bigWide(w) && localAbroad([wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)], { desk: storyById.get(w.storyId)?.desk ?? null });
+    const free2 = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
     const wide0 = (global.wide || []).find((w) => free2(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free2(w) && bigWide(w)) || (global.wide || []).find((w) => free2(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free2).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
     let wide = wide0 ? { ...wide0, item: wideLead(wide0) } : null;
     let swapped = 0;
@@ -4584,8 +4599,21 @@ var HootCore = (() => {
       for (const x of add) finalTaken.add(x);
       acceptedItems[k] = [...acceptedItems[k], ...add.map((x) => itemAny.get(x)).filter(Boolean)];
     };
+    let deferLocal = true;
+    const deferred = [];
+    const localOf = (e) => {
+      const head = itemAny.get(e.leadId || e.id);
+      if (!head || e.desk === "bubbel") return false;
+      const st = storyById.get(e.kind === "story" ? e.id : serverStory(e)) || {};
+      const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean);
+      return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs);
+    };
     const accept = (e) => {
       if (accepted.length >= capacity) return;
+      if (deferLocal && localOf(e)) {
+        if (!deferred.includes(e)) deferred.push(e);
+        return;
+      }
       const id = e.leadId || e.id;
       if (!readable(itemAny.get(id))) return;
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
@@ -4622,8 +4650,11 @@ var HootCore = (() => {
     if (accepted.length < EDITION_SIZE) selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept);
     for (const { g } of fillCands) {
       if (accepted.length >= EDITION_SIZE) break;
+      if (sameAsPrevious(g.leadId || g.id, g.kind === "story" ? g.id : null)) continue;
       accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
     }
+    deferLocal = false;
+    for (const e of deferred) if (!sameAsPrevious(e.leadId || e.id, e.kind === "story" ? e.id : null)) accept(e);
     if (accepted.length < EDITION_FLOOR) {
       floorLight = true;
       capacity = EDITION_FLOOR;
@@ -4648,7 +4679,7 @@ var HootCore = (() => {
     const storyOfEntry = (e) => storyById.get(e.kind === "story" ? e.id : serverStory(e)) || {};
     const placeOk = (e) => e.desk !== "bubbel" && e.desk !== WIDE && !e.held && hasNews(e);
     const opener = (e) => {
-      if (!placeOk(e)) return false;
+      if (!placeOk(e) || localOf(e)) return false;
       const xs = knownOf(e);
       const head = itemAny.get(e.leadId || e.id);
       if (head && kindOf(head) !== "nieuws" && !bigLight(head)) return false;

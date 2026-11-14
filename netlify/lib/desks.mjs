@@ -179,6 +179,31 @@ const WORLD = W([
   'fiji', 'nieuw-zeeland', 'new zealand', `papoea${L}`, `papua${L}`, 'samoa', 'tonga',
 ])
 const NL_ANCHOR = W(['nederland\\p{L}*', 'dutch', 'holland\\p{L}*'])
+// Lokaal nieuws van elders (persona's 14 november, punt 7): Australische deelstaatpolitiek en een rechtszaak in New South
+// Wales als vulsel, en puur Amerikaans binnenland (een ceremonie van Hegseth, de laatste zwarte senatoren uit Mississippi,
+// het leiderschap van de Democraten in de Senaat) als opener of als Waar iedereen over schrijft. Lokaal van elders is:
+// - Amerikaans binnenland: een Amerikaanse plek (rubriek VS, Amerikaanse politiek of een staat in de kop) zonder ander land,
+//   werelddeel of internationaal onderwerp in de kop (Oekraïne, het Midden-Oosten, de EU, de NAVO, China: RE.buitenland);
+// - een deelstaat of provincie van een ander land in de kop (Australië, Canada, de VS), of de binnenlandrubriek van een
+//   buitenlandse titel in de link (/australia-news/, /us-news/, /uk-news/, /nyregion/), ook dan zonder ander land.
+// Of het verhaal breder speelt (groot nieuws: majorNews, sinds de landenregel altijd met een tweede land), beslist de
+// aanroeper: `items` zijn de stukken, de kop eerst.
+const US_STATES = W(['alabama', 'alaska', 'arizona', 'arkansas', 'californi\\p{L}*', 'colorado', 'connecticut', 'delaware', 'florida', 'hawaii', 'idaho', 'illinois', 'indiana', 'iowa', 'kansas', 'kentucky', 'louisiana', 'maine', 'maryland', 'massachusetts', 'michigan', 'minnesota', 'mississippi', 'missouri', 'montana', 'nebraska', 'nevada', 'new hampshire', 'new jersey', 'new mexico', 'north carolina', 'north dakota', 'ohio', 'oklahoma', 'oregon', 'pennsylvania', 'rhode island', 'south carolina', 'south dakota', 'tennessee', 'texas', 'utah', 'vermont', 'virginia', 'west virginia', 'wisconsin', 'wyoming'])
+const OTHER_STATES = W(['new south wales', 'nsw', 'queensland', 'tasmani\\p{L}*', 'western australia', 'south australia', 'northern territory', 'victorian', 'ontario', 'quebec', 'québec', 'alberta', 'british columbia', 'manitoba', 'saskatchewan', 'nova scotia'])
+const LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i
+// De landen van een deelstaat of binnenlandrubriek: hun eigen naam maakt een stuk niet breder.
+const OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi
+const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
+export function localAbroad(items = [], { desk = null } = {}) {
+  const head = items.find(Boolean)
+  const t = String(head?.title || '')
+  if (!t) return false
+  const usHere = desk === 'vs' || usPoliticsIn(t) || US_STATES.test(t) || countriesIn(t).includes('us')
+  if (usHere) return !beyondIn(t, ['us']) && !placeSignals({ title: t }).home
+  if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || '').split('?')[0]))) return false
+  return !beyondIn(t.replace(OWN_COUNTRY, ' '), ['au', 'ca', 'gb'])
+}
+
 // Gaat dit stuk over België? Voor de rubriek boven een plek bij een lezer in Vlaanderen (persona's 14 november, punt 6: voor
 // een Gentse lezer heette Belgisch nieuws Buitenland). Een Belgische plaats, instelling, persoon of partij in kop of intro
 // (BE), of een Vlaamse bron die het zelf onder Binnenland of Politiek zet; nooit met een ander land, Oekraïne, het

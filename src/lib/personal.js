@@ -17,7 +17,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
-import { deskOfStory, storyForeignOf, VL_HOME, belgianSubject } from '../../netlify/lib/desks.mjs'
+import { deskOfStory, storyForeignOf, VL_HOME, belgianSubject, localAbroad } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
@@ -442,7 +442,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // zich ontwikkelde: dan komt het als vervolg.
   const prevHeads = previous ? previousHeads(sigAll, previous, now) : []
   const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg
-  const free = (w) => w?.item?.id && !!wideLead(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId)
+  // Lokaal nieuws van elders (persona's 14 november, punt 7; localAbroad in netlify/lib/desks.mjs) is geen "Waar iedereen
+  // over schrijft", tenzij het groot nieuws is: het Senaatsleiderschap van de Democraten of een rechtszaak in Delaware.
+  const localWide = (w) => !bigWide(w) && localAbroad([wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)], { desk: storyById.get(w.storyId)?.desk ?? null })
+  const free = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId)
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
   const wide0 =
     (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) ||
@@ -638,8 +641,24 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     for (const x of add) finalTaken.add(x)
     acceptedItems[k] = [...acceptedItems[k], ...add.map((x) => itemAny.get(x)).filter(Boolean)]
   }
+  // Lokaal nieuws van elders zakt (persona's 14 november, punt 7): een plek over Amerikaans binnenland of een deelstaat
+  // elders (localAbroad) die geen groot nieuws is, komt pas aan bod als al het andere toegelaten aanbod een plek kreeg (eigen
+  // nieuws, sport en cultuur, de vulling uit de algemene Editie), en staat dan achteraan.
+  let deferLocal = true
+  const deferred = []
+  const localOf = (e) => {
+    const head = itemAny.get(e.leadId || e.id)
+    if (!head || e.desk === 'bubbel') return false
+    const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
+    const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean)
+    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs)
+  }
   const accept = e => {
     if (accepted.length >= capacity) return
+    if (deferLocal && localOf(e)) {
+      if (!deferred.includes(e)) deferred.push(e)
+      return
+    }
     const id = e.leadId || e.id
     // Vangnet van de taalregel: geen plek met een onleesbare kop, langs welke route ook.
     if (!readable(itemAny.get(id))) return
@@ -686,8 +705,13 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Dan pas aanvullen uit de algemene Editie, met dezelfde toelating en zonder dubbel verhaal.
   for (const { g } of fillCands) {
     if (accepted.length >= EDITION_SIZE) break
+    // Ook hier geen aanvulling over het onderwerp van een kop uit je vorige Editie zonder ontwikkeling (sameAsPrevious, zoals
+    // het brede verhaal): sinds lokaal nieuws van elders zakt (punt 7) komt de vulling vaker zo ver.
+    if (sameAsPrevious(g.leadId || g.id, g.kind === 'story' ? g.id : null)) continue
     accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
   }
+  deferLocal = false
+  for (const e of deferred) if (!sameAsPrevious(e.leadId || e.id, e.kind === 'story' ? e.id : null)) accept(e)
   if (accepted.length < EDITION_FLOOR) {
     floorLight = true
     capacity = EDITION_FLOOR
@@ -727,7 +751,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const storyOfEntry = (e) => storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
   const placeOk = (e) => e.desk !== 'bubbel' && e.desk !== WIDE && !e.held && hasNews(e)
   const opener = (e) => {
-    if (!placeOk(e)) return false
+    if (!placeOk(e) || localOf(e)) return false
     const xs = knownOf(e)
     const head = itemAny.get(e.leadId || e.id)
     if (head && kindOf(head) !== 'nieuws' && !bigLight(head)) return false
