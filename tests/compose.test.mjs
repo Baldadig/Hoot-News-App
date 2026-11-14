@@ -155,13 +155,22 @@ test('De Redacteur: een verhaal op de voorpagina heeft voor iedereen dezelfde ru
   assert.ok(desks.size >= big.length)
 })
 
-// Dubbelcheck 14 november (A3): een aflevering is geen eigen plek meer. De Atlantic-podcast die alleen de gamer en de
-// VS-lezer kregen, maakt plaats voor gedeeld Nederlands nieuws: van 0,3672 naar 0,3819, net boven de nulmeting
-// (0,38). Daarom 0,385; een vraag voor Alex of de grens zo mag (zie dubbelcheck-2026-11-14).
-// Dubbelcheck 14 november (A6): de Amerikaanse staten tellen als de VS (Kansas, Iowa, Alaska, Tennessee in de
-// momentopname van 30 oktober, de midterms). Die verhalen krijgen nu de rubriek VS en meer lezers delen ze: van 0,3819
-// naar 0,3914. Daarom 0,392; ook dit is een vraag voor Alex (HERSTEL.md).
-test('De Redacteur: unieker dan de nulmeting (gem. Jaccard ≤ 0,392)', (t) => {
+// De grens was de nulmeting (0,38). Main (redacteur-2026-11-14-wapo) meet 0,3672. Na de dubbelcheck meet de Redacteur
+// 0,3914, en dat komt uit precies twee regels en drie plekken in de momentopname van 30 oktober (gemeten door elke regel
+// apart uit te zetten; tweede keuring van het herstel, 14 november):
+//   1. A3, een podcast is nooit de kop van een plek (audioEpisode in shared/editie-filter.mjs). De Atlantic-podcast "Is
+//      It Time to Rebuild the Internet?" (/podcasts/ in de link) was een eigen plek voor alleen de gamer en de VS-lezer.
+//      Die krijgen nu Nederlands nieuws dat ook anderen hebben: de gamer het ND-stuk over de SGP en het rechtse blok, de
+//      VS-lezer het NRC-stuk over het D66-raadslid uit Boxtel. Alleen deze regel: 0,3761.
+//   2. A6, een Amerikaanse staat is de VS (countriesIn in shared/article-signals.mjs). "Doctors Say a Rare Kind of
+//      Measles Is on the Rise" (The Atlantic, /congenital-measles-birth-pennsylvania/ in de link) heet nu VS in plaats van
+//      alleen Wetenschap. De gamer koos geen Wereld, dus het stuk valt onder het plafond voor buitenland, en hij krijgt
+//      ook het NRC-stuk over Boxtel. Alleen deze regel: 0,3819.
+//   Samen 0,3914: de gamer en de VS-lezer delen nu ook het Boxtel-stuk. Beide regels kloppen inhoudelijk (een podcast is
+//   geen kop, een stuk uit Pennsylvania is Amerikaans nieuws); de persona's lijken daardoor iets meer op elkaar.
+// De grens staat op de gemeten waarde plus een kleine marge (0,392), zodat deze toets weer bewaakt dat de Edities niet
+// verder naar elkaar toe groeien. Stijgt hij, zoek dan eerst de plek die verschoof, voordat je de grens verhoogt.
+test('De Redacteur: niet eenvormiger dan na de dubbelcheck (gem. Jaccard ≤ 0,392; gemeten 0,3914, nulmeting 0,38)', (t) => {
   const jac = pairwise(eds.map(({ edition }) => keysOf(edition, ctx)))
   t.diagnostic(`gem. Jaccard: ${jac.toFixed(4)}`)
   assert.ok(jac <= 0.392 + 1e-9, String(jac))
