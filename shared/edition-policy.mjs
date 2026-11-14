@@ -12,9 +12,13 @@ const ALIAS = { 'nos-sport':'nos', 'nos-cultuur':'nos', 'nos-economie':'nos', 'b
 const COUNTRIES = Object.fromEntries(Object.entries({
   NL: [...NL_HOME, 'tweakers','vi','wielerflits','3voor12','villamedia','mediacourant','nieuwemuze', ...new Set(SOURCES.filter(s => s.publisher && NL_HOME.has(s.id)).map(s => s.publisher))],
   BE: [...VL_HOME, 'cuttingedge'],
-  US: ['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','theverge','wired','ars','techcrunch','mittr','ign','gamespot','polygon','quanta','sciam','espn','pitchfork','rollingstone','stereogum','variety'],
+  US: ['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','theverge','wired','ars','techcrunch','mittr','ign','gamespot','polygon','quanta','sciam','espn','pitchfork','rollingstone','stereogum','variety',
+    // 14 november 2026 (bronnen-internationaal)
+    'vox','nationalreview','thefp'],
   GB: ['guardian','bbc','economist','ft','independent','telegraph','eurogamer','nature','carbonbrief','autosport','quietus'],
-  DE: ['dw'], FR: ['lemonde'], QA: ['aljazeera'], HK: ['scmp'],
+  // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
+  DE: ['dw'], FR: ['lemonde','france-medias-monde','euronews'], QA: ['aljazeera'], HK: ['scmp'],
+  AU: ['abc-au'], UA: ['kyivindependent'], IL: ['haaretz','timesofisrael'],
 }).flatMap(([country, ids]) => ids.map(id => [id, country])))
 export const publisherOf = id => ALIAS[id] || id
 export const publisherCountry = id => COUNTRIES[publisherOf(id)] || null
@@ -76,7 +80,9 @@ export const sportChosen = prof => prof.interests ? prof.interests.has('sport') 
 // is geen buitenlands nieuws: The Economist over Google of NPR over AI blijft onbekend.
 // `story.publisherCountries` (de hele gebeurtenis, van de server) gaat voor: een lezer die alleen de NYT
 // volgt, ziet niet dat NOS het ook bracht.
-const FOREIGN_NEWS = new Set(['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','guardian','bbc','economist','ft','independent','telegraph','dw','lemonde','aljazeera','scmp'])
+// 14 november 2026: de nieuwe algemene nieuwsbronnen van buiten (bronnen-internationaal); opiniebladen niet, die dragen geen plek.
+const FOREIGN_NEWS = new Set(['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','guardian','bbc','economist','ft','independent','telegraph','dw','lemonde','aljazeera','scmp',
+  'france24','rfi','euronews','abc-au','kyivindependent','haaretz','timesofisrael'])
 const BEAT = new Set(['economie','tech','wetenschap','cultuur','sport'])
 const generalNews = item => !(item?.topics || []).some(t => BEAT.has(FAMILY_OF[t]))
 const homeCovered = (items, story) => story?.homeCovered === true || (story?.publisherCountries || []).some(c => c === 'NL' || c === 'BE') || items.some(i => ['NL','BE'].includes(publisherCountry(i?.source)))
