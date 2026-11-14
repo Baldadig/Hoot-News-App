@@ -79,6 +79,12 @@
 //     dagplafond voor het oordeel (OORDEEL_DAG_USD), met de kosten van de dag in de opslag en in het log. (4) Een "zelfde"
 //     van ruim vóór het eerste stuk wordt als verdieping getoetst (tijdGrens). (5) Eén gedeeld kernwoord telt in het vangnet
 //     alleen als het geen toeval is (zes letters of meer, geen gewoon woord van de ronde; keuring 3: "terug").
+//   - Herstel na keuring 5 van branch shows (15 november): het vangnet op de kop (kopDeelt) nam de eerste eigen naam van de
+//     kop als waar de kop over gaat, vaak een plaats (Hilversum, De Zwaluwenberg) of de eerste uit een rijtje namen, en hield
+//     zo verdiepingen tegen die De Redacteur "verdieping, zeker ja" gaf. Nu sluit het alleen hard uit als de aflevering geen
+//     enkele centrale naam van het verhaal noemt, of als de kop over iets buiten het verhaal gaat (geen van zijn namen is
+//     een centrale naam) en de aflevering niets uit de kop noemt (het Lukaku-geval). Een plaats in de kop telt niet
+//     (kopPlaatsen), en het eerste woord van de kop alleen als het in het verhaal niet ook met een kleine letter staat.
 //   - Herstel na de keuring van 14 november (avond): één verhaal per vraag aan het model (nooit twee verhalen in één vraag),
 //     elke vraag twee keer en alleen twee keer een duidelijk ja koppelt; "de kop deelt de gebeurtenis" is een harde
 //     voorwaarde in het vangnet (kopDeelt), die voor een ja van het model gaat; de zinssplitser knipt niet na "Mr." en andere
@@ -805,9 +811,8 @@ export function gewoneWoorden(teksten = []) {
 }
 // Het vangnet voor een mengverhaal (herstel keuring 14 november; herstel keuring 4). Geeft false alleen bij een mengverhaal:
 // de kop van het verhaal, de regel die de lezer ziet, deelt de gebeurtenis niet met de aflevering (kopGebeurtenis, streng,
-// of twee eigen namen uit de kop) én de kop gaat over iets anders dan de aflevering: de kop heeft eigen namen en de
-// aflevering noemt de eerste daarvan niet (waar de kop over gaat), of de kop heeft alleen zwakke namen (een land) en de
-// aflevering noemt er geen. Dan sluit het vangnet hard uit, ook bij een ja van het model (live: "Schrijnend contrast:
+// of twee eigen namen uit de kop) én de kop gaat over iets anders dan de aflevering (sinds herstel keuring 5: zie
+// hieronder; daarvoor was dat "de aflevering noemt de eerste eigen naam van de kop niet"). Dan sluit het vangnet hard uit, ook bij een ja van het model (live: "Schrijnend contrast:
 // Frenkie de Jong gaat van 6 procent Oranje-absentie naar 58" kreeg de nabespreking van de 7-0, "Galavoorstelling Oranje";
 // "Van Bommel heeft Lukaku terug voor duel met Italië" ook).
 // In alle andere gevallen beslist De Redacteur, die de kop ziet en "de kop gaat over een andere kant" zelf beantwoordt
@@ -815,6 +820,17 @@ export function gewoneWoorden(teksten = []) {
 // premier Jetten zijn kabinetscrisis (mis)managet" bij "Crisisoverleg op landgoed begonnen: komen de partijen nader tot
 // elkaar?", een kop zonder namen; "The affair that brought down Jensen Huang" bij "Jensen Huang and the decline of the
 // visionary showman founder CEO", één naam), en die vielen hier af voordat het model ze zag.
+//
+// Herstel keuring 5 van branch shows (15 november): het vangnet nam de eerste eigen naam van de kop als "waar de kop over
+// gaat". Dat was vaak een plaats ("Crisisoverleg D66, VVD en CDA in Hilversum", "op De Zwaluwenberg") of de eerste uit een
+// rijtje ("Jetten, Yeşilgöz en Van den Brink gearriveerd"), en dan viel een verdieping af die De Redacteur in beide rondes
+// "verdieping, zeker ja" gaf (NRC "Waar gaat deze politieke crisis nou echt over?", De Dag "(mis)managet"). Nu is het een
+// mengverhaal alleen als (a) de aflevering geen enkele centrale naam van het verhaal noemt (centraleNamen: de namen van
+// het cluster en de namen in een flink deel van de stukken, zoals Jetten, VVD, D66 en CDA bij het crisisverhaal), of (b) de
+// kop zelf over iets buiten het verhaal gaat (geen van zijn eigen namen is een centrale naam van het verhaal) en de
+// aflevering geen enkele naam uit de kop noemt ("Van Bommel heeft Lukaku terug voor duel met Italië, Frankrijk beschikt weer
+// over Mbappé" in een verhaal over Oranje). Een plaats in de kop (een naam direct na "in", "op", "te", "naar"; kopPlaatsen)
+// telt nooit als waar de kop over gaat. Al het andere gaat naar het oordeel.
 export function kopDeelt(ep, story, items, sig, gewoon = null) {
   const lead = items.find((i) => i.id === story.leadId) || items[0]
   const kt = sig.get(lead?.id + '#kop')
@@ -827,14 +843,49 @@ export function kopDeelt(ep, story, items, sig, gewoon = null) {
   const sterk = new Set([...kt.strong].filter((k) => !BROAD.has(k) && has(kt, k) && has(es, k)).map(find))
   if (sterk.size >= 2 || kopGebeurtenis(kt, es, `${ep.titel || ''}. ${ep.tekst || ep.samenvatting || ''}`, lead.title, { streng: true, gewoon })) return true
   // Geen gedeelde gebeurtenis: alleen een mengverhaal sluit uit.
-  const eigen = [...kt.strong].filter((k) => !BROAD.has(k) && has(kt, k))
-  if (eigen.length) {
-    const eerste = (kt.runs || []).map((run) => run.filter((k) => !BROAD.has(k) && has(kt, k))).find((run) => run.length) || [eigen[0]]
-    return eerste.some((k) => has(es, k))
+  const centraal = centraleNamen(items, sig)
+  const noemt = (k) => has(es, k) || !!es.weak?.has(k)
+  // (a) De aflevering noemt geen enkele centrale naam van het verhaal.
+  if (![...centraal].some(noemt)) return false
+  // (b) Waar de kop over gaat: zijn eigen namen (sterk en zwak), zonder plaatsen.
+  const plaatsen = kopPlaatsen(lead.title)
+  // Het eerste woord van de kop is alleen een naam als het in het verhaal niet ook met een kleine letter staat
+  // ("Crisisoverleg op landgoed begonnen" naast "zetten crisisoverleg voort"; zie gewoonWoord).
+  const eerste = norm((String(lead.title).match(/\p{L}[\p{L}\d'’-]*/u) || [''])[0]).replace(/[^\p{L}\d]/gu, '')
+  const gewoonEerste = !!eerste && gewoonWoord(eerste, kleinVanVerhaal(items))
+  // Een centrale naam na "in" is geen plaats maar het verhaal ("Reijnders glundert na evenaring Van Basten in Oranje").
+  const kopNamen = [...new Set([...[...kt.strong].filter((k) => has(kt, k)), ...(kt.weak || [])])].filter((k) => !BROAD.has(k) && (!plaatsen.has(k) || centraal.has(k)) && !(gewoonEerste && k === eerste && !centraal.has(k)))
+  if (!kopNamen.length) return true // de kop noemt geen naam (of alleen een plaats): daar zegt de kop niets over een mengverhaal
+  if (kopNamen.some((k) => centraal.has(k))) return true // de kop gaat over het verhaal; de aflevering noemt het verhaal
+  return kopNamen.some(noemt)
+}
+// De centrale namen van een verhaal (herstel keuring 5): de namen van het cluster (clusterNames) en de namen die in minstens
+// een kwart van de stukken staan (en in minstens twee; ook landen). Geen brede namen.
+const centraleNamen = (items, sig) => {
+  const { central, wide } = prepOf(items, sig)
+  return new Set([...central, ...wide])
+}
+// De woorden met een kleine letter in de koppen en intro's van een verhaal (kleinVan), één keer per verhaal.
+const kleinMemo = new WeakMap()
+const kleinVanVerhaal = (items) => {
+  let k = kleinMemo.get(items)
+  if (!k) kleinMemo.set(items, (k = kleinVan(items.map((i) => `${i.title || ''} ${i.summary || ''}`))))
+  return k
+}
+// De plaatsen in een kop (herstel keuring 5): een eigen naam direct na een voorzetsel van plaats ("in Hilversum", "op De
+// Zwaluwenberg", "in Den Haag", "te Wassenaar", "at Mar-a-Lago"), genormaliseerd zoals de namen van de kenmerken (elk
+// woord van de naam apart). Generiek: alleen de vorm van de kop, geen lijst met plaatsen. Een naam die zo per ongeluk een plaats
+// heet ("Vertrouwen in Jetten"), maakt het vangnet alleen losser: het oordeel beslist dan.
+const PLAATS = /(?<![\p{L}\d])(?:in|op|te|naar|nabij|at|near|outside)\s+((?:(?:de|het|den|der|the|van)\s+)*)((?:\p{Lu}[\p{L}\d'’-]*)(?:\s+\p{Lu}[\p{L}\d'’-]*)*)/gu
+export function kopPlaatsen(title) {
+  const out = new Set()
+  for (const m of String(title || '').matchAll(PLAATS)) {
+    for (const w of m[2].split(/\s+/)) {
+      const k = norm(w).replace(/[^\p{L}\d]/gu, '')
+      if (k.length >= 2) out.add(k)
+    }
   }
-  const zwak = [...(kt.weak || [])].filter((k) => !BROAD.has(k))
-  if (zwak.length) return zwak.some((k) => es.weak?.has(k))
-  return true // de kop noemt geen enkele naam: daar zegt de kop niets over een mengverhaal
+  return out
 }
 const dagNL = (t) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'Europe/Amsterdam' })
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()

@@ -286,9 +286,11 @@ test('herstel keuring: The Daily "recorded before the news of Mr. Huang\'s resig
   assert.ok(!koppel(OPTS).rows.koppelingen.some((k) => k.aflevering === daily.titel), 'ook de woordregels niet meer')
 })
 
-test('herstel keuring: een mengverhaal (de kop deelt de gebeurtenis niet) krijgt niets, ook niet bij een ja van het model', async () => {
+test('herstel keuring: een kop over een andere kant van het verhaal gaat naar het oordeel, en een nee van het model houdt hem tegen (herstel keuring 5)', async () => {
   // Live 14 november: "Schrijnend contrast: Frenkie de Jong gaat van 6 procent Oranje-absentie naar 58" en de nabespreking
-  // van de 7-0, "Galavoorstelling Oranje". Hier: hetzelfde Oranje-verhaal met die kop.
+  // van de 7-0, "Galavoorstelling Oranje". Hier: hetzelfde Oranje-verhaal met die kop. Tot keuring 5 hield het vangnet dit
+  // hard tegen (de eerste naam van de kop). Sinds herstel keuring 5 noemt de kop een centrale naam van het verhaal (Oranje),
+  // dus beslist De Redacteur, die de kop ziet ("de kop gaat over een andere kant": soort anders; zo ook P5 in keuring 5).
   const oranje = FIX.stories.find((st) => byId.get(st.leadId)?.title?.includes('Veerman'))
   const lead = byId.get(oranje.leadId)
   const meng = { ...lead, id: 'meng-kop', title: 'Schrijnend contrast: Frenkie de Jong gaat van 6 procent Oranje-absentie naar 58', summary: 'Frenkie de Jong miste de afgelopen jaren steeds vaker interlands van Oranje door blessures.' }
@@ -297,14 +299,14 @@ test('herstel keuring: een mengverhaal (de kop deelt de gebeurtenis niet) krijgt
   const opts = { ...OPTS, stories, byId: byId2 }
   const c = paren(opts).paren.find((c) => c.x.st.id === oranje.id && /Galavoorstelling/.test(c.e.titel))
   assert.ok(c, 'nog steeds een kandidaat')
-  assert.equal(c.kop, false)
-  assert.match(vangnet(c, NOW), /kop van het verhaal deelt de gebeurtenis niet/)
+  assert.equal(c.kop, true)
+  assert.equal(vangnet(c, NOW), null)
   const { get, update } = memKv()
-  const client = nepClient(() => JA)
-  const r = await koppelMetOordeel({ ...opts, client, get, update })
+  const client = nepClient((v) => (/Schrijnend/.test(v.kop) && /Galavoorstelling/.test(v.titel) ? NEE : null))
+  const r = await koppelMetOordeel({ ...opts, client, get, update, ...ALLES })
+  assert.ok(client.calls.some((q) => leesVraag(q.messages[0].content).some((v) => /Schrijnend/.test(v.kop) && /Galavoorstelling/.test(v.titel))), 'gevraagd, met de kop erbij')
   assert.ok(!r.rows.koppelingen.some((k) => k.verhaal === oranje.id && /Galavoorstelling/.test(k.aflevering)))
-  assert.ok(!client.calls.some((q) => leesVraag(q.messages[0].content).some((v) => /Schrijnend/.test(v.kop) && /Galavoorstelling/.test(v.titel))), 'niet eens gevraagd')
-  // De gewone kop van dat verhaal ("Met Veerman én De Jong op het middenveld …") deelt de gebeurtenis wel.
+  // De gewone kop van dat verhaal ("Met Veerman én De Jong op het middenveld …") deelt de gebeurtenis.
   const goed = paren(OPTS).paren.find((c) => c.x.st.id === oranje.id && /Galavoorstelling/.test(c.e.titel))
   assert.equal(goed.kop, true)
 })
