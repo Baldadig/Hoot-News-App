@@ -11,7 +11,7 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
 import { reduced } from '../lib/motion.js'
-import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF, offeredFields } from '../lib/selection-index.js'
+import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF, offeredFields, SLOT } from '../lib/selection-index.js'
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
@@ -311,9 +311,9 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
                   ) : (
                     <p className="hint dfield__none">{EMPTY_FIELD}</p>
                   )}
+                  {/* Ook deze week: standaard ingeklapt (Selectie-review, punt 6), de drie stukken gaan voor. */}
                   {f.more.length ? (
-                    <div className="dmore">
-                      <h3 className="label label--section dmore__head">Ook deze week</h3>
+                    <Disclosure className="dmore" summaryClassName="label label--section dmore__head" summary="Ook deze week">
                       <ol className="dmore__list">
                         {f.more.map((it) => (
                           <li key={it.id}>
@@ -327,12 +327,18 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
                           </li>
                         ))}
                       </ol>
-                    </div>
+                    </Disclosure>
                   ) : null}
                   </div>
                 </section>
               )
             })}
+
+            {/* Het slot: ook de Selectie heeft een einde (gelijk aan DigestView.swift). */}
+            <footer className="dslot">
+              <p className="head-lg dslot__line">{SLOT[0]}</p>
+              <p className="dslot__next">{SLOT[1]}</p>
+            </footer>
 
             {how}
           </>

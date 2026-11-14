@@ -13,3 +13,10 @@ final class SelectieReviewTests: XCTestCase {
         XCTAssertNil(top[1].paid)
     }
 }
+
+extension SelectieReviewTests {
+    // Punt 6: het slot onder het laatste onderwerp, gelijk aan SLOT in src/lib/selection-index.js.
+    func testSlotText() {
+        XCTAssertEqual(SelectionOverview.slot, ["Je weet genoeg.", "Maandag een nieuwe."])
+    }
+}

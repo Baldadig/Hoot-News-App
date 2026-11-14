@@ -58,6 +58,7 @@ struct DigestView: View {
                                 }
                                 .id(field.id)
                             }
+                            slot
                         }
                         let seen = o.fields.reduce(0) { $0 + ($1.count ?? 0) }
                         if seen > 0 { how(seen) }
@@ -187,6 +188,20 @@ struct DigestView: View {
         }
     }
 
+    // Het slot onder het laatste onderwerp (Selectie-review 14 november, punt 6): ook de Selectie heeft een einde.
+    // Gelijk aan .dslot in Vak.jsx.
+    private var slot: some View {
+        VStack(spacing: Space.s1) {
+            Kop(SelectionOverview.slot[0], .title2).foregroundStyle(Theme.ink)
+            Text(SelectionOverview.slot[1]).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.top, Space.s7)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("selectie-slot")
+    }
+
     private func how(_ seen: Int) -> some View {
         DisclosureGroup("Hoe kiest Hoot deze stukken?") {
             VStack(alignment: .leading, spacing: Space.s2) {
@@ -263,6 +278,8 @@ struct SelectionOverview {
     var summary: String { "\(Self.pieces(picked)) in \(live.count == 1 ? "1 onderwerp" : "\(live.count) onderwerpen")" }
     static func pieces(_ n: Int) -> String { n == 0 ? "Nog geen stukken" : n == 1 ? "1 stuk" : "\(n) stukken" }
     static func join(_ names: [String]) -> String { names.count < 2 ? names.joined() : names.dropLast().joined(separator: ", ") + " en " + names.last! }
+    // Het slot onder het laatste onderwerp, woord voor woord gelijk aan SLOT in src/lib/selection-index.js.
+    static let slot = ["Je weet genoeg.", "Maandag een nieuwe."]
     static let emptyField = "Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw."
     static let noSources = "Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer."
     static let choose = "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week."
@@ -362,19 +379,27 @@ struct FieldSection: View {
                 } else {
                     Text(SelectionOverview.emptyField).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                 }
+                // Ook deze week: standaard ingeklapt (Selectie-review, punt 6), zoals de uitklapper op het web.
                 if !field.more.isEmpty {
-                    Text("OOK DEZE WEEK").font(.ui(.caption, .heavy)).tracking(0.6).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
-                    ForEach(field.more) { item in
-                        VStack(alignment: .leading, spacing: Space.s0) {
-                            Kop(item.title, .headline).foregroundStyle(Theme.ink)
-                            Text([item.sourceName ?? "", HootDate.ago(item.publishedAt.flatMap(HootDate.parse)), item.paid == true ? "Abonnement" : nil].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.hint)
+                    DisclosureGroup {
+                        ForEach(field.more) { item in
+                            VStack(alignment: .leading, spacing: Space.s0) {
+                                Kop(item.title, .headline).foregroundStyle(Theme.ink)
+                                Text([item.sourceName ?? "", HootDate.ago(item.publishedAt.flatMap(HootDate.parse)), item.paid == true ? "Abonnement" : nil].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.hint)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, Space.s2)
+                            .contentShape(Rectangle())
+                            .opensArticle(item.asItem)
+                            Rule()
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, Space.s2)
-                        .contentShape(Rectangle())
-                        .opensArticle(item.asItem)
-                        Rule()
+                    } label: {
+                        Text("OOK DEZE WEEK").font(.ui(.caption, .heavy)).tracking(0.6).foregroundStyle(Theme.ink3)
+                            .frame(minHeight: Space.tap, alignment: .leading)
                     }
+                    .tint(Theme.ink3)
+                    .padding(.top, Space.s2)
+                    .accessibilityIdentifier("selectie-meer-" + field.id)
                 }
             }
         }
