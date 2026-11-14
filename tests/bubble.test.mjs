@@ -141,7 +141,7 @@ const nearFixture = () => {
   const byId = new Map()
   const stories = []
   const add = (id, sourceCount, latestH, members) => {
-    for (const m of members) byId.set(m.id, { kind: 'article', title: m.id, summary: 'Intro.', ...m })
+    for (const m of members) byId.set(m.id, { kind: 'article', title: `Kop van ${m.id}`, summary: 'Intro.', ...m })
     stories.push({ id, sourceCount, latestAt: hAgo(latestH), itemIds: members.map((m) => m.id) })
   }
   add('st-klimaat', 5, 2, [{ id: 'c1', source: 'nyt', topics: ['klimaat'] }, { id: 'c2', source: 'nos', topics: ['klimaat', 'energie'] }])
@@ -171,7 +171,7 @@ test('near: ≥ 3 bronnen, jonger dan een etmaal, met onderwerpen en een gratis 
 test('near: hooguit een twaalftal, en de volgorde hangt niet af van de invoer', () => {
   const byId = new Map()
   const stories = Array.from({ length: 20 }, (_, i) => {
-    byId.set('i' + i, { id: 'i' + i, kind: 'article', source: 'nos', title: 't', summary: 's', topics: ['zorg'] })
+    byId.set('i' + i, { id: 'i' + i, kind: 'article', source: 'nos', title: 'Kop van het verhaal', summary: 's', topics: ['zorg'] })
     return { id: 'st' + String(i).padStart(2, '0'), sourceCount: 3 + (i % 4), latestAt: hAgo(1), itemIds: ['i' + i] }
   })
   const a = nearStories(stories, byId, nearOpts)
@@ -191,7 +191,7 @@ test('/api/edition negeert affinity en geeft geen punten mee', async () => {
   const start = {
     sources: [{ id: 'nos', kind: 'nieuws', cat: 'nl', name: 'NOS' }],
     stories: [],
-    edition: { id: 'e', slot: 'avond', date: '2026-10-30', next: '06:00', builtAt: now, entries: [{ kind: 'item', id: 'g1', desk: 'buitenland' }], items: [{ ...mk('g1', 'Wereldnieuws', []), source: 'nyt' }] },
+    edition: { id: 'e', slot: 'avond', date: '2026-10-30', next: '06:00', builtAt: now, entries: [{ kind: 'item', id: 'g1', desk: 'buitenland' }], items: [{ ...mk('g1', 'Wereldnieuws van vandaag', []), source: 'nyt' }] },
     meta: { parts: { nos: 'p' } },
   }
   await writeDoc(KEYS.start, { body: JSON.stringify(start), builtAt: now, etag: 's' })

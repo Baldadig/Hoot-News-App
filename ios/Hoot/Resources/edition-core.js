@@ -4009,11 +4009,31 @@ var HootCore = (() => {
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 
+  // shared/vorm.mjs
+  var LABEL2 = /^\s*[\p{L}\p{N}][\p{L}\p{N} &'’.-]{0,30}?\s*(?:\/|\||:)\s+/u;
+  var BULLET = /\s•\s/;
+  var DATED_LABEL = /^\s*\p{L}+(?:\s\p{L}+)?\s+\d{1,2}\/\d{1,2}\s*:/u;
+  var WORDS = /[\p{L}\p{N}]+/gu;
+  function vormMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    const title = String(item.title || "").replace(/\s+/g, " ").trim();
+    if (!title) return null;
+    const words2 = title.match(WORDS) || [];
+    if (words2.length <= 1) return "lege-kop";
+    if (words2.length <= 3 && /\p{Lu}/u.test(title) && title === title.toUpperCase()) return "lege-kop";
+    if (BULLET.test(title) || DATED_LABEL.test(title)) return "dagoverzicht";
+    const body = title.replace(LABEL2, "");
+    const labelled = body !== title;
+    if (/^(ik|mijn)\s/i.test(body) || labelled && /^I\s/.test(body)) return "ik-vorm";
+    return null;
+  }
+  var geenPlekNaarVorm = (item) => vormMark(item) != null;
+
   // shared/editie-filter.mjs
   var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
   var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
   var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
-  var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  var LABEL3 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
   function rubricSegments(url) {
     const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
     if (!m) return [];
@@ -4046,7 +4066,7 @@ var HootCore = (() => {
     const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
     if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
     const media = String(item.mediaType || "");
-    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
+    const label2 = LABEL3.exec(String(item.title || ""))?.[1]?.toLowerCase();
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
     if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
     if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
@@ -4054,7 +4074,7 @@ var HootCore = (() => {
     if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
     return null;
   }
-  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null);
+  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null || geenPlekNaarVorm(item));
 
   // shared/stroom.mjs
   var forEdition = (it) => !it?.streamOnly;

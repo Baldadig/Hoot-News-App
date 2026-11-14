@@ -265,7 +265,7 @@ test('bubbel: invoegen in een lege of volle editie zonder rubrieken', () => {
 test('jouw editie: zonder algemene editie niets, met kale gegevens geen crash', () => {
   assert.equal(composePersonal({ global: null }), null)
   assert.equal(composePersonal({ global: { entries: [] } }), null)
-  const global = { id: 'e', entries: [{ kind: 'item', id: 'g1' }, { kind: 'item', id: 'b1', desk: 'bubbel' }], items: [art('g1', 'nyt', 'Iets anders', 5), art('b1', 'nos', 'Bubbel', 5)], bubble: [{ id: 'b1' }], wide: [{ storyId: 's1' }, null] }
+  const global = { id: 'e', entries: [{ kind: 'item', id: 'g1' }, { kind: 'item', id: 'b1', desk: 'bubbel' }], items: [art('g1', 'nyt', 'Iets anders', 5), art('b1', 'nos', 'Bubbel van vandaag', 5)], bubble: [{ id: 'b1' }], wide: [{ storyId: 's1' }, null] }
   const mine = composePersonal({ global, items: [{ id: 'q', source: 'nos' }], followed: new Set(['nos']), interests: ['sport'], now: NOW })
   assert.ok(mine.entries.length >= 1)
   assert.equal(new Set(mine.entries.map((e) => e.leadId || e.id)).size, mine.entries.length)
