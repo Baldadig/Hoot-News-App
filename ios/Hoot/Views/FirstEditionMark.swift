@@ -30,7 +30,7 @@ enum Tien {
     static let line1 = "Je eerste Editie"
     static let line2 = "Even kijken bij je bronnen"
     static let busy = "Hoot stelt je eerste Editie samen"
-    static let ready = "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel."
+    static let ready = "Je eerste Editie staat klaar. Dan ben je zo bij."
     static let fail = "Je eerste Editie kon nog niet laden. Geen verbinding."
 
     static let glide = LoadLines.bezier(0.2, 0.8, 0.2, 1)

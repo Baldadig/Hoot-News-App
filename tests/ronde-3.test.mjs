@@ -81,7 +81,7 @@ test('r5-apple-web: de inlogpagina van de app zegt dat je op gethoot.app (nog) m
 
 test('laag B, klein: de Tien-zin klopt met wat je krijgt (A9), Tien in Schibsted (A21), Zoeken op één lijn en leesbaar bij grote tekst (A2, A18)', async () => {
   const { TEXT } = await import('../src/lib/tien.js')
-  assert.equal(TEXT.ready, 'Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.')
+  assert.equal(TEXT.ready, 'Je eerste Editie staat klaar. Dan ben je zo bij.')
   const mark = read('ios/Hoot/Views/FirstEditionMark.swift')
   assert.ok(mark.includes(`static let ready = "${TEXT.ready}"`))
   assert.doesNotMatch(mark, /\.font\(\.system\(size:/)

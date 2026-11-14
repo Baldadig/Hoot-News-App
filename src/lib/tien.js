@@ -35,7 +35,7 @@ export const TEXT = {
   line1: 'Je eerste Editie',
   line2: 'Even kijken bij je bronnen',
   busy: 'Hoot stelt je eerste Editie samen',
-  ready: 'Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.',
+  ready: 'Je eerste Editie staat klaar. Dan ben je zo bij.',
   fail: 'Je eerste Editie kon nog niet laden. Geen verbinding.',
 }
 
