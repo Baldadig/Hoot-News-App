@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { composePersonal } from '../src/lib/personal.js'
 import { localAbroad } from '../netlify/lib/desks.mjs'
-import { majorNews, coverageOf } from '../shared/edition-policy.mjs'
+import { majorNews, homePublishersOf } from '../shared/edition-policy.mjs'
 import { resolveTopics } from '../src/lib/topics.js'
 
 const P = JSON.parse(readFileSync(new URL('../../Hoot-design/personas-2026-11-14/personas.json', import.meta.url), 'utf8')).personas
@@ -30,12 +30,33 @@ test('lokaal van elders: Amerikaans binnenland en deelstaten, niet wat breder ga
   assert.ok(!local('Trump threatens to leave NATO', 'vs'))
   assert.ok(!local('Kabinet valt over stikstof', 'binnenland'))
   assert.ok(!local('Storm Charles batters coastline of southern Spain', 'buitenland'))
-  // Brengt ook een uitgever van hier het verhaal (Nederland of Vlaanderen), dan is het geen lokaal nieuws van elders; een
-  // Britse krant over Amerika maakt het niet breder (tweede keuring 14 november).
+  // Brengen minstens twee uitgevers van hier het verhaal (Nederland of Vlaanderen), dan is het geen lokaal nieuws van
+  // elders; een Britse krant over Amerika maakt het niet breder (tweede keuring 14 november). Geteld per uitgever, niet per
+  // land: één Nederlands stuk, ook als kop, is niet genoeg (derde keuring).
   const hegseth = [{ title: 'Republicans Turn Back Effort to Impeach Hegseth' }]
-  assert.ok(localAbroad(hegseth, { desk: 'vs', publishers: ['US', 'GB'] }))
-  assert.ok(!localAbroad(hegseth, { desk: 'vs', publishers: ['US', 'NL'] }))
-  assert.ok(!localAbroad([{ title: 'NSW premier announces inquiry into council' }], { publishers: ['AU', 'BE'] }))
+  assert.ok(localAbroad(hegseth, { desk: 'vs', homePublishers: [] }))
+  assert.ok(localAbroad(hegseth, { desk: 'vs', homePublishers: ['nos'] }))
+  assert.ok(localAbroad(hegseth, { desk: 'vs', homePublishers: ['nos', 'nos'] }), 'één uitgever, twee keer')
+  assert.ok(!localAbroad(hegseth, { desk: 'vs', homePublishers: ['nos', 'nrc'] }))
+  assert.ok(!localAbroad([{ title: 'NSW premier announces inquiry into council' }], { homePublishers: ['vrt', 'standaard'] }))
+})
+
+// Derde keuring 14 november: één Nederlands stuk over een staat of een Amerikaanse stad is lokaal nieuws van elders, ook als
+// het de kop is. Twee stukken van dezelfde uitgever (NOS en NOS Sport) blijven één uitgever; NOS en NRC zijn er twee.
+test('lokaal van elders: één Nederlandse uitgever over een staat is niet genoeg', () => {
+  const state = { title: 'Mississippi kiest Democraat als senator', source: 'rtl' }
+  const city = { title: 'Twee doden nadat gebouw instort in New York', source: 'nu' }
+  for (const head of [state, city]) {
+    assert.deepEqual(homePublishersOf([head], {}), [head.source])
+    assert.ok(localAbroad([head], { homePublishers: homePublishersOf([head], {}) }), head.title)
+  }
+  const shooting = [{ title: 'Schietpartij in Washington', source: 'nos' }, { title: 'Schietpartij in Washington, verdachte gezocht', source: 'nos-sport' }]
+  assert.deepEqual(homePublishersOf(shooting, {}), ['nos'])
+  assert.ok(localAbroad(shooting, { desk: 'vs', homePublishers: homePublishersOf(shooting, {}) }), 'één uitgever')
+  const two = [...shooting, { title: 'Schutter Washington opgepakt', source: 'nrc' }]
+  assert.ok(!localAbroad(two, { desk: 'vs', homePublishers: homePublishersOf(two, {}) }), 'twee uitgevers')
+  // De bronnen van de hele gebeurtenis van de server tellen mee, een Britse niet.
+  assert.deepEqual(homePublishersOf([state], { sourceNames: ['NOS', 'The Guardian'] }), ['nos', 'rtl'])
 })
 
 for (const f of FEEDS) {
@@ -52,7 +73,7 @@ for (const f of FEEDS) {
         const head = byId.get(e.leadId || e.id)
         const xs = (e.itemIds || []).map((x) => byId.get(x)).filter(Boolean)
         const st = storyById.get(e.id) || {}
-        return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, publishers: st.publisherCountries || coverageOf(xs).publisherCountries }) && !majorNews(st, xs)
+        return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, homePublishers: homePublishersOf([head, ...xs], st) }) && !majorNews(st, xs)
       }
       // Alleen een onderwerp dat je zelf aantikte, redt een plek van het zakken (debugveld `_local`); een onderwerp dat het
       // welkom met een interesse meegeeft niet (tweede keuring 14 november). De persona's kozen hele interesses: bij hen zakt

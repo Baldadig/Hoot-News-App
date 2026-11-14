@@ -1428,15 +1428,15 @@ var HootCore = (() => {
   ]);
   var NL_ANCHOR = W(["nederland\\p{L}*", "dutch", "holland\\p{L}*"]);
   var OTHER_STATES = W(["new south wales", "nsw", "queensland", "tasmani\\p{L}*", "western australia", "south australia", "northern territory", "victorian", "ontario", "quebec", "québec", "alberta", "british columbia", "manitoba", "saskatchewan", "nova scotia"]);
-  var HOME_PUBLISHERS = /* @__PURE__ */ new Set(["NL", "BE"]);
+  var HOME_MIN = 2;
   var LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i;
   var OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi;
   var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
-  function localAbroad(items = [], { desk = null, publishers = [] } = {}) {
+  function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
     const head = items.find(Boolean);
     const t = String(head?.title || "");
     if (!t) return false;
-    const elsewhere = () => publishers.some((c) => HOME_PUBLISHERS.has(String(c).toUpperCase()));
+    const elsewhere = () => new Set(homePublishers).size >= HOME_MIN;
     const usHere = desk === "vs" || usPoliticsIn(t) || countriesIn(t).includes("us");
     if (usHere) return !beyondIn(t, ["us"]) && !placeSignals({ title: t }).home && !elsewhere();
     if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || "").split("?")[0]))) return false;
@@ -3036,6 +3036,17 @@ var HootCore = (() => {
   function coverageOf(items = []) {
     const ids = [...new Set(items.filter(countsAsSource).map((i) => publisherOf(i.source)).filter(Boolean))].sort();
     return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() };
+  }
+  var SOURCE_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.id]));
+  var HOME_LAND = /* @__PURE__ */ new Set(["NL", "BE"]);
+  function homePublishersOf(items = [], story = {}) {
+    const seen = new Set(items.map((i) => i?.source).filter(Boolean));
+    const ids = items.filter(countsAsSource).map((i) => i.source);
+    for (const name of story?.sourceNames || []) {
+      const id = SOURCE_BY_NAME.get(name);
+      if (id && !seen.has(id) && !opinieBron(id)) ids.push(id);
+    }
+    return [...new Set(ids.map(publisherOf).filter((p) => HOME_LAND.has(COUNTRIES2[p])))].sort();
   }
   var SPORT_CAT = new Map(SOURCES.map((s) => [s.id, s.cat]));
   var SPORT_NAMES = new Set(SOURCES.filter((s) => s.cat === "sport").map((s) => s.name));
@@ -5413,7 +5424,7 @@ var HootCore = (() => {
     const localWide = (w) => {
       const st = storyById.get(w.storyId) || {};
       const xs = [wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)];
-      return !bigWide(w) && localAbroad(xs, { desk: st.desk ?? null, publishers: st.publisherCountries || coverageOf(xs.filter(Boolean)).publisherCountries });
+      return !bigWide(w) && localAbroad(xs, { desk: st.desk ?? null, homePublishers: homePublishersOf(xs.filter(Boolean), st) });
     };
     const free2 = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
     const wide0 = (global.wide || []).find((w) => free2(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free2(w) && bigWide(w)) || (global.wide || []).find((w) => free2(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free2).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
@@ -5575,7 +5586,7 @@ var HootCore = (() => {
       if (!head || e.desk === "bubbel") return false;
       const st = storyById.get(e.kind === "story" ? e.id : serverStory(e)) || {};
       const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean);
-      return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, publishers: st.publisherCountries || coverageOf(xs).publisherCountries }) && !majorNews(st, xs);
+      return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, homePublishers: homePublishersOf([head, ...xs], st) }) && !majorNews(st, xs);
     };
     const localOf = (e) => rawLocal(e) && !touchesChoice(e);
     const fillDesks = /* @__PURE__ */ new Map();

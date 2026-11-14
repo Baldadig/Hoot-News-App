@@ -59,6 +59,21 @@ export function coverageOf(items = []) {
   const ids = [...new Set(items.filter(countsAsSource).map(i => publisherOf(i.source)).filter(Boolean))].sort()
   return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() }
 }
+// De Nederlandse en Vlaamse uitgevers van een verhaal, per uitgever (publisherOf: NOS en NOS Sport zijn één), voor lokaal
+// nieuws van elders (localAbroad in netlify/lib/desks.mjs). Uit de stukken die we hebben (countsAsSource), aangevuld met de
+// bronnamen van de hele gebeurtenis van de server (`story.sourceNames`) voor een bron waarvan we geen stuk hebben; een
+// opinieblad telt ook daar niet.
+const SOURCE_BY_NAME = new Map(SOURCES.map(s => [s.name, s.id]))
+const HOME_LAND = new Set(['NL', 'BE'])
+export function homePublishersOf(items = [], story = {}) {
+  const seen = new Set(items.map(i => i?.source).filter(Boolean))
+  const ids = items.filter(countsAsSource).map(i => i.source)
+  for (const name of story?.sourceNames || []) {
+    const id = SOURCE_BY_NAME.get(name)
+    if (id && !seen.has(id) && !opinieBron(id)) ids.push(id)
+  }
+  return [...new Set(ids.map(publisherOf).filter(p => HOME_LAND.has(COUNTRIES[p])))].sort()
+}
 // ---- Noodfix 2 november 2026: sport op niveau van het verhaal, en de galerij ----
 // Een bundel van 64 stukken over een F1-titel, een marathon en meer sport had een NYT-fotogalerij als kop
 // (geen sporttag) en 18 uitgevers: "Groot nieuws" voor iedereen. Sport herken je daarom aan het hele verhaal.

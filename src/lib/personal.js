@@ -1,5 +1,5 @@
 import { withCleanIntro } from '../../shared/edition-display.mjs'
-import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, cultuurChosen, exceptionalDutchSport, coverageOf, majorGeneralNews } from '../../shared/edition-policy.mjs'
+import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, cultuurChosen, exceptionalDutchSport, coverageOf, majorGeneralNews, homePublishersOf } from '../../shared/edition-policy.mjs'
 import { withoutDebug, earlierEditions, editionBasis, personalRows } from './personal-basis.js'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -478,7 +478,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const localWide = (w) => {
     const st = storyById.get(w.storyId) || {}
     const xs = [wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)]
-    return !bigWide(w) && localAbroad(xs, { desk: st.desk ?? null, publishers: st.publisherCountries || coverageOf(xs.filter(Boolean)).publisherCountries })
+    return !bigWide(w) && localAbroad(xs, { desk: st.desk ?? null, homePublishers: homePublishersOf(xs.filter(Boolean), st) })
   }
   const free = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId)
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
@@ -734,7 +734,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (!head || e.desk === 'bubbel') return false
     const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
     const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean)
-    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, publishers: st.publisherCountries || coverageOf(xs).publisherCountries }) && !majorNews(st, xs)
+    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, homePublishers: homePublishersOf([head, ...xs], st) }) && !majorNews(st, xs)
   }
   // Zakken: de strenge toets, behalve een plek die een zelf gekozen onderwerp raakt.
   const localOf = (e) => rawLocal(e) && !touchesChoice(e)
