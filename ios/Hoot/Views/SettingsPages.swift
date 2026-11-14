@@ -299,6 +299,16 @@ struct ArtikelenView: View {
                 }
             }
             .hootRows()
+            // Luister verder (build 56): welke podcastapp opent, of Altijd vragen, of Niet tonen. Alleen op dit toestel.
+            // Nog niets gekozen: leeg; de eerste tik op Luister verder vraagt het.
+            Section {
+                Picker("Podcasts", selection: $store.podcastApp) {
+                    if store.podcastApp.isEmpty { Text("").tag("") }
+                    ForEach(Luister.keuzes, id: \.id) { k in Text(k.naam).tag(k.id) }
+                }
+                .frame(minHeight: Space.tap)
+            }
+            .hootRows()
         }
         .hootForm()
         .navigationTitle("Artikelen")

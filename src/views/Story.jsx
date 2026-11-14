@@ -10,6 +10,7 @@ import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { ownIntro, VIA_TEKEN } from '../../shared/kaart-intro.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { Verschillen } from '../components/Verschillen.jsx'
+import { LuisterSectie } from '../components/Luister.jsx'
 import { opinieInStroom } from '../../shared/opinie.mjs'
 
 // Esc sluit het vaste zijpaneel (breed scherm), zoals het de dialoog sluit op een smal scherm. Alleen als
@@ -161,6 +162,8 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
         ) : null}
         {/* Waar media verschillen: alleen als de server een gekeurd blok meegaf (anders niets). */}
         <Verschillen story={story} />
+        {/* Luister verder: hooguit drie afleveringen bij dit verhaal (alleen met de schakelaar op het web). */}
+        <LuisterSectie story={story} />
         <Disclosure className="how" summaryClassName="linkbtn linkbtn--plain" summary="Hoe zijn deze bronnen gekoppeld?">
           <p>
             {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}.

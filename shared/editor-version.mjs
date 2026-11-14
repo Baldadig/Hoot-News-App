@@ -112,7 +112,9 @@
 // WORLD, Nederlands en Engels, in één tabel (COUNTRY_FORMS, alleen in localAbroad).
 // Persona · keuring na herstelkeuring 3, kleiner punt: Holland als achternaam (Tom Holland) is geen anker van hier
 // (NAME_HOLLAND, alleen in localAbroad).
-export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-3'
+// Persona · samengevoegd met main (luister2, overtijd, stroom, app 1.4): main houdt revisie recensies, die staat vooraan in
+// EARLIER_REVISIONS; persona is nooit uitgerold. De Luister-aflevering gaat mee op een plek van de persoonlijke Editie.
+export const EDITOR_REVISION = 'redacteur-2026-11-15-persona-4'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
 // met de rekenkern die erin zit. Veranderde de afdruk bij elke revisie, dan paste de Editie van de server nooit bij

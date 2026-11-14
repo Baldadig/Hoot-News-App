@@ -35,7 +35,7 @@ import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
-import { loadEpisodes, luisterRonde, LUISTER_MS, KOPPEL_MS } from './luister.mjs'
+import { loadEpisodes, appleLookup, luisterRonde, LUISTER_MS, KOPPEL_MS } from './luister.mjs'
 import { isBlog, introShown } from '../../shared/aanhef.mjs'
 export { withoutPromo } from './text.mjs'
 import { kvGet, kvSet, kvUpdate, remember, storageMode } from './kv.mjs'
@@ -47,6 +47,7 @@ import { inStroom, forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen } from '../../shared/kort-kop.mjs'
 
 const MIN = 6e4
+export const luisterWebAan = (env = process.env) => String(env.HOOT_LUISTER_WEB || '').trim().toLowerCase() === 'aan'
 const DAY = 864e5
 const SOURCE = new Map(SOURCES.map((s) => [s.id, s]))
 // Telt mee voor verhalen: alles behalve regionaal (veel gedeelde stukken) en muziek.
@@ -68,7 +69,7 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
   const profiles = handles.length === 0 ? Promise.resolve({}) : remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
   // Luister verder (stap 2, stil): de officiële nieuwspodcasts naast de bronnen, binnen dezelfde tijd (netlify/lib/luister.mjs).
-  const episodesP = loadEpisodes({ now, deadline: Date.now() + LUISTER_MS, get: kvGet, set: kvSet }).catch(() => ({ episodes: [], status: {} }))
+  const episodesP = loadEpisodes({ now, deadline: Date.now() + LUISTER_MS, get: kvGet, set: kvSet, lookup: appleLookup }).catch(() => ({ episodes: [], status: {} }))
   // De hele feed per bron; daaruit twee lijsten (shared/stroom.mjs).
   // Binnen de tijd (fetchSources): een trage bron houdt de rest niet op; wat hij later brengt, bewaart late() naast het wegschrijven (refresh.mjs).
   const [{ fetched, late }, bskyGroups, registry, stored] = await Promise.all([
@@ -140,14 +141,18 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
         itemsById: new Map([...edition.snapshot.items, ...articlePool].map((i) => [i.id, i])),
       })
     : Promise.resolve(new Map())
-  // Luister verder: na de Editie (die rekent er niet mee), alleen op de live verhalen. Web en app tonen het nog niet.
-  // Binnen de tijd: na KOPPEL_MS vanaf de start van de ronde wordt er niet meer gekoppeld (luister.mjs, luisterRonde).
-  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), deadline: roundStart + KOPPEL_MS })
+  // Luister verder: na de Editie (die rekent er niet mee), alleen op de live verhalen. De app toont het; het web pas met
+  // HOOT_LUISTER_WEB=aan (meta.luisterWeb hieronder).
+  // Het koppelen gebeurt altijd; na KOPPEL_MS vanaf de start zegt de proef alleen `overTijd` (luister.mjs, luisterRonde).
+  // Het is rekenwerk en loopt terwijl de beelden gemeten worden (wachten op het net): zo kost het de ronde weinig tijd.
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
   // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
   const outById = new Map(out.map(i => [i.id, i]))
   const beforeImages = JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))
-  await measureFeedImages([...edition.public.items, ...stories.map(st => outById.get(st.leadId)).filter(Boolean), ...out, ...edition.snapshot.items], now)
+  const imagesP = measureFeedImages([...edition.public.items, ...stories.map(st => outById.get(st.leadId)).filter(Boolean), ...out, ...edition.snapshot.items], now)
+  imagesP.catch(() => {}) // de fout komt hieronder bij `await imagesP`, niet als losse afwijzing tijdens het koppelen
+  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), deadline: roundStart + KOPPEL_MS })
+  await imagesP
   if (beforeImages !== JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))) {
     await kvSet(editionCacheKey(edition.public.id), edition.snapshot).catch(() => {})
   }
@@ -187,6 +192,9 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
       aiEnabled: !!anthropic,
       vkSnippets: gaps.vkSnippets, // Volkskrant-berichten met een inleiding uit de zoekindex
       imagesFilled: gaps.filled, // berichten met een beeld uit de zoekindex
+      // Luister verder op het web (stap 3): standaard uit tot Alex de koppelingen goedkeurt. Aan met de Netlify-variabele
+      // HOOT_LUISTER_WEB=aan (vanaf de volgende ronde). De app leest dit niet: daar staat het altijd aan.
+      ...(luisterWebAan() ? { luisterWeb: true } : {}),
     },
   }
 }

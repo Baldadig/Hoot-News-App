@@ -5939,7 +5939,8 @@ var HootCore = (() => {
       const itemIds0 = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const itemIds = mergedIds.has(e) ? [.../* @__PURE__ */ new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0;
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
-      return { ...rest, ...desk !== e.desk ? { rubriek: desk } : {}, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front, _local: localOf(e) };
+      const luister = e.kind === "story" ? storyById.get(e.id)?.luister : null;
+      return { ...rest, ...desk !== e.desk ? { rubriek: desk } : {}, itemIds, ...keys ? { keys } : {}, ...luister ? { luister } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front, _local: localOf(e) };
     });
     let supply = null;
     const regularCount = editionStoryCount(out);

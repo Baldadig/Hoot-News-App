@@ -945,6 +945,16 @@ struct StoryView: View {
                     Kicker(text: StoryVerschillen.label).textCase(nil).accessibilityAddTraits(.isHeader)
                 }
             }
+            // Luister verder: hooguit drie afleveringen bij dit verhaal, tussen Verschillen en de andere stukken.
+            let luister = store.luister(story)
+            if !items.isEmpty, !luister.isEmpty {
+                Section {
+                    LuisterSectie(lijst: luister)
+                        .listRowBackground(Theme.surface)
+                } header: {
+                    Kicker(text: Luister.sectie).textCase(nil).accessibilityAddTraits(.isHeader)
+                }
+            }
             // Het hoofdbericht staat al bovenaan (tik op de kop): niet nog eens in de lijst.
             ForEach(items.filter { $0.id != lead?.id }) { item in
                 // In een lijst maakt een link in de rij de hele rij tot link: hier geen bronlink.

@@ -8,7 +8,7 @@
 //      of een show met meer onderwerpen zonder artikellink, een artikellink zonder gedeelde naam in de titel;
 //   4. één aflevering bij twee verhalen: geen van beide; versheid; taal volgt de bronkeuze;
 //   5. ophalen: alleen het begin van de feed, hooguit eens per half uur, drie dagen bewaren, nooit de audio;
-//   6. niets zichtbaar: web en app lezen het veld nog niet.
+//   6. zichtbaar sinds stap 3: zie tests/luister-zichtbaar.test.mjs.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
@@ -245,11 +245,5 @@ test('in de ronde: het veld luister op het verhaal en de proef per dagdeel, zond
   assert.equal(d.dagdelen[0].dagdeel, '2026-11-12-ochtend')
 })
 
-test('nog niets zichtbaar: web en app lezen het veld luister niet', () => {
-  const files = (dir) => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? files(join(dir, f)) : [join(dir, f)]))
-  const root = fileURLToPath(new URL('..', import.meta.url))
-  for (const f of [...files(join(root, 'src')), ...files(join(root, 'ios/Hoot')).filter((f) => f.endsWith('.swift'))]) {
-    if (!/\.(jsx?|mjs|swift)$/.test(f)) continue
-    assert.ok(!/\.luister\b|["']luister["']|\bluister\s*[:?]/.test(readFileSync(f, 'utf8')), f)
-  }
-})
+// Stap 3 (14 november): niet meer onzichtbaar. De app toont het veld; het web alleen met de schakelaar.
+// Zie tests/luister-zichtbaar.test.mjs.

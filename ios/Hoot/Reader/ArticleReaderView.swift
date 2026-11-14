@@ -26,6 +26,7 @@ struct ArticleReaderView: View {
     @State private var loginReminders = ReaderLoginReminderStore()
     @State private var loginPanelVisible = false
     @State private var welcome = false // even de bevestiging na het inloggen
+    @State private var luisterVraag: StoryLuister? // Luister verder: het actieblad "Waar luister je podcasts?"
 
     private var source: Source? { store.source(item.source) }
     private var loginURL: URL? { source.flatMap { PublisherLogin.url(for: $0, store: store) } ?? item.link.flatMap(LoginTarget.home) }
@@ -47,8 +48,10 @@ struct ArticleReaderView: View {
                 case .loading:
                     ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width, pagina: opPagina, ruim: !opPagina && krant?.tabloid == true), baseURL: item.link,
-                                   plek: reader?.plek(voor: item.id), bewaarPlek: { [reader, id = item.id] in reader?.bewaarPlek($0, voor: id) })
+                    let luister = store.luister(of: item)
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width, pagina: opPagina, ruim: !opPagina && krant?.tabloid == true, luister: luister, podcastApp: store.podcastApp), baseURL: item.link,
+                                   plek: reader?.plek(voor: item.id), bewaarPlek: { [reader, id = item.id] in reader?.bewaarPlek($0, voor: id) },
+                                   luister: luister.map { a in { LuisterActie(store: store).tik(a, vraag: &luisterVraag) } })
                         .ignoresSafeArea(edges: .bottom)
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
                         .safeAreaInset(edge: .bottom) {
@@ -114,6 +117,8 @@ struct ArticleReaderView: View {
             }
             // Op het tafelblad staat de bediening onder, in de inhoudsopgave: boven alleen lezen (TT463).
             .toolbar(tafel ? .hidden : .automatic, for: .navigationBar)
+            // Luister verder: de eerste tik vraagt welke podcastapp (alleen apps op dit toestel).
+            .luisterVraag($luisterVraag, store: store)
             // Na inloggen: bevestigen en het artikel opnieuw laden, nu met je abonnement.
             .sheet(item: $login, onDismiss: afterLogin) { target in LoginWebView(target: target) }
             // Een inlog-pop-up op de pagina van de uitgever (stand "visit"), of het blad over Google.
@@ -167,6 +172,11 @@ struct ArticleReaderView: View {
             signedIn = await isSignedIn()
             #if DEBUG
             if DebugLaunch.screen("inloggen") { login = LoginTarget(name: sourceName, url: loginURL, article: item.link) }
+            // `-HootLuisterVraag YES`: na het laden de vraag "Waar luister je podcasts?", alsof je op de rij tikte (opnamen).
+            if UserDefaults.standard.bool(forKey: "HootLuisterVraag") {
+                try? await Task.sleep(for: .seconds(6))
+                if let a = store.luister(of: item) { luisterVraag = a }
+            }
             #endif
         }
         .task(id: loader.state == .loading) {
@@ -244,7 +254,7 @@ enum ReaderFonts {
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0, pagina: Bool = false, ruim: Bool = false) -> String {
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0, pagina: Bool = false, ruim: Bool = false, luister: StoryLuister? = nil, podcastApp: String = "", now: Date = .now) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
         // De tekstmaat komt uit de omgeving van de view (niet uit UITraitCollection.current, onbetrouwbaar in een body) en gaat als px in de pagina.
         let bodyPx = typeSize.map { KopZet.pointSize(.body, typeSize: $0) }
@@ -279,6 +289,14 @@ enum ReaderHTML {
         .kicker { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
         h1.title { font-family: "Newsreader Kop", ui-serif, Georgia, serif; font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
+        .meta.meta--luister { margin-bottom: 0; } /* Luister verder: de rij staat tussen de twee haarlijnen */
+        a.luister { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 12px 0; margin: 0 0 1.6em; border-bottom: 1px solid var(--rule); color: var(--ink); text-decoration: none; font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .luister__cover { flex: none; width: 48px; height: 48px; margin: 0; border-radius: 8px; object-fit: cover; background: var(--rule); } /* cover 48 pt, radius 8 */
+        .luister__leeg { display: grid; place-items: center; color: var(--ink-3); }
+        .luister__tekst { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+        .luister__titel { font-weight: 600; font-size: .88em; line-height: 1.33; } /* 15/20 */
+        .luister__regel { font-size: .76em; line-height: 1.23; color: var(--ink-3); } /* 13/16 */
+        .luister__app { flex: none; margin-left: auto; font-size: .76em; color: var(--ink-3); white-space: nowrap; }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
         h1 { overflow-wrap: anywhere; text-wrap: balance; } /* laatste redmiddel; de kop heeft zijn zachte streepjes al (ReaderHTML.page), regels even lang */
         main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; -webkit-hyphenate-limit-before: 3; -webkit-hyphenate-limit-after: 3; } /* alleen bij Heel groot of een AX-maat: lange woorden in tussenkoppen afbreken met een streepje (nooit midden in een woord zonder), in de taal van de bron */
@@ -297,10 +315,23 @@ enum ReaderHTML {
         </style></head><body><main\(scale > 1.3 || accessibilitySize ? " class=\"hyphenate\"" : "")>
         \(kicker.isEmpty ? "" : "<p class=\"kicker\">\(escape(kicker))</p>")
         <h1 class="title">\(title)</h1>
-        \(meta.isEmpty ? "" : "<p class=\"meta\">\(meta)</p>")
+        \(meta.isEmpty ? "" : "<p class=\"meta\(luister == nil ? "" : " meta--luister")\">\(meta)</p>")
+        \(luister.map { luisterRij($0, app: podcastApp, kleineApp: accessibilitySize, now: now) } ?? "")
         \(a.content)
         </main></body></html>
         """
+    }
+
+    // Luister verder (build 56): één tikvlak onder de bronregel, tussen twee haarlijnen. Links de cover van de show
+    // (48 pt, radius 8), dan "Luister verder" en "{show} · {dag} · {duur}", rechts "{app} ↗" (nog niet gekozen of
+    // Altijd vragen: alleen de pijl; bij de grootste tekstmaten valt de naam weg). VoiceOver leest één link. De tik gaat
+    // naar hoot://luister (ArticleWebView vangt hem op), nooit naar een andere site.
+    static let luisterURL = "hoot://luister"
+    static func luisterRij(_ a: StoryLuister, app: String, kleineApp: Bool = false, now: Date = .now) -> String {
+        let cover = a.coverURL.map { "<img class=\"luister__cover\" src=\"\(escape($0.absoluteString))\" alt=\"\" aria-hidden=\"true\">" }
+            ?? "<span class=\"luister__cover luister__leeg\" aria-hidden=\"true\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M201.89 54.66A104.08 104.08 0 0 0 24 128v56a24 24 0 0 0 24 24h16a24 24 0 0 0 24-24v-40a24 24 0 0 0-24-24H40.36A88 88 0 0 1 128 40h.67a87.71 87.71 0 0 1 87 80H192a24 24 0 0 0-24 24v40a24 24 0 0 0 24 24h16a24 24 0 0 0 24-24v-56a103.4 103.4 0 0 0-30.11-73.34\"/></svg></span>"
+        let naam = kleineApp ? nil : Luister.appNaam(app)
+        return "<a class=\"luister\" href=\"\(luisterURL)\" aria-label=\"\(escape(Luister.label(a, app: app, now: now)))\">\(cover)<span class=\"luister__tekst\" aria-hidden=\"true\"><span class=\"luister__titel\">\(Luister.rijTitel)</span><span class=\"luister__regel\">\(escape(Luister.regel(a, now: now)))</span></span><span class=\"luister__app\" aria-hidden=\"true\">\(naam.map { escape($0) + "\u{00A0}" } ?? "")↗</span></a>"
     }
 
     static func escape(_ s: String) -> String {
@@ -315,6 +346,8 @@ struct ArticleWebView: UIViewRepresentable {
     /// De alinea waar je was (vouwen, draaien), en waar je bewaart waar je nu bent.
     var plek: LeesPlek? = nil
     var bewaarPlek: ((LeesPlek) -> Void)? = nil
+    /// Luister verder: de tik op de rij (hoot://luister).
+    var luister: (() -> Void)? = nil
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -334,6 +367,7 @@ struct ArticleWebView: UIViewRepresentable {
 
     func updateUIView(_ view: WKWebView, context: Context) {
         context.coordinator.bewaar = bewaarPlek
+        context.coordinator.luister = luister
         guard context.coordinator.shown != html else { return }
         context.coordinator.shown = html
         // Een nieuwe opmaak van hetzelfde artikel (andere breedte): terug naar de alinea waar je was.
@@ -349,6 +383,7 @@ struct ArticleWebView: UIViewRepresentable {
         var shown = ""
         var plek: LeesPlek?
         var bewaar: ((LeesPlek) -> Void)?
+        var luister: (() -> Void)?
         var terug = false // de plek is teruggezet: vanaf nu telt scrollen
         private var kijker: NSKeyValueObservation?
         private var meten: Task<Void, Never>?
@@ -392,6 +427,8 @@ struct ArticleWebView: UIViewRepresentable {
 
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction) async -> WKNavigationActionPolicy {
             if action.navigationType == .linkActivated, let url = action.request.url {
+                // De rij Luister verder: niet naar buiten, de app beslist (vraag of je podcastapp).
+                if url.absoluteString == ReaderHTML.luisterURL { luister?(); return .cancel }
                 await UIApplication.shared.open(url)
                 return .cancel
             }

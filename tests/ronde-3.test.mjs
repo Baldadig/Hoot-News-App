@@ -15,11 +15,15 @@ test('r5-stroom-einde: web en app eindigen bij je vorige bezoek, met dezelfde wo
     assert.ok(app.includes(zin), `app: ${zin}`)
   }
   assert.doesNotMatch(app, /Button\("Meer berichten"\)/, 'de Stroom laadt niet meer per knop door tot het eind')
-  // Dezelfde grens: een dag, per keer zestig.
+  // Dezelfde regels (melding 14 november): het venster van de Stroom, hoe lang helemaal in beeld, per keer zestig.
   const swift = read('ios/Hoot/StroomEinde.swift')
-  assert.match(swift, /dag: TimeInterval = 24 \* 60 \* 60/)
+  const js = read('src/lib/stroom-einde.js')
+  assert.match(swift, /venster: TimeInterval = 36 \* 60 \* 60/)
+  assert.match(js, /VENSTER = 36 \* 60 \* 60 \* 1000/)
+  assert.match(swift, /gezienNa: TimeInterval = 1\.5/)
+  assert.match(js, /GEZIEN_MS = 1500/)
   assert.match(swift, /page = 60/)
-  assert.match(read('src/lib/stroom-einde.js'), /DAG = 24 \* 60 \* 60 \* 1000/)
+  assert.doesNotMatch(read('ios/Hoot/HootStore.swift'), /func leaveStream/, 'de Stroom verlaten markeert niets meer')
 })
 
 test('r5-einde-rust en r5-seintje: de seintje-kaart staat onder het einde, met een dagdeel en de ochtend voorgekozen', () => {

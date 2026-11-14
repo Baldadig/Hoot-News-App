@@ -689,17 +689,24 @@ struct SourceLine: View {
         }
     }
 
-    // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Past het niet op één regel, dan de bron
+    // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Eerst één regel mét koptelefoontje, dan
+    // één regel zónder (de kaart blijft even hoog; "Luister verder" staat ook in het ⋯-menu), en pas dan de bron
     // bovenaan en de rest eronder, zoals de gewone bronregel.
     private var kaartBody: some View {
         ViewThatFits(in: .horizontal) {
+            HStack(spacing: Space.s1) { source(oneLine: true); Spacer(minLength: 8); kaartCount; luisterKnop; SaveButton(item: item); KaartMore(item: item) }
             HStack(spacing: Space.s1) { source(oneLine: true); Spacer(minLength: 8); kaartCount; SaveButton(item: item); KaartMore(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
-                HStack(spacing: Space.s1) { kaartCount; Spacer(minLength: 0); SaveButton(item: item); KaartMore(item: item) }
+                HStack(spacing: Space.s1) { kaartCount; Spacer(minLength: 0); luisterKnop; SaveButton(item: item); KaartMore(item: item) }
             }
         }
         .padding(.trailing, -11) // de iconen op de kolomlijn: 44 aanraakvlak, 22 glyph
+    }
+
+    // Luister verder: een stil koptelefoontje naast bewaren, alleen bij een verhaal met een aflevering voor jou.
+    @ViewBuilder private var luisterKnop: some View {
+        if let a = store.luister(story ?? store.story(of: item)).first { LuisterKnop(a: a) }
     }
 
     @ViewBuilder private var kaartCount: some View {
@@ -861,11 +868,17 @@ struct ArticleMenuContent: View {
     @Environment(\.tasteVote) private var tasteVote
     let item: Item
     var notice: (_ title: String, _ text: String) -> Void
+    /// Luister verder (build 56): de tik, met de vraag op de view die het menu draagt. Nil: geen regel.
+    var luister: ((StoryLuister) -> Void)? = nil
     var body: some View {
         Button(store.isSaved(item) ? "Verwijder uit Bewaard" : "Bewaar", systemImage: store.isSaved(item) ? "bookmark.slash" : "bookmark") { store.toggleSave(item) }
         if let link = item.link {
             ShareItemLink(item: item, link: link)
             Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
+        }
+        // Tussen Deel en Meer hiervan, alleen als er een aflevering bij dit verhaal is.
+        if let luister, let a = store.luister(of: item) {
+            Button(Luister.rijTitel, systemImage: "headphones") { luister(a) }
         }
         if !item.isPost {
             Section {
@@ -900,26 +913,30 @@ struct ArticleActions: ViewModifier {
     @State private var noticeTitle = ""
     @State private var noticeText = ""
     @State private var noticeOpen = false
+    @State private var luisterVraag: StoryLuister?
     let item: Item
     func body(content: Content) -> some View {
         Button { reader.open(item, store: store) } label: { content }
             .buttonStyle(.plain)
             .krantGekozen(item) // open op de Duo: het stuk op de rechterbladzijde
             .hoverEffect(.highlight) // muis of trackpad op iPad
-            .contextMenu { ArticleMenuContent(item: item) { noticeTitle = $0; noticeText = $1; noticeOpen = true } }
+            .contextMenu { ArticleMenuContent(item: item, notice: { noticeTitle = $0; noticeText = $1; noticeOpen = true }, luister: { a in LuisterActie(store: store).tik(a, vraag: &luisterVraag) }) }
             .alert(noticeTitle,isPresented:$noticeOpen) { Button("Oké",role:.cancel) {} } message: { Text(noticeText) }
+            .luisterVraag($luisterVraag, store: store)
     }
 }
 
 // Het ⋯-menu van kaart A+: dezelfde acties als lang drukken, nu ook zichtbaar. Delen zit hier, niet als eigen knop.
 struct KaartMore: View {
+    @Environment(HootStore.self) private var store
     let item: Item
     @State private var noticeTitle = ""
     @State private var noticeText = ""
     @State private var noticeOpen = false
+    @State private var luisterVraag: StoryLuister?
     var body: some View {
         Menu {
-            ArticleMenuContent(item: item) { noticeTitle = $0; noticeText = $1; noticeOpen = true }
+            ArticleMenuContent(item: item, notice: { noticeTitle = $0; noticeText = $1; noticeOpen = true }, luister: { a in LuisterActie(store: store).tik(a, vraag: &luisterVraag) })
         } label: {
             Image(systemName: "ellipsis")
                 .font(.body)
@@ -930,6 +947,7 @@ struct KaartMore: View {
         }
         .accessibilityLabel("Meer: delen, bewaren, meer of minder hiervan")
         .alert(noticeTitle, isPresented: $noticeOpen) { Button("Oké", role: .cancel) {} } message: { Text(noticeText) }
+        .luisterVraag($luisterVraag, store: store)
     }
 }
 

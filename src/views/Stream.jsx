@@ -18,9 +18,9 @@ import { firstImages, latestChoice, warmImages } from '../lib/rubriek-crossfade.
 import { imgProps } from '../lib/img.js'
 import { withoutRepeats } from '../../shared/stroom.mjs'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
-import { bezoekGrens, gezien, grensIndex, nieuweGrens, tijdVan } from '../lib/stroom-einde.js'
+import { weergaveGrens, grensIndex, vergeetGrenzen, markeerGezien, volgGezien } from '../lib/stroom-einde.js'
 
-const PAGE = 60 // zoveel berichten tegelijk tekenen; ouder dan je vorige bezoek pas met "Ouder nieuws tonen"
+const PAGE = 60 // zoveel berichten tegelijk tekenen; wat je al zag pas met "Ouder nieuws tonen"
 
 const KINDS = [
   { id: '', label: 'Alles' },
@@ -114,24 +114,41 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
 
   useScrollMemory(ref, positionKey('stroom', filters), list.length > 0, list.length + ':' + (list[0]?.id || ''), active)
 
-  // Het einde van de Stroom (lib/stroom-einde.js): de lijst houdt op bij je vorige bezoek (of na
-  // een dag). Daar staat "Je bent bij." met een stille knop "Ouder nieuws tonen" (per keer PAGE).
-  // Niets laadt vanzelf bij. Buiten je bubbel is een korte, eigen lijst: daar geen grens.
-  const grens = useRef(null)
-  const newest = stream.length ? Math.max(...stream.slice(0, 5).map(tijdVan)) : 0
-  if (!grens.current && active && newest) grens.current = bezoekGrens({ newest })
-  useEffect(() => {
-    if (active && newest && grens.current) gezien(newest)
-  }, [active, newest])
+  // Het einde van de Stroom (lib/stroom-einde.js): de lijst houdt op na het laatste bericht van de
+  // laatste 24 uur dat je in deze weergave (tab, bronkeuze) nog niet zag. Daar staat "Je bent bij." met een stille knop "Ouder
+  // nieuws tonen" (per keer PAGE). Gezien is echt gezien: alleen wat tijdens zelf scrollen in beeld was
+  // en voorbij ging (of even helemaal in beeld stond); laden en wisselen markeren niets. De grens wordt
+  // per weergave vastgezet bij het openen, zodat niets beweegt terwijl je leest. Niets laadt vanzelf
+  // bij. Buiten je bubbel is een korte, eigen lijst: daar geen grens.
+  const posKey = positionKey('stroom', filters)
   const bubbelLijst = filters.onderwerp === 'bubbel'
-  const bIdx = grens.current && !bubbelLijst ? grensIndex(list, grens.current.at) : list.length
+  const [vers, setVers] = useState(0) // "N nieuwe berichten": de grenzen opnieuw bepalen
+  const grens = useMemo(
+    () => (active && !bubbelLijst && !loading && list.length ? weergaveGrens(posKey, list) : null),
+    [active, bubbelLijst, loading, posKey, vers, list.length > 0], // eslint-disable-line react-hooks/exhaustive-deps
+  )
+  const bIdx = bubbelLijst ? list.length : grens ? grensIndex(list, grens) : list.length
+  // "Hier was je gebleven" alleen als je onder de grens echt iets zag (vastgelegd met de grens, grensVan).
+  const eerder = !!grens?.eerder && bIdx < list.length
   const [older, setOlder] = useState(0)
   const cap = Math.min(list.length, bIdx + older)
+  const lijstRef = useRef(list)
+  lijstRef.current = list
+  useEffect(() => {
+    if (!active || bubbelLijst) return undefined
+    const scroller = ref.current
+    return volgGezien(scroller, {
+      rijen: () => [...(scroller?.querySelectorAll('.list [data-id]') || [])],
+      opGezien: (ids) => {
+        const byId = new Map(lijstRef.current.map((i) => [i.id, i]))
+        markeerGezien(ids.map((id) => byId.get(id)).filter(Boolean))
+      },
+    })
+  }, [active, bubbelLijst, posKey])
 
   // Niet alles tegelijk tekenen: eerst één portie, de volgende zodra je het eind nadert (alleen tot de
   // grens). Kom je terug op een plek verderop (ook terug van een artikel), dan tekenen we in één keer
   // tot daar, en staat wat ouder was weer open (de leespositie blijft kloppen).
-  const posKey = positionKey('stroom', filters)
   // Ook browser-terug of vertrek maakt een voorladende oude keuze ongeldig.
   useEffect(() => { choices.current.cancel() }, [posKey, active])
   useEffect(() => setFreshShown(0), [posKey])
@@ -141,7 +158,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
     const idx = at ? list.findIndex((i) => i.id === at) : -1
     setLimit(Math.max(PAGE, idx + PAGE))
     setOlder(idx >= bIdx ? idx - bIdx + PAGE : 0)
-  }, [posKey, grens.current?.at]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [posKey, grens?.id, grens?.at]) // eslint-disable-line react-hooks/exhaustive-deps
   const more = useRef(null)
   const shown = list.slice(0, Math.min(limit, cap))
   useEffect(() => watch(more.current, { rootMargin: '1200px 0px' }, (e) => e.isIntersecting && setLimit((n) => n + PAGE)), [shown.length < cap])
@@ -219,7 +236,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
         </ViewHeader>
 
         {pendingCount > 0 ? (
-          <button type="button" className="btn btn--accent newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => { if (newest) grens.current = nieuweGrens(newest); setOlder(0); setFreshShown(!picks.size && !filters.rubriek && !filters.onderwerp && !filters.soort ? pendingCount : 0); onShowNew(); ref.current?.scrollTo({ top: 0 }) }}>
+          <button type="button" className="btn btn--accent newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => { vergeetGrenzen(); setVers((n) => n + 1); setOlder(0); setFreshShown(!picks.size && !filters.rubriek && !filters.onderwerp && !filters.soort ? pendingCount : 0); onShowNew(); ref.current?.scrollTo({ top: 0 }) }}>
             <ArrowUpIcon />
             {pendingCount} {pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'}
           </button>
@@ -269,7 +286,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
               <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {shown.map((item, index) => (
                   <div key={item.id} className={index < Math.min(freshShown, 6) ? 'stream-new' : undefined} style={index < 6 ? { '--rise-delay': `${index * 40}ms` } : undefined}>
-                    {older > 0 && index === bIdx && grens.current?.eerder ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
+                    {eerder && older > 0 && index === bIdx && bIdx > 0 ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
                     <Entry item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                   </div>
                 ))}
@@ -281,7 +298,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
                   <div className="stroomeinde">
                     {older === 0 ? (
                       <>
-                        {grens.current?.eerder && shown.length > 0 ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
+                        {eerder && shown.length > 0 ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
                         <p className="listend stroomeinde__zin">Je bent bij.</p>
                       </>
                     ) : null}
