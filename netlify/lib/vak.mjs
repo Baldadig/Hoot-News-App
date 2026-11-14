@@ -335,6 +335,26 @@ export function vakWeek(now = Date.now()) {
   return { id: `${year}-W${String(week).padStart(2, '0')}`, week, from: new Date(from).toISOString(), to: new Date(to).toISOString(), next: new Date(next).toISOString() }
 }
 
+// Bundel niet bevriezen (Selectie-review 14 november, punt 10). Op maandag vanaf het verschijnen tot de middag
+// (Amsterdam) stelt elke ronde de bundel van deze week opnieuw samen: een bron die het eerste uur faalde of niet aan de
+// beurt was, en beelden die nog ontbraken, komen er dan nog bij. Wat al in de top stond blijft staan (`keep`).
+export const RECOMPOSE_UNTIL_HOUR = 12
+const amsParts = (now) => Object.fromEntries(AMS.formatToParts(new Date(now)).map((x) => [x.type, x.value]))
+export function recomposing(now = Date.now()) {
+  const p = amsParts(now)
+  return p.weekday === 'Mon' && Number(p.hour) >= 7 && Number(p.hour) < RECOMPOSE_UNTIL_HOUR
+}
+// In het weekend (zaterdag, zondag en maandag voor het verschijnen) gaan de beelden van de komende bundel voor, niet die
+// van de bundel die al uit is.
+export function beforeNextBundle(now = Date.now()) {
+  const p = amsParts(now)
+  return p.weekday === 'Sat' || p.weekday === 'Sun' || (p.weekday === 'Mon' && Number(p.hour) < 7)
+}
+// De komende bundel zoals hij er nu voor zou staan: samengesteld alsof het al maandag is.
+export const nextBundleAt = (now = Date.now()) => Date.parse(vakWeek(now).next) + 60e3
+// Per onderwerp de id's van de topstukken van een bundel (voor `keep`).
+export const topIds = (digest) => Object.fromEntries((digest?.fields || []).map((f) => [f.id, (f.top || []).map((e) => e.id)]))
+
 // ---- Over hetzelfde? Genoeg gedeelde, betekenisvolle woorden in de kop ----
 const STOP = new Set('about after again against also among another because been before being between both could does doing during each from further have having here into itself just more most much must need only other over same should some such than that their them then there these they this those through under until very want were what when where which while will with would your yours year years week weeks today heres whats how why new news announces launches says adds update updates over naar voor door over deze voor zijn wordt worden heeft hebben niet meer maar onze jouw jullie'.split(' '))
 const words = (t) => new Set((t || '').toLowerCase().replace(/[’']s\b/g, '').replace(/[’']/g, '').split(/[^a-z0-9à-ÿ+]+/).filter((w) => (w.length >= 4 || /\d/.test(w)) && !STOP.has(w)))
@@ -358,38 +378,48 @@ const titleCase = (t = '') => {
   const ws = (t.match(/\p{L}{4,}/gu) || []).filter((w) => !STOP.has(w.toLowerCase()))
   return ws.length >= 3 && ws.filter((w) => /^\p{Lu}/u.test(w)).length / ws.length >= 0.75
 }
-function nameWords(...items) {
-  const up = new Set()
-  const low = new Set()
-  const mixed = new Set()
-  for (const it of items) {
-    for (const [text, plain] of [
-      [it.title || '', !titleCase(it.title)],
-      [(it.summary || '').slice(0, 300), true],
-    ]) {
-      for (const [tok] of text.matchAll(CASE_TOKEN)) {
-        const w = tok.toLowerCase()
-        if (/\p{Ll}\p{Lu}/u.test(tok)) mixed.add(w)
-        if (/^\p{Ll}/u.test(tok)) low.add(w)
-        else if (plain && /^\p{Lu}/u.test(tok)) up.add(w)
-      }
+// De schrijfwijze per stuk, één keer per stuk uitgerekend (een samenstelling vergelijkt duizenden paren).
+const caseMemo = new WeakMap()
+function caseOf(it) {
+  let c = caseMemo.get(it)
+  if (c) return c
+  c = { up: new Set(), low: new Set(), mixed: new Set() }
+  for (const [text, plain] of [
+    [it.title || '', !titleCase(it.title)],
+    [(it.summary || '').slice(0, 300), true],
+  ]) {
+    for (const [tok] of text.matchAll(CASE_TOKEN)) {
+      const w = tok.toLowerCase()
+      if (/\p{Ll}\p{Lu}/u.test(tok)) c.mixed.add(w)
+      if (/^\p{Ll}/u.test(tok)) c.low.add(w)
+      else if (plain && /^\p{Lu}/u.test(tok)) c.up.add(w)
     }
   }
-  return new Set([...mixed, ...[...up].filter((w) => !low.has(w))])
+  caseMemo.set(it, c)
+  return c
+}
+const isName = (w, ca, cb) => ca.mixed.has(w) || cb.mixed.has(w) || ((ca.up.has(w) || cb.up.has(w)) && !ca.low.has(w) && !cb.low.has(w))
+const wordMemo = new WeakMap()
+const wordsOf = (it) => {
+  let m = wordMemo.get(it)
+  if (!m || m.title !== it.title || m.summary !== it.summary) wordMemo.set(it, (m = { title: it.title, summary: it.summary, head: words(it.title), all: words(textOf(it)) }))
+  return m
 }
 const counts = (w) => !/\d/.test(w) || (w.replace(/\D/g, '').length >= 3 && !/^(19|20)\d\d$/.test(w))
 export function sameSubject(a, b, df = new Map()) {
   if (a.url && a.url === b.url) return true
   const rare = (w) => (df.get(w) || 0) <= 2
-  const names = nameWords(a, b)
-  const content = (w) => !/\d/.test(w) && !names.has(w)
-  const grounded = (ws) => ws.some(content) || ws.length >= 4
-  const ta = words(a.title)
-  const tb = words(b.title)
-  const shared = [...ta].filter((w) => tb.has(w) && counts(w))
+  const grounded = (ws) => {
+    if (ws.length >= 4) return true
+    const ca = caseOf(a)
+    const cb = caseOf(b)
+    return ws.some((w) => !/\d/.test(w) && !isName(w, ca, cb))
+  }
+  const wa = wordsOf(a)
+  const wb = wordsOf(b)
+  const shared = [...wa.head].filter((w) => wb.head.has(w) && counts(w))
   if ((shared.length >= 3 || shared.filter(rare).length >= 2) && grounded(shared)) return true
-  const wb = words(textOf(b))
-  const both = [...words(textOf(a))].filter((w) => wb.has(w) && rare(w) && counts(w))
+  const both = [...wa.all].filter((w) => wb.all.has(w) && rare(w) && counts(w))
   return both.length >= 3 && grounded(both)
 }
 
@@ -461,7 +491,10 @@ export function editieSlotIds({ from, to }) {
   return [...days].flatMap((d) => ['ochtend', 'middag', 'avond'].map((s) => `${d}-${s}`))
 }
 
-export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top = 3, more = 5, since = null, editie = [] } = {}) {
+// `keep` (Selectie-review 14 november, punt 10): per onderwerp de id's van de stukken die al in de top van deze week
+// stonden. Op maandagochtend stellen we elk uur opnieuw samen; wat al in de top stond blijft op zijn plek (met hetzelfde
+// stuk vooraan in zijn groep), er komt alleen bij wat ontbrak. Zo verspringt er niets voor wie al las.
+export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top = 3, more = 5, since = null, editie = [], keep = {} } = {}) {
   const { preview, wk } = vakRange(now, since)
   const byId = new Map(sources.map((s) => [s.id, s]))
   const inWeek = pool.filter((i) => i.publishedAt >= wk.from && i.publishedAt < wk.to && byId.has(i.source) && isReading(i, byId.get(i.source)) && inReaderLang(i, byId.get(i.source)) && (byId.get(i.source).kind !== 'curator' || isArticleLink(i.url)))
@@ -473,6 +506,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
   const covered = new Set(sources.flatMap((s) => s.fields))
   const fields = VAK_FIELDS.filter((f) => covered.has(f.id)).map((f) => {
     const its = inWeek.filter((i) => fieldOf(i, byId.get(i.source), { kenner: true }) === f.id)
+    const keepIds = new Set(keep[f.id] || [])
     // Groepen: stukken over hetzelfde, uit verschillende bronnen.
     const groups = []
     for (const it of its) {
@@ -481,6 +515,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       g ? g.items.push(it) : groups.push({ items: [it] })
     }
     const hidden = new Set() // stond deze week al in een Editie: niet in de top
+    const ids = new Map() // per stuk de id's van zijn groep (voor `keep`)
     const scored = groups.map((g) => {
       // Bronnen die erover schreven: een curator (Sidebar) linkt alleen en telt niet mee (Selectie-review, punt 3).
       const srcs = new Set(g.items.filter((i) => byId.get(i.source).kind !== 'curator').map((i) => i.source))
@@ -488,7 +523,8 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const picked = g.items.some((i) => byId.get(i.source).kind === 'curator') && g.items.some((i) => byId.get(i.source).kind !== 'curator')
       // Het stuk dat we tonen: van de zwaarste bron; Sidebar zelf alleen als er niets anders is.
       const rank = (i) => (byId.get(i.source).kind === 'curator' ? 0 : WEIGHT[byId.get(i.source).kind]) * 10 + (i.author ? 2 : 0) + (i.summary ? 1 : 0)
-      const lead = [...g.items].sort((a, b) => rank(b) - rank(a) || (a.publishedAt < b.publishedAt ? -1 : 1))[0]
+      const kept = keepIds.size ? g.items.find((i) => keepIds.has(i.id)) : null
+      const lead = kept || [...g.items].sort((a, b) => rank(b) - rank(a) || (a.publishedAt < b.publishedAt ? -1 : 1))[0]
       const src = byId.get(lead.source)
       const extra = 2.5 * Math.max(0, srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
       // Leesvoer: het gewicht eerst, de rest alleen bij gelijke stand (extra blijft ruim onder de 100).
@@ -509,27 +545,36 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
         // Betaald: "Abonnement" in de bronregel (web en app). Een Sidebar-link wijst naar een site die we niet kennen.
         paid: !curator && !!src.paid,
         why,
-        // Ook bij: elke andere bron één keer, bij naam (niet drie keer Eurogamer).
+        // Ook bij: elke andere bron één keer, bij naam (niet drie keer Eurogamer), in een vaste volgorde (oudste eerst, dan
+        // de naam), zodat een nieuwe samenstelling zonder nieuws precies dezelfde bundel geeft.
         also: g.items
           .filter((i) => i.source !== lead.source && byId.get(i.source).kind !== 'curator' && cleanLink(i.url) !== cleanLink(lead.url))
+          .sort((x, y) => (x.publishedAt < y.publishedAt ? -1 : x.publishedAt > y.publishedAt ? 1 : String(x.sourceName).localeCompare(String(y.sourceName))))
           .filter((i, k, all) => all.findIndex((x) => x.sourceName === i.sourceName) === k)
           .map((i) => ({ sourceName: i.sourceName, url: i.url, title: i.title })),
         score,
       }
       if (inEditie(g.items)) hidden.add(entry)
+      ids.set(entry, g.items.map((i) => i.id))
       delete entry.text
       delete entry.cats
       delete entry.ogTried
       return entry
     })
-    scored.sort((a, b) => b.score - a.score || b.also.length - a.also.length || (a.publishedAt > b.publishedAt ? -1 : 1))
+    // Bij helemaal gelijke stand beslist de id: dezelfde voorraad geeft altijd dezelfde volgorde (punt 10).
+    scored.sort((a, b) => b.score - a.score || b.also.length - a.also.length || (a.publishedAt > b.publishedAt ? -1 : a.publishedAt < b.publishedAt ? 1 : a.id < b.id ? -1 : 1))
     // Afwisseling: in de top hooguit één stuk per bron, daaronder hooguit twee.
     // `paidMax`: in de top hooguit één betaald stuk (Selectie-review, punt 9): van drie stukken kun je er dan hooguit één
     // niet lezen zonder abonnement.
-    const pick = (list, n, perSource, paidMax = Infinity) => {
-      const out = []
+    const pick = (list, n, perSource, paidMax = Infinity, seed = []) => {
+      const out = [...seed]
       const count = {}
       let paid = 0
+      for (const e of seed) {
+        const key = e.via ? 'sidebar:' + e.sourceName : e.source
+        count[key] = (count[key] || 0) + 1
+        if (e.paid) paid++
+      }
       for (const e of list) {
         if (out.length >= n) break
         const key = e.via ? 'sidebar:' + e.sourceName : e.source
@@ -542,7 +587,9 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       return out
     }
     // Een bedrijfsblog (Meta, Figma) haalt de top alleen als ook anderen erover schrijven.
-    const topList = pick(scored.filter((e) => !hidden.has(e) && (byId.get(e.source).kind !== 'officieel' || e.also.length)), top, 1, 1)
+    // Wat al in de top stond eerst, in de volgorde van toen (ook als het nu anders zou scoren of in een Editie stond).
+    const seed = [...keepIds].map((id) => scored.find((e) => ids.get(e).includes(id))).filter((e, k, all) => e && all.indexOf(e) === k).slice(0, top)
+    const topList = pick(scored.filter((e) => !seed.includes(e) && !hidden.has(e) && (byId.get(e.source).kind !== 'officieel' || e.also.length)), top, 1, 1, seed)
     const rest = pick(scored.filter((e) => !topList.includes(e)), more, 2)
     return { ...f, count: its.length, top: topList, more: rest }
   })
