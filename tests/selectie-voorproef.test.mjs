@@ -13,7 +13,7 @@ test('voorproefje: per domein het eerste onderwerp met stukken, hooguit drie, el
   assert.equal(new Set(p.map((x) => domains.find((d) => d.fields.some((f) => f.id === x.id)).id)).size, p.length, 'elk uit een ander domein')
   for (const x of p) assert.ok(x.label && x.item?.title)
   assert.deepEqual(voorproefje(domains, []), [])
-  assert.match(VOORPROEF, /per onderwerp de beste stukken van de week/)
+  assert.match(VOORPROEF, /per onderwerp een stuk uit de Selectie van deze week/)
 })
 
 test('Vak.jsx: alleen bij niets gekozen, met echte kaarten onder "Kies onderwerpen"', () => {

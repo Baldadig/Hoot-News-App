@@ -708,7 +708,7 @@ struct WelcomeView: View {
         }
         .padding(.top, Space.s6)
         if selOpen {
-            Text("Elke maandag het beste over je werk of hobby.")
+            Text("Elke maandag drie stukken over je werk of hobby.")
                 .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
                 .padding(.top, Space.s4)
             ForEach(DigestFieldsList.domains, id: \.label) { d in

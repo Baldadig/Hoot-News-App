@@ -510,7 +510,7 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, di
       ) : null}
       {selectie && open ? (
         <div id="ob-sel" className="ob__sel">
-          <p className="ob__selnote">Elke maandag het beste over je werk of hobby.</p>
+          <p className="ob__selnote">Elke maandag drie stukken over je werk of hobby.</p>
           {domains.map((d) => (
             <ChipGroup key={d.id} label={d.label} level={2} className="ob__domain">
               {d.fields.map((f) => (

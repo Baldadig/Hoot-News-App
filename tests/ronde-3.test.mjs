@@ -57,8 +57,8 @@ test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () =>
   // Op de rode intro sinds onboarding blok 6 "Al een account? Log in"; Instellingen houdt Account.
   assert.match(welkom, /Button\("Al een account\? Log in"\) \{ login = true \}/)
   // De zinnen van het uitlegscherm (Editie, Stroom, Selectie) zijn weg met dat scherm (14 november).
-  assert.doesNotMatch(welkom, /Drie keer per dag tien verhalen|Elke maandag het beste over wat jou bezighoudt/)
-  assert.match(welkom, /"Elke maandag het beste over je werk of hobby\."/)
+  assert.doesNotMatch(welkom, /Drie keer per dag tien verhalen|Elke maandag (het beste|drie stukken) over wat jou bezighoudt/)
+  assert.match(welkom, /"Elke maandag drie stukken over je werk of hobby\."/)
   assert.doesNotMatch(welkom, /hooguit tien|[Ee]én keer per week|Button\("Inloggen"\)/)
   // De accountrij zonder account heet Account. Bovenaan Instellingen staat sinds 1.2.1 "Inloggen" met de knoppen
   // er meteen onder (advies instellingen-positie), want daar doe je het.
@@ -70,8 +70,8 @@ test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () =>
   assert.match(read('ios/Hoot/Views/AccountView.swift'), /struct AccountKnop[\s\S]*?accessibilityLabel\("Instellingen"\)/)
   // Gelijk aan het web.
   const web = read('src/views/Welcome.jsx')
-  assert.ok(web.includes('Elke maandag het beste over je werk of hobby.'))
-  for (const zin of ['Drie keer per dag tien verhalen.', 'Elke maandag het beste over wat jou bezighoudt.']) assert.ok(!web.includes(zin), zin)
+  assert.ok(web.includes('Elke maandag drie stukken over je werk of hobby.'))
+  for (const zin of ['Drie keer per dag tien verhalen.', 'Elke maandag drie stukken over wat jou bezighoudt.', 'het beste over']) assert.ok(!web.includes(zin), zin)
 })
 
 test('r5-apple-web: de inlogpagina van de app zegt dat je op gethoot.app (nog) met Google inlogt, en het web kent alleen Google', () => {

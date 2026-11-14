@@ -41,6 +41,9 @@ export function selectionOverview(chosen, offered) {
 
 export const summaryLine = (o) => `${pieces(o.picked)} in ${o.live.length === 1 ? '1 onderwerp' : `${o.live.length} onderwerpen`}`
 
+// Het slot onder het laatste onderwerp (Selectie-review 14 november, punt 6): ook de Selectie heeft een einde. Woord voor
+// woord gelijk aan SelectionOverview.slot in DigestView.swift (tests/selectie-slot.test.mjs).
+export const SLOT = ['Je weet genoeg.', 'Maandag een nieuwe.']
 export const EMPTY_FIELD = 'Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw.'
 export const NO_SOURCES = 'Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer.'
 export const CHOOSE = 'Elke maandag drie stukken over je werk of hobby. Kies waarover.'
@@ -60,4 +63,4 @@ export function voorproefje(domains = [], fields = [], max = 3) {
   }
   return out
 }
-export const VOORPROEF = 'Zo ziet het eruit: per onderwerp de beste stukken van de week.'
+export const VOORPROEF = 'Zo ziet het eruit: per onderwerp een stuk uit de Selectie van deze week.'

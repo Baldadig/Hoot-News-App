@@ -4922,6 +4922,30 @@ html[data-systeem='ax'] .edmeta > span {
   font-size: var(--t1);
 }
 
+/* Ook deze week, ingeklapt: de kop is de knop */
+.dmore > summary.dmore__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-block-size: var(--tap);
+  cursor: pointer;
+}
+
+/* Het slot onder het laatste onderwerp: "Je weet genoeg." / "Maandag een nieuwe." */
+.dslot {
+  margin-top: var(--s7);
+  text-align: center;
+}
+.dslot__line {
+  margin: 0;
+  color: var(--ink);
+}
+.dslot__next {
+  margin: var(--s1) 0 0;
+  color: var(--ink-3);
+  font-size: var(--t2);
+}
+
 /* Hoe kiest Hoot? */
 .dhow {
   margin-top: var(--s7);
