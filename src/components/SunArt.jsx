@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
-import { K, W, H, HZ, CX, LINE, STILL, RISE_S, KOP, breathe, halo, introSun, editieSun, kopSun, eindeSun, waterShift, WATER_ROWS } from '../lib/sun.js'
+import { K, W, H, HZ, CX, LINE, STILL, RISE_S, breathe, halo, introSun, editieSun, eindeSun, waterShift, WATER_ROWS } from '../lib/sun.js'
 import { reduced } from '../lib/motion.js'
 import { watch } from '../lib/inview.js'
 
@@ -120,33 +120,6 @@ export default function SunArt({ kind, className = '' }) {
 }
 
 // ---- De zon in de Editie (plan 01/05) ----
-
-// Klein naast de naam van de Editie: hoe ver je bent (zon-voortgang, variant B). Bij 01 hoog, bij het
-// laatste verhaal op de horizon, bij het einde onder met een korte gloed. De stand zet Edition.jsx
-// rechtstreeks op de tekening (lib/leesstand.js), zonder React bij elke scrolstap. Hetzelfde merkteken
-// van 44 × 26 als in de app (EditionSun); de lijn houdt op elke maat 1,5 px.
-export function KopSun({ n = 10, className = '' }) {
-  const id = useId().replace(/:/g, '')
-  const v = kopSun(0, n)
-  return (
-    <svg className={`sun sun--kop ${className}`.trim()} viewBox={`0 0 ${KOP.w} ${KOP.h}`} aria-hidden="true" focusable="false">
-      <defs>
-        <clipPath id={`${id}-sky`}>
-          <rect x={-10} y={-10} width={KOP.w + 20} height={KOP.hz + 10} />
-        </clipPath>
-        <radialGradient id={`${id}-gloed`}>
-          <stop offset="0" style={{ stopColor: 'var(--sun-disc)', stopOpacity: 0.55 }} />
-          <stop offset="1" style={{ stopColor: 'var(--sun-disc)', stopOpacity: 0 }} />
-        </radialGradient>
-      </defs>
-      <g className="sun__stand">
-        <ellipse className="sun__gloed" cx={KOP.cx} cy={KOP.hz} rx={14} ry={4.5} fill={`url(#${id}-gloed)`} opacity={v.gloed} />
-        <circle className="sun__disc" clipPath={`url(#${id}-sky)`} cx={v.cx} cy={v.cy} r={v.r} />
-        <line className="sun__line" x1={KOP.x1} x2={KOP.x2} y1={KOP.hz} y2={KOP.hz} vectorEffect="non-scaling-stroke" />
-      </g>
-    </svg>
-  )
-}
 
 // Onderaan, boven 'Je bent bij.': de zon komt één keer op (6 s) zodra het vlak in beeld is, en
 // staat dan stil. Bij Verminder beweging staat hij meteen op.

@@ -1,11 +1,11 @@
-// De trekstrook en de zon als voortgang vallen nooit over elkaar heen (1.3.1, build 56). Alex: trekken om te
-// verversen en meteen verder lezen tekende de horizon over de meelopende kop met de zon. Web = app: de strook
-// schuift met de inhoud mee omhoog (iOS: RefreshStrip.zicht, ios/HootTests/PullZonTests.swift) en wijkt voor
-// de meelopende kop; die blijft tegen de bovenrand, ook als de kolom tijdens verversen omlaag staat.
+// De trekstrook hoort bij de inhoud (iOS: RefreshStrip.zicht, ios/HootTests/PullZonTests.swift): trek je om te
+// verversen en lees je meteen verder, dan schuift de horizon met de Editie mee omhoog en uit beeld, zoals de
+// verversknop van iOS. Sinds 1.4 (build 58) is er geen meelopende kop meer: bovenaan staan alleen de
+// bedieningselementen, en niets daarvan hoeft voor de strook te wijken.
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { STRIP, stripZicht, kopTop } from '../src/lib/pull-horizon.js'
+import { readFileSync, existsSync } from 'node:fs'
+import { STRIP, stripZicht } from '../src/lib/pull-horizon.js'
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
@@ -19,10 +19,6 @@ test('de strook staat heel in rust en schuift met de inhoud mee uit beeld', () =
   assert.equal(stripZicht({ top, h: STRIP, scrollTop: top + STRIP }), 0)
 })
 
-test('staat de meelopende kop er, dan is er van de strook niets te zien', () => {
-  for (const s of [0, 10, 40, 300]) assert.equal(stripZicht({ top: 20, h: STRIP + 30, scrollTop: s, kop: true }), 0)
-})
-
 test('rare waarden tekenen niets vreemds', () => {
   assert.equal(stripZicht({ top: 20, h: 0, scrollTop: 0 }), 0)
   assert.equal(stripZicht({ top: 20, h: NaN, scrollTop: 0 }), 0)
@@ -30,19 +26,16 @@ test('rare waarden tekenen niets vreemds', () => {
   assert.equal(stripZicht({ top: 20, h: STRIP, scrollTop: Infinity }), STRIP)
 })
 
-test('de meelopende kop blijft tegen de bovenrand terwijl de kolom omlaag staat', () => {
-  assert.equal(kopTop(0), 0)
-  assert.equal(kopTop(STRIP), -STRIP)
-  assert.equal(kopTop(STRIP + 30), -(STRIP + 30))
-  // sticky top + de verschuiving van de kolom = 0: de kop staat precies bovenaan
-  for (const h of [0, 12, STRIP, 90]) assert.equal(kopTop(h) + h, h > 0.01 ? 0 : h)
-})
-
-test('de stijl en de strook gebruiken de regel', () => {
-  const css = read('src/styles/zon-voortgang.css')
-  assert.match(css, /\.edbar\s*\{[^}]*top:\s*var\(--pull-kop,\s*0px\)/)
-  assert.match(css, /\.view:has\(\.edbar\.is-aan\)\s*>\s*\.pull\s*\{\s*visibility:\s*hidden/)
+test('geen meelopende kop en geen zon als voortgang meer (besluit Alex, 14 november)', () => {
+  assert.ok(!existsSync(new URL('../src/styles/zon-voortgang.css', import.meta.url)), 'de stijl van de meelopende kop is weg')
+  assert.ok(!existsSync(new URL('../src/lib/leesstand.js', import.meta.url)), 'de leesstand voor de zon is weg')
+  const edition = read('src/views/Edition.jsx')
+  assert.doesNotMatch(edition, /edbar|KopSun|leesstand|leesWaarde/)
+  assert.doesNotMatch(read('src/main.jsx'), /zon-voortgang/)
+  assert.doesNotMatch(read('src/styles/dagdeel-wissel.css'), /edbar/)
   const jsx = read('src/components/PullHorizon.jsx')
-  assert.match(jsx, /--pull-kop/)
+  assert.doesNotMatch(jsx, /--pull-kop|edbar/)
   assert.match(jsx, /stripZicht\(/)
+  // De rest van het merk blijft: de zon onderaan de Editie en de horizon in de trekstrook.
+  assert.match(edition, /EindeSun/)
 })

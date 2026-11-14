@@ -43,9 +43,3 @@
   margin: 0;
   animation: rise var(--dur-gewoon) var(--ease-bediening);
 }
-
-/* Staat de meelopende kop er (.edbar.is-aan, styles/zon-voortgang.css), dan staat de pil eronder in plaats van
-   eroverheen. Gelijk aan de app: daar staan kopbalk en melding in één stapel (EditionView). */
-.col--front:has(.edbar.is-aan) .edklaar {
-  top: calc(var(--safe-t) + var(--tap) + var(--s2));
-}
