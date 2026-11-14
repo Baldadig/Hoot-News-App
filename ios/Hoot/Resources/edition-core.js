@@ -478,7 +478,7 @@ var HootCore = (() => {
     if (/\bUS\b/.test(text) && !found.includes("us")) found.push("us");
     return found;
   }
-  var US_SPECIFIC = words("trump|biden|vance|obamacare|white house|witte huis|pentagon|fbi|hegseth|midterms?|tussentijdse verkiezingen|house of representatives|justice department");
+  var US_SPECIFIC = words("trumps?|biden|vance|obamacare|white house|witte huis|pentagon|fbi|hegseth|midterms?|tussentijdse verkiezingen|house of representatives|justice department");
   var US_PARTY = words("republican\\p{L}*|republikein\\p{L}*|democra(?:at|ten|ts)|democratic (?:senate|presidential|nominee|candidate|sweep|party)");
   var US_INSTITUTION = words("congress|congres|senate|senaat|supreme court|hooggerechtshof|capitol|governor|gouverneur");
   function usPoliticsIn(text = "") {

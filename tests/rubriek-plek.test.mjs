@@ -20,6 +20,8 @@ test('A6: een Amerikaanse staat en het VK zijn een land', () => {
 })
 
 test('A6: een buitenlands verhaal uit een Nederlandse bron is geen Binnenland', () => {
+  // Een Vlaamse bron zonder bronland als bewijs: het onderwerp moet het zeggen, ook in de bezitsvorm ("Trumps Amerika").
+  assert.deepEqual(desks({ source: 'demorgen', title: 'VS-correspondent Mari Meyer over Trumps Amerika: ‘Steeds meer mensen beseffen dat de democratie op het spel staat’', url: 'https://www.demorgen.be/nieuws/x' }), ['vs'])
   assert.deepEqual(desks({ source: 'nos', title: 'Aanvaring vrachtschip met cruiseschip op Mississippi' }), ['vs'])
   assert.deepEqual(desks({ source: 'nos', title: 'Politie VK opent zaak naar David Walliams' }), ['buitenland'])
   assert.deepEqual(desks({ source: 'demorgen', title: '▶ 32 gewonden nadat riviercruiseschip kapseist na aanvaring met tanker: ‘Mirakel op de Mississippi’', url: 'https://www.demorgen.be/nieuws/x' }), ['vs'])
