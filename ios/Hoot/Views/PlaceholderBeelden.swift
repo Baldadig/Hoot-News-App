@@ -700,4 +700,13 @@ enum PlaceholderBeelden {
                     .init(soort: .rect, a: 0, b: 56, c: 96, d: 4, fill: "line"),
                 ])),
     ]
+    // Uit de reeks (index): de tekening staat er nog, maar geen stuk krijgt hem (shared/placeholder.mjs, PLACEHOLDER_UIT).
+    static let uit: Set<Int> = [13]
+    // De beelden die wel gekozen worden, op volgorde.
+    static let keuze: [Int] = beelden.indices.filter { !uit.contains($0) }
+    // Het beeld bij een hash: hash mod 18, en valt dat op een beeld uit de reeks, dan (hash / 18) mod 17 uit de rest.
+    static func index(hash h: UInt32) -> Int {
+        let k = Int(h % UInt32(beelden.count))
+        return uit.contains(k) ? keuze[Int((h / UInt32(beelden.count)) % UInt32(keuze.count))] : k
+    }
 }

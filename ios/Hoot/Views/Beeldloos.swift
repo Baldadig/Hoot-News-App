@@ -106,7 +106,9 @@ enum Placeholder {
         for b in s.utf8 { h ^= UInt32(b); h = h &* 0x01000193 }
         return h
     }
-    static func base(_ id: String) -> Int { Int(fnv1a(id) % UInt32(count)) }
+    // Het beeld op zich: hash mod 18, maar nooit een beeld dat uit de reeks is (beeld 14, Eclips, sinds 14 november):
+    // dan kiest (hash / 18) mod 17 een van de zeventien andere. Elk ander stuk houdt zijn beeld.
+    static func base(_ id: String) -> Int { PlaceholderBeelden.index(hash: fnv1a(id)) }
     // Een lijst van boven naar onder: zit het beeld in dezelfde set als dat van de beeldloze rij erboven,
     // dan schuift het drie door, naar een andere set. Een rij met beeld breekt de reeks.
     static func plan(ids rows: [(id: String, bare: Bool)]) -> [String: Int] {
@@ -115,7 +117,10 @@ enum Placeholder {
         for r in rows {
             guard r.bare else { prev = nil; continue }
             var k = base(r.id)
-            if let prev, set(k) == set(prev) { k = (k + shift) % count }
+            if let prev, set(k) == set(prev) {
+                // Doorschuiven; komt dat op een beeld uit de reeks (alleen De kop → Eclips), dan nog eens drie.
+                repeat { k = (k + shift) % count } while PlaceholderBeelden.uit.contains(k) || set(k) == set(prev)
+            }
             out[r.id] = k
             prev = k
         }
