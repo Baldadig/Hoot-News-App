@@ -2266,6 +2266,10 @@ var HootCore = (() => {
   var EN = new Set(
     "the a an and to for with on at by from are were be been has have will would could should not this that these those its he she they you your his her their our my who what when where why how which after before about into than but or as says said there here just all more year years while against between without because its it's don't doesn't didn't won't can't isn't aren't i'm you're they're we're what's here's there's people being does did makes made gets got".split(/\s+/)
   );
+  var XX = new Set(
+    "le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur el una del para con por según sobre también más pero muy está fue y".split(/\s+/)
+  );
+  var ELISIE = /^(?:l|d|qu|j|n|s|c)'\p{L}{2,}/u;
   var KNOWN_PATHS = [{ host: /(^|\.)parool\.nl$/, path: /^\/(amsterdam-news|guide)(\/|$)/, lang: "en" }];
   var LANG_MIN = 3;
   var LANG_SHARE = 0.75;
@@ -2281,17 +2285,20 @@ var HootCore = (() => {
     const words2 = String(text || "").toLowerCase().replace(/[‘’ʼ]/g, "'").match(/\p{L}+(?:'\p{L}+)*/gu) || [];
     let nl = 0;
     let en = 0;
+    let xx = 0;
     for (const w of words2) {
       if (NL.has(w)) nl++;
       if (EN.has(w)) en++;
+      if (XX.has(w) || ELISIE.test(w)) xx++;
     }
-    return { nl, en };
+    return { nl, en, xx };
   }
   function detectLang({ title = "", summary = "", text = "", url = "" } = {}) {
     const byUrl = langFromUrl(url);
     if (byUrl) return byUrl;
     const intro = String(summary || text || "").slice(0, INTRO_CHARS);
-    const { nl, en } = langCounts(`${title} ${intro}`);
+    const { nl, en, xx } = langCounts(`${title} ${intro}`);
+    if (xx >= LANG_MIN && xx > nl + en) return "xx";
     const top = Math.max(nl, en);
     if (top < LANG_MIN || top / (nl + en) < LANG_SHARE) return null;
     return en > nl ? "en" : "nl";

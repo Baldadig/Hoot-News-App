@@ -108,3 +108,26 @@ test('momentopname: alleen Engelstalige Parool-stukken zijn offLang; taalfilter 
   assert.equal(storiesPrint(g.stories), expected.stories)
   assert.equal(JSON.stringify(g.entries), JSON.stringify(expected.entries))
 })
+
+// Nachttest 14 november (A10, B1): Franse, Duitse en Spaanse stukken telden als Nederlands ("de" is ook Frans). Een
+// derde telling met alleen ondubbelzinnige woorden; wint die, dan 'xx' en offLang, en visibleFor toont het stuk niet.
+test('taal: Frans, Duits en Spaans worden xx, en een Nederlandse lezer ziet ze niet', async () => {
+  const { detectLang, langOf, visibleFor } = await import('../shared/lang.mjs')
+  const vreemd = [
+    { title: 'L’objectif de 1,5° de réchauffement est mort, mais personne ne veut l’enterrer' },
+    { title: 'De grandes villes européennes demandent à l’UE d’interdire les filtres des cigarettes' },
+    { title: 'COP 31 : qu’attendre des négociations ?', summary: 'Les pays se retrouvent au Brésil pour une conférence sur le climat.' },
+    { title: 'Von allmächtig zu ohnmächtig? Die Macht der Kanzlerin ist nicht mehr, was sie war' },
+    { title: 'Cómo escalar Scrum para equipos grandes y por qué es difícil' },
+  ]
+  for (const it of vreemd) {
+    assert.equal(detectLang(it), 'xx', it.title)
+    const l = langOf(it, 'en')
+    assert.deepEqual(l, { lang: 'xx', offLang: true }, it.title)
+    assert.equal(visibleFor(l), false, it.title)
+  }
+  // Nederlands blijft Nederlands, ook met een Frans woord of citaat; Engels blijft Engels.
+  assert.equal(detectLang({ title: 'Les geven op de basisschool wordt zwaarder voor leraren' }), 'nl')
+  assert.equal(detectLang({ title: 'Macron: “Je ne suis pas d’accord” met de plannen van de Commissie' }), 'nl')
+  assert.notEqual(detectLang({ title: 'Le Pen loses appeal in court over embezzlement' }), 'xx')
+})
