@@ -2,7 +2,8 @@
 // Een podcast-, audio- of video-aflevering (shared/aflevering.mjs) telt niet mee in coverageOf, sourceCount, "N bronnen",
 // de drempels voor groot nieuws en "Waar iedereen over schrijft", en is nooit de kop van een verhaal als er een bericht is.
 // Echte stukken: het Nvidia-verhaal van 14 november (middag) uit de live feed, met zes afleveringen van vier uitgevers
-// erin (De Telegraaf /podcast/, Bloomberg Odd Lots en twee video's, Vox /podcasts/, een NYT-video).
+// erin (De Telegraaf /podcast/, Bloomberg Odd Lots en twee video's, Vox /podcasts/, een NYT-video). Die uitgevers
+// brachten het ook als bericht; het effect op de telling staat in de toets met De Telegraaf zonder bericht.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -65,9 +66,14 @@ test('het Nvidia-verhaal: de afleveringen blijven lid, maar tellen niet in sourc
   const counted = FIX.items.filter((i) => st.itemIds.includes(i.id) && countsAsSource(i))
   assert.equal(st.sourceCount, new Set(counted.map((i) => i.source)).size)
   assert.equal(st.publisherCount, coverageOf(counted).publisherCount)
-  // Telegraaf, NYT en Bloomberg brengen het ook als bericht en blijven bron; Vox bracht alleen een aflevering.
-  assert.ok(!st.sourceNames.includes('Vox'))
-  assert.ok(st.sourceCount < FIX.story.sourceCount, `${st.sourceCount} < ${FIX.story.sourceCount}`)
+  // Telegraaf, NYT en Bloomberg brachten het ook als bericht en blijven dus bron (Vox is een opinieblad en telde al niet).
+  for (const name of ['De Telegraaf', 'NYT', 'Bloomberg']) assert.ok(st.sourceNames.includes(name), name)
+  // Had De Telegraaf alleen de podcast gebracht, dan telde hij niet: één bron minder, en niet bij de bronnamen.
+  const zonder = FIX.items.filter((i) => i.source !== 'telegraaf' || isAflevering(i))
+  const [st2] = buildStories(zonder, {}, OPTS).sort((a, b) => b.itemIds.length - a.itemIds.length)
+  assert.ok(st2.itemIds.some((id) => FIX.items.find((i) => i.id === id)?.source === 'telegraaf'), 'de aflevering blijft lid')
+  assert.ok(!st2.sourceNames.includes('De Telegraaf'))
+  assert.equal(st2.sourceCount, st.sourceCount - 1)
   assert.ok(!isAflevering(FIX.items.find((i) => i.id === st.leadId)))
   // "N bronnen" in de waarom-regel volgt het verhaal.
   assert.match(whyOf({ desk: 'breed', big: true }, { sourceCount: st.sourceCount }).text, new RegExp(`· ${st.sourceCount} bronnen$`))
