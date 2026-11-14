@@ -299,3 +299,30 @@ test('de kop beslist: review midden in de kop, na een werkwoord, of een slug die
   ]
   for (const [source, title, url, mark] of echt) assert.equal(recensieMark(art({ source, title, url })), mark, title)
 })
+
+// Vijfde keuring, 14 november 2026: "Review" of "Recensie" als heel laatste deel van de kop (na "|", "–" of " - ") is een
+// label achteraan, net als een label vooraan. De Polygon- en GameSpot-recensies uit de ijkset van 4 november vielen
+// anders weer door. "Year in Review" en "Review and Recap" zijn geen label.
+test('label achteraan: "… | Review" telt, "Year in Review" en "Review and Recap" niet', () => {
+  const echt = [
+    ['polygon', 'The Legend of Zelda: Ocarina of Time Is Still Perfect on Switch 2 | Review', 'https://www.polygon.com/the-legend-of-zelda-ocarina-of-time-switch-2-review/'],
+    ['gamespot', 'The Zelda: Ocarina Of Time Remake Shows That A Masterpiece Is Ageless | Review', 'https://www.gamespot.com/videos/the-zelda-ocarina-of-time-remake-shows-that-a-masterpiece-is-ageless-review/'],
+    ['polygon', 'Hades 3 Is a Triumph | Review', 'https://www.polygon.com/hades-3-triumph/'],
+    ['volkskrant', 'De nieuwe Wes Anderson is een feest – Recensie', 'https://www.volkskrant.nl/cultuur-media/de-nieuwe-wes-anderson~b1234567/'],
+    ['theverge', 'Apple’s HomeView is my new favorite smart display - Review', 'https://www.theverge.com/tech/1030002/apple-homeview-smart-display'],
+  ]
+  for (const [source, title, url] of echt) {
+    assert.equal(recensieMark(art({ source, title, url })), 'label', title)
+    assert.equal(excludedFromEdition(art({ source, title, url })), true, title)
+  }
+  const niet = [
+    ['theverge', 'Year in Review: the biggest tech stories of 2026', 'https://www.theverge.com/2026/12/20/year-in-review-tech'],
+    ['theverge', 'The Verge’s 2026 Year in Review', 'https://www.theverge.com/2026/12/21/verge-2026'],
+    ['ign', 'The Rings of Power Season 3, Episodes 1-4 Review and Recap', 'https://www.ign.com/articles/the-rings-of-power-season-3-episodes-1-4-recap'],
+    ['nos', 'Kabinet start review van asielbeleid', 'https://nos.nl/artikel/2640006-kabinet-start-review-van-asielbeleid'],
+    ['bbc', 'Ofcom review of BBC finds bias | Politics', 'https://www.bbc.com/news/articles/c0000001'],
+    ['nos', 'Review', 'https://nos.nl/artikel/2640007-review'],
+  ]
+  for (const [source, title, url] of niet) assert.notEqual(recensieMark(art({ source, title, url })), 'label', title)
+  assert.equal(recensieMark(art({ source: 'nos', title: 'Kabinet start review van asielbeleid', url: 'https://nos.nl/artikel/2640006-kabinet-start-review-van-asielbeleid' })), null)
+})

@@ -1561,6 +1561,7 @@ var HootCore = (() => {
   var VERB = /(?<![\p{L}\p{N}])(is|are|was|were|be|been|has|have|had|will|would|can|could|says?|said|gets?|got|makes?|made|takes?|took|brings?|goes|went|comes?|came|zijn|ben|bent|wordt|worden|werd|werden|heeft|hebben|had|hadden|gaat|gaan|ging|komt|komen|kwam|krijgt|krijgen|maakt|maken|brengt|brengen|zegt|zeggen|zei|wil|willen|moet|moeten|kan|kunnen|mag|blijft|staat|ligt|zit)(?![\p{L}\p{N}])/iu;
   var TITLE_LABEL = /^[\s"'‘“(]*(recensies?|review|reviews|book review|album review|film review|tv review|game review|filmrecensie|albumrecensie|boekrecensie|theaterrecensie|concertrecensie|album van de (dag|week)|plaat van de (dag|week)|album of the (day|week)|reissue of the week|luistertips?|playlist)(\s*\(\d+\))?\s*(?:[:|]|\s[-–—]\s)/i;
   var TITLE_CAPS2 = /^\W*(RECENSIE|REVIEW)\.\s/;
+  var TITLE_LABEL_END = /\S(?:\s*\||\s[–—]|\s-)\s*(review|recensie)\s*$/i;
   var TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?(?:\s+so\s+far)?\s*(?:$|[:|–—]|\s-\s)/iu;
   var NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne|to|will|charter|antitrust|regulatory|competition|merger|deal|licen[cs]e|licensing|funding|fcc|ftc|cma|sec|doj|ofcom|eu|onder|op|over|om|vernietigende|slechte|negatieve|lovende)$/i;
   var TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt|after|following|under|na|onder|over|op|om)$/i;
@@ -1647,7 +1648,7 @@ var HootCore = (() => {
     if (!item || item.kind === "post") return null;
     if (item.feedMark === "recensie") return "feed";
     const title = plainTitle(item.title);
-    if (TITLE_LABEL.test(title) || TITLE_CAPS2.test(title)) return "label";
+    if (TITLE_LABEL.test(title) || TITLE_CAPS2.test(title) || TITLE_LABEL_END.test(title)) return "label";
     if (STARS.test(title)) return "sterren";
     if (NEWS_VERB.test(title)) return null;
     const werkkop = () => WORK_IDS.has(item.source) && workTitle(title) ? "werkkop" : null;

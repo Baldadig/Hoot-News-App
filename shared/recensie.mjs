@@ -12,7 +12,8 @@
 //  2. de link: een map /recensie/, /reviews/, /review/, /tv-movie-reviews/, /quietus-reviews/, /album-of-the-week/ …,
 //     een slug die met "recensie-" begint (DPG: Humo, Parool, De Morgen, de Volkskrant) of op "-review"/"-recensie"
 //     eindigt (Guardian, IGN, NPR, Variety), of "review" in de slug onder een cultuurrubriek (/film/, /stage/, /books/);
-//  3. de kop: een label vooraan ("Recensie:", "RECENSIE.", "Review -", "Book Review:", "Album van de dag:"), "review"
+//  3. de kop: een label vooraan ("Recensie:", "RECENSIE.", "Review -", "Book Review:", "Album van de dag:") of achteraan
+//     als heel laatste deel ("… | Review"), "review"
 //     als laatste woord van het eerste deel ("Heartland Review", "U2: Carnaval de Luz review – …", "TV Review (2026)"),
 //     of sterren (★★★★);
 //  4. de werkkop van een muziek- of gamesbron: alleen een naam en een titel, zonder werkwoord ("Ciarán – Róisín",
@@ -77,6 +78,10 @@ const VERB = /(?<![\p{L}\p{N}])(is|are|was|were|be|been|has|have|had|will|would|
 // Een label vooraan in de kop.
 const TITLE_LABEL = /^[\s"'‘“(]*(recensies?|review|reviews|book review|album review|film review|tv review|game review|filmrecensie|albumrecensie|boekrecensie|theaterrecensie|concertrecensie|album van de (dag|week)|plaat van de (dag|week)|album of the (day|week)|reissue of the week|luistertips?|playlist)(\s*\(\d+\))?\s*(?:[:|]|\s[-–—]\s)/i
 const TITLE_CAPS = /^\W*(RECENSIE|REVIEW)\.\s/
+// Een label achteraan: "Review" of "Recensie" als heel laatste deel van de kop, na "|", "–", "—" of " - " (Polygon en
+// GameSpot: "The Legend of Zelda: Ocarina of Time Is Still Perfect on Switch 2 | Review"). Net als een label vooraan zegt
+// de uitgever het zelf. Alleen het losse woord: "Year in Review" en "Review and Recap" zijn geen label (vijfde keuring).
+const TITLE_LABEL_END = /\S(?:\s*\||\s[–—]|\s-)\s*(review|recensie)\s*$/i
 // "review"/"recensie" als laatste woord van het eerste deel van de kop, met een woord ervoor dat geen onderzoek of
 // toetsing aanduidt ("Pentagon orders review", "plan under review", "peer review" blijven nieuws).
 // Ook "Time (2026) review" en IGN's "Review So Far" (een recensie in wording).
@@ -201,7 +206,7 @@ export function recensieMark(item = {}) {
   if (!item || item.kind === 'post') return null
   if (item.feedMark === 'recensie') return 'feed'
   const title = plainTitle(item.title)
-  if (TITLE_LABEL.test(title) || TITLE_CAPS.test(title)) return 'label'
+  if (TITLE_LABEL.test(title) || TITLE_CAPS.test(title) || TITLE_LABEL_END.test(title)) return 'label'
   if (STARS.test(title)) return 'sterren'
   if (NEWS_VERB.test(title)) return null
   const werkkop = () => (WORK_IDS.has(item.source) && workTitle(title) ? 'werkkop' : null)
