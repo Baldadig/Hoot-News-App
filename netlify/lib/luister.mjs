@@ -4,6 +4,12 @@
 // Harde eis van Alex: "Het onderwerp moet echt matchen. Of hetzelfde, of verdiepend. Liefst van dezelfde bron."
 // Daarom streng, en bij twijfel niets:
 //   - alleen een vaste lijst officiële nieuwspodcasts van bronnen die al in Hoot staan (SHOWS), met per show een soort;
+//     één uitzondering (besluit Alex, 14 november): de podcasts van BNR, met de bron `bnr` die alleen voor podcasts
+//     bestaat (bnr.nl weigert de Hoot-server, dus BNR is geen Hoot-bron). Ze mogen ook als verdieping koppelen, maar een
+//     show zonder Hoot-bron (`zonderBron`) alleen onder strenge voorwaarden: (1) het onderwerp volgt uit de kop van het
+//     verhaal, niet uit één gedeelde naam; (2) één onderwerp per aflevering, met de hele beschrijving gelezen; (3) actueel:
+//     na het begin van het nieuws of van dezelfde of de vorige dag, en niet als de aflevering zegt dat het nieuws pas na de
+//     opname kwam; (4) een aflevering van de eigen bron van het verhaal gaat voor; (5) bij twijfel niets;
 //   - een overzichtsshow (vijf onderwerpen per aflevering) koppelt nooit en wordt niet eens opgehaald;
 //   - een show met twee of drie onderwerpen per aflevering (`meer`) en een weekshow (`week`) alleen via een artikellink;
 //   - zonder artikellink (alleen `verdieping`, één onderwerp per aflevering) via de centrale namen van het verhaal, en
@@ -12,15 +18,16 @@
 //     de beschrijving gaat niet over iets anders, de kop van het verhaal deelt een naam met de aflevering, een samengestelde
 //     naam ("Jong Oranje") telt als één naam, en "hetzelfde" alleen als de aflevering ná het eerste stuk verscheen;
 //   - een vooruitblik van vóór de kop van het verhaal koppelt nooit (de afloop is een ander onderwerp);
+//   - een aflevering die zelf zegt dat het nieuws pas na de opname kwam, koppelt niet aan dat nieuws (alle shows);
 //   - past een aflevering bij twee verhalen, dan krijgt geen van beide haar; een verhaal krijgt er hooguit één.
 // De koppeling staat als veld `luister` op het verhaal (build.mjs). Stap 3 (14 november): de app toont het (build 56), het
 // web pas met HOOT_LUISTER_WEB=aan (zie src/lib/luister.js).
 //
-// Wat Hoot van een aflevering bewaart: show, titel, de eerste zinnen van de beschrijving (alleen om te koppelen, nooit
-// getoond of doorgegeven), tijd, guid, duur, de artikellinks uit de shownotes en de pagina van de aflevering bij de
-// uitgever. Nooit de audio: de enclosure wordt niet gelezen, niet bewaard en nooit opgehaald.
+// Wat Hoot van een aflevering bewaart: show, titel, de beschrijving zonder de vaste tekst van de show (de eerste zinnen
+// apart; alleen om te koppelen, nooit getoond of doorgegeven), de namen die in bijna elke aflevering staan (de makers),
+// tijd, guid, duur, de artikellinks uit de shownotes en de pagina van de aflevering bij de uitgever. Nooit de audio: de enclosure wordt niet gelezen, niet bewaard en nooit opgehaald.
 import Parser from 'rss-parser'
-import { UA } from './sources.mjs'
+import { UA, SOURCES } from './sources.mjs'
 import { toText } from './text.mjs'
 import { signatures, sameEvent, clusterNames, sigWords, BROAD } from './stories.mjs'
 import { publisherOf } from '../../shared/edition-policy.mjs'
@@ -39,6 +46,9 @@ const H = 36e5
 // `spotify`: het id van de show bij Spotify (één keer met de hand opgezocht, 14 november; zonder sleutel opent Spotify de
 // show, niet de aflevering). Ontbreekt het, dan zoekt Spotify op de naam van de show.
 // `opinie`: een opiniepodcast (nooit in de Editie); er staat er nu geen in de lijst.
+// `opsomming`: een sportshow waar een opsomming van drie of meer namen in de eerste zin de hele speelronde betekent
+// (`meer`); alleen de eerste zin telt, de makers in latere zinnen niet (NIEUWE-SHOWS.md, controle).
+// `bron: 'bnr'`: bestaat alleen voor podcasts (geen Hoot-bron; zie de afspraak bovenaan en `zonderBron`).
 // Niet in de lijst: Bureau Buitenland en Dit is de Dag (NPO Radio 1; geen bron in Hoot), bulletins van minuten (NU.nl
 // nieuws, Bloomberg News Now) en shows zonder nieuwe afleveringen.
 export const SHOWS = [
@@ -50,6 +60,9 @@ export const SHOWS = [
   { id: 'nrc-wereldzaken', naam: 'NRC Wereldzaken', uitgever: 'NRC', bron: 'nrc', taal: 'nl', soort: 'week', apple: '1855801328', spotify: '60p6wTvOHWjeugb0Hy2mtI', feed: 'https://rss.art19.com/wereldzaken', web: 'https://www.nrc.nl/podcast/wereldzaken/' },
   { id: 'trouw-haags-halfuurtje', naam: 'Haags Halfuurtje', uitgever: 'Trouw', bron: 'trouw', taal: 'nl', soort: 'week', apple: '1641261322', spotify: '3pS1w0rDBam1eaN3rfCGfI', feed: 'https://www.omnycontent.com/d/playlist/33dbd2dc-d464-471d-9feb-abae00330078/105c7409-0bc5-4540-bea8-aee80081ed6f/d82d8b6f-7dba-4a6a-9250-aee80082294d/podcast.rss', web: 'https://omny.fm/shows/haags-halfuurtje' },
   { id: 'vi-zsm', naam: 'VI ZSM', uitgever: 'Voetbal International', bron: 'vi', taal: 'nl', soort: 'verdieping', apple: '1637601065', feed: 'https://www.omnycontent.com/d/playlist/61ee9ca4-a1b2-4660-9651-b2b70035edf5/02361425-2482-4413-a7a0-b2ea0089dc4d/648a598c-51c2-4be0-a321-b2ea0089dc5a/podcast.rss', web: 'https://omny.fm/shows/vizsm' },
+  { id: 'nos-voetbalpodcast', naam: 'NOS Voetbalpodcast', uitgever: 'NOS', bron: 'nos', taal: 'nl', soort: 'verdieping', opsomming: true, apple: '1425829411', spotify: '63ReLP9jSEFOEh1JyoD3vY', feed: 'https://podcast.npo.nl/feed/nos-voetbalpodcast.xml', web: 'https://www.nporadio1.nl/podcasts/nos-voetbalpodcast' },
+  { id: 'bnr-studio-den-haag', naam: 'Studio Den Haag', uitgever: 'BNR Nieuwsradio', bron: 'bnr', taal: 'nl', soort: 'verdieping', apple: '1451948246', feed: 'https://www.omnycontent.com/d/playlist/8257a063-6be9-42fa-b892-acd4013b1255/760c53b0-2881-4541-acd0-ade200f06ecd/6c2941bc-757e-421f-bd96-ade200f0cab3/podcast.rss', web: 'https://omny.fm/shows/studiodenhaag' },
+  { id: 'bnr-beurs', naam: 'BNR Beurs', uitgever: 'BNR Nieuwsradio', bron: 'bnr', taal: 'nl', soort: 'verdieping', apple: '1580346380', feed: 'https://www.omnycontent.com/d/playlist/8257a063-6be9-42fa-b892-acd4013b1255/503d6637-05b5-4122-bbed-acef00cdb1e0/446d837b-389d-4a9c-b29b-acef00cdfdbd/podcast.rss', web: 'https://omny.fm/shows/beurs' },
   { id: 'the-daily', naam: 'The Daily', uitgever: 'The New York Times', bron: 'nyt', taal: 'en', soort: 'verdieping', apple: '1200361736', spotify: '3IM0lmZxpFAY7CwMuv9H4g', feed: 'https://feeds.simplecast.com/Sl5CSM3S', web: 'https://www.nytimes.com/column/the-daily' },
   { id: 'today-in-focus', naam: 'Today in Focus', uitgever: 'The Guardian', bron: 'guardian', taal: 'en', soort: 'verdieping', apple: '1440133626', feed: 'https://www.theguardian.com/news/series/todayinfocus/podcast.xml', web: 'https://www.theguardian.com/news/series/todayinfocus' },
   { id: 'the-intelligence', naam: 'The Intelligence', uitgever: 'The Economist', bron: 'economist', taal: 'en', soort: 'meer', apple: '1449631195', feed: 'https://access.acast.com/rss/d556eb54-6160-4c85-95f4-47d9f5216c49', web: 'https://shows.acast.com/theintelligencepodcast' },
@@ -64,6 +77,10 @@ export const SHOWS = [
   { id: 'npr-up-first', naam: 'Up First', uitgever: 'NPR', bron: 'npr', taal: 'en', soort: 'overzicht', apple: '1222114325' },
 ]
 export const SHOW = new Map(SHOWS.map((s) => [s.id, s]))
+// Een show zonder Hoot-bron (BNR): de uitgever staat niet in SOURCES. Zo'n show is nooit "dezelfde uitgever", en koppelt
+// zonder artikellink alleen onder de strenge voorwaarden van de afspraak bovenaan (judge, koppel).
+const HOOT_UITGEVERS = new Set(SOURCES.map((s) => publisherOf(s.id)))
+export const zonderBron = (show) => !!show && !HOOT_UITGEVERS.has(publisherOf(show.bron))
 export const FETCHED = SHOWS.filter((s) => s.soort !== 'overzicht' && s.feed)
 
 // ---------- Ophalen ----------
@@ -81,6 +98,7 @@ export const MAX_BYTES = 400000 // alleen het begin van de feed: de nieuwste afl
 export const STORE_KEY = 'luister-afleveringen-v1'
 export const PROEF_KEY = 'luister-proef-v1'
 const SUMMARY = 420 // tekens van de beschrijving om op te koppelen (nooit getoond)
+const TEKST = 3000 // tekens van de hele beschrijving, zonder de vaste tekst van de show (nooit getoond)
 
 const parser = new Parser({ timeout: 8000 })
 
@@ -128,8 +146,31 @@ const seconds = (d) => {
 // "12. Val in slowmotion…" en "… | In Het Nieuws": het nummer en het rubriekslabel van de show horen niet bij de titel.
 export const cleanTitle = (t) => String(t || '').replace(/^\s*\d{1,3}\.\s+/, '').replace(/\s*\|\s*(in het nieuws|the latest)\s*$/i, '').replace(/\s+[-–]\s+the latest\s*$/i, '').trim()
 
-// Een aflevering uit een feed-item, of null.
-export function episodeOf(show, it, channelLink = null) {
+// De vaste tekst van een show, uit de afleveringen in het begin van de feed (generiek: alleen tellen, geen namen in de
+// code): zinnen (van minstens dertig tekens) die in minstens twee afleveringen letterlijk terugkomen ("See
+// omnystudio.com/listener…", "Over de makers: …", "We bespreken het met politiek verslaggever …"), en namen van twee of meer woorden die in minstens 40% van
+// de laatste MAKERS_UIT afleveringen staan (de makers van nu: de presentatoren tellen niet als "iets anders" in de
+// beschrijving). Een naam telt alleen midden in een zin ("Het Nederlands elftal" aan het begin van een zin is geen naam
+// van twee woorden).
+const NAAM = /(?<=[\p{Ll}\d,;:]\s)\p{Lu}[\p{L}'’-]+(?:\s+(?:(?:van|de|der|den|ten|ter|von|du|da|el|al|le|la)\s+)*\p{Lu}[\p{L}'’-]+)+/gu
+const MAKERS_UIT = 20 // de makers: uit de nieuwste twintig afleveringen (presentatoren wisselen door de jaren)
+const normZin = (z) => String(z || '').toLowerCase().replace(/\s+/g, ' ').trim()
+const itemText = (it) => toText(it['content:encoded'] || it.content || it.description || '').replace(/\s+/g, ' ').trim()
+export function vastVan(items = []) {
+  const texts = items.map(itemText).filter(Boolean)
+  const zin = new Map()
+  const naam = new Map()
+  for (const t of texts) for (const z of new Set(sentences(t).map(normZin).filter((z) => z.length >= 30))) zin.set(z, (zin.get(z) || 0) + 1)
+  const recent = texts.slice(0, MAKERS_UIT)
+  for (const t of recent) for (const n of new Set(t.match(NAAM) || [])) naam.set(n, (naam.get(n) || 0) + 1)
+  return {
+    zinnen: new Set([...zin].filter(([, c]) => c >= 2).map(([z]) => z)),
+    namen: [...naam].filter(([, c]) => c >= Math.max(3, 0.4 * recent.length)).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([n]) => n).slice(0, 20),
+  }
+}
+
+// Een aflevering uit een feed-item, of null. `vast`: de vaste tekst van de show (vastVan), die niet in `tekst` komt.
+export function episodeOf(show, it, channelLink = null, vast = null) {
   const title = cleanTitle(it.title)
   const t = Date.parse(it.isoDate || it.pubDate || '')
   if (!title || !Number.isFinite(t)) return null
@@ -145,6 +186,9 @@ export function episodeOf(show, it, channelLink = null) {
     show: show.id,
     titel: title,
     samenvatting: firstSentences(text, SUMMARY),
+    // De hele beschrijving zonder de vaste tekst van de show (controle 14 november: bij BNR Beurs staat het tweede
+    // onderwerp op teken 600 tot 1300, voorbij de samenvatting). Voor `meer`, de opname-regel en de strenge voorwaarden.
+    tekst: firstSentences(sentences(text).filter((z) => !vast?.zinnen?.has(normZin(z))).join(' '), TEKST),
     t,
     guid: String(it.guid || '').slice(0, 200) || null,
     duur: seconds(it.itunes?.duration),
@@ -231,10 +275,12 @@ export async function loadEpisodes({ now = Date.now(), deadline = now + 8000, ge
     ...due.map(async (s) => {
       try {
         const feed = await within(FEED_MS, (signal) => read(s.feed, { signal }))
-        const eps = (feed.items || []).map((it) => episodeOf(s, it, feed.link)).filter((e) => e && now - e.t <= KEEP && e.t <= now + H)
+        const items = (feed.items || []).filter((it) => !s.pad || String(it.link || '').includes(s.pad))
+        const vast = vastVan(items)
+        const eps = items.map((it) => episodeOf(s, it, feed.link, vast)).filter((e) => e && now - e.t <= KEEP && e.t <= now + H)
         const old = store.shows[s.id]?.items || []
         const byId = new Map([...old, ...eps].map((e) => [e.id, e]))
-        store.shows[s.id] = { at: now, cover: coverOf(feed) || store.shows[s.id]?.cover || null, items: [...byId.values()].filter((e) => now - e.t <= KEEP).sort((a, b) => b.t - a.t).slice(0, 40) }
+        store.shows[s.id] = { at: now, cover: coverOf(feed) || store.shows[s.id]?.cover || null, vast: vast.namen, items: [...byId.values()].filter((e) => now - e.t <= KEEP).sort((a, b) => b.t - a.t).slice(0, 40) }
         status[s.id] = 'opgehaald'
       } catch (e) {
         status[s.id] = 'mislukt: ' + String(e?.message || e).slice(0, 80)
@@ -260,7 +306,7 @@ export async function loadEpisodes({ now = Date.now(), deadline = now + 8000, ge
   const episodes = Object.entries(store.shows).flatMap(([id, v]) =>
     (v.items || []).map((e) => {
       const a = e.guid ? apple[e.show]?.[e.guid] : null
-      return { ...e, ...(v.cover ? { cover: v.cover } : {}), ...(a ? { appleUrl: a } : {}) }
+      return { ...e, ...(v.cover ? { cover: v.cover } : {}), ...(v.vast?.length ? { vast: v.vast } : {}), ...(a ? { appleUrl: a } : {}) }
     }),
   )
   return { episodes: episodes.filter((e) => SHOW.has(e.show)), status }
@@ -336,13 +382,38 @@ const MEER = [
   /\ben meer\b|\bandere (wedstrijden|onderwerpen|duels)\b/i,
   /\b(also|plus|elsewhere|and later)\b[^.?!]{0,30}\b(we|look|looks|hear|discuss|talk|ask|asks)\b/i,
   /(?:^|\s)\d{1,2}:\d{2}(?::\d{2})?\s[^]*\s\d{1,2}:\d{2}(?::\d{2})?\s/,
+  // Controle 14 november (BNR Beurs): "Hebben we het ook over Box 3", "we hebben het ook over …", "Ook kijken we met
+  // analist …", "Hoor je trouwens ook meer over …", "Verder hoor je meer over:", "Verder deze aflevering:", "Ook in deze
+  // uitzending:", "Dit hoor je ook deze aflevering", "Verder staan we stil bij …".
+  /\b(hebben|hadden)\s+(we|wij|ze)\s+het\s+(ook|verder|daarnaast|nog)\b|\b(we|wij|ze)\s+(hebben|hadden)\s+het\s+(ook|verder|daarnaast)\b/i,
+  /\b(ook|verder|daarnaast|bovendien|tevens)\s+(kijken|hoor|hoort|horen|staan|maken|bespreken|spreken|praten|duiken|gaan|komen)\s+(we|wij|je|jij|jullie|ze)\b/i,
+  /\bhoor\s+(je|jij)\s+((trouwens|verder|nog)\s+)?(ook|meer)\b|\b(dit|dat|wat)\s+hoor\s+(je|jij)\s+(nog\s+)?ook\b/i,
+  /\b(verder|ook)\s+(in\s+)?deze\s+(aflevering|uitzending)\b/i,
+  // Sport (NOS Voetbalpodcast, controle 14 november): de hele speelronde of het nieuws van de week, niet één verhaal.
+  /\b(speelronde|voetbalzondag|voetbalweekend|alles erop en eraan|wel en wee|voeren de boventoon|nieuwtjes|midweeks?e?|europese week)\b/i,
 ]
+// Een opsomming van drie of meer namen in de eerste zin ("Over A, B, bekerstunts en de C"), alleen bij een show met
+// `opsomming`: daar is het de speelronde. Een deel telt als het een woord met een hoofdletter heeft dat niet het eerste
+// woord van de zin is. Latere zinnen tellen niet (daar staan de makers).
+const opsomming = (zin) => {
+  const delen = String(zin || '').split(/,\s*|\s+(?:en|and)\s+|\s*&\s*/)
+  return delen.filter((d, i) => (i ? d : d.replace(/^\S+\s*/, '')).match(/(?:^|\s)\p{Lu}\p{Ll}/u)).length >= 3
+}
 const VOORUIT = /\b(vooruitbli\w*|vooruitgeblikt|blik(t|ken)\s+(\S+\s+){0,3}vooruit|voorbeschouw\w*|vanavond|morgenavond|preview\w*)\b/i
-export function describe(ep) {
+// Na de opname (alle shows, 14 november): "kwam net na het opnemen van deze podcast het bericht dat …", "na de opname",
+// "kwam pas na", "ten tijde van de opname", "after we recorded". De zinnen die dat zeggen, noemen het nieuws waar de
+// aflevering juist niet over gaat.
+const NA_OPNAME = /\bna\s+(het\s+)?(opnemen|opname|afronden)\b|\bkwam\s+(\S+\s+){0,3}pas\s+na\b|\bnadat\s+(we|wij)\s+(\S+\s+){0,3}(opgenomen|opnamen)\b|\b(ten tijde van|tijdens|op het moment van)\s+(de\s+|het\s+)?(opname|opnemen)\b|\bafter\s+(we\s+|this\s+episode\s+was\s+)?record(ed|ing)\b|\bat the time of recording\b/i
+export function describe(ep, show = null) {
   const text = `${ep.titel || ''}. ${ep.samenvatting || ''}`
-  return { meer: MEER.some((re) => re.test(ep.samenvatting || '')), vooruit: VOORUIT.test(text) }
+  const heel = ep.tekst || ep.samenvatting || ''
+  const zinnen = sentences(heel)
+  const naOpname = zinnen.filter((z) => NA_OPNAME.test(z)).join(' ')
+  const meer = MEER.some((re) => re.test(heel)) || (!!show?.opsomming && opsomming(zinnen.find((z) => !NA_OPNAME.test(z))))
+  return { meer, vooruit: VOORUIT.test(text), naOpname: naOpname || null }
 }
 const ZINNEN = 6
+const ZINNEN_HEEL = 40 // een show zonder Hoot-bron: de hele beschrijving
 const ELDERS = 4 // namen (een reeks als "Virgil van Dijk" is één naam) buiten het verhaal: de aflevering gaat ook over iets anders
 const named = (z) => !!z && [...z.strong, ...z.weak].some((n) => !BROAD.has(n))
 // De zinnen van een beschrijving (een afkorting als "Mr." breekt de zin, dat is niet erg: de eerste zin mét een naam telt).
@@ -406,6 +477,15 @@ export function judge(ep, show, story, items, sig, now) {
   const fresh = age <= FRESH_H && ep.t >= firstAt - BEFORE_H * H
   const deep = age <= DEEP_H
   if (age < -1) return { af: 'verschijnt later' }
+  // De aflevering zegt zelf dat dit nieuws pas na de opname kwam ("kwam net na het opnemen van deze podcast het bericht
+  // dat Frenkie de Jong afvalt bij Oranje"): dan gaat ze daar juist niet over. Een centrale naam van het verhaal of een
+  // naam uit de kop in die zin is genoeg om niet te koppelen (bij twijfel niets), ook met een artikellink.
+  const na = sig.get(ep.id + '#naopname')
+  if (na) {
+    const lk = sig.get((items.find((i) => i.id === story.leadId) || items[0])?.id)
+    const kopNaam = [...(lk?.strong || [])].some((k) => !BROAD.has(k) && na.strong.has(k)) || [...(lk?.weak || [])].some((k) => !BROAD.has(k) && na.weak.has(k))
+    if (central.some((k) => na.strong.has(k)) || kopNaam) return { af: 'de aflevering zegt dat dit nieuws pas na de opname kwam', names, kandidaat: true }
+  }
   // Een vooruitblik is geen verdieping van de afloop (keuring: "Kolkende Kuip moet Feyenoord aan drie punten helpen" bij de
   // nasleep van de nederlaag): een aflevering die vooruitkijkt en verscheen vóór de kop van het verhaal, koppelt niet.
   if (ep.vooruit && ep.t < leadAt) return { af: 'een vooruitblik van vóór de kop van het verhaal', names, kandidaat }
@@ -448,7 +528,28 @@ export function judge(ep, show, story, items, sig, now) {
   const kopShared = new Set()
   for (const k of ls?.strong || []) if (!BROAD.has(k) && has(ls, k) && has(es, k)) kopShared.add(find(k))
   for (const k of ls?.weak || []) if (!BROAD.has(k) && es.weak.has(k)) kopShared.add(k)
-  const kopAf = kopShared.size < 2 ? { af: 'de kop van het verhaal deelt geen twee namen met de aflevering', names, kandidaat } : null
+  // En de kop zelf (de regel die de lezer ziet, zonder de intro) noemt iets uit de aflevering (proef 14 november: de kop
+  // "Van Bommel heeft Lukaku terug voor duel met Italië, Frankrijk beschikt weer over Mbappé" van een mengverhaal over de
+  // interlands; alleen de intro noemt Oranje en Griekenland, dus geen nabespreking van de 7-0). Noemt de kop geen enkele
+  // naam, dan zegt dit niets en telt alleen het stuk van de kop.
+  const kt = sig.get(lead?.id + '#kop')
+  const kopZelf = (s) => [...(kt?.strong || [])].some((k) => !BROAD.has(k) && has(kt, k) && has(s, k)) || [...(kt?.weak || [])].some((k) => !BROAD.has(k) && !!s?.weak.has(k))
+  const kopLeeg = !kt || ![...kt.strong, ...kt.weak].some((k) => !BROAD.has(k))
+  const kopAf = kopShared.size < 2 ? { af: 'de kop van het verhaal deelt geen twee namen met de aflevering', names, kandidaat } : !kopLeeg && !kopZelf(es) ? { af: 'de kop zelf noemt niets uit de aflevering (alleen de intro)', names, kandidaat } : null
+  // Een show zonder Hoot-bron (BNR; besluit Alex 14 november) koppelt zonder artikellink alleen onder strenge voorwaarden.
+  // (2) en (5) staan al hierboven: `meer` en "iets anders" lezen bij zo'n show de hele beschrijving (koppel), en past ze bij
+  // twee verhalen, dan krijgt geen van beide haar. (4) staat in koppel: een aflevering van de eigen bron gaat voor.
+  if (zonderBron(show)) {
+    // (1) Het onderwerp volgt uit de kop: het stuk van de kop deelt twee namen met de aflevering (kopAf), én de kop zelf
+    //     (de regel die de lezer ziet, niet de intro) deelt een naam met de titel van de aflevering. "Crisisoverleg op
+    //     landgoed begonnen" noemt geen partij: dan koppelt "Jetten wil door met het kabinet én de VVD" niet.
+    if (kopAf) return { ...kopAf, af: kopAf.af + ' (show zonder Hoot-bron)' }
+    const ts = sig.get(ep.id + '#titel')
+    const kopTitel = !kopLeeg && kopZelf(ts)
+    if (!kopTitel) return { af: 'show zonder Hoot-bron: de kop van het verhaal deelt geen naam met de titel van de aflevering', names, kandidaat }
+    // (3) Actueel: na het begin van het nieuws, of van dezelfde of de vorige dag (Nederlandse tijd).
+    if (ep.t < firstAt && dagNL(ep.t) < dagNL(firstAt - 24 * H)) return { af: 'show zonder Hoot-bron: de aflevering is ouder dan de dag voor het begin van het nieuws', names, kandidaat }
+  }
   // 2. Hetzelfde: de centrale namen (twee, of één met dezelfde handeling) én dezelfde gebeurtenis, en de aflevering kwam
   //    ná het eerste stuk van het verhaal (keuring: een aflevering over de stemming van donderdag is bij het crisisoverleg
   //    van vrijdag verdiepend, niet hetzelfde). Alleen een artikellink mag eerder (zie 1).
@@ -466,6 +567,7 @@ export function judge(ep, show, story, items, sig, now) {
   if (kopAf) return kopAf
   return { soort: 'verdiepend', grond: 'tekst', reden: `twee centrale namen (${names.join(', ')}) en dezelfde kwestie (${issue})` }
 }
+const dagNL = (t) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'Europe/Amsterdam' })
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 // Dezelfde kwestie: een gebeurtenisbegrip dat in minstens een derde van de stukken staat, of twee kernwoorden uit de
 // koppen van het verhaal (geen namen) in de titel en de eerste zinnen van de aflevering.
@@ -489,7 +591,7 @@ function sameIssue(es, items, sig) {
 // Het koppelen rekent altijd af, ook als de ronde over de tijd is (overtijd, 14 november): geen grens hier.
 export function koppel({ stories = [], byId = new Map(), episodes = [], now = Date.now(), mainIds = new Set() } = {}) {
   const live = stories.map((st) => ({ st, items: (st.itemIds || []).map((id) => byId.get(id)).filter(counted) })).filter((x) => x.items.length >= 2)
-  const eps = episodes.filter((e) => SHOW.has(e.show) && SHOW.get(e.show).soort !== 'overzicht').map((e) => ({ ...e, ...describe(e) }))
+  const eps = episodes.filter((e) => SHOW.has(e.show) && SHOW.get(e.show).soort !== 'overzicht').map((e) => ({ ...e, ...describe(e, SHOW.get(e.show)) }))
   const rows = { koppelingen: [], afgevallen: [] }
   if (!live.length || !eps.length) return { byStory: new Map(), rows }
   const pool = [...new Map(live.flatMap((x) => x.items).map((i) => [i.id, i])).values()]
@@ -497,15 +599,24 @@ export function koppel({ stories = [], byId = new Map(), episodes = [], now = Da
   // kenmerk van alleen de titel, voor de toets bij een artikellink.
   // De zinnen van de beschrijving apart (hooguit ZINNEN): voor het eerste onderwerp (de eerste zin met een naam) en voor
   // de zinnen over iets anders dan het verhaal.
-  const zinnen = new Map(eps.map((e) => [e.id, sentences(e.samenvatting).slice(0, ZINNEN)]))
+  // Een show zonder Hoot-bron: de hele beschrijving (strenge voorwaarde 2). De namen van de makers (`vast`: in bijna elke
+  // aflevering van de show) tellen in de zinnen niet als naam (controle 14 november, ELDERS). Een naam telt hier alleen als
+  // hij in de verhalen voorkomt, dus een presentator telde meestal al niet; maar een maker die zelf in het nieuws is (een
+  // oud-international, een verslaggever die geciteerd wordt) maakte van "A, B, C en D praten over de wedstrijd" vier
+  // namen buiten het verhaal.
+  const zonderMakers = (z, vast = []) => vast.reduce((s, n) => s.split(n).join(''), z)
+  const zinnen = new Map(eps.map((e) => [e.id, sentences(zonderBron(SHOW.get(e.show)) ? e.tekst || e.samenvatting : e.samenvatting).slice(0, zonderBron(SHOW.get(e.show)) ? ZINNEN_HEEL : ZINNEN).map((z) => zonderMakers(z, e.vast))]))
   for (const e of eps) e.zinnen = zinnen.get(e.id).length
   const extra = eps.flatMap((e) => {
     const at = new Date(e.t).toISOString()
-    return [{ id: e.id, title: e.titel, summary: e.samenvatting, publishedAt: at }, { id: e.id + '#titel', title: e.titel, summary: '', publishedAt: at }, ...zinnen.get(e.id).map((z, k) => ({ id: `${e.id}#zin${k}`, title: z, summary: '', publishedAt: at }))]
+    return [{ id: e.id, title: e.titel, summary: e.samenvatting, publishedAt: at }, { id: e.id + '#titel', title: e.titel, summary: '', publishedAt: at }, ...(e.naOpname ? [{ id: e.id + '#naopname', title: e.naOpname, summary: '', publishedAt: at }] : []), ...zinnen.get(e.id).map((z, k) => ({ id: `${e.id}#zin${k}`, title: z, summary: '', publishedAt: at }))]
   })
+  // De kop van elk verhaal apart (alleen de titel van het stuk van de kop): wat de lezer ziet.
+  for (const lead of new Set(live.map((x) => x.items.find((i) => i.id === x.st.leadId) || x.items[0]))) extra.push({ id: lead.id + '#kop', title: lead.title, summary: '', publishedAt: lead.publishedAt })
   const sig = signatures(pool, extra, { extended: true })
   for (const e of eps) {
-    const k = zinnen.get(e.id).findIndex((_, k) => named(sig.get(`${e.id}#zin${k}`)))
+    // Het eerste onderwerp: de eerste zin met een naam, behalve een zin over nieuws van na de opname.
+    const k = zinnen.get(e.id).findIndex((z, k) => named(sig.get(`${e.id}#zin${k}`)) && !NA_OPNAME.test(z))
     if (k >= 0) sig.set(e.id + '#onderwerp', sig.get(`${e.id}#zin${k}`))
   }
   const hits = new Map() // aflevering → [{ x, oordeel }]
@@ -547,7 +658,10 @@ export function koppel({ stories = [], byId = new Map(), episodes = [], now = Da
       for (let k = 0; k < ra.length; k++) if (ra[k] !== rb[k]) return ra[k] - rb[k]
       return a.e.id < b.e.id ? -1 : 1
     }
-    const sorted = cands.filter((c) => !SHOW.get(c.e.show).opinie).sort(order)
+    // Strenge voorwaarde 4: past er een aflevering van de eigen uitgever van de kop, dan valt een show zonder Hoot-bron af.
+    const eigen = cands.some((c) => publisherOf(SHOW.get(c.e.show).bron) === publisherOf(lead?.source))
+    for (const c of cands) if (eigen && zonderBron(SHOW.get(c.e.show))) rows.afgevallen.push(row(c.e, c.x, 'show zonder Hoot-bron: een aflevering van de eigen bron van het verhaal gaat voor'))
+    const sorted = cands.filter((c) => !SHOW.get(c.e.show).opinie && !(eigen && zonderBron(SHOW.get(c.e.show)))).sort(order)
     if (!sorted.length) continue
     // Taal volgt de bronkeuze: een show die niet Nederlandstalig is, alleen voor wie die bron volgt (`alleenVolgers`;
     // het toestel kiest straks de eerste uit `luister` en `andere` die bij de lezer past). De algemene lezer volgt de

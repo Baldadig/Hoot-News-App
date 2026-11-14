@@ -8,20 +8,37 @@
 //   node scripts/luister-proef.mjs --kern <kern.json>    een bewaarde kern in plaats van de live feed
 //   node scripts/luister-proef.mjs --opslag <x.json>     de afleveringen bewaren en hergebruiken (hooguit eens per half uur)
 //   node scripts/luister-proef.mjs --naam PROEF-2         de titel van het verslag (standaard PROEF-2)
+//   node scripts/luister-proef.mjs --fixture <f.json>     een bewaarde fixture (tests/fixtures/luister-*.json: stories,
+//                                                         items, now en episodes en/of rauw) in plaats van de live feeds;
+//                                                         geen netwerk. Meer keren --fixture: de verhalen van de eerste,
+//                                                         de afleveringen van allemaal.
 //
 // Per dagdeel: het huidige dagdeel met de verhalen zoals de server ze nu heeft; een eerder dagdeel van vandaag als nabouw
 // (de stukken die er toen al waren, opnieuw gebundeld zoals op de server, en de afleveringen die toen al verschenen).
 // Geen persoonsgegevens: alleen verhalen, shows en afleveringen.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { UA, MAIN_IDS } from '../netlify/lib/sources.mjs'
-import { loadEpisodes, koppel, SHOWS, FETCHED, FRESH_H, BEFORE_H, DEEP_H } from '../netlify/lib/luister.mjs'
+import { loadEpisodes, koppel, vastVan, episodeOf, SHOW, SHOWS, FETCHED, FRESH_H, BEFORE_H, DEEP_H } from '../netlify/lib/luister.mjs'
 import { buildStories, editionSlot } from '../netlify/lib/stories.mjs'
 import { SLOT_START } from '../shared/slot-times.mjs'
 
 const args = process.argv.slice(2)
 const opt = (f) => (args.includes(f) ? args[args.indexOf(f) + 1] : null)
 
+// Een fixture: `episodes` zoals ze in de opslag staan, en/of `rauw` (de feed-items per show, zoals de feed ze gaf), die
+// hier net als op de server worden gelezen (vastVan, episodeOf).
+const fixtures = args.flatMap((a, k) => (a === '--fixture' ? [JSON.parse(readFileSync(args[k + 1], 'utf8'))] : []))
+const fixtureEpisodes = (fx) => [
+  ...(fx.episodes || []),
+  ...Object.entries(fx.rauw || {}).flatMap(([id, f]) => {
+    if (!SHOW.has(id)) return []
+    const vast = vastVan(f.items)
+    return f.items.map((it) => episodeOf(SHOW.get(id), it, f.link, vast)).filter(Boolean).map((e) => ({ ...e, ...(vast.namen.length ? { vast: vast.namen } : {}) }))
+  }),
+]
+
 async function loadKern() {
+  if (fixtures.length) return { stories: fixtures[0].stories, related: fixtures[0].items, meta: { updatedAt: fixtures[0].now } }
   const f = opt('--kern')
   if (f) return JSON.parse(readFileSync(f, 'utf8'))
   const res = await fetch('https://gethoot.app/api/feed?deel=kern', { headers: { 'User-Agent': UA } })
@@ -43,7 +60,9 @@ const now = Date.parse(kern.meta?.updatedAt) || Date.now()
 const opslag = opt('--opslag')
 const mem = new Map()
 if (opslag) try { mem.set('store', JSON.parse(readFileSync(opslag, 'utf8'))) } catch {}
-const { episodes, status } = await loadEpisodes({ now: Date.now(), deadline: Date.now() + 20000, get: () => mem.get('store'), set: (k, v) => (mem.set('store', v), opslag && writeFileSync(opslag, JSON.stringify(v))) })
+const { episodes, status } = fixtures.length
+  ? { episodes: fixtures.flatMap(fixtureEpisodes), status: Object.fromEntries(FETCHED.map((s) => [s.id, 'uit de fixture'])) }
+  : await loadEpisodes({ now: Date.now(), deadline: Date.now() + 20000, get: () => mem.get('store'), set: (k, v) => (mem.set('store', v), opslag && writeFileSync(opslag, JSON.stringify(v))) })
 const byId = new Map((kern.related || []).map((i) => [i.id, i]))
 const cur = editionSlot(new Date(now))
 const runs = []
@@ -68,7 +87,7 @@ const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim
 const out = []
 out.push(`# Luister verder · ${opt('--naam') || 'PROEF-2'}`)
 out.push('')
-out.push(`Gedraaid op ${new Date().toISOString().slice(0, 10)} op de live feeds: de verhalen van gethoot.app (feed van ${kern.meta?.updatedAt?.slice(0, 16).replace('T', ' ')} UTC) en ${FETCHED.length} officiële podcastfeeds (${episodes.length} afleveringen van de afgelopen drie dagen). Code: branch \`luister\`, \`netlify/lib/luister.mjs\` (de koppeling) en \`scripts/luister-proef.mjs\` (dit verslag). Lezers zien nog niets.`)
+out.push(`Gedraaid op ${new Date().toISOString().slice(0, 10)} ${fixtures.length ? `op ${fixtures.length === 1 ? 'een fixture' : `${fixtures.length} fixtures`} (verhalen van ${kern.meta?.updatedAt?.slice(0, 16).replace('T', ' ')} UTC, ${episodes.length} afleveringen)` : `op de live feeds: de verhalen van gethoot.app (feed van ${kern.meta?.updatedAt?.slice(0, 16).replace('T', ' ')} UTC) en ${FETCHED.length} officiële podcastfeeds (${episodes.length} afleveringen van de afgelopen drie dagen)`}. Code: branch \`luister\`, \`netlify/lib/luister.mjs\` (de koppeling) en \`scripts/luister-proef.mjs\` (dit verslag). Lezers zien nog niets.`)
 out.push('')
 out.push('## Regels')
 out.push('')
@@ -76,6 +95,7 @@ out.push(`- **Hetzelfde**: de aflevering linkt naar een stuk in het verhaal (hoo
 out.push(`- **Verdiepend**: dezelfde hoofdnamen (twee centrale namen, één in de titel) en dezelfde kwestie, als achtergrond. Hooguit ${DEEP_H / 24} dagen oud. Nooit één gedeelde naam.`)
 out.push('- Een artikellink telt alleen met een gedeelde naam in de titel van de aflevering; links naar de eigen uitgever tellen ook (alleen de pagina van de show valt weg). Overzichtsshows nooit; shows met meer onderwerpen en weekshows alleen via een artikellink.')
 out.push('- Zonder artikellink ook (keuring 14 november): de aflevering gaat over één onderwerp (geen "Ook…", "Verder ook aandacht voor…", inhoudsopgave), het eerste onderwerp van de beschrijving is het verhaal, de rest van de beschrijving gaat niet over iets anders, en noemt de kop van het verhaal namen, dan staat er een in de aflevering. Een vooruitblik van vóór de kop koppelt nooit. Een samengestelde naam ("Jong Oranje") telt als één naam.')
+out.push('- Sinds 14 november (nieuwe shows): `meer` leest de hele beschrijving; een aflevering die zegt dat het nieuws pas na de opname kwam, koppelt niet aan dat nieuws; de kop zelf noemt iets uit de aflevering. Een show zonder Hoot-bron (BNR, bron `bnr`) alleen als de kop een naam deelt met de titel van de aflevering, als de aflevering van na het begin van het nieuws of van de dag ervoor is, en als er geen aflevering van de eigen bron van het verhaal past.')
 out.push('- Eén aflevering per verhaal; past een aflevering bij twee verhalen, dan krijgt geen van beide haar. Voorrang: dezelfde uitgever als de kop, dan een bron die de lezer volgt (voor de algemene lezer de basisbronnen), dan een Nederlandstalige show. Taal volgt de bronkeuze: een Engelse show alleen voor wie die bron volgt.')
 out.push('')
 out.push('## Shows')

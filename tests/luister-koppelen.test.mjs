@@ -14,7 +14,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { SHOWS, SHOW, FETCHED, koppel, episodeOf, readHead, loadEpisodes, luisterRonde, urlKey, cleanTitle, withProef, proefEntry, EVERY, KEEP, PROEF_KEY, STORE_KEY } from '../netlify/lib/luister.mjs'
+import { SHOWS, SHOW, FETCHED, koppel, episodeOf, readHead, loadEpisodes, luisterRonde, urlKey, cleanTitle, withProef, proefEntry, EVERY, KEEP, PROEF_KEY, STORE_KEY, zonderBron } from '../netlify/lib/luister.mjs'
 import { SOURCES, MAIN_IDS } from '../netlify/lib/sources.mjs'
 
 const FIX = JSON.parse(readFileSync(new URL('./fixtures/luister-2026-11-14.json', import.meta.url), 'utf8'))
@@ -25,10 +25,12 @@ const story = (re) => FIX.stories.find((st) => re.test(leadTitle(st)))
 const ep = (re) => FIX.episodes.find((e) => re.test(e.titel))
 const run = (opts = {}) => koppel({ stories: FIX.stories, byId, episodes: FIX.episodes, now: NOW, mainIds: MAIN_IDS, ...opts })
 
-test('de showlijst: officiële shows van bronnen die al in Hoot staan, elk met een soort; overzichten worden niet opgehaald', () => {
+test('de showlijst: officiële shows van bronnen die al in Hoot staan (en BNR, besluit 14 november), elk met een soort; overzichten worden niet opgehaald', () => {
   const ids = new Set(SOURCES.map((s) => s.id))
   for (const s of SHOWS) {
-    assert.ok(ids.has(s.bron), `${s.naam}: bron ${s.bron} staat in de catalogus`)
+    // De enige uitzondering: de podcasts van BNR, met de bron `bnr` die alleen voor podcasts bestaat (zonderBron).
+    if (s.bron === 'bnr') assert.equal(zonderBron(s), true, s.naam)
+    else assert.ok(ids.has(s.bron), `${s.naam}: bron ${s.bron} staat in de catalogus`)
     assert.ok(['verdieping', 'meer', 'week', 'overzicht'].includes(s.soort), s.naam)
     assert.ok(['nl', 'en'].includes(s.taal), s.naam)
     assert.match(s.apple, /^\d+$/, s.naam)
