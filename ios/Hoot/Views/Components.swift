@@ -623,6 +623,8 @@ struct SourceLine: View {
     var kaart = false // kaart A+ (iPhone): "Abonnement" stil, "N bronnen" als tekstknop, bewaren en het ⋯-menu met delen
     var narrow = false // smalle kolom (zijkolom van de voorpagina op de iPad): "N bronnen" klein achter de tijd
     var dicht = false // de dichte rij (iPhone Duo dicht): past "tijd · N bronnen" niet op één regel, dan onder elkaar, nooit "3 uur / geleden"
+    var paid: Bool? = nil // betaald, als de bron niet in de catalogus staat (een vakbron in de Selectie draagt het zelf mee)
+    private var isPaid: Bool { paid ?? (store.source(item.source)?.paid == true) }
     var body: some View {
         if kaart { kaartBody } else if narrow { narrowBody } else { regular }
     }
@@ -762,13 +764,13 @@ struct SourceLine: View {
     private var kaartMeta: Text {
         let dot = Text(" · ")
         var t = Text(HootDate.ago(item.date))
-        if store.source(item.source)?.paid == true { t = Text("\(t)\(dot)\(Text("Abonnement").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink2))") }
+        if isPaid { t = Text("\(t)\(dot)\(Text("Abonnement").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink2))") }
         if outside { t = Text("\(t)\(dot)\(Text(StoryLabel.outsideText))") }
         return t
     }
 
     private var meta: String {
-        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "Abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
+        [HootDate.ago(item.date), isPaid ? "Abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
     // "N bronnen ›": altijd het totaal, in ink2. Gelijk aan bronnenLabel in src/components/Items.jsx.

@@ -10,7 +10,7 @@ What the app does
 - Edition: three times a day (morning, midday and evening) an edition of ten numbered stories plus an optional "outside your bubble" story, composed on the device from the reader's own sources and interests (the app falls back to our server if that fails; the chosen sources and interests are then sent to compose it, and nothing is stored). Pull to refresh shows the Hoot "h." mark.
 - Compare: when several outlets cover the same story, "Vergelijk N bronnen" shows how each of them reports it.
 - Stream: all items from the reader's chosen sources, newest first. Optionally, posts from Bluesky accounts the reader adds themselves (public Bluesky API, read-only; none are added by default).
-- Selectie (weekly selection): every Monday the three most important professional articles of the week per field (for example paid social, UI/UX, AI, e-commerce), chosen by how many trade publications covered them and by human curation.
+- Selectie (weekly selection): every Monday three articles of the week per field (for example paid social, UI/UX, AI, e-commerce), from experts and trade publications: what several of them wrote about, what an editorial team picked, or what an expert wrote. No sponsored content; the intro is the author's own.
 - Saved and Search work on the device.
 
 Where the content comes from

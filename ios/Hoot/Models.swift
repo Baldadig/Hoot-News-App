@@ -489,6 +489,7 @@ struct DigestItem: Codable, Identifiable, Hashable {
     var via: String?
     var also: [DigestAlso]?
     var borrowedFrom: String? // komt hier ooit een geleende intro, dan met "via X" (zoals Item)
+    var paid: Bool? // betaalde vakbron: "Abonnement" in de bronregel, zoals op het web (Vak.jsx)
 
     var asItem: Item {
         Item(id: id, source: source, kind: "article", sourceName: sourceName, avatar: avatar, title: title, summary: summary, borrowedFrom: borrowedFrom, url: url, image: image, publishedAt: publishedAt, author: author)
