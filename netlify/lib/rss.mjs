@@ -10,6 +10,7 @@ import { langOf } from '../../shared/lang.mjs'
 import { rubricSegments } from '../../shared/editie-filter.mjs'
 import { couponPage } from './kortingscode.mjs'
 import { opinieRubriek } from '../../shared/opinie.mjs'
+import { reviewCategory } from '../../shared/recensie.mjs'
 
 const parser = new Parser({
   timeout: 9000,
@@ -37,6 +38,9 @@ export function mediaFields(it = {}, cats = []) {
   const first = String(cats[0] || '').trim().toLowerCase()
   if (/^podcasts?$/.test(first)) out.feedMark = 'podcast'
   else if (/^(videos?|video's)$/.test(first)) out.feedMark = 'video'
+  // Een recensierubriek van de uitgever ("Recensie", "Reviews", "Album van de dag", "Review / Gaming / Games"), in elke
+  // categorie: een recensie is een soort, geen onderwerp. Uit de Editie (shared/recensie.mjs); de Stroom en de Selectie houden het.
+  else if (reviewCategory(cats)) out.feedMark = 'recensie'
   return out
 }
 

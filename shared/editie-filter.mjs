@@ -16,6 +16,8 @@
 // Twijfel blijft staan; de AI op de server (netlify/lib/editie-ai.mjs) beoordeelt de rest. De Stroom gebruikt dit niet.
 // Gedeeld door server en toestel (edition-core.js): alleen eenvoudige, deterministische toetsen.
 
+import { isRecensie } from './recensie.mjs'
+
 const DEAL_RUBRIC = new Set(['deals', 'aanbiedingen', 'aanbieding', 'koopjes', 'coupons', 'kortingscodes', 'dagdeals'])
 const AUDIO_RUBRIC = new Set(['podcast', 'podcasts', 'luister'])
 // Alleen echte taal-/landsegmenten (herstel AI-keuring 1: "tv" in /tv/deals/ is een rubriek, geen taal).
@@ -78,6 +80,7 @@ export function hardMark(item = {}) {
   return null
 }
 
-// Eén toelating voor alle Editieroutes. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag
+// Eén toelating voor alle Editieroutes. Ook geen recensie of kop zonder nieuws (shared/recensie.mjs, 14 november 2026):
+// die staat niet in hardMark, want de Selectie (netlify/lib/vak.mjs) gebruikt hardMark en houdt recensies wel. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag
 // (alleen de server geeft die mee; het toestel rekent met A alleen).
-export const excludedFromEdition = (item, weg = null) => !!item && ((weg && weg.size > 0 && weg.has(item.id)) || hardMark(item) != null)
+export const excludedFromEdition = (item, weg = null) => !!item && ((weg && weg.size > 0 && weg.has(item.id)) || hardMark(item) != null || isRecensie(item))
