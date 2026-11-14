@@ -367,7 +367,7 @@ struct FieldSection: View {
                     ForEach(field.more) { item in
                         VStack(alignment: .leading, spacing: Space.s0) {
                             Kop(item.title, .headline).foregroundStyle(Theme.ink)
-                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.ui(.caption)).foregroundStyle(Theme.hint)
+                            Text([item.sourceName ?? "", HootDate.ago(item.publishedAt.flatMap(HootDate.parse)), item.paid == true ? "Abonnement" : nil].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.hint)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, Space.s2)
@@ -427,7 +427,7 @@ private struct DigestCard: View {
                     // Eén tekst met links, zodat hij bij grote tekst gewoon terugloopt.
                     Text(Self.alsoLine(also)).font(.ui(.caption)).foregroundStyle(Theme.hint)
                 }
-                SourceLine(item: item.asItem, linkSource: false) // de Digest heeft geen bronpagina's
+                SourceLine(item: item.asItem, linkSource: false, paid: item.paid == true) // de Digest heeft geen bronpagina's; "Abonnement" bij een betaalde vakbron
                 if let via = item.via { Text("via \(via)").font(.ui(.caption2)).foregroundStyle(Theme.hint) }
             }
             .padding(.horizontal, Space.s4)

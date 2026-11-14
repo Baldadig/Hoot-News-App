@@ -347,6 +347,29 @@ export const ARCHIVED_SOURCES = [
   V('wielerflits', 'WielerFlits', 'vakblad', ['sport'], 'https://www.wielerflits.nl/feed/'),
 ]
 
+// Betaalde vakbronnen (Selectie-review 14 november, punt 9): hele artikelen alleen voor abonnees, zoals `paid` in de
+// hoofdcatalogus. Twee gronden, per bron nagelopen op 14 november:
+// 1. dezelfde uitgever staat in de hoofdcatalogus als betaald (de Volkskrant, Trouw, Het Parool, AD, De Tijd, HLN, The New
+//    York Times, The Economist, FT, Follow the Money, De Groene, Vrij Nederland);
+// 2. van de nieuwste drie stukken gaf de uitgever er minstens twee zelf op als niet vrij te lezen (isAccessibleForFree
+//    false in de pagina, gelezen met de gewone User-Agent van Hoot; niets omzeild).
+// Bronnen waar maar één van de drie stukken betaald was (Lenny, Noah Smith, Interconnects, Heatmap) tellen als gratis.
+// Niet na te gaan (de site weigert of stuurt naar een toestemmingspagina) en niet in de hoofdcatalogus: Jancis Robinson,
+// Trends en Knack, Helden; die blijven zonder kenmerk tot iemand het nagaat. HP/De Tijd, TPO, FT Big Read, Filosofie
+// Magazine, Garbage Day en Historisch Nieuwsblad hadden het kenmerk al.
+export const PAID_SOURCES = new Set(
+  [
+    // 1. uitgever betaald in de hoofdcatalogus
+    'vk-tech', 'vk-wetenschap', 'vk-films', 'vk-series', 'vk-muziek', 'vk-boeken', 'vk-kunst', 'vk-games', 'vk-eten',
+    'trouw-gezondheid', 'trouw-wetenschap', 'trouw-duurzaamheid', 'trouw-verdieping', 'trouw-onderwijs', 'trouw-boeken',
+    'parool-kunst', 'parool-proefwerk', 'ad-geld', 'ad-wonen', 'ad-eten', 'tijd-ondernemen', 'tijd-mijngeld', 'tijd-cultuur',
+    'hln-wetenschap', 'hln-games', 'hln-reizen', 'nyt-travel', 'economist-fe', 'ft-work', 'ftm', 'groene', 'vn',
+    // 2. minstens twee van de drie nieuwste stukken betaald
+    'archreview', 'cobouw', 'dearchitect', 'deptofproduct', 'distrifood', 'energeia', 'kentbeck', 'missethoreca', 'pensioenpro',
+    'pragmatic', 'pw', 'sifted', 'stat', 'usermag', 'vastgoedmarkt', 'verge-ai', 'verge-creators', 'verna', 'zorgvisie', 'zorgwelzijn',
+  ].map((id) => 'vak:' + id),
+)
+
 // Bestaande bronnen die er een onderwerp bij krijgen (achteraan: het eerste passende onderwerp wint).
 export const EXTEND = [
   ['vak:adformatie', 'pr'],

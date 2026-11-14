@@ -51,6 +51,8 @@ function Source({ item }) {
           <span className="srcbtn__time">
             {item.author ? `${item.author} · ` : ''}
             <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+            {/* Een betaalde vakbron: hetzelfde woord en dezelfde stille stijl als in de bronregel van Editie en Stroom (SourceMeta). */}
+            {item.paid ? <span className="srcbtn__read"> · Abonnement</span> : null}
             {item.via ? ` · via ${item.via}` : ''}
           </span>
         </span>
@@ -319,6 +321,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
                               <span className="head-4 dmore__title">{it.title}</span>
                               <span className="dmore__src">
                                 {it.sourceName} · {timeAgo(it.publishedAt)}
+                                {it.paid ? ' · Abonnement' : ''}
                               </span>
                             </a>
                           </li>

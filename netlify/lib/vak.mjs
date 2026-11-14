@@ -19,7 +19,7 @@ import { tzOffsetMs, hostname } from './text.mjs'
 import { loadOgImage } from './og.mjs'
 export { ogImageFrom, loadOgImage } from './og.mjs'
 import { VAK_FIELDS, VAK_FIELD_IDS, VAK_DOMAINS } from '../../shared/vak.mjs'
-import { MORE_SOURCES, EXTEND, MORE_FITS, feedLang } from './vakBronnen.mjs'
+import { MORE_SOURCES, EXTEND, MORE_FITS, PAID_SOURCES, feedLang } from './vakBronnen.mjs'
 
 const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', lang: feedLang(url), ...more })
 
@@ -157,7 +157,8 @@ export function vakLang(s) {
   if (NL_ELSEWHERE.has(s.id) || /\.(nl|be|nu)$/.test(hostname(s.urls[0]))) return 'nl'
   return 'en'
 }
-const withLang = (s) => ({ ...s, lang: vakLang(s) })
+// Betaald (PAID_SOURCES in vakBronnen.mjs, Selectie-review punt 9): het kenmerk staat op de bron, het stuk draagt het mee.
+const withLang = (s) => ({ ...s, lang: vakLang(s), ...(s.paid || PAID_SOURCES.has(s.id) ? { paid: true } : {}) })
 
 export const VAK_SOURCES = [
   ...BASE_SOURCES.map((s) => {
@@ -505,6 +506,8 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
         // Een Sidebar-link wijst naar een stuk elders: toon die site als bron.
         sourceName: curator ? prettyHost(lead.url) : lead.sourceName,
         via: curator ? src.name : null,
+        // Betaald: "Abonnement" in de bronregel (web en app). Een Sidebar-link wijst naar een site die we niet kennen.
+        paid: !curator && !!src.paid,
         why,
         // Ook bij: elke andere bron één keer, bij naam (niet drie keer Eurogamer).
         also: g.items
@@ -521,20 +524,25 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
     })
     scored.sort((a, b) => b.score - a.score || b.also.length - a.also.length || (a.publishedAt > b.publishedAt ? -1 : 1))
     // Afwisseling: in de top hooguit één stuk per bron, daaronder hooguit twee.
-    const pick = (list, n, perSource) => {
+    // `paidMax`: in de top hooguit één betaald stuk (Selectie-review, punt 9): van drie stukken kun je er dan hooguit één
+    // niet lezen zonder abonnement.
+    const pick = (list, n, perSource, paidMax = Infinity) => {
       const out = []
       const count = {}
+      let paid = 0
       for (const e of list) {
         if (out.length >= n) break
         const key = e.via ? 'sidebar:' + e.sourceName : e.source
         if ((count[key] || 0) >= perSource) continue
+        if (e.paid && paid >= paidMax) continue
         count[key] = (count[key] || 0) + 1
+        if (e.paid) paid++
         out.push(e)
       }
       return out
     }
     // Een bedrijfsblog (Meta, Figma) haalt de top alleen als ook anderen erover schrijven.
-    const topList = pick(scored.filter((e) => !hidden.has(e) && (byId.get(e.source).kind !== 'officieel' || e.also.length)), top, 1)
+    const topList = pick(scored.filter((e) => !hidden.has(e) && (byId.get(e.source).kind !== 'officieel' || e.also.length)), top, 1, 1)
     const rest = pick(scored.filter((e) => !topList.includes(e)), more, 2)
     return { ...f, count: its.length, top: topList, more: rest }
   })
@@ -548,7 +556,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
     next: wk.next,
     builtAt: new Date(now).toISOString(),
     fields,
-    sources: sources.map((s) => ({ id: s.id, name: s.name, kind: s.kind, fields: s.fields, about: s.about || null })),
+    sources: sources.map((s) => ({ id: s.id, name: s.name, kind: s.kind, fields: s.fields, about: s.about || null, ...(s.paid ? { paid: true } : {}) })),
   }
 }
 
