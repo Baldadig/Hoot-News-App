@@ -3951,11 +3951,324 @@ var HootCore = (() => {
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 
+  // shared/koopsignaal.mjs
+  var BUY_ALWAYS = new RegExp([
+    "\\bzo claim je\\b",
+    "\\bclaim (?:je|nu) (?:gratis|jouw|je)\\b",
+    "\\bwinactie\\b",
+    "\\bwin\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|reis|trip|prijzen)\\b",
+    "\\bmaak kans op\\b",
+    "\\((?:adv|advertentie)\\)",
+    "\\[(?:adv|advertentie)\\]",
+    // Cadeaugidsen.
+    "\\bgift guides?\\b",
+    "\\bcadeaugids\\w*",
+    "\\bcadeautips\\b",
+    "\\bcadeau-?idee(?:ën|en)\\b",
+    "\\bgifts? for (?:him|her|men|women|kids|teens|dads?|moms?|mothers?|fathers?|parents|grandparents|everyone|anyone|the \\w+ lover|\\w+ lovers)\\b"
+  ].join("|"), "iu");
+  var LABEL2 = /^[\s"'‘“([]*(?:(?:[\p{L}]+-)?deals?|dagdeals?|dagaanbieding|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsdaling|prijsverlaging|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert)\s*[:|.!–—-]\s/iu;
+  var DEAL_HEAD = new RegExp([
+    // Selectie (isBuying).
+    "\\b(?:de|the|onze|our)?\\s*(?:beste|best|top)\\s+deals\\b",
+    "\\bdeals? (?:op een rij|van de (?:dag|week))\\b",
+    "\\b(?:aanbiedingen|koopjes) (?:op een rij|van de (?:dag|week))\\b",
+    "\\bkorting op\\b.*\\b(?:deal|actie|code|aanbieding|black friday|cyber monday)\\b",
+    // Uitbreiding: "The 21 Best REI Holiday Sale Outdoor Deals", "Today's Top Deals", "… Deals Roundup (2026)".
+    "\\b(?:beste|best|top)\\b[^:;!?|]{0,50}?\\bdeals\\b",
+    "\\b(?:today'?s|todays|daily|weekend|this week'?s)\\s+(?:top\\s+|best\\s+)?deals\\b",
+    "\\b(?:deals?|sales?|koopjes|aanbiedingen)\\b[^()]{0,40}\\(20\\d\\d\\)",
+    "\\b[\\p{L}]+-deals\\b",
+    // Kortingen tot een percentage, en een aanbieding die live is.
+    "\\bkortingen? tot (?:wel )?\\d+",
+    "\\btot (?:wel )?\\d+\\s?(?:%|procent) korting\\b",
+    "\\bsale is (?:live|on|back)\\b",
+    "\\bdoorbusters?\\b",
+    "\\bdoorboosters?\\b",
+    // "X Deal: Save $80", "Nothing Headphones Sale: Up to 41% Off", "Birthday Sale: 20 Percent Off Sitewide".
+    "\\b(?:deal|sale)\\s*:\\s*(?:save|get|up to|\\d)",
+    "\\bsale\\b.*(?:\\b\\d+ ?(?:%|percent) off\\b|\\bsave (?:up to )?\\$?\\d)",
+    "(?:\\b\\d+ ?(?:%|percent) off\\b|\\bsave (?:up to )?\\$?\\d).*\\bsale\\b",
+    // Kortingscodes en sim only-acties.
+    "\\b(?:promo|coupon|discount) codes?\\b.*(?:\\d+ ?%|20\\d\\d|\\$\\d)",
+    "\\bsim[- ]only\\b",
+    "\\bgratis verzending\\b",
+    "\\bfree shipping\\b",
+    "\\b(?:last chance|laatste kans)\\b.*(?:\\bsave (?:up to )?(?:\\$|€|£)?\\d|\\bkorting\\b|\\bbestel\\w*|\\bkoop\\b)"
+  ].join("|"), "iu");
+  var SHOP_DAY = /\b(?:black friday|cyber monday|singles'? day|prime days?|amazon prime days?|holiday sale|boxing day|presidents'? day sale|memorial day sale|labor day sale)\b/i;
+  var SHOP_WORD = /\b(?:deals?|korting\w*|aanbieding\w*|koopjes|sale|uitverkoop|goedkoop\w*|cheapest|laagste prijs|lowest price|prijsdaling|discounts?|discounted)\b|\b(?:for |voor )?(?:under|just|only|onder|maar) (?:\$|€|£)\s?\d|\b\d+ ?(?:%|percent|procent) off\b|\$\d[\d,]* off\b|\bsave (?:up to )?\$?\d/i;
+  var PRICE_DROP = new RegExp([
+    "\\b(?:is|are|'s)\\s+(?:now\\s+|currently\\s+)?(?:(?:almost|nearly|just|over|more than|under|only|about|around)\\s+)?(?:\\$|€|£)\\d[\\d,.]*\\s+off\\b",
+    "\\b(?:is|are|'s)\\s+(?:(?:almost|nearly|more than|over)\\s+)?half off\\b",
+    "\\b(?:is|are|now|drops?|dropped|falls?|fell)\\s+(?:down\\s+)?to\\s+(?:just\\s+|only\\s+)?(?:\\$|€|£)\\d",
+    "\\b(?:its|their|a new|an all-time|a record) (?:lowest|best|low) price\\b",
+    "\\blowest price (?:of the year|to date|ever|yet)\\b",
+    "\\bnew low price\\b",
+    "\\bon sale (?:for|now|right now|at)\\b",
+    "\\b(?:is|are) on sale\\b",
+    "\\bsteeply discounted\\b",
+    "\\b(?:is|are) discounted\\b",
+    "\\b(?:is|are|'s)\\s+(?:now\\s+)?(?:(?:up to|almost|nearly|over|more than|about)\\s+)?\\d+ ?(?:%|percent) off\\b",
+    "\\b(?:is|are) (?:only|just) (?:\\$|€|£)\\d",
+    "\\b(?:is|are) (?:\\$|€|£)\\d[\\d,.]* (?:at [\\p{L}.]+(?: [\\p{L}]+)? )?right now\\b",
+    "\\bto (?:a mere|just|only) (?:\\$|€|£)\\d",
+    `^[\\s"'‘“]*(?:grab|get|snag|score)\\b[^.:]*?\\bfor (?:just |only )?(?:\\$|€|£)\\d`,
+    "\\bget (?:up to )?(?:\\$|€|£)?\\d[\\d,]*(?: ?%| percent)? off\\b",
+    "\\bhow to save (?:\\$|€|£)\\d",
+    `^[\\s"'‘“]*krijg (?:nu )?(?:€\\s?)?\\d+ ?(?:%|procent|euro) korting\\b`,
+    "\\bnu met (?:€\\s?)?\\d+ ?(?:euro|%|procent) korting\\b",
+    `^[\\s"'‘“]*save (?:up to |over |more than )?(?:\\$|€|£)?\\d`,
+    "\\bgives? you (?:\\$|€|£)?\\d[\\d,]*(?: ?%| percent)? off\\b",
+    "\\bnu (?:voor|vanaf) (?:€|eur\\s?)\\s?\\d",
+    "\\bnu voor \\d+ euro\\b",
+    "\\bin prijs verlaagd\\b",
+    "\\btijdelijk goedkoper\\b",
+    "\\blaagste prijs ooit\\b",
+    "\\bnu \\d+\\s?% korting\\b"
+  ].join("|"), "iu");
+  var GUIDE = new RegExp([
+    `^[\\s"'‘“]*(?:(?:the|my|our|these)\\s+)?\\d+\\s+(?:best|favorite|favourite)\\b[^()]*\\(20\\d\\d\\)\\s*$`,
+    "\\bbest\\b[^()]*\\bgifts?\\b",
+    "\\bgifts?\\b[^()]*\\(20\\d\\d\\)",
+    "\\b(?:here'?s\\s+)?where to (?:buy|preorder|pre-order)\\b",
+    "\\bhow to (?:buy|preorder|pre-order)\\b",
+    "\\b(?:zo|hier|waar) (?:koop|bestel|scoor|bespaar) je\\b",
+    "\\bzo krijg je\\b.*\\b(?:gratis|cadeau|korting)\\b",
+    "\\bgifts? worth (?:giving|buying)\\b",
+    `^[\\s"'‘“]*\\d+\\+?\\s+(?:[\\p{L}-]+\\s+)?gifts?\\b`,
+    "\\bhow (?:you can|to) save on\\b"
+  ].join("|"), "iu");
+  var ABOUT = new RegExp([
+    // Selectie (ABOUT_SALES): omzet, gedrag, onderzoek, oplichting, toezicht.
+    "omzet\\w*",
+    "sales",
+    "record\\w*",
+    "spending",
+    "uitgaven",
+    "besteding\\w*",
+    "besteed\\w*",
+    "consument\\w*",
+    "shoppers",
+    "onderzoek\\w*",
+    "survey",
+    "research",
+    "cijfers",
+    "waarom",
+    "why",
+    "analyse",
+    "analysis",
+    "nep\\w*",
+    "fakes?",
+    "scams?",
+    "oplicht\\w*",
+    "misleid\\w*",
+    "fraude",
+    "acm",
+    // Toezicht, recht en beleid.
+    "ftc",
+    "regulators?",
+    "toezicht\\w*",
+    "waarschuw\\w*",
+    "warns?",
+    "boetes?",
+    "fined?",
+    "probe",
+    "lawsuit",
+    "rechter\\w*",
+    "court",
+    "kabinet",
+    "minister\\w*",
+    "overheid",
+    "government",
+    "gemeenten?",
+    "zorgtoeslag",
+    "toeslag\\w*",
+    "belasting\\w*",
+    "tax(?:es)?",
+    "subsidie\\w*",
+    "cao",
+    "pensioen\\w*",
+    "zorgpremie\\w*",
+    // Overnames, akkoorden, handel en politiek.
+    "m&a",
+    "mergers?",
+    "acquisitions?",
+    "overnames?",
+    "takeovers?",
+    "fusies?",
+    "trade",
+    "handels\\w*",
+    "transfers?",
+    "contracts?",
+    "billion",
+    "miljard\\w*",
+    "\\d+\\s?bn",
+    "funding",
+    "investments?",
+    "investering\\w*",
+    "licens\\w*",
+    "sponsor\\w*",
+    "peace",
+    "vrede\\w*",
+    "ceasefire",
+    "bestand",
+    "tariffs?",
+    "akkoord",
+    "coalitie\\w*",
+    "senate",
+    "congress",
+    "eu",
+    "brexit",
+    "nuclear",
+    "kernwapen\\w*",
+    // Markten en grondstoffen.
+    "oil",
+    "olie\\w*",
+    "brent",
+    "gas",
+    "gasprijs\\w*",
+    "stroomprijs\\w*",
+    "energieprijs\\w*",
+    "bitcoin",
+    "crypto\\w*",
+    "stocks?",
+    "shares",
+    "aandel\\w*",
+    "beurs\\w*",
+    "koers\\w*",
+    "markets",
+    "wall street",
+    "nasdaq",
+    "dow",
+    "aex",
+    "gold price",
+    "goudprijs",
+    "huizen\\w*",
+    "housing",
+    "huur\\w*",
+    "rente\\w*",
+    "inflati\\w*",
+    "economie\\w*",
+    "economy",
+    "retailers",
+    "winkeliers",
+    "webwinkels",
+    "banen",
+    "jobs",
+    "layoffs",
+    "ontslag\\w*",
+    // Gevolgen, mensen en plaatsen: nieuws over een aanbieding, geen aanbieding.
+    "verwacht\\w*",
+    "expected",
+    "analysts?",
+    "analisten",
+    "strikes?",
+    "staking\\w*",
+    "workers",
+    "werknemers",
+    "personeel",
+    "stampede",
+    "sparks",
+    "sued",
+    "sues",
+    "claims?",
+    "misleading",
+    "cma",
+    "rules?",
+    "price war",
+    "prijzenoorlog",
+    "bankrupt\\w*",
+    "faillis\\w*",
+    "failliet",
+    "sluit\\w*",
+    "sluiting\\w*",
+    "clos(?:es|ing|ure)",
+    "dealers",
+    "inventory",
+    "voorraad",
+    "installateurs",
+    "problemen",
+    "fans",
+    "furious",
+    "woedend",
+    "says",
+    "say",
+    "zegt",
+    "zeggen",
+    "study",
+    "studie",
+    "finds",
+    "flop",
+    "fewer",
+    "average",
+    "gemiddeld\\w*",
+    "income",
+    "inkomen",
+    "huishoudens",
+    "households",
+    "energierekening",
+    "prices",
+    "prijzen",
+    "tickets?",
+    "harvest",
+    "oogst",
+    "bird flu",
+    "vogelgriep",
+    "in (?:europe|europa|china|the us|de vs|amerika|america|japan|india)",
+    "wereldwijd",
+    "worldwide",
+    "lekt?",
+    "gegevens",
+    "reclame",
+    "rechtbank",
+    "europese commissie",
+    "commission",
+    "plan",
+    "regeling\\w*",
+    "families",
+    "gezinnen",
+    "students",
+    "studenten",
+    "announces",
+    "kondigt",
+    "energy bills",
+    "fares",
+    "ov",
+    "million",
+    "miljoen",
+    "sells",
+    "verkoopt",
+    "peak",
+    "piek",
+    "resale",
+    // Uitleg en achtergrond.
+    "explained",
+    "uitgelegd",
+    "zo werkt",
+    "zo zit het"
+  ].map((w) => `\\b${w}\\b`).join("|") + "|\\bhow\\b[^?]*\\b(?:works?|actually work)\\b", "iu");
+  var clean = (t) => String(t || "").replace(/\s+/g, " ").replace(/[’‘`]/g, "'").trim();
+  function koopGrond(title = "") {
+    const t = clean(title);
+    if (!t) return null;
+    if (BUY_ALWAYS.test(t)) return "aanbod";
+    if (LABEL2.test(t)) return ABOUT.test(t) ? null : "label";
+    const grond = DEAL_HEAD.test(t) ? "dealkop" : SHOP_DAY.test(t) && SHOP_WORD.test(t) ? "koopdag" : PRICE_DROP.test(t) ? "prijsval" : GUIDE.test(t) ? "koopgids" : null;
+    return grond && !ABOUT.test(t) ? grond : null;
+  }
+  var koopKop = (title = "") => koopGrond(title) != null;
+  var LOOSE = /\b(?:best|beste|top)\b|\(20\d\d\)|(?:\$|€|£)\s?\d|\b\d+ ?(?:%|percent|procent)\b|\boff\b/i;
+  var koopVorm = (title = "") => {
+    const t = clean(title);
+    return !!t && (koopKop(t) || (SHOP_WORD.test(t) || LOOSE.test(t)) && !ABOUT.test(t));
+  };
+
   // shared/editie-filter.mjs
   var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
   var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
   var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
-  var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  var LABEL3 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
   function rubricSegments(url) {
     const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
     if (!m) return [];
@@ -3987,8 +4300,10 @@ var HootCore = (() => {
     const segs = rubricSegments(item.url);
     const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
     if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
+    if (koopGrond(item.title)) return { soort: "aanbieding", grond: "koopkop" };
+    if (item.feedMark === "aanbod" && koopVorm(item.title)) return { soort: "aanbieding", grond: "feedcategorie" };
     const media = String(item.mediaType || "");
-    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
+    const label2 = LABEL3.exec(String(item.title || ""))?.[1]?.toLowerCase();
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
     if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
     if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };

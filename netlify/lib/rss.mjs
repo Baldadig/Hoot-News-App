@@ -9,6 +9,7 @@ import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleT
 import { langOf } from '../../shared/lang.mjs'
 import { rubricSegments } from '../../shared/editie-filter.mjs'
 import { couponPage } from './kortingscode.mjs'
+import { shopCategory } from '../../shared/koopsignaal.mjs'
 import { opinieRubriek } from '../../shared/opinie.mjs'
 
 const parser = new Parser({
@@ -37,6 +38,9 @@ export function mediaFields(it = {}, cats = []) {
   const first = String(cats[0] || '').trim().toLowerCase()
   if (/^podcasts?$/.test(first)) out.feedMark = 'podcast'
   else if (/^(videos?|video's)$/.test(first)) out.feedMark = 'video'
+  // Een categorie die het stuk als aanbod of koopgids indeelt ("Gear / Deals", "Buying Guides", "Aanbiedingen"; nooit onder
+  // zaken of markten): alleen voor de Editie (hardMark, met een koopvorm in de kop). De Stroom toont het gewoon.
+  else if (shopCategory(cats)) out.feedMark = 'aanbod'
   return out
 }
 
