@@ -16,7 +16,9 @@ const COUNTRIES = Object.fromEntries(Object.entries({
     // 14 november 2026 (bronnen-internationaal)
     'vox','nationalreview','thefp',
     // 14 november 2026 (bronnen-amerika, met de landenregel in coverageOf)
-    'axios','propublica'],
+    'axios','propublica',
+    // 14 november 2026 (wapo): World en Politics zijn één uitgever (`publisher`)
+    'wapo'],
   GB: ['guardian','bbc','economist','ft','independent','telegraph','eurogamer','nature','carbonbrief','autosport','quietus'],
   // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
   DE: ['dw'], FR: ['lemonde','france-medias-monde','euronews'], QA: ['aljazeera'], HK: ['scmp'],
@@ -108,7 +110,7 @@ export const sportChosen = prof => prof.interests ? prof.interests.has('sport') 
 // volgt, ziet niet dat NOS het ook bracht.
 // 14 november 2026: de nieuwe algemene nieuwsbronnen van buiten (bronnen-internationaal, bronnen-amerika); opiniebladen niet, die dragen geen plek.
 const FOREIGN_NEWS = new Set(['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','guardian','bbc','economist','ft','independent','telegraph','dw','lemonde','aljazeera','scmp',
-  'france24','rfi','euronews','abc-au','kyivindependent','haaretz','timesofisrael','axios','propublica'])
+  'france24','rfi','euronews','abc-au','kyivindependent','haaretz','timesofisrael','axios','propublica','wapo','wapo-politics'])
 const BEAT = new Set(['economie','tech','wetenschap','cultuur','sport'])
 const generalNews = item => !(item?.topics || []).some(t => BEAT.has(FAMILY_OF[t]))
 const homeCovered = (items, story) => story?.homeCovered === true || (story?.publisherCountries || []).some(c => c === 'NL' || c === 'BE') || items.some(i => ['NL','BE'].includes(publisherCountry(i?.source)))

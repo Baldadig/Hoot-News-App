@@ -315,10 +315,16 @@ var HootCore = (() => {
     // Amerikaans nieuws (bronnen-amerika, 14 november 2026): de landenregel (COUNTRY_MAX in shared/edition-policy.mjs)
     // begrenst de telling per buitenlands land, dus meer Amerikaanse uitgevers maken een binnenlands Amerikaans verhaal niet
     // groter. Alleen bronnen met een kwalitatieve feed (vers, een echte intro, beeld, alleen nieuws): Axios en ProPublica.
-    // The Washington Post nog niet: de feed antwoordt pas na 8 tot 10 seconden (de grens is 9), zonder beeld, en de site
-    // weigert de eigen UA. Fox, CBS, PBS en Semafor niet (besluit Alex).
+    // Fox, CBS, PBS en Semafor niet (besluit Alex).
     S("axios", "Axios", "int", "en", "Amerikaans nieuws, kort en feitelijk.", "https://api.axios.com/feed/", { color: "#1A1A1A", bsky: "axios.com", x: "axios" }),
     S("propublica", "ProPublica", "int", "en", "Amerikaanse onderzoeksjournalistiek, non-profit.", "https://www.propublica.org/feeds/propublica/main", { color: "#1A1A1A", bsky: "propublica.org", x: "propublica" }),
+    // The Washington Post (wapo, 14 november 2026, akkoord Alex): World en Politics als twee bronnen van één uitgever
+    // (`publisher`; `urls` is een lijst terugvallers, geen samenvoeging). De feedserver antwoordt pas na 8 tot 10,5 seconden:
+    // `timeoutMs` (rss.mjs, feedTimeout), en de ronde wacht er niet op (build.mjs, fetchSources). De feed heeft geen beeld en
+    // de site weigert de eigen UA (dus ook geen og:image): `bskyImages`, het beeld van de linkkaart in de eigen Bluesky-post
+    // van de uitgever bij hetzelfde artikel. Betaald, zonder inlogpagina: die antwoordt niet met de eigen UA.
+    S("wapo", "The Washington Post", "int", "en", "Wereldnieuws uit Washington.", "https://feeds.washingtonpost.com/rss/world", { publisher: "wapo", paid: true, timeoutMs: 14e3, bskyImages: true, color: "#1A1A1A", bsky: "washingtonpost.com", x: "washingtonpost" }),
+    S("wapo-politics", "The Washington Post Politiek", "int", "en", "Amerikaanse politiek, uit Washington.", "https://feeds.washingtonpost.com/rss/politics", { publisher: "wapo", paid: true, timeoutMs: 14e3, bskyImages: true, color: "#1A1A1A", bsky: "washingtonpost.com", x: "washingtonpost" }),
     // Europa: publieke zenders in het Engels. France 24 en RFI zijn één uitgever (France Médias Monde).
     S("france24", "France 24", "int", "en", "Frans publiek wereldnieuws, in het Engels.", "https://www.france24.com/en/rss", { publisher: "france-medias-monde", color: "#00A3E0", bsky: "france24.com", x: "France24_en" }),
     S("rfi", "RFI English", "int", "en", "Franse publieke radio, sterk in Afrika.", "https://www.rfi.fr/en/rss", { publisher: "france-medias-monde", color: "#D7001D", bsky: "rfi.fr", x: "RFI_En" }),
@@ -2012,7 +2018,9 @@ var HootCore = (() => {
       "thefp",
       // 14 november 2026 (bronnen-amerika, met de landenregel in coverageOf)
       "axios",
-      "propublica"
+      "propublica",
+      // 14 november 2026 (wapo): World en Politics zijn één uitgever (`publisher`)
+      "wapo"
     ],
     GB: ["guardian", "bbc", "economist", "ft", "independent", "telegraph", "eurogamer", "nature", "carbonbrief", "autosport", "quietus"],
     // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
@@ -2106,7 +2114,9 @@ var HootCore = (() => {
     "haaretz",
     "timesofisrael",
     "axios",
-    "propublica"
+    "propublica",
+    "wapo",
+    "wapo-politics"
   ]);
   var BEAT = /* @__PURE__ */ new Set(["economie", "tech", "wetenschap", "cultuur", "sport"]);
   var generalNews = (item) => !(item?.topics || []).some((t) => BEAT.has(FAMILY_OF[t]));
