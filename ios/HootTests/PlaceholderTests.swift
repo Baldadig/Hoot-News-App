@@ -54,7 +54,33 @@ final class PlaceholderTests: XCTestCase {
         buren(rows, plan, "lange reeks")
         var telling = [Int](repeating: 0, count: Placeholder.count)
         for k in plan.values { telling[k] += 1 }
-        for (k, n) in telling.enumerated() { XCTAssertTrue(n > 125 && n < 375, "beeld \(k + 1): \(n)") }
+        for (k, n) in telling.enumerated() {
+            if PlaceholderBeelden.uit.contains(k) { XCTAssertEqual(n, 0, "beeld \(k + 1)") } // Eclips: uit de reeks
+            else { XCTAssertTrue(n > 125 && n < 375, "beeld \(k + 1): \(n)") }
+        }
+    }
+
+    // 14 november (Alex): "Deze image mag er wel uit." Alleen beeld 14 (Eclips); de rest blijft gelijk.
+    func testEclipsUitDeReeksZoalsHetWeb() throws {
+        let uit = try XCTUnwrap(fixture()["uit"] as? [Int])
+        XCTAssertEqual(uit, [14])
+        XCTAssertEqual(PlaceholderBeelden.uit, [13])
+        XCTAssertEqual(PlaceholderBeelden.beelden[13].familie, "eclips")
+        XCTAssertEqual(PlaceholderBeelden.keuze.count, 17)
+        for i in 0 ..< 40000 {
+            let id = "https://www.washingtonpost.com/world/2026/11/14/stuk-\(i)/"
+            let oud = Int(Placeholder.fnv1a(id) % 18), nu = Placeholder.base(id)
+            XCTAssertNotEqual(nu, 13, id)
+            if oud != 13 { XCTAssertEqual(nu, oud, id) } // de rest houdt zijn beeld
+        }
+        for t in 0 ..< 300 {
+            let rows = (0 ..< 40).map { (id: "wapo-\(t)-\($0)", bare: (t + $0 * 3) % 6 != 0) }
+            XCTAssertFalse(Placeholder.plan(ids: rows).values.contains(13))
+        }
+        // De kop twee keer na elkaar: drie verder is Eclips, dus nog eens drie, naar De rij.
+        let kop = (0 ..< 2000).map { "kop-\($0)" }.filter { Placeholder.base($0) == 10 }.prefix(2)
+        let plan = Placeholder.plan(ids: kop.map { (id: $0, bare: true) })
+        XCTAssertEqual(kop.map { plan[$0] }, [10, 16])
     }
 
     func testAchttienBeeldenElkMetKleineTekening() {

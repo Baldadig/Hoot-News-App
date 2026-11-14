@@ -3,7 +3,7 @@
 // (ios/Hoot/Views/PlaceholderBeelden.swift). Met --check: alleen nagaan of alles bij is.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
-import { PLACEHOLDERS, PALETTES, THEMES, placeholderSvg, placeholderFile } from '../shared/placeholder.mjs'
+import { PLACEHOLDERS, PALETTES, THEMES, PLACEHOLDER_UIT, placeholderSvg, placeholderFile } from '../shared/placeholder.mjs'
 
 const root = new URL('../', import.meta.url)
 const SELECTOR = { licht: '', donker: ":root[data-theme='dark'] ", nacht: ":root[data-theme='night'] " }
@@ -55,7 +55,17 @@ function swift() {
   for (const p of PLACEHOLDERS) {
     s += `        PHBeeld(familie: "${p.family}",\n                groot: ${swiftTekening(p.groot, '                ')},\n                klein: ${p.klein ? swiftTekening(p.klein, '                ') : 'nil'}),\n`
   }
-  s += '    ]\n}\n'
+  s += '    ]\n'
+  // Beelden die niet meer gekozen worden (index 0 tot 17); Placeholder.base en WidgetBeeldloos slaan ze over.
+  s += '    // Uit de reeks (index): de tekening staat er nog, maar geen stuk krijgt hem (shared/placeholder.mjs, PLACEHOLDER_UIT).\n'
+  s += `    static let uit: Set<Int> = [${PLACEHOLDER_UIT.join(', ')}]\n`
+  s += '    // De beelden die wel gekozen worden, op volgorde.\n'
+  s += '    static let keuze: [Int] = beelden.indices.filter { !uit.contains($0) }\n'
+  s += '    // Het beeld bij een hash: hash mod 18, en valt dat op een beeld uit de reeks, dan (hash / 18) mod 17 uit de rest.\n'
+  s += '    static func index(hash h: UInt32) -> Int {\n'
+  s += '        let k = Int(h % UInt32(beelden.count))\n'
+  s += '        return uit.contains(k) ? keuze[Int((h / UInt32(beelden.count)) % UInt32(keuze.count))] : k\n'
+  s += '    }\n}\n'
   return s
 }
 

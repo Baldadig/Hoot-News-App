@@ -6,13 +6,22 @@
 // eigen set: 11 De kop en 12 Vouw (krant), 13 Baan en 14 Eclips (zonnestelsel), 15 Walsen en 16 Zetsel
 // (drukpers), 17 De rij en 18 Koepels (de tel tot tien). Ze dragen geen betekenis: geen dagdeel, geen
 // rubriek, geen tekst. Intern heten ze beeld 1 tot 18. Elk beeld heeft een kleine tekening voor het
-// kleine vak rechts.
+// kleine vak rechts. Sinds 14 november is beeld 14 (Eclips) uit de reeks (PLACEHOLDER_UIT): de tekening
+// staat er nog, maar geen stuk krijgt hem meer. Er worden er dus zeventien gekozen.
 //
 // Eén bron voor web en app: scripts/placeholders.mjs maakt hieruit de SVG's (src/assets/placeholder/),
 // de CSS (src/placeholder.css) en de tabel voor SwiftUI (ios/Hoot/Views/PlaceholderBeelden.swift).
 // Dezelfde keuze voor hetzelfde artikel: tests/fixtures/placeholder.json draait op web en iOS.
 
 export const PLACEHOLDER_COUNT = 18
+
+// Uit de reeks (14 november, Alex): beeld 14 (Eclips) wordt nergens meer gekozen. De tekening blijft in
+// PLACEHOLDERS staan, zodat de nummers en bestanden van de andere zeventien precies blijven wat ze waren.
+// Indexen (0 tot 17), dus beeld 14 is 13.
+export const PLACEHOLDER_UIT = [13]
+const UIT = new Set(PLACEHOLDER_UIT)
+// De beelden die wel gekozen worden (zeventien), op volgorde.
+export const PLACEHOLDER_KEUZE = Array.from({ length: PLACEHOLDER_COUNT }, (_, k) => k).filter((k) => !UIT.has(k))
 
 // FNV-1a (32 bit) over de UTF-8-bytes van de id. Dezelfde som in Beeldloos.swift.
 export function fnv1a(s) {
@@ -24,8 +33,18 @@ export function fnv1a(s) {
   return h >>> 0
 }
 
-// Het beeld van een artikel op zich: 0 tot 17 (beeld 1 tot 18). De hash strooit ze door elkaar.
-export const placeholderBase = (id) => fnv1a(id) % PLACEHOLDER_COUNT
+// Het beeld van een artikel op zich: 0 tot 17 (beeld 1 tot 18), nooit een beeld uit PLACEHOLDER_UIT.
+// De hash strooit ze door elkaar: hash mod 18. Valt dat op een beeld dat uit de reeks is, dan kiest de
+// rest van de hash (hash / 18, mod 17) een van de zeventien andere. Zo houdt elk ander stuk precies zijn
+// beeld, en krijgt elk van de zeventien precies een zeventiende (1/18 + 1/18 · 1/17). Gelijk in Swift.
+export function placeholderBase(id) {
+  const h = fnv1a(id)
+  const k = h % PLACEHOLDER_COUNT
+  return UIT.has(k) ? PLACEHOLDER_KEUZE[Math.floor(h / PLACEHOLDER_COUNT) % PLACEHOLDER_KEUZE.length] : k
+}
+
+// Wordt beeld k (0 tot 17) nog gekozen?
+export const placeholderInReeks = (k) => !UIT.has(k)
 
 // De set van een beeld (0 tot 17): zon, iris, lijn, raster, stapel, of een van de acht nieuwe (elk een eigen set).
 export const placeholderSet = (k) => PLACEHOLDERS[k].family
@@ -42,7 +61,8 @@ export const PLACEHOLDER_SHIFT = 3
 // Twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit dezelfde set: zit het
 // beeld in dezelfde set als dat van de rij erboven, dan schuift het drie door, naar een andere set.
 // Alleen de directe buur telt, dus een nieuw stuk bovenaan verschuift hooguit de rij eronder. Geeft een
-// Map id → 0 tot 17 voor de beeldloze rijen.
+// Map id → 0 tot 17 voor de beeldloze rijen. Komt het doorschuiven op een beeld dat uit de reeks is (alleen
+// vanuit De kop, 11 → 14), dan schuift het nog eens drie door (naar De rij, 17).
 export function placeholderPlan(rows) {
   const out = new Map()
   let prev = null
@@ -52,7 +72,10 @@ export function placeholderPlan(rows) {
       continue
     }
     let k = placeholderBase(r.id)
-    if (prev != null && placeholderSet(k) === placeholderSet(prev)) k = (k + PLACEHOLDER_SHIFT) % PLACEHOLDER_COUNT
+    if (prev != null && placeholderSet(k) === placeholderSet(prev)) {
+      do k = (k + PLACEHOLDER_SHIFT) % PLACEHOLDER_COUNT
+      while (UIT.has(k) || placeholderSet(k) === placeholderSet(prev))
+    }
     out.set(r.id, k)
     prev = k
   }
