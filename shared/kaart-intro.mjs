@@ -1,7 +1,7 @@
 // De intro op een kaart (kaartkwaliteit, 7 november): de eigen intro van het stuk in hele zinnen die op
 // de plek passen (wholeSentences). Levert die niets op (de eerste zin is te lang voor deze kolom), dan de
 // reserve-intro die de server meegaf (`introAlt`, netlify/lib/build.mjs: introAlternatives): van een
-// ander stuk over hetzelfde feit, in de taal van de kop, met "— via X" (`introAltFrom`). Zo staat er
+// ander stuk over hetzelfde feit, in de taal van de kop, met " · via X" (`introAltFrom`). Zo staat er
 // geen leeg vlak onder de kop. De app spiegelt dit in Item.cardIntro en Item.shownSummary (ios/Hoot/Models.swift).
 // Liever geen intro dan een verkeerde:
 // - de tekst van een blog over de hele dag is geen intro ("Welkom in het blog …", "Volg alle ontwikkelingen … in
@@ -13,15 +13,18 @@ import { cleanIntro } from './edition-display.mjs'
 import { wholeSentences } from './zinnen.mjs'
 import { introShown } from './aanhef.mjs'
 
-// Zoveel tekens kost " — via X" (Item.viaLength in de app).
-export const viaCost = (name) => (name ? name.length + 8 : 0)
+// Het teken tussen een geleende intro en zijn bron (besluit Alex 14 november, "Zonder haakjes": geen
+// gedachtestreepje). Item.viaTeken in de app.
+export const VIA_TEKEN = ' · via '
+// Zoveel tekens kost " · via X": het teken plus de naam, en één teken speling (Item.viaLength in de app).
+export const viaCost = (name) => (name ? name.length + VIA_TEKEN.length + 1 : 0)
 
 // De eigen intro zoals hij getoond mag worden ('' als er geen is). Voor elke plek die de intro van een stuk
 // toont (kaart, hoofdverhaal, verhaal, Selectie).
 export const ownIntro = (item) => (item?.introLoose ? '' : introShown(cleanIntro(item?.summary, item?.author)))
 
 // Een intro van een ander (met "via": geleend of reserve) staat er alleen als hele zin: een stuk tot een komma ("Ahold
-// Delhaize, eigenaar van onder meer Albert Heijn, Etos, Gall & Gall en bol — via AD") zegt te weinig.
+// Delhaize, eigenaar van onder meer Albert Heijn, Etos, Gall & Gall en bol · via AD") zegt te weinig.
 // Item.cardIntro en Item.reserveIntro in de app.
 export const endsSentence = (t) => /[.!?]["'’”)]?$/.test(t)
 
