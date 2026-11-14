@@ -13,7 +13,8 @@
 //     naam ("Jong Oranje") telt als één naam, en "hetzelfde" alleen als de aflevering ná het eerste stuk verscheen;
 //   - een vooruitblik van vóór de kop van het verhaal koppelt nooit (de afloop is een ander onderwerp);
 //   - past een aflevering bij twee verhalen, dan krijgt geen van beide haar; een verhaal krijgt er hooguit één.
-// De koppeling staat als veld `luister` op het verhaal (build.mjs). Web en app tonen het nog niet.
+// De koppeling staat als veld `luister` op het verhaal (build.mjs). Stap 3 (14 november): de app toont het (build 56), het
+// web pas met HOOT_LUISTER_WEB=aan (zie src/lib/luister.js).
 //
 // Wat Hoot van een aflevering bewaart: show, titel, de eerste zinnen van de beschrijving (alleen om te koppelen, nooit
 // getoond of doorgegeven), tijd, guid, duur, de artikellinks uit de shownotes en de pagina van de aflevering bij de
@@ -35,22 +36,24 @@ const H = 36e5
 // vijf of meer onderwerpen: koppelt nooit, wordt niet opgehaald). `bron`: de Hoot-bron van de uitgever. `apple`: het id van
 // de show in Apple Podcasts (BRONNEN.md, gemeten 14 november). `pad`: alleen afleveringen waarvan de pagina dit bevat (een
 // feed met meer shows van de uitgever). `web`: de pagina van de show, als de aflevering geen eigen pagina heeft.
+// `spotify`: het id van de show bij Spotify (één keer met de hand opgezocht, 14 november; zonder sleutel opent Spotify de
+// show, niet de aflevering). Ontbreekt het, dan zoekt Spotify op de naam van de show.
 // `opinie`: een opiniepodcast (nooit in de Editie); er staat er nu geen in de lijst.
 // Niet in de lijst: Bureau Buitenland en Dit is de Dag (NPO Radio 1; geen bron in Hoot), bulletins van minuten (NU.nl
 // nieuws, Bloomberg News Now) en shows zonder nieuwe afleveringen.
 export const SHOWS = [
-  { id: 'nos-de-dag', naam: 'De Dag', uitgever: 'NOS', bron: 'nos', taal: 'nl', soort: 'verdieping', apple: '1339219119', feed: 'https://podcast.npo.nl/feed/de-dag.xml', web: 'https://www.nporadio1.nl/podcasts/de-dag' },
-  { id: 'vk-elke-dag', naam: 'de Volkskrant Elke Dag', uitgever: 'de Volkskrant', bron: 'volkskrant', taal: 'nl', soort: 'verdieping', apple: '1551138207', feed: 'https://www.omnycontent.com/d/playlist/33dbd2dc-d464-471d-9feb-abae00330078/052ccb8e-7484-4095-bdba-acbc00f34a07/e1c18ea7-7349-4f07-a1e3-acbc00f36fe5/podcast.rss', web: 'https://omny.fm/shows/de-volkskrant-elke-dag' },
-  { id: 'nrc-vandaag', naam: 'NRC Vandaag', uitgever: 'NRC', bron: 'nrc', taal: 'nl', soort: 'verdieping', apple: '1460234936', feed: 'https://rss.art19.com/vandaag', web: 'https://www.nrc.nl/podcast/vandaag/' },
-  { id: 'fd-dagkoers', naam: 'FD Dagkoers', uitgever: 'Het Financieele Dagblad', bron: 'fd', taal: 'nl', soort: 'meer', apple: '1599086196', feed: 'https://www.omnycontent.com/d/playlist/8257a063-6be9-42fa-b892-acd4013b1255/7c7183f7-003f-4fcf-a5e3-addc00ff4d48/610741e8-1c7a-4f89-ae3e-addc00ffe9ca/podcast.rss', pad: '/shows/fd-dagkoers/', web: 'https://omny.fm/shows/fd-dagkoers' },
-  { id: 'nrc-haagse-zaken', naam: 'NRC Haagse Zaken', uitgever: 'NRC', bron: 'nrc', taal: 'nl', soort: 'week', apple: '1205520865', feed: 'https://rss.art19.com/haagse-zaken', web: 'https://www.nrc.nl/podcast/haagse-zaken/' },
-  { id: 'nrc-wereldzaken', naam: 'NRC Wereldzaken', uitgever: 'NRC', bron: 'nrc', taal: 'nl', soort: 'week', apple: '1855801328', feed: 'https://rss.art19.com/wereldzaken', web: 'https://www.nrc.nl/podcast/wereldzaken/' },
-  { id: 'trouw-haags-halfuurtje', naam: 'Haags Halfuurtje', uitgever: 'Trouw', bron: 'trouw', taal: 'nl', soort: 'week', apple: '1641261322', feed: 'https://www.omnycontent.com/d/playlist/33dbd2dc-d464-471d-9feb-abae00330078/105c7409-0bc5-4540-bea8-aee80081ed6f/d82d8b6f-7dba-4a6a-9250-aee80082294d/podcast.rss', web: 'https://omny.fm/shows/haags-halfuurtje' },
+  { id: 'nos-de-dag', naam: 'De Dag', uitgever: 'NOS', bron: 'nos', taal: 'nl', soort: 'verdieping', apple: '1339219119', spotify: '2Oeh3L5u0y9R54jEz8Mgty', feed: 'https://podcast.npo.nl/feed/de-dag.xml', web: 'https://www.nporadio1.nl/podcasts/de-dag' },
+  { id: 'vk-elke-dag', naam: 'de Volkskrant Elke Dag', uitgever: 'de Volkskrant', bron: 'volkskrant', taal: 'nl', soort: 'verdieping', apple: '1551138207', spotify: '1J9w1rGmr1NdF1Vwz7Z5Nm', feed: 'https://www.omnycontent.com/d/playlist/33dbd2dc-d464-471d-9feb-abae00330078/052ccb8e-7484-4095-bdba-acbc00f34a07/e1c18ea7-7349-4f07-a1e3-acbc00f36fe5/podcast.rss', web: 'https://omny.fm/shows/de-volkskrant-elke-dag' },
+  { id: 'nrc-vandaag', naam: 'NRC Vandaag', uitgever: 'NRC', bron: 'nrc', taal: 'nl', soort: 'verdieping', apple: '1460234936', spotify: '73vZPMVjxTqC02OYZdcCr7', feed: 'https://rss.art19.com/vandaag', web: 'https://www.nrc.nl/podcast/vandaag/' },
+  { id: 'fd-dagkoers', naam: 'FD Dagkoers', uitgever: 'Het Financieele Dagblad', bron: 'fd', taal: 'nl', soort: 'meer', apple: '1599086196', spotify: '4j6rkKNWxPzlfVS4k662er', feed: 'https://www.omnycontent.com/d/playlist/8257a063-6be9-42fa-b892-acd4013b1255/7c7183f7-003f-4fcf-a5e3-addc00ff4d48/610741e8-1c7a-4f89-ae3e-addc00ffe9ca/podcast.rss', pad: '/shows/fd-dagkoers/', web: 'https://omny.fm/shows/fd-dagkoers' },
+  { id: 'nrc-haagse-zaken', naam: 'NRC Haagse Zaken', uitgever: 'NRC', bron: 'nrc', taal: 'nl', soort: 'week', apple: '1205520865', spotify: '5UDty8uMg4IDiESuFNhC3k', feed: 'https://rss.art19.com/haagse-zaken', web: 'https://www.nrc.nl/podcast/haagse-zaken/' },
+  { id: 'nrc-wereldzaken', naam: 'NRC Wereldzaken', uitgever: 'NRC', bron: 'nrc', taal: 'nl', soort: 'week', apple: '1855801328', spotify: '60p6wTvOHWjeugb0Hy2mtI', feed: 'https://rss.art19.com/wereldzaken', web: 'https://www.nrc.nl/podcast/wereldzaken/' },
+  { id: 'trouw-haags-halfuurtje', naam: 'Haags Halfuurtje', uitgever: 'Trouw', bron: 'trouw', taal: 'nl', soort: 'week', apple: '1641261322', spotify: '3pS1w0rDBam1eaN3rfCGfI', feed: 'https://www.omnycontent.com/d/playlist/33dbd2dc-d464-471d-9feb-abae00330078/105c7409-0bc5-4540-bea8-aee80081ed6f/d82d8b6f-7dba-4a6a-9250-aee80082294d/podcast.rss', web: 'https://omny.fm/shows/haags-halfuurtje' },
   { id: 'vi-zsm', naam: 'VI ZSM', uitgever: 'Voetbal International', bron: 'vi', taal: 'nl', soort: 'verdieping', apple: '1637601065', feed: 'https://www.omnycontent.com/d/playlist/61ee9ca4-a1b2-4660-9651-b2b70035edf5/02361425-2482-4413-a7a0-b2ea0089dc4d/648a598c-51c2-4be0-a321-b2ea0089dc5a/podcast.rss', web: 'https://omny.fm/shows/vizsm' },
-  { id: 'the-daily', naam: 'The Daily', uitgever: 'The New York Times', bron: 'nyt', taal: 'en', soort: 'verdieping', apple: '1200361736', feed: 'https://feeds.simplecast.com/Sl5CSM3S', web: 'https://www.nytimes.com/column/the-daily' },
+  { id: 'the-daily', naam: 'The Daily', uitgever: 'The New York Times', bron: 'nyt', taal: 'en', soort: 'verdieping', apple: '1200361736', spotify: '3IM0lmZxpFAY7CwMuv9H4g', feed: 'https://feeds.simplecast.com/Sl5CSM3S', web: 'https://www.nytimes.com/column/the-daily' },
   { id: 'today-in-focus', naam: 'Today in Focus', uitgever: 'The Guardian', bron: 'guardian', taal: 'en', soort: 'verdieping', apple: '1440133626', feed: 'https://www.theguardian.com/news/series/todayinfocus/podcast.xml', web: 'https://www.theguardian.com/news/series/todayinfocus' },
   { id: 'the-intelligence', naam: 'The Intelligence', uitgever: 'The Economist', bron: 'economist', taal: 'en', soort: 'meer', apple: '1449631195', feed: 'https://access.acast.com/rss/d556eb54-6160-4c85-95f4-47d9f5216c49', web: 'https://shows.acast.com/theintelligencepodcast' },
-  { id: 'vergecast', naam: 'The Vergecast', uitgever: 'The Verge', bron: 'theverge', taal: 'en', soort: 'meer', apple: '430333725', feed: 'https://feeds.megaphone.fm/vergecast', web: 'https://www.theverge.com/the-vergecast' },
+  { id: 'vergecast', naam: 'The Vergecast', uitgever: 'The Verge', bron: 'theverge', taal: 'en', soort: 'meer', apple: '430333725', spotify: '08zQP2peZmM9GrcKShLZvC', feed: 'https://feeds.megaphone.fm/vergecast', web: 'https://www.theverge.com/the-vergecast' },
   // Overzicht: koppelt nooit (één aflevering over vijf of meer onderwerpen hoort bij geen enkel verhaal echt).
   { id: 'nos-oog-op-morgen', naam: 'Met het Oog op Morgen', uitgever: 'NOS', bron: 'nos', taal: 'nl', soort: 'overzicht', apple: '204558483' },
   { id: 'vrt-kwartier', naam: 'VRT NWS Kwartier', uitgever: 'VRT NWS', bron: 'vrt', taal: 'nl', soort: 'overzicht', apple: '1641885397' },
@@ -163,32 +166,91 @@ function firstSentences(text, max) {
   return end > 80 ? cut.slice(0, end + 1) : cut
 }
 
+// De cover van de show (stap 3, zichtbaar): de afbeelding die de uitgever zelf in de feed zet (itunes:image, anders
+// <image>). Alleen de url van de uitgever; Hoot host niets. Alleen https (de lezer laadt geen http).
+export function coverOf(feed) {
+  const raw = [feed?.itunes?.image, feed?.image?.url].find((u) => typeof u === 'string' && u.trim())
+  const u = safeHttpUrl(String(raw || '').trim())
+  return u && /^https:\/\//i.test(u) ? u : null
+}
+
+// De link naar de aflevering in Apple Podcasts: één iTunes-lookup per ronde voor alle shows samen (hooguit eens per
+// EVERY, binnen de tijd van de ronde), gekoppeld op episodeGuid = de guid uit de RSS. `uo=4` (een verwijsparameter)
+// gaat eraf. Lukt het niet, dan blijft de link naar de show staan. Geeft { showId: { guid: url } }.
+export const APPLE_PER_SHOW = 15
+export function appleUrl(u) {
+  try {
+    const url = new URL(String(u || ''))
+    if (url.protocol !== 'https:' || !/(^|\.)podcasts\.apple\.com$/i.test(url.hostname)) return null
+    url.searchParams.delete('uo')
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+export async function appleLookup(shows, { signal, fetcher = fetch } = {}) {
+  const byCollection = new Map(shows.filter((s) => s.apple).map((s) => [String(s.apple), s.id]))
+  if (!byCollection.size) return {}
+  const url = `https://itunes.apple.com/lookup?id=${[...byCollection.keys()].join(',')}&entity=podcastEpisode&limit=${APPLE_PER_SHOW}&country=nl`
+  const res = await fetcher(url, { headers: { 'User-Agent': UA, Accept: 'application/json' }, signal })
+  if (!res.ok) throw new Error('HTTP ' + res.status)
+  const data = await res.json()
+  const out = {}
+  for (const r of data?.results || []) {
+    const show = byCollection.get(String(r?.collectionId))
+    const link = r?.wrapperType === 'podcastEpisode' && r.episodeGuid ? appleUrl(r.trackViewUrl) : null
+    if (show && link) (out[show] ||= {})[String(r.episodeGuid).slice(0, 200)] = link
+  }
+  return out
+}
+
 // De afleveringen van de afgelopen drie dagen: wat in KV staat, aangevuld met de feeds die aan de beurt zijn (hooguit
 // eens per EVERY). Binnen de tijd van de ronde: na `deadline` wacht dit nergens meer op. Geeft { episodes, status }.
-export async function loadEpisodes({ now = Date.now(), deadline = now + 8000, get, set, read = readHead, shows = FETCHED } = {}) {
+// Elke aflevering krijgt de cover van haar show (`cover`) en, als de lookup haar kent, haar link in Apple Podcasts
+// (`appleUrl`). `lookup`: appleLookup in de ronde (build.mjs); zonder lookup geen Apple-links per aflevering.
+export async function loadEpisodes({ now = Date.now(), deadline = now + 8000, get, set, read = readHead, shows = FETCHED, lookup = null } = {}) {
   const stored = await Promise.resolve().then(() => get?.(STORE_KEY)).catch(() => null)
   const store = stored && typeof stored === 'object' && stored.shows ? stored : { shows: {} }
   const due = shows.filter((s) => !(now - (store.shows[s.id]?.at || 0) < EVERY))
+  const appleDue = !!lookup && !(now - (store.apple?.at || 0) < EVERY)
   const status = {}
   const signal = AbortSignal.timeout(Math.max(1, deadline - Date.now()))
-  await Promise.all(
-    due.map(async (s) => {
+  await Promise.all([
+    ...due.map(async (s) => {
       try {
         const feed = await read(s.feed, { signal })
         const eps = (feed.items || []).map((it) => episodeOf(s, it, feed.link)).filter((e) => e && now - e.t <= KEEP && e.t <= now + H)
         const old = store.shows[s.id]?.items || []
         const byId = new Map([...old, ...eps].map((e) => [e.id, e]))
-        store.shows[s.id] = { at: now, items: [...byId.values()].filter((e) => now - e.t <= KEEP).sort((a, b) => b.t - a.t).slice(0, 40) }
+        store.shows[s.id] = { at: now, cover: coverOf(feed) || store.shows[s.id]?.cover || null, items: [...byId.values()].filter((e) => now - e.t <= KEEP).sort((a, b) => b.t - a.t).slice(0, 40) }
         status[s.id] = 'opgehaald'
       } catch (e) {
         status[s.id] = 'mislukt: ' + String(e?.message || e).slice(0, 80)
       }
     }),
-  )
+    appleDue
+      ? Promise.resolve()
+          .then(() => lookup(shows, { signal }))
+          .then((byShow) => {
+            store.apple = { at: now, shows: byShow || {} }
+            status.apple = 'opgehaald'
+          })
+          .catch((e) => {
+            status.apple = 'mislukt: ' + String(e?.message || e).slice(0, 80)
+          })
+      : null,
+  ])
   for (const s of shows) if (!status[s.id]) status[s.id] = 'uit de opslag'
   for (const [id, v] of Object.entries(store.shows)) store.shows[id] = { ...v, items: (v.items || []).filter((e) => now - e.t <= KEEP) }
-  if (due.length) await Promise.resolve().then(() => set?.(STORE_KEY, store)).catch(() => {})
-  return { episodes: Object.values(store.shows).flatMap((v) => v.items || []).filter((e) => SHOW.has(e.show)), status }
+  if (due.length || appleDue) await Promise.resolve().then(() => set?.(STORE_KEY, store)).catch(() => {})
+  const apple = store.apple?.shows || {}
+  const episodes = Object.entries(store.shows).flatMap(([id, v]) =>
+    (v.items || []).map((e) => {
+      const a = e.guid ? apple[e.show]?.[e.guid] : null
+      return { ...e, ...(v.cover ? { cover: v.cover } : {}), ...(a ? { appleUrl: a } : {}) }
+    }),
+  )
+  return { episodes: episodes.filter((e) => SHOW.has(e.show)), status }
 }
 
 // ---------- Koppelen ----------
@@ -505,7 +567,13 @@ function field({ e, o }, lead) {
     taal: show.taal,
     ...(show.taal !== 'nl' ? { alleenVolgers: true } : {}),
     link: e.pagina,
-    ...(show.apple ? { apple: `https://podcasts.apple.com/nl/podcast/id${show.apple}` } : {}),
+    // Zichtbaar (stap 3): wanneer (het toestel zegt vandaag, gisteren of de dag; nooit een kloktijd), de cover van de
+    // show (url van de uitgever), Apple Podcasts (de aflevering als de lookup haar kent, anders de show) en Spotify (de
+    // show; zonder sleutel geen aflevering).
+    tijd: new Date(e.t).toISOString(),
+    ...(e.cover ? { cover: e.cover } : {}),
+    ...(e.appleUrl || show.apple ? { apple: e.appleUrl || `https://podcasts.apple.com/nl/podcast/id${show.apple}` } : {}),
+    spotify: show.spotify ? `https://open.spotify.com/show/${show.spotify}` : `https://open.spotify.com/search/${encodeURIComponent(show.naam)}`,
   }
 }
 function row(e, x, reden) {

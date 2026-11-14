@@ -150,3 +150,7 @@ export const SearchArt = art('search', raster)
 export const BlueskyArt = art('bluesky', horizon)
 export const StreamArt = art('stream', horizon)
 export const EditionArt = art('edition', horizon)
+
+// Luister verder (stap 3): het koptelefoontje op de kaart en in Vergelijken, en de pijl naar buiten (je verlaat Hoot).
+export const HeadphonesIcon = icon("<g fill=\"currentColor\"><path d=\"M80 144v40a16 16 0 0 1-16 16H48a16 16 0 0 1-16-16v-56h32a16 16 0 0 1 16 16m112-16a16 16 0 0 0-16 16v40a16 16 0 0 0 16 16h16a16 16 0 0 0 16-16v-56Z\" opacity=\".2\"/><path d=\"M201.89 54.66A104.08 104.08 0 0 0 24 128v56a24 24 0 0 0 24 24h16a24 24 0 0 0 24-24v-40a24 24 0 0 0-24-24H40.36A88 88 0 0 1 128 40h.67a87.71 87.71 0 0 1 87 80H192a24 24 0 0 0-24 24v40a24 24 0 0 0 24 24h16a24 24 0 0 0 24-24v-56a103.4 103.4 0 0 0-30.11-73.34M64 136a8 8 0 0 1 8 8v40a8 8 0 0 1-8 8H48a8 8 0 0 1-8-8v-48Zm152 48a8 8 0 0 1-8 8h-16a8 8 0 0 1-8-8v-40a8 8 0 0 1 8-8h24Z\"/></g>")
+export const ArrowOutIcon = icon("<path fill=\"currentColor\" d=\"M200 64v104a8 8 0 0 1-16 0V83.31L69.66 197.66a8 8 0 0 1-11.32-11.32L172.69 72H88a8 8 0 0 1 0-16h104a8 8 0 0 1 8 8\"/>")

@@ -29,7 +29,9 @@ import { resolveLegacy } from './lib/bluesky.js'
 import { useVak } from './hooks/useVak.js'
 import { mutedSet, toggleSource } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
-import { JoinSheet } from './components/Account.jsx'
+import { JoinSheet, ConfirmDialog } from './components/Account.jsx'
+import { luisterWebAan, usePodcastKeuze, luisterLijst } from './lib/luister.js'
+import { bijTik, linkVoor, APPS, VRAAG } from '../shared/luister-weergave.mjs'
 import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip, shouldShowAppCard } from './lib/install.js'
 import { shouldAskToJoin, JOIN_AUTO } from './lib/join.js'
@@ -668,6 +670,20 @@ export default function App() {
     return ok
   }, [account.status, account.user?.id])
 
+  // Luister verder (stap 3): op het web alleen met de schakelaar (meta.luisterWeb of lokaal, src/lib/luister.js). Een
+  // Engelse show alleen voor wie die bron volgt. Niet tonen: niets. De keuze van de app blijft in deze browser.
+  const [podcastKeuze, setPodcastKeuze] = usePodcastKeuze()
+  const [luisterVraag, setLuisterVraag] = useState(null)
+  const luisterAan = luisterWebAan(data?.meta)
+  const luisterVoor = useCallback((story) => luisterLijst({ aan: luisterAan, keuze: podcastKeuze, story, volgt: (b) => sourcesById.has(b) && !muted.has(b) }), [luisterAan, podcastKeuze, sourcesById, muted])
+  const openLuister = useCallback((a, app) => window.open(linkVoor(a, app), '_blank', 'noopener'), [])
+  const luisterTik = useCallback((a) => {
+    const r = bijTik(podcastKeuze) // het web ziet niet welke apps je hebt: altijd alle keuzes
+    if (r.niets) return
+    if (r.vraag) setLuisterVraag(a)
+    else openLuister(a, r.open)
+  }, [podcastKeuze, openLuister])
+
   const ctx = useMemo(
     () => ({
       less: less || [],
@@ -700,8 +716,13 @@ export default function App() {
       sourcesById,
       muted,
       setMuted,
+      luisterAan,
+      luisterVoor,
+      luisterTik,
+      podcastKeuze,
+      setPodcastKeuze,
     }),
-    [less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [luisterAan, luisterVoor, luisterTik, podcastKeuze, setPodcastKeuze, less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome
@@ -878,6 +899,16 @@ export default function App() {
         ) : null}
       </div>
       {splash ? <Splash ready={status !== 'loading'} toWelcome={showWelcome} onDone={endSplash} /> : null}
+      <ConfirmDialog
+        open={!!luisterVraag}
+        title={VRAAG.titel}
+        message={VRAAG.tekst}
+        onClose={() => setLuisterVraag(null)}
+        actions={[
+          ...APPS.map((app) => ({ label: app.naam, onClick: () => { const a = luisterVraag; setLuisterVraag(null); if (podcastKeuze !== 'vragen') setPodcastKeuze(app.id); if (a) openLuister(a, app.id) } })),
+          { label: 'Annuleer', kind: 'cancel', onClick: () => setLuisterVraag(null) },
+        ]}
+      />
     </HootContext.Provider>
   )
 }
