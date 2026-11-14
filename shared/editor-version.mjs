@@ -62,6 +62,8 @@
 // Persona · herstel na de keuring (14 november): samenvoegen alleen bij dezelfde gebeurtenis (sameEventToMerge: een gedeelde
 // verkiezing is geen gebeurtenis; het leidende stuk van een los verhaal, niet een ander stuk of het cluster). De vorige
 // revisie vooraan in EARLIER_REVISIONS is die van main (recensies): persona zelf is nooit uitgerold.
+// Persona · herstel, punt 4: "Naam: citaat" is geen ik-vorm; alleen "/" of "|" als rubriekscheiding maakt van Ik/Mijn een
+// column, achter een dubbele punt alleen het Engelse rubriekpatroon (shared/vorm.mjs).
 export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-2'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk

@@ -4034,7 +4034,8 @@ var HootCore = (() => {
   }
 
   // shared/vorm.mjs
-  var LABEL2 = /^\s*[\p{L}\p{N}][\p{L}\p{N} &'’.-]{0,30}?\s*(?:\/|\||:)\s+/u;
+  var LABEL2 = /^\s*[\p{L}\p{N}][\p{L}\p{N} &'’.-]{0,30}?\s*(?:\/|\|)\s+/u;
+  var FIRST_PERSON_RUBRIEK = /^\s*(?:experience|first person|personal essay|essay|diary|confessions?|column|a moment that changed me|my week)\s*:\s+I\s/i;
   var BULLET = /\s•\s/;
   var DATED_LABEL = /^\s*\p{L}+(?:\s\p{L}+)?\s+\d{1,2}\/\d{1,2}\s*:/u;
   var WORDS = /[\p{L}\p{N}]+/gu;
@@ -4048,7 +4049,7 @@ var HootCore = (() => {
     if (BULLET.test(title) || DATED_LABEL.test(title)) return "dagoverzicht";
     const body = title.replace(LABEL2, "");
     const labelled = body !== title;
-    if (/^(ik|mijn)\s/i.test(body) || labelled && /^I\s/.test(body)) return "ik-vorm";
+    if (/^(ik|mijn)\s/i.test(body) || labelled && /^I\s/.test(body) || FIRST_PERSON_RUBRIEK.test(title)) return "ik-vorm";
     return null;
   }
   var geenPlekNaarVorm = (item) => vormMark(item) != null;

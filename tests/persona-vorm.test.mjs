@@ -13,10 +13,19 @@ import { composePersonal } from '../src/lib/personal.js'
 const it = (title, source = 'nu') => ({ id: title, kind: 'article', source, title })
 
 test('ik-vorm: een column in de eerste persoon, ook achter een rubrieklabel; een citaat is nieuws', () => {
-  for (const t of ['Schermtijd / Ik gaf een prentenboek uit, koop het alsjeblieft niet', 'Ik ben mijn eigen onbetaalde mantelzorger geworden', 'Mijn moeder was geen begrotingspost', 'Experience: I live in the house from a horror movie', 'Het gaat nu echt gebeuren: ik verhuis mijn spaargeld'])
+  for (const t of ['Schermtijd / Ik gaf een prentenboek uit, koop het alsjeblieft niet', 'Ik ben mijn eigen onbetaalde mantelzorger geworden', 'Mijn moeder was geen begrotingspost', 'Experience: I live in the house from a horror movie', 'Column | Mijn buurman en de warmtepomp', 'Diary / I spent a week offline'])
     assert.equal(vormMark(it(t)), 'ik-vorm', t)
   for (const t of ['‘Ik voelde er niks bij’', 'Erasmusschutter koos hoger beroep om zijn verhaal te vertellen: ‘Ik voelde er niks bij’', 'My Chemical Romance Land First #1 Album', 'I asked every TV manufacturer 17 questions about how they spy on you', 'Iran sluit Straat van Hormuz', 'Ikea verhoogt prijzen', 'In Gaza is het stil'])
     assert.equal(vormMark(it(t)), null, t)
+})
+
+test('ik-vorm: "Naam: citaat" is een nieuwskop met een spreker, geen column (keuring 14 november)', () => {
+  // Alleen "/" of "|" als rubriekscheiding maakt van Ik/Mijn een column; achter een dubbele punt alleen het Engelse
+  // rubriekpatroon. De namen zijn illustraties.
+  for (const t of ['Schoof: Ik blijf aan als premier', 'Rutte: ik heb geen actieve herinnering', 'Wilders: mijn partij stapt uit kabinet', 'Zelensky: I will not resign', 'Het gaat nu echt gebeuren: ik verhuis mijn spaargeld'])
+    assert.equal(vormMark(it(t)), null, t)
+  assert.ok(!excludedFromEdition(it('Schoof: Ik blijf aan als premier', 'nos')), 'ook in de algemene Editie')
+  assert.ok(!excludedFromEdition(it('Zelensky: I will not resign', 'guardian')))
 })
 
 test('dagoverzicht: meerdere onderwerpen met een opsommingsteken, of een label met een datum', () => {
