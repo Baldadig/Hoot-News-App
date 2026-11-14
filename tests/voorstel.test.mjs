@@ -69,6 +69,25 @@ test('Politiek en Binnenland: alleen NU.nl erbij, RTL Nieuws alleen in het grati
   assert.ok(voorstel(SOURCES, ['binnenland']).every((x) => !byId.get(x.id).paid))
 })
 
+test('nooit een regionale omroep of regionale krant in het voorstel, ook niet bij Binnenland (dubbelcheck 14 november)', () => {
+  const regionaal = (id) => byId.get(id).cat === 'regio' || byId.get(id).publisher === 'regionale-omroep'
+  // De catalogus heeft gratis regionale omroepen: zonder regel 7 won de eerste (NH Nieuws) bij Binnenland.
+  assert.ok(SOURCES.some((s) => s.publisher === 'regionale-omroep' && !s.paid))
+  const all = INTERESTS.map((i) => i.id)
+  for (const set of [['binnenland'], ['politiek', 'binnenland', 'wereld', 'economie'], ['politiek', 'binnenland', 'wereld', 'tech'], all]) {
+    for (const english of [false, true]) {
+      const p = voorstel(SOURCES, set, [], { english })
+      assert.ok(!ids(p).some(regionaal), `${set.join('+')}${english ? ' (Engels)' : ''}: ${ids(p).join(', ')}`)
+    }
+  }
+  // Ook niet via een gekozen onderwerp van Binnenland (verkeer, misdaad, wonen).
+  for (const t of ['verkeer', 'misdaad', 'wonen']) assert.ok(!ids(voorstel(SOURCES, [], [t])).some(regionaal), t)
+  // Een regionale bron staat dus nooit alvast aan; landelijk gratis nieuws wel.
+  assert.deepEqual(ids(voorstel(SOURCES, ['binnenland'])), ['nos', 'nu'])
+  // De app rekent hetzelfde voorstel (voorstelJSON in de rekenkern).
+  assert.ok(!JSON.parse(voorstelJSON(JSON.stringify({ sources: SOURCES, interests: ['binnenland'] }))).some((x) => regionaal(x.id)))
+})
+
 test('altijd een gratis bron voorop, nooit meer dan vijf, elke bron één keer, nooit "Omdat je"', () => {
   const all = INTERESTS.map((i) => i.id)
   for (const set of [all, ['politiek'], ['cultuur', 'sport'], ['economie'], ['binnenland', 'wereld']]) {

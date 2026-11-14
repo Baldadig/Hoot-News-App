@@ -4560,6 +4560,7 @@ var HootCore = (() => {
   var free = (s) => !s.paid;
   var aanrader = (s, i) => (s.for || []).includes(i.id) || !!s.forTopic && i.topics.includes(s.forTopic);
   var dutch = (s) => s.lang === "nl";
+  var regional = (s) => !!s && (s.cat === "regio" || s.publisher === "regionale-omroep");
   function fit(s, i, topics = []) {
     if (!s || !i) return 0;
     if (NL_NIEUWS.has(i.id) && s.id === SNEL) return 2;
@@ -4578,7 +4579,7 @@ var HootCore = (() => {
   function voorstel(sources = [], interests = [], topics = [], { english = false } = {}) {
     const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)));
     if (!chosen.length) return null;
-    const news = sources.filter((s) => s.kind !== "sociaal" && (english || !s.lang || s.lang === "nl"));
+    const news = sources.filter((s) => s.kind !== "sociaal" && !regional(s) && (english || !s.lang || s.lang === "nl"));
     const out = [];
     const has = (id) => out.some((o) => o.id === id);
     const add = (s, why2) => s && !has(s.id) && out.length < VOORSTEL_MAX && out.push({ id: s.id, why: why2 });
