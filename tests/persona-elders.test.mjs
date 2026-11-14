@@ -131,6 +131,31 @@ test('lokaal van elders: een werelddeel of regio is een ander land', () => {
   }
 })
 
+// Keuring en tweede keuring van herstel 4: de rest van de reeks werelddelen en regio's (Antarctica, Mideast, Oceanië, Noordse
+// landen, de Golfstaten, the Baltics) en internationale toppen en organisaties maken een kop breder. Echte koppen uit de
+// bewaarde feeds en eigen varianten, Nederlands en Engels. Gulf Coast, de Pacific Northwest, Gulf State Park, een agent
+// ("cop") en de National Security Council blijven Amerikaans; de South Asian burgemeester houden we (bij twijfel houden).
+test('lokaal van elders: Antarctica, Mideast, Oceanië, de Golfstaten en internationale toppen zijn wereldnieuws', () => {
+  for (const title of [
+    // echte koppen
+    'Midterm losses could give Trump a quest to emerge from Apec summit as a winner', 'Elon Musk and Michael Miebach to join Trump at Apec in Shenzhen. What about Jensen Huang?',
+    'Google in, but Nvidia out as US lines up Apec CEO Summit delegation: source', 'A Decade After Henry Worsley Died in Antarctica, His Son Tries to Reach the South Pole',
+    'Groepsfoto G20-top geschrapt door aanwezigheid Lavrov', 'Geopolitieke spanningen domineren eerste week COP31', 'The planet ‘is being killed’, Greta Thunberg tells Cop31 climate summit',
+    '200 nations at Cop17 commit to biodiversity goals amid missed opportunities', 'Bomen geplant op klimaattop, maar ontbossing gaat sneller',
+    // eigen varianten
+    'Trump wil Zuidpool claimen', 'Amerikaanse basis op Antarctica uitgebreid', 'US envoy tours the Baltics', 'Mideast envoy Witkoff meets Trump', 'Trump reist naar Oceanië',
+    'Oceania leaders court Trump', 'Nordic leaders meet Trump', 'Noordse landen vragen Trump om steun', 'Gulf states pledge billions to Trump', 'Golfstaten beloven Trump miljarden',
+    'Gulf nations court Trump', 'Trump heads to G7', 'G-20 summit ends without Trump', 'Trump skips Asean summit', 'Amerikaanse delegatie mijdt COP 30', 'Trump in Davos',
+    'IMF warns Trump on tariffs', 'Trump threatens to leave WTO', 'Hegseth naar Navo-top', 'Nato allies rebuke Hegseth', 'Trump at NATO summit', 'Trump speaks at UN General Assembly',
+    'Verenigde Naties veroordelen Amerikaanse aanval', 'Opec cuts output as Trump fumes', 'Brics leaders mock Trump tariffs',
+  ]) assert.ok(!localAbroad([{ title }], { desk: 'vs' }), title)
+  for (const title of [
+    'Pacific Northwest braces for atmospheric river', 'Gulf Coast braces for hurricane', 'Gulf State Park reopens in Alabama', 'Cop shot in Chicago', 'Cops arrest suspect in Ohio',
+    'National Security Council staffer fired', 'NOAA: National Oceanic and Atmospheric Administration cuts staff', 'Senate passes stopgap bill',
+  ]) assert.ok(localAbroad([{ title }], { desk: 'vs' }), title)
+  assert.ok(!localAbroad([{ title: 'Nithya Raman wins LA mayoral race, becoming city’s first South Asian mayor' }], { desk: 'vs' }))
+})
+
 for (const f of FEEDS) {
   test(`${f}: lokaal nieuws van elders staat nooit op 01, nooit als Waar iedereen over schrijft, en anders achteraan`, () => {
     const feed = load(f)

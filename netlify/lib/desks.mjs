@@ -438,8 +438,22 @@ const REGIONS = new RegExp(W([
   `latijns-amerika${L}`, `latin america${L}`, `zuid-amerika${L}`, `south america${L}`, `midden-amerika${L}`, `central america${L}`,
   `caribisch${L}`, `caraïb${L}`, `caraib${L}`, `caribbean${L}`, `balkan${L}`, `baltisch${L}`, 'baltic', `baltic state${L}`,
   `scandinavi${L}`, 'sahel', `koerd${L}`, `kurd${L}`, 'arctic(?!\\s+(?:blast|air|cold|chill|freeze|front|storm|weather))', `arctisch${L}`, `noordpool${L}`, `poolgebied${L}`,
+  // Keuring en tweede keuring van herstel 4: de rest van dezelfde reeks. Oceanië zonder stam: "Oceanic" is ook de
+  // Amerikaanse NOAA. De Golfstaten als groep landen; Gulf Coast en de Golf van Mexico zijn Amerikaans en staan er niet in.
+  `antarcti${L}`, `zuidpool${L}`, 'south pole', 'mideast', 'mid-east', 'oceanië', 'oceanie', 'oceania', 'nordic', 'nordics', 'noords', 'noordse', 'baltics',
+  'golfsta(?:at|ten)', `gulf (?:state|nation|countr|monarch|ally|allies|arab)${L}(?!\\s+park)`,
 ]).source + '(?![\\s-]+(?:americ|amerikaan))', 'iu')
-const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || WORLD.test(t) || formsIn(t, own) || REGIONS.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
+// Internationale toppen en organisaties, als naam of afkorting in elke schrijfwijze (keuring en tweede keuring van herstel 4:
+// "Midterm losses could give Trump a quest to emerge from Apec summit as a winner" telde als Amerikaans binnenland). COP alleen
+// met nummer: "cop" is ook een agent. De NAVO,
+// de VN en de EU in hoofdletters vangt beyondIn al; hier ook "Navo-top" en "Nato" zoals Nederlandse en Britse kranten schrijven.
+// Geen "General Assembly" of "Security Council" zonder VN: zo heten ook Amerikaanse staatsparlementen en de nationale
+// veiligheidsraad. Alleen voor lokaal nieuws van elders, zoals REGIONS.
+const SUMMITS = W([
+  'g-?7', 'g-?8', 'g-?20', 'apec', 'asean', 'opec', 'brics', 'oecd', 'oeso', 'cop[\\s-]?\\d{1,2}', `klimaattop${L}`, `klimaatconferentie${L}`,
+  'climate summit', 'davos', 'imf', 'wto', 'navo', 'nato', 'verenigde naties', 'united nations', 'veiligheidsraad',
+])
+const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || WORLD.test(t) || formsIn(t, own) || REGIONS.test(t) || SUMMITS.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
 export function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
   const head = items.find(Boolean)
   const t = String(head?.title || '')
