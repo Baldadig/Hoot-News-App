@@ -605,6 +605,15 @@ var HootCore = (() => {
     return out;
   }
   var SHOWBIZZ_PATH = /\/(achterklap|showbizz|showbiz|boulevard|bv-en-co|celebrit\w*|sterren)\//i;
+  var SHOWBIZZ_CORE = /\b(showbizz|showbiz|achterklap|roddel\w*|realityster\w*|reality-ster\w*|rode loper|red carpet)\b/i;
+  var SHOWBIZZ_COMPANY = /* @__PURE__ */ new Set(["showbizz", "muziek", "film", "boeken", "kunst", "media", "games", "voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"]);
+  function showbizzKind(it = {}) {
+    if (!it) return false;
+    if (SHOWBIZZ_PATH.test(it.url || "")) return true;
+    const text = `${it.title || ""} ${it.summary || String(it.text || "").slice(0, 600)}`;
+    if (!SHOWBIZZ_CORE.test(text)) return false;
+    return keywordTopics(text).every((t) => SHOWBIZZ_COMPANY.has(t));
+  }
 
   // netlify/lib/desks.mjs
   var DESKS = ["binnenland", "buitenland", "vs", "middenoosten", "oekraine", "wetenschap"];
@@ -4172,6 +4181,11 @@ var HootCore = (() => {
     const own2 = newest(items);
     return theirs > 0 && own2 > 0 && theirs - own2 > STALE_INPUT_MS;
   }
+  function optInRejected(lead, topics = [], meta = {}, members = lead ? [lead] : []) {
+    if (!lead || !(lead.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))) return false;
+    if (!showbizzKind(lead)) return false;
+    return !(majorNews(meta || {}, members) || majorGeneralNews(meta || {}, members));
+  }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set(), weg = null, _langRule = true, _memoSignatures = true }) {
     if (!global?.entries?.length) return null;
     if (staleInput({ global, items, followed })) return null;
@@ -4292,7 +4306,7 @@ var HootCore = (() => {
       const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null;
       const bubble = entry.desk === "bubbel" || entry.bubble === true;
       const lead = itemAny.get(id) || members[0];
-      const optIn = (lead?.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t));
+      const optIn = optInRejected(lead, topics, meta, members);
       const reason = optIn ? "niet-aangetikt" : newsRejection(prof, meta, members, desk, { bubble });
       return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof, members, desk, meta), members, meta, desk };
     };

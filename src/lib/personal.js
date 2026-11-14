@@ -18,7 +18,7 @@ import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEve
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition, mediaEpisode } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
-import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
+import { trustedTopics, OTHER_SPORT, showbizzKind } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
@@ -165,6 +165,15 @@ export function staleInput({ global, items = [], followed = new Set() }) {
   const theirs = newest(global?.items || [])
   const own = newest(items)
   return theirs > 0 && own > 0 && theirs - own > STALE_INPUT_MS
+}
+
+// Achterklap & showbizz (OPT_IN) alleen voor wie het aantikte (besluit 13 november). Geweigerd wordt alleen een stuk dat
+// zelf showbizz is (showbizzKind in netlify/lib/topics.mjs), en nooit groot nieuws (majorNews of majorGeneralNews):
+// een NOS-stuk over influencers met illegale gezondheidsclaims is nieuws, ook voor wie Achterklap niet koos (dubbelcheck A5).
+export function optInRejected(lead, topics = [], meta = {}, members = lead ? [lead] : []) {
+  if (!lead || !(lead.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))) return false
+  if (!showbizzKind(lead)) return false
+  return !(majorNews(meta || {}, members) || majorGeneralNews(meta || {}, members))
 }
 
 export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set(), weg = null, _langRule = true, _memoSignatures = true }) {
@@ -341,8 +350,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const bubble = entry.desk === 'bubbel' || entry.bubble === true
     // Een onderwerp dat je zelf aantikt (OPT_IN, Achterklap & showbizz) komt alleen bij wie het aantikte (besluit 13
     // november); geen gewicht was niet genoeg, het stuk bleef als gewoon nieuws toegelaten (nachttest 14 november, R3).
+    // Alleen als het stuk zelf showbizz is (showbizzKind: de rubriek in de link of een roddelwoord zonder ander onderwerp),
+    // niet omdat er "influencer" of "celebrity" in staat, en nooit bij groot nieuws (dubbelcheck A5).
     const lead = itemAny.get(id) || members[0]
-    const optIn = (lead?.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))
+    const optIn = optInRejected(lead, topics, meta, members)
     const reason = optIn ? 'niet-aangetikt' : newsRejection(prof, meta, members, desk, { bubble })
     return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof,members,desk,meta), members, meta, desk }
   }

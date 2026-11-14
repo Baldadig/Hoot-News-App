@@ -126,6 +126,22 @@ function journeyWithoutConflict(it) {
 // Rubrieken in de link die alleen showbizz zijn (niet /entertainment/ of /show/: daar staan ook film en muziek).
 export const SHOWBIZZ_PATH = /\/(achterklap|showbizz|showbiz|boulevard|bv-en-co|celebrit\w*|sterren)\//i
 
+// Showbizz als soort van het stuk (dubbelcheck 14 november, A5), los van het onderwerp showbizz. Het onderwerp komt ook
+// uit woorden als influencer, celebrity of BN'er, en dat is vaak gewoon nieuws ("Bijna 30 influencers krijgen tik op de
+// vingers voor illegale gezondheidsclaims", "Kabinet wil influencers verplichten reclame te melden"). De soort is alleen
+// showbizz bij de rubriek in de link (SHOWBIZZ_PATH), of bij een roddelwoord (SHOWBIZZ_CORE) in kop of intro zonder
+// enig ander onderwerp dan cultuur of sport. De persoonlijke Editie weert alleen deze soort voor wie Achterklap niet
+// aantikte (src/lib/personal.js); al het andere telt als nieuws, zoals in de algemene Editie.
+const SHOWBIZZ_CORE = /\b(showbizz|showbiz|achterklap|roddel\w*|realityster\w*|reality-ster\w*|rode loper|red carpet)\b/i
+const SHOWBIZZ_COMPANY = new Set(['showbizz', 'muziek', 'film', 'boeken', 'kunst', 'media', 'games', 'voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
+export function showbizzKind(it = {}) {
+  if (!it) return false
+  if (SHOWBIZZ_PATH.test(it.url || '')) return true
+  const text = `${it.title || ''} ${it.summary || String(it.text || '').slice(0, 600)}`
+  if (!SHOWBIZZ_CORE.test(text)) return false
+  return keywordTopics(text).every((t) => SHOWBIZZ_COMPANY.has(t))
+}
+
 // De zichtbare kop en intro zijn het bewijs; een voetnoot verderop in RSS-HTML is geen onderwerp.
 // De rubriek in de link telt alleen voor showbizz: die zegt het zekerder dan de kop.
 export function articleTopics(it, own = []) {
