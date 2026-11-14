@@ -71,6 +71,21 @@ test('web: een eerste bezoeker komt zonder welkom in de Editie, met de startset;
   assert.match(app, /<Splash ready=\{status !== 'loading'\} toWelcome=\{showWelcome\}/)
 })
 
+test('onboarding blok 6: de rode intro zonder kop van nu, "Al een account? Log in", en de stappen geteld', () => {
+  const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
+  const ios = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
+  for (const src of [web, ios]) {
+    assert.doesNotMatch(src, /proofHeadline|Self\.proof\(|ob__proof|rustig op een rij|Nu in de Editie/, 'geen kop van nu, geen ondertitel, geen etiket')
+    assert.match(src, /Al een account\? Log in/)
+  }
+  assert.match(web, /if \(view === 'interesses'\) step\.current\('welkom-interesses'\)\n\s*else if \(view === 'bronnen'\) step\.current\('welkom-bronnen'\)/)
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  assert.match(app, /onStep=\{telStap\}/)
+  // Begin en Liever meteen lezen gecentreerd op de brede rode intro.
+  const css = readFileSync(new URL('../src/styles/welkom-intro.css', import.meta.url), 'utf8')
+  assert.match(css, /@media \(min-width: 720px\)[\s\S]*\.ob--open \.ob__foot > \.col \{\s*flex-direction: column;\s*align-items: center;/)
+})
+
 // ---- Hulpjes ----
 import { sourceLine, pickedFrom } from '../src/lib/welcome.js'
 import { INTERESTS } from '../src/lib/topics.js'

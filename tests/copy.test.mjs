@@ -23,7 +23,7 @@ test('Welkom: drie schermen (Zo werkt Hoot is weg), zonder oude stappen (W2)', (
   assert.match(s, /<SunArt kind="intro" className="ob__art" \/>/)
   assert.ok(!read('styles.css').includes('.ob__trio'), 'de opmaak van het uitlegscherm is weg')
   assert.ok(!/STEPS|Pagina \$\{/.test(s), 'geen stapteller of paginateller')
-  assert.match(s, /ob__login[\s\S]{0,120}>\s*Account\s*</) // r5-namen: het Hoot-account heet Account
+  assert.match(s, /ob__login[\s\S]{0,200}>\s*Al een account\? Log in\s*</) // onboarding blok 6, gelijk aan de app
   // Later kiezen is weg (1.1.1, keuze r5-later-kiezen): de hoofdknop werkt altijd, één knop, één weg.
   assert.equal(s.match(/>\s*Later kiezen\s*</g), null)
   for (const old of ['Wat precies?', 'Overslaan', 'Veeg verder', 'PagedSourceGrid', 'Kies minstens één', 'Kies één bron']) assert.ok(!s.includes(old), old)

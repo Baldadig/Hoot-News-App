@@ -463,6 +463,8 @@ export default function App() {
   }, [path, showWelcome, dagdeel, prefs.onboarded])
   // Het welkom gaat open via "Maak Hoot van jou" (welkom-open, bij onMakeYours), en de herkomst (?via)
   // bij binnenkomst.
+  // De stappen van het welkom (onboarding blok 6): de interesses en de bronnen openen.
+  const telStap = useCallback((e) => tel(e, dagdeelRef.current || slotIdNow()), [])
   const makeYours = useCallback(() => {
     tel('welkom-open', dagdeelRef.current || slotIdNow())
     route.go('welkom')
@@ -871,7 +873,7 @@ export default function App() {
         </div>
         {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome sources={sources} edition={data?.edition} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} digest={vak.digest} />
+            <Welcome sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} digest={vak.digest} onStep={telStap} />
           </Suspense>
         ) : null}
       </div>

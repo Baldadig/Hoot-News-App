@@ -3,7 +3,8 @@ import SwiftUI
 // Het welkom, gelijk aan de website (src/views/Welcome.jsx). Drie schermen (1.3.1: het uitlegscherm is
 // weg; Editie, Stroom en Selectie leer je kennen door ze te lezen):
 //   1. de rode intro: de zon komt op achter de horizon, "Begin" (naar de interesses) en eronder de stille
-//      knop Liever meteen lezen (de gratis startset, zonder sport). Account klein rechtsboven.
+//      knop Liever meteen lezen (de gratis startset, zonder sport). "Al een account? Log in" klein rechtsboven;
+//      geen kop van nu en geen ondertitel (onboarding blok 6).
 //   2. Wat interesseert je?: de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
 //   3. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan Voor jou (het voorstel,
 //      of het gratis begin), direct daaronder open de kranten ("Lees je een krant?"), dan per gekozen
@@ -272,19 +273,6 @@ struct WelcomeView: View {
 
     // ---- 1. De rode intro ----
 
-    // De eerste kop van de huidige algemene Editie (gelijk aan proofHeadline in src/lib/welcome.js). Geen Editie of
-    // geen kop (offline): nil, en de intro toont zijn gewone ondertitel.
-    static func proof(edition: Edition?, items: [String: Item]) -> (title: String, source: String)? {
-        guard let edition else { return nil }
-        let own = Dictionary((edition.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
-        for entry in edition.entries where entry.desk != "bubbel" {
-            guard let item = own[entry.leadId ?? entry.id] ?? items[entry.leadId ?? entry.id] else { continue }
-            let title = item.title.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !title.isEmpty { return (title, item.sourceName ?? "") }
-        }
-        return nil
-    }
-
     // Merkrood, alles erop papier (ook in donker). Het rood is de schijf van de iris. Begin en eronder de
     // stille knop Liever meteen lezen, zoals de voet op papier (één knop en een link).
     private var introStep: some View {
@@ -300,27 +288,6 @@ struct WelcomeView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($headFocus)
-                if let proof = Self.proof(edition: store.edition, items: store.itemsById) {
-                    // Het bewijs: de eerste kop van de huidige (algemene) Editie, met bron; zoals .ob__proof op het web.
-                    VStack(spacing: Space.s1) {
-                        Text(proof.title)
-                            .font(.kop(size: 20))
-                            .lineLimit(3)
-                            .multilineTextAlignment(.center)
-                        Text(proof.source)
-                            .font(.ui(.subheadline))
-                            .opacity(0.85)
-                    }
-                    .frame(maxWidth: 320)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityElement(children: .combine)
-                } else {
-                    Text("Het nieuws van jouw bronnen,\nrustig op een rij.")
-                        .zin() // zoals .ob__lede op het web
-                        .opacity(0.85)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
             }
             .padding(.horizontal, Space.s5)
             Spacer(minLength: 0)
@@ -376,7 +343,7 @@ struct WelcomeView: View {
             WelcomeMark(onRed: onRed, handoff: onRed ? brand : iris, hideDot: onRed && dotGone, breathes: onRed && !still && brand?.landed != false)
             Spacer(minLength: Space.s4)
             if onRed {
-                Button("Account") { login = true } // r5-namen: het Hoot-account heet Account, zoals op het web
+                Button("Al een account? Log in") { login = true } // onboarding blok 6, gelijk aan het web; Instellingen blijft Account
                     .font(.ui(.body, .semibold))
                     .accessibilityHint("Lezen kan ook zonder account.")
                     .frame(minHeight: Space.tap)

@@ -9,15 +9,17 @@ import { vakByDomain } from '../../shared/vak.mjs'
 import { offeredFields } from '../lib/selection-index.js'
 import { voorstel } from '../../shared/voorstel.mjs'
 import { INTERESTS, resolveTopics } from '../lib/topics.js'
-import { sourcesOn, pickedFrom, proofHeadline } from '../lib/welcome.js'
+import { sourcesOn, pickedFrom } from '../lib/welcome.js'
 import { toggleFollow, freeStart, startIds, beginLabel, krantenSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, chosenIn, startsOpen, foldCount } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Welkom, gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Drie schermen (sinds 14 november is
 // het uitlegscherm weg; Editie, Stroom en Selectie leer je kennen door ze te lezen):
 //   1. welkom (rood)   de zon komt op achter de horizon; Begin (naar de interesses) en eronder de stille
-//                      knop Liever meteen lezen (de gratis startset, zonder sport). Account klein
-//                      rechtsboven. Op het web alleen nog via de route welkom zonder eerdere keuze.
+//                      knop Liever meteen lezen (de gratis startset, zonder sport). "Al een account? Log in"
+//                      klein rechtsboven. Verder niets: geen kop van nu en geen ondertitel (onboarding blok 6,
+//                      Alex vond de kop van nu verwarrend). Op het web alleen nog via de route welkom zonder
+//                      eerdere keuze.
 //   2. Wat interesseert je?  de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
 //   3. Volg je bronnen zoals accounts volgen: niets staat vooraf aan. Bovenaan Voor jou (het voorstel,
 //                      of het gratis begin), direct daaronder open de kranten ("Lees je een krant?"),
@@ -35,7 +37,7 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
-export default function Welcome({ sources, edition = null, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {}, digest = null }) {
+export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {}, digest = null, onStep = () => {} }) {
   const reopen = !!onClose
   const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | interesses | bronnen
   const [interests, setInterests] = useState(() => prefs.interests || [])
@@ -81,8 +83,6 @@ export default function Welcome({ sources, edition = null, prefs, muted = new Se
     }
   }, [leaving])
 
-  // Het bewijs onder de kop: de eerste kop van de huidige algemene Editie. Zonder feed (offline) valt hij weg.
-  const proof = useMemo(() => proofHeadline(edition), [edition])
   const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
   const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
   // Het voorstel bovenaan de bronnenstap (shared/voorstel.mjs): uit je interesses en je eigen onderwerpen.
@@ -95,6 +95,14 @@ export default function Welcome({ sources, edition = null, prefs, muted = new Se
   // Alleen gratis alvast aan (keuze r5-voorstel-betaald): een betaalde bron in Voor jou zet je zelf aan.
   const initial = useMemo(() => (reopen ? sourcesOn(pickable, muted) : (plan || []).filter((p) => p.on).map((p) => p.id)), [reopen, pickable, muted, plan])
   const mine = edited ?? initial
+
+  // Gemeten (onboarding blok 6): het openen van de interesses en van de bronnen, als dagtotaal (shared/tel.mjs).
+  const step = useRef(onStep)
+  step.current = onStep
+  useEffect(() => {
+    if (view === 'interesses') step.current('welkom-interesses')
+    else if (view === 'bronnen') step.current('welkom-bronnen')
+  }, [view])
 
   // Nieuwe pagina: de kop voorlezen (schermlezer) en bovenaan beginnen, pas als de overgang klaar is.
   useEffect(() => {
@@ -279,7 +287,7 @@ export default function Welcome({ sources, edition = null, prefs, muted = new Se
               {onSignIn ? (
                 <>
                   <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Lezen kan ook zonder account." aria-describedby="ob-login-hint">
-                    Account
+                    Al een account? Log in
                   </button>
                   <span id="ob-login-hint" className="visually-hidden">
                     Lezen kan ook zonder account.
@@ -295,14 +303,6 @@ export default function Welcome({ sources, edition = null, prefs, muted = new Se
               <br />
               een einde.
             </h1>
-            {proof ? (
-              <p className="ob__proof">
-                <span className="ob__prooftitle">{proof.title}</span>
-                <span className="ob__proofsrc">{proof.source}</span>
-              </p>
-            ) : (
-              <p className="ob__lede">Het nieuws van jouw bronnen, rustig op een rij.</p>
-            )}
           </div>
           <div className="ob__foot">
             <div className="col">

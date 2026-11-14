@@ -54,7 +54,8 @@ test('r5-kanten-welkom: dezelfde eenmalige tip in de app, met Vergelijk en sluit
 
 test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () => {
   const welkom = read('ios/Hoot/Views/WelcomeView.swift')
-  assert.match(welkom, /Button\("Account"\) \{ login = true \}/)
+  // Op de rode intro sinds onboarding blok 6 "Al een account? Log in"; Instellingen houdt Account.
+  assert.match(welkom, /Button\("Al een account\? Log in"\) \{ login = true \}/)
   // De zinnen van het uitlegscherm (Editie, Stroom, Selectie) zijn weg met dat scherm (14 november).
   assert.doesNotMatch(welkom, /Drie keer per dag tien verhalen|Elke maandag het beste over wat jou bezighoudt/)
   assert.match(welkom, /"Elke maandag het beste over je werk of hobby\."/)
