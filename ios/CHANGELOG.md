@@ -1,6 +1,6 @@
 # Changelog — Hoot voor iOS
 
-## Onuitgebracht
+## [1.3.1] — 2026-11-14 — Bladerwidget, dagdeelwissel, de zon als voortgang, nieuwe bronnen (build 54, TestFlight)
 
 - 1.3.1, nachttest 14 november: geen "Nieuws" boven opinie en het label Opinie in de Editie en in Vergelijken, zoals het web (HootStore.rowLabel). Het voorbeeld in het Welkom toont geen opiniekoppen. Instellingen › Bronnen heeft dezelfde rubrieken en volgorde als het Welkom, en een bronnaam breekt bij grote tekst niet meer midden in een woord. Het Bluesky-venster zegt "anderhalve dag". VoiceOver zegt bij een inlog op de voorpagina "Opent de site van X, daar log je in". De rekenkern rekent zonder URL-object (JavaScriptCore heeft er geen). Geen Swift 6-waarschuwingen meer over actor-isolatie in de app. Toetsen: LabelTests, OnboardingTests, PublisherLoginHintTests, RubriekVersieTests.
 
