@@ -1,0 +1,15 @@
+/* ==========================================================================
+   De rode intro op een breed scherm (onboarding blok 6): Begin en "Liever meteen lezen" staan
+   gecentreerd onder elkaar, zoals de zon en de kop erboven. Op papier blijft de voet vanaf 720
+   links met de link ernaast (styles.css). Eigen bestand, want styles.css is vastgelegd
+   (tests/zacht-papier.test.mjs).
+   ========================================================================== */
+@media (min-width: 720px) {
+  .ob--open .ob__foot > .col {
+    flex-direction: column;
+    align-items: center;
+  }
+  .ob--open .ob__skip {
+    margin: 0 auto;
+  }
+}

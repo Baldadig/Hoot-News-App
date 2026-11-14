@@ -69,6 +69,25 @@ test('Politiek en Binnenland: alleen NU.nl erbij, RTL Nieuws alleen in het grati
   assert.ok(voorstel(SOURCES, ['binnenland']).every((x) => !byId.get(x.id).paid))
 })
 
+test('nooit een regionale omroep of regionale krant in het voorstel, ook niet bij Binnenland (dubbelcheck 14 november)', () => {
+  const regionaal = (id) => byId.get(id).cat === 'regio' || byId.get(id).publisher === 'regionale-omroep'
+  // De catalogus heeft gratis regionale omroepen: zonder regel 7 won de eerste (NH Nieuws) bij Binnenland.
+  assert.ok(SOURCES.some((s) => s.publisher === 'regionale-omroep' && !s.paid))
+  const all = INTERESTS.map((i) => i.id)
+  for (const set of [['binnenland'], ['politiek', 'binnenland', 'wereld', 'economie'], ['politiek', 'binnenland', 'wereld', 'tech'], all]) {
+    for (const english of [false, true]) {
+      const p = voorstel(SOURCES, set, [], { english })
+      assert.ok(!ids(p).some(regionaal), `${set.join('+')}${english ? ' (Engels)' : ''}: ${ids(p).join(', ')}`)
+    }
+  }
+  // Ook niet via een gekozen onderwerp van Binnenland (verkeer, misdaad, wonen).
+  for (const t of ['verkeer', 'misdaad', 'wonen']) assert.ok(!ids(voorstel(SOURCES, [], [t])).some(regionaal), t)
+  // Een regionale bron staat dus nooit alvast aan; landelijk gratis nieuws wel.
+  assert.deepEqual(ids(voorstel(SOURCES, ['binnenland'])), ['nos', 'nu'])
+  // De app rekent hetzelfde voorstel (voorstelJSON in de rekenkern).
+  assert.ok(!JSON.parse(voorstelJSON(JSON.stringify({ sources: SOURCES, interests: ['binnenland'] }))).some((x) => regionaal(x.id)))
+})
+
 test('altijd een gratis bron voorop, nooit meer dan vijf, elke bron één keer, nooit "Omdat je"', () => {
   const all = INTERESTS.map((i) => i.id)
   for (const set of [all, ['politiek'], ['cultuur', 'sport'], ['economie'], ['binnenland', 'wereld']]) {
@@ -97,21 +116,19 @@ test('web en app gebruiken dezelfde regels: de rekenkern en de bronnenstap', () 
   assert.match(read('ios/Hoot/Views/WelcomeView.swift'), /EditionEngine\.shared\.voorstel/)
 })
 
-test('review G1, G2, G3 en G6: voorstel alvast aan, knop nooit dood, voorbeeld eerlijk, Stroom-einde op iOS', () => {
+test('review G2, G3 en G6: voorstel alvast aan, knop nooit dood, Stroom-einde op iOS (het voorbeeld van G1 is weg sinds onboarding blok 4)', () => {
   const web = read('src/views/Welcome.jsx')
   assert.match(web, /\(plan \|\| \[\]\)\.filter\(\(p\) => p\.on\)\.map\(\(p\) => p\.id\)/, 'de eerste keer staat het gratis deel van Voor jou aan')
-  assert.match(web, /label=\{plan \? 'Voor jou' : 'Basis'\}/)
-  assert.match(web, /'Begin met het gratis begin'/)
+  assert.match(web, /<Fold id="basis" label="Voor jou"/)
+  assert.match(web, /mine\.length \? 'Naar je Editie' : beginLabel\(pickable\)/)
   assert.doesNotMatch(web, /disabled=\{!mine\.length\}/)
-  assert.match(web, /Ook uit \{sourceLine\(missing\)\}/)
   const ios = read('ios/Hoot/Views/WelcomeView.swift')
-  assert.match(ios, /"Begin met het gratis begin"/)
-  assert.match(ios, /Ook uit \\\(FollowList\.sourceLine\(missing\)\)/)
+  assert.match(ios, /mine\.isEmpty \? FollowList\.beginLabel\(store\.newsSources\) : "Naar je Editie"/)
   for (const line of ['Alvast gevolgd. Uitzetten kan met één tik.', 'De gratis bronnen volg je alvast. Uitzetten kan met één tik.']) {
     assert.ok(ios.includes(line), `app: ${line}`)
     assert.ok(web.includes(line), `web: ${line}`)
   }
-  assert.match(ios, /title: voorstel == nil \? "Basis" : "Voor jou"/)
+  assert.match(ios, /foldGroup\(id: "basis", title: "Voor jou"/)
   assert.match(read('ios/Hoot/Views/StreamView.swift'), /Text\("Je bent bij\."\)/)
 })
 
@@ -142,13 +159,10 @@ test('Engels aan geeft het voorstel van voor Week · 4, ook via de rekenkern van
   assert.match(read('ios/Hoot/Views/WelcomeView.swift'), /voorstel\(sources: store\.newsSources, interests: interests, topics: picked, english: english\)/)
 })
 
-test('de eerste Editie van een nieuw profiel is Nederlands: de voorbeeldregels in de bronnenstap komen uit Nederlandse bronnen', async () => {
-  const { previewLines } = await import('../src/lib/follow-welcome.js')
-  const items = SOURCES.map((s, n) => ({ id: `i${n}`, source: s.id, sourceName: s.name, title: `Kop ${s.id}`, kind: 'article', publishedAt: `2026-11-12T0${n % 9}:00:00Z` }))
+test('de eerste Editie van een nieuw profiel is Nederlands: wat in de bronnenstap alvast aan staat, is Nederlands', () => {
   for (const set of [['wereld'], ['wetenschap'], ['tech', 'wetenschap'], ['wereld', 'economie']]) {
     const mine = voorstel(SOURCES, set).filter((x) => x.on).map((x) => x.id)
-    const lines = previewLines(items, SOURCES, mine, 4)
-    assert.ok(lines.length > 0)
-    assert.ok(lines.every((l) => byId.get(l.source.id).lang === 'nl'), `${set.join('+')}: ${lines.map((l) => l.source.id)}`)
+    assert.ok(mine.length > 0)
+    assert.ok(mine.every((id) => (byId.get(id).lang || 'nl') === 'nl'), `${set.join('+')}: ${mine}`)
   }
 })

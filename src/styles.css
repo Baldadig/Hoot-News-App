@@ -495,7 +495,7 @@ p {
 }
 /* Uitlegzinnen: de zin onder een kop in het welkom, de tekst van een lege bladzijde, de Selectie en de
    pagina's Over en Privacy. Schreefloos (--uitleg), op de maat van een intro: 17/24. */
-:is(.ob__sub, .ob__lede, .ob__ttext, .ob__empty, .empty__text, .dempty__text, .prose p, .prose ul) {
+:is(.ob__sub, .ob__lede, .ob__empty, .empty__text, .dempty__text, .prose p, .prose ul) {
   font-family: var(--uitleg);
   font-weight: var(--fw-lees);
   font-optical-sizing: auto;
@@ -3073,8 +3073,8 @@ select.input {
 }
 
 /* ---------- Welkom ----------
-   Vier schermen (Welcome.jsx, gelijk aan WelcomeView.swift): de rode intro, Zo werkt Hoot, Wat
-   interesseert je? en Volg je bronnen. Welkom ligt over de app heen. Bovenaan op elk scherm het kleine
+   Drie schermen (Welcome.jsx, gelijk aan WelcomeView.swift): de rode intro, Wat interesseert je? en
+   Volg je bronnen. Welkom ligt over de app heen. Bovenaan op elk scherm het kleine
    woordmerk linksboven (rechts Terug, Sluiten of Inloggen), daaronder een kolom die scrolt en
    onderaan een vaste voet met één hoofdknop (.btn--lg) en een stille link. Eén merkmoment: de intro
    in merkrood, met alles erop papier. Eén kolom van --measure, ook op desktop: één linkerlijn.
@@ -3261,66 +3261,8 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   max-width: 100%;
 }
 
-/* Zo werkt Hoot: Editie, Stroom en Selectie als gelijken, in een lijst met lijnen (een dikke
-   bovenlijn, dunne ertussen). Links de zon van elk onderdeel, op één maat (4,5rem breed); hij
-   groeit met de tekst mee, zodat de kop ernaast op dezelfde hoogte blijft. */
-.ob__trio {
-  margin: var(--s5) 0 0;
-  padding: 0;
-  list-style: none;
-  border-top: 2px solid var(--ink);
-}
-.ob__trow {
-  display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  gap: var(--s4);
-  align-items: center;
-  padding: var(--s4) 0;
-  border-bottom: 1px solid var(--rule);
-}
-.ob__tart {
-  width: 100%;
-  height: auto;
-}
-.ob__tname {
-  font-family: var(--serif);
-  font-size: var(--t5);
-  line-height: var(--lh-display);
-  font-weight: var(--fw-head);
-  letter-spacing: var(--ls-display);
-}
-.ob__ttext {
-  margin-top: var(--s1);
-  color: var(--ink-2);
-}
-
-/* Volg je bronnen: zoekveld, twee pillen (Aanbevolen, Gevolgd) en de lijst per rubriek. Breed
-   (vanaf 834) staat het meegroeiende voorbeeld rechts; smaller in een uitklapbalk boven de knop. */
-.ob__split {
-  display: block;
-}
-.ob__peek {
-  display: none;
-}
-@media (min-width: 834px) {
-  .ob__split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 16rem;
-    gap: var(--s6);
-    align-items: start;
-  }
-  .ob__peek {
-    position: sticky;
-    top: 0;
-    display: block;
-    margin-top: var(--s4);
-    padding-top: var(--s3);
-    border-top: 2px solid var(--ink);
-  }
-  .ob__peekbar {
-    display: none;
-  }
-}
+/* Volg je bronnen: zoekveld, bij opnieuw kiezen twee pillen (Aanbevolen, Gevolgd), en de lijst per
+   rubriek. Sinds onboarding blok 4 zonder voorbeeld-Editie ernaast. */
 .ob__search {
   position: relative;
   display: flex;
@@ -3456,93 +3398,6 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   margin-top: var(--s5);
   color: var(--ink-2);
 }
-/* Het voorbeeld: genummerde koppen in de krantenletter, de bron eronder. */
-.ob__peektitle {
-  margin-top: var(--s1);
-  font-family: var(--serif);
-  font-size: var(--t4);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-head);
-}
-.ob__lines {
-  margin: var(--s2) 0 0;
-  padding: 0;
-  list-style: none;
-}
-.ob__line {
-  display: grid;
-  grid-template-columns: 1.25rem minmax(0, 1fr);
-  gap: var(--s2);
-  padding: var(--s2) 0;
-  border-bottom: 1px solid var(--rule);
-}
-.ob__line:last-child {
-  border-bottom: 0;
-}
-.ob__ln {
-  color: var(--ink-3);
-  font-family: var(--serif);
-  font-size: var(--t3);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-head);
-}
-.ob__lt {
-  display: block;
-  font-family: var(--serif);
-  font-size: var(--t3);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-action);
-}
-.ob__ls,
-.ob__peeknote {
-  display: block;
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-1-read);
-}
-.ob__peeknote {
-  margin-top: var(--s2);
-}
-.ob__peekbar {
-  border-bottom: 1px solid var(--rule);
-}
-.ob__peekbar > .col {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.ob__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s3);
-  width: 100%;
-  min-height: var(--tap);
-  padding: var(--s2) 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-}
-.ob__bartitle {
-  display: block;
-  font-family: var(--serif);
-  font-size: var(--t3);
-  line-height: var(--lh-3);
-  font-weight: var(--fw-head);
-}
-.ob__barsub {
-  display: block;
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-1);
-}
-.ob__barbody {
-  max-height: 38dvh;
-  overflow-y: auto;
-  padding-bottom: var(--s3);
-}
-
 /* Wat interesseert je?: de acht rubrieken als pillen, daaronder één uitklapper voor de Selectie
    (een rij met lijnen, zoals een rij in Instellingen) met per domein een groep pillen. */
 .ob__rubrieken {
@@ -3618,7 +3473,7 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
   --btn-fill: var(--on-brand-red);
   --btn-ink: var(--brand-red);
 }
-/* Later kiezen, Liever meteen lezen: een .linkbtn--plain onder de hoofdknop. */
+/* Liever meteen lezen: een .linkbtn--plain onder Begin op de rode intro. */
 .ob__skip {
   display: flex;
   margin: 0 auto;
@@ -5067,6 +4922,30 @@ html[data-systeem='ax'] .edmeta > span {
   font-size: var(--t1);
 }
 
+/* Ook deze week, ingeklapt: de kop is de knop */
+.dmore > summary.dmore__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-block-size: var(--tap);
+  cursor: pointer;
+}
+
+/* Het slot onder het laatste onderwerp: "Je weet genoeg." / "Maandag een nieuwe." */
+.dslot {
+  margin-top: var(--s7);
+  text-align: center;
+}
+.dslot__line {
+  margin: 0;
+  color: var(--ink);
+}
+.dslot__next {
+  margin: var(--s1) 0 0;
+  color: var(--ink-3);
+  font-size: var(--t2);
+}
+
 /* Hoe kiest Hoot? */
 .dhow {
   margin-top: var(--s7);
@@ -5687,7 +5566,7 @@ html[data-systeem='ax'] .edmeta > span {
 
 /* Hints op --ink-2 alleen in Nacht (brand guide v2.3, gelijk aan iOS Theme.hint): Schibsted is op 12 en 13 zachter dan Inter, en
    --ink-3 is op zwart te stil voor uitleg die je moet kunnen lezen. In Donker blijven hints --ink-3. Kickers en tijden blijven --ink-3. */
-:root[data-theme='night'] :is(.hint, .setrow__hint, .sheet__note, .ob__peeknote, .ob__barsub, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub) {
+:root[data-theme='night'] :is(.hint, .setrow__hint, .sheet__note, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub) {
   color: var(--ink-2);
 }
 

@@ -64,7 +64,7 @@ import SwiftUI
         XCTAssertEqual(p.map(\.id), ["seo", "ux", "ai"], "per domein het eerste onderwerp met stukken, hooguit drie")
         XCTAssertEqual(p.map(\.item.id), ["a", "b", "d"], "elk met zijn beste stuk")
         XCTAssertTrue(SelectionOverview.voorproefje(nil).isEmpty)
-        XCTAssertEqual(SelectionOverview.voorproef, "Zo ziet het eruit: per onderwerp de beste stukken van de week.")
+        XCTAssertEqual(SelectionOverview.voorproef, "Zo ziet het eruit: per onderwerp een stuk uit de Selectie van deze week.")
     }
 
     // r5-kanten-welkom: één keer een tip bij het eerste verhaal met meer bronnen (gelijk aan kantenTip() op het web).

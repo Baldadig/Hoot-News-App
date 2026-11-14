@@ -7,11 +7,11 @@ struct WidgetBeeldloos: View {
     @Environment(\.colorScheme) private var scheme
     let id: String
 
-    // FNV-1a over de id, zoals Placeholder.base (shared/placeholder.mjs).
+    // FNV-1a over de id, zoals Placeholder.base (shared/placeholder.mjs); nooit een beeld dat uit de reeks is.
     static func index(_ id: String) -> Int {
         var h: UInt32 = 0x811c9dc5
         for b in id.utf8 { h ^= UInt32(b); h = h &* 0x01000193 }
-        return Int(h % UInt32(PlaceholderBeelden.beelden.count))
+        return PlaceholderBeelden.index(hash: h)
     }
 
     var body: some View {

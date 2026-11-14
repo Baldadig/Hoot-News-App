@@ -1,3 +1,5 @@
+// Sinds Redacteur · deals (14 november 2026) weert A (koopsignaal.mjs) duidelijke koopkoppen zelf; de proefdeals hieronder
+// zijn daarom koppen die A laat staan en alleen de AI kan beoordelen ("is a bargain", "Koopjesweek").
 // Redacteur · filters-ai, deel B (netlify/lib/editie-ai.mjs): de AI voor twijfel, alleen op de server. Met een nep-model:
 // geen netwerk, geen sleutel. Alleen "aanbieding"/"aankondiging" met zeker = true weert; elke fout = niets weren.
 import { test } from 'node:test'
@@ -37,10 +39,10 @@ function nepModel(answer, { stop = 'end_turn', delay = 0, fail = null, raw = nul
 }
 
 const pool = [
-  it('d1', 'The Sonos Era 100 is $70 off right now'),
+  it('d1', 'The Sonos Era 100 is a bargain right now'),
   it('d2', 'Black Friday: ACM controleert nepkortingen', { source: 'nos', sourceName: 'NOS', url: 'https://nos.nl/artikel/1-acm' }),
   it('d3', 'Kijk live naar de Algemene Politieke Beschouwingen', { source: 'nos', sourceName: 'NOS' }),
-  it('d4', 'Grab the Xbox Series X for $399 this weekend'),
+  it('d4', 'Grab the Xbox Series X cheaply this weekend'),
   it('n1', 'Kabinet valt over stikstof', { source: 'nos' }), // geen zwak signaal
 ]
 // Oordeel per kop (ook in de controle-aanroep, met andere nummers): d1 zeker aanbieding, d2 nieuws, d3 zeker aankondiging,
@@ -75,7 +77,7 @@ test('B: de aanroep zelf: Haiku 5.5, gestructureerde uitvoer, geen denkstap, str
   assert.ok(opts.signal)
   for (const norm of ['Nieuws OVER kortingen, prijzen, deals, Black Friday', 'podcasts', 'Bij twijfel: "nieuws"', 'zeker alleen op true', 'om te kopen', 'kijken of te luisteren']) assert.ok(SYSTEM.includes(norm), norm)
   assert.equal(params.system, SYSTEM)
-  assert.match(params.messages[0].content, /kop: The Sonos Era 100 is \$70 off right now/)
+  assert.match(params.messages[0].content, /kop: The Sonos Era 100 is a bargain right now/)
 })
 
 test('B: geen sleutel (geen client) = niets weren, en geen oordeel bewaard', async () => {
@@ -265,14 +267,14 @@ test('B herstel 2: elk oordeel geeft nummer + code terug; verwisseling bij gelij
   assert.ok(!('kop' in SCHEMA.properties.oordelen.items.properties))
   assert.ok(SYSTEM.includes('de code van dat stuk letterlijk overgenomen'))
   // De code hangt aan id én kop; twee koppen met hetzelfde begin krijgen elk een eigen code.
-  const a = it('bf-nieuws', 'Black Friday-deals: ACM waarschuwt voor nepkortingen bij vijf webwinkels', { publishedAt: iso(NOW - 60e3) })
-  const b = it('bf-deal', 'Black Friday-deals: AirPods Pro voor 179 euro bij Coolblue')
+  const a = it('bf-nieuws', 'Koopjesweek: ACM waarschuwt voor nepkortingen bij vijf webwinkels', { publishedAt: iso(NOW - 60e3) })
+  const b = it('bf-deal', 'Koopjesweek: AirPods Pro voor 179 euro bij Coolblue')
   assert.notEqual(codeOf(a), codeOf(b))
   assert.equal(codeOf(a), codeOf({ ...a })) // vast: dezelfde invoer, dezelfde code
   assert.notEqual(codeOf(a), codeOf({ ...a, title: a.title + '!' }))
   assert.equal(new Set(codesFor([a, a, a])).size, 3) // uniek binnen één aanroep
   const p = promptOf([a, b])
-  assert.match(p, new RegExp(`1\\. bron: The Verge\n {3}kop: Black Friday-deals: ACM[^\n]*\n {3}intro: \\(geen\\)\n {3}link: [^\n]*\n {3}code: ${codeOf(a)}`))
+  assert.match(p, new RegExp(`1\\. bron: The Verge\n {3}kop: Koopjesweek: ACM[^\n]*\n {3}intro: \\(geen\\)\n {3}link: [^\n]*\n {3}code: ${codeOf(a)}`))
   // Het verwisselende model: het oordeel over de deal komt op nummer 1 (het nieuws) met de code van de deal, en omgekeerd.
   const swap = nepModel((n, kops) => {
     const nrNieuws = kops.findIndex((k) => k.includes('ACM')) + 1, nrDeal = kops.findIndex((k) => k.includes('AirPods')) + 1
@@ -299,7 +301,7 @@ test('B herstel 2: elk oordeel geeft nummer + code terug; verwisseling bij gelij
 })
 
 test('B herstel 2: één echte deal wordt na een controle gewoon geweerd (geen stilstand bij een kleine batch)', async () => {
-  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
+  const deal = it('deal1', 'The Sonos Era 100 is a bargain right now')
   const gewoon = [it('c1', 'Kabinet valt over stikstof', { source: 'nos' }), it('c2', 'Aardbeving treft kust van Japan', { source: 'nos' })]
   // Een eerlijk model kent de deal aan de hele kop (niet aan een merknaam: dat zou een ontsporing zijn, zie de tweelingen).
   const client = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
@@ -318,7 +320,7 @@ test('B herstel 2: één echte deal wordt na een controle gewoon geweerd (geen s
 })
 
 test('B herstel 2: een dealrijke batch (Black Friday) wordt gecontroleerd en geweerd; nieuws blijft', async () => {
-  const deals = Array.from({ length: 30 }, (_, k) => it(`bf${k}`, `Black Friday deal ${k}: koptelefoon nu $${50 + k} off`, { publishedAt: iso(NOW - k * 60e3) }))
+  const deals = Array.from({ length: 30 }, (_, k) => it(`bf${k}`, `Koopjesweek deal ${k}: koptelefoon nu een koopje`, { publishedAt: iso(NOW - k * 60e3) }))
   const nieuws = Array.from({ length: 10 }, (_, k) => it(`nw${k}`, `ACM onderzoekt Black Friday-korting nummer ${k}`, { publishedAt: iso(NOW - (40 + k) * 60e3) }))
   const gewoon = [it('c1', 'Kabinet valt over stikstof', { source: 'nos' }), it('c2', 'Aardbeving treft kust van Japan', { source: 'nos' }), it('c3', 'Formatie loopt vast', { source: 'nos' })]
   const honest = (n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: /deal \d+:/.test(k) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))
@@ -506,7 +508,7 @@ test('B filters-b: tegenstrijdige oordelen over hetzelfde nummer vervallen samen
   const w = readVerdicts(JSON.stringify({ oordelen: [{ nr: 1, code: 'aaaaa', soort: 'aanbieding', zeker: true, reden: 'x' }, { nr: 1, code: 'zzzzz', soort: 'nieuws', zeker: true, reden: 'x' }] }), 1, ['aaaaa'])
   assert.equal(w.get(1).soort, 'aanbieding')
   // In de stap: een model dat over de deal twee keer iets anders zegt, weert hem niet en bewaart geen oordeel (alleen een poging).
-  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
+  const deal = it('deal1', 'The Sonos Era 100 is a bargain right now')
   const twee = nepModel((n, kops) => kops.flatMap((k, j) => (/Sonos/.test(k) ? [{ nr: j + 1, soort: 'aanbieding', zeker: true, reden: 'x' }, { nr: j + 1, soort: 'nieuws', zeker: true, reden: 'y' }] : [{ nr: j + 1, soort: 'nieuws', zeker: true, reden: 'x' }])))
   const kv = nepKv()
   const r = await aiExclusions({ pool: [deal, it('c1', 'Kabinet valt over stikstof')], now: NOW, client: twee, kv, log: quiet, enabled: true })
@@ -521,7 +523,7 @@ test('B filters-b: tegenstrijdige oordelen over hetzelfde nummer vervallen samen
 })
 
 test('B filters-b: elke batch waarin iets weg zou gaan wordt gecontroleerd; een onvolledige controle bevestigt niets', async () => {
-  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
+  const deal = it('deal1', 'The Sonos Era 100 is a bargain right now')
   const nieuws = Array.from({ length: 39 }, (_, k) => it(`n${k}`, `Kabinet ${k} bespreekt prijs van energie`, { publishedAt: iso(NOW - (5 + k) * 60e3) }))
   const eerlijk = nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
   const r = await aiExclusions({ pool: [deal, ...nieuws, it('c1', 'Kabinet valt over stikstof')], now: NOW, client: eerlijk, kv: nepKv(), log: quiet, enabled: true })
@@ -531,7 +533,7 @@ test('B filters-b: elke batch waarin iets weg zou gaan wordt gecontroleerd; een 
   // De deal twee keer, met CONTROLS_VERIFY controlestukken: tweelingen in de kleren van de deal (zelfde bron, zelfde domein)
   // en een gewoon stuk uit de pool.
   assert.equal((second.match(/^\d+\. bron:/gm) || []).length, 2 + CONTROLS_VERIFY)
-  assert.equal((second.match(/kop: The Sonos Era 100 is \$70 off right now/g) || []).length, 2)
+  assert.equal((second.match(/kop: The Sonos Era 100 is a bargain right now/g) || []).length, 2)
   assert.ok((second.match(/bron: The Verge/g) || []).length >= CONTROLS_VERIFY - 3)
   assert.ok((second.match(/link: https:\/\/example\.test\/tech\//g) || []).length >= CONTROLS_VERIFY - 3)
   assert.match(second, /Kabinet valt over stikstof/) // plus een gewoon stuk uit de pool
@@ -679,7 +681,7 @@ test('B filters-b-2: "prijzen" en "duurder" zijn een zwak signaal, en kiezen een
 })
 
 test('B filters-b-2: in de controle staat elk stuk twee keer; alleen twee keer zeker telt', async () => {
-  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now')
+  const deal = it('deal1', 'The Sonos Era 100 is a bargain right now')
   let call = 0
   // Noemt het stuk in de controle maar één keer zeker: blijft staan.
   const eenmaal = nepModel((n, kops) => (call++, kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title && (call === 1 || kops.indexOf(k) === j) ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' }))))
@@ -690,7 +692,7 @@ test('B filters-b-2: in de controle staat elk stuk twee keer; alleen twee keer z
 
 test('B filters-b-2: een bewaard "zeker weg" telt maar HERBEVESTIG_MS; daarna gaat het opnieuw door de controle', async () => {
   assert.ok(HERBEVESTIG_MS <= 6 * 3600e3)
-  const deal = it('deal1', 'The Sonos Era 100 is $70 off right now', { publishedAt: iso(NOW - 3600e3) })
+  const deal = it('deal1', 'The Sonos Era 100 is a bargain right now', { publishedAt: iso(NOW - 3600e3) })
   const gewoon = it('c1', 'Kabinet valt over stikstof', { source: 'nos' })
   const eerlijk = () => nepModel((n, kops) => kops.map((k, j) => ({ nr: j + 1, soort: k === deal.title ? 'aanbieding' : 'nieuws', zeker: true, reden: 'x' })))
   const kv = nepKv()
@@ -709,7 +711,7 @@ test('B filters-b-2: een bewaard "zeker weg" telt maar HERBEVESTIG_MS; daarna ga
   assert.deepEqual([...r.weg], ['deal1'])
   assert.equal(her.calls.length, 1)
   assert.equal(r.stats.herbevestigd, 1)
-  assert.equal((her.calls[0].params.messages[0].content.match(/kop: The Sonos Era 100 is \$70 off right now/g) || []).length, 2)
+  assert.equal((her.calls[0].params.messages[0].content.match(/kop: The Sonos Era 100 is a bargain right now/g) || []).length, 2)
   assert.equal(kv.m.get(dayKey(later)).o[cacheKeyOf(deal)][3], later)
   // Verlopen en het model ontspoort bij de herbevestiging: het oordeel wordt "nieuws", het stuk blijft voortaan staan.
   const nog = later + HERBEVESTIG_MS + 60e3

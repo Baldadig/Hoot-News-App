@@ -500,7 +500,7 @@ struct DigestFieldsList: View {
                 }
             }
             Section {} footer: {
-                Text("Elke maandag het beste per onderwerp.").foregroundStyle(Theme.ink3)
+                Text("Elke maandag drie stukken per onderwerp.").foregroundStyle(Theme.ink3)
             }
         }
         .hootForm()

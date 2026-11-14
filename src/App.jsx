@@ -31,10 +31,11 @@ import { mutedSet, toggleSource } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
 import { JoinSheet } from './components/Account.jsx'
 import { normalizePrefs } from './lib/prefs.js'
-import { shouldShowInstallTip } from './lib/install.js'
+import { shouldShowInstallTip, shouldShowAppCard } from './lib/install.js'
 import { shouldAskToJoin, JOIN_AUTO } from './lib/join.js'
 import { pendingShown } from './lib/membership.js'
 import { applyWelcome } from './lib/welcome.js'
+import { startIds } from './lib/follow-welcome.js'
 import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { toggleFollow } from './lib/follow.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
@@ -265,6 +266,35 @@ export default function App() {
     [rawPrefs.installTipDone]
   )
 
+  // De weg naar de app (onboarding blok 2): op iPhone en iPad in de browser, zodra de rode eindkaart van de
+  // Editie één keer in beeld was, één kaart eronder. Na "Niet nu" of een tik komt hij niet terug (appKaartDone).
+  // Zolang hij er staat, wachten de tip "Zet Hoot op je beginscherm" en de accountvraag.
+  const appCardFits = useMemo(
+    () =>
+      safe(
+        () =>
+          shouldShowAppCard({
+            ua: navigator.userAgent,
+            standalone: !!navigator.standalone,
+            displayStandalone: window.matchMedia('(display-mode: standalone)').matches,
+            dismissed: !!rawPrefs.appKaartDone,
+            maxTouchPoints: navigator.maxTouchPoints,
+            platform: navigator.platform,
+          }),
+        false
+      ),
+    [rawPrefs.appKaartDone]
+  )
+  const [endSeenOnce, setEndSeenOnce] = useState(false)
+  const onEndSeen = useCallback(() => setEndSeenOnce(true), [])
+  const appKaart = appCardFits && endSeenOnce && !!prefs.onboarded
+  // De tik telt (appstore-tik:einde) en de kaart gaat pas na de tik weg: de link moet in de pagina staan om te openen.
+  const appKaartOpen = useCallback(() => {
+    tel('appstore-tik:einde', dagdeelRef.current || slotIdNow())
+    setTimeout(() => setPref('appKaartDone', true), 0)
+  }, [setPref])
+  const appKaartLater = useCallback(() => setPref('appKaartDone', true), [setPref])
+
   // Na verwijderen uit Bewaard: een paar tellen de kans om het terug te zetten.
   const [undo, setUndo] = useState(null) // { id, entry }
   const [announce, setAnnounce] = useState('')
@@ -367,27 +397,27 @@ export default function App() {
   const welcomeLeft = useCallback(() => setLeavingWelcome(false), [])
 
   // Welkom klaar: interesses, onderwerpen en bronnen worden je instellingen (src/lib/welcome.js).
-  // "Liever meteen lezen" (alleen bij de eerste start) geeft lege interesses en onderwerpen en de
-  // startset als bronnen. Sluit je het welkom bij opnieuw kiezen, dan komt het hier niet langs en
-  // blijft alles zoals het was (zie closeWelcome).
-  // De eerste keer: je eerste Editie wordt samengesteld ("Tien en de bubbel", src/lib/tien.js),
-  // vanaf de tik. Eén keer; bij opnieuw kiezen niet.
+  // "Liever meteen lezen" (alleen bij de eerste start via de route welkom) geeft lege interesses en
+  // onderwerpen en de startset als bronnen. Sluit je het welkom bij opnieuw kiezen, dan komt het hier
+  // niet langs en blijft alles zoals het was (zie closeWelcome).
+  // Alleen via de route welkom zonder eerdere keuze: je eerste Editie wordt samengesteld ("Tien en de
+  // bubbel", src/lib/tien.js), vanaf de tik. Een gewone eerste bezoeker komt zonder welkom en zonder
+  // dat wachtteken in de Editie (zie startMeteen).
   const [tienStart, setTienStart] = useState(null)
   const endTien = useCallback(() => setTienStart(null), [])
-  // Gemeten (Meten · 6, achter NIEUWE_TELLERS): de stappen van het eerste welkom als dagtotalen.
+  // Gemeten (Meten · 6, achter NIEUWE_TELLERS): de stappen van het welkom als dagtotalen. Bronnen
+  // gekozen telt de eerste echte keuze: de eerste start, of de eerste keer na meteen lezen (browsing).
   const eersteEditie = useRef(false)
   const finishOnboarding = useCallback(
     (choice) => {
-      if (!prefs.onboarded) {
-        tel(choice?.quick ? 'liever-meteen-lezen' : 'bronnen-gekozen', dagdeelRef.current || slotIdNow())
-        eersteEditie.current = true
-      }
+      if (!choice?.quick && (!prefs.onboarded || prefs.browsing)) tel('bronnen-gekozen', dagdeelRef.current || slotIdNow())
+      if (!prefs.onboarded) eersteEditie.current = true
       if (!prefs.onboarded) setTienStart(typeof performance !== 'undefined' ? performance.now() : Date.now())
       setPrefs((p) => applyWelcome(p, choice))
       route.go('editie', {}, { replace: true })
       setLeavingWelcome(true)
     },
-    [setPrefs, route.go, prefs.onboarded],
+    [setPrefs, route.go, prefs.onboarded, prefs.browsing],
   )
 
   // De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom, src/lib/welcome.js) is gezien.
@@ -407,10 +437,22 @@ export default function App() {
 
   // ---- Welk scherm ----
   const path = MAIN.includes(route.path) || PAGES.includes(route.path) ? route.path : 'editie'
-  // Over en Privacy zijn ook de support- en privacypagina van de app in de App Store: altijd direct
-  // leesbaar, ook voor wie Hoot nog nooit opende (anders zie je eerst het welkomstscherm).
-  const showWelcome = path === 'welkom' || (!prefs.onboarded && !['over', 'privacy'].includes(path))
+  // Eerst de Editie, daarna kiezen: het welkom staat alleen nog op de route welkom (opnieuw kiezen via
+  // "Maak Hoot van jou", Bronnen of Instellingen). Over en Privacy zijn ook de support- en
+  // privacypagina van de app in de App Store: altijd direct leesbaar.
+  const showWelcome = path === 'welkom'
   const page = PAGES.includes(path) && path !== 'welkom' ? path : null
+  // Een eerste bezoeker leest meteen: zodra de bronnen er zijn, één keer wat "Liever meteen lezen"
+  // deed (de gratis startset, lege interesses; `browsing`, dus later "Maak Hoot van jou"). Zonder
+  // bronnen (offline, feed nog niet binnen) schrijven we niets weg en proberen we het opnieuw zodra
+  // ze er zijn. Niet op de route welkom (daar kies je zelf) en niet op Over of Privacy.
+  const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
+  const startMeteen = !prefs.onboarded && !['welkom', 'over', 'privacy'].includes(path) && pickable.length > 0
+  useEffect(() => {
+    if (!startMeteen) return
+    eersteEditie.current = true
+    setPrefs((p) => (normalizePrefs(p).onboarded ? p : applyWelcome(p, { interests: [], topics: [], sources: startIds(pickable), all: pickable, quick: true })))
+  }, [startMeteen]) // eslint-disable-line react-hooks/exhaustive-deps
   // Gemeten: de Editie opent (één keer per dagdeel op dit toestel; tel.js), de Stroom en de Selectie openen.
   useEffect(() => {
     if (!showWelcome && path === 'editie') tel('editie-open', dagdeel)
@@ -418,12 +460,15 @@ export default function App() {
       eersteEditie.current = false
       tel('eerste-editie', dagdeel)
     }
-  }, [path, showWelcome, dagdeel])
-  // Het eerste welkom gaat open (niet bij opnieuw kiezen), en de herkomst (?via) bij binnenkomst.
-  const welkomEerst = showWelcome && !prefs.onboarded
-  useEffect(() => {
-    if (welkomEerst) tel('welkom-open', dagdeelRef.current || slotIdNow())
-  }, [welkomEerst])
+  }, [path, showWelcome, dagdeel, prefs.onboarded])
+  // Het welkom gaat open via "Maak Hoot van jou" (welkom-open, bij onMakeYours), en de herkomst (?via)
+  // bij binnenkomst.
+  // De stappen van het welkom (onboarding blok 6): de interesses en de bronnen openen.
+  const telStap = useCallback((e) => tel(e, dagdeelRef.current || slotIdNow()), [])
+  const makeYours = useCallback(() => {
+    tel('welkom-open', dagdeelRef.current || slotIdNow())
+    route.go('welkom')
+  }, [route.go])
   useEffect(() => {
     telVia()
   }, [])
@@ -467,7 +512,7 @@ export default function App() {
   const [joinOpen, setJoinOpen] = useState(false)
   const endSeen = useRef(false)
   const joinAsked = rawPrefs.joinAsked
-  const mayAsk = JOIN_AUTO && account.status === 'out' && prefs.onboarded && !showWelcome
+  const mayAsk = JOIN_AUTO && account.status === 'out' && prefs.onboarded && !showWelcome && !appKaart
   useEffect(() => {
     if (!mayAsk || joinOpen) return
     // Alleen echt lezen telt: scrollen na vinger, muis of toets (niet het terugzetten van je
@@ -699,7 +744,7 @@ export default function App() {
             <Edition
               active={shown === 'editie'}
               browsing={!!prefs.browsing}
-              onMakeYours={() => route.go('welkom')}
+              onMakeYours={makeYours}
               onLater={() => setPref('browsing', false)}
               bubble={bubble}
               brief={prefs.brief ? myEdition?.brief || null : null}
@@ -715,6 +760,10 @@ export default function App() {
               nextReady={editionNext}
               onSwap={swapEdition}
               storyOpen={!!story}
+              appKaart={appKaart}
+              onAppOpen={appKaartOpen}
+              onAppLater={appKaartLater}
+              onEndSeen={onEndSeen}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}
               statusProps={statusProps}
@@ -797,7 +846,7 @@ export default function App() {
                 Ongedaan maken
               </button>
             </div>
-          ) : installTip && prefs.onboarded ? (
+          ) : installTip && prefs.onboarded && !appKaart ? (
             <div className="toast toast--tip">
               <span>
                 Zet Hoot op je beginscherm: <ShareGlyph /> › <strong>Zet op beginscherm</strong>.
@@ -824,7 +873,7 @@ export default function App() {
         </div>
         {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome sources={sources} items={data?.items} edition={data?.edition} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} digest={vak.digest} />
+            <Welcome sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} digest={vak.digest} onStep={telStap} />
           </Suspense>
         ) : null}
       </div>

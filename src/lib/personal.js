@@ -16,9 +16,9 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
 import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, sameEventToMerge, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
-import { excludedFromEdition } from '../../shared/editie-filter.mjs'
+import { excludedFromEdition, audioEpisode } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME, belgianSubject, localAbroad } from '../../netlify/lib/desks.mjs'
-import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
+import { trustedTopics, OTHER_SPORT, showbizzKind } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
@@ -192,6 +192,15 @@ export function staleInput({ global, items = [], followed = new Set() }) {
   return theirs > 0 && own > 0 && theirs - own > STALE_INPUT_MS
 }
 
+// Achterklap & showbizz (OPT_IN) alleen voor wie het aantikte (besluit 13 november). Geweigerd wordt alleen een stuk dat
+// zelf showbizz is (showbizzKind in netlify/lib/topics.mjs), en nooit groot nieuws (majorNews of majorGeneralNews):
+// een NOS-stuk over influencers met illegale gezondheidsclaims is nieuws, ook voor wie Achterklap niet koos (dubbelcheck A5).
+export function optInRejected(lead, topics = [], meta = {}, members = lead ? [lead] : []) {
+  if (!lead || !(lead.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))) return false
+  if (!showbizzKind(lead)) return false
+  return !(majorNews(meta || {}, members) || majorGeneralNews(meta || {}, members))
+}
+
 export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set(), weg = null, _langRule = true, _memoSignatures = true }) {
   if (!global?.entries?.length) return null
   if (staleInput({ global, items, followed })) return null
@@ -282,7 +291,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // al het grote nieuws toe (selectForReader).
   let bubbleEntry = global.entries.find((e) => e.desk === 'bubbel') || null
   // Alleen nieuws telt als "je bron schrijft erover": een opiniestuk (ook van een opinieblad) wordt nooit de kop.
-  const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i)).map((i) => i.id))
+  const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !audioEpisode(i)).map((i) => i.id))
   const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
   const bigWide = w => majorNews(storyById.get(w.storyId) || w, [w.item])
   // De kop van een breed verhaal: je eigen stuk als je bron erover schrijft, anders dat van de server, mits leesbaar
@@ -317,7 +326,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const relead = (head, xs) => {
     if (readable(head)) return head
     const rubric = rubricOf(head)
-    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && readableIn(i, rubric))
+    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric))
     if (!ok.length) return null
     // Eerst wat niet verouderd is, dan je eigen bronnen, dan Nederlands vóór Vlaams; daarbinnen leadPool (kern, vers).
     const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok
@@ -366,8 +375,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const bubble = entry.desk === 'bubbel' || entry.bubble === true
     // Een onderwerp dat je zelf aantikt (OPT_IN, Achterklap & showbizz) komt alleen bij wie het aantikte (besluit 13
     // november); geen gewicht was niet genoeg, het stuk bleef als gewoon nieuws toegelaten (nachttest 14 november, R3).
+    // Alleen als het stuk zelf showbizz is (showbizzKind: de rubriek in de link of een roddelwoord zonder ander onderwerp),
+    // niet omdat er "influencer" of "celebrity" in staat, en nooit bij groot nieuws (dubbelcheck A5).
     const lead = itemAny.get(id) || members[0]
-    const optIn = (lead?.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))
+    const optIn = optInRejected(lead, topics, meta, members)
     const reason = optIn ? 'niet-aangetikt' : newsRejection(prof, meta, members, desk, { bubble })
     return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof,members,desk,meta), members, meta, desk }
   }
@@ -450,8 +461,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)))
   // Ook geen breed verhaal over het onderwerp van een kop uit je vorige Editie (zoals selectForReader), tenzij het
   // zich ontwikkelde: dan komt het als vervolg.
+  // Eén toets voor "stond al in je vorige Editie": hetzelfde onderwerp als een kop van toen (sameSubject, dat dezelfde
+  // gebeurtenis omvat). Een gewone plek mag als vervolg terugkomen; Buiten je bubbel nooit (dubbelcheck A7, shownBefore).
   const prevHeads = previous ? previousHeads(sigAll, previous, now) : []
-  const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg
+  const shownBefore = (id) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s))
+  const sameAsPrevious = (id, sid) => shownBefore(id) && !againOf(id, sid).vervolg
   // Lokaal nieuws van elders (persona's 14 november, punt 7; localAbroad in netlify/lib/desks.mjs) is geen "Waar iedereen
   // over schrijft", tenzij het groot nieuws is: het Senaatsleiderschap van de Democraten of een rechtszaak in Delaware.
   const localWide = (w) => !bigWide(w) && localAbroad([wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)], { desk: storyById.get(w.storyId)?.desk ?? null })
@@ -575,7 +589,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     // Zonder Wereld geen buitenlands bubbelstuk (feedback 31 oktober: Seedorf bij Corinthians, Braziliaans
     // voetbal, ook voor wie alleen Binnenland koos): dan het volgende signaal, of "Naast je bubbel".
     // Een los bericht met een onleesbare kop (de taalregel) slaan we over: dan het volgende signaal.
-    const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && !!bubbleLeadOf(b.storyId, b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
+    // Nieuw onderwerp, niet eerder getoond (dubbelcheck A7): ook geen stuk over dezelfde gebeurtenis als een kop uit je
+    // vorige Editie, van welke bron ook (shownBefore, sameEvent zoals pickBubble). En een kop buiten je bubbel
+    // (bubbleLeadOf, persona 5). Samen één toelating voor elk bubbelstuk, ook Naast je bubbel hieronder.
+    const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && !!bubbleLeadOf(b.storyId, b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && !shownBefore(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
     // Niet voor iedereen hetzelfde stuk: de trend is een bron van kandidaten, niet de keuze. Van de kandidaten die voor jou
     // kunnen (het signaal van de algemene Editie en de andere van de server), kiest je eigen vaste zaad (jitter: je bronnen,
     // interesses en het dagdeel). Zelfde lezer en dagdeel, zelfde stuk; geen toeval.
@@ -593,7 +610,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
         .filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5)
         .sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id))
         .map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }))
-      const fits = (w) => w?.item?.id && !!bubbleLeadOf(w.storyId, w.item.id) && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId))
+      const fits = (w) => w?.item?.id && !!bubbleLeadOf(w.storyId, w.item.id) && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !shownBefore(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId))
       // Met een leesbare kop (de taalregel) van een bron die je niet volgt: uit hetzelfde verhaal, of anders het volgende verhaal.
       const nearLead = (w) => bubbleLeadOf(w.storyId, w.item.id)
       const pick0 = [...(global.near || []), ...recent].find((w) => fits(w) && nearLead(w))

@@ -30,7 +30,9 @@ test('dezelfde tekst als de app, Later is een antwoord, kiezen opent het welkom 
   const swift = src('ios/Hoot/Views/EditionView.swift')
   assert.match(swift, /Je leest nu een keuze uit gratis Nederlandse bronnen\. Kies je eigen bronnen en interesses, dan wordt dit echt jouw Editie\./)
   const app = src('src/App.jsx')
-  assert.match(app, /onMakeYours=\{\(\) => route\.go\('welkom'\)\}/)
+  assert.match(app, /onMakeYours=\{makeYours\}/)
+  // Kiezen telt het openen van het welkom (welkom-open, onboarding 14 november) en opent de route welkom.
+  assert.match(app, /const makeYours = useCallback\(\(\) => \{\s*tel\('welkom-open', [^\n]*\n\s*route\.go\('welkom'\)/)
   assert.match(app, /onLater=\{\(\) => setPref\('browsing', false\)\}/)
   // Sticky als laatste in de kolom: nooit over de rode eindkaart.
   const e = src('src/views/Edition.jsx')

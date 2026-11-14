@@ -43,11 +43,19 @@ test('updateHealth bewaart de reden van de laatste mislukking, en een gelukte ro
   assert.equal(h.a.lastError, 'geweigerd: HTTP 403')
 })
 
-test('updateHealth: een bron die niet aan de beurt kwam, krijgt geen oordeel', () => {
+test('updateHealth: een bron die niet aan de beurt kwam, krijgt geen oordeel, maar het overslaan telt (A4)', () => {
   const before = { a: { since: iso(t0), lastOk: iso(t0) } }
   const h = updateHealth(before, [{ id: 'a', skipped: true }, { id: 'nieuw', skipped: true }], t0 + day)
-  assert.deepEqual(h.a, before.a)
-  assert.equal(h.nieuw, undefined)
+  assert.equal(h.a.lastOk, before.a.lastOk)
+  assert.equal(h.a.lastFail, undefined)
+  assert.equal(h.a.skips, 1)
+  assert.equal(h.a.lastSkip, iso(t0 + day))
+  assert.equal(healthOf(h.a, t0 + day), 'ok')
+  assert.equal(h.nieuw.skips, 1)
+  assert.equal(healthOf(h.nieuw, t0 + day), 'nieuw', 'nog nooit geprobeerd: geen oordeel')
+  // Een poging zet de telling terug.
+  const na = updateHealth(h, [{ id: 'a', ok: true, newest: iso(t0 + day) }], t0 + day + 3600e3)
+  assert.equal(na.a.skips, undefined)
 })
 
 test('healthReport toont de stand geweigerd en de reden bij de bronnen op pauze', () => {
@@ -153,4 +161,46 @@ test('failureLine: één logregel met de mislukte bronnen en hun reden', () => {
     failureLine([{ id: 'a', ok: true }, { id: 'vak:emerce', ok: false, error: 'geweigerd: HTTP 403' }, { id: 'c', skipped: true }]),
     'vak-refresh: 1 van 2 bronnen mislukt, 1 niet aan de beurt: vak:emerce (geweigerd: HTTP 403)',
   )
+})
+
+// Dubbelcheck 14 november, A4: een ronde haalt hooguit `concurrency` feeds tegelijk en begint na de eindtijd niet meer
+// aan een nieuwe. Met een vaste volgorde werden elk uur dezelfde bronnen achteraan overgeslagen, en bleven ze op ok staan.
+// Nu draait de volgorde op de laatste poging: wie niet aan de beurt kwam, staat de volgende ronde vooraan.
+test('A4: rotatie op de laatste poging, met een nep-loader: geen bron wordt structureel overgeslagen', async () => {
+  const sources = Array.from({ length: 15 }, (_, k) => ({ id: 'v' + k, urls: ['https://example.invalid/' + k] }))
+  const load = async (src) => (await new Promise((r) => setTimeout(r, 25)), { id: src.id, ok: true, count: 0, items: [] })
+  let health = {}
+  let now = t0
+  const turns = Object.fromEntries(sources.map((s) => [s.id, 0]))
+  for (let round = 0; round < 4; round++) {
+    const list = sourcesToLoad(health, now, sources, { split: false })
+    const { status } = await loadVakItems(list, { concurrency: 2, deadline: Date.now() + 110, load })
+    const tried = status.filter((r) => !r.skipped)
+    assert.ok(tried.length > 0 && tried.length < sources.length, 'een krappe ronde: niet iedereen komt aan de beurt')
+    tried.forEach((r) => turns[r.id]++)
+    // Wie deze ronde werd overgeslagen, staat de volgende ronde vooraan.
+    const skipped = status.filter((r) => r.skipped).map((r) => r.id)
+    health = updateHealth(health, status, now)
+    now += 3600e3
+    const next = sourcesToLoad(health, now, sources, { split: false }).map((s) => s.id)
+    assert.deepEqual(next.slice(0, skipped.length).sort(), [...skipped].sort())
+  }
+  assert.ok(Object.values(turns).every((n) => n >= 1), 'na een paar rondes is elke bron minstens één keer geprobeerd')
+})
+
+test('A4: een bron die een week geen poging kreeg, staat niet op ok maar op overgeslagen, en komt vooraan bij de herkansing', () => {
+  const since = iso(t0 - 30 * day)
+  let health = { a: { since, lastOk: iso(t0 - 10 * day), newest: iso(t0 - 10 * day) }, b: { since, lastOk: iso(t0), newest: iso(t0) } }
+  for (let k = 0; k < 3; k++) health = updateHealth(health, [{ id: 'a', skipped: true }, { id: 'b', ok: true, newest: iso(t0) }], t0 + k * 3600e3)
+  assert.equal(healthOf(health.a, t0 + day), 'overgeslagen')
+  assert.equal(health.a.skips, 3)
+  const sources = [{ id: 'b' }, { id: 'a' }]
+  assert.deepEqual(sourcesToLoad(health, t0 + day, sources, { split: false }).map((s) => s.id), ['a', 'b'])
+  const r = healthReport(health, t0 + day, [{ id: 'a', name: 'A', fields: ['film'], urls: ['u'] }, { id: 'b', name: 'B', fields: ['film'], urls: ['v'] }])
+  assert.equal(r.paused.length, 1)
+  assert.equal(r.paused[0].state, 'overgeslagen')
+  assert.equal(r.paused[0].skips, 3)
+  // Kreeg hij weer een poging en lukte die, dan is hij gewoon gezond.
+  health = updateHealth(health, [{ id: 'a', ok: true, newest: iso(t0 + day) }], t0 + day)
+  assert.equal(healthOf(health.a, t0 + day), 'ok')
 })

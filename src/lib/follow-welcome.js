@@ -1,12 +1,12 @@
-// Volg je bronnen (Welkom, stap 4, na de interesses) — pure functies, getoetst in
-// tests/follow-welcome.test.mjs. Zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis
-// (Nederlands nieuws, met het gratis begin NOS, NU.nl en RTL Nieuws voorop), daaronder per gekozen
-// interesse een eigen blok met de bronnen die erbij horen, ook de kleine en de vakbronnen, en een
-// gratis aanrader voorop. Wat in geen blok valt staat ingeklapt onder Meer bronnen; sport alleen
+// Volg je bronnen (Welkom, stap 3, na de interesses) — pure functies, getoetst in
+// tests/follow-welcome.test.mjs. Zoals accounts volgen: niets staat vooraf aan. Bovenaan Voor jou (het
+// voorstel, of zonder interesses het gratis begin NOS, NU.nl en RTL Nieuws), direct daaronder open de
+// kranten ("Lees je een krant?"), dan per gekozen interesse een eigen blok met de bronnen die erbij
+// horen, ook de kleine en de vakbronnen, en een gratis aanrader voorop. Wat in geen blok valt staat ingeklapt onder Meer bronnen; sport alleen
 // als je Sport kiest. Zoeken vindt alles, ook sport: zoeken is ook een keuze.
 // Zelfde regels als de app (WelcomeView.swift, FollowList).
 import { INTERESTS, SOURCE_CATS, STARTER } from './topics.js'
-import { opinieInStroom } from '../../shared/opinie.mjs'
+import { sourceLine } from './welcome.js'
 
 export const FREE_START = ['nos', 'nu', 'rtl']
 export const SPORT = 'sport'
@@ -21,6 +21,13 @@ export function freeStart(sources = []) {
   return FREE_START.map((id) => byId.get(id)).filter((s) => s && !s.paid)
 }
 
+// De hoofdknop als je niets volgt (onboarding blok 4): "Begin met NOS, NU.nl en RTL Nieuws", gebouwd uit
+// het gratis begin, zodat de tekst klopt als er een ontbreekt. Zonder gratis begin gewoon "Naar je Editie".
+export function beginLabel(sources = []) {
+  const names = freeStart(sources).map((s) => s.name)
+  return names.length ? `Begin met ${sourceLine(names)}` : 'Naar je Editie'
+}
+
 // "Later kiezen" en "Liever meteen lezen": de startset (gratis, Nederlands, geen sport).
 export function startIds(sources = []) {
   const ok = new Set(sources.filter((s) => !s.paid).map((s) => s.id))
@@ -28,7 +35,8 @@ export function startIds(sources = []) {
 }
 
 // De Basis: het Nederlandse nieuws in het kort: het gratis begin voorop (NOS, NU.nl, RTL Nieuws), dan
-// de kranten als losse rijen in vaste volgorde. Die volgorde is gekozen, niet alfabetisch. De andere
+// de kranten als losse rijen in vaste volgorde. Die volgorde is gekozen, niet alfabetisch. In het welkom
+// staan de kranten als eigen groep "Lees je een krant?" direct onder Voor jou (krantenSources). De andere
 // Nederlandse titels staan onder Meer bronnen, zodat de blokken van je interesses niet ver weg zakken.
 export const BASIS_CAT = 'nl'
 export const BASIS_KRANTEN = ['volkskrant', 'nrc', 'trouw', 'parool', 'ad', 'telegraaf']
@@ -38,6 +46,11 @@ export function basisSources(sources = []) {
   const taken = new Set(start.map((s) => s.id))
   const kranten = BASIS_KRANTEN.map((id) => byId.get(id)).filter((s) => s && !taken.has(s.id))
   return [...start, ...kranten]
+}
+// De groep "Lees je een krant?": de kranten van de Basis, zonder wat al in Voor jou staat. Niets staat vooraf aan.
+export function krantenSources(sources = [], exclude = []) {
+  const taken = new Set(exclude)
+  return basisSources(sources).filter((s) => BASIS_KRANTEN.includes(s.id) && !taken.has(s.id))
 }
 
 // Bij een interesse horen de bronnen uit zijn rubrieken (INTERESTS.cats; Wereld krijgt er
@@ -108,31 +121,12 @@ export const followedSources = (sources = [], followed = []) => {
 // "3 bronnen gevolgd": de regel boven de knop (ook voor de schermlezer).
 export const followedLine = (n) => (n ? `${n} ${n === 1 ? 'bron' : 'bronnen'} gevolgd` : 'Nog niets gevolgd')
 
-// Het meegroeiende voorbeeld: per bron die je volgt het nieuwste artikel, de nieuwste eerst.
-// Volg je nog niets, dan het gratis begin. Echte koppen uit de feed; geen kop van een bron die je
-// niet volgt, en geen opinie: die draagt geen plek in de Editie (gelijk aan FollowList.preview in de app).
-export function previewLines(items = [], sources = [], followed = [], max = 4) {
-  const ids = followed.length ? followed : FREE_START
-  const byId = new Map(sources.map((s) => [s.id, s]))
-  const newest = new Map()
-  for (const it of items) {
-    if (it.kind && it.kind !== 'article') continue
-    if (!ids.includes(it.source) || !it.title || opinieInStroom(it)) continue
-    const prev = newest.get(it.source)
-    if (!prev || (it.publishedAt || '') > (prev.publishedAt || '')) newest.set(it.source, it)
-  }
-  return [...newest.values()]
-    .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
-    .slice(0, max)
-    .map((it) => ({ id: it.id, title: it.title, source: byId.get(it.source) || { id: it.source, name: it.sourceName || it.source } }))
-}
-
 // ---- Inklapbare categorieën (1.1.1, wens van Alex) ----
 // Elke categorie van de bronnenstap (de Basis, een blok per interesse, een groep onder Meer bronnen) klapt in
 // en uit. Ingeklapt staan alleen de naam en het aantal gekozen bronnen. Bij het openen van de stap staat een
-// categorie open als je er al iets in volgt; de Basis staat altijd open, want daar begin je ("Begin bij de
-// Basis"). Daarna beslis jij: een categorie klapt niet vanzelf dicht als je er alles ontvolgt.
+// categorie open als je er al iets in volgt; Voor jou en de kranten staan altijd open (onboarding blok 4: de
+// krant naar voren). Daarna beslis jij: een categorie klapt niet vanzelf dicht als je er alles ontvolgt.
 export const chosenIn = (list = [], followed = []) => list.filter((s) => followed.includes(s.id)).length
-export const startsOpen = (id, chosen) => id === 'basis' || chosen > 0
+export const startsOpen = (id, chosen) => id === 'basis' || id === 'kranten' || chosen > 0
 // Wat de kop rechts zegt: "2 van 8 gevolgd", of zonder keuze het aantal bronnen ("8 bronnen").
 export const foldCount = (chosen, total) => (chosen ? `${chosen} van ${total} gevolgd` : `${total} ${total === 1 ? 'bron' : 'bronnen'}`)

@@ -47,6 +47,8 @@ test('de Nederlandstalige en Engelstalige berichten over dezelfde vliegtuigcrash
   const story = stories.find(s => s.itemIds.includes('3ruey4')) // Engelse kop
   assert.ok(story?.itemIds.includes('1r0eng4')) // Nederlandse NOS-kop
   assert.equal(story.itemIds.length, 12, 'de twaalf stukken uit de oorspronkelijke herberekening blijven samen')
-  assert.equal(story.sourceCount, 11)
+  // Elf bronnen tot 14 november 2026; sindsdien is een aflevering geen bron (shared/aflevering.mjs): Al Jazeera bracht
+  // alleen een video (/video/newsfeed/), die blijft lid maar telt niet mee.
+  assert.equal(story.sourceCount, 10)
   assert.ok(story.publisherCount >= 8)
 })

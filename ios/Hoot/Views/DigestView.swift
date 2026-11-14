@@ -9,6 +9,7 @@ struct DigestView: View {
     private static var fields: [DigestFieldsList.Field] { DigestFieldsList.fields }
     @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     @State private var choosing = false
+    @State private var draft: [String] = [] // de lege Selectie: wat je kiest, tot Bewaar
     @State private var folding = SelectionFoldState()
     @State private var flash: String?
     @AccessibilityFocusState private var focusedField: String?
@@ -41,7 +42,7 @@ struct DigestView: View {
                     ScreenTitle("Selectie") // de schermtitel in de scroll (C7)
                     let o = overview
                     if store.digestFields.isEmpty {
-                        empty(title: "Kies je onderwerpen", text: SelectionOverview.choose, row: "Kies onderwerpen", sub: "Nog niets gekozen")
+                        kies
                         voorproef(SelectionOverview.voorproefje(store.digest))
                     } else if let d = store.digest {
                         Group {
@@ -58,6 +59,7 @@ struct DigestView: View {
                                 }
                                 .id(field.id)
                             }
+                            slot
                         }
                         let seen = o.fields.reduce(0) { $0 + ($1.count ?? 0) }
                         if seen > 0 { how(seen) }
@@ -160,6 +162,51 @@ struct DigestView: View {
         .padding(.top, Space.s5)
     }
 
+    // De lege Selectie vraagt het zelf (onboarding blok 5, gelijk aan .dkies in Vak.jsx): één zin, de onderwerpen
+    // per domein als keuzes, en één knop. Bewaar zet de keuze in de vaste volgorde van de lijst.
+    private var kies: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(SelectionOverview.choose).uitleg().foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
+            ForEach(DigestFieldsList.domains, id: \.label) { d in
+                let fields = d.fields.filter { store.offersField($0.id) }
+                if !fields.isEmpty {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        GroupTitle(text: d.label)
+                        Flow {
+                            ForEach(fields, id: \.id) { f in
+                                ChoiceChip(label: f.label, on: draft.contains(f.id)) {
+                                    draft = draft.contains(f.id) ? draft.filter { $0 != f.id } : draft + [f.id]
+                                }
+                            }
+                        }
+                    }
+                    .padding(.top, Space.s5)
+                    .disabled(!preferencesReady)
+                }
+            }
+            Button {
+                let keuze = Set(draft)
+                store.digestFields = Self.fields.map(\.id).filter { keuze.contains($0) }
+                draft = []
+            } label: {
+                Text(SelectionOverview.bewaarLabel(draft.count))
+                    .font(.ui(.headline, .heavy))
+                    .lineLimit(1).minimumScaleFactor(0.7)
+                    .foregroundStyle(Theme.paper)
+                    .padding(.horizontal, Space.s4)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Theme.ink, in: Capsule())
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(ChoicePress())
+            .disabled(draft.isEmpty || !preferencesReady)
+            .opacity(draft.isEmpty || !preferencesReady ? 0.4 : 1)
+            .padding(.top, Space.s6)
+            .accessibilityIdentifier("selectie-bewaar")
+        }
+        .padding(.top, Space.s4)
+    }
+
     // Een voorproefje onder "Kies onderwerpen" (keuze r5-selectie-onderwerpen, gelijk aan .dproef op het web):
     // uit de Selectie van deze week per domein één onderwerp met zijn beste stuk, hooguit drie. Echte stukken.
     @ViewBuilder private func voorproef(_ proef: [(id: String, label: String, item: DigestItem)]) -> some View {
@@ -185,6 +232,20 @@ struct DigestView: View {
             .padding(.top, Space.s7)
             .padding(.bottom, Space.s6)
         }
+    }
+
+    // Het slot onder het laatste onderwerp (Selectie-review 14 november, punt 6): ook de Selectie heeft een einde.
+    // Gelijk aan .dslot in Vak.jsx.
+    private var slot: some View {
+        VStack(spacing: Space.s1) {
+            Kop(SelectionOverview.slot[0], .title2).foregroundStyle(Theme.ink)
+            Text(SelectionOverview.slot[1]).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.top, Space.s7)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("selectie-slot")
     }
 
     private func how(_ seen: Int) -> some View {
@@ -263,12 +324,16 @@ struct SelectionOverview {
     var summary: String { "\(Self.pieces(picked)) in \(live.count == 1 ? "1 onderwerp" : "\(live.count) onderwerpen")" }
     static func pieces(_ n: Int) -> String { n == 0 ? "Nog geen stukken" : n == 1 ? "1 stuk" : "\(n) stukken" }
     static func join(_ names: [String]) -> String { names.count < 2 ? names.joined() : names.dropLast().joined(separator: ", ") + " en " + names.last! }
+    // Het slot onder het laatste onderwerp, woord voor woord gelijk aan SLOT in src/lib/selection-index.js.
+    static let slot = ["Je weet genoeg.", "Maandag een nieuwe."]
     static let emptyField = "Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw."
     static let noSources = "Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer."
-    static let choose = "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week."
+    static let choose = "Elke maandag drie stukken over je werk of hobby. Kies waarover."
+    // De knop onder de lege Selectie (gelijk aan bewaarLabel in src/lib/selection-index.js).
+    static func bewaarLabel(_ n: Int) -> String { n == 0 ? "Kies een onderwerp" : n == 1 ? "Bewaar 1 onderwerp" : "Bewaar \(n) onderwerpen" }
     // Het voorproefje bij een lege Selectie (gelijk aan voorproefje() in src/lib/selection-index.js): per domein
     // (de vaste volgorde van shared/vak.mjs) het eerste onderwerp met stukken, hooguit `max`, met zijn beste stuk.
-    static let voorproef = "Zo ziet het eruit: per onderwerp de beste stukken van de week."
+    static let voorproef = "Zo ziet het eruit: per onderwerp een stuk uit de Selectie van deze week."
     static func voorproefje(_ digest: Digest?, max: Int = 3) -> [(id: String, label: String, item: DigestItem)] {
         let byId = Dictionary((digest?.fields ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         var out: [(id: String, label: String, item: DigestItem)] = []
@@ -362,19 +427,27 @@ struct FieldSection: View {
                 } else {
                     Text(SelectionOverview.emptyField).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                 }
+                // Ook deze week: standaard ingeklapt (Selectie-review, punt 6), zoals de uitklapper op het web.
                 if !field.more.isEmpty {
-                    Text("OOK DEZE WEEK").font(.ui(.caption, .heavy)).tracking(0.6).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
-                    ForEach(field.more) { item in
-                        VStack(alignment: .leading, spacing: Space.s0) {
-                            Kop(item.title, .headline).foregroundStyle(Theme.ink)
-                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.ui(.caption)).foregroundStyle(Theme.hint)
+                    DisclosureGroup {
+                        ForEach(field.more) { item in
+                            VStack(alignment: .leading, spacing: Space.s0) {
+                                Kop(item.title, .headline).foregroundStyle(Theme.ink)
+                                Text([item.sourceName ?? "", HootDate.ago(item.publishedAt.flatMap(HootDate.parse)), item.paid == true ? "Abonnement" : nil].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.hint)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, Space.s2)
+                            .contentShape(Rectangle())
+                            .opensArticle(item.asItem)
+                            Rule()
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, Space.s2)
-                        .contentShape(Rectangle())
-                        .opensArticle(item.asItem)
-                        Rule()
+                    } label: {
+                        Text("OOK DEZE WEEK").font(.ui(.caption, .heavy)).tracking(0.6).foregroundStyle(Theme.ink3)
+                            .frame(minHeight: Space.tap, alignment: .leading)
                     }
+                    .tint(Theme.ink3)
+                    .padding(.top, Space.s2)
+                    .accessibilityIdentifier("selectie-meer-" + field.id)
                 }
             }
         }
@@ -427,7 +500,7 @@ private struct DigestCard: View {
                     // Eén tekst met links, zodat hij bij grote tekst gewoon terugloopt.
                     Text(Self.alsoLine(also)).font(.ui(.caption)).foregroundStyle(Theme.hint)
                 }
-                SourceLine(item: item.asItem, linkSource: false) // de Digest heeft geen bronpagina's
+                SourceLine(item: item.asItem, linkSource: false, paid: item.paid == true) // de Digest heeft geen bronpagina's; "Abonnement" bij een betaalde vakbron
                 if let via = item.via { Text("via \(via)").font(.ui(.caption2)).foregroundStyle(Theme.hint) }
             }
             .padding(.horizontal, Space.s4)

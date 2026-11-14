@@ -21,6 +21,7 @@ import { publisherOf, coverageOf, isGallery } from '../../shared/edition-policy.
 import { desksOf } from './desks.mjs'
 import { isLive, titled, leadCandidates } from './stories.mjs'
 import { SOURCES } from './sources.mjs'
+import { isAflevering } from '../../shared/aflevering.mjs'
 
 export const DOSSIER_MIN = 4
 export const DOSSIER_HOURS = 24
@@ -40,7 +41,9 @@ const isAcronym = (w) => /^(?=.*\p{Lu})[\p{Lu}\p{N}]{2,5}$/u.test(w) && /\p{Lu}/
 export function haagsPiece(it) {
   const src = SOURCE.get(it?.source)
   if (!it || !titled(it) || !src || src.lang !== 'nl' || !['nl', 'economie', 'regio'].includes(src.cat) || !HAAGS.test(it.title)) return false
-  if ((it.lang && it.lang !== 'nl') || it.type === 'opinie' || isOpinion(it) || isLive(it) || isGallery(it)) return false
+  // Een aflevering (podcast, audio, video; shared/aflevering.mjs) is geen Haags stuk: ze telt niet mee voor de uitgevers
+  // van het dossier (keuring luister, 14 november 2026).
+  if ((it.lang && it.lang !== 'nl') || it.type === 'opinie' || isOpinion(it) || isLive(it) || isGallery(it) || isAflevering(it)) return false
   return desksOf(it).has('binnenland')
 }
 

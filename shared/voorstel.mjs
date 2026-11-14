@@ -25,6 +25,9 @@
 //    Politiek en Wetenschap hebben geen eigen Nederlandse bron), dan vult het gratis Nederlandse nieuws
 //    aan: NU.nl en RTL Nieuws (RTL niet als alleen Politiek en Binnenland zijn gekozen, r5-politiek-rtl).
 //    Engelstalige bronnen blijven te kiezen in de blokken, Meer bronnen en bij zoeken.
+// 7. Alleen landelijke bronnen (dubbelcheck 14 november): een regionale omroep of regionale krant (rubriek
+//    `regio` of uitgever `regionale-omroep`) komt nooit in het voorstel, ook niet bij Binnenland. Lokaal nieuws
+//    uit één provincie is geen eerste indruk die je niet zelf koos; die bronnen blijven te kiezen in de blokken.
 // Per bron een korte reden in de stijl van de waarom-regels, vanuit wat de lezer eraan heeft. Nooit
 // "Omdat je X volgt" (huisregel).
 import { INTERESTS } from '../src/lib/topics.js'
@@ -39,6 +42,8 @@ const free = (s) => !s.paid
 // De catalogus raadt hem aan voor deze interesse (`for`) of voor een onderwerp ervan (`forTopic`).
 const aanrader = (s, i) => (s.for || []).includes(i.id) || (!!s.forTopic && i.topics.includes(s.forTopic))
 const dutch = (s) => s.lang === 'nl'
+// Regionaal: een regionale omroep of regionale krant (regel 7). Die stelt het welkom nooit voor.
+export const regional = (s) => !!s && (s.cat === 'regio' || s.publisher === 'regionale-omroep')
 
 // Hoe sterk past bron s bij interesse i? 0 is niet. De catalogus die hem aanraadt (`for`) telt het zwaarst,
 // dan een onderwerp dat je koos (`forTopic`), dan zijn rubriek, dan een onderwerp dat bij de interesse hoort.
@@ -65,7 +70,7 @@ const label = (ids) => {
 export function voorstel(sources = [], interests = [], topics = [], { english = false } = {}) {
   const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)))
   if (!chosen.length) return null
-  const news = sources.filter((s) => s.kind !== 'sociaal' && (english || !s.lang || s.lang === 'nl')) // nieuws en muziek, geen Bluesky-accounts; zonder Engels aan alleen Nederlands
+  const news = sources.filter((s) => s.kind !== 'sociaal' && !regional(s) && (english || !s.lang || s.lang === 'nl')) // nieuws en muziek, geen Bluesky-accounts, niets regionaals; zonder Engels aan alleen Nederlands
   const out = []
   const has = (id) => out.some((o) => o.id === id)
   const add = (s, why) => s && !has(s.id) && out.length < VOORSTEL_MAX && out.push({ id: s.id, why })

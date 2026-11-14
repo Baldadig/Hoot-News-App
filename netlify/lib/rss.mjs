@@ -9,7 +9,9 @@ import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleT
 import { langOf } from '../../shared/lang.mjs'
 import { rubricSegments } from '../../shared/editie-filter.mjs'
 import { couponPage } from './kortingscode.mjs'
+import { shopCategory } from '../../shared/koopsignaal.mjs'
 import { opinieRubriek } from '../../shared/opinie.mjs'
+import { reviewCategory } from '../../shared/recensie.mjs'
 
 const parser = new Parser({
   timeout: 9000,
@@ -37,6 +39,12 @@ export function mediaFields(it = {}, cats = []) {
   const first = String(cats[0] || '').trim().toLowerCase()
   if (/^podcasts?$/.test(first)) out.feedMark = 'podcast'
   else if (/^(videos?|video's)$/.test(first)) out.feedMark = 'video'
+  // Een categorie die het stuk als aanbod of koopgids indeelt ("Gear / Deals", "Buying Guides", "Aanbiedingen"; nooit onder
+  // zaken of markten): alleen voor de Editie (hardMark, met een koopvorm in de kop). De Stroom toont het gewoon.
+  else if (shopCategory(cats)) out.feedMark = 'aanbod'
+  // Een recensierubriek van de uitgever ("Recensie", "Reviews", "Album van de dag", "Review / Gaming / Games"), in elke
+  // categorie: een recensie is een soort, geen onderwerp. Uit de Editie (shared/recensie.mjs); de Stroom en de Selectie houden het.
+  else if (reviewCategory(cats)) out.feedMark = 'recensie'
   return out
 }
 

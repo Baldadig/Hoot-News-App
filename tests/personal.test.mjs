@@ -226,7 +226,9 @@ test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indel
   // De zetels Buitenland gaan naar de bredere verhalen uit Londen en Parijs; de review komt bij het
   // aanvullen en heet dan Tech, niet Buitenland ("Britse fabrikant").
   const sources = [{ id: 'nos', cat: 'nl' }, { id: 'tweakers', cat: 'tech' }]
-  const review = art('rv', 'tweakers', 'Review: koptelefoon van Britse fabrikant Nothing', { publishedAt: ago(0.2) })
+  // Sinds 14 november gaat een recensie ("Review:") helemaal uit de Editie (shared/recensie.mjs); een producttest ("Test:")
+  // telt de recensieregel niet (te breed), en houdt hier de rubriek van de bron.
+  const review = art('rv', 'tweakers', 'Test: koptelefoon van Britse fabrikant Nothing', { publishedAt: ago(0.2) })
   const abroad = [
     art('bu1', 'nos', 'Britse premier stapt op na nederlaag in Londen', { publishedAt: ago(0.5) }),
     art('bu2', 'nos', 'Britse regering in crisis na vertrek premier', { publishedAt: ago(0.4) }),
@@ -237,6 +239,9 @@ test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indel
   const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, interests: ['wereld', 'tech'], topics: ['oekraine', 'middenoosten', 'azie', 'afrika', 'latam', 'geopolitiek', 'gadgets'], now: NOW, builtAt: 'T' })
   assert.deepEqual(['sBrit', 'sFrans'].map((id) => e.entries.find((x) => x.id === id).desk), ['buitenland', 'buitenland'])
   assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
+  const recensie = { ...review, id: 'rv2', title: 'Review: koptelefoon van Britse fabrikant Nothing' }
+  const zonder = composePersonal({ global, stories: st, items: [...items, ...abroad, recensie], sources, followed, interests: ['wereld', 'tech'], topics: ['oekraine', 'middenoosten', 'azie', 'afrika', 'latam', 'geopolitiek', 'gadgets'], now: NOW, builtAt: 'T' })
+  assert.ok(!zonder.entries.some((x) => (x.leadId || x.id) === 'rv2'), 'een recensie krijgt geen plek')
 })
 
 test('vingerafdruk: andere bronnen of interesses geven een andere afdruk, volgorde maakt niet uit', () => {

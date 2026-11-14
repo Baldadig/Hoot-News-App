@@ -4,6 +4,7 @@ import { storyForeignOf, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 import { keywordTopics } from '../netlify/lib/topics.mjs'
 import { opinieBron } from './opinie.mjs'
+import { isAflevering } from './aflevering.mjs'
 
 // Expliciete uitgeverlanden; taal en het land in een artikel zijn nooit bewijs hiervoor.
 // Onbekende uitgevers leveren geen extra land op. Sectiefeeds blijven dezelfde uitgever.
@@ -22,7 +23,7 @@ const COUNTRIES = Object.fromEntries(Object.entries({
   GB: ['guardian','bbc','economist','ft','independent','telegraph','eurogamer','nature','carbonbrief','autosport','quietus'],
   // France 24 en RFI als hun uitgever (`publisher`), Euronews met zijn hoofdkantoor in Lyon.
   DE: ['dw'], FR: ['lemonde','france-medias-monde','euronews'], QA: ['aljazeera'], HK: ['scmp'],
-  AU: ['abc-au'], UA: ['kyivindependent'], IL: ['haaretz','timesofisrael'],
+  AU: ['abc-au'], UA: ['kyivindependent'], IL: ['haaretz'],
 }).flatMap(([country, ids]) => ids.map(id => [id, country])))
 export const publisherOf = id => ALIAS[id] || id
 export const publisherCountry = id => COUNTRIES[publisherOf(id)] || null
@@ -51,9 +52,11 @@ export function countedPublishers(publishers = []) {
   return n
 }
 // Een opinieblad telt niet mee (shared/opinie.mjs, opinieBron): tien opiniebladen over één debat maken het nog geen
-// groot nieuws.
+// groot nieuws. Een aflevering ook niet (shared/aflevering.mjs, 14 november 2026): vier podcasts over Nvidia zijn geen
+// vier bronnen.
+export const countsAsSource = i => !!i && !opinieBron(i.source) && !isAflevering(i)
 export function coverageOf(items = []) {
-  const ids = [...new Set(items.filter(i => !opinieBron(i.source)).map(i => publisherOf(i.source)).filter(Boolean))].sort()
+  const ids = [...new Set(items.filter(countsAsSource).map(i => publisherOf(i.source)).filter(Boolean))].sort()
   return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() }
 }
 // ---- Noodfix 2 november 2026: sport op niveau van het verhaal, en de galerij ----
@@ -93,7 +96,7 @@ export function majorNews(story = {}, items = []) {
   if (onlyGalleries(items)) return false
   const coverage = coverageOf(items)
   // Nieuwe backendvelden bevatten de volledige gebeurtenis, ook bij een gedeeltelijke clientpool.
-  const observedSources = new Set(items.map(i => i.source).filter(Boolean)).size
+  const observedSources = new Set(items.filter(i => !isAflevering(i)).map(i => i.source).filter(Boolean)).size
   const count = story.publisherCount ?? (observedSources >= (story.sourceCount || Infinity) ? coverage.publisherCount : story.sourceCount) ?? coverage.publisherCount
   const countries = new Set(story.publisherCountries || coverage.publisherCountries)
   return count >= FRONT_BIG || (count >= 5 && countries.size >= 2)
@@ -110,7 +113,7 @@ export const sportChosen = prof => prof.interests ? prof.interests.has('sport') 
 // volgt, ziet niet dat NOS het ook bracht.
 // 14 november 2026: de nieuwe algemene nieuwsbronnen van buiten (bronnen-internationaal, bronnen-amerika); opiniebladen niet, die dragen geen plek.
 const FOREIGN_NEWS = new Set(['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','guardian','bbc','economist','ft','independent','telegraph','dw','lemonde','aljazeera','scmp',
-  'france24','rfi','euronews','abc-au','kyivindependent','haaretz','timesofisrael','axios','propublica','wapo','wapo-politics'])
+  'france24','rfi','euronews','abc-au','kyivindependent','haaretz','axios','propublica','wapo','wapo-politics'])
 const BEAT = new Set(['economie','tech','wetenschap','cultuur','sport'])
 const generalNews = item => !(item?.topics || []).some(t => BEAT.has(FAMILY_OF[t]))
 const homeCovered = (items, story) => story?.homeCovered === true || (story?.publisherCountries || []).some(c => c === 'NL' || c === 'BE') || items.some(i => ['NL','BE'].includes(publisherCountry(i?.source)))
@@ -157,7 +160,7 @@ export function specialistMatch(prof, items = [], desk = null) {
 export const OPEN_WORLD_MIN = 4
 export const emptyProfile = (prof) => !prof?.interests?.size && !Object.keys(prof?.family || {}).length
 export function publishersOf(story = {}, items = []) {
-  const observedSources = new Set(items.map(i => i?.source).filter(Boolean)).size
+  const observedSources = new Set(items.filter(i => i && !isAflevering(i)).map(i => i.source).filter(Boolean)).size
   return story?.publisherCount ?? (observedSources >= (story?.sourceCount || Infinity) ? coverageOf(items).publisherCount : story?.sourceCount) ?? coverageOf(items).publisherCount
 }
 export const openWorld = (prof, items = [], story = null) => emptyProfile(prof) && !onlyGalleries(items) && publishersOf(story || {}, items) >= OPEN_WORLD_MIN
@@ -246,6 +249,7 @@ export function lightStory(story = {}, items = [], catOf = null) {
 // Nederlander bij zeven Nederlandse redacties haalde de oude drempel van acht nooit). Zes en niet vijf
 // voor één land: de Dutch Podcast Awards stonden in de live feed bij precies vijf Nederlandse uitgevers
 // (NOS, RTL, Telegraaf, Parool, AD). Regionale kranten tellen samen als één stem: vaak kopieën van één stuk.
+// Zes uit één land alleen voor Nederland of Vlaanderen; uit één ander land altijd een tweede land erbij (de landenregel).
 const GENERAL_CATS = new Set(['nl', 'vl', 'int', 'regio'])
 export const LIGHT_MAJOR = 6
 export function majorGeneralNews(story = {}, items = [], catOf = null) {
@@ -256,7 +260,12 @@ export function majorGeneralNews(story = {}, items = [], catOf = null) {
   for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(voice(ID_BY_NAME.get(name), CAT_BY_NAME.get(name)))
   const countries = new Set([...ids].map(publisherCountry).filter(Boolean))
   const n = countedPublishers(ids) // de landenregel (COUNTRY_MAX), ook hier
-  return n >= LIGHT_MAJOR || (n >= 5 && countries.size >= 2)
+  // De landenregel voor lichte verhalen (dubbelcheck A8): zes uit één land geldt alleen voor Nederland en Vlaanderen. Komen
+  // alle uitgevers uit één ander land (zes Amerikaanse redacties over een album), dan eist groot licht nieuws een tweede
+  // land, net als bij majorNews: COUNTRY_MAX is gelijk aan LIGHT_MAJOR, dus de begrenzing alleen deed hier niets.
+  const land = countries.size === 1 ? [...countries][0] : null
+  const oneForeign = !!land && !UNCAPPED.has(land) && [...ids].every((id) => publisherCountry(id) === land)
+  return (n >= LIGHT_MAJOR && !oneForeign) || (n >= 5 && countries.size >= 2)
 }
 // Cultuur als soort (muziek, film, boeken, kunst, media): het gebied Cultuur zonder Games. Games staat sinds 1.3
 // onder Cultuur, maar is een eigen soort (lightKind, kindOf): wie alleen Games koos, krijgt geen cultuurstukken.

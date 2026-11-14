@@ -1,6 +1,7 @@
 import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
 import { kantenTip } from '../lib/kanten-tip.js'
 import MaakVanJou from '../components/MaakVanJou.jsx'
+import AppKaart from '../components/AppKaart.jsx'
 import { pastThird } from '../lib/maak-van-jou.js'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
@@ -136,7 +137,7 @@ function LessNote({ entryKey, item, story, n }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater, coming = null, nextReady = null, onSwap = null, storyOpen = false }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater, coming = null, nextReady = null, onSwap = null, storyOpen = false, appKaart = false, onAppOpen, onAppLater, onEndSeen }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById, setPref } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
@@ -208,6 +209,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     if (!active || !dagdeel || !hasMinimum || !ready) return undefined
     return watch(endRef.current, { threshold: 0.5 }, (e) => e.isIntersecting && tel('editie-einde', dagdeel))
   }, [active, dagdeel, hasMinimum, ready])
+  // De eindkaart één keer in beeld: daarna mag de kaart "Hoot staat ook in de App Store" eronder komen (App.jsx).
+  useEffect(() => {
+    if (!active || !hasMinimum || !ready || !onEndSeen) return undefined
+    return watch(endRef.current, { threshold: 0.5 }, (e) => e.isIntersecting && onEndSeen())
+  }, [active, hasMinimum, ready, onEndSeen])
 
   // De zon als voortgang (zon-voortgang, variant B): één scroll-luisteraar zet de stand op de zon in de
   // kop en in de meelopende kop, en de waarde voor VoiceOver. Bij Minder beweging per verhaal een fade.
@@ -556,6 +562,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
             </div>) : null}
+            {/* De App Store-kaart onder de eindkaart; zolang "Maak Hoot van jou" zweeft, wacht hij: nooit twee kaarten tegelijk. */}
+            {hasMinimum && appKaart && !(nudge && browsing) ? <AppKaart onOpen={onAppOpen} onLater={onAppLater} /> : null}
             {nudge && browsing ? <MaakVanJou onChoose={onMakeYours} onLater={onLater} /> : null}
             {/* Het overzicht in één minuut: een dialoog, dus achteraan; hij neemt geen plek in de kolom. */}
             {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}

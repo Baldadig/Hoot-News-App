@@ -27,8 +27,11 @@ export const NIEUWE_TELLERS = true
 export const VIA_LABELS = ['ig', 'x', 'bsky', 'mail', 'nb', 'qr', 'ad', 'deel', 'as']
 export const VIA_ANDERS = 'anders'
 export const VIA_EVENTS = [...VIA_LABELS, VIA_ANDERS].map((l) => `via:${l}`)
-// De stappen van het eerste welkom op het web, als totalen (geen trechter per persoon).
-export const WELKOM_STAPPEN = ['welkom-open', 'bronnen-gekozen', 'liever-meteen-lezen', 'eerste-editie']
+// De stappen van het welkom, als totalen (geen trechter per persoon). Op het web sinds 14 november:
+// welkom-open bij "Maak Hoot van jou", eerste-editie bij de eerste Editie van een nieuwe bezoeker;
+// liever-meteen-lezen stuurt het web niet meer (je leest daar eerst), de server neemt hem nog aan.
+// welkom-interesses en welkom-bronnen bij het openen van die stap (onboarding blok 6).
+export const WELKOM_STAPPEN = ['welkom-open', 'welkom-interesses', 'welkom-bronnen', 'bronnen-gekozen', 'liever-meteen-lezen', 'eerste-editie']
 export const APPSTORE_TIK = 'appstore-tik'
 // De landing (review 13 november, aanbeveling 3): de noemer en waar op de pagina getikt wordt. Alleen deze plekken.
 //   landing-open   de landing geopend, één keer per dagdeel per browser (de noemer)
@@ -45,7 +48,11 @@ export const APPSTORE_PLEKKEN = ['held', 'slot', 'kiest', 'vraag']
 export const WEB_TIK_EVENTS = WEB_PLEKKEN.map((p) => `web-tik:${p}`)
 export const APPSTORE_PLEK_EVENTS = APPSTORE_PLEKKEN.map((p) => `${APPSTORE_TIK}:${p}`)
 export const LANDING = [LANDING_OPEN, ...WEB_TIK_EVENTS, ...APPSTORE_PLEK_EVENTS, VRAAG_OPEN]
-export const NIEUW = [...VIA_EVENTS, APPSTORE_TIK, ...WELKOM_STAPPEN, ...LANDING]
+// De web-app zelf (onboarding blok 2, 14 november): appstore-tik:einde is een tik op "Open in de App Store" in de
+// kaart onder de rode eindkaart van de Editie. Een plek naast die van de landing, apart opgeteld.
+export const APPSTORE_APP_PLEKKEN = ['einde']
+export const APPSTORE_APP_EVENTS = APPSTORE_APP_PLEKKEN.map((p) => `${APPSTORE_TIK}:${p}`)
+export const NIEUW = [...VIA_EVENTS, APPSTORE_TIK, ...WELKOM_STAPPEN, ...LANDING, ...APPSTORE_APP_EVENTS]
 // Ook deze tellen één keer per dagdeel per browser (herkomst, welkom, het openen van de landing en een vraag);
 // de tikken elke keer.
 export const NIEUW_ONCE = [...VIA_EVENTS, ...WELKOM_STAPPEN, LANDING_OPEN, VRAAG_OPEN]

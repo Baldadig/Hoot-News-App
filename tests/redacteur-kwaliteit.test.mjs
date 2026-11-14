@@ -11,6 +11,7 @@ import { profileOf } from '../shared/editor.mjs'
 import { relinkEdition, buildStories, selectEdition } from '../netlify/lib/stories.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { composePersonal } from '../src/lib/personal.js'
+import { isRecensie } from '../shared/recensie.mjs'
 import { loadLive, liveGeneral, liveBeginner, beginnerFollowed } from '../scripts/redacteur-live.mjs'
 
 const live = loadLive()
@@ -97,9 +98,11 @@ test('live, schone beginnerseditie: geen licht stuk, tien plekken, bubbel apart'
   const regular = ed.entries.filter((e) => e.desk !== 'bubbel')
   assert.equal(editionStoryCount(ed.entries), 10)
   for (const e of regular) assert.ok(!/podcast/i.test(items.get(e.leadId || e.id)?.title || ''), items.get(e.leadId || e.id)?.title)
-  // Buiten je bubbel is optioneel en staat dan achteraan. Sinds de persona's van 14 november (punt 5) niet van een bron die
-  // je volgt, gratis en buiten je regio: de kandidaten in deze feed (4 november) zijn van vóór de eis "gratis" en vallen
-  // daarop af, dus deze beginner krijgt er geen.
+  // Geen recensie, ook niet als bubbel (shared/recensie.mjs, 14 november). Buiten je bubbel is optioneel en staat dan
+  // achteraan: sinds de persona's van 14 november (punt 5) niet van een bron die je volgt, gratis en buiten je regio. Het
+  // bubbelstuk van de server staat niet in deze bewaarde feed (4 november); tot 14 november nam het toestel dan een
+  // Parool-recensie. Zonder ander bubbelstuk blijft die plek leeg.
+  for (const e of ed.entries) assert.ok(!isRecensie(items.get(e.leadId || e.id) || {}), items.get(e.leadId || e.id)?.title)
   const bubble = ed.entries.filter((e) => e.desk === 'bubbel')
   assert.ok(bubble.length <= 1)
   if (bubble.length) assert.equal(ed.entries.at(-1).desk, 'bubbel')

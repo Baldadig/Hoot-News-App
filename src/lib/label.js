@@ -42,13 +42,22 @@ const PLACE_TOPICS = {
   middenoosten: ['middenoosten'], oekraine: ['oekraine'],
 }
 
+// De plek wint van een binnenlands onderwerp (dubbelcheck 14 november, A6: een misdaadverhaal uit het VK of België heette
+// "Binnenland · Misdaad & recht"). Een onderwerp van Binnenland (misdaad, verkeer, zorg, wonen, onderwijs, migratie) is niet
+// sterk op een buitenlandse plek, en ook niet zonder plek als het verhaal een buitenlands geografisch onderwerp draagt en
+// Den Haag niet.
+const FOREIGN_DESKS = new Set(['buitenland', 'vs', 'middenoosten', 'oekraine'])
+const FOREIGN_TOPICS = new Set(['vs-politiek', 'oekraine', 'middenoosten', 'azie', 'afrika', 'latam'])
+const abroad = (desk, topics) => FOREIGN_DESKS.has(desk) || (!desk && topics.some((x) => FOREIGN_TOPICS.has(x)) && !topics.includes('nederland'))
+
 // Draagt dit onderwerp het verhaal? Het past bij de rubriek van de plek, of het staat in de kop.
 // Een subonderwerp alleen als de indeling zeker is (persona's 14 november, punt 6: "Beurstips van de week: … SpaceX" onder
 // Wetenschap · Ruimte, Miss Universe onder Wetenschap · Ruimte). Past het onderwerp niet bij de rubriek van de plek, dan
 // telt de kop alleen als al zijn onderwerpen (`mainTopics`) bij één interesse horen: Media in de kop van een binnenlandse
 // plek of AI op een Amerikaanse plek blijft, "tech" en "ruimte" naast elkaar in een kop over beurstips niet. Dan blijft de
 // rubriek van de plek staan.
-export function strongTopic(t, { desk = null, mainTopics = [] } = {}) {
+export function strongTopic(t, { desk = null, mainTopics = [], topics = [] } = {}) {
+  if (INTEREST_OF[t] === 'binnenland' && abroad(desk, topics)) return false
   if (GEOGRAPHIC_TOPICS.has(t) && desk === 'buitenland' && !mainTopics.includes(t)) return false
   if (GEOGRAPHIC_TOPICS.has(t) && PLACE_TOPICS[desk] && !PLACE_TOPICS[desk].includes(t)) return false
   if ((DESK_INTERESTS[desk] || []).includes(INTEREST_OF[t])) return true
@@ -81,7 +90,7 @@ export function lightOf({ mainTopics = [], topics = [], cat = null, desk = null 
 // bericht zelf. `why`: { code, text } van De Redacteur. `followed`: de bron staat bij je bronnen.
 export function labelFor({ topics = [], mainTopics = [], follows = [], cat = null, desk = null, deskLabel = null, section = null, why = null, followed = null } = {}) {
   const outside = followed === false || (followed == null && (desk === 'extern' || why?.code === 'extern'))
-  const mine = topics.find((t) => follows.includes(t) && topicById(t) && INTEREST_OF[t] && strongTopic(t, { desk, mainTopics }))
+  const mine = topics.find((t) => follows.includes(t) && topicById(t) && INTEREST_OF[t] && strongTopic(t, { desk, mainTopics, topics }))
   const light = lightOf({ mainTopics, topics, cat, desk })
   let kicker = null
   if (desk === 'bubbel' || desk === 'breed') kicker = deskLabel // 'Buiten je bubbel · via …', 'Waar iedereen over schrijft · N bronnen'

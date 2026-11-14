@@ -238,8 +238,7 @@ var HootCore = (() => {
     // stukken per week, gemeten in de feed. Links Joop, De Groene, Vrij Nederland en Sargasso; rechts Wynia's Week, TPO
     // en GeenStijl; HP/De Tijd daartussen; Sociale Vraagstukken zonder partijkleur.
     S("joop", "Joop", "nl", "nl", "Opinie en commentaar van BNNVARA, progressief.", "https://www.joop.nl/feed", { opinie: true, color: "#FC3E28", bsky: "joop.nl" }),
-    S("groene", "De Groene Amsterdammer", "nl", "nl", "Opinieweekblad met essays, analyses en reportages, links.", "https://www.groene.nl/rss.xml", { opinie: true, login: "https://www.groene.nl/", paid: true, color: "#E10005", bsky: "groene.nl", x: "DeGroene", logo: own("groene") }),
-    // overal een afgesneden woordmerk; het eigen logo heeft het hele (landing/bronlogos.mjs)
+    S("groene", "De Groene Amsterdammer", "nl", "nl", "Opinieweekblad met essays, analyses en reportages, links.", "https://www.groene.nl/rss.xml", { opinie: true, login: "https://www.groene.nl/", paid: true, color: "#E10005", bsky: "groene.nl", x: "DeGroene" }),
     S("vn", "Vrij Nederland", "nl", "nl", "Opinieblad met essays en reportages, links-liberaal.", "https://www.vn.nl/feed/", { opinie: true, login: "https://www.vn.nl/inloggen/", paid: true, color: "#E20006", bsky: "vn.nl", x: "vrij_nederland" }),
     S("sargasso", "Sargasso", "nl", "nl", "Groepsblog over politiek en beleid, links en genuanceerd.", "https://sargasso.nl/feed/", { opinie: true, color: "#65C26A", bsky: "sargassoblog.bsky.social" }),
     S("hpdetijd", "HP/De Tijd", "nl", "nl", "Opinieblad: eigenzinnig, liberaal en kritisch.", "https://www.hpdetijd.nl/rss", { opinie: true, login: "https://www.hpdetijd.nl/login", paid: true, color: "#E40815", bsky: "hpdetijd.bsky.social", x: "HPdeTijdNL" }),
@@ -329,11 +328,11 @@ var HootCore = (() => {
     S("france24", "France 24", "int", "en", "Frans publiek wereldnieuws, in het Engels.", "https://www.france24.com/en/rss", { publisher: "france-medias-monde", color: "#00A3E0", bsky: "france24.com", x: "France24_en" }),
     S("rfi", "RFI English", "int", "en", "Franse publieke radio, sterk in Afrika.", "https://www.rfi.fr/en/rss", { publisher: "france-medias-monde", color: "#D7001D", bsky: "rfi.fr", x: "RFI_En" }),
     S("euronews", "Euronews", "int", "en", "Europees nieuws vanuit Europa.", "https://www.euronews.com/rss?format=mrss&level=theme&name=news", { color: "#027DF0", bsky: "euronews.com", x: "euronews" }),
-    // De wereld van binnenuit: Australië, Oekraïne, en Israël met twee stemmen.
+    // De wereld van binnenuit: Australië, Oekraïne en Israël. The Times of Israel viel af (dubbelcheck 14 november, A2):
+    // Cloudflare weigert de server met een botcontrole, en die omzeilen we niet. Haaretz blijft voor Israël.
     S("abc-au", "ABC News (Australië)", "int", "en", "De publieke omroep van Australië.", "https://www.abc.net.au/news/feed/51120/rss.xml", { color: "#1A1A1A", logo: "https://www.abc.net.au/news-assets/touchicon-abc.png", x: "abcnews" }),
     S("kyivindependent", "The Kyiv Independent", "int", "en", "Oekraïne van binnenuit, onafhankelijk.", "https://kyivindependent.com/news-archive/rss/", { color: "#1A1A1A", bsky: "kyivindependent.com", x: "KyivIndependent" }),
     S("haaretz", "Haaretz", "int", "en", "Israëlische kwaliteitskrant, links-liberaal.", "https://www.haaretz.com/srv/haaretz-latest-headlines", { login: "https://login.haaretz.com/", paid: true, color: "#0E1734", bsky: "haaretzcom.bsky.social", x: "haaretzcom" }),
-    S("timesofisrael", "The Times of Israel", "int", "en", "Israëlisch nieuws, midden.", "https://www.timesofisrael.com/feed/", { color: "#104F97", bsky: "timesofisrael.com", x: "TimesofIsrael" }),
     // Opinie (`opinie`): links en rechts samen. Vox progressief; National Review conservatief, The Free Press eigenzinnig
     // centrum-rechts. Reason viel af: te klein (kwaliteit boven aantal, Alex 14 november). Allemaal minstens vijf stukken per dag in de feed.
     S("vox", "Vox", "int", "en", "Uitleg en opinie, progressief.", "https://www.vox.com/rss/index.xml", { opinie: true, login: "https://www.vox.com/auth/login?returnPath=/", paid: true, color: "#FEF100", bsky: "vox.com", x: "voxdotcom" }),
@@ -454,11 +453,11 @@ var HootCore = (() => {
   var words = (pattern) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, "iu");
   var COUNTRIES = [
     ["nl", "nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven"],
-    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver"],
+    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver|mississippi|louisiana|alabama|nevada|oregon|minnesota|illinois|pennsylvania|massachusetts|new jersey|north carolina|south carolina|tennessee|kentucky|missouri|wisconsin|iowa|kansas|utah|alaska|hawaii|oklahoma|arkansas|connecticut|maryland|nebraska|idaho|wyoming|vermont|delaware|new hampshire|new mexico|north dakota|south dakota|rhode island|chicago|los angeles|san francisco|boston|seattle|miami|atlanta|philadelphia|las vegas|new orleans|detroit|houston|dallas|baltimore|minneapolis|pittsburgh"],
     ["in", "india|indiaas|indiase|indian|new delhi|mumbai|modi"],
     ["fr", "frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille"],
     ["de", "duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich"],
-    ["gb", "verenigd koninkrijk|united kingdom|british|britse?|engeland|england|londen|london"],
+    ["gb", "verenigd koninkrijk|vk|united kingdom|uk|british|britse?|engeland|england|londen|london"],
     ["be", "belgi\\p{L}*|belg|belgen|vlaanderen|vlaams\\p{L}*|brussel|brussels|antwerpen|antwerp|gent|brugge"],
     ["ua", "oekra\\p{L}*|ukrain\\p{L}*|kyiv|kiev|zelensk\\p{L}*"],
     ["ru", "rusland|russia\\p{L}*|russisch\\p{L}*|moskou|moscow|putin|poetin"],
@@ -478,13 +477,27 @@ var HootCore = (() => {
     ["nz", "new zealand|nieuw-zeeland"],
     ["au", "australi\\p{L}*"],
     ["tr", "turkije|turkey|turks\\p{L}*|erdogan"]
-  ].map(([id, pattern]) => [id, words(pattern)]);
+  ].map(([id, pattern]) => [id, words(pattern), new RegExp(`^(?:${pattern})$`, "iu")]);
+  var CORP_NAME = /(\p{Lu}[\p{L}.'’-]*(?:\s+\p{Lu}[\p{L}.'’-]*){0,2}?)(?:\s+(?:Consulting|Group|Partners|Capital|Scientific|Dynamics|Holdings|Insurance|Corporation|Corp|Inc|Labs|Pharma|Pharmaceuticals|Ventures|Associates|Advisors|Analytics|Investments)(?![\p{L}\p{N}]))+/gu;
+  function withoutCorpPlaces(text) {
+    if (!CORP_NAME.test(text)) return text;
+    CORP_NAME.lastIndex = 0;
+    return text.replace(CORP_NAME, (all, name) => {
+      const parts = name.split(/\s+/);
+      for (let k = 0; k < parts.length; k++) {
+        const tail = parts.slice(k).join(" ");
+        if (COUNTRIES.some(([, , exact]) => exact.test(tail))) return `${parts.slice(0, k).join(" ")} ${all.slice(name.length)}`;
+      }
+      return all;
+    });
+  }
   function countriesIn(text = "") {
+    text = withoutCorpPlaces(String(text));
     const found = COUNTRIES.filter(([, re]) => re.test(text)).map(([id]) => id);
     if (/\bUS\b/.test(text) && !found.includes("us")) found.push("us");
     return found;
   }
-  var US_SPECIFIC = words("trump|biden|vance|obamacare|white house|witte huis|pentagon|fbi|hegseth|midterms?|tussentijdse verkiezingen|house of representatives|justice department");
+  var US_SPECIFIC = words("trumps?|biden|vance|obamacare|white house|witte huis|pentagon|fbi|hegseth|midterms?|tussentijdse verkiezingen|house of representatives|justice department");
   var US_PARTY = words("republican\\p{L}*|republikein\\p{L}*|democra(?:at|ten|ts)|democratic (?:senate|presidential|nominee|candidate|sweep|party)");
   var US_INSTITUTION = words("congress|congres|senate|senaat|supreme court|hooggerechtshof|capitol|governor|gouverneur");
   function usPoliticsIn(text = "") {
@@ -611,6 +624,15 @@ var HootCore = (() => {
     return out;
   }
   var SHOWBIZZ_PATH = /\/(achterklap|showbizz|showbiz|boulevard|bv-en-co|celebrit\w*|sterren)\//i;
+  var SHOWBIZZ_CORE = /\b(showbizz|showbiz|achterklap|roddel\w*|realityster\w*|reality-ster\w*|rode loper|red carpet)\b/i;
+  var SHOWBIZZ_COMPANY = /* @__PURE__ */ new Set(["showbizz", "muziek", "film", "boeken", "kunst", "media", "games", "voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"]);
+  function showbizzKind(it = {}) {
+    if (!it) return false;
+    if (SHOWBIZZ_PATH.test(it.url || "")) return true;
+    const text = `${it.title || ""} ${it.summary || String(it.text || "").slice(0, 600)}`;
+    if (!SHOWBIZZ_CORE.test(text)) return false;
+    return keywordTopics(text).every((t) => SHOWBIZZ_COMPANY.has(t));
+  }
 
   // netlify/lib/desks.mjs
   var DESKS = ["binnenland", "buitenland", "vs", "middenoosten", "oekraine", "wetenschap"];
@@ -1087,6 +1109,12 @@ var HootCore = (() => {
   var KIND_TOPICS = /* @__PURE__ */ new Set(["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch", "muziek", "film", "boeken", "kunst", "games"]);
   var KIND_PATH = /\/(sport[\w-]*|voetbal|darts|cultuur|cultuur-media|entertainment|showbizz|boulevard|show|film|muziek|boeken|media)\//i;
   var CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i;
+  var MUSICIAN = /\b(\w*drummer|zanger|zangeres|gitarist|bassist|toetsenist|popgroep|popband|rockband|popster|rapper)\b/i;
+  var musicianHead = (title) => MUSICIAN.test(title) && !usPoliticsIn(title);
+  var CRIME_HEAD = /\b(drugging|murder\w*|convicted|arrested|acquitted|sentenced|verkracht\w*|ontucht|doodgeschoten|neergeschoten|doodgestoken|mishandel\w*|moord\w*|veroordeeld|vrijgesproken|opgepakt|aangehouden|gearresteerd|aangeklaagd|aanklacht|verdacht\w*|celstraf|gevangenisstraf|taakstraf|strafeis|rechtszaak|rechtbank|rechter|cassatie|hoger beroep|steekpartij|schietpartij)\b/i;
+  var PROFESSION = /\b(acteur|actrice)\b/i;
+  var PROFESSION_TOPICS = /* @__PURE__ */ new Set(["muziek", "film"]);
+  var professionInCrime = (it) => CRIME_HEAD.test(it.title || "") && (MUSICIAN.test(it.title || "") || PROFESSION.test(it.title || ""));
   var ownKind = (it) => {
     const visible = `${it.title || ""} ${it.summary || ""}`;
     if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || "") || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || "")) return true;
@@ -1094,7 +1122,12 @@ var HootCore = (() => {
     const election = /\b(elections?|verkiezing\w*|midterms?|political texts|senaat|senate)\b/i.test(`${it.title || ""} ${(it.url || "").replace(/[-_/]/g, " ")}`);
     if (election && usPoliticsIn(visible + " " + (it.url || "").replace(/[-_/]/g, " ")) && !keywordTopics(visible).some((t) => KIND_TOPICS.has(t))) return false;
     if (/\b(journal article|research finds|study finds)\b/i.test(it.title || "")) return false;
-    return (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || "") || SHOWBIZZ_PATH.test(it.url || "") || /^(sport|cultuur)/i.test(it.section || "") || OTHER_SPORT.test(it.title || "") || CULTURE_SPORT.test(visible);
+    const path = KIND_PATH.test(it.url || "") || SHOWBIZZ_PATH.test(it.url || "") || /^(sport|cultuur)/i.test(it.section || "") || OTHER_SPORT.test(it.title || "");
+    if (professionInCrime(it)) {
+      const rest = visible.replace(MUSICIAN, " ").replace(PROFESSION, " ");
+      return path || (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t) && !PROFESSION_TOPICS.has(t)) || CULTURE_SPORT.test(rest);
+    }
+    return (it.mainTopics || it.topics || []).some((t) => KIND_TOPICS.has(t)) || path || CULTURE_SPORT.test(visible) || musicianHead(it.title || "");
   };
   function placeSignals({ title = "", summary = "", text = "" }) {
     const t = `${title} ${summary || text}`;
@@ -1394,7 +1427,6 @@ var HootCore = (() => {
     "tonga"
   ]);
   var NL_ANCHOR = W(["nederland\\p{L}*", "dutch", "holland\\p{L}*"]);
-  var US_STATES = W(["alabama", "alaska", "arizona", "arkansas", "californi\\p{L}*", "colorado", "connecticut", "delaware", "florida", "hawaii", "idaho", "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana", "maine", "maryland", "massachusetts", "michigan", "minnesota", "mississippi", "missouri", "montana", "nebraska", "nevada", "new hampshire", "new jersey", "new mexico", "north carolina", "north dakota", "ohio", "oklahoma", "oregon", "pennsylvania", "rhode island", "south carolina", "south dakota", "tennessee", "texas", "utah", "vermont", "virginia", "west virginia", "wisconsin", "wyoming"]);
   var OTHER_STATES = W(["new south wales", "nsw", "queensland", "tasmani\\p{L}*", "western australia", "south australia", "northern territory", "victorian", "ontario", "quebec", "québec", "alberta", "british columbia", "manitoba", "saskatchewan", "nova scotia"]);
   var LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i;
   var OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk)\b/gi;
@@ -1403,7 +1435,7 @@ var HootCore = (() => {
     const head = items.find(Boolean);
     const t = String(head?.title || "");
     if (!t) return false;
-    const usHere = desk === "vs" || usPoliticsIn(t) || US_STATES.test(t) || countriesIn(t).includes("us");
+    const usHere = desk === "vs" || usPoliticsIn(t) || countriesIn(t).includes("us");
     if (usHere) return !beyondIn(t, ["us"]) && !placeSignals({ title: t }).home;
     if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || "").split("?")[0]))) return false;
     return !beyondIn(t.replace(OWN_COUNTRY, " "), ["au", "ca", "gb"]);
@@ -1472,7 +1504,7 @@ var HootCore = (() => {
     if (nl && (home || !abroad)) return true;
     if (!home) return false;
     if (abroad || storyForeign) return false;
-    const ts = it.topics || [];
+    const ts = (it.topics || []).filter((t) => !(PROFESSION_TOPICS.has(t) && professionInCrime(it)));
     if (NL_SECTION.test(sec) || ts.some((t) => NL_TOPICS.has(t)) || NL_WEAK.test(`${it.title || ""} ${it.summary || it.text || ""}`)) return true;
     return it.source !== "fd" && ts.every((t) => NL_TOPICS.has(t)) && !NOT_HOME_SECTION.test(sec);
   }
@@ -1572,6 +1604,929 @@ var HootCore = (() => {
     const chosen = Number.isFinite(ownCount) ? Math.min(4, Math.max(0, ownCount)) : 0;
     return sourceCount * 4 + chosen * 2 + freshBonus(latestAt, now) - agePenalty(latestAt, now);
   }
+
+  // shared/koopsignaal.mjs
+  var BUY_ALWAYS = new RegExp([
+    "\\bzo claim je\\b",
+    "\\bclaim (?:je|nu) (?:gratis|jouw|je)\\b",
+    "\\bwinactie\\b",
+    "\\bwin\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|copy|reis|trip|prijzen)\\b",
+    "\\bmaak kans op\\b",
+    "\\((?:adv|advertentie)\\)",
+    "\\[(?:adv|advertentie)\\]"
+  ].join("|"), "iu");
+  var GIFT_GUIDE = new RegExp([
+    "\\bgift guides?\\b",
+    "\\bgift ideas?\\b",
+    "\\bcadeaugids\\w*",
+    "\\bcadeautips\\b",
+    "\\bcadeau-?idee(?:ën|en)\\b",
+    "\\bgifts? for (?:him|her|men|women|kids|teens|dads?|moms?|mothers?|fathers?|parents|grandparents|everyone|anyone|the \\w+ lover|\\w+ lovers)\\b"
+  ].join("|"), "iu");
+  var GIFT_SUBJECT = /\b(?:gift guides?|cadeaugids(?:en)?)\s+(?:are|is|were|was|have|has|had|become|became|draw\w*|fac\w*|get|gets|zijn|is|waren|worden|wordt|krijgen|trekken)\b/i;
+  var LABEL2 = /^[\s"'‘“([]*(?:(?:[\p{L}]+-)?deals?|dagdeals?|dagaanbieding|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert)\s*[:|.!–—-]\s/iu;
+  var PRICE_LABEL = /^[\s"'‘“([]*(?:prijsdaling|prijsverlaging)\s*[:|.!–—-]\s/iu;
+  var PRICE_LABEL_OFFER = /\bbij\s+(?:de\s+)?\p{Lu}/u;
+  var PRICE_LABEL_MARKET = new RegExp([
+    "energie\\w*",
+    "stroom\\w*",
+    "gas\\w*",
+    "benzine\\w*",
+    "brandstof\\w*",
+    "diesel\\w*",
+    "tank\\w*",
+    "pomp\\w*",
+    "elektriciteit\\w*",
+    "huizen\\w*",
+    "huis",
+    "woning\\w*",
+    "huur\\w*",
+    "huren",
+    "hypothe\\w*",
+    "rente\\w*",
+    "auto'?s",
+    "auto",
+    "occasions?",
+    "tweedehands",
+    "boodschappen",
+    "supermarkt\\w*",
+    "voedsel\\w*",
+    "levensmiddelen",
+    "zorgpremie\\w*",
+    "premie\\w*",
+    "graan",
+    "tarwe",
+    "koffie\\w*",
+    "cacao",
+    "melk\\w*"
+  ].map((w) => `\\b${w}\\b`).join("|"), "iu");
+  var priceLabelOffer = (t) => PRICE_LABEL_OFFER.test(t.replace(PRICE_LABEL, "")) && !PRICE_LABEL_MARKET.test(t);
+  var DEAL_HEAD = new RegExp([
+    // Selectie (isBuying).
+    "\\b(?:de|the|onze|our)?\\s*(?:beste|best|top)\\s+deals\\b",
+    "\\bdeals? (?:op een rij|van de (?:dag|week))\\b",
+    "\\b(?:aanbiedingen|koopjes) (?:op een rij|van de (?:dag|week))\\b",
+    "\\bkorting op\\b.*\\b(?:deal|actie|code|aanbieding|black friday|cyber monday)\\b",
+    // Uitbreiding: "The 21 Best REI Holiday Sale Outdoor Deals", "Today's Top Deals", "… Deals Roundup (2026)".
+    "\\b(?:beste|best|top)\\b[^:;!?|]{0,50}?\\bdeals\\b",
+    "\\b(?:today'?s|todays|daily|weekend|this week'?s)\\s+(?:top\\s+|best\\s+)?deals\\b",
+    "\\b(?:deals?|sales?|koopjes|aanbiedingen)\\b[^()]{0,40}\\(20\\d\\d\\)",
+    "\\b[\\p{L}]+-deals\\b",
+    // Kortingen tot een percentage, en een aanbieding die live is.
+    "\\bkortingen? tot (?:wel )?\\d+",
+    "\\btot (?:wel )?\\d+\\s?(?:%|procent) korting\\b",
+    "\\bsale is (?:live|on|back)\\b",
+    "\\bdoorbusters?\\b",
+    "\\bdoorboosters?\\b",
+    // "X Deal: Save $80", "Nothing Headphones Sale: Up to 41% Off", "Birthday Sale: 20 Percent Off Sitewide".
+    "\\b(?:deal|sale)\\s*:\\s*(?:save|get|up to|\\d)",
+    "\\bsale\\b.*(?:\\b\\d+ ?(?:%|percent) off\\b|\\bsave (?:up to )?\\$?\\d)",
+    "(?:\\b\\d+ ?(?:%|percent) off\\b|\\bsave (?:up to )?\\$?\\d).*\\bsale\\b",
+    // Kortingscodes en sim only-acties.
+    "\\b(?:promo|coupon|discount) codes?\\b.*(?:\\d+ ?%|20\\d\\d|\\$\\d)",
+    "\\bsim[- ]only\\b",
+    "\\bgratis verzending\\b",
+    "\\bfree shipping\\b",
+    "\\b(?:last chance|laatste kans)\\b.*(?:\\bsave (?:up to )?(?:\\$|€|£)?\\d|\\bkorting\\b|\\bbestel\\w*|\\bkoop\\b)"
+  ].join("|"), "iu");
+  var SHOP_DAY = /\b(?:black friday|cyber monday|singles'? day|prime days?|amazon prime days?|holiday sale|boxing day|presidents'? day sale|memorial day sale|labor day sale)\b/i;
+  var SHOP_WORD = /\b(?:deals?|korting\w*|aanbieding\w*|koopjes|sale|uitverkoop|goedkoop\w*|cheapest|laagste prijs|lowest price|prijsdaling|discounts?|discounted)\b|\b(?:for |voor )?(?:under|just|only|onder|maar) (?:\$|€|£)\s?\d|\b\d+ ?(?:%|percent|procent) off\b|\$\d[\d,]* off\b|\bsave (?:up to )?\$?\d/i;
+  var PRICE_DROP = new RegExp([
+    "\\b(?:is|are|'s)\\s+(?:now\\s+|currently\\s+)?(?:(?:almost|nearly|just|over|more than|under|only|about|around)\\s+)?(?:\\$|€|£)\\d[\\d,.]*\\s+off\\b",
+    "\\b(?:is|are|'s)\\s+(?:(?:almost|nearly|more than|over)\\s+)?half off\\b",
+    "\\b(?:is|are|now|drops?|dropped|falls?|fell)\\s+(?:down\\s+)?to\\s+(?:just\\s+|only\\s+)?(?:\\$|€|£)\\d",
+    "\\b(?:its|their|a new|an all-time|a record) (?:lowest|best|low) price\\b",
+    "\\blowest price (?:of the year|to date|ever|yet)\\b",
+    "\\bnew low price\\b",
+    "\\bon sale (?:for|now|right now|at)\\b",
+    "\\b(?:is|are) on sale\\b",
+    "\\bsteeply discounted\\b",
+    "\\b(?:is|are) discounted\\b",
+    "\\b(?:is|are|'s)\\s+(?:now\\s+)?(?:(?:up to|almost|nearly|over|more than|about)\\s+)?\\d+ ?(?:%|percent) off\\b",
+    "\\b(?:is|are) (?:only|just) (?:\\$|€|£)\\d",
+    "\\b(?:is|are) (?:\\$|€|£)\\d[\\d,.]* (?:at [\\p{L}.]+(?: [\\p{L}]+)? )?right now\\b",
+    "\\bto (?:a mere|just|only) (?:\\$|€|£)\\d",
+    `^[\\s"'‘“]*(?:grab|get|snag|score)\\b[^.:]*?\\bfor (?:just |only )?(?:\\$|€|£)\\d`,
+    "\\bget (?:up to )?(?:\\$|€|£)?\\d[\\d,]*(?: ?%| percent)? off\\b",
+    "\\bhow to save (?:\\$|€|£)\\d",
+    `^[\\s"'‘“]*krijg (?:nu )?(?:€\\s?)?\\d+ ?(?:%|procent|euro) korting\\b`,
+    "\\bnu met (?:€\\s?)?\\d+ ?(?:euro|%|procent) korting\\b",
+    `^[\\s"'‘“]*save (?:up to |over |more than )?(?:\\$|€|£)?\\d`,
+    "\\bgives? you (?:\\$|€|£)?\\d[\\d,]*(?: ?%| percent)? off\\b",
+    "\\bnu (?:voor|vanaf) (?:€|eur\\s?)\\s?\\d",
+    "\\bnu voor \\d+ euro\\b",
+    "\\bin prijs verlaagd\\b",
+    "\\btijdelijk goedkoper\\b",
+    "\\blaagste prijs ooit\\b",
+    "\\bnu \\d+\\s?% korting\\b"
+  ].join("|"), "iu");
+  var GUIDE = new RegExp([
+    `^[\\s"'‘“]*(?:(?:the|my|our|these)\\s+)?\\d+\\s+(?:best|favorite|favourite)\\b[^()]*\\(20\\d\\d\\)\\s*$`,
+    "\\bbest\\b[^()]*\\bgifts?\\b",
+    "\\bgifts?\\b[^()]*\\(20\\d\\d\\)",
+    "\\b(?:here'?s\\s+)?where to (?:buy|preorder|pre-order)\\b",
+    "\\bhow to (?:buy|preorder|pre-order)\\b",
+    "\\b(?:zo|hier|waar) (?:koop|bestel|scoor|bespaar) je\\b",
+    "\\bzo krijg je\\b.*\\b(?:gratis|cadeau|korting)\\b",
+    "\\bgifts? worth (?:giving|buying)\\b",
+    `^[\\s"'‘“]*\\d+\\+?\\s+(?:[\\p{L}-]+\\s+)?gifts?\\b`,
+    "\\bhow (?:you can|to) save on\\b"
+  ].join("|"), "iu");
+  var ABOUT = new RegExp([
+    // Selectie (ABOUT_SALES): omzet, gedrag, onderzoek, oplichting, toezicht.
+    "omzet\\w*",
+    "sales",
+    "record\\w*",
+    "spending",
+    "uitgaven",
+    "besteding\\w*",
+    "besteed\\w*",
+    "consument\\w*",
+    "shoppers",
+    "onderzoek\\w*",
+    "survey",
+    "research",
+    "cijfers",
+    "waarom",
+    "why",
+    "analyse",
+    "analysis",
+    "nep\\w*",
+    "fakes?",
+    "scams?",
+    "oplicht\\w*",
+    "misleid\\w*",
+    "fraude",
+    "acm",
+    // Vierde keuring: phishing en valse acties, ook in een samenstelling ("phishingmail", "sms-phishing", "nep-winactie").
+    "\\w*phishing\\w*",
+    "valse?",
+    // Toezicht, recht en beleid.
+    "ftc",
+    "regulators?",
+    "toezicht\\w*",
+    "waarschuw\\w*",
+    "warns?",
+    "boetes?",
+    "fined?",
+    "probe",
+    "lawsuit",
+    "rechter\\w*",
+    "court",
+    "kabinet",
+    "minister\\w*",
+    "overheid",
+    "government",
+    "gemeenten?",
+    "zorgtoeslag",
+    "toeslag\\w*",
+    "belasting\\w*",
+    "tax(?:es)?",
+    "subsidie\\w*",
+    "cao",
+    "pensioen\\w*",
+    "zorgpremie\\w*",
+    // Overnames, akkoorden, handel en politiek.
+    "m&a",
+    "mergers?",
+    "acquisitions?",
+    "overnames?",
+    "takeovers?",
+    "fusies?",
+    "trade",
+    "handels\\w*",
+    "transfers?",
+    "contracts?",
+    "billion",
+    "miljard\\w*",
+    "\\d+\\s?bn",
+    "funding",
+    "investments?",
+    "investering\\w*",
+    "licens\\w*",
+    "sponsor\\w*",
+    "peace",
+    "vrede\\w*",
+    "ceasefire",
+    "bestand",
+    "tariffs?",
+    "akkoord",
+    "coalitie\\w*",
+    "senate",
+    "congress",
+    "eu",
+    "brexit",
+    "nuclear",
+    "kernwapen\\w*",
+    // Aankopen en financiering (vierde keuring): "Netflix buys Spielberg drama", "DPG koopt RTL", "AI funding deals".
+    "buys",
+    "bought",
+    "koopt",
+    "kocht",
+    "gekocht",
+    "acquires?",
+    "acquired",
+    "raises",
+    "raised",
+    "vc",
+    "venture",
+    "investors?",
+    "investeerders?",
+    "startups?",
+    "valuation",
+    "waardering",
+    "ipo",
+    "scrutiny",
+    "(?:data|figures|report|rapport|cijfers)\\s+(?:shows?|showed|suggests?|toont|tonen|laat zien|laten zien)",
+    // Markten en grondstoffen.
+    "oil",
+    "olie\\w*",
+    "brent",
+    "gas",
+    "gasprijs\\w*",
+    "stroomprijs\\w*",
+    "energieprijs\\w*",
+    "bitcoin",
+    "crypto\\w*",
+    "stocks?",
+    "shares",
+    "aandel\\w*",
+    "beurs\\w*",
+    "koers\\w*",
+    "markets",
+    "wall street",
+    "nasdaq",
+    "dow",
+    "aex",
+    "gold price",
+    "goudprijs",
+    "huizen\\w*",
+    "housing",
+    "huur\\w*",
+    "rente(?!rs?\\b)\\w*",
+    "inflati\\w*",
+    "economie\\w*",
+    "economy",
+    "retailers",
+    "winkeliers",
+    "webwinkels",
+    "banen",
+    "jobs",
+    "layoffs",
+    "ontslag\\w*",
+    // Gevolgen, mensen en plaatsen: nieuws over een aanbieding, geen aanbieding.
+    "verwacht\\w*",
+    "expected",
+    "analysts?",
+    "analisten",
+    "strikes?",
+    "staking\\w*",
+    "workers",
+    "werknemers",
+    "personeel",
+    "stampede",
+    "sparks",
+    "sued",
+    "sues",
+    "claims?",
+    "misleading",
+    "cma",
+    "rules?",
+    "price war",
+    "prijzenoorlog",
+    "bankrupt\\w*",
+    "faillis\\w*",
+    "failliet",
+    "sluit\\w*",
+    "sluiting\\w*",
+    "clos(?:es|ing|ure)",
+    "dealers",
+    "inventory",
+    "voorraad",
+    "installateurs",
+    "problemen",
+    "fans",
+    "furious",
+    "woedend",
+    "says",
+    "say",
+    "zegt",
+    "zeggen",
+    "study",
+    "studie",
+    "finds",
+    "flop",
+    "fewer",
+    "average",
+    "gemiddeld\\w*",
+    "income",
+    "inkomen",
+    "huishoudens",
+    "households",
+    "energierekening",
+    "prices",
+    "prijzen",
+    "tickets?",
+    "harvest",
+    "oogst",
+    "bird flu",
+    "vogelgriep",
+    "in (?:europe|europa|china|the us|de vs|amerika|america|japan|india)",
+    "wereldwijd",
+    "worldwide",
+    "lekt?",
+    "gegevens",
+    "reclame",
+    "rechtbank",
+    "europese commissie",
+    "commission",
+    "plan",
+    "regeling\\w*",
+    "families",
+    "gezinnen",
+    "students",
+    "studenten",
+    "announces",
+    "kondigt",
+    "energy bills",
+    "fares",
+    "ov",
+    "million",
+    "miljoen",
+    "sells",
+    "verkoopt",
+    "peak",
+    "piek",
+    "resale",
+    // Sport: transfers, contracten en free agency ("Grading the best NFL free agency deals").
+    "transfer\\w*",
+    "free[- ]agen\\w*",
+    "contract(?:en)?",
+    "signings?",
+    "off-?season",
+    "trade deadline",
+    "salary cap",
+    "(?:nfl|nba|mlb|nhl|mls) draft",
+    "draft picks?",
+    "miskop\\w*",
+    "best and worst",
+    "beste en slechtste",
+    // Gevolgen van een koopdag en zakelijke akkoorden (derde keuring): "Black Friday-korting bij NS leidt tot storing".
+    "storing\\w*",
+    "footfall",
+    "high street",
+    "signs",
+    "signed",
+    "inks",
+    "inked",
+    "lands",
+    "landed",
+    "seals",
+    "sealed",
+    "tekent",
+    "getekend",
+    // Prijsbeleid: de prijs zelf is het onderwerp ("Insulin price falls to $35 under new law"), of een wet, regeling of geneesmiddel.
+    "(?:price|prijs|prices|prijzen|cost|costs|kosten|fee|fees|premium|premiums|premie|tarief|tarieven)\\s+(?:now\\s+|will\\s+|to\\s+)?(?:drops?|dropped|falls?|fell|cuts?|slashed|daalt|daalde|zakt|zakte|omlaag|verlaagd)",
+    "under (?:a |the |new |an? )?(?:[\\p{L}-]+\\s+){0,2}(?:law|act|bill|deal|plan|agreement|order|rule)",
+    "medicare",
+    "medicaid",
+    "insulin\\w*",
+    "insuline",
+    "drugs?",
+    "drugmakers?",
+    "medicijn\\w*",
+    "geneesmiddel\\w*",
+    "pharma\\w*",
+    "patients",
+    "patiënten",
+    "prescriptions?",
+    "generics?",
+    "cash buyers",
+    // Uitleg en achtergrond.
+    "explained",
+    "uitgelegd",
+    "zo werkt",
+    "zo zit het"
+  ].map((w) => `\\b${w}\\b`).join("|") + "|\\bhow\\b[^?]*\\b(?:works?|actually work)\\b", "iu");
+  var STRONG_HEAD = new RegExp([
+    "\\b(?:beste|best|top)\\b(?!-)[^:;!?|]{0,50}?\\bdeals\\b",
+    "\\b(?:best|top)\\s+[^:;!?|]{1,50}?\\bsales\\b(?!\\s+(?:executives?|chiefs?|managers?|directors?|teams?|heads?|boss\\w*|staff|reps?|figures|data|growth|tax|volumes?|force|jobs?))",
+    "\\b(?:today'?s|todays|daily|weekend|this week'?s)\\s+(?:top\\s+|best\\s+)?deals\\b",
+    "\\b(?:deals?|sales?)\\b[^()]{0,40}\\(20\\d\\d\\)",
+    "\\bsale\\s*:\\s*(?:the |our |de |onze )?(?:best|beste|top)\\b"
+  ].join("|"), "iu");
+  var STRONG_DAY_WORD = /\bdeals?\b/i;
+  var NARROW = new RegExp([
+    // Omzet en verkoopcijfers: "sales" telt hier alleen met een omzetwoord erbij.
+    "\\bomzet\\w*",
+    "\\brecordomzet\\b",
+    "\\brevenue\\b",
+    "\\bspending\\b",
+    "\\buitgaven\\b",
+    "\\bbesteding\\w*",
+    "\\bbesteed\\w*",
+    "\\bgeeft\\b.*\\buit\\b",
+    "\\b(?:sales|verkoop)\\s+(?:hit|hits|rise|rises|rose|rising|fall|falls|fell|falling|miss|missed|misses|slump\\w*|jump\\w*|drop\\w*|grow\\w*|grew|surge\\w*|soar\\w*|plunge\\w*|declin\\w*|increas\\w*|beat|top|topped|reach\\w*|figures|data|numbers|up|down|stijgt|daalt|steeg|daalde)\\b",
+    "\\b(?:online|retail|e-commerce|ecommerce)\\s+sales\\b",
+    "\\brecord\\w*\\b.*\\b(?:sales|omzet|spending|revenue)\\b",
+    "\\b(?:sales|omzet)\\b.*\\brecord\\w*",
+    "\\b(?:sales|verkoop|omzet)cijfers\\b",
+    "\\bcijfers\\b",
+    "\\bconsument\\w*",
+    "\\bshoppers\\b",
+    "\\bdrove\\b",
+    "\\blevert\\b.*\\bop\\b",
+    // Onderzoek, uitleg en achtergrond.
+    "\\bonderzoek\\w*",
+    "\\bsurvey\\b",
+    "\\bresearch\\b",
+    "\\bstudy\\b",
+    "\\bstudie\\b",
+    "\\bfinds\\b",
+    "\\bwaarom\\b",
+    "\\bwhy\\b",
+    "\\banalyse\\b",
+    "\\banalysis\\b",
+    "\\bverwacht\\w*",
+    "\\bexpected\\b",
+    "\\banalysts?\\b",
+    "\\banalisten\\b",
+    "\\bexplained\\b",
+    "\\buitgelegd\\b",
+    "\\bzo werkt\\b",
+    "\\bzo zit het\\b",
+    "\\bhow\\b[^?]*\\b(?:works?|actually work)\\b",
+    // Nep, oplichting en toezicht.
+    "\\bnep\\w*",
+    "\\bfakes?\\b",
+    "\\bscams?\\b",
+    "\\boplicht\\w*",
+    "\\bmisleid\\w*",
+    "\\bmisleading\\b",
+    "\\bfraude\\w*",
+    "\\bpas op\\b",
+    "\\blet op\\b",
+    "\\bacm\\b",
+    "\\bftc\\b",
+    "\\bcma\\b",
+    "\\b\\w*phishing\\w*",
+    "\\bvalse?\\b",
+    "\\bscrutiny\\b",
+    "\\bregulators?\\b",
+    "\\btoezicht\\w*",
+    "\\bwaarschuw\\w*",
+    "\\bwarns?\\b",
+    "\\bboetes?\\b",
+    "\\bfined?\\b",
+    "\\bprobe\\b",
+    "\\blawsuit\\b",
+    "\\bsue[sd]\\b",
+    "\\brechter\\w*",
+    "\\brechtbank\\b",
+    "\\bcourt\\b",
+    "\\beuropese commissie\\b",
+    // Zaken: overnames, akkoorden, handel, werk en faillissementen.
+    "\\bm&a\\b",
+    "\\bmergers?\\b",
+    "\\bacquisitions?\\b",
+    "\\bovernames?\\b",
+    "\\btakeovers?\\b",
+    "\\bfusies?\\b",
+    "\\bakkoord\\b",
+    "\\btrade\\b",
+    "\\bhandels\\w*",
+    "\\bbillion\\b",
+    "\\bmiljard\\w*",
+    "\\b\\d+\\s?bn\\b",
+    "\\bretailers\\b",
+    "\\bwinkeliers\\b",
+    "\\bwebwinkels\\b",
+    "\\bworkers\\b",
+    "\\bwerknemers\\b",
+    "\\bpersoneel\\b",
+    "\\bstrikes?\\b",
+    "\\bstaking\\w*",
+    "\\bbankrupt\\w*",
+    "\\bfaillis\\w*",
+    "\\bfailliet\\b",
+    // Aankopen en financiering (vierde keuring): een akkoord tussen bedrijven, geen aanbod aan de lezer ("AFM's top deals:
+    // Netflix buys Spielberg drama", "De beste deals van het mediajaar: DPG koopt RTL", "The top 25 AI funding deals").
+    "\\bbuys\\b",
+    "\\bbought\\b",
+    "\\bkoopt\\b",
+    "\\bkocht\\b",
+    "\\bgekocht\\b",
+    "\\bacquires?\\b",
+    "\\bacquired\\b",
+    "\\bfunding\\b",
+    "\\braises\\b",
+    "\\braised\\b",
+    "\\bvc\\b",
+    "\\bventure\\b",
+    "\\binvest\\w*",
+    "\\binvesteer\\w*",
+    "\\bstartups?\\b",
+    "\\bvaluation\\b",
+    "\\bipo\\b",
+    // Een cijfer als onderwerp: "Amazon's best Prime Day deals were on its own devices, data shows".
+    "\\b(?:data|figures|report|rapport|cijfers)\\s+(?:shows?|showed|suggests?|toont|tonen|laat zien|laten zien)\\b",
+    // Sport: transfers, contracten en free agency ("NFL free agency 2026: Best and worst deals so far", "De beste deals van de
+    // transferzomer: Ajax verdient 80 miljoen"). Een rangschikking van zaken, geen aanbod aan de lezer.
+    "\\btransfer\\w*",
+    "\\bfree[- ]agen\\w*",
+    "\\bcontracts?\\b",
+    "\\bcontract(?:en)?\\b",
+    "\\bsignings?\\b",
+    "\\boff-?season\\b",
+    "\\btrade deadline\\b",
+    "\\bsalary cap\\b",
+    "\\b(?:nfl|nba|mlb|nhl|mls) draft\\b",
+    "\\bdraft picks?\\b",
+    "\\bmillion\\b",
+    "\\bmiljoen\\b",
+    "\\bmiskop\\w*",
+    "\\bbest and worst\\b",
+    "\\bbeste en slechtste\\b",
+    "\\bworst deals\\b",
+    "\\bslechtste deals\\b",
+    // Sportzaken in andere woorden (derde keuring): het venster, de periode of de rol, niet alleen het vakwoord. Wat verder gaat
+    // (competities, clubs) regelt de bronpoort: een sportbron krijgt de kopregels niet.
+    "\\b(?:transfer|january|summer|winter|zomer)\\s?window\\b",
+    "\\bwinterstop\\b",
+    "\\btransferperiode\\b",
+    "\\bwinter meetings\\b",
+    "\\btrade market\\b",
+    "\\bexpansion draft\\b",
+    "\\bquarterbacks?\\b",
+    "\\bslechtste\\b",
+    // Zakelijke akkoorden: tekenen, sluiten, binnenhalen ("Top Hollywood deals: Netflix lands Spielberg film", "authors land
+    // seven-figure advances", "Top 5 defence deals signed at Nato summit").
+    "\\bsigns?\\b",
+    "\\bsigned\\b",
+    "\\binks?\\b",
+    "\\binked\\b",
+    "\\blands\\b",
+    "\\blanded\\b",
+    "\\bstruck\\b",
+    "\\bseals?\\b",
+    "\\bsealed\\b",
+    // Herstel 4 (vijfde keuring, advies): een akkoord tussen partijen in een rangschikking ("The best deals Disney made with Marvel, ranked").
+    "\\bdeals?\\s+(?:[\\p{L}'-]+\\s+){1,3}made\\s+with\\b",
+    "\\btekent\\b",
+    "\\bgetekend\\b",
+    "\\bgesloten\\b",
+    "\\badvances?\\b",
+    "\\b[\\p{L}]+-figure\\b",
+    "\\bdefen[cs]e\\b",
+    "\\bnato\\b",
+    "\\barms\\b",
+    "\\bwapen\\w*",
+    "\\bhollywood\\b",
+    // Gevolgen voor winkels en winkelstraat ("Black Friday deals failed to lift UK high street footfall").
+    "\\bfootfall\\b",
+    "\\bhigh street\\b",
+    "\\bfail\\w*",
+    "\\bdisappoint\\w*",
+    "\\bprofits?\\b",
+    "\\bwinst\\w*",
+    "\\bclos(?:e|es|ed|ing|ure)\\b",
+    "\\bjobs\\b",
+    "\\bbanen\\b",
+    "\\bstoring\\w*",
+    // Politieke akkoorden: "peace deals", "trade deals".
+    "\\bpeace\\b",
+    "\\bvrede\\w*",
+    "\\bceasefire\\b",
+    "\\bdiplomat\\w*",
+    "\\btariffs?\\b",
+    "\\bnuclear\\b",
+    "\\bkernwapen\\w*",
+    // Markten.
+    "\\bstocks?\\b",
+    "\\bshares\\b",
+    "\\baandel\\w*",
+    "\\bbeurs\\w*",
+    "\\bkoers\\w*",
+    "\\bmarkets\\b",
+    "\\bwall street\\b",
+    "\\bbitcoin\\b",
+    "\\bcrypto\\w*",
+    "\\boil (?:price|prices|supplies|market)\\b",
+    "\\bgold price\\b",
+    "\\bgoudprijs\\b",
+    "\\beconomie\\w*",
+    "\\beconomy\\b",
+    "\\binflati\\w*"
+  ].join("|"), "iu");
+  var clean = (t) => String(t || "").replace(/\s+/g, " ").replace(/[’‘`]/g, "'").replace(/\bbest buy\b/gi, "BestBuy").replace(/\btop shop\b/gi, "Topshop").trim();
+  var strongForm = (t) => STRONG_HEAD.test(t) || SHOP_DAY.test(t) && STRONG_DAY_WORD.test(t);
+  var STRICT_ALWAYS = new RegExp([
+    `^[\\s"'‘“([]*winactie\\s*[:|.!–—-]\\s`,
+    "\\bmaak kans op\\b",
+    "\\((?:adv|advertentie)\\)",
+    "\\[(?:adv|advertentie)\\]",
+    `^[\\s"'‘“]*win\\s+(?:(?:een|twee|drie|\\d+|a|two|free)\\s+)?(?:[\\p{L}-]+\\s+){0,2}(?:tickets?|vliegtickets|kaarten|kaartjes|exemplaren|exemplaar|copies|copy|reis|trip|prijzen)\\b`
+  ].join("|"), "iu");
+  var STRICT_LABEL = /^[\s"'‘“([]*(?:dagdeals?|dagaanbieding(?:en)?|aanbieding(?:en)?|koopjes?|kortingscodes?|prijsfout|promojagers?(?: supertip)?|deal of the day|deal alert|gesponsord|sponsored|advertorial)\s*[:|.!–—-]\s/iu;
+  var DAY_LABEL = /^[\s"'‘“([]*(?:black friday|cyber monday|prime day|singles day)-deals?\s*[:|.!–—-]\s/iu;
+  var STORE = /\b(?:at|bij|via|from)\s+(?:amazon(?:\.\w+)?|bestbuy|walmart|target|costco|newegg|currys|john lewis|bol(?:\.com)?|coolblue|mediamarkt|media markt|alternate|megekko|wehkamp|belsimpel|azerty|fnac|zalando)\b/iu;
+  var PRICE = /(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b/iu;
+  var PERCENT = /\b\d+\s?(?:%|procent|percent)/iu;
+  var OFFER = /\bkorting\w*|\bafgeprijsd\w*|\bin de aanbieding\b|\bvan\s+(?:€\s?)?\d[\d.,]*(?:\s?euro)?\s+(?:nu\s+)?voor\s+(?:€\s?)?\d/iu;
+  var offerForm = (t) => PRICE_DROP.test(t) || OFFER.test(t);
+  var CODE = /\b(?:(?:promo|coupon|discount)\s+codes?|kortingscodes?|actiecodes?)\b/iu;
+  var CODE_AMOUNT = /\b\d+\s?(?:%|procent|percent)|(?:\$|€|£)\s?\d|\b\d[\d.,]*\s?euro\b|\b20\d\d\b/iu;
+  function strictGrond(t) {
+    if (STRICT_ALWAYS.test(t)) return NARROW.test(t) ? null : "aanbod";
+    const rest = t.replace(DAY_LABEL, "");
+    const grond = STRICT_LABEL.test(t) ? "label" : DAY_LABEL.test(t) ? !/\?[\s"'’”)]*$/.test(rest) && (PRICE.test(rest) || PERCENT.test(rest) || STORE.test(rest)) ? "label" : null : PRICE_LABEL.test(t) ? STORE.test(t) && !PRICE_LABEL_MARKET.test(t) ? "label" : null : PRICE.test(t) && STORE.test(t) ? offerForm(t) ? "prijsval" : null : CODE.test(t) && CODE_AMOUNT.test(t) ? "kortingscode" : null;
+    return grond && !ABOUT.test(t) ? grond : null;
+  }
+  function koopGrond(title = "", { ruim = true } = {}) {
+    const t = clean(title);
+    if (!t) return null;
+    if (!ruim) return strictGrond(t);
+    if (BUY_ALWAYS.test(t)) return NARROW.test(t) ? null : "aanbod";
+    if (GIFT_GUIDE.test(t) && !GIFT_SUBJECT.test(t) && !NARROW.test(t)) return "aanbod";
+    if (LABEL2.test(t)) return ABOUT.test(t) ? null : "label";
+    if (PRICE_LABEL.test(t)) return priceLabelOffer(t) && !ABOUT.test(t) ? "label" : null;
+    if (strongForm(t)) return NARROW.test(t) ? null : STRONG_HEAD.test(t) ? "dealkop" : "koopdag";
+    const grond = DEAL_HEAD.test(t) ? "dealkop" : SHOP_DAY.test(t) && SHOP_WORD.test(t) ? "koopdag" : PRICE_DROP.test(t) ? "prijsval" : GUIDE.test(t) ? "koopgids" : null;
+    return grond && !ABOUT.test(t) ? grond : null;
+  }
+  var koopKop = (title = "", opts) => koopGrond(title, opts) != null;
+  var LOOSE = /\b(?:best|beste|top)\b|\(20\d\d\)|(?:\$|€|£)\s?\d|\b\d+ ?(?:%|percent|procent)\b|\boff\b/i;
+  var koopVorm = (title = "") => {
+    const t = clean(title);
+    if (!t) return false;
+    if (koopKop(t) || (SHOP_WORD.test(t) || LOOSE.test(t)) && !ABOUT.test(t)) return true;
+    return (SHOP_DAY.test(t) && SHOP_WORD.test(t) || PRICE_DROP.test(t) || DEAL_HEAD.test(t)) && !NARROW.test(t);
+  };
+  var KOOP_CATS = /* @__PURE__ */ new Set(["tech", "games", "cultuur", "muziek", "lifestyle", "consument"]);
+  var CAT_OF = new Map(SOURCES.map((s) => [s.id, s.cat]));
+  var VAKBRON = /* @__PURE__ */ new Set(["techcrunch", "mittr", "variety", "villamedia", "mediacourant", "nos-cultuur"]);
+  var SHOP_RUBRIC = /* @__PURE__ */ new Set([
+    "deals",
+    "deal",
+    "aanbiedingen",
+    "aanbieding",
+    "koopjes",
+    "coupons",
+    "kortingscodes",
+    "dagdeals",
+    "shopping",
+    "recommended",
+    "indybest",
+    "thefilter",
+    "the-filter",
+    "buying-guide",
+    "buying-guides",
+    "gift-guide",
+    "gift-guides",
+    "gift-ideas",
+    "gifts",
+    "best-buys",
+    "reviews",
+    "review",
+    "product-reviews",
+    "recensie",
+    "recensies",
+    "gear",
+    "koopgids",
+    "koopgidsen",
+    "cadeaugids",
+    "cadeaugidsen",
+    "wirecutter",
+    "underscored",
+    "black-friday",
+    "cyber-monday",
+    "prime-day",
+    "singles-day"
+  ]);
+  function koopBron(item = {}, segs = []) {
+    return KOOP_CATS.has(CAT_OF.get(item.source)) && !VAKBRON.has(item.source) || item.feedMark === "aanbod" || segs.some((x) => SHOP_RUBRIC.has(x));
+  }
+
+  // shared/recensie.mjs
+  var WORK_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "games").map((s) => s.id));
+  var REVIEW_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "cultuur" || s.cat === "tech" || s.cat === "games").map((s) => s.id));
+  var REVIEW_DIR = /^(recensies?|reviews?|[a-z]+(?:-[a-z]+)?-reviews?|albumrecensies?|album-van-de-(dag|week)|plaat-van-de-(dag|week)|album-of-the-(day|week)|reissue-of-the-week|luistertips?)$/i;
+  var DIR_NOT = [/(^|\.)tweakers\.net$/i];
+  var CULTURE_DIR = /^(film|films|movies|tv|tv-and-radio|television|tv-movies|series|stage|theatre|theater|podium|music|muziek|books|boeken|games|artanddesign|art|kunst|kunst-media|culture|cultuur|cultuur-media|tv-cultuur|uit)$/i;
+  var NEWS_VERB = /(?<![\p{L}\p{N}])(reageert|reageren|reageerde|reacts|responds|wint|winnen|wonnen|wins|overleden|overlijdt|sterft|gestorven|doodt|dies|died|killed|ontslagen|ontslaat|fired|sacked|kondigt|kondigen|aangekondigd|announces?|announced|unveils?|onthult|onthullen|stopt|stoppen|gestopt|uit elkaar|arrested|aangehouden|opgepakt|veroordeeld|sentenced|sued|aangeklaagd|klaagt|cancels?|cancell?ed|geschrapt|afgelast|postponed|uitgesteld|reunites?|reunited|verkoopt|nominated|genomineerd|benoemd|appointed|verlaat|vertrekt)(?![\p{L}\p{N}])/iu;
+  var NEWS_WORD = /(?<![\p{L}\p{N}])(won|winning|dood|dead|death|splits?|quits?|breaks?|record|sells?|sold|named|leaves|grammys?|oscars?|edison|nominaties?)(?![\p{L}\p{N}])/iu;
+  var VERB = /(?<![\p{L}\p{N}])(is|are|was|were|be|been|has|have|had|will|would|can|could|says?|said|gets?|got|makes?|made|takes?|took|brings?|goes|went|comes?|came|zijn|ben|bent|wordt|worden|werd|werden|heeft|hebben|had|hadden|gaat|gaan|ging|komt|komen|kwam|krijgt|krijgen|maakt|maken|brengt|brengen|zegt|zeggen|zei|wil|willen|moet|moeten|kan|kunnen|mag|blijft|staat|ligt|zit)(?![\p{L}\p{N}])/iu;
+  var TITLE_LABEL = /^[\s"'‘“(]*(recensies?|review|reviews|book review|album review|film review|tv review|game review|filmrecensie|albumrecensie|boekrecensie|theaterrecensie|concertrecensie|album van de (dag|week)|plaat van de (dag|week)|album of the (day|week)|reissue of the week|luistertips?|playlist)(\s*\(\d+\))?\s*(?:[:|]|\s[-–—]\s)/i;
+  var TITLE_CAPS2 = /^\W*(RECENSIE|REVIEW)\.\s/;
+  var TITLE_LABEL_END = /\S(?:\s*\||\s[–—]|\s-)\s*(review|recensie)\s*$/i;
+  var TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?(?:\s+so\s+far)?\s*(?:$|[:|–—]|\s-\s)/iu;
+  var NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne|to|will|charter|antitrust|regulatory|competition|merger|deal|licen[cs]e|licensing|funding|fcc|ftc|cma|sec|doj|ofcom|eu|onder|op|over|om|vernietigende|slechte|negatieve|lovende)$/i;
+  var TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt|after|following|under|na|onder|over|op|om)$/i;
+  var NOT_AFTER = /^(recommends?|recommended|finds?|found|says?|said|concludes?|concluded|urges?|warns?|clears?|cleared|rejects?|rejected|backs?|blames?|critici[sz]es?|into|adviseert|concludeert|oordeelt)$/i;
+  var toetsing = (words2, j) => NOT_BEFORE.test(words2[j - 1] || "") || TOETS_VERB.test(words2[j - 2] || "") || NOT_AFTER.test(words2[j + 1] || "");
+  function kopToetsing(title) {
+    const words2 = title.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    return words2.some((w, j) => {
+      if (w === "reviewing") return true;
+      if (w === "reviewed") return j > 0;
+      return /^(reviews?|recensies?)$/.test(w) && j > 0 && toetsing(words2, j);
+    });
+  }
+  var kopWoorden = (title) => title.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  var kopNoemt = (title) => kopWoorden(title).some((w) => /^(reviews?|recensies?)$/.test(w));
+  var kopLabel = (title) => /^(reviews?|recensies?)$/.test(kopWoorden(title)[0] || "");
+  var VORM = /(?:ing|ed|[^aeiou]es|[^aeiosu]s)$/;
+  var LIDWOORD = /^(a|an|the|een|de|het)$/i;
+  function werkwoordVoor(deel, titelvorm) {
+    const words2 = deel.split(/\s+/).map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "")).filter(Boolean);
+    return words2.some((w, i) => {
+      if (i === 0) return false;
+      const erna = words2.length - 1 - i;
+      if (/^\p{Ll}/u.test(w)) return VERB.test(w) || NEWS_VERB.test(w) || w.length >= 4 && VORM.test(w) && erna >= 1;
+      if (!titelvorm || w.length < 4 || !VORM.test(w) || /[’']s$/.test(w)) return false;
+      return erna >= 2 && /^\p{Lu}/u.test(words2[i - 1]) && !LIDWOORD.test(words2[i - 1]);
+    });
+  }
+  function recensieVorm(title) {
+    const end = TITLE_END.exec(title);
+    if (!end || toetsing([end[1] || "", end[2], end[3]], 2)) return false;
+    const at = end.index + end[0].toLowerCase().lastIndexOf(end[3].toLowerCase());
+    return !werkwoordVoor(title.slice(0, at).split(/[:|–—]|\s-\s/).pop().trim(), /^\p{Lu}/u.test(end[3]));
+  }
+  var STARS = /[★☆]{2,}|\(\s*[0-5](?:[.,]5)?\s*\/\s*5\s*\)/;
+  var plainTitle = (s) => String(s || "").replace(/\s+/g, " ").trim();
+  function recensieMap(raw) {
+    const u = urlDelen(raw);
+    if (!u || DIR_NOT.some((h) => h.test(u.host))) return false;
+    const parts = u.path.split("/").filter(Boolean).map((s) => s.toLowerCase());
+    let k = parts.length - 1;
+    while (k > 0 && /^[\d.]+(\.html?)?$/.test(parts[k])) k--;
+    return parts.slice(0, k).some((d) => REVIEW_DIR.test(d));
+  }
+  function urlSignal2(raw, cultuurBron) {
+    const u = urlDelen(raw);
+    if (!u) return null;
+    const parts = u.path.split("/").filter(Boolean).map((s) => {
+      try {
+        return decodeURIComponent(s).toLowerCase();
+      } catch {
+        return s.toLowerCase();
+      }
+    });
+    if (!parts.length) return null;
+    let k = parts.length - 1;
+    while (k > 0 && /^[\d.]+(\.html?)?$/.test(parts[k])) k--;
+    const slug = parts[k].replace(/\.html?$/, "").replace(/~[a-z0-9]+$/, "").replace(/-\d{5,}$/, "");
+    const dirs = parts.slice(0, k);
+    const cultuurMap = dirs.some((d) => CULTURE_DIR.test(d));
+    if (/^recensie-/.test(slug)) return "slug";
+    const tokens = slug.split("-");
+    const last = tokens[tokens.length - 1];
+    if ((last === "recensie" || last === "review") && (cultuurBron || cultuurMap) && tokens.length > 1 && !toetsing(tokens, tokens.length - 1)) return "slug";
+    if (cultuurMap && tokens.some((t, j) => (t === "review" || t === "recensie") && j > 0 && j < tokens.length - 1 && !toetsing(tokens, j))) return "midden";
+    return null;
+  }
+  function cultuurLink(raw) {
+    const u = urlDelen(raw);
+    if (!u) return false;
+    return u.path.split("/").filter(Boolean).slice(0, -1).some((d) => CULTURE_DIR.test(d.toLowerCase()));
+  }
+  function workTitle(title) {
+    const t = plainTitle(title).replace(/\s*\((?:feat|ft|prod)\.[^)]*\)/gi, "");
+    if (!t || /[?!:;,]/.test(t) || /[.]$/.test(t)) return false;
+    const parts = t.split(/\s[-–]\s/);
+    if (parts.length !== 2) return false;
+    const words2 = (s) => s.replace(/["“”‘’']/g, "").split(/\s+/).filter(Boolean);
+    const [a, b] = parts.map(words2);
+    if (!a.length || !b.length || a.length > 5 || b.length > 6) return false;
+    return !VERB.test(t) && !NEWS_VERB.test(t) && !NEWS_WORD.test(t);
+  }
+  function recensieMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    if (item.feedMark === "recensie") return "feed";
+    const title = plainTitle(item.title);
+    if (TITLE_LABEL.test(title) || TITLE_CAPS2.test(title) || TITLE_LABEL_END.test(title)) return "label";
+    if (STARS.test(title)) return "sterren";
+    if (NEWS_VERB.test(title)) return null;
+    const werkkop = () => WORK_IDS.has(item.source) && workTitle(title) ? "werkkop" : null;
+    if (kopToetsing(title)) return werkkop();
+    if (recensieMap(item.url)) return "map";
+    const cultuurBron = REVIEW_IDS.has(item.source);
+    const vorm = recensieVorm(title);
+    if (kopNoemt(title) && !vorm && !kopLabel(title)) return werkkop();
+    const url = urlSignal2(item.url, cultuurBron);
+    if (url === "midden") {
+      if (!NEWS_WORD.test(title)) return "slug";
+    } else if (url) return url;
+    if (vorm && (cultuurBron || cultuurLink(item.url))) return "kop";
+    return werkkop();
+  }
+  var isRecensie = (item) => recensieMark(item) != null;
+
+  // shared/vorm.mjs
+  var LABEL3 = /^\s*[\p{L}\p{N}][\p{L}\p{N} &'’.-]{0,30}?\s*(?:\/|\|)\s+/u;
+  var FIRST_PERSON_RUBRIEK = /^\s*(?:experience|first person|personal essay|essay|diary|confessions?|column|a moment that changed me|my week)\s*:\s+I\s/i;
+  var BULLET = /\s•\s/;
+  var DATED_LABEL = /^\s*\p{L}+(?:\s\p{L}+)?\s+\d{1,2}\/\d{1,2}\s*:/u;
+  var WORDS = /[\p{L}\p{N}]+/gu;
+  function vormMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    const title = String(item.title || "").replace(/\s+/g, " ").trim();
+    if (!title) return null;
+    const words2 = title.match(WORDS) || [];
+    if (words2.length <= 1) return "lege-kop";
+    if (words2.length <= 3 && /\p{Lu}/u.test(title) && title === title.toUpperCase()) return "lege-kop";
+    if (BULLET.test(title) || DATED_LABEL.test(title)) return "dagoverzicht";
+    const body = title.replace(LABEL3, "");
+    const labelled = body !== title;
+    if (/^(ik|mijn)\s/i.test(body) || labelled && /^I\s/.test(body) || FIRST_PERSON_RUBRIEK.test(title)) return "ik-vorm";
+    return null;
+  }
+  var geenPlekNaarVorm = (item) => vormMark(item) != null;
+
+  // shared/editie-filter.mjs
+  var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
+  var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
+  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
+  var LABEL4 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  var AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i;
+  function rubricSegments(url) {
+    const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
+    if (!m) return [];
+    const path = m[1];
+    const segs = path.split("/").filter(Boolean).map((s) => {
+      try {
+        return decodeURIComponent(s).toLowerCase();
+      } catch {
+        return s.toLowerCase();
+      }
+    });
+    const before = segs.slice(0, -1);
+    const cut = before.findIndex((x) => /^\d+$/.test(x));
+    return cut === -1 ? before : before.slice(0, cut);
+  }
+  var norm = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  function ownIntro(item = {}) {
+    if (item.borrowedFrom) return false;
+    const s = String(item.summary || item.text || "").trim();
+    const t = norm(item.title);
+    const n = norm(s);
+    if (n.split(" ").filter(Boolean).length < 4) return false;
+    if (n === t || t && n.startsWith(t) && n.length - t.length < 12) return false;
+    if (/appeared first on\b|\blead image\b/i.test(s) && s.length < 200) return false;
+    return true;
+  }
+  function hardMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    const segs = rubricSegments(item.url);
+    const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
+    if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
+    if (koopGrond(item.title, { ruim: koopBron(item, segs) })) return { soort: "aanbieding", grond: "koopkop" };
+    if (item.feedMark === "aanbod" && koopVorm(item.title)) return { soort: "aanbieding", grond: "feedcategorie" };
+    const media = String(item.mediaType || "");
+    const label2 = LABEL4.exec(String(item.title || ""))?.[1]?.toLowerCase();
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
+    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
+    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
+    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
+    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
+    return null;
+  }
+  var AUDIO_EPISODE_DIR = /* @__PURE__ */ new Set([...AUDIO_RUBRIC, "audio"]);
+  function audioEpisode(item = {}) {
+    if (!item || item.kind === "post") return false;
+    if (item.feedMark === "podcast") return true;
+    if (/^audio\//i.test(String(item.mediaType || ""))) return true;
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true;
+    if (rubricSegments(item.url).some((s) => AUDIO_EPISODE_DIR.has(s))) return true;
+    return AUDIO_LABEL.test(String(item.title || "")) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || ""));
+  }
+  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null || isRecensie(item) || geenPlekNaarVorm(item));
+
+  // shared/aflevering.mjs
+  var AUDIO_DIR = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister", "audio"]);
+  var VIDEO_DIR = /* @__PURE__ */ new Set(["video", "videos", "kijk"]);
+  var LABEL5 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  var TAIL = /\(\s*podcast\s*\)\s*$/i;
+  function afleveringSoort(item) {
+    if (!item || item.kind === "post") return null;
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return "podcast";
+    if (item.feedMark === "podcast") return "podcast";
+    if (item.feedMark === "video") return "video";
+    const media = String(item.mediaType || "");
+    if (/^audio\//i.test(media) && !ownIntro(item)) return "podcast";
+    if (/^video\//i.test(media) && !ownIntro(item)) return "video";
+    const segs = rubricSegments(item.url);
+    if (segs.some((s) => AUDIO_DIR.has(s))) return "podcast";
+    if (segs.some((s) => VIDEO_DIR.has(s))) return "video";
+    const title = String(item.title || "");
+    const label2 = LABEL5.exec(title)?.[1]?.toLowerCase();
+    if (label2 === "podcast" || label2 === "luister" || label2 === "listen") return "podcast";
+    if (label2 === "video" || label2 === "kijk" || label2 === "watch") return "video";
+    if (TAIL.test(title)) return "podcast";
+    return null;
+  }
+  var isAflevering = (item) => afleveringSoort(item) !== null;
 
   // shared/editor.mjs
   var FOREIGN_DESKS = /* @__PURE__ */ new Set(["buitenland", "vs", "middenoosten", "oekraine"]);
@@ -1756,7 +2711,7 @@ var HootCore = (() => {
     if (fav) parts.favorite = { pts: P.FAVORITE, source: fav.source };
     const rs = Math.max(0, ...items.map((i) => prof.sourceP[i.source] || 0));
     if (rs > SOURCE_READ_MIN) parts.sourceRead = { pts: Math.round(P.SOURCE_READ * rs) };
-    const mine = new Set(items.map((i) => i.source)).size;
+    const mine = new Set(items.filter((i) => !isAflevering(i)).map((i) => i.source)).size;
     if (mine >= 2) parts.mine = { pts: P.MINE * Math.min(MINE_MAX, mine - 1), n: mine };
     const whole = ctx.newFacts && story.whole?.length ? story.whole : items;
     const read = ctx.readIds ? whole.filter((i) => ctx.readIds.has(i.id)) : [];
@@ -2054,7 +3009,7 @@ var HootCore = (() => {
     HK: ["scmp"],
     AU: ["abc-au"],
     UA: ["kyivindependent"],
-    IL: ["haaretz", "timesofisrael"]
+    IL: ["haaretz"]
   }).flatMap(([country, ids]) => ids.map((id) => [id, country])));
   var publisherOf = (id) => ALIAS[id] || id;
   var publisherCountry = (id) => COUNTRIES2[publisherOf(id)] || null;
@@ -2074,8 +3029,9 @@ var HootCore = (() => {
     }
     return n;
   }
+  var countsAsSource = (i) => !!i && !opinieBron(i.source) && !isAflevering(i);
   function coverageOf(items = []) {
-    const ids = [...new Set(items.filter((i) => !opinieBron(i.source)).map((i) => publisherOf(i.source)).filter(Boolean))].sort();
+    const ids = [...new Set(items.filter(countsAsSource).map((i) => publisherOf(i.source)).filter(Boolean))].sort();
     return { publisherCount: countedPublishers(ids), publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() };
   }
   var SPORT_CAT = new Map(SOURCES.map((s) => [s.id, s.cat]));
@@ -2105,7 +3061,7 @@ var HootCore = (() => {
   function majorNews(story = {}, items = []) {
     if (onlyGalleries(items)) return false;
     const coverage = coverageOf(items);
-    const observedSources = new Set(items.map((i) => i.source).filter(Boolean)).size;
+    const observedSources = new Set(items.filter((i) => !isAflevering(i)).map((i) => i.source).filter(Boolean)).size;
     const count = story.publisherCount ?? (observedSources >= (story.sourceCount || Infinity) ? coverage.publisherCount : story.sourceCount) ?? coverage.publisherCount;
     const countries = new Set(story.publisherCountries || coverage.publisherCountries);
     return count >= FRONT_BIG || count >= 5 && countries.size >= 2;
@@ -2136,7 +3092,6 @@ var HootCore = (() => {
     "abc-au",
     "kyivindependent",
     "haaretz",
-    "timesofisrael",
     "axios",
     "propublica",
     "wapo",
@@ -2178,7 +3133,7 @@ var HootCore = (() => {
   var OPEN_WORLD_MIN = 4;
   var emptyProfile = (prof) => !prof?.interests?.size && !Object.keys(prof?.family || {}).length;
   function publishersOf(story = {}, items = []) {
-    const observedSources = new Set(items.map((i) => i?.source).filter(Boolean)).size;
+    const observedSources = new Set(items.filter((i) => i && !isAflevering(i)).map((i) => i.source).filter(Boolean)).size;
     return story?.publisherCount ?? (observedSources >= (story?.sourceCount || Infinity) ? coverageOf(items).publisherCount : story?.sourceCount) ?? coverageOf(items).publisherCount;
   }
   var openWorld = (prof, items = [], story = null) => emptyProfile(prof) && !onlyGalleries(items) && publishersOf(story || {}, items) >= OPEN_WORLD_MIN;
@@ -2247,7 +3202,9 @@ var HootCore = (() => {
     for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(voice(ID_BY_NAME.get(name), CAT_BY_NAME.get(name)));
     const countries = new Set([...ids].map(publisherCountry).filter(Boolean));
     const n = countedPublishers(ids);
-    return n >= LIGHT_MAJOR || n >= 5 && countries.size >= 2;
+    const land = countries.size === 1 ? [...countries][0] : null;
+    const oneForeign = !!land && !UNCAPPED.has(land) && [...ids].every((id) => publisherCountry(id) === land);
+    return n >= LIGHT_MAJOR && !oneForeign || n >= 5 && countries.size >= 2;
   }
   var CULTUUR_KIND = ["muziek", "film", "boeken", "kunst", "media"];
   var cultuurChosen = (prof, min = 0.5) => Math.max(0, ...CULTUUR_KIND.map((t) => prof?.topicP?.[t] || 0)) >= min;
@@ -2409,7 +3366,7 @@ var HootCore = (() => {
     "the a an and to for with on at by from are were be been has have will would could should not this that these those its he she they you your his her their our my who what when where why how which after before about into than but or as says said there here just all more year years while against between without because its it's don't doesn't didn't won't can't isn't aren't i'm you're they're we're what's here's there's people being does did makes made gets got".split(/\s+/)
   );
   var XX = new Set(
-    "le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur el una del para con por según sobre también más pero muy está fue y".split(/\s+/)
+    "le les des du une est pour avec dans sur ne qui mais très aussi été sont cette ces leur à où la et il ils elle elles nous vous au aux avant après sans chez depuis selon contre lors ses der und ist nicht mit für das dem ein eine auf wird sich auch nach ich sind über zum zur im von zu dieser diese dieses einen einem dass bei wurde nur schon gegen el una del para con por según sobre también más pero muy está fue y que entre desde porque cuando".split(/\s+/)
   );
   var ELISIE = /^(?:l|d|qu|j|n|s|c)'\p{L}{2,}/u;
   var KNOWN_PATHS = [{ host: /(^|\.)parool\.nl$/, path: /^\/(amsterdam-news|guide)(\/|$)/, lang: "en" }];
@@ -2423,15 +3380,29 @@ var HootCore = (() => {
     for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.path)) return k.lang;
     return null;
   }
+  var CAP = /^\p{Lu}/u;
+  var NAME_GAP = 2;
+  function nameParts(raw) {
+    const out = /* @__PURE__ */ new Set();
+    for (let k = 0; k < raw.length; k++) {
+      if (!CAP.test(raw[k]) || !XX.has(raw[k].toLowerCase())) continue;
+      let j = k + 1;
+      while (j < raw.length && j <= k + NAME_GAP && !CAP.test(raw[j]) && XX.has(raw[j])) j++;
+      if (CAP.test(raw[j] || "")) for (let i = k; i < j; i++) out.add(i);
+    }
+    return out;
+  }
   function langCounts(text) {
-    const words2 = String(text || "").toLowerCase().replace(/[‘’ʼ]/g, "'").match(/\p{L}+(?:'\p{L}+)*/gu) || [];
+    const raw = String(text || "").replace(/[‘’ʼ]/g, "'").match(/\p{L}+(?:'\p{L}+)*/gu) || [];
     let nl = 0;
     let en = 0;
     let xx = 0;
-    for (const w of words2) {
+    const names = nameParts(raw);
+    for (let k = 0; k < raw.length; k++) {
+      const w = raw[k].toLowerCase();
       if (NL.has(w)) nl++;
       if (EN.has(w)) en++;
-      if (XX.has(w) || ELISIE.test(w)) xx++;
+      if ((XX.has(w) || ELISIE.test(w)) && !names.has(k)) xx++;
     }
     return { nl, en, xx };
   }
@@ -2455,7 +3426,7 @@ var HootCore = (() => {
   var byRecency = (a, b) => timeOf(b) - timeOf(a);
   var deaccent = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "");
   var wordMemo = null;
-  var norm = (s) => {
+  var norm2 = (s) => {
     if (wordMemo && typeof s === "string" && s.length <= 40) {
       let v = wordMemo.get(s);
       if (v === void 0) wordMemo.set(s, v = deaccent(s).toLowerCase());
@@ -2470,7 +3441,7 @@ var HootCore = (() => {
   );
   function sigWords(title) {
     const out = /* @__PURE__ */ new Set();
-    for (const w of norm(title).replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w);
+    for (const w of norm2(title).replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w);
     return out;
   }
   function numbersOf(text) {
@@ -2844,7 +3815,7 @@ var HootCore = (() => {
         if (!part.trim()) continue;
         const words2 = partTokens(part);
         for (const w of words2) {
-          if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm(w));
+          if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm2(w));
           sentenceStart = false;
         }
         if (/[.!?:;"“‘(]$/.test(part) || /^["“‘(]/.test(part)) sentenceStart = /[.!?:]["”’)]?$/.test(part);
@@ -2873,18 +3844,18 @@ var HootCore = (() => {
     const acronyms = /* @__PURE__ */ new Set();
     const dutchPiece = ext && NL_LANG.has(article.source);
     const nameOf = (w) => {
-      const k = norm(w);
+      const k = norm2(w);
       if (vocab.has(k)) return k;
       return dutchPiece && isCap(w) && k.length >= 6 && k.endsWith("s") && vocab.has(k.slice(0, -1)) && !alias[k] && !alias[k.slice(0, -1)] ? k.slice(0, -1) : null;
     };
     const capName = (w) => {
       if (w.length < minLen || !isCap(w)) return null;
       const k = nameOf(w);
-      return k && !(w.length === 3 && COMMON_3.has(norm(w))) ? k : null;
+      return k && !(w.length === 3 && COMMON_3.has(norm2(w))) ? k : null;
     };
     const strongKey = (w) => {
       let key = null;
-      if (acr(w)) key = norm(w);
+      if (acr(w)) key = norm2(w);
       else key = capName(w);
       if (!key) return null;
       key = aliasOf(key);
@@ -2894,12 +3865,12 @@ var HootCore = (() => {
     };
     for (const w of tokenize(raw, ext)) {
       if (isCap(w) || acr(w)) {
-        const k = aliasOf(norm(w));
+        const k = aliasOf(norm2(w));
         if (weakSet.has(k)) known.add(k);
         if (PARTIES.has(k)) parties.add(k);
       }
       let key = null;
-      if (acr(w)) key = norm(w);
+      if (acr(w)) key = norm2(w);
       else key = capName(w);
       if (!key) continue;
       key = aliasOf(key);
@@ -2907,7 +3878,7 @@ var HootCore = (() => {
       if (weakSet.has(key)) weak.add(key);
       else if (key.length >= 3) strong.add(key);
     }
-    const text = norm(raw);
+    const text = norm2(raw);
     const concepts = /* @__PURE__ */ new Set();
     let rare = 0;
     for (const [id, re, isRare] of concepts_) {
@@ -2926,7 +3897,7 @@ var HootCore = (() => {
           for (const w of tokenize(part)) {
             const k = strongKey(w);
             if (k) run.push(k);
-            else if (!(run.length && CONNECT.has(norm(w)))) run.length && runs.push(run), run = [];
+            else if (!(run.length && CONNECT.has(norm2(w)))) run.length && runs.push(run), run = [];
           }
           if (run.length) runs.push(run);
         }
@@ -2977,7 +3948,7 @@ var HootCore = (() => {
     ["overlijden", /\b(overleden|overlijdt|sterft|dies|died)\b/]
   ];
   var actionsOf = (title) => {
-    const t = norm(title || "");
+    const t = norm2(title || "");
     return new Set(ACTIONS.filter(([, re]) => re.test(t)).map(([id]) => id));
   };
   var WORD_WINDOW = 48 * 60 * 60 * 1e3;
@@ -3081,7 +4052,7 @@ var HootCore = (() => {
     if (!v.cvocab) {
       const titles = (v.articles || []).map((a) => String(a.title || "")).filter(Boolean);
       const lower = /* @__PURE__ */ new Set();
-      for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm(w));
+      for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm2(w));
       v.cvocab = /* @__PURE__ */ new Set([...v.vocab, ...nameVocabulary(titles.filter((t) => !isTitleCase(t)).map((title) => ({ title })), true)]);
       for (const w of [...v.cvocab]) if (w.includes("sj")) v.cvocab.add(translit(w));
       v.tvocab = new Set([...v.cvocab].filter((w) => !lower.has(w)));
@@ -3181,9 +4152,9 @@ var HootCore = (() => {
   var STALE_AFTER = HEAD_MAX_H * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
   function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
-    const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
+    const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isAflevering(i) || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
     const scores = new Map(items.map((i) => [i, score(i)]));
-    const op = new Map(items.map((i) => [i, isOpinion(i) ? 1 : 0]));
+    const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : audioEpisode(i) ? 1 : 0]));
     return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b));
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b|(^|:\s*)(bekijk|vind|volg|lees) hier\b|^\W*praat mee\b|^\W*spoorboekje\b|\bresults live\b|\blive results\b|\blive briefing\b|:\s*all the news\s*$/i;
@@ -3193,7 +4164,7 @@ var HootCore = (() => {
   var RESULT_RE = /\b(wint|winnen|wins?|won|gewonnen|verover\w*|herover\w*|flips?|flipped|verslaat|verslagen|beats?|defeats?|defeating|ousts?|ousting|unseats?|verliest|verliezen|verloren|loses|lost|verkozen|herkozen|elected|re-?elected|elects|clinch\w*|meerderheid|majority|uitslag\w*|results?|zege|monsterzege|overwinning\w*|victory|afstraffing|landslide|blue-?nami|tsunami|blauwe golf|blue wave|erkent verlies|concedes?|crushed|trounces?|rebuke)\b/;
   var OFFICE_RE = /\b(senate|senaat\w*|senator\w*|huiszetel\w*|congress\w*|congres\w*|governor\w*|gouverneur\w*|seats?|zetels?|mayor\w*|burgemeester\w*|parliament\w*|parlement\w*)\b/;
   var PARTY_RE = /\b(democrat\w*|republican\w*|republikein\w*)\b/;
-  var voteText = (i) => norm(`${i.title || ""} ${i.summary || i.text || ""}`);
+  var voteText = (i) => norm2(`${i.title || ""} ${i.summary || i.text || ""}`);
   var voteMemo = /* @__PURE__ */ new WeakMap();
   function voteKind(i) {
     if (!i || typeof i !== "object") return 0;
@@ -3209,7 +4180,7 @@ var HootCore = (() => {
   function votePlace(i) {
     const ds = desksOf(i);
     const t = `${i.title || ""} ${i.summary || ""}`;
-    if (ds.has("vs") || usPoliticsIn(t) || PARTY_RE.test(norm(t)) && OFFICE_RE.test(norm(t))) return "us";
+    if (ds.has("vs") || usPoliticsIn(t) || PARTY_RE.test(norm2(t)) && OFFICE_RE.test(norm2(t))) return "us";
     if (ds.has("binnenland")) return "nl";
     return countriesIn(i.title || "")[0] || null;
   }
@@ -3230,7 +4201,7 @@ var HootCore = (() => {
     if (results.length * 2 < n) return null;
     const place = placeOfGroup(items);
     if (!place) return null;
-    const heads = results.filter((i) => RESULT_RE.test(norm(i.title || ""))).map(timeOf).filter(Boolean).sort((a, b) => a - b);
+    const heads = results.filter((i) => RESULT_RE.test(norm2(i.title || ""))).map(timeOf).filter(Boolean).sort((a, b) => a - b);
     const from = heads.length ? heads[Math.floor(heads.length / 4)] - VOTE_LEAD : Math.min(...items.map(timeOf).filter(Boolean));
     return { place, from, to: Math.max(...items.map(timeOf)) };
   }
@@ -3269,7 +4240,7 @@ var HootCore = (() => {
     return cands.filter((i) => out.includes(i) || far(i));
   }
   var OTHER_LANG = /\b(las|los|del|para|una|segun|antes de|sus|les|une|pour|avec|dans|und|fur|nicht|uma|nao|della|degli)\b/;
-  var otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ""));
+  var otherLangTitle = (i) => OTHER_LANG.test(norm2(i?.title || ""));
   var DEVELOPED_FRESH = 2;
   var DEVELOPED_SIG = 2;
   var previousAt = (st, previous) => previous.atOf?.get(st.id) ?? previous.at ?? 0;
@@ -3284,7 +4255,7 @@ var HootCore = (() => {
     if (!fresh.length) return null;
     const keysOf = keysWith(sig);
     const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items;
-    const whole = [.../* @__PURE__ */ new Set([...all, ...items])];
+    const whole = [.../* @__PURE__ */ new Set([...all, ...items])].filter((i) => !isAflevering(i));
     const freshAll = whole.filter(isNew);
     if (!keyAtOf(st) && freshAll.length < DEVELOPED_FRESH) return null;
     const then = /* @__PURE__ */ new Set();
@@ -3312,6 +4283,7 @@ var HootCore = (() => {
   var keyAtOf = (st) => st?.keyAt && typeof st.keyAt === "object" && !Array.isArray(st.keyAt) ? st.keyAt : null;
   var pubAtOf = (st) => st?.pubAt && typeof st.pubAt === "object" && !Array.isArray(st.pubAt) ? st.pubAt : null;
   function newFact(fresh, then, keysOf, story = null) {
+    fresh = fresh.filter((i) => !isAflevering(i));
     const keyAt = keyAtOf(story);
     const pubAt = pubAtOf(story);
     const cutoff = story?.cutoff ?? 0;
@@ -3348,10 +4320,10 @@ var HootCore = (() => {
     });
     return newsHeads(named.length ? named : fresh);
   }
-  var newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || "") && !isLive(i));
+  var newsHeads = (xs) => prefer(xs, (i) => !/\bpodcast\b/i.test(i.title || "") && !isAflevering(i) && !isLive(i));
   function newFactIn(fresh, old, sig, own2 = fresh, story = null) {
     const keysOf = keysWith(sig);
-    const fact = newFact(fresh, new Set(old.flatMap(keysOf)), keysOf, story);
+    const fact = newFact(fresh, new Set(old.filter((i) => !isAflevering(i)).flatMap(keysOf)), keysOf, story);
     return fact ? { keys: fact.keys, heads: own2.length ? factHeads(own2, fact, sig) : [] } : null;
   }
   function runningFact(st, items, sig, now) {
@@ -3360,11 +4332,15 @@ var HootCore = (() => {
     if (!fresh.length) return null;
     const keysOf = keysWith(sig);
     const then = /* @__PURE__ */ new Set();
-    for (const i of items) if (!(timeOf(i) > cutoff)) for (const k of keysOf(i)) then.add(k);
+    for (const i of items) if (!(timeOf(i) > cutoff) && !isAflevering(i)) for (const k of keysOf(i)) then.add(k);
     return newFact(fresh, then, keysOf, { keyAt: st?.keyAt, pubAt: st?.pubAt, cutoff, pubs: st?.publisherCount });
   }
   var LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]));
-  var dutchTier = (i) => LANG_OF.get(i.source) !== "nl" || detectLang(i) === "en" ? 2 : VL_HOME.has(i.source) ? 1 : 0;
+  var notDutch = (i) => {
+    const d = detectLang(i);
+    return d !== null && d !== "nl";
+  };
+  var dutchTier = (i) => LANG_OF.get(i.source) !== "nl" || notDutch(i) ? 2 : VL_HOME.has(i.source) ? 1 : 0;
   var LEAD_CORE = 10;
   function centralItems(items, total = items.length) {
     if (total < LEAD_CORE || items.length < 3) return items;
@@ -3399,6 +4375,7 @@ var HootCore = (() => {
   var FAMILY_SECOND_PUBS = 4;
   var SECOND_FRESH_H = 6;
   var familyRelated = (a, b) => !!a.vote && a.vote === b.vote;
+  var familyBonus = (own2, all) => countedPublishers(all) - countedPublishers(own2);
   function families(cands) {
     const stories = cands.filter((c) => c.kind === "story");
     const voteFrom = /* @__PURE__ */ new Map();
@@ -3426,8 +4403,9 @@ var HootCore = (() => {
         c.fam = head.st.id;
         for (const i of c.items) all.add(publisherOf(i.source));
       }
-      const total = pubsOf(head) + (countedPublishers(all) - countedPublishers(own2));
-      if (all.size > own2.size && total >= FRONT_BIG) extra.set(head, all.size - own2.size);
+      const bonus = familyBonus(own2, all);
+      const total = pubsOf(head) + bonus;
+      if (bonus > 0 && total >= FRONT_BIG) extra.set(head, bonus);
     }
     for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null;
     for (const c of cands) {
@@ -3500,7 +4478,7 @@ var HootCore = (() => {
       for (const k of h.strong) {
         if (BROAD.has(k) || conceptWord(k)) continue;
         const n = names.get(k) || names.set(k, { pubs: /* @__PURE__ */ new Set(), heads: [] }).get(k);
-        n.pubs.add(publisherOf(i.source));
+        if (!isAflevering(i)) n.pubs.add(publisherOf(i.source));
         n.heads.push(h);
       }
       for (const run of h.titleRuns || []) if (run.length > 1) runs.push(run);
@@ -3558,6 +4536,7 @@ var HootCore = (() => {
   };
   function leadPool(cands, items, now, own2 = null, total = items.length, coreItems = centralItems) {
     let xs = prefer(cands, (i) => !isOpinion(i));
+    xs = prefer(xs, (i) => !audioEpisode(i));
     xs = prefer(xs, (i) => !isStale(i, now));
     if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
     if (own2) xs = prefer(xs, own2);
@@ -3588,12 +4567,12 @@ var HootCore = (() => {
   var CURIO_FORM = /^\W*(opmerkelijk|bizar|curieus|kijk|quiz)\b|\bquiz\b/;
   var SERIOUS = /\b(rechtszaak|rechtbank|rechter|proces|jury|veroordeel\w*|schuldig\w*|celstraf\w*|gevangenis\w*|verkracht\w*|aanranding|misbruik\w*|moord\w*|doodgeschoten|doodgestoken|gedood|doden|dode|dood|omgekomen|dodelijk\w*|geweld\w*|aanslag\w*|schietpartij\w*|steekpartij\w*|mishandel\w*|trial|court|convicted|guilty|sentenced|prison|rape|raped|sexual assault|murder\w*|killed|killing|shooting|stabbing|violence|violent)\b/;
   var curioPiece = (i) => {
-    const title = norm(i?.title || "");
+    const title = norm2(i?.title || "");
     return CURIO_HEAD.test(title) || CURIO_FORM.test(title) || CURIO_PATH.test(String(i?.url || "").split("?")[0].toLowerCase());
   };
   function curioStory(story = {}, items = []) {
     if (!items.length) return false;
-    if (items.filter((i) => SERIOUS.test(norm(`${i?.title || ""}`))).length * 2 >= items.length) return false;
+    if (items.filter((i) => SERIOUS.test(norm2(`${i?.title || ""}`))).length * 2 >= items.length) return false;
     if (lightNews(story, items)) return true;
     return items.filter(curioPiece).length * 3 >= items.length;
   }
@@ -3725,6 +4704,10 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie");
         continue;
       }
+      if (!items.some((i) => !isOpinion(i) && !audioEpisode(i))) {
+        reject("story", st.id, st.itemIds, "alleen-aflevering");
+        continue;
+      }
       let dev = null;
       let straf = 0;
       let held = false;
@@ -3784,10 +4767,14 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie-nieuw");
         continue;
       }
+      if (heads?.length && !heads.some((i) => !isOpinion(i) && !audioEpisode(i))) {
+        reject("story", st.id, st.itemIds, "alleen-aflevering-nieuw");
+        continue;
+      }
       cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
     }
     for (const it of pool) {
-      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
+      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || audioEpisode(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
         reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
         continue;
       }
@@ -4033,74 +5020,6 @@ var HootCore = (() => {
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 
-  // shared/vorm.mjs
-  var LABEL2 = /^\s*[\p{L}\p{N}][\p{L}\p{N} &'’.-]{0,30}?\s*(?:\/|\|)\s+/u;
-  var FIRST_PERSON_RUBRIEK = /^\s*(?:experience|first person|personal essay|essay|diary|confessions?|column|a moment that changed me|my week)\s*:\s+I\s/i;
-  var BULLET = /\s•\s/;
-  var DATED_LABEL = /^\s*\p{L}+(?:\s\p{L}+)?\s+\d{1,2}\/\d{1,2}\s*:/u;
-  var WORDS = /[\p{L}\p{N}]+/gu;
-  function vormMark(item = {}) {
-    if (!item || item.kind === "post") return null;
-    const title = String(item.title || "").replace(/\s+/g, " ").trim();
-    if (!title) return null;
-    const words2 = title.match(WORDS) || [];
-    if (words2.length <= 1) return "lege-kop";
-    if (words2.length <= 3 && /\p{Lu}/u.test(title) && title === title.toUpperCase()) return "lege-kop";
-    if (BULLET.test(title) || DATED_LABEL.test(title)) return "dagoverzicht";
-    const body = title.replace(LABEL2, "");
-    const labelled = body !== title;
-    if (/^(ik|mijn)\s/i.test(body) || labelled && /^I\s/.test(body) || FIRST_PERSON_RUBRIEK.test(title)) return "ik-vorm";
-    return null;
-  }
-  var geenPlekNaarVorm = (item) => vormMark(item) != null;
-
-  // shared/editie-filter.mjs
-  var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
-  var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
-  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
-  var LABEL3 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
-  function rubricSegments(url) {
-    const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
-    if (!m) return [];
-    const path = m[1];
-    const segs = path.split("/").filter(Boolean).map((s) => {
-      try {
-        return decodeURIComponent(s).toLowerCase();
-      } catch {
-        return s.toLowerCase();
-      }
-    });
-    const before = segs.slice(0, -1);
-    const cut = before.findIndex((x) => /^\d+$/.test(x));
-    return cut === -1 ? before : before.slice(0, cut);
-  }
-  var norm2 = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  function ownIntro(item = {}) {
-    if (item.borrowedFrom) return false;
-    const s = String(item.summary || item.text || "").trim();
-    const t = norm2(item.title);
-    const n = norm2(s);
-    if (n.split(" ").filter(Boolean).length < 4) return false;
-    if (n === t || t && n.startsWith(t) && n.length - t.length < 12) return false;
-    if (/appeared first on\b|\blead image\b/i.test(s) && s.length < 200) return false;
-    return true;
-  }
-  function hardMark(item = {}) {
-    if (!item || item.kind === "post") return null;
-    const segs = rubricSegments(item.url);
-    const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
-    if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
-    const media = String(item.mediaType || "");
-    const label2 = LABEL3.exec(String(item.title || ""))?.[1]?.toLowerCase();
-    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
-    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
-    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
-    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
-    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
-    return null;
-  }
-  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null || geenPlekNaarVorm(item));
-
   // shared/stroom.mjs
   var forEdition = (it) => !it?.streamOnly;
   var INTRO_WINDOW_MS = 6 * 3600 * 1e3;
@@ -4295,6 +5214,11 @@ var HootCore = (() => {
     const own2 = newest(items);
     return theirs > 0 && own2 > 0 && theirs - own2 > STALE_INPUT_MS;
   }
+  function optInRejected(lead, topics = [], meta = {}, members = lead ? [lead] : []) {
+    if (!lead || !(lead.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t))) return false;
+    if (!showbizzKind(lead)) return false;
+    return !(majorNews(meta || {}, members) || majorGeneralNews(meta || {}, members));
+  }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set(), weg = null, _langRule = true, _memoSignatures = true }) {
     if (!global?.entries?.length) return null;
     if (staleInput({ global, items, followed })) return null;
@@ -4352,7 +5276,7 @@ var HootCore = (() => {
     const newsPool = pool.filter((i) => kindOf(i) === "nieuws" || !sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i]) || bigLight(i));
     const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)));
     let bubbleEntry = global.entries.find((e) => e.desk === "bubbel") || null;
-    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i)).map((i) => i.id));
+    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !audioEpisode(i)).map((i) => i.id));
     const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id));
     const bigWide = (w) => majorNews(storyById.get(w.storyId) || w, [w.item]);
     const wideLeads = /* @__PURE__ */ new Map();
@@ -4376,7 +5300,7 @@ var HootCore = (() => {
     const relead = (head, xs) => {
       if (readable(head)) return head;
       const rubric = rubricOf(head);
-      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && readableIn(i, rubric));
+      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric));
       if (!ok.length) return null;
       const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok;
       const mine = fresh.filter((i) => followed.has(i.source));
@@ -4415,7 +5339,7 @@ var HootCore = (() => {
       const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null;
       const bubble = entry.desk === "bubbel" || entry.bubble === true;
       const lead = itemAny.get(id) || members[0];
-      const optIn = (lead?.topics || []).some((t) => OPT_IN.has(t) && !topics.includes(t));
+      const optIn = optInRejected(lead, topics, meta, members);
       const reason = optIn ? "niet-aangetikt" : newsRejection(prof, meta, members, desk, { bubble });
       return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof, members, desk, meta), members, meta, desk };
     };
@@ -4473,7 +5397,8 @@ var HootCore = (() => {
     const sameAsPlaced = (id) => sigAll.has(id) && leads.some((x) => x !== id && sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)));
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
     const prevHeads = previous ? previousHeads(sigAll, previous, now) : [];
-    const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg;
+    const shownBefore = (id) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s));
+    const sameAsPrevious = (id, sid) => shownBefore(id) && !againOf(id, sid).vervolg;
     const localWide = (w) => !bigWide(w) && localAbroad([wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)], { desk: storyById.get(w.storyId)?.desk ?? null });
     const free2 = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
     const wide0 = (global.wide || []).find((w) => free2(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free2(w) && bigWide(w)) || (global.wide || []).find((w) => free2(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free2).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
@@ -4554,7 +5479,7 @@ var HootCore = (() => {
       return leadCandidates(others, followed, preferred, now)[0] || null;
     };
     if (bubbleEntry) {
-      const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && !!bubbleLeadOf(b.storyId, b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
+      const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && !!bubbleLeadOf(b.storyId, b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && !shownBefore(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
       const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id };
       const seenB = /* @__PURE__ */ new Set();
       const alt = [first, ...global.bubble || []].filter((b) => b?.id && !seenB.has(b.id) && seenB.add(b.id) && okB(b)).sort((a, b) => jitter(seed, a.id) - jitter(seed, b.id) || byText(a.id, b.id))[0];
@@ -4566,7 +5491,7 @@ var HootCore = (() => {
         const home2 = strongestFamily(prof);
         const next = new Set(NEIGHBOURS[home2] || []);
         const recent = stories.filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5).sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id)).map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }));
-        const fits = (w) => w?.item?.id && !!bubbleLeadOf(w.storyId, w.item.id) && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
+        const fits = (w) => w?.item?.id && !!bubbleLeadOf(w.storyId, w.item.id) && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !shownBefore(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
         const nearLead = (w) => bubbleLeadOf(w.storyId, w.item.id);
         const pick0 = [...global.near || [], ...recent].find((w) => fits(w) && nearLead(w));
         const pick = pick0 && nearLead(pick0) !== pick0.item ? { ...pick0, item: nearLead(pick0) } : pick0;
@@ -4852,6 +5777,7 @@ var HootCore = (() => {
   var free = (s) => !s.paid;
   var aanrader = (s, i) => (s.for || []).includes(i.id) || !!s.forTopic && i.topics.includes(s.forTopic);
   var dutch = (s) => s.lang === "nl";
+  var regional = (s) => !!s && (s.cat === "regio" || s.publisher === "regionale-omroep");
   function fit(s, i, topics = []) {
     if (!s || !i) return 0;
     if (NL_NIEUWS.has(i.id) && s.id === SNEL) return 2;
@@ -4870,7 +5796,7 @@ var HootCore = (() => {
   function voorstel(sources = [], interests = [], topics = [], { english = false } = {}) {
     const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)));
     if (!chosen.length) return null;
-    const news = sources.filter((s) => s.kind !== "sociaal" && (english || !s.lang || s.lang === "nl"));
+    const news = sources.filter((s) => s.kind !== "sociaal" && !regional(s) && (english || !s.lang || s.lang === "nl"));
     const out = [];
     const has = (id) => out.some((o) => o.id === id);
     const add = (s, why2) => s && !has(s.id) && out.length < VOORSTEL_MAX && out.push({ id: s.id, why: why2 });

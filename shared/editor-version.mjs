@@ -40,6 +40,35 @@
 // plafond voor buitenland, de familie van een verhaal). Axios en ProPublica erbij in de catalogus.
 // 14 november 2026, wapo: The Washington Post erbij (World en Politics, één uitgever), Amerikaans en algemeen buitenlands
 // nieuws (COUNTRIES, FOREIGN_NEWS), onder de landenregel.
+// 14 november 2026, luister · stap 1: een aflevering (podcast, audio, video; shared/aflevering.mjs) is geen bron meer:
+// ze telt niet mee in het aantal bronnen, coverageOf, groot nieuws en Waar iedereen over schrijft, en is geen kop.
+// Herstel na de keuring (luister-2): ook niet in de tijden per uitgever voor "nieuw feit" (pubAt, keyAt, newFact, op
+// server en toestel), het Haagse dossier en de centrale namen van een verhaal (clusterCore). De revisie
+// redacteur-2026-11-14-luister is nooit op main geweest; daarom staat wapo (de huidige van main) vooraan.
+// 14 november 2026, dubbelcheck: de persoonlijke bubbel herhaalt geen gebeurtenis uit je vorige Editie (sameEvent, zoals
+// pickBubble); de derde taal met de korte woorden (shared/lang.mjs) en dutchTier op niet Nederlands; de landenregel ook voor lichte verhalen (majorGeneralNews eist uit één land buiten NL en BE
+// een tweede land) en voor de familiebonus (familyBonus); Achterklap weert alleen showbizz als soort (showbizzKind), nooit groot nieuws; een aflevering om te luisteren (audioEpisode in shared/editie-filter.mjs; een video wel, besluit B2) is
+// nooit de kop van een plek, ook niet met een eigen intro; een plek met alleen afleveringen valt weg. De rubriek van een
+// plek: een musicus in de kop is cultuur, en een Amerikaanse staat of stad of het VK is een buitenlandse plek (desks.mjs,
+// countriesIn); een stuk van een Vlaamse bron blijft Buitenland.
+// The Times of Israel uit de catalogus en uit FOREIGN_NEWS (Cloudflare weigert de server; Haaretz blijft voor Israël).
+// 14 november 2026, dubbelcheck2: samengevoegd met main (wapo, luister-2); dubbelcheck is nooit live geweest. Na de tweede keuring:
+// "noch" is ook Nederlands en Von der Leyen is een naam (shared/lang.mjs); een musicus of acteur in een misdaadkop is een
+// beroep (desks.mjs) en een plaats in een bedrijfsnaam geen plek (countriesIn); een video is geen harde uitsluiting als kop (besluit B2);
+// hij gaat wel achter een nieuwsstuk zoals elke aflevering (isAflevering in leadCandidates, luister).
+// 14 november 2026, deals: koop-, deal-, cadeaugids- en kortingsstukken nooit in de Editie (besluit Alex na een Wired-deal op
+// plek 05): filter A weert ook een koopkop (shared/koopsignaal.mjs) en een stuk dat de feed als aanbod indeelt met een
+// koopvorm in de kop (feedMark 'aanbod'); nieuws over omzet, toezicht, beleid, overnames of markten blijft.
+// Herstel na de keuring: bij een sterke koopvorm (best/top ... deals, best ... sales, deals (2026), een koopdag met deals)
+// telt alleen een smal veto (zaken, omzet, markten, toezicht, nep, uitleg), geen los woord uit de productomschrijving.
+// Herstel 2, de bronpoort: de kopregels alleen bij een bron die koopstukken maakt (tech, games, cultuur, of een deal- of
+// reviewrubriek in de feed of het pad); bij een nieuwsbron alleen de ondubbelzinnige signalen.
+// Samengevoegd met main (dubbelcheck2): die revisie staat vooraan in EARLIER_REVISIONS.
+// Herstel 3: winactievormen onder het veto, koopdaglabel en prijs bij een winkel alleen met een aanbodvorm, zakelijke
+// cultuur- en techbronnen alleen de strikte stand voor dealkoppen.
+// 14 november 2026, recensies: geen recensie of kop zonder nieuws in de Editie, langs elke route (ook het cultuurblok uit
+// een interesse): feedrubriek, recensiemap of -slug, label of sterren in de kop, of de werkkop van een cultuurbron
+// ("Ciarán – Róisín"). Zie shared/recensie.mjs; excludedFromEdition in shared/editie-filter.mjs.
 // 14 november 2026, persona: gekozen interesses krijgen echt ruimte. Het plafond voor sport en cultuur (EXTRA_MAX) groeit
 // mee met het aandeel daarvan in je keuze (extraMaxOf in src/lib/personal.js): alleen Cultuur en Sport geeft de helft van de
 // Editie; de groei ruilt alleen lichte nieuwsplekken, nooit groot nieuws of de voorpagina. Valt een plek weg, dan eerst de
@@ -66,7 +95,10 @@
 // column, achter een dubbele punt alleen het Engelse rubriekpatroon (shared/vorm.mjs).
 // Persona · herstel, punt 7: een plek die een gekozen interesse of onderwerp raakt (niet geleerd, geen plaats, niet Wereld),
 // zakt niet als lokaal nieuws van elders (touchesChoice in composePersonal).
-export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-2'
+// Persona · samengevoegd met main (recensies, deals, dubbelcheck2, onboarding): één regel per onderwerp. Koppen zonder
+// nieuws (koopsignaal, recensie, vorm) samen in excludedFromEdition; de rubriek, de bubbel, de derde taal en het welkom
+// elk met één regel. recensies (de revisie van main) staat vooraan in EARLIER_REVISIONS; persona is nooit uitgerold.
+export const EDITOR_REVISION = 'redacteur-2026-11-14-persona-3'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
 // met de rekenkern die erin zit. Veranderde de afdruk bij elke revisie, dan paste de Editie van de server nooit bij

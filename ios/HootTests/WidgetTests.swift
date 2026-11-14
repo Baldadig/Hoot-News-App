@@ -404,7 +404,9 @@ import WidgetKit
     }
 
     func testPlaceholderGelijkAanDeApp() {
-        for id in ["1r0cz5j", "a", "xyz-123", "voorbeeld-0"] { XCTAssertEqual(WidgetBeeldloos.index(id), Placeholder.base(id)) }
+        for id in ["1r0cz5j", "a", "xyz-123", "voorbeeld-0", "art-0", "eclips-10", "eclips-30", "eclips-49"] { XCTAssertEqual(WidgetBeeldloos.index(id), Placeholder.base(id)) }
+        // Ook de widget kiest nooit Eclips (beeld 14, uit de reeks sinds 14 november).
+        for i in 0 ..< 5000 { XCTAssertNotEqual(WidgetBeeldloos.index("widget-\(i)"), 13) }
     }
 
     // MARK: Zetten binnen de marges (besluit Alex 12 november 2026: nooit inkorten, slim vullen)

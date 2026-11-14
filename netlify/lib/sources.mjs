@@ -57,7 +57,7 @@ export const SOURCES = [
   // stukken per week, gemeten in de feed. Links Joop, De Groene, Vrij Nederland en Sargasso; rechts Wynia's Week, TPO
   // en GeenStijl; HP/De Tijd daartussen; Sociale Vraagstukken zonder partijkleur.
   S('joop', 'Joop', 'nl', 'nl', 'Opinie en commentaar van BNNVARA, progressief.', 'https://www.joop.nl/feed', { opinie: true, color: '#FC3E28', bsky: 'joop.nl' }),
-  S('groene', 'De Groene Amsterdammer', 'nl', 'nl', 'Opinieweekblad met essays, analyses en reportages, links.', 'https://www.groene.nl/rss.xml', { opinie: true, login: 'https://www.groene.nl/', paid: true, color: '#E10005', bsky: 'groene.nl', x: 'DeGroene', logo: own('groene') }), // overal een afgesneden woordmerk; het eigen logo heeft het hele (landing/bronlogos.mjs)
+  S('groene', 'De Groene Amsterdammer', 'nl', 'nl', 'Opinieweekblad met essays, analyses en reportages, links.', 'https://www.groene.nl/rss.xml', { opinie: true, login: 'https://www.groene.nl/', paid: true, color: '#E10005', bsky: 'groene.nl', x: 'DeGroene' }),
   S('vn', 'Vrij Nederland', 'nl', 'nl', 'Opinieblad met essays en reportages, links-liberaal.', 'https://www.vn.nl/feed/', { opinie: true, login: 'https://www.vn.nl/inloggen/', paid: true, color: '#E20006', bsky: 'vn.nl', x: 'vrij_nederland' }),
   S('sargasso', 'Sargasso', 'nl', 'nl', 'Groepsblog over politiek en beleid, links en genuanceerd.', 'https://sargasso.nl/feed/', { opinie: true, color: '#65C26A', bsky: 'sargassoblog.bsky.social' }),
   S('hpdetijd', 'HP/De Tijd', 'nl', 'nl', 'Opinieblad: eigenzinnig, liberaal en kritisch.', 'https://www.hpdetijd.nl/rss', { opinie: true, login: 'https://www.hpdetijd.nl/login', paid: true, color: '#E40815', bsky: 'hpdetijd.bsky.social', x: 'HPdeTijdNL' }),
@@ -147,11 +147,11 @@ export const SOURCES = [
   S('france24', 'France 24', 'int', 'en', 'Frans publiek wereldnieuws, in het Engels.', 'https://www.france24.com/en/rss', { publisher: 'france-medias-monde', color: '#00A3E0', bsky: 'france24.com', x: 'France24_en' }),
   S('rfi', 'RFI English', 'int', 'en', 'Franse publieke radio, sterk in Afrika.', 'https://www.rfi.fr/en/rss', { publisher: 'france-medias-monde', color: '#D7001D', bsky: 'rfi.fr', x: 'RFI_En' }),
   S('euronews', 'Euronews', 'int', 'en', 'Europees nieuws vanuit Europa.', 'https://www.euronews.com/rss?format=mrss&level=theme&name=news', { color: '#027DF0', bsky: 'euronews.com', x: 'euronews' }),
-  // De wereld van binnenuit: Australië, Oekraïne, en Israël met twee stemmen.
+  // De wereld van binnenuit: Australië, Oekraïne en Israël. The Times of Israel viel af (dubbelcheck 14 november, A2):
+  // Cloudflare weigert de server met een botcontrole, en die omzeilen we niet. Haaretz blijft voor Israël.
   S('abc-au', 'ABC News (Australië)', 'int', 'en', 'De publieke omroep van Australië.', 'https://www.abc.net.au/news/feed/51120/rss.xml', { color: '#1A1A1A', logo: 'https://www.abc.net.au/news-assets/touchicon-abc.png', x: 'abcnews' }),
   S('kyivindependent', 'The Kyiv Independent', 'int', 'en', 'Oekraïne van binnenuit, onafhankelijk.', 'https://kyivindependent.com/news-archive/rss/', { color: '#1A1A1A', bsky: 'kyivindependent.com', x: 'KyivIndependent' }),
   S('haaretz', 'Haaretz', 'int', 'en', 'Israëlische kwaliteitskrant, links-liberaal.', 'https://www.haaretz.com/srv/haaretz-latest-headlines', { login: 'https://login.haaretz.com/', paid: true, color: '#0E1734', bsky: 'haaretzcom.bsky.social', x: 'haaretzcom' }),
-  S('timesofisrael', 'The Times of Israel', 'int', 'en', 'Israëlisch nieuws, midden.', 'https://www.timesofisrael.com/feed/', { color: '#104F97', bsky: 'timesofisrael.com', x: 'TimesofIsrael' }),
   // Opinie (`opinie`): links en rechts samen. Vox progressief; National Review conservatief, The Free Press eigenzinnig
   // centrum-rechts. Reason viel af: te klein (kwaliteit boven aantal, Alex 14 november). Allemaal minstens vijf stukken per dag in de feed.
   S('vox', 'Vox', 'int', 'en', 'Uitleg en opinie, progressief.', 'https://www.vox.com/rss/index.xml', { opinie: true, login: 'https://www.vox.com/auth/login?returnPath=/', paid: true, color: '#FEF100', bsky: 'vox.com', x: 'voxdotcom' }),

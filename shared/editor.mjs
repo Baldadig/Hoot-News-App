@@ -14,6 +14,7 @@ import { INTERESTS, OPT_IN, baseTopics, topicById, currentTopics, currentTopicMa
 import { MIN_EVENTS } from '../src/lib/affinity.js'
 import { DESKS, DESK_LABEL, desksOf, storyForeignOf, isNonEuropean, VL_HOME, NL_HOME } from '../netlify/lib/desks.mjs'
 import { shownTopics, keywordTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
+import { isAflevering } from './aflevering.mjs'
 
 // De buitenlandse kernrubrieken (Binnenland is Nederland, zie netlify/lib/desks.mjs).
 export const FOREIGN_DESKS = new Set(['buitenland', 'vs', 'middenoosten', 'oekraine'])
@@ -309,7 +310,7 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
   if (fav) parts.favorite = { pts: P.FAVORITE, source: fav.source }
   const rs = Math.max(0, ...items.map((i) => prof.sourceP[i.source] || 0))
   if (rs > SOURCE_READ_MIN) parts.sourceRead = { pts: Math.round(P.SOURCE_READ * rs) }
-  const mine = new Set(items.map((i) => i.source)).size
+  const mine = new Set(items.filter((i) => !isAflevering(i)).map((i) => i.source)).size // een aflevering is geen bron
   if (mine >= 2) parts.mine = { pts: P.MINE * Math.min(MINE_MAX, mine - 1), n: mine }
   // Wat je al las. Er is geen leestijdstip: "nieuw" is gepubliceerd ruim na het laatste stuk dat je las.
   // Eén toets voor "nieuw feit" (13 november, redacteur-2026-11-13-nieuw-feit): kent de selectie de kenmerken

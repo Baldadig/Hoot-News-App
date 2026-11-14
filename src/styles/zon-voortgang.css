@@ -29,7 +29,8 @@
    komt met een korte fade; voor VoiceOver staat de stand bij de naam bovenaan, hier niet nog eens. */
 .edbar {
   position: sticky;
-  top: 0;
+  /* Tijdens verversen schuift de kolom omlaag (PullHorizon.jsx); de kop blijft toch tegen de bovenrand. */
+  top: var(--pull-kop, 0px);
   z-index: var(--z-sticky);
   height: 0;
 }
@@ -52,6 +53,8 @@
     opacity var(--dur-kort) var(--ease-bediening),
     visibility 0s linear var(--dur-kort);
 }
+/* De trekstrook wijkt voor de meelopende kop: nooit de horizon over naam en zon (lib/pull-horizon.js). */
+.view:has(.edbar.is-aan) > .pull { visibility: hidden; }
 .edbar.is-aan .edbar__in {
   opacity: 1;
   visibility: visible;

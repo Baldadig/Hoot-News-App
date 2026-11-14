@@ -4,11 +4,18 @@ import { isOpinie } from './opinie.mjs'
 const words = pattern => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, 'iu')
 const COUNTRIES = [
   ['nl', 'nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven'],
-  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver'],
+  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver|' +
+    // Amerikaanse staten en grote steden (dubbelcheck 14 november, A6: een aanvaring op de Mississippi werd Binnenland). Niet:
+    // Georgia (ook een land), Arizona (ook de Belgische regeringscoalitie), Indiana, Virginia en Montana (ook een naam), en andere namen die ook een gewoon woord zijn.
+    'mississippi|louisiana|alabama|nevada|oregon|minnesota|illinois|pennsylvania|massachusetts|new jersey|north carolina|south carolina|tennessee|kentucky|missouri|wisconsin|iowa|kansas|utah|alaska|hawaii|oklahoma|arkansas|connecticut|maryland|nebraska|idaho|wyoming|vermont|' +
+    // Ook voor lokaal nieuws van elders (localAbroad, persona's 14 november, punt 7): één lijst van staten, dus hier ook de
+    // staten die daar eerst een eigen lijst hadden. West Virginia en Maine niet, om dezelfde reden als Virginia (ook een naam).
+    'delaware|new hampshire|new mexico|north dakota|south dakota|rhode island|' +
+    'chicago|los angeles|san francisco|boston|seattle|miami|atlanta|philadelphia|las vegas|new orleans|detroit|houston|dallas|baltimore|minneapolis|pittsburgh'],
   ['in', 'india|indiaas|indiase|indian|new delhi|mumbai|modi'],
   ['fr', 'frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille'],
   ['de', 'duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich'],
-  ['gb', 'verenigd koninkrijk|united kingdom|british|britse?|engeland|england|londen|london'],
+  ['gb', 'verenigd koninkrijk|vk|united kingdom|uk|british|britse?|engeland|england|londen|london'],
   ['be', 'belgi\\p{L}*|belg|belgen|vlaanderen|vlaams\\p{L}*|brussel|brussels|antwerpen|antwerp|gent|brugge'],
   ['ua', 'oekra\\p{L}*|ukrain\\p{L}*|kyiv|kiev|zelensk\\p{L}*'],
   ['ru', 'rusland|russia\\p{L}*|russisch\\p{L}*|moskou|moscow|putin|poetin'],
@@ -21,14 +28,32 @@ const COUNTRIES = [
   ['sn', 'senegal\\p{L}*'], ['sa', 'saudi\\p{L}*|saoedi\\p{L}*|saudische?'],
   ['nz', 'new zealand|nieuw-zeeland'],
   ['au', 'australi\\p{L}*'], ['tr', 'turkije|turkey|turks\\p{L}*|erdogan'],
-].map(([id, pattern]) => [id, words(pattern)])
+].map(([id, pattern]) => [id, words(pattern), new RegExp(`^(?:${pattern})$`, 'iu')])
+// Een plaats als deel van een bedrijfsnaam is geen plek: "Boston Consulting Group adviseert ministerie" gaat niet over de
+// VS (tweede keuring van het herstel). Een naam met hoofdletters, gevolgd door een woord als Consulting of Group: eindigt
+// die naam op een plaats uit COUNTRIES, dan telt die plaats niet mee. Hoofdlettergevoelig, zodat "groep" en "group" in
+// gewone tekst niets doen.
+const CORP_NAME = /(\p{Lu}[\p{L}.'’-]*(?:\s+\p{Lu}[\p{L}.'’-]*){0,2}?)(?:\s+(?:Consulting|Group|Partners|Capital|Scientific|Dynamics|Holdings|Insurance|Corporation|Corp|Inc|Labs|Pharma|Pharmaceuticals|Ventures|Associates|Advisors|Analytics|Investments)(?![\p{L}\p{N}]))+/gu
+function withoutCorpPlaces(text) {
+  if (!CORP_NAME.test(text)) return text
+  CORP_NAME.lastIndex = 0
+  return text.replace(CORP_NAME, (all, name) => {
+    const parts = name.split(/\s+/)
+    for (let k = 0; k < parts.length; k++) {
+      const tail = parts.slice(k).join(' ')
+      if (COUNTRIES.some(([, , exact]) => exact.test(tail))) return `${parts.slice(0, k).join(' ')} ${all.slice(name.length)}`
+    }
+    return all
+  })
+}
 export function countriesIn(text = '') {
+  text = withoutCorpPlaces(String(text))
   const found = COUNTRIES.filter(([, re]) => re.test(text)).map(([id]) => id)
   if (/\bUS\b/.test(text) && !found.includes('us')) found.push('us') // niet het Engelse voornaamwoord us
   return found
 }
 
-const US_SPECIFIC = words('trump|biden|vance|obamacare|white house|witte huis|pentagon|fbi|hegseth|midterms?|tussentijdse verkiezingen|house of representatives|justice department')
+const US_SPECIFIC = words('trumps?|biden|vance|obamacare|white house|witte huis|pentagon|fbi|hegseth|midterms?|tussentijdse verkiezingen|house of representatives|justice department')
 const US_PARTY = words('republican\\p{L}*|republikein\\p{L}*|democra(?:at|ten|ts)|democratic (?:senate|presidential|nominee|candidate|sweep|party)')
 const US_INSTITUTION = words('congress|congres|senate|senaat|supreme court|hooggerechtshof|capitol|governor|gouverneur')
 export function usPoliticsIn(text = '') {
