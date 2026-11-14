@@ -43,6 +43,9 @@ final class HootStore {
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } } // vóór 0.12; nu `openWith`
     // Waar artikelen openen: "lezer" (de Hoot-lezer) of "safari" (de Safari-app, waar je al bent ingelogd).
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
+    // Luister verder (build 56): je podcastapp, alleen op dit toestel (niet in de sync, niet naar de server).
+    // "apple", "spotify", "vragen" (Altijd vragen), "uit" (Niet tonen) of leeg (nog niet gekozen: de eerste tik vraagt het).
+    var podcastApp: String { didSet { save("hoot.podcastApp", podcastApp) } }
     var preview: Int { didSet { save("hoot.regels", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
     // Tekstgrootte (Instellingen D): 0 Kleiner · 1 Zoals je toestel · 2 Groter · 3 Nog groter · 4 Grootst,
     // bovenop Dynamic Type. Per toestel, zoals Weergave: niet in de profielsync (geen synced()).
@@ -180,6 +183,11 @@ final class HootStore {
         // Twee keuzes: de lezer of Safari. Wie "Op de website" had (tot 1.0.1), gaat naar Safari.
         let was: String = load("hoot.openWith") ?? (load("hoot.openInSafari") == true ? "safari" : "lezer")
         openWith = was == "web" ? "safari" : was
+        podcastApp = Luister.geldig(load("hoot.podcastApp") ?? "")
+        #if DEBUG
+        // `-HootPodcastApp spotify|apple|vragen|uit|leeg`: de keuze voor opnamen, los van wat er bewaard is.
+        if let p = d.string(forKey: "HootPodcastApp") { podcastApp = Luister.geldig(p == "leeg" ? "" : p) }
+        #endif
         streamSeen = load("hoot.streamSeen") ?? nil
         preview = load("hoot.regels") ?? Self.oldPreview(load("hoot.preview")) ?? Self.introLines
         // Het welkom alleen bij een verse installatie: wie al instellingen of gelezen stukken heeft
