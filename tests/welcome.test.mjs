@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { applyWelcome, sourcesOn } from '../src/lib/welcome.js'
 import { mutedSet } from '../src/lib/sourcesel.js'
 
@@ -45,6 +46,29 @@ test('de uitleg bij "Jouw Editie" komt één keer, alleen na het eerste welkom',
   const again = applyWelcome({ ...first, editieHint: false }, { interests: [], topics: [], sources: [], all })
   assert.equal(again.editieHint, false, 'opnieuw kiezen zet hem niet terug')
   assert.equal(applyWelcome({ onboarded: true }, { interests: [], topics: [], sources: [], all }).editieHint, undefined)
+})
+
+// Onboarding 14 november, blok 1: op het web lees je eerst de Editie (meteen lezen) en kies je daarna.
+test('meteen lezen geeft geen uitleg bij "Jouw Editie"; de eerste echte keuze daarna wel', () => {
+  const quick = applyWelcome({ onboarded: false }, { interests: [], topics: [], sources: ['nos'], all, quick: true })
+  assert.equal(quick.onboarded, true)
+  assert.equal(quick.browsing, true)
+  assert.equal(quick.editieHint, undefined, 'na meteen lezen koos je nog niets')
+  const chosen = applyWelcome(quick, { interests: ['tech'], topics: ['ai'], sources: ['nos', 'nrc'], all })
+  assert.equal(chosen.browsing, false)
+  assert.equal(chosen.editieHint, true, 'de eerste keuze na meteen lezen')
+  const again = applyWelcome({ ...chosen, editieHint: false }, { interests: ['tech'], topics: ['ai'], sources: ['nos'], all })
+  assert.equal(again.editieHint, false, 'daarna niet meer')
+})
+
+test('web: een eerste bezoeker komt zonder welkom in de Editie, met de startset; het welkom blijft voor opnieuw kiezen', () => {
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  assert.match(app, /const showWelcome = path === 'welkom'\n/)
+  assert.match(app, /const startMeteen = !prefs\.onboarded && !\['welkom', 'over', 'privacy'\]\.includes\(path\) && pickable\.length > 0/)
+  assert.match(app, /applyWelcome\(p, \{ interests: \[\], topics: \[\], sources: startIds\(pickable\), all: pickable, quick: true \}\)/)
+  // Liever meteen lezen telt niet meer op het web; het opstartscherm gaat zonder welkom over in de Editie.
+  assert.doesNotMatch(app, /liever-meteen-lezen/)
+  assert.match(app, /<Splash ready=\{status !== 'loading'\} toWelcome=\{showWelcome\}/)
 })
 
 // ---- Hulpjes ----

@@ -27,7 +27,9 @@ export const NIEUWE_TELLERS = true
 export const VIA_LABELS = ['ig', 'x', 'bsky', 'mail', 'nb', 'qr', 'ad', 'deel', 'as']
 export const VIA_ANDERS = 'anders'
 export const VIA_EVENTS = [...VIA_LABELS, VIA_ANDERS].map((l) => `via:${l}`)
-// De stappen van het eerste welkom op het web, als totalen (geen trechter per persoon).
+// De stappen van het welkom, als totalen (geen trechter per persoon). Op het web sinds 14 november:
+// welkom-open bij "Maak Hoot van jou", eerste-editie bij de eerste Editie van een nieuwe bezoeker;
+// liever-meteen-lezen stuurt het web niet meer (je leest daar eerst), de server neemt hem nog aan.
 export const WELKOM_STAPPEN = ['welkom-open', 'bronnen-gekozen', 'liever-meteen-lezen', 'eerste-editie']
 export const APPSTORE_TIK = 'appstore-tik'
 // De landing (review 13 november, aanbeveling 3): de noemer en waar op de pagina getikt wordt. Alleen deze plekken.

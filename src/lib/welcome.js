@@ -43,16 +43,18 @@ export function pickedFrom(topics = [], interests = [], all = []) {
 // in het welkom te kiezen waren (`all`) veranderen; de rest blijft zoals hij was.
 // Koos je opnieuw (je was al eens door het welkom), dan blijven je vaste onderwerpen staan voor
 // zover je ze nog volgt; bij de eerste start worden het de eerste drie van je onderwerpen.
-// Alleen bij de eerste start komt er één keer de uitleg bij "Jouw Editie" onder de kop van de
-// Editie (`editieHint`, Edition.jsx).
+// Alleen na de eerste echte keuze komt er één keer de uitleg bij "Jouw Editie" onder de kop van de
+// Editie (`editieHint`, Edition.jsx): bij de eerste start, of de eerste keer na meteen lezen
+// (`browsing`). Na meteen lezen zelf niet: dan koos je nog niets.
 export function applyWelcome(p, choice) {
   const on = new Set(choice.sources)
   const shown = new Set(choice.all.map((s) => s.id))
   const kept = p.onboarded ? (p.pinned || []).filter((t) => choice.topics.includes(t)) : []
+  const eersteKeuze = !choice.quick && (!p.onboarded || !!p.browsing)
   return {
     ...p,
     onboarded: true,
-    ...(p.onboarded ? {} : { editieHint: true }),
+    ...(eersteKeuze ? { editieHint: true } : {}),
     // "Liever meteen lezen": later één keer "Maak Hoot van jou" (components/MaakVanJou.jsx). Elke andere
     // afronding (ook opnieuw kiezen via die uitnodiging) zet hem uit, zoals de app (HootStore.applyWelcome).
     browsing: !!choice.quick,

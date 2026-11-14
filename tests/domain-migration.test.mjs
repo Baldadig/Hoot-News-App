@@ -70,6 +70,12 @@ test('verhuizen: een standaardprofiel van een eerder bezoek verdringt de meegebr
   const t3 = storage({ 'hoot:prefs': '{"onboarded":true,"schema":3,"layout":"tijdlijn"}' })
   applyMove(t3, { version: 1, values: { 'hoot:prefs': '{"onboarded":true,"layout":"krant"}' } }, 'https://hootnews.nl')
   assert.equal(JSON.parse(t3.getItem('hoot:prefs')).layout, 'tijdlijn')
+  // Meteen gelezen zonder keuze (onboarding 14 november): telt als ongebruikt, de meegebrachte Hoot wint.
+  const t5 = storage({ 'hoot:prefs': '{"onboarded":true,"browsing":true,"schema":5,"layout":"tijdlijn"}' })
+  applyMove(t5, { version: 1, values: { 'hoot:prefs': '{"onboarded":true,"layout":"krant"}' } }, 'https://hootnews.nl')
+  const p5 = JSON.parse(t5.getItem('hoot:prefs'))
+  assert.equal(p5.layout, 'krant')
+  assert.equal(p5.browsing, undefined)
   // Volle opslag halverwege: ook de samengevoegde instellingen gaan terug naar wat er stond.
   const t4 = storage(); migrate(t4); const before = t4.getItem('hoot:prefs'); const set = t4.setItem
   t4.setItem = (k, v) => { if (k === 'hoot:read') throw new Error('vol'); set(k, v) }
