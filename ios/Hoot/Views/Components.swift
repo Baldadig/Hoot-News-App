@@ -689,11 +689,13 @@ struct SourceLine: View {
         }
     }
 
-    // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Past het niet op één regel, dan de bron
+    // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Eerst één regel mét koptelefoontje, dan
+    // één regel zónder (de kaart blijft even hoog; "Luister verder" staat ook in het ⋯-menu), en pas dan de bron
     // bovenaan en de rest eronder, zoals de gewone bronregel.
     private var kaartBody: some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: Space.s1) { source(oneLine: true); Spacer(minLength: 8); kaartCount; luisterKnop; SaveButton(item: item); KaartMore(item: item) }
+            HStack(spacing: Space.s1) { source(oneLine: true); Spacer(minLength: 8); kaartCount; SaveButton(item: item); KaartMore(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
                 HStack(spacing: Space.s1) { kaartCount; Spacer(minLength: 0); luisterKnop; SaveButton(item: item); KaartMore(item: item) }
