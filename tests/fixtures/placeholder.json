@@ -1,4 +1,7 @@
 {
+ "uit": [
+  14
+ ],
  "base": [
   {
    "id": "a",
@@ -33,7 +36,7 @@
   {
    "id": "art-0",
    "fnv1a": 1410925135,
-   "beeld": 14
+   "beeld": 8
   },
   {
    "id": "art-1",
@@ -229,6 +232,21 @@
    "id": "art-39",
    "fnv1a": 3512799681,
    "beeld": 16
+  },
+  {
+   "id": "eclips-10",
+   "fnv1a": 1739746399,
+   "beeld": 13
+  },
+  {
+   "id": "eclips-30",
+   "fnv1a": 2075004589,
+   "beeld": 13
+  },
+  {
+   "id": "eclips-49",
+   "fnv1a": 4070996797,
+   "beeld": 2
   }
  ],
  "lijsten": [
@@ -394,7 +412,7 @@
     }
    ],
    "beelden": {
-    "art-0": 14,
+    "art-0": 8,
     "art-1": 15,
     "art-2": 12,
     "art-4": 18,
@@ -1644,7 +1662,7 @@
     "lang-25": 6,
     "lang-26": 9,
     "lang-27": 11,
-    "lang-28": 14,
+    "lang-28": 17,
     "lang-29": 10,
     "lang-30": 8,
     "lang-31": 12,
@@ -1668,7 +1686,7 @@
     "lang-49": 10,
     "lang-50": 12,
     "lang-51": 13,
-    "lang-52": 14,
+    "lang-52": 12,
     "lang-53": 15,
     "lang-54": 16,
     "lang-55": 17,
@@ -1690,7 +1708,7 @@
     "lang-71": 11,
     "lang-72": 8,
     "lang-73": 12,
-    "lang-74": 14,
+    "lang-74": 8,
     "lang-75": 15,
     "lang-76": 12,
     "lang-77": 13,
@@ -1701,7 +1719,7 @@
     "lang-82": 17,
     "lang-83": 16,
     "lang-84": 15,
-    "lang-85": 14,
+    "lang-85": 9,
     "lang-86": 13,
     "lang-87": 12,
     "lang-88": 11,
@@ -1716,7 +1734,7 @@
     "lang-97": 5,
     "lang-98": 16,
     "lang-99": 17,
-    "lang-100": 14,
+    "lang-100": 2,
     "lang-101": 15,
     "lang-102": 12,
     "lang-103": 13,
@@ -1730,13 +1748,13 @@
     "lang-111": 6,
     "lang-112": 9,
     "lang-113": 11,
-    "lang-114": 14,
+    "lang-114": 17,
     "lang-115": 10,
     "lang-116": 13,
     "lang-117": 12,
     "lang-118": 15,
-    "lang-119": 14,
-    "lang-120": 17,
+    "lang-119": 18,
+    "lang-120": 2,
     "lang-121": 15,
     "lang-122": 16,
     "lang-123": 17,
@@ -1768,7 +1786,7 @@
     "lang-149": 11,
     "lang-150": 9,
     "lang-151": 11,
-    "lang-152": 14,
+    "lang-152": 17,
     "lang-153": 10,
     "lang-154": 5,
     "lang-155": 7,
@@ -1795,8 +1813,8 @@
     "lang-176": 7,
     "lang-177": 6,
     "lang-178": 15,
-    "lang-179": 14,
-    "lang-180": 17,
+    "lang-179": 2,
+    "lang-180": 8,
     "lang-181": 15,
     "lang-182": 12,
     "lang-183": 13,
@@ -1821,7 +1839,7 @@
     "lang-202": 3,
     "lang-203": 5,
     "lang-204": 15,
-    "lang-205": 14,
+    "lang-205": 13,
     "lang-206": 17,
     "lang-207": 16,
     "lang-208": 9,
@@ -1834,10 +1852,10 @@
     "lang-215": 11,
     "lang-216": 8,
     "lang-217": 12,
-    "lang-218": 14,
+    "lang-218": 16,
     "lang-219": 15,
     "lang-220": 18,
-    "lang-221": 14,
+    "lang-221": 4,
     "lang-222": 13,
     "lang-223": 12,
     "lang-224": 1,
@@ -1852,7 +1870,7 @@
     "lang-233": 11,
     "lang-234": 12,
     "lang-235": 13,
-    "lang-236": 14,
+    "lang-236": 2,
     "lang-237": 15,
     "lang-238": 18,
     "lang-239": 1,
@@ -1874,7 +1892,7 @@
     "lang-255": 1,
     "lang-256": 16,
     "lang-257": 17,
-    "lang-258": 14,
+    "lang-258": 6,
     "lang-259": 15,
     "lang-260": 13,
     "lang-261": 12,
@@ -1894,10 +1912,10 @@
     "lang-275": 6,
     "lang-276": 7,
     "lang-277": 5,
-    "lang-278": 14,
+    "lang-278": 7,
     "lang-279": 15,
     "lang-280": 18,
-    "lang-281": 14,
+    "lang-281": 10,
     "lang-282": 17,
     "lang-283": 16,
     "lang-284": 11,
@@ -1916,6 +1934,45 @@
     "lang-297": 11,
     "lang-298": 18,
     "lang-299": 1
+   }
+  },
+  {
+   "naam": "twee keer De kop na elkaar: de tweede schuift voorbij Eclips (uit de reeks) naar De rij",
+   "rows": [
+    {
+     "id": "kop-6",
+     "bare": true
+    },
+    {
+     "id": "kop-13",
+     "bare": true
+    }
+   ],
+   "beelden": {
+    "kop-6": 11,
+    "kop-13": 17
+   }
+  },
+  {
+   "naam": "stukken die vroeger Eclips kregen: nu een van de zeventien andere",
+   "rows": [
+    {
+     "id": "eclips-10",
+     "bare": true
+    },
+    {
+     "id": "eclips-30",
+     "bare": true
+    },
+    {
+     "id": "eclips-49",
+     "bare": true
+    }
+   ],
+   "beelden": {
+    "eclips-10": 13,
+    "eclips-30": 16,
+    "eclips-49": 2
    }
   }
  ]

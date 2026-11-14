@@ -40,6 +40,11 @@
 // plafond voor buitenland, de familie van een verhaal). Axios en ProPublica erbij in de catalogus.
 // 14 november 2026, wapo: The Washington Post erbij (World en Politics, één uitgever), Amerikaans en algemeen buitenlands
 // nieuws (COUNTRIES, FOREIGN_NEWS), onder de landenregel.
+// 14 november 2026, luister · stap 1: een aflevering (podcast, audio, video; shared/aflevering.mjs) is geen bron meer:
+// ze telt niet mee in het aantal bronnen, coverageOf, groot nieuws en Waar iedereen over schrijft, en is geen kop.
+// Herstel na de keuring (luister-2): ook niet in de tijden per uitgever voor "nieuw feit" (pubAt, keyAt, newFact, op
+// server en toestel), het Haagse dossier en de centrale namen van een verhaal (clusterCore). De revisie
+// redacteur-2026-11-14-luister is nooit op main geweest; daarom staat wapo (de huidige van main) vooraan.
 // 14 november 2026, deals: koop-, deal-, cadeaugids- en kortingsstukken nooit in de Editie (besluit Alex na een Wired-deal op
 // plek 05): filter A weert ook een koopkop (shared/koopsignaal.mjs) en een stuk dat de feed als aanbod indeelt met een
 // koopvorm in de kop (feedMark 'aanbod'); nieuws over omzet, toezicht, beleid, overnames of markten blijft.
@@ -47,6 +52,9 @@
 // telt alleen een smal veto (zaken, omzet, markten, toezicht, nep, uitleg), geen los woord uit de productomschrijving.
 // Herstel 2, de bronpoort: de kopregels alleen bij een bron die koopstukken maakt (tech, games, cultuur, of een deal- of
 // reviewrubriek in de feed of het pad); bij een nieuwsbron alleen de ondubbelzinnige signalen.
+// Bij de merge van main (luister-2) staat die revisie vooraan in EARLIER_REVISIONS; de tak houdt zijn eigen revisie.
+// Herstel 3: winactievormen onder het veto, koopdaglabel en prijs bij een winkel alleen met een aanbodvorm, zakelijke
+// cultuur- en techbronnen alleen de strikte stand voor dealkoppen.
 export const EDITOR_REVISION = 'redacteur-2026-11-14-deals'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
@@ -56,7 +64,7 @@ export const EDITOR_REVISION = 'redacteur-2026-11-14-deals'
 export const BASIS_REVISION = 'redacteur-2026-11-07-taalregel'
 // Eerdere revisies, nieuwste eerst. Zet bij elke verhoging de vorige revisie vooraan: daaruit komt de vorige Editie
 // ("wat stond er al") en de Editie die tot het volgende dagdeel blijft staan.
-export const EARLIER_REVISIONS = ['redacteur-2026-11-14-wapo', 'redacteur-2026-11-14-amerika', 'redacteur-2026-11-14-internationaal', 'redacteur-2026-11-14-raakt-volgorde', 'redacteur-2026-11-14-derde-taal', 'redacteur-2026-11-14-achterklap', 'redacteur-2026-11-14-sport-bubbel', 'redacteur-2026-11-14-zonder-url', 'redacteur-2026-11-13-bronnen', 'redacteur-2026-11-13-column', 'redacteur-2026-11-13-leeftijd', 'redacteur-2026-11-13-nl-opening', 'redacteur-2026-11-13-een-plek-per-cluster', 'redacteur-2026-11-13-nieuw-feit', 'redacteur-2026-11-11-filters-ai', 'redacteur-2026-11-11-frisse-ogen-5', 'redacteur-2026-11-11-frisse-ogen-4', 'redacteur-2026-11-11-frisse-ogen-3', 'redacteur-2026-11-11-frisse-ogen-2', 'redacteur-2026-11-11-bubbel', 'redacteur-2026-11-11-opinie', 'redacteur-2026-11-07-taalregel', 'redacteur-2026-11-02-beta2', 'redacteur-2026-11-02-beta1', 'redacteur-2026-11-01-r2']
+export const EARLIER_REVISIONS = ['redacteur-2026-11-14-luister-2', 'redacteur-2026-11-14-wapo', 'redacteur-2026-11-14-amerika', 'redacteur-2026-11-14-internationaal', 'redacteur-2026-11-14-raakt-volgorde', 'redacteur-2026-11-14-derde-taal', 'redacteur-2026-11-14-achterklap', 'redacteur-2026-11-14-sport-bubbel', 'redacteur-2026-11-14-zonder-url', 'redacteur-2026-11-13-bronnen', 'redacteur-2026-11-13-column', 'redacteur-2026-11-13-leeftijd', 'redacteur-2026-11-13-nl-opening', 'redacteur-2026-11-13-een-plek-per-cluster', 'redacteur-2026-11-13-nieuw-feit', 'redacteur-2026-11-11-filters-ai', 'redacteur-2026-11-11-frisse-ogen-5', 'redacteur-2026-11-11-frisse-ogen-4', 'redacteur-2026-11-11-frisse-ogen-3', 'redacteur-2026-11-11-frisse-ogen-2', 'redacteur-2026-11-11-bubbel', 'redacteur-2026-11-11-opinie', 'redacteur-2026-11-07-taalregel', 'redacteur-2026-11-02-beta2', 'redacteur-2026-11-02-beta1', 'redacteur-2026-11-01-r2']
 // Bewuste herbouw: noem hier een dagdeel (bijv. '2026-11-07-middag') om de Editie van dat dagdeel onder deze revisie
 // opnieuw samen te stellen, ook als hij onder een eerdere revisie al vaststaat. Anders null.
 export const EDITION_REBUILD_SLOT = null
