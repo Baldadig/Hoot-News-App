@@ -352,7 +352,7 @@ struct EditionView: View {
     // Boven de vouw (Vouw.swift): de bovenkant van 01 in de inhoud en de maat van het zichtbare deel.
     @State private var leadTop: CGFloat = 0
     @State private var vouwMaat = VouwMaat()
-    private static let inhoud = "editie-inhoud"
+    private nonisolated static let inhoud = "editie-inhoud" // ook in de Sendable-closure van onGeometryChange
     private static let boven = "editie-boven"
     // De dagdeelwissel (DagdeelWissel.swift): sta je bovenaan, en lees je niet (geen verhaal, geen lezer)?
     @State private var atTop = true
