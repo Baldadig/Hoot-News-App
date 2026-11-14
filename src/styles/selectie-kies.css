@@ -1,0 +1,17 @@
+/* De lege Selectie vraagt het zelf (Vak.jsx, .dkies; onboarding blok 5): één zin, de onderwerpen per
+   domein als pillen, en één knop. Het ritme van de chipgroepen (label → pillen --s3, groep ↔ groep --s5);
+   de knop staat onder de laatste groep, smal over de hele breedte. */
+.dkies__tekst {
+  margin-block-end: var(--s5);
+}
+.dkies__domein + .dkies__domein {
+  margin-block-start: var(--s5);
+}
+.dkies__voet {
+  margin-block-start: var(--s6);
+}
+@media (max-width: 599px) {
+  .dkies__knop {
+    width: 100%;
+  }
+}

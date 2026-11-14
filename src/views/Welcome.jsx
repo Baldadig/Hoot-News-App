@@ -240,7 +240,7 @@ export default function Welcome({ sources, edition = null, prefs, muted = new Se
               {view === 'bronnen' ? (
                 <Bronnen head={head} sources={pickable} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} filters={reopen} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
-                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} digest={digest} />
+                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} digest={digest} selectie={reopen && !prefs.browsing} />
               )}
             </div>
           </div>
@@ -478,8 +478,10 @@ function SourceRow({ s, on, pick = false, why = null, onPick }) {
   )
 }
 
-// ---- 2. Wat interesseert je? Rubrieken en, uitklapbaar, je Selectie ----
-function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, digest = null }) {
+// ---- 2. Wat interesseert je? Rubrieken en, bij opnieuw kiezen, uitklapbaar je Selectie ----
+// `selectie`: alleen wie al eens koos (opnieuw kiezen, niet na meteen lezen) ziet de uitklapper; in het eerste
+// welkom vraagt de lege Selectie het zelf (Vak.jsx). Gelijk aan WelcomeView.swift.
+function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, digest = null, selectie = false }) {
   // Alleen onderwerpen die in de weekbundel zitten (offersField, "Tot dan verbergen."), zoals het welkom in de app.
   const domains = useMemo(() => vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length), [digest])
   return (
@@ -487,7 +489,7 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, di
       <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
         Wat interesseert je?
       </h1>
-      <p className="ob__sub">Dit worden je tabs in de Stroom. Daarna kies je je bronnen.</p>
+      <p className="ob__sub">Hoot kiest je Editie hierop. Aanpassen kan altijd.</p>
       <div className="chips ob__rubrieken" role="group" aria-label="Rubrieken">
         {INTERESTS.map((i) => (
           <button key={i.id} type="button" className="pill" aria-pressed={interests.includes(i.id)} onClick={() => onInterest(i.id)}>
@@ -495,6 +497,7 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, di
           </button>
         ))}
       </div>
+      {selectie ? (
       <button type="button" className="ob__disclose" aria-expanded={open} aria-controls="ob-sel" onClick={() => setOpen(!open)}>
         <span>
           <span className="ob__dtitle">Kies onderwerpen voor je Selectie</span>
@@ -504,7 +507,8 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, di
           <CaretIcon dir={open ? 'up' : 'down'} size={ICON_SM} />
         </span>
       </button>
-      {open ? (
+      ) : null}
+      {selectie && open ? (
         <div id="ob-sel" className="ob__sel">
           <p className="ob__selnote">Elke maandag het beste over je werk of hobby.</p>
           {domains.map((d) => (

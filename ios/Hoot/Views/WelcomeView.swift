@@ -700,7 +700,7 @@ struct WelcomeView: View {
 
     private var interessesView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            heading("Wat interesseert je?", "Dit worden je tabs in de Stroom. Daarna kies je je bronnen.")
+            heading("Wat interesseert je?", "Hoot kiest je Editie hierop. Aanpassen kan altijd.")
             Flow {
                 ForEach(Rubriek.alle) { r in
                     ChoiceChip(label: r.label, on: interests.contains(r.id)) { interests = toggled(interests, r.id) }
@@ -709,45 +709,53 @@ struct WelcomeView: View {
             .padding(.top, Space.s5)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Rubrieken")
-            VStack(spacing: 0) {
-                Rectangle().fill(Theme.rule).frame(height: 1)
-                Button {
-                    selOpen.toggle()
-                } label: {
-                    HStack(spacing: Space.s3) {
-                        VStack(alignment: .leading, spacing: Space.s0) {
-                            Text("Kies onderwerpen voor je Selectie").font(.ui(.body, .semibold)).fixedSize(horizontal: false, vertical: true)
-                            Text(vak.filter(store.offersField).isEmpty ? "Mag ook later" : "\(vak.filter(store.offersField).count) gekozen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
-                        }
-                        Spacer(minLength: Space.s2)
-                        Image(systemName: selOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
+            if showSelectie { selectieKeuze }
+        }
+    }
+
+    // Alleen wie al eens koos (opnieuw kiezen vanuit Instellingen, niet na meteen lezen) ziet de uitklapper voor
+    // de Selectie; in het eerste welkom vraagt de lege Selectie het zelf (DigestView). Gelijk aan Welcome.jsx.
+    private var showSelectie: Bool { reopen && !store.browsing }
+
+    @ViewBuilder private var selectieKeuze: some View {
+        VStack(spacing: 0) {
+            Rectangle().fill(Theme.rule).frame(height: 1)
+            Button {
+                selOpen.toggle()
+            } label: {
+                HStack(spacing: Space.s3) {
+                    VStack(alignment: .leading, spacing: Space.s0) {
+                        Text("Kies onderwerpen voor je Selectie").font(.ui(.body, .semibold)).fixedSize(horizontal: false, vertical: true)
+                        Text(vak.filter(store.offersField).isEmpty ? "Mag ook later" : "\(vak.filter(store.offersField).count) gekozen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-                    .padding(.vertical, Space.s2)
-                    .contentShape(Rectangle())
+                    Spacer(minLength: Space.s2)
+                    Image(systemName: selOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
                 }
-                .buttonStyle(.plain)
-                .accessibilityValue(selOpen ? "Open" : "Dicht")
-                Rectangle().fill(Theme.rule).frame(height: 1)
+                .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+                .padding(.vertical, Space.s2)
+                .contentShape(Rectangle())
             }
-            .padding(.top, Space.s6)
-            if selOpen {
-                Text("Elke maandag het beste over je werk of hobby.")
-                    .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
-                    .padding(.top, Space.s4)
-                ForEach(DigestFieldsList.domains, id: \.label) { d in
-                    let fields = d.fields.filter { store.offersField($0.id) }
-                    if !fields.isEmpty {
-                        VStack(alignment: .leading, spacing: Space.s3) {
-                            GroupTitle(text: d.label)
-                            Flow {
-                                ForEach(fields, id: \.id) { f in
-                                    ChoiceChip(label: f.label, on: vak.contains(f.id)) { vak = toggled(vak, f.id) }
-                                }
+            .buttonStyle(.plain)
+            .accessibilityValue(selOpen ? "Open" : "Dicht")
+            Rectangle().fill(Theme.rule).frame(height: 1)
+        }
+        .padding(.top, Space.s6)
+        if selOpen {
+            Text("Elke maandag het beste over je werk of hobby.")
+                .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
+                .padding(.top, Space.s4)
+            ForEach(DigestFieldsList.domains, id: \.label) { d in
+                let fields = d.fields.filter { store.offersField($0.id) }
+                if !fields.isEmpty {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        GroupTitle(text: d.label)
+                        Flow {
+                            ForEach(fields, id: \.id) { f in
+                                ChoiceChip(label: f.label, on: vak.contains(f.id)) { vak = toggled(vak, f.id) }
                             }
                         }
-                        .padding(.top, Space.s5)
                     }
+                    .padding(.top, Space.s5)
                 }
             }
         }
