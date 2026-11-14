@@ -38,6 +38,8 @@ export const INTEREST_BONUS = 10
 export const NEWS_CATS = new Set(['nl', 'vl', 'regio', 'int', 'economie', 'tech', 'wetenschap'])
 export const EXTRA_MAX = 2
 export const EXTRA_MIN = 0.5 // zo sterk moet sport, cultuur of games in je profiel zijn
+// Wie niets kiest: hooguit zoveel vulplekken per rubriek naast de algemene Editie (persona's 14 november, punt 10).
+export const NO_CHOICE_FILL_MAX = 2
 // Het plafond groeit mee met wat je koos (persona's 14 november: wie alleen Cultuur en Sport koos, kreeg in elke Editie
 // precies twee van zulke plekken en acht plekken nieuws uit de rubriekvulling). Het aandeel van de gekozen interesses dat
 // sport of cultuur is, krijgt hooguit de helft van de Editie: alleen Cultuur en Sport (2 van 2) geeft 5, Cultuur en
@@ -609,7 +611,40 @@ export function composePersonal({ global, stories = [], items = [], sources = []
 
   // 7. Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
   //    "Waar iedereen over schrijft" direct daarna.
-  let entries = [...news, ...fill, ...extra]
+  // Wie niets kiest (Liever meteen lezen: geen interesses en geen onderwerpen; persona's 14 november, punt 10) krijgt de
+  // algemene Editie als basis: haar plekken in haar volgorde, met dezelfde toelating en, als een bron die je volgt het
+  // verhaal brengt, dat stuk als kop. Wat daarna nog vrij is, vult je eigen nieuws en de aanvulling, maar hooguit
+  // NO_CHOICE_FILL_MAX plekken per rubriek: Jan, met Tweakers in de startset, kreeg vijf Tech-plekken in één Editie en maar
+  // drie tot zeven van de algemene Editie.
+  // Niets gekozen: geen interesses, geen onderwerpen, geen voorkeursbron en een profiel zonder enige waarde (ook niets geleerd
+  // uit lezen of meer/minder): dan is er niets om de algemene Editie persoonlijk van te maken.
+  const noChoice = !interests.length && !topics.length && !preferred.size && Object.values(prof.topicP || {}).every((v) => !v)
+  const ownLeadOf = (g) => {
+    const xs = [...membersOf(g)].map((x) => itemAny.get(x)).filter((i) => i && i.kind !== 'post' && !isOpinion(i) && followed.has(i.source) && !isStale(i, now))
+    return xs.length ? leadPool(leadCandidates(xs, followed, preferred, now), xs, now, (i) => followed.has(i.source))[0] || null : null
+  }
+  const basis = noChoice
+    ? global.entries
+        .filter((g) => g.desk !== 'bubbel')
+        .map((g0) => {
+          // Staat het verhaal ook in je eigen nieuws, dan die plek (met de kop en het waarom van de selectie), op de plaats
+          // van de algemene Editie. Anders de plek van de algemene Editie: met een stuk van een bron die je volgt als kop als
+          // dat er is, en anders als aanvulling (Buiten je bronnen), met een leesbare kop (de taalregel).
+          const sid0 = g0.kind === 'story' ? g0.id : serverStory(g0)
+          const mine = news.find((x) => (x.kind === 'story' && sid0 && x.id === sid0) || (x.leadId || x.id) === (g0.leadId || g0.id))
+          if (mine) return { ...mine, _basis: true }
+          const g = releadEntry(g0)
+          if (!g) return null
+          const own = g.kind === 'story' ? ownLeadOf(g) : followed.has(itemAny.get(g.id)?.source) ? itemAny.get(g.id) : null
+          const e = own ? (own.id !== (g.leadId || g.id) ? { ...g, leadId: own.id, ...('title' in g ? { title: own.title || null } : {}) } : g) : { ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }
+          const id = e.leadId || e.id, sid = e.kind === 'story' ? e.id : null
+          // Groot nieuws heet ook hier zo (whyOf: `big`), zoals in de selectie.
+          const big = majorNews(storyById.get(sid0) || e, [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean))
+          return unread(id, sid) && !(e.desk === EXTERN && sameAsPrevious(id, sid)) ? { ...withHistory(e, id, sid), ...(big ? { big: true } : {}), _basis: true } : null
+        })
+        .filter(Boolean)
+    : []
+  let entries = [...basis, ...news, ...fill, ...extra]
   if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry)
 
   // Vul vrijgevallen gereserveerde plekken met toegelaten eigen nieuws; de norm wijkt niet
@@ -661,8 +696,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean)
     return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs)
   }
+  const fillDesks = new Map() // wie niets koos: vulplekken per rubriek (NO_CHOICE_FILL_MAX)
+  let capFill = true
+  const fillDeskOf = (e) => (e.desk === EXTERN ? e.fromDesk : e.desk) || null
   const accept = e => {
     if (accepted.length >= capacity) return
+    if (noChoice && capFill && !e._basis && e.desk !== 'bubbel' && fillDeskOf(e) && (fillDesks.get(fillDeskOf(e)) || 0) >= NO_CHOICE_FILL_MAX) return
     if (deferLocal && localOf(e)) {
       if (!deferred.includes(e)) deferred.push(e)
       return
@@ -694,6 +733,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (run && (runningN >= RUNNING_MAX || (!e._running && !runningFact(run, known, sigAll, now)))) return
     if (run) runningN++
     if (p.capped) internationalCount++
+    if (noChoice && !e._basis && e.desk !== 'bubbel' && fillDeskOf(e)) fillDesks.set(fillDeskOf(e), (fillDesks.get(fillDeskOf(e)) || 0) + 1)
     if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1)
     ids.forEach(x => finalTaken.add(x))
     finalLeads.push(id)
@@ -717,6 +757,16 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     // het brede verhaal): sinds lokaal nieuws van elders zakt (punt 7) komt de vulling vaker zo ver.
     if (sameAsPrevious(g.leadId || g.id, g.kind === 'story' ? g.id : null)) continue
     accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+  }
+  // Wie niets koos: haalt de Editie met hooguit NO_CHOICE_FILL_MAX vulplekken per rubriek geen tien, dan mag de vulling
+  // daarna verder (liever een volle krant dan een lege plek), in dezelfde volgorde.
+  if (noChoice && accepted.length < EDITION_SIZE) {
+    capFill = false
+    selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept)
+    for (const { g } of fillCands) {
+      if (accepted.length >= EDITION_SIZE) break
+      if (!sameAsPrevious(g.leadId || g.id, g.kind === 'story' ? g.id : null)) accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+    }
   }
   deferLocal = false
   for (const e of deferred) if (!sameAsPrevious(e.leadId || e.id, e.kind === 'story' ? e.id : null)) accept(e)
@@ -841,7 +891,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       const reasons = {groot:`Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`,passend:`Aanvulling bij ${family}`,basis:'Actueel nieuws uit Nederland',eigen:'Uit je gekozen bronnen'}
       if (reasons[e.supplement]) why = {...why,text:reasons[e.supplement],detail:true}
     }
-    const { w, parts, planned, front, vervolg, big, _extra, ...rest } = e
+    const { w, parts, planned, front, vervolg, big, _extra, _basis, ...rest } = e
     const lead = e.leadId || e.id
     const itemIds0 = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
     const itemIds = mergedIds.has(e) ? [...new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0

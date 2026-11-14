@@ -4201,6 +4201,7 @@ var HootCore = (() => {
   var NEWS_CATS = /* @__PURE__ */ new Set(["nl", "vl", "regio", "int", "economie", "tech", "wetenschap"]);
   var EXTRA_MAX = 2;
   var EXTRA_MIN = 0.5;
+  var NO_CHOICE_FILL_MAX = 2;
   var EXTRA_KIND_OF = { sport: "sport", cultuur: "cultuur" };
   function extraMaxOf(interests = [], kinds = /* @__PURE__ */ new Set(), size = EDITION_SIZE) {
     const chosen = [...new Set(interests)].filter((id) => INTERESTS.some((f) => f.id === id));
@@ -4574,7 +4575,24 @@ var HootCore = (() => {
       }
     }
     if (bubbleEntry) taken.add(bubbleEntry.leadId || bubbleEntry.id);
-    let entries = [...news, ...fill, ...extra];
+    const noChoice = !interests.length && !topics.length && !preferred.size && Object.values(prof.topicP || {}).every((v) => !v);
+    const ownLeadOf = (g) => {
+      const xs = [...membersOf(g)].map((x) => itemAny.get(x)).filter((i) => i && i.kind !== "post" && !isOpinion(i) && followed.has(i.source) && !isStale(i, now));
+      return xs.length ? leadPool(leadCandidates(xs, followed, preferred, now), xs, now, (i) => followed.has(i.source))[0] || null : null;
+    };
+    const basis = noChoice ? global.entries.filter((g) => g.desk !== "bubbel").map((g0) => {
+      const sid0 = g0.kind === "story" ? g0.id : serverStory(g0);
+      const mine = news.find((x) => x.kind === "story" && sid0 && x.id === sid0 || (x.leadId || x.id) === (g0.leadId || g0.id));
+      if (mine) return { ...mine, _basis: true };
+      const g = releadEntry(g0);
+      if (!g) return null;
+      const own3 = g.kind === "story" ? ownLeadOf(g) : followed.has(itemAny.get(g.id)?.source) ? itemAny.get(g.id) : null;
+      const e = own3 ? own3.id !== (g.leadId || g.id) ? { ...g, leadId: own3.id, ..."title" in g ? { title: own3.title || null } : {} } : g : { ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) };
+      const id = e.leadId || e.id, sid = e.kind === "story" ? e.id : null;
+      const big = majorNews(storyById.get(sid0) || e, [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean));
+      return unread(id, sid) && !(e.desk === EXTERN && sameAsPrevious(id, sid)) ? { ...withHistory(e, id, sid), ...big ? { big: true } : {}, _basis: true } : null;
+    }).filter(Boolean) : [];
+    let entries = [...basis, ...news, ...fill, ...extra];
     if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry);
     const finalTaken = /* @__PURE__ */ new Set();
     const finalLeads = [];
@@ -4611,8 +4629,12 @@ var HootCore = (() => {
       const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean);
       return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null }) && !majorNews(st, xs);
     };
+    const fillDesks = /* @__PURE__ */ new Map();
+    let capFill = true;
+    const fillDeskOf = (e) => (e.desk === EXTERN ? e.fromDesk : e.desk) || null;
     const accept = (e) => {
       if (accepted.length >= capacity) return;
+      if (noChoice && capFill && !e._basis && e.desk !== "bubbel" && fillDeskOf(e) && (fillDesks.get(fillDeskOf(e)) || 0) >= NO_CHOICE_FILL_MAX) return;
       if (deferLocal && localOf(e)) {
         if (!deferred.includes(e)) deferred.push(e);
         return;
@@ -4637,6 +4659,7 @@ var HootCore = (() => {
       if (run && (runningN >= RUNNING_MAX || !e._running && !runningFact(run, known2, sigAll, now))) return;
       if (run) runningN++;
       if (p.capped) internationalCount++;
+      if (noChoice && !e._basis && e.desk !== "bubbel" && fillDeskOf(e)) fillDesks.set(fillDeskOf(e), (fillDesks.get(fillDeskOf(e)) || 0) + 1);
       if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1);
       ids.forEach((x) => finalTaken.add(x));
       finalLeads.push(id);
@@ -4655,6 +4678,14 @@ var HootCore = (() => {
       if (accepted.length >= EDITION_SIZE) break;
       if (sameAsPrevious(g.leadId || g.id, g.kind === "story" ? g.id : null)) continue;
       accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+    }
+    if (noChoice && accepted.length < EDITION_SIZE) {
+      capFill = false;
+      selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept);
+      for (const { g } of fillCands) {
+        if (accepted.length >= EDITION_SIZE) break;
+        if (!sameAsPrevious(g.leadId || g.id, g.kind === "story" ? g.id : null)) accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+      }
     }
     deferLocal = false;
     for (const e of deferred) if (!sameAsPrevious(e.leadId || e.id, e.kind === "story" ? e.id : null)) accept(e);
@@ -4738,7 +4769,7 @@ var HootCore = (() => {
         const reasons = { groot: `Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`, passend: `Aanvulling bij ${family}`, basis: "Actueel nieuws uit Nederland", eigen: "Uit je gekozen bronnen" };
         if (reasons[e.supplement]) why = { ...why, text: reasons[e.supplement], detail: true };
       }
-      const { w, parts, planned, front, vervolg, big, _extra, ...rest } = e;
+      const { w, parts, planned, front, vervolg, big, _extra, _basis, ...rest } = e;
       const lead = e.leadId || e.id;
       const itemIds0 = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const itemIds = mergedIds.has(e) ? [.../* @__PURE__ */ new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0;
