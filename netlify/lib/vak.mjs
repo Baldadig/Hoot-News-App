@@ -526,12 +526,21 @@ const BROKEN_DAYS = 7
 const SILENT_DAYS = 60
 // Een foutmelding op één regel en kort (de parser geeft er soms vier regels).
 export const oneLine = (e) => String(e || 'onbekend').replace(/\s+/g, ' ').trim().slice(0, 200)
+// Niet aan de beurt gekomen (dubbelcheck 14 november, A4): geen oordeel over de bron, maar we tellen hoe vaak het achter
+// elkaar gebeurde (`skips`, `lastSkip`). Een poging zet de telling terug op nul. Een bron die zo een week geen poging
+// kreeg, staat niet meer op ok maar op 'overgeslagen' (healthOf), en komt dan vooraan bij de herkansing.
 export function updateHealth(health = {}, status = [], now = Date.now()) {
   const at = new Date(now).toISOString()
   const out = { ...health }
   for (const r of status) {
-    if (r.skipped) continue // niet aan de beurt gekomen: geen oordeel
     const h = { ...(out[r.id] || { since: at }) }
+    if (r.skipped) {
+      h.skips = (h.skips || 0) + 1
+      h.lastSkip = at
+      out[r.id] = h
+      continue
+    }
+    delete h.skips
     if (r.ok) {
       h.lastOk = at
       delete h.refused
@@ -549,7 +558,8 @@ export function updateHealth(health = {}, status = [], now = Date.now()) {
 export function healthOf(h, now = Date.now()) {
   if (!h) return 'nieuw'
   const days = (iso) => (iso ? (now - Date.parse(iso)) / 864e5 : Infinity)
-  if (days(h.lastOk) > BROKEN_DAYS && days(h.since) > BROKEN_DAYS) return h.refused ? 'geweigerd' : 'kapot'
+  if (days(h.lastOk) > BROKEN_DAYS && days(h.since) > BROKEN_DAYS) return h.skips ? 'overgeslagen' : h.refused ? 'geweigerd' : 'kapot'
+  if (!h.lastOk && !h.lastFail) return 'nieuw' // nog nooit aan de beurt geweest: geen oordeel
   if (days(h.newest) > SILENT_DAYS && days(h.since) > BROKEN_DAYS) return 'stil'
   return 'ok'
 }
@@ -559,10 +569,13 @@ export function healthOf(h, now = Date.now()) {
 // Vroeger kwamen ze alleen op maandagochtend terug, samen met alle bronnen tegelijk; die ronde haalde de tijdgrens niet
 // en schreef niets weg, zodat een tijdelijke fout een blijvende pauze werd (B13).
 // Gezond: wat we ophalen en wat het weekoverzicht als gezond telt. Een nieuwe bron heeft nog geen oordeel en telt mee.
+// Op pauze: kapot, geweigerd, stil, of overgeslagen (een week geen poging gekregen, A4).
 const GEZOND = ['ok', 'nieuw']
 export const RETRY_PER_HOUR = 10
 const half = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2
 const lastTry = (h) => [h?.lastOk, h?.lastFail, h?.since].filter(Boolean).sort().pop() || ''
+// De laatste echte poging (geslaagd of mislukt); nog nooit geprobeerd is '' en komt dus eerst.
+const lastAttempt = (h) => [h?.lastOk, h?.lastFail].filter(Boolean).sort().pop() || ''
 export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURCES, { split = sources.length > 150, retry = RETRY_PER_HOUR } = {}) {
   const p = Object.fromEntries(AMS.formatToParts(new Date(now)).map((x) => [x.type, x.value]))
   const healthy = sources.filter((s) => GEZOND.includes(healthOf(health[s.id], now)))
@@ -572,13 +585,21 @@ export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURC
     .sort(([, a, ka], [, b, kb]) => (a < b ? -1 : a > b ? 1 : ka - kb))
     .slice(0, retry)
     .map(([s]) => s)
-  return [...paused, ...healthy.filter((s) => !split || half(s.id) === Number(p.hour) % 2)]
+  // Rotatie op de laatste poging (dubbelcheck 14 november, A4): de gezonde bronnen die het langst geen poging kregen, eerst
+  // (bij gelijke stand de volgorde van de catalogus). Wie deze ronde niet aan de beurt kwam, staat de volgende ronde vooraan,
+  // zodat de tijdgrens van een ronde nooit elk uur dezelfde bronnen achteraan overslaat.
+  const turn = healthy
+    .filter((s) => !split || half(s.id) === Number(p.hour) % 2)
+    .map((s, k) => [s, lastAttempt(health[s.id]), k])
+    .sort(([, a, ka], [, b, kb]) => (a < b ? -1 : a > b ? 1 : ka - kb))
+    .map(([s]) => s)
+  return [...paused, ...turn]
 }
 // Het weekoverzicht: per onderwerp hoeveel bronnen gezond zijn, en welke op pauze staan.
 export function healthReport(health = {}, now = Date.now(), sources = VAK_SOURCES) {
   const rows = sources.map((s) => {
     const h = health[s.id]
-    return { id: s.id, name: s.name, fields: s.fields, url: s.urls[0], state: healthOf(h, now), lastOk: h?.lastOk || null, newest: h?.newest || null, lastError: h?.lastError || null, lastErrorAt: h?.lastErrorAt || null }
+    return { id: s.id, name: s.name, fields: s.fields, url: s.urls[0], state: healthOf(h, now), skips: h?.skips || 0, lastOk: h?.lastOk || null, newest: h?.newest || null, lastError: h?.lastError || null, lastErrorAt: h?.lastErrorAt || null }
   })
   const fields = VAK_FIELDS.map((f) => {
     const mine = rows.filter((r) => r.fields.includes(f.id))
