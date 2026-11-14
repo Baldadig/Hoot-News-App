@@ -196,11 +196,14 @@ const settle = async (list, load) =>
 //   de rest. Is hij klaar als de gewone bronnen klaar zijn, dan telt hij meteen; anders telt zijn laatste geslaagde lading
 //   (LATE_KEY, hooguit LATE_KEEP oud), en `late()` bewaart wat er intussen binnenkwam, voor de volgende ronde. late()
 //   loopt naast het wegschrijven van de feed (refresh.mjs), nooit ervoor, en wacht nooit langer dan tot LATE_MS na de
-//   start: dan blijft er na de ronde ruim tijd over tot de 15 s van de planner (gemeten bij WaPo: 8 tot 10,6 s);
+//   start (12,5 s): dan blijft er na de ronde ruim tijd over tot de 15 s van de planner, en heeft WaPo marge boven
+//   de gemeten 8 tot 10,6 s (tweede keuring: het wegschrijven wacht er niet meer op, dus het mag ruimer dan 11 s);
 // - late() bewaart de lading zoals hij binnenkwam (een kopie op dat moment), zonder wat de ronde er daarna aan hing
-//   (storyId, firstSeenAt, een geleend beeld): net als storeOf (stream.mjs).
+//   (storyId, firstSeenAt, een geleend beeld): net als storeOf (stream.mjs). Ook een lading uit de cache krijgt de
+//   ronde als eigen kopie (fromCache), en late() schoont wat het van de oude cache overneemt nog eens op: zo komt
+//   er nooit iets van één ronde in de cache, ook niet als de ene trage bron uit de cache komt en de andere laat.
 export const FETCH_MS = 10000
-export const LATE_MS = 11000
+export const LATE_MS = 12500
 export const LATE_KEEP = 3 * 60 * MIN
 export const LATE_KEY = 'feed-traag-v1'
 // Een bericht zoals we het bewaren: een eigen kopie, zonder wat bij één ronde hoort (storeOf, stream.mjs) en zonder een
@@ -233,7 +236,7 @@ export async function fetchSources(list, avatars, { start = Date.now(), now = st
   const cache = stored && typeof stored === 'object' ? stored : {}
   const fromCache = (s) => {
     const c = cache[s.id]
-    return c && Array.isArray(c.items) && c.items.length && now - (c.at || 0) <= keepMs ? { id: s.id, name: s.name, ok: true, cached: c.at, used: c.used || null, count: c.items.length, items: c.items } : null
+    return c && Array.isArray(c.items) && c.items.length && now - (c.at || 0) <= keepMs ? { id: s.id, name: s.name, ok: true, cached: c.at, used: c.used || null, count: c.items.length, items: c.items.map(storedItem) } : null
   }
   const slowResult = (s) => (ready.get(s.id)?.ok ? ready.get(s.id) : fromCache(s) || ready.get(s.id) || { id: s.id, name: s.name, ok: false, pending: true, count: 0, items: [] })
   const fetched = list.map((s) => (slowSource(s) ? slowResult(s) : done.get(s.id) || { id: s.id, name: s.name, ok: false, skipped: true, count: 0, items: [] }))
@@ -246,7 +249,11 @@ export async function fetchSources(list, avatars, { start = Date.now(), now = st
     const good = slow.map((s) => ready.get(s.id)).filter((r) => r?.ok && arrived.get(r.id)?.length)
     if (!good.length) return 0
     const at = now // de tijd van de ronde, net als fromCache
-    const next = Object.fromEntries(Object.entries(cache).filter(([id, c]) => slow.some((s) => s.id === id) && at - (c?.at || 0) <= keepMs))
+    const next = Object.fromEntries(
+      Object.entries(cache)
+        .filter(([id, c]) => slow.some((s) => s.id === id) && Array.isArray(c?.items) && at - (c?.at || 0) <= keepMs)
+        .map(([id, c]) => [id, { ...c, items: c.items.map(storedItem) }]),
+    )
     for (const r of good) next[r.id] = { at, used: r.used || null, items: arrived.get(r.id) }
     await set(LATE_KEY, next)
     return good.length

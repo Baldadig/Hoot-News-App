@@ -126,13 +126,17 @@ test('fetchSources: de trage bron krijgt de eindtijd LATE_MS mee, de gewone FETC
 })
 
 // Herstel na de keuring: late() hield het wegschrijven op (buildFeed wachtte erop, tot 14 s na de start).
-test('late() wacht hooguit tot 11 s na de start, boven de gemeten 10,6 s van WaPo', () => {
-  assert.ok(LATE_MS <= 11000 && LATE_MS > 10600, String(LATE_MS))
+// Tweede keuring: het wegschrijven wacht niet meer op late(), dus LATE_MS mag ruimer (12,5 s), met marge boven de
+// gemeten 10,6 s van WaPo en ruim onder de 15 s van de planner (2 s over voor het bewaren zelf).
+test('late() wacht hooguit tot 12,5 s na de start: ruim boven de gemeten 10,6 s van WaPo, ruim onder de 15 s', () => {
+  assert.equal(LATE_MS, 12500)
+  assert.ok(LATE_MS - 10600 >= 1500, 'marge boven de gemeten WaPo-tijd')
+  assert.ok(15000 - LATE_MS >= 2000, 'ruim onder de 15 s van de planner')
   assert.ok(FETCH_MS < LATE_MS)
 })
 
-test('trage bron hangt, dan begint het wegschrijven vóór 11 s (refresh laat late() ernaast lopen)', async () => {
-  // Op schaal: 1 s hier is 10 s in het echt (FETCH_MS 100, late() hooguit 1100).
+test('trage bron hangt, dan begint het wegschrijven lang vóór LATE_MS (refresh laat late() ernaast lopen)', async () => {
+  // Op schaal: 1 s hier is 10 s in het echt (FETCH_MS 100, late() hooguit 1250).
   const gewoon = { id: 'g', name: 'G', urls: ['https://g/feed'] }
   const traag = { id: 'traag', name: 'Traag', urls: ['https://t/feed'], timeoutMs: 14000 }
   const load = async (s) => (s.id === 'traag' ? new Promise(() => {}) : wait(30, ok(s, 2)))
@@ -140,15 +144,15 @@ test('trage bron hangt, dan begint het wegschrijven vóór 11 s (refresh laat la
   const t = Date.now()
   let lateDone = null
   const build = async () => {
-    const { fetched, late } = await fetchSources([gewoon, traag], null, { load, get: kv.get, set: kv.set, fetchMs: 100, lateMs: 1100 })
+    const { fetched, late } = await fetchSources([gewoon, traag], null, { load, get: kv.get, set: kv.set, fetchMs: 100, lateMs: LATE_MS / 10 })
     return { parts: { g: fetched[0].items }, items: [], archive: null, sources: [], edition: { id: 'e' }, meta: {}, late: () => late().then((n) => ((lateDone = Date.now() - t), n)) }
   }
   const writes = []
   await refresh({ build, read: async () => null, write: async (k) => void writes.push([k, Date.now() - t]) })
   assert.ok(writes.length > 0)
   assert.ok(writes[0][1] < 300, `het wegschrijven begon na ${writes[0][1]} ms (op schaal), niet pas na late()`)
-  assert.ok(writes.every(([, ms]) => ms < 1100), 'alles weggeschreven vóór de grens van late()')
-  assert.ok(lateDone >= 1000 && lateDone < 1400, `late() hield op bij de grens (${lateDone} ms) en refresh wachtte daar wel op`)
+  assert.ok(writes.every(([, ms]) => ms < LATE_MS / 10), 'alles weggeschreven vóór de grens van late()')
+  assert.ok(lateDone >= LATE_MS / 10 - 100 && lateDone < 1450, `late() hield op bij de grens (${lateDone} ms, op schaal onder 15 s) en refresh wachtte daar wel op`)
 })
 
 test('buildFeed wacht niet op late(): met een trage bron die niet antwoordt is de feed er ruim vóór LATE_MS', async () => {
@@ -184,6 +188,44 @@ test('late() bewaart de lading zoals hij binnenkwam: zonder storyId, firstSeenAt
   assert.deepEqual(kept, [item(0), item(1)].map(({ publishedAt, ...it }) => ({ ...it, publishedAt: kept[0].publishedAt })))
   for (const it of kept) for (const k of ['storyId', 'firstSeenAt', 'imageFrom', 'image']) assert.ok(!(k in it), k)
   assert.equal(kept[1].meta.a, 1, 'een eigen kopie')
+})
+
+// Tweede keuring: het gemengde geval. De ene trage bron komt uit de cache, de andere komt laat binnen. late() schrijft de
+// cache van de eerste opnieuw weg; daar mag niets in komen van wat de ronde aan die stukken hing.
+test('late(): politics uit de cache, wapo laat binnen; de cache van politics blijft zoals hij was', async () => {
+  const wapo = { id: 'wapo', name: 'WaPo', urls: ['https://t/world'], timeoutMs: 14000 }
+  const politics = { id: 'wapo-politics', name: 'WaPo Politiek', urls: ['https://t/politics'], timeoutMs: 14000 }
+  const now = Date.now()
+  const oud = { id: 'wapo-politicsoud', source: 'wapo-politics', title: 'oud', publishedAt: new Date(now - 40 * 36e5).toISOString(), meta: { a: 1 } }
+  const kv = memory()
+  kv.m.set(LATE_KEY, { 'wapo-politics': { at: now - 60e3, used: 'https://t/politics', items: [structuredClone(oud)] } })
+  const vers = { id: 'wapovers', source: 'wapo', title: 'vers', publishedAt: new Date(now).toISOString() }
+  const load = async (s) => (s.id === 'wapo' ? wait(150, { id: s.id, name: s.name, ok: true, used: 'https://t/world', count: 1, items: [structuredClone(vers)] }) : new Promise(() => {}))
+  const { fetched, late } = await fetchSources([wapo, politics], null, { now, load, get: kv.get, set: kv.set, fetchMs: 50, lateMs: 400 })
+  const p = fetched.find((r) => r.id === 'wapo-politics')
+  assert.ok(p.ok && p.cached, 'politics komt deze ronde uit de cache')
+  // De ronde hangt er van alles aan (poolById, borrowImagesFromStories).
+  Object.assign(p.items[0], { storyId: 'S', firstSeenAt: 1, image: 'https://geleend.test/x.jpg', imageFrom: 'nos' })
+  p.items[0].meta.a = 2
+  assert.equal(await late(), 1)
+  const stored = kv.m.get(LATE_KEY)
+  assert.deepEqual(stored['wapo-politics'].items, [oud], 'de cache van politics is onveranderd')
+  assert.equal(stored['wapo-politics'].at, now - 60e3, 'en houdt zijn eigen tijd')
+  assert.deepEqual(stored.wapo.items, [vers])
+})
+
+test('late() schoont ook een oude cache op die al rondevelden had (van voor dit herstel)', async () => {
+  const wapo = { id: 'wapo', name: 'WaPo', urls: ['https://t/world'], timeoutMs: 14000 }
+  const politics = { id: 'wapo-politics', name: 'WaPo Politiek', urls: ['https://t/politics'], timeoutMs: 14000 }
+  const now = Date.now()
+  const schoon = { id: 'p1', source: 'wapo-politics', title: 'p' }
+  const kv = memory()
+  kv.m.set(LATE_KEY, { 'wapo-politics': { at: now - 60e3, items: [{ ...schoon, storyId: 'S', firstSeenAt: 1, image: 'https://geleend.test/x.jpg', imageFrom: 'nos' }] } })
+  const load = async (s) => (s.id === 'wapo' ? { id: s.id, name: s.name, ok: true, count: 1, items: [{ id: 'w1', source: 'wapo', title: 'w' }] } : new Promise(() => {}))
+  const { fetched, late } = await fetchSources([wapo, politics], null, { now, load, get: kv.get, set: kv.set, fetchMs: 50, lateMs: 200 })
+  assert.deepEqual(fetched.find((r) => r.id === 'wapo-politics').items, [schoon], 'de ronde krijgt een schone kopie')
+  assert.equal(await late(), 1)
+  assert.deepEqual(kv.m.get(LATE_KEY)['wapo-politics'].items, [schoon])
 })
 
 // ---------- 2. Beeld via de eigen Bluesky-kaarten ----------
