@@ -285,7 +285,7 @@ extension WidgetEditie {
     // In de widgetgalerij, zolang Hoot nog geen Editie op dit toestel heeft: geen echt nieuws, wel echt Hoot.
     static var voorbeeld: WidgetEditie {
         let koppen = [
-            ("Drie keer per dag een Editie van tien verhalen, met een begin en een einde", "Hoot"),
+            ("Drie keer per dag een Editie, met een begin en een einde", "Hoot"),
             ("Ben je erdoorheen, dan ben je bij", "Hoot"),
             ("Hoe andere media hetzelfde verhaal brengen, naast elkaar", "Hoot"),
         ]

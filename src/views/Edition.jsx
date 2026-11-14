@@ -33,7 +33,7 @@ import { TermHelp } from '../components/Terms.jsx'
 import { Why, whyLine } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
 import { INTRO_LINES, KAART_LINES } from '../../shared/zinnen.mjs'
-import { cardIntro } from '../../shared/kaart-intro.mjs'
+import { cardIntro, VIA_TEKEN } from '../../shared/kaart-intro.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
 import { useIntroMax, useColumnWidth, useShrinkToFit, shrunk } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
@@ -107,7 +107,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
           {summary ? (
             <span className={`clamp clamp--vangnet fitem__sum${rek?.text ? ' fitem__sum--rek' : ''}`} ref={sumRef}>
               {summary}
-              {via ? <span className="via"> — via {via}</span> : null}
+              {via ? <span className="via">{VIA_TEKEN}{via}</span> : null}
             </span>
           ) : null}
         </span>

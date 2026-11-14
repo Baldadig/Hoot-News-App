@@ -10,8 +10,8 @@ struct IntroText: View {
     let text: String // de intro in hele zinnen (uit wholeSentences)
     let style: Font.TextStyle
     var lines: Int? // nil: geen grens
-    var suffix: (String) -> String = { $0 } // bijvoorbeeld " — via X" achter elke kandidaat
-    // Past er van `text` geen hele zin, dan deze (de reserve-intro uit hetzelfde verhaal, met zijn eigen " — via X"),
+    var suffix: (String) -> String = { $0 } // bijvoorbeeld " · via X" achter elke kandidaat
+    // Past er van `text` geen hele zin, dan deze (de reserve-intro uit hetzelfde verhaal, met zijn eigen " · via X"),
     // zoals op het web (kaartkwaliteit): liever de reserve dan een leeg vlak, liever niets dan een afgeknipte zin.
     var fallback: (text: String, suffix: (String) -> String)? = nil
     var color: Color = Theme.ink2
@@ -37,7 +37,7 @@ struct IntroText: View {
         }
     }
 
-    // Alle kandidaten, al met hun " — via X": eerst de eigen intro, dan de reserve.
+    // Alle kandidaten, al met hun " · via X": eerst de eigen intro, dan de reserve.
     private var shown: [String] {
         Self.candidates(text).map(suffix) + (fallback.map { f in Self.candidates(f.text).map(f.suffix) } ?? [])
     }

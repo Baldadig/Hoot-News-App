@@ -54,10 +54,10 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
   assert.match(css, /\.srcitem__sum \{\n  --lines: 3;/)
   // Geleende intro's dragen hun bron, ook in de Editie (cardIntro geeft de bron mee: eigen geleende of reserve).
   assert.match(src('src/views/Edition.jsx'), /const gewoon = cardIntro\(item, maat\)/)
-  assert.match(src('src/views/Edition.jsx'), /— via \{via\}/)
+  assert.match(src('src/views/Edition.jsx'), /\{VIA_TEKEN\}\{via\}/)
   // Ook in het vergelijkpaneel en de Selectie-kaart, met de maat-aftrek; en in de app (DigestView).
   for (const f of ['src/views/Story.jsx', 'src/views/Vak.jsx']) {
-    assert.match(src(f), /via \{item\.borrowedFrom\}/, f)
+    assert.match(src(f), /\{VIA_TEKEN\}\{item\.borrowedFrom\}/, f)
     assert.match(src(f), /fit\.max - viaLength\(item\), fit\.rek - viaLength\(item\)/, f)
   }
   assert.match(src('ios/Hoot/Views/DigestView.swift'), /viaLength\) \}\), !intro\.isEmpty \{ IntroText\(text: intro, .*suffix: item\.asItem\.introWithSource\)/)
@@ -137,4 +137,22 @@ test('beeldloos: een beeld dat pas bij het laden mislukt, volgt ook de buurregel
   assert.notEqual(placeholderSet(plan.get(b)), placeholderSet(plan.get('a')))
   // Beeld meldt het mislukken aan de lijst.
   assert.match(src('src/components/Beeld.jsx'), /markFailed\?\.\(item\?\.id\)/)
+})
+
+// Besluit Alex 14 november, "Zonder haakjes": achter een geleende intro staat " · via X", geen gedachtestreepje.
+// Web (VIA_TEKEN in shared/kaart-intro.mjs) en app (Item.viaTeken) gelijk, en de maat rekent met hetzelfde teken.
+test('via: " · via X" achter een geleende intro, op web en app, en de maat rekent mee', async () => {
+  const { VIA_TEKEN, viaCost } = await import('../shared/kaart-intro.mjs')
+  assert.equal(VIA_TEKEN, ' · via ')
+  assert.equal(viaCost('NOS'), 'NOS'.length + VIA_TEKEN.length + 1)
+  assert.equal(viaCost(''), 0)
+  assert.equal(viaCost(null), 0)
+  const models = src('ios/Hoot/Models.swift')
+  assert.match(models, /static let viaTeken = " · via "/)
+  assert.match(models, /static func viaCost\(_ name: String\) -> Int \{ name\.count \+ viaTeken\.count \+ 1 \}/)
+  assert.match(models, /intro \+ viaTeken \+ \$0/)
+  for (const f of ['src/components/Items.jsx', 'src/views/Edition.jsx', 'src/views/Story.jsx', 'src/views/Vak.jsx', 'ios/Hoot/Models.swift', 'ios/Hoot/Views/Components.swift', 'ios/Hoot/Views/IntroText.swift', 'ios/Hoot/Views/DigestView.swift', 'shared/kaart-intro.mjs']) {
+    assert.doesNotMatch(src(f), /— via/, f)
+  }
+  assert.match(src('src/components/Items.jsx'), /export const viaLength = \(item\) => viaCost\(item\.borrowedFrom\)/)
 })

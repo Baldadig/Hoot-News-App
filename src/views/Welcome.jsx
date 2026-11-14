@@ -6,6 +6,7 @@ import { BrandLogo, useBrandBar } from '../components/Brand.jsx'
 import SunArt from '../components/SunArt.jsx'
 import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
+import { offeredFields } from '../lib/selection-index.js'
 import { voorstel } from '../../shared/voorstel.mjs'
 import { INTERESTS, resolveTopics } from '../lib/topics.js'
 import { sourcesOn, pickedFrom, sourceLine, proofHeadline } from '../lib/welcome.js'
@@ -39,7 +40,7 @@ const TRIO = [
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
-export default function Welcome({ sources, items = [], edition = null, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {} }) {
+export default function Welcome({ sources, items = [], edition = null, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {}, digest = null }) {
   const reopen = !!onClose
   const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | uitleg | interesses | bronnen
   const [interests, setInterests] = useState(() => prefs.interests || [])
@@ -249,7 +250,7 @@ export default function Welcome({ sources, items = [], edition = null, prefs, mu
               ) : view === 'bronnen' ? (
                 <Bronnen head={head} sources={pickable} items={items} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
-                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} />
+                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} digest={digest} />
               )}
             </div>
           </div>
@@ -582,8 +583,9 @@ function PeekBar({ open, setOpen, sources, items, mine }) {
 }
 
 // ---- 3. Wat interesseert je? Rubrieken en, uitklapbaar, je Selectie ----
-function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen }) {
-  const domains = useMemo(() => vakByDomain(), [])
+function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, digest = null }) {
+  // Alleen onderwerpen die in de weekbundel zitten (offersField, "Tot dan verbergen."), zoals het welkom in de app.
+  const domains = useMemo(() => vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length), [digest])
   return (
     <>
       <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
@@ -600,7 +602,7 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen }) 
       <button type="button" className="ob__disclose" aria-expanded={open} aria-controls="ob-sel" onClick={() => setOpen(!open)}>
         <span>
           <span className="ob__dtitle">Kies onderwerpen voor je Selectie</span>
-          <span className="ob__dsub">{vak.length ? `${vak.length} gekozen` : 'Mag ook later'}</span>
+          <span className="ob__dsub">{offeredFields(vak, digest).length ? `${offeredFields(vak, digest).length} gekozen` : 'Mag ook later'}</span>
         </span>
         <span className="caret" aria-hidden="true">
           <CaretIcon dir={open ? 'up' : 'down'} size={ICON_SM} />

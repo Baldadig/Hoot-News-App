@@ -53,10 +53,10 @@ const { INLINE, PALET } = await import('./inline.mjs');
 const h256 = (s) => 'sha256-' + crypto.createHash('sha256').update(s).digest('base64');
 const HASH = h256(INLINE), HASH_PALET = h256(PALET);
 
-// Het getal bronnen komt uit de catalogus, de vragen uit landing/vragen.mjs (ook voor het JSON-LD).
+// De bronnen komen uit de catalogus (alleen voor de rij logo's, nooit als aantal: besluit Alex 14 november, "Geen
+// aantallen."), de vragen uit landing/vragen.mjs (ook voor het JSON-LD).
 const { SOURCES } = await import('../netlify/lib/sources.mjs');
-const { ruim, vragen, vragenHtml, jsonld } = await import('./vragen.mjs');
-const BRONNEN_RUIM = ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase());
+const { vragen, vragenHtml, jsonld } = await import('./vragen.mjs');
 // De rij bronnen boven de vragen: elk merk één keer (geen NOS Sport naast NOS), de bekendste eerst en verder de
 // volgorde van de catalogus. Twee keer achter elkaar voor een naadloze lus; de tweede helft is verborgen voor schermlezers.
 const DUBBEL = /^(nos-|guardian-|bbc-sport|npr-music|politico-eu)/;
@@ -67,14 +67,14 @@ const escR = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const pilR = (x, verborgen) => `<li${verborgen ? ' aria-hidden="true"' : ''}><img src="/img/bronnen/${x.id}.webp" alt="" width="36" height="36" loading="lazy">${escR(x.name)}</li>`;
 const BRONRIJ = rijBronnen.map((x) => pilR(x, false)).join('') + rijBronnen.map((x) => pilR(x, true)).join('');
 const BESCHRIJVING = 'Hoot is een rustige nieuwslezer. Drie keer per dag tien verhalen uit jouw bronnen, dan ben je bij. Gratis, zonder advertenties. Hoot volgt je niet.';
-const VRAAGLIJST = vragen({ aantal: SOURCES.length, appUrl: AS.APP_URL_VRAAG });
+const VRAAGLIJST = vragen({ appUrl: AS.APP_URL_VRAAG });
 
 // De voorbeelden (held, Editie, Stroom, Selectie, Hoot kiest) komen uit een echte, bewaarde Editie: landing/bewaard.json,
 // ververst met `node landing/bewaar.mjs` (alleen GET). Geen verzonnen kranten; de live voorpagina vervangt held en Hoot kiest.
 const { vulBewaard } = await import('./bewaard.mjs');
 const BEWAARD = JSON.parse(rd('bewaard.json'));
 
-const VARS = { CSSFILE, JSFILE, INLINE, PALET, WM_D, MARK_D, BRONNEN_RUIM, BRONRIJ, BESCHRIJVING, VRAGEN: vragenHtml(VRAAGLIJST), JSONLD: jsonld({ lijst: VRAAGLIJST, appUrl: AS.APP_URL_VRAAG, beschrijving: BESCHRIJVING }), ...AS };
+const VARS = { CSSFILE, JSFILE, INLINE, PALET, WM_D, MARK_D, BRONRIJ, BESCHRIJVING, VRAGEN: vragenHtml(VRAAGLIJST), JSONLD: jsonld({ lijst: VRAAGLIJST, appUrl: AS.APP_URL_VRAAG, beschrijving: BESCHRIJVING }), ...AS };
 const fill = (t) => vulBewaard(t, BEWAARD).replace(/\{\{(\w+)\}\}/g, (_, k) => { if (!(k in VARS)) throw new Error('landing: onbekend veld {{' + k + '}}'); return VARS[k]; }).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
 fs.writeFileSync(path.join(OUT, '404.html'), fill(rd('404.src.html')));

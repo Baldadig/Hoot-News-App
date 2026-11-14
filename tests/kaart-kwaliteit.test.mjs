@@ -212,7 +212,7 @@ test('reserve-intro alleen als hele zin, nooit een stuk tot een komma van een an
   const smal = introMax(INTRO_LINES, { width: 267, font: 15 })
   assert.deepEqual(cardIntro(item, smal), { text: '', via: null })
   assert.deepEqual(cardIntro(item, { max: 260, rek: 260 }), { text: ahold, via: 'AD' })
-  // Ook een geleende eigen intro ("via"): nooit "Óscar Puente, de Spaanse minister van Transport — via Nederlands Dagblad".
+  // Ook een geleende eigen intro ("via"): nooit "Óscar Puente, de Spaanse minister van Transport · via Nederlands Dagblad".
   const geleend = { summary: ahold, borrowedFrom: 'AD' }
   assert.deepEqual(cardIntro(geleend, smal), { text: '', via: null })
   assert.deepEqual(cardIntro(geleend, { max: 260, rek: 260 }), { text: ahold, via: 'AD' })

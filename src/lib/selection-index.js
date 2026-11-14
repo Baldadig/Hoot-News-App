@@ -8,12 +8,29 @@ export const pieces = (n) => (n === 0 ? 'Nog geen stukken' : n === 1 ? '1 stuk' 
 // "Fotografie", "Fotografie en Gaming", "AI, Fotografie en Gaming".
 export const joinNames = (names) => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} en ${names[names.length - 1]}`)
 
+// "Tot dan verbergen." (besluit Alex 14 november): een onderwerp dat nog niet in de weekbundel (/api/vak) zit,
+// nieuw in de code of deze week zonder bronnen, blijft verborgen tot de bundel het heeft: in de Selectie, bij het
+// kiezen (Instellingen, welkom) en in elke telling. Zonder bundel (nog niet geladen) telt alles mee, want dan weet
+// Hoot het niet. HootStore.offersField in de app.
+export const offersField = (digest, id) => !digest || (digest.fields || []).some((f) => f.id === id)
+// De onderwerpen (ids of { id }) die de bundel levert, in hun eigen volgorde.
+export const offeredFields = (fields, digest) => fields.filter((f) => offersField(digest, typeof f === 'string' ? f : f.id))
+// "Alle onderwerpen": aan als je elk aangeboden onderwerp volgt. Aanzetten voegt de aangeboden toe en houdt wat je al
+// had (een verborgen onderwerp gaat niet verloren); uitzetten leegt alles. `order`: de vaste volgorde (vakByDomain).
+// DigestFieldsList in de app.
+export const allChosen = (chosen, offered) => offered.length > 0 && offered.every((id) => chosen.includes(id))
+export const chooseAll = (on, order, chosen, offered) => (on ? order.filter((id) => offered.includes(id) || chosen.includes(id)) : [])
+
 // Wat de Selectie toont. `fields`: de gekozen onderwerpen in vaste volgorde, elk met `top` (de
 // stukken van deze week); `offered`: ids die de server deze week levert.
 // - state 'kies': nog niets gekozen;
 // - state 'leeg': gekozen, maar nergens stukken ("Nog niets voor X"); `unoffered`: geen bronnen;
 // - state 'vol': de kop telt alleen onderwerpen met stukken; lege onderwerpen staan onderaan.
-export function selectionOverview(fields, offered) {
+// Een gekozen onderwerp dat de bundel niet levert, staat er niet (offersField), tenzij geen enkel gekozen
+// onderwerp geleverd wordt: dan blijft de lege Selectie met haar uitleg.
+export function selectionOverview(chosen, offered) {
+  const shown = chosen.filter((f) => offered.has(f.id))
+  const fields = shown.length ? shown : chosen
   const live = fields.filter((f) => f.top.length > 0)
   const empty = fields.filter((f) => f.top.length === 0)
   const picked = live.reduce((n, f) => n + f.top.length, 0)

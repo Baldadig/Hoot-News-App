@@ -142,7 +142,7 @@ In uitingen (landing, App Store, deelkaart, campagne): **60 papier, 30 inkt, 10 
 
 | Familie | Voor | Gewichten |
 |---|---|---|
-| **Newsreader** | Wat je leest: koppen, displays en de nummers 01–10 (800, statisch, optische maat uit); intro's en artikeltekst in **Newsreader Text** (variabel, optische maat 12) | Koppen 800 · lopende tekst optische maat 12, gewicht 450, `ink-2` (Nacht 480); terugval optische maat 11, gewicht 400 · cursief alleen voor "— via …" |
+| **Newsreader** | Wat je leest: koppen, displays en de nummers 01–10 (800, statisch, optische maat uit); intro's en artikeltekst in **Newsreader Text** (variabel, optische maat 12) | Koppen 800 · lopende tekst optische maat 12, gewicht 450, `ink-2` (Nacht 480); terugval optische maat 11, gewicht 400 · cursief alleen voor " · via …" |
 | **Schibsted Grotesk** | Wat je bedient: tabs, knoppen, labels, kickers, de bronregel, metadata, cijfers, en **alle uitleg- en hulpzinnen** (panelen, meldingen, onboarding, lege staten, Over, Privacy) | 400 · 600 · 700 · kickers en labels in kapitalen 800 |
 
 - **Schibsted Grotesk vervangt Inter overal**: app, web, landing en deelkaart (web en server). Web en iOS gelijk. Meegeleverd (web `src/fonts/`, iOS `ios/Hoot/Resources/Fonts/`), latin en latin-ext, SIL OFL 1.1. Geen Google Fonts-verzoek.

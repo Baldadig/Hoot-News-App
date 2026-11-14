@@ -46,7 +46,7 @@ struct DigestView: View {
                     } else if let d = store.digest {
                         Group {
                         if o.state == .empty {
-                            empty(title: "Nog niets voor \(o.names)", text: o.unoffered ? SelectionOverview.noSources : SelectionOverview.emptyField, row: "Kies onderwerpen", sub: "\(store.digestFields.count) gekozen")
+                            empty(title: "Nog niets voor \(o.names)", text: o.unoffered ? SelectionOverview.noSources : SelectionOverview.emptyField, row: "Kies onderwerpen", sub: "\(store.digestFields.filter(store.offersField).count) gekozen")
                         } else {
                             header(d, o)
                             index(proxy, o)
@@ -117,7 +117,7 @@ struct DigestView: View {
                 .accessibilityIdentifier("selectie-jump-" + field.id)
                 Rule()
             }
-            pickRow(name: "Onderwerpen", sub: "\(store.digestFields.count) gekozen")
+            pickRow(name: "Onderwerpen", sub: "\(store.digestFields.filter(store.offersField).count) gekozen")
             Rule()
         }
         .padding(.top, Space.s5)
@@ -247,7 +247,12 @@ struct SelectionOverview {
     let live: [DigestField]
     let names: String
     let unoffered: Bool
+    // Een gekozen onderwerp dat de weekbundel niet levert, staat er niet (HootStore.offersField, "Tot dan
+    // verbergen.", 14 november), tenzij geen enkel gekozen onderwerp geleverd wordt: dan blijft de lege Selectie
+    // met haar uitleg. Gelijk aan selectionOverview in src/lib/selection-index.js.
     init(_ chosen: [DigestField], offered: Set<String>) {
+        let shown = chosen.filter { offered.contains($0.id) }
+        let chosen = shown.isEmpty ? chosen : shown
         live = chosen.filter { !$0.top.isEmpty }
         fields = live + chosen.filter { $0.top.isEmpty }
         state = live.isEmpty ? .empty : .full

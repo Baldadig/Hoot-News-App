@@ -118,7 +118,7 @@ test('Verminder beweging: stilstaande gesloten kring in inkt 3; klaar: 200 naar 
 
 test('VoiceOver en de zinnen: zoals het concept', () => {
   assert.equal(TEXT.busy, 'Hoot stelt je eerste Editie samen')
-  assert.equal(TEXT.ready, 'Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel.')
+  assert.equal(TEXT.ready, 'Je eerste Editie staat klaar. Dan ben je zo bij.')
   assert.equal(TEXT.line1, 'Je eerste Editie'); assert.equal(TEXT.line2, 'Even kijken bij je bronnen')
   assert.equal(frame({ R: 0 }, 100).say, TEXT.busy)
   // Huisregel: geen kloktijden in wat je ziet of hoort.

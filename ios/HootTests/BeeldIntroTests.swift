@@ -43,7 +43,8 @@ final class BeeldIntroTests: XCTestCase {
     func testGeleendeIntroDraagtZijnBron() throws {
         let json = #"{"id":"a","source":"volkskrant","url":"https://www.volkskrant.nl/a","title":"Kop","summary":"Een hele zin.","borrowedFrom":"NOS"}"#
         let item = try JSONDecoder().decode(Item.self, from: Data(json.utf8))
-        XCTAssertEqual(item.introWithSource("Een hele zin."), "Een hele zin. — via NOS")
+        XCTAssertEqual(item.introWithSource("Een hele zin."), "Een hele zin. · via NOS")
+        XCTAssertEqual(Item.viaTeken, " · via ") // besluit Alex 14 november: zonder gedachtestreepje, gelijk aan het web (VIA_TEKEN)
         XCTAssertEqual(item.viaLength, 11)
     }
 
@@ -100,7 +101,7 @@ final class BeeldIntroTests: XCTestCase {
         let smal = item.cardIntro(max: 86, rek: 116)
         XCTAssertEqual(smal?.text, kort)
         XCTAssertEqual(smal?.via, "BBC")
-        XCTAssertEqual(Item.withVia(smal?.via)(kort), kort + " — via BBC")
+        XCTAssertEqual(Item.withVia(smal?.via)(kort), kort + " · via BBC")
         // Ruim genoeg: de eigen intro, zonder via.
         XCTAssertEqual(item.cardIntro(max: 160)?.text, pope)
         XCTAssertNil(item.cardIntro(max: 160)?.via)
@@ -165,6 +166,6 @@ final class BeeldIntroTests: XCTestCase {
         let chosen = try XCTUnwrap(both.cardIntro(max: 160, line: 48))
         XCTAssertEqual(chosen.text, pope)
         let fallback = try XCTUnwrap(both.introFallback(for: chosen, max: 160, line: 48))
-        XCTAssertEqual(fallback.suffix(fallback.text), kort + " — via BBC")
+        XCTAssertEqual(fallback.suffix(fallback.text), kort + " · via BBC")
     }
 }

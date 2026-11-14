@@ -1501,7 +1501,7 @@ struct ItemRow: View {
                 // Hele zinnen tot de maat van de regelinstelling (T2), daarna gemeten (IntroText): één regel
                 // extra, bij grotere tekst het dubbele. Past het dan nog niet, dan een zin minder of geen intro;
                 // nooit afgekapt op een beletselteken.
-                // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
+                // Een geleende intro krijgt " · via X" erachter: die tekens gaan van de maat af (Item.viaLength).
                 // In de krant-vorm staat er altijd een miniatuur: het beeld of het placeholderbeeld.
                 if !introBelow { introView }
             }

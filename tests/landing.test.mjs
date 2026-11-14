@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { INLINE } from '../landing/inline.mjs'
 import { appStore, APP_URL, PT, appUrl } from '../landing/appstore.mjs'
 import { vulBewaard, fragmenten, redenen, vhTekst, VH_LOGOS } from '../landing/bewaard.mjs'
-import { vragen, vragenHtml, jsonld, ruim, AI_STAP } from '../landing/vragen.mjs'
+import { vragen, vragenHtml, jsonld, AI_STAP } from '../landing/vragen.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 
 // Voert het inline script van de landing uit met een nagebootste adresbalk; geeft het doel of null.
@@ -32,10 +32,10 @@ const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 
 // De pagina zoals build.mjs hem vult, met de App Store-plekken uit of aan.
 const BEWAARD = JSON.parse(readFileSync(new URL('../landing/bewaard.json', import.meta.url), 'utf8'))
 const velden = (aan) => {
-  const as = appStore(aan), lijst = vragen({ aantal: SOURCES.length, appUrl: as.APP_URL_VRAAG })
-  return { ...as, BRONNEN_RUIM: ruim(SOURCES.length).replace(/^./, (c) => c.toUpperCase()), VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.', BRONRIJ: '<li>NOS</li>' }
+  const as = appStore(aan), lijst = vragen({ appUrl: as.APP_URL_VRAAG })
+  return { ...as, VRAGEN: vragenHtml(lijst), JSONLD: jsonld({ lijst, appUrl: as.APP_URL_VRAAG, beschrijving: 'x' }), BESCHRIJVING: 'Hoot is een rustige nieuwslezer.', BRONRIJ: '<li>NOS</li>' }
 }
-const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONNEN_RUIM|BRONRIJ|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
+const vul = (aan) => vulBewaard(SRC, BEWAARD).replace(/\{\{(APPSTORE_\w+|APP_URL_VRAAG|BRONRIJ|VRAGEN|JSONLD|BESCHRIJVING)\}\}/g, (_, k) => velden(aan)[k])
 const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').replace(/ ([.,])/g, '$1')
 
 test('landing: overal dezelfde accountzin, en het account in de eerste vraag', () => {
@@ -52,11 +52,7 @@ test('bronnenblok: één verhaal met de bronnen die erover schrijven; het getal 
   const html = vul(true), t = tekst(html)
   assert.ok(t.includes('Jouw nieuws, rustig bij elkaar.'))
   assert.ok(t.includes('Hoot legt wat je bronnen schrijven bij elkaar. Al jouw bronnen, jij kiest.'))
-  assert.ok(!/tachtig|negentig|honderd/.test(t), 'geen aantal bronnen op de landing (besluit Alex 13 nov)')
-  assert.equal(ruim(84), 'ruim tachtig')
-  assert.equal(ruim(80), 'tachtig')
-  assert.equal(ruim(99), 'ruim negentig')
-  assert.equal(ruim(100), 'honderd')
+  assert.ok(!/tachtig|negentig|honderd|\b(?:[89]\d|1\d\d) bronnen/.test(t), 'geen aantal bronnen op de landing (besluit Alex 13 en 14 nov)')
   assert.doesNotMatch(SRC, /voordeel-lijst/) // de vier voordelen zijn weg
   // de kaart: een echte kop uit de bewaarde Editie, de logo's als eigen bestanden (CSP: alleen de eigen site)
   const kaart = html.match(/<div class="verhaal js-verhaal"[\s\S]*?<\/section>/)[0]
@@ -168,7 +164,7 @@ test('review 13 november: de nieuwe tekst uit deel 5', () => {
     'Bijgepraat op maandag.',
     'Kies je vak en wat je verder boeit. Elke maandag houdt Hoot per onderwerp drie stukken over.',
     'Hoot kiest elke Editie.',
-    'Uit jouw bronnen. Bij elk verhaal zie je waarom, bij groot nieuws ook hoe elke bron het brengt.',
+    'Uit jouw bronnen. Waar het iets toevoegt, zie je waarom. Bij groot nieuws ook hoe elke bron het brengt.',
     'Goed om te weten.',
     'Je weet genoeg.',
     'De Editie van nu staat voor je klaar.',
@@ -178,7 +174,7 @@ test('review 13 november: de nieuwe tekst uit deel 5', () => {
   assert.doesNotMatch(SRC, /href="\/lees\/#\/(stroom|selectie)/) // geen links die het welkom niet leveren
   assert.doesNotMatch(t, /Probeer Hoot op het web|Veelgestelde vragen|Voor iPhone, iPad en Web/)
   // zeven vragen, in dezelfde volgorde in de pagina en in het JSON-LD
-  const lijst = vragen({ aantal: SOURCES.length, appUrl: APP_URL })
+  const lijst = vragen({ appUrl: APP_URL })
   assert.equal(lijst.length, 7)
   assert.deepEqual([...vul(true).matchAll(/<summary>([^<]+)<\/summary>/g)].map((m) => m[1]), lijst.map((x) => x[0]))
   const ld = JSON.parse(jsonld({ lijst, appUrl: APP_URL, beschrijving: 'x' }))

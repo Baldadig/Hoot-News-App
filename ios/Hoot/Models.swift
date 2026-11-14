@@ -74,14 +74,19 @@ struct Item: Codable, Identifiable, Hashable {
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }
-    // Een geleende intro draagt zijn bron, zoals op het web (Items.jsx, Summary): "… — via NOS".
-    func introWithSource(_ intro: String) -> String { borrowedFrom.map { "\(intro) — via \($0)" } ?? intro }
-    // Zoveel tekens kost " — via X" (VIA_LENGTH in src/components/Items.jsx); de maat van de intro wordt zoveel kleiner.
-    var viaLength: Int { borrowedFrom.map { $0.count + 8 } ?? 0 }
+    // Het teken tussen een geleende intro en zijn bron (VIA_TEKEN in shared/kaart-intro.mjs; besluit Alex
+    // 14 november, "Zonder haakjes": geen gedachtestreepje).
+    static let viaTeken = " · via "
+    // Zoveel tekens kost " · via X": het teken plus de naam, en één teken speling (viaCost in shared/kaart-intro.mjs).
+    static func viaCost(_ name: String) -> Int { name.count + viaTeken.count + 1 }
+    // Een geleende intro draagt zijn bron, zoals op het web (Items.jsx, Summary): "… · via NOS".
+    func introWithSource(_ intro: String) -> String { Item.withVia(borrowedFrom)(intro) }
+    // De maat van de intro wordt zoveel kleiner (viaLength in src/components/Items.jsx).
+    var viaLength: Int { borrowedFrom.map(Item.viaCost) ?? 0 }
     // De intro op een kaart (shared/kaart-intro.mjs, cardIntro): de eigen in hele zinnen tot `max` (en `rek`);
     // levert die niets op, dan de reserve uit hetzelfde verhaal (introAlt, in de taal van de kop) met zijn bron.
     // De aanhef van een (live)blog telt nooit als intro (Aanhef). nil: er past geen intro. `via` gaat als
-    // " — via X" achter de tekst (Item.withVia).
+    // " · via X" achter de tekst (Item.withVia).
     func cardIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
         if let shownSummary {
             let own = wholeSentences(shownSummary, max: max - viaLength, rek: rek.map { $0 - viaLength })
@@ -100,7 +105,7 @@ struct Item: Codable, Identifiable, Hashable {
     // Alleen de reserve, in hele zinnen tot `max` (en `rek`), of nil.
     func reserveIntro(max: Int, rek: Int? = nil) -> (text: String, via: String?)? {
         guard let introAlt, let introAltFrom else { return nil }
-        let cost = introAltFrom.count + 8
+        let cost = Item.viaCost(introAltFrom)
         let alt = wholeSentences(Aanhef.shown(EditionDisplay.cleanIntro(introAlt, author: nil)), max: max - cost, rek: rek.map { $0 - cost })
         return Self.endsSentence(alt) ? (alt, introAltFrom) : nil
     }
@@ -123,7 +128,7 @@ struct Item: Codable, Identifiable, Hashable {
         guard let alt = reserveIntro(max: max) ?? reserveIntro(max: max, rek: Self.longer(max, by: line)), alt.text != chosen.text else { return nil }
         return (alt.text, Item.withVia(alt.via))
     }
-    static func withVia(_ via: String?) -> (String) -> String { { intro in via.map { "\(intro) — via \($0)" } ?? intro } }
+    static func withVia(_ via: String?) -> (String) -> String { { intro in via.map { intro + viaTeken + $0 } ?? intro } }
     var isPost: Bool { kind == "post" }
     // Opinie volgens de server (shared/opinie.mjs, opinieInStroom op het web): `opinion`, of `type` bij een oudere feed.
     var isOpinie: Bool { opinion == true || type == "opinie" }

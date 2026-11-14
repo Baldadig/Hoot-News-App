@@ -7,7 +7,7 @@ import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
 import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
-import { ownIntro } from '../../shared/kaart-intro.mjs'
+import { ownIntro, VIA_TEKEN } from '../../shared/kaart-intro.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { Verschillen } from '../components/Verschillen.jsx'
 import { opinieInStroom } from '../../shared/opinie.mjs'
@@ -45,7 +45,7 @@ function SourceItem({ item, note }) {
         {summary ? (
           <p className="clamp clamp--vangnet srcitem__sum">
             {summary}
-            {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+            {item.borrowedFrom ? <span className="via">{VIA_TEKEN}{item.borrowedFrom}</span> : null}
           </p>
         ) : null}
       </a>
