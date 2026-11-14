@@ -78,6 +78,22 @@ export function hardMark(item = {}) {
   return null
 }
 
+// Een aflevering om te luisteren of te kijken (dubbelcheck 14 november, A3): de feed markeert hem (hoofdcategorie
+// Podcast of Video, een audio- of video-enclosure, een iTunes-afleveringsnummer), de link staat in een podcast- of
+// videorubriek van de uitgever (/podcast/, /luister/, /video/, /kijk/, een segment vóór de slug) of de kop begint met een
+// programmalabel ("Video |", "Podcast:", "Kijk:"). Zo'n stuk is nooit de kop van een plek in de Editie, ook niet met een
+// eigen intro: het mag wel als lid bij een verhaal (Vergelijken). Een plek met alleen afleveringen valt weg. Dit is
+// strenger dan hardMark (dat weert het stuk helemaal), want hier blijft het stuk in de Editie, alleen niet bovenaan.
+const VIDEO_RUBRIC = new Set(['video', 'videos', "video's", 'kijk'])
+export function mediaEpisode(item = {}) {
+  if (!item || item.kind === 'post') return false
+  if (item.feedMark === 'podcast' || item.feedMark === 'video') return true
+  if (/^(audio|video)\//i.test(String(item.mediaType || ''))) return true
+  if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true
+  if (rubricSegments(item.url).some((s) => AUDIO_RUBRIC.has(s) || VIDEO_RUBRIC.has(s))) return true
+  return LABEL.test(String(item.title || ''))
+}
+
 // Eén toelating voor alle Editieroutes. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag
 // (alleen de server geeft die mee; het toestel rekent met A alleen).
 export const excludedFromEdition = (item, weg = null) => !!item && ((weg && weg.size > 0 && weg.has(item.id)) || hardMark(item) != null)

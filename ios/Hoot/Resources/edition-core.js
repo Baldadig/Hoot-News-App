@@ -2367,6 +2367,62 @@ var HootCore = (() => {
     return h.toString(36);
   }
 
+  // shared/editie-filter.mjs
+  var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
+  var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
+  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
+  var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
+  function rubricSegments(url) {
+    const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
+    if (!m) return [];
+    const path = m[1];
+    const segs = path.split("/").filter(Boolean).map((s) => {
+      try {
+        return decodeURIComponent(s).toLowerCase();
+      } catch {
+        return s.toLowerCase();
+      }
+    });
+    const before = segs.slice(0, -1);
+    const cut = before.findIndex((x) => /^\d+$/.test(x));
+    return cut === -1 ? before : before.slice(0, cut);
+  }
+  var norm = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  function ownIntro(item = {}) {
+    if (item.borrowedFrom) return false;
+    const s = String(item.summary || item.text || "").trim();
+    const t = norm(item.title);
+    const n = norm(s);
+    if (n.split(" ").filter(Boolean).length < 4) return false;
+    if (n === t || t && n.startsWith(t) && n.length - t.length < 12) return false;
+    if (/appeared first on\b|\blead image\b/i.test(s) && s.length < 200) return false;
+    return true;
+  }
+  function hardMark(item = {}) {
+    if (!item || item.kind === "post") return null;
+    const segs = rubricSegments(item.url);
+    const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
+    if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
+    const media = String(item.mediaType || "");
+    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
+    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
+    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
+    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
+    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
+    return null;
+  }
+  var VIDEO_RUBRIC = /* @__PURE__ */ new Set(["video", "videos", "video's", "kijk"]);
+  function mediaEpisode(item = {}) {
+    if (!item || item.kind === "post") return false;
+    if (item.feedMark === "podcast" || item.feedMark === "video") return true;
+    if (/^(audio|video)\//i.test(String(item.mediaType || ""))) return true;
+    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true;
+    if (rubricSegments(item.url).some((s) => AUDIO_RUBRIC.has(s) || VIDEO_RUBRIC.has(s))) return true;
+    return LABEL2.test(String(item.title || ""));
+  }
+  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null);
+
   // shared/lang.mjs
   var NL = new Set(
     "de het een en op met voor niet dat die dit deze zijn wordt worden werd er ook naar bij aan om nog maar uit als dan wel geen meer zo hoe wat wie waar waarom hij zij ze je jij jouw uw haar hun ons onze mijn zich kan kunnen moet moeten wil willen gaat gaan heeft hebben tegen tussen na toch nu tot sinds vanaf onder zonder omdat want daar hier veel alle iets niets nieuwe eerste jaar jaren krijgt komt blijkt zegt vindt weer al ik mensen zou zouden".split(/\s+/)
@@ -2421,7 +2477,7 @@ var HootCore = (() => {
   var byRecency = (a, b) => timeOf(b) - timeOf(a);
   var deaccent = (s) => s.normalize("NFKD").replace(/[̀-ͯ]/g, "");
   var wordMemo = null;
-  var norm = (s) => {
+  var norm2 = (s) => {
     if (wordMemo && typeof s === "string" && s.length <= 40) {
       let v = wordMemo.get(s);
       if (v === void 0) wordMemo.set(s, v = deaccent(s).toLowerCase());
@@ -2436,7 +2492,7 @@ var HootCore = (() => {
   );
   function sigWords(title) {
     const out = /* @__PURE__ */ new Set();
-    for (const w of norm(title).replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w);
+    for (const w of norm2(title).replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w);
     return out;
   }
   function numbersOf(text) {
@@ -2810,7 +2866,7 @@ var HootCore = (() => {
         if (!part.trim()) continue;
         const words2 = partTokens(part);
         for (const w of words2) {
-          if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm(w));
+          if (!sentenceStart && isCap(w) && w.length >= 3) vocab.add(norm2(w));
           sentenceStart = false;
         }
         if (/[.!?:;"“‘(]$/.test(part) || /^["“‘(]/.test(part)) sentenceStart = /[.!?:]["”’)]?$/.test(part);
@@ -2839,18 +2895,18 @@ var HootCore = (() => {
     const acronyms = /* @__PURE__ */ new Set();
     const dutchPiece = ext && NL_LANG.has(article.source);
     const nameOf = (w) => {
-      const k = norm(w);
+      const k = norm2(w);
       if (vocab.has(k)) return k;
       return dutchPiece && isCap(w) && k.length >= 6 && k.endsWith("s") && vocab.has(k.slice(0, -1)) && !alias[k] && !alias[k.slice(0, -1)] ? k.slice(0, -1) : null;
     };
     const capName = (w) => {
       if (w.length < minLen || !isCap(w)) return null;
       const k = nameOf(w);
-      return k && !(w.length === 3 && COMMON_3.has(norm(w))) ? k : null;
+      return k && !(w.length === 3 && COMMON_3.has(norm2(w))) ? k : null;
     };
     const strongKey = (w) => {
       let key = null;
-      if (acr(w)) key = norm(w);
+      if (acr(w)) key = norm2(w);
       else key = capName(w);
       if (!key) return null;
       key = aliasOf(key);
@@ -2860,12 +2916,12 @@ var HootCore = (() => {
     };
     for (const w of tokenize(raw, ext)) {
       if (isCap(w) || acr(w)) {
-        const k = aliasOf(norm(w));
+        const k = aliasOf(norm2(w));
         if (weakSet.has(k)) known.add(k);
         if (PARTIES.has(k)) parties.add(k);
       }
       let key = null;
-      if (acr(w)) key = norm(w);
+      if (acr(w)) key = norm2(w);
       else key = capName(w);
       if (!key) continue;
       key = aliasOf(key);
@@ -2873,7 +2929,7 @@ var HootCore = (() => {
       if (weakSet.has(key)) weak.add(key);
       else if (key.length >= 3) strong.add(key);
     }
-    const text = norm(raw);
+    const text = norm2(raw);
     const concepts = /* @__PURE__ */ new Set();
     let rare = 0;
     for (const [id, re, isRare] of concepts_) {
@@ -2892,7 +2948,7 @@ var HootCore = (() => {
           for (const w of tokenize(part)) {
             const k = strongKey(w);
             if (k) run.push(k);
-            else if (!(run.length && CONNECT.has(norm(w)))) run.length && runs.push(run), run = [];
+            else if (!(run.length && CONNECT.has(norm2(w)))) run.length && runs.push(run), run = [];
           }
           if (run.length) runs.push(run);
         }
@@ -2943,7 +2999,7 @@ var HootCore = (() => {
     ["overlijden", /\b(overleden|overlijdt|sterft|dies|died)\b/]
   ];
   var actionsOf = (title) => {
-    const t = norm(title || "");
+    const t = norm2(title || "");
     return new Set(ACTIONS.filter(([, re]) => re.test(t)).map(([id]) => id));
   };
   var WORD_WINDOW = 48 * 60 * 60 * 1e3;
@@ -3047,7 +3103,7 @@ var HootCore = (() => {
     if (!v.cvocab) {
       const titles = (v.articles || []).map((a) => String(a.title || "")).filter(Boolean);
       const lower = /* @__PURE__ */ new Set();
-      for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm(w));
+      for (const t of titles) for (const w of tokenize(t)) if (/^\p{Ll}/u.test(w)) lower.add(norm2(w));
       v.cvocab = /* @__PURE__ */ new Set([...v.vocab, ...nameVocabulary(titles.filter((t) => !isTitleCase(t)).map((title) => ({ title })), true)]);
       for (const w of [...v.cvocab]) if (w.includes("sj")) v.cvocab.add(translit(w));
       v.tvocab = new Set([...v.cvocab].filter((w) => !lower.has(w)));
@@ -3115,7 +3171,7 @@ var HootCore = (() => {
   function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
     const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
     const scores = new Map(items.map((i) => [i, score(i)]));
-    const op = new Map(items.map((i) => [i, isOpinion(i) ? 1 : 0]));
+    const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : mediaEpisode(i) ? 1 : 0]));
     return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b));
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b|(^|:\s*)(bekijk|vind|volg|lees) hier\b|^\W*praat mee\b|^\W*spoorboekje\b|\bresults live\b|\blive results\b|\blive briefing\b|:\s*all the news\s*$/i;
@@ -3125,7 +3181,7 @@ var HootCore = (() => {
   var RESULT_RE = /\b(wint|winnen|wins?|won|gewonnen|verover\w*|herover\w*|flips?|flipped|verslaat|verslagen|beats?|defeats?|defeating|ousts?|ousting|unseats?|verliest|verliezen|verloren|loses|lost|verkozen|herkozen|elected|re-?elected|elects|clinch\w*|meerderheid|majority|uitslag\w*|results?|zege|monsterzege|overwinning\w*|victory|afstraffing|landslide|blue-?nami|tsunami|blauwe golf|blue wave|erkent verlies|concedes?|crushed|trounces?|rebuke)\b/;
   var OFFICE_RE = /\b(senate|senaat\w*|senator\w*|huiszetel\w*|congress\w*|congres\w*|governor\w*|gouverneur\w*|seats?|zetels?|mayor\w*|burgemeester\w*|parliament\w*|parlement\w*)\b/;
   var PARTY_RE = /\b(democrat\w*|republican\w*|republikein\w*)\b/;
-  var voteText = (i) => norm(`${i.title || ""} ${i.summary || i.text || ""}`);
+  var voteText = (i) => norm2(`${i.title || ""} ${i.summary || i.text || ""}`);
   var voteMemo = /* @__PURE__ */ new WeakMap();
   function voteKind(i) {
     if (!i || typeof i !== "object") return 0;
@@ -3141,7 +3197,7 @@ var HootCore = (() => {
   function votePlace(i) {
     const ds = desksOf(i);
     const t = `${i.title || ""} ${i.summary || ""}`;
-    if (ds.has("vs") || usPoliticsIn(t) || PARTY_RE.test(norm(t)) && OFFICE_RE.test(norm(t))) return "us";
+    if (ds.has("vs") || usPoliticsIn(t) || PARTY_RE.test(norm2(t)) && OFFICE_RE.test(norm2(t))) return "us";
     if (ds.has("binnenland")) return "nl";
     return countriesIn(i.title || "")[0] || null;
   }
@@ -3162,7 +3218,7 @@ var HootCore = (() => {
     if (results.length * 2 < n) return null;
     const place = placeOfGroup(items);
     if (!place) return null;
-    const heads = results.filter((i) => RESULT_RE.test(norm(i.title || ""))).map(timeOf).filter(Boolean).sort((a, b) => a - b);
+    const heads = results.filter((i) => RESULT_RE.test(norm2(i.title || ""))).map(timeOf).filter(Boolean).sort((a, b) => a - b);
     const from = heads.length ? heads[Math.floor(heads.length / 4)] - VOTE_LEAD : Math.min(...items.map(timeOf).filter(Boolean));
     return { place, from, to: Math.max(...items.map(timeOf)) };
   }
@@ -3201,7 +3257,7 @@ var HootCore = (() => {
     return cands.filter((i) => out.includes(i) || far(i));
   }
   var OTHER_LANG = /\b(las|los|del|para|una|segun|antes de|sus|les|une|pour|avec|dans|und|fur|nicht|uma|nao|della|degli)\b/;
-  var otherLangTitle = (i) => OTHER_LANG.test(norm(i?.title || ""));
+  var otherLangTitle = (i) => OTHER_LANG.test(norm2(i?.title || ""));
   var DEVELOPED_FRESH = 2;
   var DEVELOPED_SIG = 2;
   var previousAt = (st, previous) => previous.atOf?.get(st.id) ?? previous.at ?? 0;
@@ -3490,6 +3546,7 @@ var HootCore = (() => {
   };
   function leadPool(cands, items, now, own2 = null, total = items.length, coreItems = centralItems) {
     let xs = prefer(cands, (i) => !isOpinion(i));
+    xs = prefer(xs, (i) => !mediaEpisode(i));
     xs = prefer(xs, (i) => !isStale(i, now));
     if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
     if (own2) xs = prefer(xs, own2);
@@ -3520,12 +3577,12 @@ var HootCore = (() => {
   var CURIO_FORM = /^\W*(opmerkelijk|bizar|curieus|kijk|quiz)\b|\bquiz\b/;
   var SERIOUS = /\b(rechtszaak|rechtbank|rechter|proces|jury|veroordeel\w*|schuldig\w*|celstraf\w*|gevangenis\w*|verkracht\w*|aanranding|misbruik\w*|moord\w*|doodgeschoten|doodgestoken|gedood|doden|dode|dood|omgekomen|dodelijk\w*|geweld\w*|aanslag\w*|schietpartij\w*|steekpartij\w*|mishandel\w*|trial|court|convicted|guilty|sentenced|prison|rape|raped|sexual assault|murder\w*|killed|killing|shooting|stabbing|violence|violent)\b/;
   var curioPiece = (i) => {
-    const title = norm(i?.title || "");
+    const title = norm2(i?.title || "");
     return CURIO_HEAD.test(title) || CURIO_FORM.test(title) || CURIO_PATH.test(String(i?.url || "").split("?")[0].toLowerCase());
   };
   function curioStory(story = {}, items = []) {
     if (!items.length) return false;
-    if (items.filter((i) => SERIOUS.test(norm(`${i?.title || ""}`))).length * 2 >= items.length) return false;
+    if (items.filter((i) => SERIOUS.test(norm2(`${i?.title || ""}`))).length * 2 >= items.length) return false;
     if (lightNews(story, items)) return true;
     return items.filter(curioPiece).length * 3 >= items.length;
   }
@@ -3643,6 +3700,10 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie");
         continue;
       }
+      if (!items.some((i) => !isOpinion(i) && !mediaEpisode(i))) {
+        reject("story", st.id, st.itemIds, "alleen-aflevering");
+        continue;
+      }
       let dev = null;
       let straf = 0;
       let held = false;
@@ -3702,10 +3763,14 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie-nieuw");
         continue;
       }
+      if (heads?.length && !heads.some((i) => !isOpinion(i) && !mediaEpisode(i))) {
+        reject("story", st.id, st.itemIds, "alleen-aflevering-nieuw");
+        continue;
+      }
       cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
     }
     for (const it of pool) {
-      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
+      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || mediaEpisode(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
         reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
         continue;
       }
@@ -3951,53 +4016,6 @@ var HootCore = (() => {
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 
-  // shared/editie-filter.mjs
-  var DEAL_RUBRIC = /* @__PURE__ */ new Set(["deals", "aanbiedingen", "aanbieding", "koopjes", "coupons", "kortingscodes", "dagdeals"]);
-  var AUDIO_RUBRIC = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister"]);
-  var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
-  var LABEL2 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
-  function rubricSegments(url) {
-    const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
-    if (!m) return [];
-    const path = m[1];
-    const segs = path.split("/").filter(Boolean).map((s) => {
-      try {
-        return decodeURIComponent(s).toLowerCase();
-      } catch {
-        return s.toLowerCase();
-      }
-    });
-    const before = segs.slice(0, -1);
-    const cut = before.findIndex((x) => /^\d+$/.test(x));
-    return cut === -1 ? before : before.slice(0, cut);
-  }
-  var norm2 = (s) => String(s || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  function ownIntro(item = {}) {
-    if (item.borrowedFrom) return false;
-    const s = String(item.summary || item.text || "").trim();
-    const t = norm2(item.title);
-    const n = norm2(s);
-    if (n.split(" ").filter(Boolean).length < 4) return false;
-    if (n === t || t && n.startsWith(t) && n.length - t.length < 12) return false;
-    if (/appeared first on\b|\blead image\b/i.test(s) && s.length < 200) return false;
-    return true;
-  }
-  function hardMark(item = {}) {
-    if (!item || item.kind === "post") return null;
-    const segs = rubricSegments(item.url);
-    const first = segs[0] && LANG_SEGMENT.test(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
-    if (first && DEAL_RUBRIC.has(first)) return { soort: "aanbieding", grond: "rubriek" };
-    const media = String(item.mediaType || "");
-    const label2 = LABEL2.exec(String(item.title || ""))?.[1]?.toLowerCase();
-    if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return { soort: "aankondiging", grond: "itunes" };
-    if (/^audio\//i.test(media) && !ownIntro(item)) return { soort: "aankondiging", grond: "enclosure" };
-    if (item.feedMark === "podcast" && !ownIntro(item)) return { soort: "aankondiging", grond: "feedcategorie" };
-    if (label2 === "podcast") return { soort: "aankondiging", grond: "label" };
-    if ((segs.some((s) => AUDIO_RUBRIC.has(s)) || label2 === "luister" || label2 === "listen") && !ownIntro(item)) return { soort: "aankondiging", grond: label2 === "luister" || label2 === "listen" ? "label" : "rubriek" };
-    return null;
-  }
-  var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null);
-
   // shared/stroom.mjs
   var forEdition = (it) => !it?.streamOnly;
   var INTRO_WINDOW_MS = 6 * 3600 * 1e3;
@@ -4211,7 +4229,7 @@ var HootCore = (() => {
     const newsPool = pool.filter((i) => kindOf(i) === "nieuws" || !sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i]) || bigLight(i));
     const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)));
     let bubbleEntry = global.entries.find((e) => e.desk === "bubbel") || null;
-    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i)).map((i) => i.id));
+    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !mediaEpisode(i)).map((i) => i.id));
     const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id));
     const bigWide = (w) => majorNews(storyById.get(w.storyId) || w, [w.item]);
     const wideLeads = /* @__PURE__ */ new Map();
@@ -4235,7 +4253,7 @@ var HootCore = (() => {
     const relead = (head, xs) => {
       if (readable(head)) return head;
       const rubric = rubricOf(head);
-      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && readableIn(i, rubric));
+      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !mediaEpisode(i) && readableIn(i, rubric));
       if (!ok.length) return null;
       const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok;
       const mine = fresh.filter((i) => followed.has(i.source));
