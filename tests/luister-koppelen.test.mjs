@@ -14,6 +14,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { zoalsWoordregels } from './helpers/nep-oordeel.mjs'
 import { SHOWS, SHOW, FETCHED, koppel, episodeOf, readHead, loadEpisodes, luisterRonde, urlKey, cleanTitle, withProef, proefEntry, EVERY, KEEP, PROEF_KEY, STORE_KEY, zonderBron } from '../netlify/lib/luister.mjs'
 import { SOURCES, MAIN_IDS } from '../netlify/lib/sources.mjs'
 
@@ -230,7 +231,9 @@ test('ophalen: hooguit eens per half uur per feed, drie dagen bewaren, uit de op
 test('in de ronde: het veld luister op het verhaal en de proef per dagdeel, zonder persoonsgegevens of beschrijvingen', async () => {
   const stories = FIX.stories.map((st) => ({ ...st }))
   const kv = new Map()
-  const n = await luisterRonde({ stories, byId, now: NOW, episodesP: Promise.resolve({ episodes: FIX.episodes, status: { 'vi-zsm': 'opgehaald' } }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)) })
+  // Met een nep-oordeel dat ja zegt waar de woordregels koppelen (geen echte AI in de toetsen; zie luister-oordeel.test.mjs).
+  const client = zoalsWoordregels({ stories: FIX.stories, byId, episodes: FIX.episodes, now: NOW, mainIds: MAIN_IDS })
+  const n = await luisterRonde({ stories, byId, now: NOW, episodesP: Promise.resolve({ episodes: FIX.episodes, status: { 'vi-zsm': 'opgehaald' } }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), get: (k) => kv.get(k), client })
   assert.ok(n >= 3)
   assert.equal(stories.filter((st) => st.luister).length, n)
   const doc = kv.get(PROEF_KEY)

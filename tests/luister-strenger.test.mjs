@@ -14,6 +14,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { zoalsWoordregels } from './helpers/nep-oordeel.mjs'
 import { koppel, episodeOf, describe, boundNames, showPage, luisterRonde, loadEpisodes, readHead, SHOW, KOPPEL_MS, LUISTER_MS, FEED_MS, APPLE_MS, PROEF_KEY, STORE_KEY } from '../netlify/lib/luister.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { countsAsSource } from '../shared/edition-policy.mjs'
@@ -187,7 +188,9 @@ test('7. over de tijd: het koppelen gebeurt toch, met wat binnen is; een hangend
   // De ronde is al over de tijd: toch dezelfde koppelingen, en de proef zegt overTijd.
   const kv = new Map()
   const laat = FIX.stories.map((st) => ({ ...st }))
-  const n = await luisterRonde({ stories: laat, byId, now, episodesP: Promise.resolve({ episodes: FIX.episodes, status: {} }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), deadline: Date.now() - 1 })
+  // Met een nep-oordeel dat ja zegt waar de woordregels koppelen (geen echte AI in de toetsen).
+  const client = zoalsWoordregels(opts)
+  const n = await luisterRonde({ stories: laat, byId, now, episodesP: Promise.resolve({ episodes: FIX.episodes, status: {} }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), get: (k) => kv.get(k), client, deadline: Date.now() - 1 })
   assert.equal(n, gewoon.byStory.size)
   assert.equal(laat.filter((st) => st.luister).length, n)
   assert.equal(kv.get(PROEF_KEY).dagdelen[0].overTijd, true)
@@ -210,7 +213,7 @@ test('7. over de tijd: het koppelen gebeurt toch, met wat binnen is; een hangend
   assert.equal(status['vk-elke-dag'], 'opgehaald')
   assert.equal(episodes.filter((e) => e.show === 'nos-de-dag').length, FIX.episodes.filter((e) => e.show === 'nos-de-dag').length, 'De Dag uit de opslag')
   const hang = FIX.stories.map((st) => ({ ...st }))
-  const m = await luisterRonde({ stories: hang, byId, now, episodesP: Promise.resolve({ episodes, status }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), deadline: Date.now() - 1 })
+  const m = await luisterRonde({ stories: hang, byId, now, episodesP: Promise.resolve({ episodes, status }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), get: (k) => kv.get(k), client, deadline: Date.now() - 1 })
   assert.equal(m, gewoon.byStory.size, 'dezelfde koppelingen als zonder hangende feed')
   assert.deepEqual(hang.filter((st) => st.luister).map((st) => `${st.id}: ${st.luister.aflevering}`).sort(), [...gewoon.byStory].map(([id, l]) => `${id}: ${l.aflevering}`).sort())
 

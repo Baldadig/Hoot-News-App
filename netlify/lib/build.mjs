@@ -151,7 +151,14 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const beforeImages = JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))
   const imagesP = measureFeedImages([...edition.public.items, ...stories.map(st => outById.get(st.leadId)).filter(Boolean), ...out, ...edition.snapshot.items], now)
   imagesP.catch(() => {}) // de fout komt hieronder bij `await imagesP`, niet als losse afwijzing tijdens het koppelen
-  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), deadline: roundStart + KOPPEL_MS })
+  // Het oordeel over elke koppeling ligt bij De Redacteur (besluit 14 november): dezelfde client (anthropic) als filters-ai.
+  // De verhalen met een Editieplek gaan voor: de algemene Editie van dit dagdeel, dan de Editiepool waaruit de persoonlijke
+  // Edities kiezen (wat de ronde hier al weet).
+  const editie = {
+    algemeen: new Set((edition.public.entries || []).flatMap((e) => (e.kind === 'story' ? [e.id] : [poolById.get(e.id)?.storyId].filter(Boolean)))),
+    pool: new Set(editionOut.filter(kept).map((i) => i.storyId || poolById.get(i.id)?.storyId).filter(Boolean)),
+  }
+  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), get: kvGet, client: anthropic, editie, deadline: roundStart + KOPPEL_MS })
   await imagesP
   if (beforeImages !== JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))) {
     await kvSet(editionCacheKey(edition.public.id), edition.snapshot).catch(() => {})
