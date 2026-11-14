@@ -92,10 +92,13 @@ for (const f of FEEDS) {
       const ed = composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed: new Set(p.followed), interests: p.welkom.interests, topics: p.prefs.topics || [], now, builtAt: feed.edition.builtAt })
       if (!ed) continue
       const regular = ed.entries.filter((e) => e.desk !== 'bubbel')
+      // Zoals rawLocal in composePersonal: een los stuk hoort bij zijn serververhaal (formerId of item.storyId), en de stukken
+      // van dat verhaal tellen mee (herstelkeuring 3: zonder die koppeling leek de RTL-kop over Mississippi lokaal).
       const isLocal = (e) => {
         const head = byId.get(e.leadId || e.id)
-        const xs = (e.itemIds || []).map((x) => byId.get(x)).filter(Boolean)
-        const st = storyById.get(e.id) || {}
+        const sid = e.kind === 'story' ? e.id : e.formerId || head?.storyId || null
+        const st = storyById.get(sid) || {}
+        const xs = [...new Set([...(e.itemIds || []), ...(st.itemIds || [])])].map((x) => byId.get(x)).filter(Boolean)
         return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, homePublishers: homePublishersOf([head, ...xs], st) }) && !majorNews(st, xs)
       }
       // Alleen een onderwerp dat je zelf aantikte, redt een plek van het zakken (debugveld `_local`); een onderwerp dat het
