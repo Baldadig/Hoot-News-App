@@ -112,6 +112,8 @@
 // WORLD, Nederlands en Engels, in één tabel (COUNTRY_FORMS, alleen in localAbroad).
 // Persona · keuring na herstelkeuring 3, kleiner punt: Holland als achternaam (Tom Holland) is geen anker van hier
 // (NAME_HOLLAND, alleen in localAbroad).
+// Persona · keuring 4 na herstelkeuring 3, punt 7: werelddelen en regio's (Azië, Caribisch gebied, Arab, Balkan, Koerdisch)
+// maken een kop breder, Nederlands en Engels (REGIONS, alleen in localAbroad).
 // Persona · samengevoegd met main (luister2, overtijd, stroom, app 1.4): main houdt revisie recensies, die staat vooraan in
 // EARLIER_REVISIONS; persona is nooit uitgerold. De Luister-aflevering gaat mee op een plek van de persoonlijke Editie.
 export const EDITOR_REVISION = 'redacteur-2026-11-15-persona-4'

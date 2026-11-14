@@ -1625,7 +1625,41 @@ var HootCore = (() => {
   ].map(([c, ...forms]) => [c, W(forms)]);
   var NAME_HOLLAND = /(?<![\p{L}\p{N}])(?!(?:In|Uit|Naar|Van|Voor|Met|En|De|Het|Een|Over|Via|Bij|Tegen|Om|Door|To|From|Of|For|And|The|A|At|Across|Around|Into|Near|Against|Beat|Beats|Visit|Team|Made|Noord|Zuid|North|South)\s)\p{Lu}[\p{Ll}'’.-]+\s+Holland(?![\p{L}\p{N}])/gu;
   var formsIn = (t, own2 = []) => COUNTRY_FORMS.some(([c, re]) => !own2.includes(c) && re.test(t));
-  var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || WORLD.test(t) || formsIn(t, own2) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
+  var REGIONS = new RegExp(W([
+    `azi[eë]`,
+    `aziat${L}`,
+    "asia",
+    `asian${L}`,
+    `afrika${L}`,
+    `africa${L}`,
+    "arab",
+    "arabs",
+    `arabi${L}`,
+    `arabier${L}`,
+    `latijns-amerika${L}`,
+    `latin america${L}`,
+    `zuid-amerika${L}`,
+    `south america${L}`,
+    `midden-amerika${L}`,
+    `central america${L}`,
+    `caribisch${L}`,
+    `caraïb${L}`,
+    `caraib${L}`,
+    `caribbean${L}`,
+    `balkan${L}`,
+    `baltisch${L}`,
+    "baltic",
+    `baltic state${L}`,
+    `scandinavi${L}`,
+    "sahel",
+    `koerd${L}`,
+    `kurd${L}`,
+    "arctic(?!\\s+(?:blast|air|cold|chill|freeze|front|storm|weather))",
+    `arctisch${L}`,
+    `noordpool${L}`,
+    `poolgebied${L}`
+  ]).source + "(?![\\s-]+(?:americ|amerikaan))", "iu");
+  var beyondIn = (t, own2 = []) => countriesIn(t).some((c) => !own2.includes(c)) || WORLD.test(t) || formsIn(t, own2) || REGIONS.test(t) || RE2.oekraine.test(t) || RE2.middenoosten.test(t) || RE2.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t);
   function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
     const head = items.find(Boolean);
     const t = String(head?.title || "");

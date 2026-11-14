@@ -114,6 +114,23 @@ test('lokaal van elders: Holland als achternaam is geen anker van hier', () => {
   }
 })
 
+// Keuring 4 na herstelkeuring 3, punt 7: een werelddeel of regio, als naam of bijvoeglijk naamwoord, Nederlands of Engels,
+// maakt een kop breder, net als een land. Een Amerikaanse bevolkingsgroep en Arctic als weerwoord niet.
+test('lokaal van elders: een werelddeel of regio is een ander land', () => {
+  for (const title of [
+    'Trump begint rondreis door Azië', 'US strikes in the Caribbean', 'Trump stuurt oorlogsschepen naar Latijns-Amerika', 'Arab leaders meet Trump',
+    'Trump meets African leaders', 'Afrikaanse leiders bij Trump', 'Koerdische strijders vragen Trump om hulp', 'Kurdish fighters ask Trump for help',
+    'Rubio visits the Balkans', 'Trump op bezoek in Midden-Amerika', 'Trump stuurt schepen naar het Caribisch gebied', 'Arabische leiders bij Trump',
+    'Trump wil Scandinavië bezoeken', 'Baltische staten vragen Trump om steun', 'Baltic states plead with Trump', 'Sahel: Trump stuurt drones',
+    'Trump eyes Arctic shipping lanes', 'Asian markets slide after Trump tariff', 'Central America migrants reach Texas border',
+  ]) assert.ok(!localAbroad([{ title }], { desk: 'vs' }), title)
+  const latin = 'Latin America’s Swing to the Right Was Never About Trump'
+  assert.ok(!localAbroad([{ title: latin }], {}) && !localAbroad([{ title: latin }], { desk: 'vs' }), latin)
+  for (const title of ['African American museum opens in Ohio', 'Asian American voters in Nevada shift', 'Aziatisch-Amerikaanse kiezers in Nevada', 'Arab American leaders in Michigan back Trump', 'Arctic blast hits Midwest']) {
+    assert.ok(localAbroad([{ title }], { desk: 'vs' }), title)
+  }
+})
+
 for (const f of FEEDS) {
   test(`${f}: lokaal nieuws van elders staat nooit op 01, nooit als Waar iedereen over schrijft, en anders achteraan`, () => {
     const feed = load(f)

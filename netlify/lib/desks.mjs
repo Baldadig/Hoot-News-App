@@ -427,7 +427,19 @@ const COUNTRY_FORMS = [
 // "Visit Holland", "Noord Holland"). Alleen voor het anker van hier in localAbroad, zoals COUNTRY_FORMS.
 const NAME_HOLLAND = /(?<![\p{L}\p{N}])(?!(?:In|Uit|Naar|Van|Voor|Met|En|De|Het|Een|Over|Via|Bij|Tegen|Om|Door|To|From|Of|For|And|The|A|At|Across|Around|Into|Near|Against|Beat|Beats|Visit|Team|Made|Noord|Zuid|North|South)\s)\p{Lu}[\p{Ll}'’.-]+\s+Holland(?![\p{L}\p{N}])/gu
 const formsIn = (t, own = []) => COUNTRY_FORMS.some(([c, re]) => !own.includes(c) && re.test(t))
-const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || WORLD.test(t) || formsIn(t, own) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
+// Werelddelen en regio's, met naam en bijvoeglijke vorm, Nederlands en Engels (keuring 4 na herstelkeuring 3, punt 7: "Trump
+// begint rondreis door Azië", "US strikes in the Caribbean", "Arab leaders meet Trump" en "Rubio visits the Balkans" telden
+// als Amerikaans binnenland). Een vaste woordenschat zoals COUNTRY_FORMS. Afrika, Europa en het Midden-Oosten vangt
+// RE.buitenland al deels; hier staan ook hun Engelse bijvoeglijke vormen. Een Amerikaanse bevolkingsgroep ("African
+// American", "Aziatisch-Amerikaanse") is geen ander werelddeel: Amerikaans of Amerikaan direct erachter telt niet. Arctic als
+// weerwoord ("Arctic blast hits Midwest") ook niet.
+const REGIONS = new RegExp(W([
+  `azi[eë]`, `aziat${L}`, 'asia', `asian${L}`, `afrika${L}`, `africa${L}`, 'arab', 'arabs', `arabi${L}`, `arabier${L}`,
+  `latijns-amerika${L}`, `latin america${L}`, `zuid-amerika${L}`, `south america${L}`, `midden-amerika${L}`, `central america${L}`,
+  `caribisch${L}`, `caraïb${L}`, `caraib${L}`, `caribbean${L}`, `balkan${L}`, `baltisch${L}`, 'baltic', `baltic state${L}`,
+  `scandinavi${L}`, 'sahel', `koerd${L}`, `kurd${L}`, 'arctic(?!\\s+(?:blast|air|cold|chill|freeze|front|storm|weather))', `arctisch${L}`, `noordpool${L}`, `poolgebied${L}`,
+]).source + '(?![\\s-]+(?:americ|amerikaan))', 'iu')
+const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || WORLD.test(t) || formsIn(t, own) || REGIONS.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
 export function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
   const head = items.find(Boolean)
   const t = String(head?.title || '')
