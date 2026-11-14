@@ -1553,7 +1553,7 @@ var HootCore = (() => {
   // shared/recensie.mjs
   var WORK_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "games").map((s) => s.id));
   var REVIEW_IDS = new Set(SOURCES.filter((s) => s.music || s.cat === "cultuur" || s.cat === "tech" || s.cat === "games").map((s) => s.id));
-  var REVIEW_DIR = /^(recensies?|reviews?|review|[a-z]+(?:-[a-z]+)*-reviews?|album-reviews?|albumrecensies?|album-van-de-(dag|week)|plaat-van-de-(dag|week)|album-of-the-(day|week)|reissue-of-the-week|luistertips?)$/i;
+  var REVIEW_DIR = /^(recensies?|reviews?|[a-z]+(?:-[a-z]+)?-reviews?|albumrecensies?|album-van-de-(dag|week)|plaat-van-de-(dag|week)|album-of-the-(day|week)|reissue-of-the-week|luistertips?)$/i;
   var DIR_NOT = [/(^|\.)tweakers\.net$/i];
   var CULTURE_DIR = /^(film|films|movies|tv|tv-and-radio|television|tv-movies|series|stage|theatre|theater|podium|music|muziek|books|boeken|games|artanddesign|art|kunst|kunst-media|culture|cultuur|cultuur-media|tv-cultuur|uit)$/i;
   var NEWS_VERB = /(?<![\p{L}\p{N}])(reageert|reageren|reageerde|reacts|responds|wint|winnen|wonnen|wins|overleden|overlijdt|sterft|gestorven|doodt|dies|died|killed|ontslagen|ontslaat|fired|sacked|kondigt|kondigen|aangekondigd|announces?|announced|unveils?|onthult|onthullen|stopt|stoppen|gestopt|uit elkaar|arrested|aangehouden|opgepakt|veroordeeld|sentenced|sued|aangeklaagd|klaagt|cancels?|cancell?ed|geschrapt|afgelast|postponed|uitgesteld|reunites?|reunited|verkoopt|nominated|genomineerd|benoemd|appointed|verlaat|vertrekt)(?![\p{L}\p{N}])/iu;
@@ -1561,7 +1561,7 @@ var HootCore = (() => {
   var VERB = /(?<![\p{L}\p{N}])(is|are|was|were|be|been|has|have|had|will|would|can|could|says?|said|gets?|got|makes?|made|takes?|took|brings?|goes|went|comes?|came|zijn|ben|bent|wordt|worden|werd|werden|heeft|hebben|had|hadden|gaat|gaan|ging|komt|komen|kwam|krijgt|krijgen|maakt|maken|brengt|brengen|zegt|zeggen|zei|wil|willen|moet|moeten|kan|kunnen|mag|blijft|staat|ligt|zit)(?![\p{L}\p{N}])/iu;
   var TITLE_LABEL = /^[\s"'‘“(]*(recensies?|review|reviews|book review|album review|film review|tv review|game review|filmrecensie|albumrecensie|boekrecensie|theaterrecensie|concertrecensie|album van de (dag|week)|plaat van de (dag|week)|album of the (day|week)|reissue of the week|luistertips?|playlist)(\s*\(\d+\))?\s*(?:[:|]|\s[-–—]\s)/i;
   var TITLE_CAPS2 = /^\W*(RECENSIE|REVIEW)\.\s/;
-  var TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?\s*(?:$|[:|–—]|\s-\s)/iu;
+  var TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?(?:\s+so\s+far)?\s*(?:$|[:|–—]|\s-\s)/iu;
   var NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne|to|will|charter|antitrust|regulatory|competition|merger|deal|licen[cs]e|licensing|funding|fcc|ftc|cma|sec|doj|ofcom|eu|onder|op|over|om|vernietigende|slechte|negatieve|lovende)$/i;
   var TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt|after|following|under|na|onder|over|op|om)$/i;
   var NOT_AFTER = /^(recommends?|recommended|finds?|found|says?|said|concludes?|concluded|urges?|warns?|clears?|cleared|rejects?|rejected|backs?|blames?|critici[sz]es?|into|adviseert|concludeert|oordeelt)$/i;
@@ -1574,8 +1574,37 @@ var HootCore = (() => {
       return /^(reviews?|recensies?)$/.test(w) && j > 0 && toetsing(words2, j);
     });
   }
+  var kopWoorden = (title) => title.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  var kopNoemt = (title) => kopWoorden(title).some((w) => /^(reviews?|recensies?)$/.test(w));
+  var kopLabel = (title) => /^(reviews?|recensies?)$/.test(kopWoorden(title)[0] || "");
+  var VORM = /(?:ing|ed|[^aeiou]es|[^aeiosu]s)$/;
+  var LIDWOORD = /^(a|an|the|een|de|het)$/i;
+  function werkwoordVoor(deel, titelvorm) {
+    const words2 = deel.split(/\s+/).map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "")).filter(Boolean);
+    return words2.some((w, i) => {
+      if (i === 0) return false;
+      const erna = words2.length - 1 - i;
+      if (/^\p{Ll}/u.test(w)) return VERB.test(w) || NEWS_VERB.test(w) || w.length >= 4 && VORM.test(w) && erna >= 1;
+      if (!titelvorm || w.length < 4 || !VORM.test(w) || /[’']s$/.test(w)) return false;
+      return erna >= 2 && /^\p{Lu}/u.test(words2[i - 1]) && !LIDWOORD.test(words2[i - 1]);
+    });
+  }
+  function recensieVorm(title) {
+    const end = TITLE_END.exec(title);
+    if (!end || toetsing([end[1] || "", end[2], end[3]], 2)) return false;
+    const at = end.index + end[0].toLowerCase().lastIndexOf(end[3].toLowerCase());
+    return !werkwoordVoor(title.slice(0, at).split(/[:|–—]|\s-\s/).pop().trim(), /^\p{Lu}/u.test(end[3]));
+  }
   var STARS = /[★☆]{2,}|\(\s*[0-5](?:[.,]5)?\s*\/\s*5\s*\)/;
   var plainTitle = (s) => String(s || "").replace(/\s+/g, " ").trim();
+  function recensieMap(raw) {
+    const u = urlDelen(raw);
+    if (!u || DIR_NOT.some((h) => h.test(u.host))) return false;
+    const parts = u.path.split("/").filter(Boolean).map((s) => s.toLowerCase());
+    let k = parts.length - 1;
+    while (k > 0 && /^[\d.]+(\.html?)?$/.test(parts[k])) k--;
+    return parts.slice(0, k).some((d) => REVIEW_DIR.test(d));
+  }
   function urlSignal2(raw, cultuurBron) {
     const u = urlDelen(raw);
     if (!u) return null;
@@ -1592,7 +1621,6 @@ var HootCore = (() => {
     const slug = parts[k].replace(/\.html?$/, "").replace(/~[a-z0-9]+$/, "").replace(/-\d{5,}$/, "");
     const dirs = parts.slice(0, k);
     const cultuurMap = dirs.some((d) => CULTURE_DIR.test(d));
-    if (!DIR_NOT.some((h) => h.test(u.host)) && dirs.some((d) => REVIEW_DIR.test(d))) return "map";
     if (/^recensie-/.test(slug)) return "slug";
     const tokens = slug.split("-");
     const last = tokens[tokens.length - 1];
@@ -1621,19 +1649,19 @@ var HootCore = (() => {
     const title = plainTitle(item.title);
     if (TITLE_LABEL.test(title) || TITLE_CAPS2.test(title)) return "label";
     if (STARS.test(title)) return "sterren";
-    const news = NEWS_VERB.test(title);
+    if (NEWS_VERB.test(title)) return null;
+    const werkkop = () => WORK_IDS.has(item.source) && workTitle(title) ? "werkkop" : null;
+    if (kopToetsing(title)) return werkkop();
+    if (recensieMap(item.url)) return "map";
     const cultuurBron = REVIEW_IDS.has(item.source);
+    const vorm = recensieVorm(title);
+    if (kopNoemt(title) && !vorm && !kopLabel(title)) return werkkop();
     const url = urlSignal2(item.url, cultuurBron);
-    if (url === "map") return "map";
-    if (news) return null;
-    if (kopToetsing(title)) return WORK_IDS.has(item.source) && workTitle(title) ? "werkkop" : null;
     if (url === "midden") {
       if (!NEWS_WORD.test(title)) return "slug";
     } else if (url) return url;
-    const end = TITLE_END.exec(title);
-    if (end && !toetsing([end[1] || "", end[2], end[3]], 2) && (cultuurBron || cultuurLink(item.url))) return "kop";
-    if (WORK_IDS.has(item.source) && workTitle(title)) return "werkkop";
-    return null;
+    if (vorm && (cultuurBron || cultuurLink(item.url))) return "kop";
+    return werkkop();
   }
   var isRecensie = (item) => recensieMark(item) != null;
 

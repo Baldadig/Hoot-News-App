@@ -262,3 +262,40 @@ test('toetsing en ophef over een recensie in de kop: slug en kopwoord tellen nie
   assert.equal(recensieMark(art({ source: 'nos-cultuur', title: 'The Batman: recensie', url: 'https://nos.nl/l/2640003' })), 'kop')
   assert.equal(recensieMark(art({ source: 'nos', title: 'The Batman: recensie', url: 'https://nos.nl/l/2640004' })), null)
 })
+
+// Vierde keuring, 14 november 2026: structureel, zonder nieuwe woorden. Een map telt alleen als hij ook een map is (een
+// vaste recensiemap of een korte sectienaam, niet de slug voor Stereogums /news/), en pas na het nieuwswerkwoord en de
+// toetsing in de kop. Noemt de kop zelf "review" of "recensie", dan beslist de kop: slug, midden en kopwoord tellen
+// alleen als het woord achteraan het eerste deel staat of vooraan als label, en niet na een werkwoord.
+test('de kop beslist: review midden in de kop, na een werkwoord, of een slug die geen map is, telt niet', () => {
+  const nieuws = [
+    ['stereogum', 'Olivia Rodrigo Responds To Negative Reviews Of New Album', 'https://stereogum.com/2518002/olivia-rodrigo-responds-negative-reviews/news/'],
+    ['stereogum', 'Pitchfork Lays Off Staff, Ends Daily Album Reviews', 'https://stereogum.com/2518003/pitchfork-lays-off-staff-ends-daily-album-reviews/news/'],
+    ['stereogum', 'Live Nation Faces DOJ Review', 'https://stereogum.com/2518004/live-nation-faces-doj-review/news/'],
+    ['ars', 'Starship launch license still awaiting FAA review', 'https://arstechnica.com/space/2026/11/starship-launch-license-still-awaiting-faa-review/'],
+    ['theverge', 'NHTSA closes Tesla Autopilot recall review', 'https://www.theverge.com/news/1030001/nhtsa-closes-tesla-autopilot-recall-review'],
+    ['variety', 'Paramount Skydance Completes Post-Merger Workforce Review', 'https://variety.com/2026/biz/news/paramount-skydance-post-merger-workforce-review-1236900103/'],
+    ['guardian-culture', 'National Trust publishes colonialism review', 'https://www.theguardian.com/culture/2026/nov/14/national-trust-publishes-colonialism-review'],
+    ['eurogamer', 'UK government finally publishes loot box review', 'https://www.eurogamer.net/uk-government-finally-publishes-loot-box-review'],
+    ['mediacourant', 'Publieke omroep krijgt review', 'https://www.mediacourant.nl/2026/11/publieke-omroep-krijgt-review/'],
+    ['tweakers', 'Ontwikkelaars wachten weken op App Store-review', 'https://tweakers.net/nieuws/240001/ontwikkelaars-wachten-weken-op-app-store-review.html'],
+    ['guardian-music', 'Glastonbury ticketing review after Ticketmaster chaos', 'https://www.theguardian.com/music/2026/nov/14/glastonbury-ticketing-review-after-ticketmaster-chaos'],
+    ['wired', 'Inside the Pentagon’s Review of Anthropic', 'https://www.wired.com/story/pentagon-anthropic-review/'],
+    ['nos-cultuur', 'Ophef rond Volkskrant-recensie van debuutroman', 'https://nos.nl/artikel/2640005-ophef-rond-volkskrant-recensie-van-debuutroman'],
+  ]
+  const wrong = nieuws.filter(([source, title, url]) => isRecensie(art({ source, title, url }))).map(([s, t, u]) => `${s}: ${t} (${recensieMark(art({ source: s, title: t, url: u }))})`)
+  assert.deepEqual(wrong, [])
+  // Echte recensies in dezelfde vormen blijven tellen.
+  const echt = [
+    ['ign', 'Monster Hunter Outlanders Review So Far', 'https://www.ign.com/articles/monster-hunter-outlanders-review', 'slug'],
+    ['eurogamer', 'The Legend of Zelda: Ocarina of Time (2026) review', 'https://www.eurogamer.net/the-legend-of-zelda-ocarina-of-time-remake-review', 'slug'],
+    ['guardian-music', 'Radie Peat: No Human Tongue Can Tell review – Lankum singer’s solo debut is the year’s best folk album', 'https://www.theguardian.com/music/2026/oct/30/radie-peat-no-human-tongue-can-tell-review', 'slug'],
+    ['guardian-culture', 'Ten Lives by Mona Chalabi review – what if we were totally honest about our wealth?', 'https://www.theguardian.com/books/2026/nov/11/ten-lives-by-mona-chalabi-review-what-if-we-were-totally-honest-about-our-wealth', 'slug'],
+    ['guardian-culture', 'Tyler Perry’s The Gospel of Christmas review – Netflix unloads more slapdash festive fare', 'https://www.theguardian.com/film/2026/nov/11/tyler-perry-gospel-of-christmas-review-netflix', 'slug'],
+    ['parool', 'Recensie The Only Living Pickpocket in New York: een bitterzoete ode aan de stad van weleer', 'https://www.parool.nl/film/recensie-the-only-living-pickpocket-in-new-york~bde33587/', 'slug'],
+    ['stereogum', '5 Thoughts On Olivia Rodrigo’s Unraveled Tour', 'https://stereogum.com/2516108/5-thoughts-on-olivia-rodrigos-unraveled-tour/reviews/concert-review/', 'map'],
+    ['quietus', 'Coil – Gold is the Metal (with the Broadest Shoulders)', 'https://thequietus.com/quietus-reviews/coil/', 'map'],
+    ['ign', 'Assassin’s Creed Shadows Review', 'https://www.ign.com/articles/assassins-creed-shadows-review', 'slug'],
+  ]
+  for (const [source, title, url, mark] of echt) assert.equal(recensieMark(art({ source, title, url })), mark, title)
+})

@@ -53,9 +53,12 @@ export function reviewCategory(cats = []) {
   return list.some((c) => c.split(/\s*\/\s*/).some((p) => REVIEW_CAT.test(p)))
 }
 
-// Een map in de link die alleen recensies of tips bevat.
-// Ook met meer koppeltekens: /music-album-reviews/ (Rolling Stone), /tv-movie-reviews/.
-const REVIEW_DIR = /^(recensies?|reviews?|review|[a-z]+(?:-[a-z]+)*-reviews?|album-reviews?|albumrecensies?|album-van-de-(dag|week)|plaat-van-de-(dag|week)|album-of-the-(day|week)|reissue-of-the-week|luistertips?)$/i
+// Een map in de link die alleen recensies of tips bevat: een vaste recensiemap (/review/, /reviews/, /recensie/,
+// /recensies/, /album-reviews/, /album-van-de-week/ …) of een korte sectienaam op "-reviews" met hooguit drie delen
+// (/quietus-reviews/, /tv-movie-reviews/, /music-album-reviews/ van Rolling Stone). Een langer deel op "-review" is een
+// slug, geen map: Stereogum zet de sectie achter de slug (/2518002/olivia-rodrigo-responds-negative-reviews/news/), en
+// dan is het deel voor /news/ geen recensiemap (vierde keuring, 14 november 2026).
+const REVIEW_DIR = /^(recensies?|reviews?|[a-z]+(?:-[a-z]+)?-reviews?|albumrecensies?|album-van-de-(dag|week)|plaat-van-de-(dag|week)|album-of-the-(day|week)|reissue-of-the-week|luistertips?)$/i
 // Uitgevers die een recensiemap ook voor iets anders gebruiken: Tweakers zet zijn achtergrondverhalen onder /reviews/
 // ("Achtergrond - Jensen Huang weg bij Nvidia"); daar telt alleen het label of de feedrubriek.
 const DIR_NOT = [/(^|\.)tweakers\.net$/i]
@@ -76,7 +79,8 @@ const TITLE_LABEL = /^[\s"'‘“(]*(recensies?|review|reviews|book review|album
 const TITLE_CAPS = /^\W*(RECENSIE|REVIEW)\.\s/
 // "review"/"recensie" als laatste woord van het eerste deel van de kop, met een woord ervoor dat geen onderzoek of
 // toetsing aanduidt ("Pentagon orders review", "plan under review", "peer review" blijven nieuws).
-const TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?\s*(?:$|[:|–—]|\s-\s)/iu
+// Ook "Time (2026) review" en IGN's "Review So Far" (een recensie in wording).
+const TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:()&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?(?:\s+so\s+far)?\s*(?:$|[:|–—]|\s-\s)/iu
 const NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne|to|will|charter|antitrust|regulatory|competition|merger|deal|licen[cs]e|licensing|funding|fcc|ftc|cma|sec|doj|ofcom|eu|onder|op|over|om|vernietigende|slechte|negatieve|lovende)$/i
 // Een toetsingswerkwoord twee plaatsen voor "review": "faces ticketing review", "launches independent review".
 const TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt|after|following|under|na|onder|over|op|om)$/i
@@ -95,9 +99,55 @@ function kopToetsing(title) {
     return /^(reviews?|recensies?)$/.test(w) && j > 0 && toetsing(words, j)
   })
 }
+// Noemt de kop zelf het woord? Dan beslist de kop, niet de link (ook "App Store-review", "Volkskrant-recensie").
+const kopWoorden = (title) => title.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean)
+const kopNoemt = (title) => kopWoorden(title).some((w) => /^(reviews?|recensies?)$/.test(w))
+// Het woord vooraan als label, ook zonder dubbele punt: "Recensie The Only Living Pickpocket in New York: …" (Parool).
+const kopLabel = (title) => /^(reviews?|recensies?)$/.test(kopWoorden(title)[0] || '')
+// Een werkwoord in het deel van de kop voor "review" maakt er een zin van, en dus nieuws: "Starship launch license still
+// awaiting FAA review", "NHTSA closes Tesla Autopilot recall review", "Paramount Skydance Completes Post-Merger
+// Workforce Review", "Publieke omroep krijgt review". Een recensiekop is een naamwoordgroep: "The Body Review",
+// "Hollow Knight: Silksong review", "Andor series two review". Herkend aan de vorm, niet aan een lijst. Een klein
+// geschreven woord is een werkwoord als het in VERB of NEWS_VERB staat, of op -ing, -ed, -es of -s eindigt met nog een
+// woord erna ("awaiting FAA", "publishes colonialism"; niet "series", dat eindigt op -ies). Een woord met een hoofdletter
+// hoort in een kop met kleine letters bij een naam of titel ("No Human Tongue Can Tell review", "Ten Lives by Mona
+// Chalabi review"); alleen als ook "Review" een hoofdletter heeft (een kop in titelvorm) telt zo een woord op -ing, -ed,
+// -es of -s, direct na een naam en met nog twee woorden erna ("Skydance Completes Post-Merger Workforce"; niet "The Rings
+// of Power", niet een bezittelijke vorm als "Perry’s"). Het eerste woord telt niet mee (het onderwerp of het begin van
+// een titel: "Dying Light", "Echoes of Wisdom").
+const VORM = /(?:ing|ed|[^aeiou]es|[^aeiosu]s)$/
+const LIDWOORD = /^(a|an|the|een|de|het)$/i
+function werkwoordVoor(deel, titelvorm) {
+  const words = deel.split(/\s+/).map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')).filter(Boolean)
+  return words.some((w, i) => {
+    if (i === 0) return false
+    const erna = words.length - 1 - i
+    if (/^\p{Ll}/u.test(w)) return VERB.test(w) || NEWS_VERB.test(w) || (w.length >= 4 && VORM.test(w) && erna >= 1)
+    if (!titelvorm || w.length < 4 || !VORM.test(w) || /[’']s$/.test(w)) return false
+    return erna >= 2 && /^\p{Lu}/u.test(words[i - 1]) && !LIDWOORD.test(words[i - 1])
+  })
+}
+// "X review" of "X recensie" als recensievorm: achteraan het eerste deel van de kop (TITLE_END), geen toetsing ervoor of
+// erna, en geen werkwoord in het deel ervoor.
+function recensieVorm(title) {
+  const end = TITLE_END.exec(title)
+  if (!end || toetsing([end[1] || '', end[2], end[3]], 2)) return false
+  const at = end.index + end[0].toLowerCase().lastIndexOf(end[3].toLowerCase())
+  return !werkwoordVoor(title.slice(0, at).split(/[:|–—]|\s-\s/).pop().trim(), /^\p{Lu}/u.test(end[3]))
+}
 const STARS = /[★☆]{2,}|\(\s*[0-5](?:[.,]5)?\s*\/\s*5\s*\)/
 
 const plainTitle = (s) => String(s || '').replace(/\s+/g, ' ').trim()
+
+// Een recensiemap in het pad van de link (niet de slug zelf).
+function recensieMap(raw) {
+  const u = urlDelen(raw)
+  if (!u || DIR_NOT.some((h) => h.test(u.host))) return false
+  const parts = u.path.split('/').filter(Boolean).map((s) => s.toLowerCase())
+  let k = parts.length - 1
+  while (k > 0 && /^[\d.]+(\.html?)?$/.test(parts[k])) k--
+  return parts.slice(0, k).some((d) => REVIEW_DIR.test(d))
+}
 
 function urlSignal(raw, cultuurBron) {
   const u = urlDelen(raw)
@@ -116,7 +166,6 @@ function urlSignal(raw, cultuurBron) {
   const slug = parts[k].replace(/\.html?$/, '').replace(/~[a-z0-9]+$/, '').replace(/-\d{5,}$/, '')
   const dirs = parts.slice(0, k)
   const cultuurMap = dirs.some((d) => CULTURE_DIR.test(d))
-  if (!DIR_NOT.some((h) => h.test(u.host)) && dirs.some((d) => REVIEW_DIR.test(d))) return 'map'
   if (/^recensie-/.test(slug)) return 'slug'
   const tokens = slug.split('-')
   const last = tokens[tokens.length - 1]
@@ -146,30 +195,36 @@ export function workTitle(title) {
 }
 
 // De aanwijzing, of null: 'feed' | 'map' | 'slug' | 'label' | 'kop' | 'sterren' | 'werkkop'.
+// Volgorde: wat de uitgever zelf zegt (feedrubriek, label, sterren); dan houden een nieuwswerkwoord en een toetsing in de
+// kop alles daarna tegen; dan de recensiemap; dan beslist de kop over slug en kopwoord.
 export function recensieMark(item = {}) {
   if (!item || item.kind === 'post') return null
   if (item.feedMark === 'recensie') return 'feed'
   const title = plainTitle(item.title)
   if (TITLE_LABEL.test(title) || TITLE_CAPS.test(title)) return 'label'
   if (STARS.test(title)) return 'sterren'
-  const news = NEWS_VERB.test(title)
+  if (NEWS_VERB.test(title)) return null
+  const werkkop = () => (WORK_IDS.has(item.source) && workTitle(title) ? 'werkkop' : null)
+  // De kop gaat voor de link: een toetsing of nieuws over een recensie in de kop houdt map, slug en kopwoord tegen.
+  if (kopToetsing(title)) return werkkop()
+  if (recensieMap(item.url)) return 'map'
   const cultuurBron = REVIEW_IDS.has(item.source)
+  const vorm = recensieVorm(title)
+  // Noemt de kop zelf "review" of "recensie", dan beslist de kop: slug, midden en kopwoord tellen alleen als het woord
+  // achteraan het eerste deel staat, zonder werkwoord ervoor ("The Body Review"). Elders in de kop ("Inside the
+  // Pentagon's Review of Anthropic", "ticketing review after Ticketmaster chaos", "Volkskrant-recensie van") is het geen
+  // recensievorm. Noemt de kop het woord niet, dan telt de slug wel (The Verge, Polygon, The Atlantic, The Quietus).
+  if (kopNoemt(title) && !vorm && !kopLabel(title)) return werkkop()
   const url = urlSignal(item.url, cultuurBron)
-  if (url === 'map') return 'map'
-  if (news) return null
-  // De kop gaat voor de link: een toetsing of nieuws over een recensie in de kop houdt slug en kopwoord tegen.
-  if (kopToetsing(title)) return WORK_IDS.has(item.source) && workTitle(title) ? 'werkkop' : null
   // "review" midden in de slug is de zwakste linkaanwijzing: ook een nieuwswoord in de kop houdt die tegen (de kop zelf
   // kan dan nog een recensie zeggen, "Wet Leg live review: record-breaking crowd").
   if (url === 'midden') {
     if (!NEWS_WORD.test(title)) return 'slug'
   } else if (url) return url
-  const end = TITLE_END.exec(title)
   // "X review" en "X recensie" aan het eind alleen bij een cultuur-, tech- of gamesbron of met een cultuurmap in de link
   // (bronpoort: bij een nieuwsbron is het vaak nieuws over een toetsing of over een recensie).
-  if (end && !toetsing([end[1] || '', end[2], end[3]], 2) && (cultuurBron || cultuurLink(item.url))) return 'kop'
-  if (WORK_IDS.has(item.source) && workTitle(title)) return 'werkkop'
-  return null
+  if (vorm && (cultuurBron || cultuurLink(item.url))) return 'kop'
+  return werkkop()
 }
 
 export const isRecensie = (item) => recensieMark(item) != null
