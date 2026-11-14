@@ -78,6 +78,23 @@ import XCTest
         XCTAssertEqual(StroomEinde.index(stroom, grens: StroomEinde.grens(stroom, gezien: gezien)), 5, "Alles: tot het laatste ongeziene bericht")
     }
 
+    // r5-stroom-einde: zonder eerder bezoek houdt de Stroom op na de laatste 24 uur. Een ongezien bericht van 30 uur
+    // oud maakt de lijst niet langer. Gelijk aan tests/stroom-einde.test.mjs.
+    func testAlleenDeLaatsteDagMaaktDeLijstLanger() {
+        XCTAssertEqual(StroomEinde.dag, 24 * 60 * 60)
+        let lang = [item(1), item(60), item(23 * 60), item(25 * 60), item(30 * 60), item(35 * 60)]
+        XCTAssertEqual(StroomEinde.eindIndex(lang, gezien: [:], now: now), 3, "na 23 uur, niet na 35 uur")
+        let volger = StroomVolger()
+        let g = volger.grens(StreamView.weergave("", []), items: lang, gezien: [:], now: now)!
+        XCTAssertEqual(StroomEinde.index(lang, grens: g), 3)
+        let dertig = [item(1), item(30 * 60)]
+        XCTAssertEqual(StroomEinde.eindIndex(dertig, gezien: [:], now: now), 1, "het bericht van 30 uur maakt de lijst niet langer")
+        XCTAssertEqual(StroomEinde.grens(dertig, gezien: [:], now: now).id, "i1")
+        let dag = Dictionary(uniqueKeysWithValues: lang.prefix(3).map { ($0.id, $0.date!) })
+        XCTAssertEqual(StroomEinde.eindIndex(lang, gezien: dag, now: now), 0, "de laatste dag gezien: meteen \"Je bent bij.\"")
+        XCTAssertEqual(StroomEinde.eindIndex([item(30 * 60)], gezien: [:], now: now), 0)
+    }
+
     // De grens staat vast per weergave: niets beweegt terwijl je leest. Een nieuw bezoek bepaalt hem opnieuw.
     func testGrensStaatVast() {
         let volger = StroomVolger()

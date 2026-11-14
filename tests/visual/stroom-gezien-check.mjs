@@ -6,6 +6,8 @@
 //   3. in Wetenschap echt naar beneden scrollen tot het einde en even blijven kijken;
 //   4. derde bezoek: Wetenschap is nu "Je bent bij." zonder ongeziene berichten (je staat weer op je plek),
 //      Alles toont nog wat je niet zag.
+// Daarbij (r5-stroom-einde): met verse opslag houdt elke weergave op na de laatste 24 uur. Wat ouder is, ligt
+// onder "Ouder nieuws tonen", ook als je het nog niet zag.
 // Gebruik: node tests/visual/stroom-gezien-check.mjs [--stills <map>] [--fase voor|na]
 // Met --fase voor legt hij alleen vast (schermbeelden en meting), zonder te falen.
 import { spawn } from 'node:child_process'
@@ -143,13 +145,16 @@ try {
   await sleep(500)
   await scrolNaarEinde(b)
   uit.naScrollen = await b.evaluate(`(() => { const v = document.querySelector('section[aria-label="Stroom"]'); const b = v.getBoundingClientRect(); return { top: v.scrollTop, max: v.scrollHeight - v.clientHeight, rijen: [...v.querySelectorAll('.list [data-id]')].map((e) => { const r = e.getBoundingClientRect(); return e.dataset.id.slice(-10) + ':' + Math.round(r.top - b.top) + '-' + Math.round(r.bottom - b.top) }), h: Math.round(b.height), gezien: Object.keys(JSON.parse(localStorage.getItem('hoot:stroom-gezien') || '{}')).map((k) => k.slice(-10)) } })()`)
+  // Aan het einde van Wetenschap: geen bericht ouder dan een dag boven "Je bent bij." (r5-stroom-einde).
+  uit.oudsteUur = await b.evaluate(`(() => { const t = [...document.querySelectorAll('section[aria-label="Stroom"] .list [data-id] time[datetime]')].map((e) => Date.parse(e.getAttribute('datetime'))).filter(Number.isFinite); return t.length ? Math.round((Date.now() - Math.min(...t)) / 36e5 * 10) / 10 : null })()`)
+  eis(uit.oudsteUur !== null && uit.oudsteUur <= 24.1, 'met verse opslag eindigt Wetenschap na de laatste 24 uur (oudste ' + uit.oudsteUur + ' uur)')
   uit.gezienNaScrollen = await b.evaluate(`(() => { try { return Object.keys(JSON.parse(localStorage.getItem('hoot:stroom-gezien') || '{}')).length } catch { return -1 } })()`)
   await b.sluit()
 
   // 4. Derde bezoek: Wetenschap is bij, Alles nog niet.
   const c = await tabblad(BASE + '#/stroom?rubriek=wetenschap')
   uit.wetenschapDerde = await wachtStand(c)
-  uit.derdeRijen = await c.evaluate(`(() => { const v = document.querySelector('section[aria-label="Stroom"]'); const b = v.getBoundingClientRect(); return { top: v.scrollTop, max: v.scrollHeight - v.clientHeight, rijen: [...v.querySelectorAll('.list [data-id]')].map((e) => { const r = e.getBoundingClientRect(); return e.dataset.id.slice(-10) + ':' + Math.round(r.top - b.top) + '-' + Math.round(r.bottom - b.top) }), h: Math.round(b.height), gezien: Object.keys(JSON.parse(localStorage.getItem('hoot:stroom-gezien') || '{}')).map((k) => k.slice(-10)) } })()`)
+  uit.derdeRijen = await c.evaluate(`(() => { const v = document.querySelector('section[aria-label="Stroom"]'); const b = v.getBoundingClientRect(); return { top: v.scrollTop, max: v.scrollHeight - v.clientHeight, rijen: [...v.querySelectorAll('.list [data-id]')].map((e) => { const r = e.getBoundingClientRect(); return e.dataset.id.slice(-10) + ':' + Math.round(r.top - b.top) + '-' + Math.round(r.bottom - b.top) }), h: Math.round(b.height), gezien: Object.keys(JSON.parse(localStorage.getItem('hoot:stroom-gezien') || '{}')).map((k) => k.slice(-10)), ouderDanDag: [...v.querySelectorAll('.list [data-id]')].filter((e) => { const t = Date.parse(e.querySelector('time[datetime]')?.getAttribute('datetime') || ''); return Number.isFinite(t) && Date.now() - t > 864e5 }).map((e) => e.dataset.id.slice(-10)) } })()`)
   await shot(c, 'web-390-wetenschap-na-lezen')
   await c.maat(1200, 900)
   await sleep(900)
@@ -158,9 +163,12 @@ try {
   uit.allesDerde = await naar(c, '#/stroom')
   await shot(c, 'web-390-alles-na-lezen')
   eis(uit.gezienNaScrollen > 0, 'scrollen markeert berichten als gezien')
-  // Je komt terug op je plek (de leespositie), met daaronder meteen "Je bent bij.": er staat niets ongeziens.
-  const ongezien = uit.derdeRijen.rijen.filter((r) => !uit.derdeRijen.gezien.includes(r.split(':')[0]))
-  eis(uit.wetenschapDerde.bijInBeeld && ongezien.length === 0 && !uit.wetenschapDerde.ouder, 'na alles in Wetenschap gezien: "Je bent bij.", niets ongeziens')
+  // Je komt terug op je plek (de leespositie), met daaronder "Je bent bij.": er staat niets ongeziens van de
+  // laatste dag. De herstelde plek opent wat ouder is (zoals altijd); een ongezien bericht ouder dan een dag mag
+  // daar dus onder je plek staan.
+  const ongezien = uit.derdeRijen.rijen.filter((r) => !uit.derdeRijen.gezien.includes(r.split(':')[0]) && !uit.derdeRijen.ouderDanDag.includes(r.split(':')[0]))
+  uit.derdeOngezienOuderDanDag = uit.derdeRijen.rijen.filter((r) => uit.derdeRijen.ouderDanDag.includes(r.split(':')[0]) && !uit.derdeRijen.gezien.includes(r.split(':')[0])).length
+  eis(uit.wetenschapDerde.bij && ongezien.length === 0, 'na alles in Wetenschap gezien: "Je bent bij.", niets ongeziens van de laatste dag')
   eis(uit.allesDerde.berichten > 0, 'Alles toont nog wat je niet zag')
   await c.sluit()
 } finally {

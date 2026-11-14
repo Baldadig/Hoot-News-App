@@ -4,9 +4,10 @@ import Foundation
 // van 14 november: "Er moet wel echt een vorm van scrollen en lezen aan vooraf zijn gegaan." Gelijk aan het web
 // (src/lib/stroom-einde.js).
 //
-// De Stroom laadt niet eindeloos door. Hij houdt op na het laatste bericht dat je in deze weergave (rubriek,
-// bronkeuze) nog niet zag: "Hier was je gebleven", "Je bent bij." en een stille knop "Ouder nieuws tonen" (per
-// keer `page` berichten). Daaronder ligt alleen wat je al zag. Buiten je bubbel is een korte, eigen lijst: daar
+// De Stroom laadt niet eindeloos door. Hij houdt op na het laatste bericht van de laatste 24 uur (`dag`) dat je
+// in deze weergave (rubriek, bronkeuze) nog niet zag: "Hier was je gebleven", "Je bent bij." en een stille knop
+// "Ouder nieuws tonen" (per keer `page` berichten). Daaronder ligt wat je al zag en wat ouder is dan een dag.
+// Zonder eerder bezoek houdt hij dus op na de laatste 24 uur, zoals afgesproken in r5-stroom-einde. Buiten je bubbel is een korte, eigen lijst: daar
 // geen grens.
 //
 // Gezien is echt gezien: een bericht telt pas als het tijdens zelf scrollen in beeld was en je er voorbij
@@ -14,6 +15,7 @@ import Foundation
 // openen markeert niets. Wat je zag bewaart HootStore.streamGezien (tot de 36 uur van de Stroom voorbij zijn).
 enum StroomEinde {
     static let venster: TimeInterval = 36 * 60 * 60 // de Stroom: de afgelopen 36 uur
+    static let dag: TimeInterval = 24 * 60 * 60 // alleen ongeziene berichten van de laatste dag maken de lijst langer
     static let gezienNa: TimeInterval = 1.5 // zo lang helemaal in beeld (na zelf scrollen) telt als gezien
     static let page = 60
 
@@ -29,13 +31,15 @@ enum StroomEinde {
         return gezien.filter { $0.value >= grens }
     }
 
-    // Na het laatste bericht dat je nog niet zag. Zag je alles, dan 0: meteen "Je bent bij.".
-    static func eindIndex(_ items: [Item], gezien: [String: Date]) -> Int {
-        items.lastIndex { gezien[$0.id] == nil }.map { $0 + 1 } ?? 0
+    // Na het laatste bericht van de laatste 24 uur dat je nog niet zag. Zag je die alle, dan 0: meteen "Je bent
+    // bij.". Een ongezien bericht van eergisteren maakt de lijst niet langer: dat ligt onder "Ouder nieuws tonen".
+    static func eindIndex(_ items: [Item], gezien: [String: Date], now: Date = .now) -> Int {
+        let grens = now.addingTimeInterval(-dag)
+        return items.lastIndex { gezien[$0.id] == nil && ($0.date ?? .distantPast) > grens }.map { $0 + 1 } ?? 0
     }
 
-    static func grens(_ items: [Item], gezien: [String: Date]) -> Grens {
-        let i = eindIndex(items, gezien: gezien)
+    static func grens(_ items: [Item], gezien: [String: Date], now: Date = .now) -> Grens {
+        let i = eindIndex(items, gezien: gezien, now: now)
         return i > 0 ? Grens(id: items[i - 1].id, at: items[i - 1].date) : Grens(id: nil, at: nil)
     }
 
@@ -88,10 +92,10 @@ final class StroomVolger {
     private var gezien: Set<String> = []
 
     // De grens van een weergave voor dit bezoek: de vastgezette, of nu vastzetten.
-    func grens(_ sleutel: String, items: [Item], gezien: [String: Date]) -> StroomEinde.Grens? {
+    func grens(_ sleutel: String, items: [Item], gezien: [String: Date], now: Date = .now) -> StroomEinde.Grens? {
         if let g = grenzen[sleutel] { return g }
         guard !items.isEmpty else { return nil }
-        let g = StroomEinde.grens(items, gezien: gezien)
+        let g = StroomEinde.grens(items, gezien: gezien, now: now)
         grenzen[sleutel] = g
         return g
     }

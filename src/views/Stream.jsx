@@ -114,8 +114,8 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
 
   useScrollMemory(ref, positionKey('stroom', filters), list.length > 0, list.length + ':' + (list[0]?.id || ''), active)
 
-  // Het einde van de Stroom (lib/stroom-einde.js): de lijst houdt op na het laatste bericht dat je in
-  // deze weergave (tab, bronkeuze) nog niet zag. Daar staat "Je bent bij." met een stille knop "Ouder
+  // Het einde van de Stroom (lib/stroom-einde.js): de lijst houdt op na het laatste bericht van de
+  // laatste 24 uur dat je in deze weergave (tab, bronkeuze) nog niet zag. Daar staat "Je bent bij." met een stille knop "Ouder
   // nieuws tonen" (per keer PAGE). Gezien is echt gezien: alleen wat tijdens zelf scrollen in beeld was
   // en voorbij ging (of even helemaal in beeld stond); laden en wisselen markeren niets. De grens wordt
   // per weergave vastgezet bij het openen, zodat niets beweegt terwijl je leest. Niets laadt vanzelf

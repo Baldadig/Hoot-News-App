@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { eindIndex, grensVan, grensIndex, weergaveGrens, vergeetGrenzen, leesGezien, markeerGezien, beoordeel, nieuweStaat, VENSTER, GEZIEN_KEY, GRENZEN_KEY } from '../src/lib/stroom-einde.js'
+import { eindIndex, grensVan, grensIndex, weergaveGrens, vergeetGrenzen, leesGezien, markeerGezien, beoordeel, nieuweStaat, VENSTER, DAG, GEZIEN_KEY, GRENZEN_KEY } from '../src/lib/stroom-einde.js'
 
 // Keuze r5-stroom-einde (5 november), herzien na de melding van Alex (14 november): de Stroom eindigt na
 // het laatste bericht dat je in deze weergave nog niet zag. Gezien is echt gezien: alleen door zelf te
@@ -11,6 +11,7 @@ const opslag = () => {
   return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m }
 }
 const NU = Date.parse('2026-11-14T17:00:00Z')
+const tijd = (min) => NU - min * 60000
 const item = (min, extra = {}) => ({ id: 'i' + min, publishedAt: new Date(NU - min * 60000).toISOString(), ...extra })
 // Een Stroom met wetenschap en de rest door elkaar.
 const stroom = [item(1), item(5, { w: 1 }), item(10), item(20, { w: 1 }), item(30), item(60, { w: 1 }), item(90)]
@@ -40,7 +41,23 @@ test('scrollen voorbij markeert wel; "Je bent bij." alleen als je in die weergav
   // Alles toont nog wat je niet zag: tot het laatste ongeziene bericht; wat je zag ertussen blijft staan.
   assert.equal(grensIndex(stroom, weergaveGrens('a', stroom, { local, session: s, now: NU })), stroom.length)
   markeerGezien([item(90)], { local, now: NU })
-  assert.equal(eindIndex(stroom, leesGezien({ local, now: NU })), 5, 'na i30 alleen nog gezien')
+  assert.equal(eindIndex(stroom, leesGezien({ local, now: NU }), NU), 5, 'na i30 alleen nog gezien')
+})
+
+test('zonder eerder bezoek eindigt de Stroom na de laatste 24 uur (r5-stroom-einde)', () => {
+  assert.equal(DAG, 24 * 60 * 60 * 1000)
+  // De hele Stroom van 36 uur, niets gezien: de lijst houdt op na het laatste bericht van de laatste dag.
+  const lang = [item(1), item(60), item(23 * 60), item(25 * 60), item(30 * 60), item(35 * 60)]
+  const local = opslag(), session = opslag()
+  assert.equal(grensIndex(lang, weergaveGrens('a', lang, { local, session, now: NU })), 3, 'na 23 uur, niet na 35 uur')
+  // Een ongezien bericht van 30 uur oud maakt de lijst niet langer.
+  const dertig = [item(1), item(30 * 60)]
+  assert.equal(eindIndex(dertig, {}, NU), 1)
+  assert.deepEqual(grensVan(dertig, {}, NU), { id: 'i1', at: tijd(1) })
+  // Zag je de laatste dag helemaal, dan meteen "Je bent bij.", ook al staat er ouder ongezien nieuws onder.
+  markeerGezien([item(1), item(60), item(23 * 60)], { local, now: NU })
+  assert.equal(eindIndex(lang, leesGezien({ local, now: NU }), NU), 0)
+  assert.equal(eindIndex([item(30 * 60)], {}, NU), 0, 'alleen ouder dan een dag: meteen "Je bent bij."')
 })
 
 test('terugkerende lezer: wat je echt zag blijft gezien, tot de 36 uur van de Stroom voorbij zijn', () => {

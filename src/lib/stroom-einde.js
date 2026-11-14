@@ -1,9 +1,10 @@
 // Het einde van de Stroom (keuze r5-stroom-einde, 5 november; review F7, G6), herzien na de melding van
 // Alex van 14 november: "Er moet wel echt een vorm van scrollen en lezen aan vooraf zijn gegaan."
 //
-// De Stroom laadt niet eindeloos bij. Hij eindigt na het laatste bericht dat je in deze weergave (tab,
-// bronkeuze) nog niet zag: daar staan "Je bent bij." en een stille knop "Ouder nieuws tonen" (per keer
-// PAGE berichten). Daaronder ligt alleen wat je al zag.
+// De Stroom laadt niet eindeloos bij. Hij eindigt na het laatste bericht van de laatste 24 uur (DAG) dat je
+// in deze weergave (tab, bronkeuze) nog niet zag: daar staan "Je bent bij." en een stille knop "Ouder nieuws
+// tonen" (per keer PAGE berichten). Daaronder ligt wat je al zag en wat ouder is dan een dag. Zonder eerder
+// bezoek eindigt hij dus na de laatste 24 uur, zoals afgesproken in r5-stroom-einde.
 //
 // Gezien is echt gezien. Een bericht telt pas als gezien als het tijdens zelf scrollen in beeld was en je
 // er voorbij scrolde, of als het na zelf scrollen GEZIEN_MS helemaal in beeld stond (de laatste berichten
@@ -15,6 +16,7 @@
 // - `hoot:stroom-grenzen` (sessionStorage): per weergave waar de lijst ophoudt, vastgezet bij het openen.
 //   Zo beweegt niets terwijl je leest, ook niet als je terugkomt van een artikel of van een andere tab.
 export const VENSTER = 36 * 60 * 60 * 1000 // de Stroom: de afgelopen 36 uur (shared/stroom.mjs)
+export const DAG = 24 * 60 * 60 * 1000 // alleen ongeziene berichten van de laatste dag maken de lijst langer
 export const GEZIEN_MS = 1500 // zo lang helemaal in beeld (na zelf scrollen) telt als gezien
 export const GEZIEN_KEY = 'hoot:stroom-gezien'
 export const GRENZEN_KEY = 'hoot:stroom-grenzen'
@@ -67,18 +69,20 @@ export function markeerGezien(items, { local = globalThis.localStorage, now = Da
 
 // ---- De grens van een weergave ----
 
-// Waar de lijst ophoudt: na het laatste bericht dat je nog niet zag. Zag je alles, dan 0: meteen
-// "Je bent bij." (en de knop voor wat ouder is). Gezien en niet gezien mogen door elkaar staan; wat je
-// al zag tussen nieuwe berichten in, blijft gewoon op zijn plek.
-export function eindIndex(list, gezien) {
-  for (let i = list.length - 1; i >= 0; i--) if (!gezien[list[i].id]) return i + 1
+// Waar de lijst ophoudt: na het laatste bericht van de laatste 24 uur dat je nog niet zag. Zag je die
+// alle, dan 0: meteen "Je bent bij." (en de knop voor wat ouder is). Gezien en niet gezien mogen door
+// elkaar staan; wat je al zag tussen nieuwe berichten in, blijft gewoon op zijn plek. Een ongezien bericht
+// van eergisteren maakt de lijst niet langer: dat ligt onder "Ouder nieuws tonen".
+export function eindIndex(list, gezien, now = Date.now()) {
+  const dag = now - DAG
+  for (let i = list.length - 1; i >= 0; i--) if (!gezien[list[i].id] && tijdVan(list[i]) > dag) return i + 1
   return 0
 }
 
 // De grens vastzetten als het bericht waar hij na komt (id en tijd), zodat hij niet verschuift als er
 // berichten bij komen of je verder leest. `null`: alles gezien.
-export function grensVan(list, gezien) {
-  const i = eindIndex(list, gezien)
+export function grensVan(list, gezien, now = Date.now()) {
+  const i = eindIndex(list, gezien, now)
   return i ? { id: list[i - 1].id, at: tijdVan(list[i - 1]) } : { id: null, at: null }
 }
 
@@ -96,7 +100,7 @@ export function grensIndex(list, grens) {
 export function weergaveGrens(sleutel, list, { local = globalThis.localStorage, session = globalThis.sessionStorage, now = Date.now() } = {}) {
   const grenzen = (session && lees(session, GRENZEN_KEY)) || {}
   if (grenzen[sleutel]) return grenzen[sleutel]
-  const grens = grensVan(list, leesGezien({ local, now }))
+  const grens = grensVan(list, leesGezien({ local, now }), now)
   grenzen[sleutel] = grens
   if (session) schrijf(session, GRENZEN_KEY, grenzen)
   try {
