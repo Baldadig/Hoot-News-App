@@ -80,10 +80,14 @@ export function eindIndex(list, gezien, now = Date.now()) {
 }
 
 // De grens vastzetten als het bericht waar hij na komt (id en tijd), zodat hij niet verschuift als er
-// berichten bij komen of je verder leest. `null`: alles gezien.
+// berichten bij komen of je verder leest. `id: null`: alles gezien. `eerder`: onder de grens staat iets dat
+// je echt zag. Alleen dan staat er "Hier was je gebleven"; staat daar alleen nieuws ouder dan een dag (een
+// nieuwe lezer, een rubriek die je nooit opende), dan niet: daar was je nooit. Ook dit ligt vast bij het
+// vastzetten, zodat de streep niet verschijnt terwijl je leest.
 export function grensVan(list, gezien, now = Date.now()) {
   const i = eindIndex(list, gezien, now)
-  return i ? { id: list[i - 1].id, at: tijdVan(list[i - 1]) } : { id: null, at: null }
+  const eerder = list.slice(i).some((item) => !!gezien[item.id])
+  return i ? { id: list[i - 1].id, at: tijdVan(list[i - 1]), eerder } : { id: null, at: null, eerder }
 }
 
 // De index die bij een vastgezette grens hoort.

@@ -19,10 +19,13 @@ enum StroomEinde {
     static let gezienNa: TimeInterval = 1.5 // zo lang helemaal in beeld (na zelf scrollen) telt als gezien
     static let page = 60
 
-    // Waar de lijst ophoudt, vastgezet als het bericht waar hij na komt. `id == nil`: alles gezien.
+    // Waar de lijst ophoudt, vastgezet als het bericht waar hij na komt. `id == nil`: alles gezien. `eerder`: onder
+    // de grens staat iets dat je echt zag. Alleen dan staat er "Hier was je gebleven"; staat daar alleen nieuws
+    // ouder dan een dag (een nieuwe lezer, een rubriek die je nooit opende), dan niet. Ligt vast met de grens.
     struct Grens: Equatable {
         let id: String?
         let at: Date?
+        var eerder = false
     }
 
     // Wat je zag, zonder wat ouder is dan de Stroom.
@@ -40,7 +43,8 @@ enum StroomEinde {
 
     static func grens(_ items: [Item], gezien: [String: Date], now: Date = .now) -> Grens {
         let i = eindIndex(items, gezien: gezien, now: now)
-        return i > 0 ? Grens(id: items[i - 1].id, at: items[i - 1].date) : Grens(id: nil, at: nil)
+        let eerder = items[i...].contains { gezien[$0.id] != nil }
+        return i > 0 ? Grens(id: items[i - 1].id, at: items[i - 1].date, eerder: eerder) : Grens(id: nil, at: nil, eerder: eerder)
     }
 
     // De index bij een vastgezette grens; staat dat bericht er niet meer, dan op tijd.

@@ -128,7 +128,8 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
     [active, bubbelLijst, loading, posKey, vers, list.length > 0], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const bIdx = bubbelLijst ? list.length : grens ? grensIndex(list, grens) : list.length
-  const eerder = bIdx < list.length // daaronder staat wat je al zag
+  // "Hier was je gebleven" alleen als je onder de grens echt iets zag (vastgelegd met de grens, grensVan).
+  const eerder = !!grens?.eerder && bIdx < list.length
   const [older, setOlder] = useState(0)
   const cap = Math.min(list.length, bIdx + older)
   const lijstRef = useRef(list)
@@ -285,7 +286,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
               <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {shown.map((item, index) => (
                   <div key={item.id} className={index < Math.min(freshShown, 6) ? 'stream-new' : undefined} style={index < 6 ? { '--rise-delay': `${index * 40}ms` } : undefined}>
-                    {older > 0 && index === bIdx && bIdx > 0 ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
+                    {eerder && older > 0 && index === bIdx && bIdx > 0 ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
                     <Entry item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                   </div>
                 ))}

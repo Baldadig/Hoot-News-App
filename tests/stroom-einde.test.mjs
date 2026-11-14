@@ -53,11 +53,32 @@ test('zonder eerder bezoek eindigt de Stroom na de laatste 24 uur (r5-stroom-ein
   // Een ongezien bericht van 30 uur oud maakt de lijst niet langer.
   const dertig = [item(1), item(30 * 60)]
   assert.equal(eindIndex(dertig, {}, NU), 1)
-  assert.deepEqual(grensVan(dertig, {}, NU), { id: 'i1', at: tijd(1) })
+  assert.deepEqual(grensVan(dertig, {}, NU), { id: 'i1', at: tijd(1), eerder: false })
   // Zag je de laatste dag helemaal, dan meteen "Je bent bij.", ook al staat er ouder ongezien nieuws onder.
   markeerGezien([item(1), item(60), item(23 * 60)], { local, now: NU })
   assert.equal(eindIndex(lang, leesGezien({ local, now: NU }), NU), 0)
   assert.equal(eindIndex([item(30 * 60)], {}, NU), 0, 'alleen ouder dan een dag: meteen "Je bent bij."')
+})
+
+test('"Hier was je gebleven" alleen als je onder de grens echt iets zag (tweede keuring)', () => {
+  // Verse opslag: onder de grens staat alleen nieuws ouder dan een dag. Daar was je nooit.
+  const lang = [item(1), item(60), item(23 * 60), item(25 * 60), item(30 * 60)]
+  const local = opslag(), session = opslag()
+  const vers = weergaveGrens('w', lang, { local, session, now: NU })
+  assert.equal(grensIndex(lang, vers), 3, 'er staat iets onder de grens')
+  assert.equal(vers.eerder, false, 'verse opslag: geen "Hier was je gebleven"')
+  // Je zag een bericht van de laatste dag, daarna kwam er nieuws bij: onder de grens staat iets dat je zag.
+  markeerGezien([item(23 * 60)], { local, now: NU })
+  const terug = weergaveGrens('w', lang, { local, session: opslag(), now: NU })
+  assert.equal(grensIndex(lang, terug), 2)
+  assert.equal(terug.eerder, true, 'wel "Hier was je gebleven"')
+  // Vastgelegd bij het vastzetten: verder lezen verandert de keuze niet.
+  markeerGezien(lang, { local, now: NU })
+  assert.equal(weergaveGrens('w', lang, { local, session, now: NU }).eerder, false)
+  // Een oude grens uit deze sessie (van voor deze keuze) heeft geen eerder: dan geen streep.
+  const s = readFileSync(new URL('../src/views/Stream.jsx', import.meta.url), 'utf8')
+  assert.match(s, /const eerder = !!grens\?\.eerder && bIdx < list\.length/)
+  assert.match(s, /\{eerder && older > 0 && index === bIdx && bIdx > 0 \?/, 'ook de streep in de lijst')
 })
 
 test('terugkerende lezer: wat je echt zag blijft gezien, tot de 36 uur van de Stroom voorbij zijn', () => {
@@ -80,7 +101,7 @@ test('de grens staat vast per weergave: niets beweegt terwijl je leest', () => {
   vergeetGrenzen({ session })
   assert.equal(session.getItem(GRENZEN_KEY), null)
   assert.equal(grensIndex(stroom, weergaveGrens('a', stroom, { local, session, now: NU })), 0)
-  assert.deepEqual(grensVan([], {}), { id: null, at: null })
+  assert.deepEqual(grensVan([], {}), { id: null, at: null, eerder: false })
 })
 
 test('de oude grens (één tijd, gezet bij het laden) wordt opgeruimd', () => {

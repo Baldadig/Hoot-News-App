@@ -104,7 +104,24 @@ import XCTest
         let alles = Dictionary(uniqueKeysWithValues: stroom.map { ($0.id, $0.date!) })
         XCTAssertEqual(volger.grens(key, items: stroom, gezien: alles), g, "je las alles, maar de lijst blijft staan")
         volger.vergeet()
-        XCTAssertEqual(volger.grens(key, items: stroom, gezien: alles), StroomEinde.Grens(id: nil, at: nil))
+        XCTAssertEqual(volger.grens(key, items: stroom, gezien: alles)?.id, nil)
+    }
+
+    // Tweede keuring: "Hier was je gebleven" alleen als je onder de grens echt iets zag. Verse opslag: nooit. Gelijk
+    // aan tests/stroom-einde.test.mjs.
+    func testHierWasJeGeblevenAlleenAlsJeIetsZag() {
+        let lang = [item(1), item(60), item(23 * 60), item(25 * 60), item(30 * 60)]
+        let volger = StroomVolger()
+        let key = StreamView.weergave("wetenschap", [])
+        let vers = volger.grens(key, items: lang, gezien: [:], now: now)!
+        XCTAssertEqual(StroomEinde.index(lang, grens: vers), 3, "er staat iets onder de grens")
+        XCTAssertFalse(vers.eerder, "verse opslag: geen \"Hier was je gebleven\"")
+        let zag = ["i1380": lang[2].date!]
+        XCTAssertEqual(volger.grens(key, items: lang, gezien: zag, now: now), vers, "vastgelegd: verder lezen verandert niets")
+        volger.vergeet()
+        let terug = volger.grens(key, items: lang, gezien: zag, now: now)!
+        XCTAssertEqual(StroomEinde.index(lang, grens: terug), 2)
+        XCTAssertTrue(terug.eerder, "wel \"Hier was je gebleven\"")
     }
 
     // Terugkerende lezer: wat je echt zag blijft gezien; de oude "tot hier"-tijd telt niet meer.

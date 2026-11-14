@@ -77,7 +77,8 @@ struct StreamView: View {
             let eindGrens = rub == "bubbel" ? nil : volger.grens(Self.weergave(rub, picks), items: items, gezien: store.streamGezien)
             let bIdx = eindGrens.map { StroomEinde.index(items, grens: $0) } ?? items.count
             let cap = StroomEinde.cap(count: items.count, grensIndex: bIdx, older: older)
-            let eerder = bIdx < items.count // daaronder staat wat je al zag
+            // "Hier was je gebleven" alleen als je onder de grens echt iets zag (vastgelegd met de grens).
+            let eerder = (eindGrens?.eerder ?? false) && bIdx < items.count
             ScrollViewReader { scroll in
             ScrollView {
                 VStack(spacing: 0) {
@@ -152,7 +153,7 @@ struct StreamView: View {
                             if items.isEmpty { quiet(rub, label: tabs.first { $0.id == rub }?.label, sources: sources) }
                             // De grens: daaronder heb je alles al gezien. In de lijst staat de streep pas als je
                             // ouder nieuws opende; anders staat hij bij het einde.
-                            let marker = older > 0 && bIdx > 0 && bIdx < cap
+                            let marker = eerder && older > 0 && bIdx > 0 && bIdx < cap
                             ForEach(Array(items.prefix(cap).enumerated()), id: \.element.id) { i, item in
                                 if marker && i == bIdx { SeenMarker() }
                                 Group {

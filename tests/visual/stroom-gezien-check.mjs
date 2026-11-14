@@ -7,7 +7,8 @@
 //   4. derde bezoek: Wetenschap is nu "Je bent bij." zonder ongeziene berichten (je staat weer op je plek),
 //      Alles toont nog wat je niet zag.
 // Daarbij (r5-stroom-einde): met verse opslag houdt elke weergave op na de laatste 24 uur. Wat ouder is, ligt
-// onder "Ouder nieuws tonen", ook als je het nog niet zag.
+// onder "Ouder nieuws tonen", ook als je het nog niet zag. En met verse opslag staat er nergens "Hier was je
+// gebleven" (tweede keuring).
 // Gebruik: node tests/visual/stroom-gezien-check.mjs [--stills <map>] [--fase voor|na]
 // Met --fase voor legt hij alleen vast (schermbeelden en meting), zonder te falen.
 import { spawn } from 'node:child_process'
@@ -55,7 +56,8 @@ const STAND = `(() => {
   const inBeeld = (el) => { const r = el.getBoundingClientRect(); return r.bottom > box.top && r.top < box.bottom }
   const bij = [...v.querySelectorAll('.listend')].find((el) => /Je bent bij/.test(el.textContent))
   const ouder = [...v.querySelectorAll('button')].find((b) => /Ouder nieuws tonen/.test(b.textContent))
-  return { endTop: bij ? Math.round(bij.getBoundingClientRect().top - box.top) : null, berichten: v.querySelectorAll('.list [data-id]').length, bij: !!bij, bijInBeeld: !!bij && inBeeld(bij), ouder: !!ouder, ouderInBeeld: !!ouder && inBeeld(ouder) }
+  const hier = [...v.querySelectorAll('.seen')].some((el) => /Hier was je gebleven/.test(el.textContent))
+  return { hier, endTop: bij ? Math.round(bij.getBoundingClientRect().top - box.top) : null, berichten: v.querySelectorAll('.list [data-id]').length, bij: !!bij, bijInBeeld: !!bij && inBeeld(bij), ouder: !!ouder, ouderInBeeld: !!ouder && inBeeld(ouder) }
 })()`
 
 async function wachtStand(tab, ms = Number(process.env.WACHT || 240000)) {
@@ -138,6 +140,9 @@ try {
   eis(uit.alles.berichten > 0, 'Alles toont berichten na alleen laden')
   eis(uit.wetenschap.berichten > 0 && !uit.wetenschap.bijInBeeld, 'Wetenschap toont berichten, niet meteen "Je bent bij."')
   eis(uit.bron.berichten > 0 && !uit.bron.bijInBeeld, 'een bron toont berichten, niet meteen "Je bent bij."')
+  // Tweede keuring: met verse opslag was je nergens, dus nergens "Hier was je gebleven" (ook niet boven het
+  // einde, als daaronder alleen nieuws ouder dan een dag ligt).
+  eis(!uit.alles.hier && !uit.wetenschap.hier && !uit.bron.hier, 'verse opslag: geen "Hier was je gebleven"')
 
   // 3. In Wetenschap echt lezen: scrollen tot het einde.
   uit.wetenschapVoorScrollen = await naar(b, '#/stroom?rubriek=wetenschap')
