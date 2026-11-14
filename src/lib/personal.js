@@ -14,7 +14,7 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
+import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, sameEventToMerge, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition } from '../../shared/editie-filter.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME, belgianSubject, localAbroad } from '../../netlify/lib/desks.mjs'
@@ -712,17 +712,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
     if (ids.some(x => finalTaken.has(x))) return
-    // Dezelfde gebeurtenis als een plek die er al staat (dezelfde kop-gebeurtenis, sameSubject, of hetzelfde cluster): geen
-    // tweede plek, en de stukken gaan bij die plek (persona's 14 november: één feit in twee verhalen, de Donbas-ruil op 02 en
-    // 05, het Amerikaanse vliegverbod op 04 en 06). Zo staat het verhaal één keer, met alle bronnen, en weet de volgende
-    // Editie dat beide helften er stonden.
+    // Dezelfde gebeurtenis als een plek die er al staat (sameEvent, of dezelfde kop-gebeurtenis zonder een gebeurtenis-woord
+    // als naam: sameEventToMerge): geen tweede plek, en de stukken gaan bij die plek (persona's 14 november: één feit in twee
+    // verhalen, de Donbas-ruil op 02 en 05, het Amerikaanse vliegverbod op 04 en 06). Zo staat het verhaal één keer, met alle
+    // bronnen, en weet de volgende Editie dat beide helften er stonden.
     const head = itemAny.get(id)
     const known = ids.map((x) => itemAny.get(x)).filter(Boolean)
-    // Alleen hetzelfde onderwerp (sameSubject zonder dezelfde gebeurtenis): geen tweede plek, maar ook niet samenvoegen.
-    const same = sigAll.has(id) ? finalLeads.findIndex(x => sigAll.has(x) && (sameEvent(sigAll.get(id), sigAll.get(x)) || sameHeadEventOf(sigAll, head, itemAny.get(x)))) : -1
-    const k = same >= 0 ? same : acceptedItems.findIndex((xs) => sameCluster(sigAll, known, xs))
-    if (k >= 0) return mergeInto(k, known.map((i) => i.id))
-    if (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return
+    const same = sigAll.has(id) ? finalLeads.findIndex(x => sigAll.has(x) && (sameEvent(sigAll.get(id), sigAll.get(x)) || sameEventToMerge(sigAll, head, itemAny.get(x)))) : -1
+    if (same >= 0) return mergeInto(same, known.map((i) => i.id))
+    // Alleen hetzelfde onderwerp (sameSubject, de ruimere kop-gebeurtenis of hetzelfde cluster, zonder dezelfde gebeurtenis):
+    // geen tweede plek, maar ook niet samenvoegen (keuring 14 november: één verkiezing is nog geen gebeurtenis).
+    if (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && (sameSubject(sigAll.get(id), sigAll.get(x)) || sameHeadEventOf(sigAll, head, itemAny.get(x))))) return
+    if (acceptedItems.some((xs) => sameCluster(sigAll, known, xs))) return
     const fam = famKey(e)
     if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return
     // Eén onderwerp hooguit TOPIC_MAX plekken (sameTopic), langs elke route.
@@ -780,15 +781,22 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Pas na hooguit tien gewone plekken: één optionele bubbel, met dezelfde inhouds- en dubbelgrenzen.
   if (bubbleEntry) { capacity = accepted.length + 1; accept(bubbleEntry) }
   // Uiteengevallen verhalen samenvoegen (persona's 14 november): een verhaal dat geen plek kreeg maar over dezelfde
-  // gebeurtenis gaat als een plek (dezelfde kop-gebeurtenis of hetzelfde cluster, binnen een dag), geeft zijn stukken aan
-  // die plek. Zo staat het feit één keer met al zijn bronnen, en komt de andere helft in het volgende dagdeel niet terug
-  // als nieuw (de vorige Editie kent dan beide helften).
+  // gebeurtenis gaat als een plek, binnen een dag, geeft zijn stukken aan die plek. Zo staat het feit één keer met al zijn
+  // bronnen, en komt de andere helft in het volgende dagdeel niet terug als nieuw (de vorige Editie kent dan beide helften).
+  // Dezelfde gebeurtenis: het leidende stuk van het verhaal en de kop van de plek (sameEvent of sameEventToMerge). Niet
+  // omdat een ander stuk aan een van beide kanten ergens op lijkt, en niet omdat de clusters elkaar raken (keuring 14
+  // november: een stuk over een Super PAC kwam zo bij "Trump verschijnt na de uitslag"; met alle stukken van de plek kwam
+  // "Recordaantal vervroegde stemmen" bij "De paus stemt"). Hetzelfde cluster blijft wel één plek.
   const placedStories = new Set(accepted.filter((e) => e.kind === 'story').map((e) => e.id))
   for (const st of stories) {
     if (placedStories.has(st.id) || !(now - Date.parse(st.latestAt) < 24 * 36e5)) continue
+    const lead = itemAny.get(st.leadId)
+    if (!lead || lead.kind === 'post' || finalTaken.has(lead.id) || !sigAll.has(lead.id)) continue
     const xs = st.itemIds.filter((x) => !finalTaken.has(x)).map((x) => itemAny.get(x)).filter((i) => i && i.kind !== 'post')
-    if (!xs.length) continue
-    const k = accepted.findIndex((e, j) => e.kind === 'story' && e.desk !== 'bubbel' && (xs.some((i) => sameHeadEventOf(sigAll, i, itemAny.get(e.leadId || e.id))) || sameCluster(sigAll, xs, acceptedItems[j])))
+    const k = accepted.findIndex((e) => {
+      const h = itemAny.get(e.leadId || e.id)
+      return e.kind === 'story' && e.desk !== 'bubbel' && !!h && sigAll.has(h.id) && (sameEvent(sigAll.get(lead.id), sigAll.get(h.id)) || sameEventToMerge(sigAll, lead, h))
+    })
     if (k >= 0) mergeInto(k, xs.map((i) => i.id))
   }
   entries = accepted

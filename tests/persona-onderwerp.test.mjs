@@ -6,7 +6,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
-import { signatures, sameTopic, sameEvent, sameHeadEventOf, TOPIC_MAX } from '../netlify/lib/stories.mjs'
+import { signatures, sameTopic, sameEvent, sameHeadEventOf, sameEventToMerge, TOPIC_MAX } from '../netlify/lib/stories.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { profileOf, personalParts, PLACE_HIT, GEO_NL } from '../shared/editor.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
@@ -98,4 +98,41 @@ test('kruisbonus: een plaats is geen tweede gebied; twee onderwerpen wel', () =>
   const world = profileOf({ interests: ['politiek', 'wereld'], followed: new Set(['nyt']), sources: SOURCES })
   const abroad = { id: 'w', kind: 'article', source: 'nyt', title: 'Iran talks stall as Vance visits Gulf allies', summary: 'The vice president met leaders in the Middle East.', topics: ['vs-politiek', 'middenoosten'], publishedAt: new Date(T0).toISOString() }
   assert.equal(personalParts([abroad], world, {}, { desk: 'middenoosten' }).cross, undefined, 'geen "Raakt Politiek én Wereld" voor politiek in een werelddeel')
+})
+
+// Keuring 14 november: samenvoegen alleen bij dezelfde gebeurtenis. Hetzelfde onderwerp of cluster geeft geen tweede plek,
+// maar ook geen samenvoeging. Een gedeelde naam die zelf een gebeurtenis-woord is (een verkiezing in een kop in titelkast)
+// is geen handelende partij.
+const loadFeed = (f) => JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/${f}.json.gz`, import.meta.url))).toString('utf8'))
+const grownOf = (feed, r) => {
+  const now = Date.parse(feed.edition.builtAt)
+  const byId = new Map([...(feed.related || []), ...feed.items, ...feed.edition.items].map((i) => [i.id, i]))
+  const storyById = new Map(feed.stories.map((s) => [s.id, s]))
+  const ed = composePersonal({ global: feed.edition, stories: feed.stories, items: feed.items, sources: feed.sources, followed: new Set(r.followed), interests: r.interests, topics: r.topics, now, builtAt: feed.edition.builtAt })
+  const base = (e) => new Set([...(storyById.get(e.id)?.itemIds || []), ...(feed.edition.entries.find((g) => g.id === e.id)?.itemIds || []), e.leadId])
+  return ed.entries.filter((e) => e.kind === 'story').map((e) => ({ head: byId.get(e.leadId || e.id)?.title || '', extra: e.itemIds.filter((x) => !base(e).has(x)).map((x) => byId.get(x)?.title || '') }))
+}
+
+test('samenvoegen: een gedeelde verkiezing is geen gebeurtenis (sameEventToMerge)', () => {
+  const a = art('a', 'Trump Emerges After the Midterms: ‘Did You Guys See the Helipad?’', '', 0, 'nyt')
+  const b = art('b', 'The Biggest Pro-AI Super PAC Network Didn’t Really Impact the Midterms', '', 1, 'wired')
+  const c = art('c', 'Stafchef Witte Huis weg, Trump kiest hardliner Stephen Miller als opvolger', '', 0, 'nos')
+  const d = art('d', 'Na de verkiezingsnederlaag vervangt Trump stafchef Wiles door Miller', '', 1, 'volkskrant')
+  const sig = signatures([a, b, c, d])
+  assert.ok(!sameEventToMerge(sig, a, b), 'twee feiten rond één verkiezing')
+  assert.ok(sameEventToMerge(sig, c, d), 'dezelfde wissel van stafchef')
+})
+
+test('samenvoegen op bewaarde feeds: verkeerde paren niet, goede paren wel', () => {
+  const byIdR = new Map(READERS.map((r) => [r.id, r]))
+  // Fout: Helipad krijgt het Super PAC-stuk erbij (5 november ochtend, Maarten en de lezer met Politiek).
+  for (const id of ['maarten', 'politiek']) {
+    const helipad = grownOf(loadFeed('feed-2026-11-05-ochtend'), byIdR.get(id)).find((e) => /Helipad/.test(e.head))
+    if (helipad) assert.ok(!helipad.extra.some((t) => /Super PAC/.test(t)), `${id}: ${helipad.extra.join(' | ')}`)
+  }
+  // Goed: de vertrekkende stafchef bij de nieuwe (7 november) en Binance in twee talen (4 november).
+  const miller = grownOf(loadFeed('live-feed-2026-11-07'), byIdR.get('henk')).find((e) => /Miller/.test(e.head))
+  assert.ok(miller?.extra.some((t) => /Wiles/.test(t)), 'Wiles bij Miller')
+  const binance = grownOf(loadFeed('live-feed-2026-11-04'), byIdR.get('priya')).find((e) => /Binance/.test(e.head))
+  assert.ok(binance?.extra.length >= 1, 'Binance in twee talen')
 })

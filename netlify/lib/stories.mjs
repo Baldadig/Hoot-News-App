@@ -651,6 +651,12 @@ const topicStems = (words) => {
 // Dezelfde gebeurtenis in de koppen van twee stukken (sameHeadEvent op alleen de kop, met de woordenschat van `sig`): voor
 // wie na de selectie plekken samenvoegt (composePersonal).
 export const sameHeadEventOf = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(headSignature(sig, x), headSignature(sig, y))
+// Dezelfde gebeurtenis om twee plekken samen te voegen (keuring persona's 14 november): strenger dan sameHeadEventOf. Een
+// gedeelde naam die zelf een gebeurtenis-woord is (een verkiezing in een kop in titelkast) is geen handelende partij: twee
+// stukken over één verkiezing met een ander feit ("Trump verschijnt na de uitslag" en "Super PAC had weinig effect") zijn
+// één onderwerp, geen gebeurtenis. Alleen voor het samenvoegen; de algemene Editie houdt sameHeadEvent.
+const withoutConceptNames = (h) => h && { ...h, strong: new Set([...h.strong].filter((k) => !conceptWord(k))), known: new Set([...h.known].filter((k) => !conceptWord(k))) }
+export const sameEventToMerge = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(withoutConceptNames(headSignature(sig, x)), withoutConceptNames(headSignature(sig, y)))
 export function sameTopic(sig, x, y) {
   const a = x && sig.get(x.id)
   const b = y && sig.get(y.id)

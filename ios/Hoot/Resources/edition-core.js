@@ -3101,6 +3101,8 @@ var HootCore = (() => {
     return { head, tail };
   };
   var sameHeadEventOf = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(headSignature(sig, x), headSignature(sig, y));
+  var withoutConceptNames = (h) => h && { ...h, strong: new Set([...h.strong].filter((k) => !conceptWord(k))), known: new Set([...h.known].filter((k) => !conceptWord(k))) };
+  var sameEventToMerge = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(withoutConceptNames(headSignature(sig, x)), withoutConceptNames(headSignature(sig, y)));
   function sameTopic(sig, x, y) {
     const a = x && sig.get(x.id);
     const b = y && sig.get(y.id);
@@ -4646,10 +4648,10 @@ var HootCore = (() => {
       if (ids.some((x) => finalTaken.has(x))) return;
       const head = itemAny.get(id);
       const known2 = ids.map((x) => itemAny.get(x)).filter(Boolean);
-      const same = sigAll.has(id) ? finalLeads.findIndex((x) => sigAll.has(x) && (sameEvent(sigAll.get(id), sigAll.get(x)) || sameHeadEventOf(sigAll, head, itemAny.get(x)))) : -1;
-      const k = same >= 0 ? same : acceptedItems.findIndex((xs) => sameCluster(sigAll, known2, xs));
-      if (k >= 0) return mergeInto(k, known2.map((i) => i.id));
-      if (sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
+      const same = sigAll.has(id) ? finalLeads.findIndex((x) => sigAll.has(x) && (sameEvent(sigAll.get(id), sigAll.get(x)) || sameEventToMerge(sigAll, head, itemAny.get(x)))) : -1;
+      if (same >= 0) return mergeInto(same, known2.map((i) => i.id));
+      if (sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && (sameSubject(sigAll.get(id), sigAll.get(x)) || sameHeadEventOf(sigAll, head, itemAny.get(x))))) return;
+      if (acceptedItems.some((xs) => sameCluster(sigAll, known2, xs))) return;
       const fam = famKey(e);
       if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return;
       if (head && finalLeads.filter((x) => sameTopic(sigAll, head, itemAny.get(x))).length >= TOPIC_MAX) return;
@@ -4702,9 +4704,13 @@ var HootCore = (() => {
     const placedStories = new Set(accepted.filter((e) => e.kind === "story").map((e) => e.id));
     for (const st of stories) {
       if (placedStories.has(st.id) || !(now - Date.parse(st.latestAt) < 24 * 36e5)) continue;
+      const lead = itemAny.get(st.leadId);
+      if (!lead || lead.kind === "post" || finalTaken.has(lead.id) || !sigAll.has(lead.id)) continue;
       const xs = st.itemIds.filter((x) => !finalTaken.has(x)).map((x) => itemAny.get(x)).filter((i) => i && i.kind !== "post");
-      if (!xs.length) continue;
-      const k = accepted.findIndex((e, j) => e.kind === "story" && e.desk !== "bubbel" && (xs.some((i) => sameHeadEventOf(sigAll, i, itemAny.get(e.leadId || e.id))) || sameCluster(sigAll, xs, acceptedItems[j])));
+      const k = accepted.findIndex((e) => {
+        const h = itemAny.get(e.leadId || e.id);
+        return e.kind === "story" && e.desk !== "bubbel" && !!h && sigAll.has(h.id) && (sameEvent(sigAll.get(lead.id), sigAll.get(h.id)) || sameEventToMerge(sigAll, lead, h));
+      });
       if (k >= 0) mergeInto(k, xs.map((i) => i.id));
     }
     entries = accepted;
