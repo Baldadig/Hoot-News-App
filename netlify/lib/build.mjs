@@ -66,7 +66,7 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
   const profiles = handles.length === 0 ? Promise.resolve({}) : remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
   // De hele feed per bron; daaruit twee lijsten (shared/stroom.mjs).
-  // Binnen de tijd (fetchSources): een trage bron houdt de rest niet op; wat hij later brengt, bewaart late() aan het eind.
+  // Binnen de tijd (fetchSources): een trage bron houdt de rest niet op; wat hij later brengt, bewaart late() naast het wegschrijven (refresh.mjs).
   const [{ fetched, late }, bskyGroups, registry, stored] = await Promise.all([
     fetchSources(SOURCES, avatars, { now }),
     settle(BLUESKY_AUTHORS, (a) => loadBluesky(a, now)),
@@ -157,8 +157,6 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   for (const it of out) (parts[it.source] ||= []).push(it)
   const storyItems = out.filter((i) => i.storyId)
   const blokken = await verschillen
-  // Wat een trage bron (fetchSources) intussen bracht, voor de volgende ronde. Mislukt het, dan niets.
-  await late().catch(() => 0)
   return {
     sources: sourceList({ mainGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
     items: out.filter(inStroom),
@@ -173,6 +171,9 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
     // De id's die de AI zeker als aanbieding of aankondiging zag (netlify/lib/editie-ai.mjs): /api/edition rekent er
     // de persoonlijke Edities mee, zodat algemeen en persoonlijk dezelfde oordelen volgen. Het toestel negeert dit.
     editionFilter: { weg: [...ai.weg].sort() },
+    // Niet voor de app: wat een trage bron (fetchSources) intussen bracht, voor de volgende ronde. refresh.mjs haalt het
+    // eruit en laat het naast het eigen wegschrijven lopen, zodat het wegschrijven nooit op een trage bron wacht.
+    late: () => late().catch(() => 0),
     meta: {
       updatedAt: new Date(now).toISOString(),
       storage: storageMode(),
@@ -193,22 +194,33 @@ const settle = async (list, load) =>
 //   klaar is, telt als niet aan de beurt (`skipped`). De Stroom houdt zijn berichten (stream.mjs, mergeStream);
 // - een trage bron (`timeoutMs` boven de standaard, rss.mjs slowSource) houdt de ronde niet op: zijn verzoek loopt naast
 //   de rest. Is hij klaar als de gewone bronnen klaar zijn, dan telt hij meteen; anders telt zijn laatste geslaagde lading
-//   (LATE_KEY, hooguit LATE_KEEP oud), en `late()` bewaart aan het eind van de ronde wat er intussen binnenkwam, voor de
-//   volgende ronde. Op een trage bron wacht de ronde nooit langer dan tot LATE_MS na de start.
+//   (LATE_KEY, hooguit LATE_KEEP oud), en `late()` bewaart wat er intussen binnenkwam, voor de volgende ronde. late()
+//   loopt naast het wegschrijven van de feed (refresh.mjs), nooit ervoor, en wacht nooit langer dan tot LATE_MS na de
+//   start: dan blijft er na de ronde ruim tijd over tot de 15 s van de planner (gemeten bij WaPo: 8 tot 10,6 s);
+// - late() bewaart de lading zoals hij binnenkwam (een kopie op dat moment), zonder wat de ronde er daarna aan hing
+//   (storyId, firstSeenAt, een geleend beeld): net als storeOf (stream.mjs).
 export const FETCH_MS = 10000
-export const LATE_MS = 14000
+export const LATE_MS = 11000
 export const LATE_KEEP = 3 * 60 * MIN
 export const LATE_KEY = 'feed-traag-v1'
+// Een bericht zoals we het bewaren: een eigen kopie, zonder wat bij één ronde hoort (storeOf, stream.mjs) en zonder een
+// beeld dat van een andere bron geleend is (imageFrom).
+const storedItem = (it) => {
+  const { storyId, firstSeenAt, imageFrom, ...rest } = structuredClone(it)
+  if (imageFrom) delete rest.image
+  return rest
+}
 const failed = (s, e) => ({ id: s.id, name: s.name, ok: false, count: 0, items: [], error: String(e?.message || e) })
 export async function fetchSources(list, avatars, { start = Date.now(), now = start, load = loadSourceWithRetry, get = kvGet, set = kvSet, fetchMs = FETCH_MS, lateMs = LATE_MS, keepMs = LATE_KEEP } = {}) {
   const slow = list.filter(slowSource)
   const regular = list.filter((s) => !slowSource(s))
   const ready = new Map()
+  const arrived = new Map() // per trage bron de lading zoals hij binnenkwam, voordat de ronde er iets aan hangt
   const slowRuns = slow.map((s) =>
     Promise.resolve()
       .then(() => load(s, avatars, { limit: Infinity, deadline: start + lateMs }))
       .catch((e) => failed(s, e))
-      .then((r) => (ready.set(s.id, r), r)),
+      .then((r) => (r?.ok && Array.isArray(r.items) && arrived.set(s.id, r.items.map(storedItem)), ready.set(s.id, r), r)),
   )
   const cacheP = slow.length ? Promise.resolve().then(() => get(LATE_KEY)).catch(() => null) : Promise.resolve(null)
   const deadline = start + fetchMs
@@ -231,11 +243,11 @@ export async function fetchSources(list, avatars, { start = Date.now(), now = st
     let t
     await Promise.race([Promise.all(slowRuns), new Promise((r) => (t = setTimeout(r, Math.max(0, start + lateMs - Date.now()))))])
     clearTimeout(t)
-    const good = slow.map((s) => ready.get(s.id)).filter((r) => r?.ok && r.items.length)
+    const good = slow.map((s) => ready.get(s.id)).filter((r) => r?.ok && arrived.get(r.id)?.length)
     if (!good.length) return 0
     const at = now // de tijd van de ronde, net als fromCache
     const next = Object.fromEntries(Object.entries(cache).filter(([id, c]) => slow.some((s) => s.id === id) && at - (c?.at || 0) <= keepMs))
-    for (const r of good) next[r.id] = { at, used: r.used || null, items: r.items }
+    for (const r of good) next[r.id] = { at, used: r.used || null, items: arrived.get(r.id) }
     await set(LATE_KEY, next)
     return good.length
   }

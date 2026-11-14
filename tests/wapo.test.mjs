@@ -10,7 +10,8 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { SOURCES, MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { feedTimeout, slowSource, loadSource, FEED_TIMEOUT, FEED_TIMEOUT_MAX } from '../netlify/lib/rss.mjs'
-import { fetchSources, LATE_KEY, LATE_MS, FETCH_MS, matchCard, imagesFromBluesky, BSKY_IMAGES_KEY, wantsArticleImage } from '../netlify/lib/build.mjs'
+import { fetchSources, buildFeed, LATE_KEY, LATE_MS, FETCH_MS, matchCard, imagesFromBluesky, BSKY_IMAGES_KEY, wantsArticleImage } from '../netlify/lib/build.mjs'
+import { refresh } from '../netlify/lib/refresh.mjs'
 import { cardsOf, loadBskyCards } from '../netlify/lib/lookups.mjs'
 import { publisherOf, publisherCountry, coverageOf, internationalNews, COUNTRY_MAX } from '../shared/edition-policy.mjs'
 import { opinieBron } from '../shared/opinie.mjs'
@@ -122,6 +123,67 @@ test('fetchSources: de trage bron krijgt de eindtijd LATE_MS mee, de gewone FETC
   await late()
   assert.equal(seen.g, start + FETCH_MS)
   assert.equal(seen.t, start + LATE_MS)
+})
+
+// Herstel na de keuring: late() hield het wegschrijven op (buildFeed wachtte erop, tot 14 s na de start).
+test('late() wacht hooguit tot 11 s na de start, boven de gemeten 10,6 s van WaPo', () => {
+  assert.ok(LATE_MS <= 11000 && LATE_MS > 10600, String(LATE_MS))
+  assert.ok(FETCH_MS < LATE_MS)
+})
+
+test('trage bron hangt, dan begint het wegschrijven vóór 11 s (refresh laat late() ernaast lopen)', async () => {
+  // Op schaal: 1 s hier is 10 s in het echt (FETCH_MS 100, late() hooguit 1100).
+  const gewoon = { id: 'g', name: 'G', urls: ['https://g/feed'] }
+  const traag = { id: 'traag', name: 'Traag', urls: ['https://t/feed'], timeoutMs: 14000 }
+  const load = async (s) => (s.id === 'traag' ? new Promise(() => {}) : wait(30, ok(s, 2)))
+  const kv = memory()
+  const t = Date.now()
+  let lateDone = null
+  const build = async () => {
+    const { fetched, late } = await fetchSources([gewoon, traag], null, { load, get: kv.get, set: kv.set, fetchMs: 100, lateMs: 1100 })
+    return { parts: { g: fetched[0].items }, items: [], archive: null, sources: [], edition: { id: 'e' }, meta: {}, late: () => late().then((n) => ((lateDone = Date.now() - t), n)) }
+  }
+  const writes = []
+  await refresh({ build, read: async () => null, write: async (k) => void writes.push([k, Date.now() - t]) })
+  assert.ok(writes.length > 0)
+  assert.ok(writes[0][1] < 300, `het wegschrijven begon na ${writes[0][1]} ms (op schaal), niet pas na late()`)
+  assert.ok(writes.every(([, ms]) => ms < 1100), 'alles weggeschreven vóór de grens van late()')
+  assert.ok(lateDone >= 1000 && lateDone < 1400, `late() hield op bij de grens (${lateDone} ms) en refresh wachtte daar wel op`)
+})
+
+test('buildFeed wacht niet op late(): met een trage bron die niet antwoordt is de feed er ruim vóór LATE_MS', async () => {
+  const real = globalThis.fetch
+  globalThis.fetch = async (input) => {
+    const url = typeof input === 'string' ? input : input.url
+    return /washingtonpost\.com\/rss/.test(url) ? new Promise(() => {}) : new Response('', { status: 404 })
+  }
+  try {
+    const t = Date.now()
+    const feed = await buildFeed({ now: t })
+    assert.ok(Date.now() - t < LATE_MS - 1000, `buildFeed duurde ${Date.now() - t} ms`)
+    assert.equal(typeof feed.late, 'function', 'refresh.mjs laat late() naast het wegschrijven lopen')
+    assert.equal(feed.sources.find((s) => s.id === 'wapo')?.ok ?? false, false)
+  } finally {
+    globalThis.fetch = real
+  }
+})
+
+test('late() bewaart de lading zoals hij binnenkwam: zonder storyId, firstSeenAt en een geleend beeld', async () => {
+  const traag = { id: 'traag', name: 'Traag', urls: ['https://t/feed'], timeoutMs: 14000 }
+  const item = (k) => ({ id: 'traag' + k, source: 'traag', title: 't' + k, publishedAt: new Date(Date.now() - 40 * 36e5).toISOString(), meta: { a: 1 } })
+  const load = async (s) => ({ id: s.id, name: s.name, ok: true, used: 'https://t/feed', count: 2, items: [item(0), item(1)] })
+  const kv = memory()
+  const { fetched, late } = await fetchSources([traag], null, { load, get: kv.get, set: kv.set, fetchMs: 1000, lateMs: 1000 })
+  // De ronde hangt er intussen van alles aan, ook aan stukken ouder dan 36 uur (de verhalen, de registry, een geleend beeld).
+  const [a, b] = fetched[0].items
+  Object.assign(a, { storyId: 's1', firstSeenAt: 123, image: 'https://ander/beeld.jpg', imageFrom: 'Ander' })
+  Object.assign(b, { storyId: 's2' })
+  b.meta.a = 2
+  assert.equal(await late(), 1)
+  const kept = kv.m.get(LATE_KEY).traag.items
+  assert.deepEqual(kept, [item(0), item(1)].map(({ publishedAt, ...it }) => ({ ...it, publishedAt: kept[0].publishedAt })))
+  for (const it of kept) for (const k of ['storyId', 'firstSeenAt', 'imageFrom', 'image']) assert.ok(!(k in it), k)
+  assert.equal(kept[1].meta.a, 1, 'een eigen kopie')
 })
 
 // ---------- 2. Beeld via de eigen Bluesky-kaarten ----------
