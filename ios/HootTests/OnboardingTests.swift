@@ -162,7 +162,7 @@ final class OnboardingTests: XCTestCase {
     // Tweede keuring onboarding (keuze Alex, 14 november): de filters Aanbevolen en Gevolgd en de Selectie-uitklapper
     // tonen alleen bij opnieuw kiezen na een echte keuze. De eerste keer, ook via "Maak Hoot van jou" na meteen lezen
     // (onCancel, browsing), is er één lijst. Gelijk aan `reopen && !prefs.browsing` in Welcome.jsx.
-    func testFiltersEnUitklapperAlleenNaEenEchteKeuze() {
+    @MainActor func testFiltersEnUitklapperAlleenNaEenEchteKeuze() {
         XCTAssertTrue(WelcomeView.eerderGekozen(reopen: true, browsing: false), "opnieuw kiezen vanuit Instellingen")
         XCTAssertFalse(WelcomeView.eerderGekozen(reopen: false, browsing: false), "het eerste welkom")
         XCTAssertFalse(WelcomeView.eerderGekozen(reopen: false, browsing: true), "Maak Hoot van jou na meteen lezen")
