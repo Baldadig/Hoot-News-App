@@ -453,31 +453,57 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
 const SMALL_WP = /-(\d{2,3})x\d{2,4}\.(jpe?g|png|webp)(\?|$)/i
 export const wantsOgImage = (it) => !it.ogTried && (!it.image || (SMALL_WP.test(it.image) && Number(it.image.match(SMALL_WP)[1]) < 600))
 // Per ronde hooguit `max` stukken: eerst wat in de digest staat (`first`), dan de nieuwste;
-// elk stuk één keer proberen.
-export async function addOgImages(pool, { max = 24, first = new Set(), load = loadOgImage } = {}) {
+// elk stuk één keer proberen. Na `deadline` (ms sinds 1970) begint er geen nieuw groepje meer, en wacht elk beeld
+// hooguit tot die eindtijd: wat niet aan de beurt kwam, blijft voor de volgende ronde (B13).
+export async function addOgImages(pool, { max = 24, first = new Set(), load = loadOgImage, deadline = Infinity } = {}) {
   const todo = pool
     .filter(wantsOgImage)
     .sort((a, b) => first.has(b.id) - first.has(a.id) || (a.publishedAt < b.publishedAt ? 1 : -1))
     .slice(0, max)
+  let tried = 0
   for (let i = 0; i < todo.length; i += 6) {
+    const left = deadline - Date.now()
+    if (left < 1000) break
+    const batch = todo.slice(i, i + 6)
+    tried += batch.length
     await Promise.all(
-      todo.slice(i, i + 6).map(async (it) => {
-        const img = await load(it.url)
+      batch.map(async (it) => {
+        const img = await load(it.url, Number.isFinite(left) ? { timeout: Math.min(6000, left) } : undefined)
         if (img) it.image = img
         it.ogTried = true
       }),
     )
   }
-  return todo.length
+  return tried
 }
 
 // ---- Ophalen en bewaren ----
 const KEEP_DAYS = 16
-export async function loadVakItems(sources = VAK_SOURCES) {
+// Hooguit `concurrency` feeds tegelijk, en na `deadline` (ms sinds 1970) begint er geen nieuwe meer en wachten we niet
+// langer: wat dan nog niet klaar is, telt als niet geprobeerd (`skipped`) en niet als mislukt (B13: een ronde die de
+// tijdgrens van de functie haalt niet, schrijft niets weg). `load`: alleen voor toetsen.
+export const VAK_CONCURRENCY = 24
+export async function loadVakItems(sources = VAK_SOURCES, { concurrency = VAK_CONCURRENCY, deadline = Infinity, load = loadSourceWithRetry } = {}) {
   // Het merkbeeld (13 november 2026): `logo` of `x` neemt loadSource zelf; een `bsky`-profielbeeld vragen we hier op.
   const withBsky = sources.filter((s) => s.bsky && !s.logo)
   const avatars = withBsky.length ? loadSourceAvatars(withBsky).catch(() => ({})) : Promise.resolve({})
-  const results = await Promise.all(sources.map((s) => loadSourceWithRetry(s, avatars)))
+  const opts = Number.isFinite(deadline) ? { deadline } : {}
+  const done = new Array(sources.length).fill(null)
+  let next = 0
+  const worker = async () => {
+    while (next < sources.length && Date.now() < deadline) {
+      const k = next++
+      done[k] = await load(sources[k], avatars, opts)
+    }
+  }
+  const workers = Promise.all(Array.from({ length: Math.min(concurrency, sources.length) }, worker))
+  if (Number.isFinite(deadline)) {
+    let timer
+    await Promise.race([workers, new Promise((r) => (timer = setTimeout(r, Math.max(0, deadline - Date.now()))))])
+    clearTimeout(timer)
+  } else await workers
+  const skipped = (s) => ({ id: s.id, name: s.name, ok: false, skipped: true, count: 0, items: [] })
+  const results = sources.map((s, k) => done[k] || skipped(s))
   const newest = (r) => r.items.reduce((m, i) => (i.publishedAt && i.publishedAt > m ? i.publishedAt : m), '') || null
   // Alleen wat bij een onderwerp past en om te lezen is: brede bronnen (een krant, een
   // rubrieksfeed) leveren veel meer dan we bewaren willen.
@@ -487,22 +513,34 @@ export async function loadVakItems(sources = VAK_SOURCES) {
   // De artikeltekst en rubrieken hebben we hier niet nodig; mediaType, feedMark en podcastEpisode blijven (hardMark
   // kijkt er in composeVak opnieuw naar).
   const slim = ({ text, cats, ...it }) => it
-  return { items: results.flatMap((r) => r.items).filter(keep).map(slim), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count, newest: newest(r) })) }
+  return { items: results.flatMap((r) => r.items).filter(keep).map(slim), status: results.map((r) => (r.skipped ? { id: r.id, skipped: true } : { id: r.id, ok: r.ok, count: r.count, newest: newest(r), ...(r.ok ? {} : { error: r.error || null, refused: !!r.refused }) })) }
 }
 
-// ---- Gezondheid: elke week nagelopen ----
+// ---- Gezondheid: elk uur bijgehouden ----
 // Een bron die een week lang niet laadt, of al twee maanden niets nieuws plaatst, gaat op pauze:
-// dan halen we hem niet meer elk uur op. Op maandagochtend (vóór de nieuwe Selectie) proberen we
-// alle bronnen opnieuw, ook die op pauze: wie weer werkt, doet weer mee.
+// dan halen we hem niet meer elk uur op. Elk uur proberen we er een paar opnieuw (RETRY_PER_HOUR, de
+// langst niet geprobeerde eerst): wie weer werkt, doet weer mee. De reden van de laatste mislukking
+// bewaren we (`lastError`), en een bron die ons weigert (401, 403, 429, een botcontrole) heet 'geweigerd'
+// in plaats van 'kapot' (B13, nachttest 14 november).
 const BROKEN_DAYS = 7
 const SILENT_DAYS = 60
+// Een foutmelding op één regel en kort (de parser geeft er soms vier regels).
+export const oneLine = (e) => String(e || 'onbekend').replace(/\s+/g, ' ').trim().slice(0, 200)
 export function updateHealth(health = {}, status = [], now = Date.now()) {
   const at = new Date(now).toISOString()
   const out = { ...health }
   for (const r of status) {
+    if (r.skipped) continue // niet aan de beurt gekomen: geen oordeel
     const h = { ...(out[r.id] || { since: at }) }
-    if (r.ok) h.lastOk = at
-    else h.lastFail = at
+    if (r.ok) {
+      h.lastOk = at
+      delete h.refused
+    } else {
+      h.lastFail = at
+      h.lastError = oneLine(r.error)
+      h.lastErrorAt = at
+      h.refused = !!r.refused
+    }
     if (r.newest && (!h.newest || r.newest > h.newest)) h.newest = r.newest
     out[r.id] = h
   }
@@ -511,29 +549,42 @@ export function updateHealth(health = {}, status = [], now = Date.now()) {
 export function healthOf(h, now = Date.now()) {
   if (!h) return 'nieuw'
   const days = (iso) => (iso ? (now - Date.parse(iso)) / 864e5 : Infinity)
-  if (days(h.lastOk) > BROKEN_DAYS && days(h.since) > BROKEN_DAYS) return 'kapot'
+  if (days(h.lastOk) > BROKEN_DAYS && days(h.since) > BROKEN_DAYS) return h.refused ? 'geweigerd' : 'kapot'
   if (days(h.newest) > SILENT_DAYS && days(h.since) > BROKEN_DAYS) return 'stil'
   return 'ok'
 }
-// Welke bronnen we deze ronde ophalen: alles op maandag tussen 05:00 en 07:00 (Amsterdam), en
-// anders wat niet op pauze staat, om het uur de ene of de andere helft (een feed bewaart dagen,
-// en zo blijft één ronde ruim binnen de tijd van een geplande functie).
+// Welke bronnen we deze ronde ophalen: wat niet op pauze staat, om het uur de ene of de andere helft (een feed bewaart
+// dagen, en zo blijft één ronde ruim binnen de tijd van een geplande functie), plus hooguit RETRY_PER_HOUR bronnen op
+// pauze, de langst niet geprobeerde eerst. Die staan vooraan, zodat ze ook in een krappe ronde aan de beurt komen.
+// Vroeger kwamen ze alleen op maandagochtend terug, samen met alle bronnen tegelijk; die ronde haalde de tijdgrens niet
+// en schreef niets weg, zodat een tijdelijke fout een blijvende pauze werd (B13).
 // Gezond: wat we ophalen en wat het weekoverzicht als gezond telt. Een nieuwe bron heeft nog geen oordeel en telt mee.
 const GEZOND = ['ok', 'nieuw']
+export const RETRY_PER_HOUR = 10
 const half = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2
-export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURCES, { split = sources.length > 150 } = {}) {
+const lastTry = (h) => [h?.lastOk, h?.lastFail, h?.since].filter(Boolean).sort().pop() || ''
+export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURCES, { split = sources.length > 150, retry = RETRY_PER_HOUR } = {}) {
   const p = Object.fromEntries(AMS.formatToParts(new Date(now)).map((x) => [x.type, x.value]))
-  if (p.weekday === 'Mon' && Number(p.hour) >= 5 && Number(p.hour) < 7) return sources
-  return sources.filter((s) => GEZOND.includes(healthOf(health[s.id], now)) && (!split || half(s.id) === Number(p.hour) % 2))
+  const healthy = sources.filter((s) => GEZOND.includes(healthOf(health[s.id], now)))
+  const paused = sources
+    .filter((s) => !healthy.includes(s))
+    .map((s, k) => [s, lastTry(health[s.id]), k])
+    .sort(([, a, ka], [, b, kb]) => (a < b ? -1 : a > b ? 1 : ka - kb))
+    .slice(0, retry)
+    .map(([s]) => s)
+  return [...paused, ...healthy.filter((s) => !split || half(s.id) === Number(p.hour) % 2)]
 }
 // Het weekoverzicht: per onderwerp hoeveel bronnen gezond zijn, en welke op pauze staan.
 export function healthReport(health = {}, now = Date.now(), sources = VAK_SOURCES) {
-  const rows = sources.map((s) => ({ id: s.id, name: s.name, fields: s.fields, url: s.urls[0], state: healthOf(health[s.id], now), lastOk: health[s.id]?.lastOk || null, newest: health[s.id]?.newest || null }))
+  const rows = sources.map((s) => {
+    const h = health[s.id]
+    return { id: s.id, name: s.name, fields: s.fields, url: s.urls[0], state: healthOf(h, now), lastOk: h?.lastOk || null, newest: h?.newest || null, lastError: h?.lastError || null, lastErrorAt: h?.lastErrorAt || null }
+  })
   const fields = VAK_FIELDS.map((f) => {
     const mine = rows.filter((r) => r.fields.includes(f.id))
     return { id: f.id, label: f.label, sources: mine.length, healthy: mine.filter((r) => GEZOND.includes(r.state)).length }
   }).filter((f) => f.sources)
-  return { at: new Date(now).toISOString(), fields, paused: rows.filter((r) => r.state === 'kapot' || r.state === 'stil') }
+  return { at: new Date(now).toISOString(), fields, paused: rows.filter((r) => !GEZOND.includes(r.state)) }
 }
 
 // Nieuwe stukken bij de voorraad; wat ouder is dan 16 dagen valt eruit. Per bron hooguit de

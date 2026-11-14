@@ -1,5 +1,6 @@
 // GET /api/vak-bronnen — het weekoverzicht van de bronnen van de Selectie: per onderwerp hoeveel
-// bronnen gezond zijn, en welke op pauze staan (kapot of al twee maanden stil). Geen gegevens van
+// bronnen gezond zijn, en welke op pauze staan (kapot, geweigerd of al twee maanden stil), met de
+// reden van de laatste mislukking (lastError). Geen gegevens van
 // gebruikers; alleen de stand van de bronnen.
 import { kvGet, KEYS } from '../lib/kv.mjs'
 import { healthReport } from '../lib/vak.mjs'
