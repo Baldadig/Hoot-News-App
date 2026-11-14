@@ -255,14 +255,15 @@ test('keuring 1. de kop zelf: één gedeelde naam die alleen het kader is (een c
   const xavi = d.items.find((i) => zidane.itemIds.includes(i.id) && /^Xavi rekent op fitte Brobbey/.test(i.title))
   const r2 = koppel({ stories: [{ ...zidane, leadId: xavi.id }], byId, episodes: EPS.filter((e) => e.t <= now), now, mainIds: MAIN_IDS })
   assert.notEqual(r2.rows.afgevallen.find((a) => /#580/.test(a.aflevering))?.reden, 'de kop zelf deelt alleen het kader met de aflevering (niet de eerste naam van de kop, geen naam uit de titel)')
-  // De goede koppelingen blijven: de eerste naam van de kop ("Trump gives Scott Colom …": Scott Colom) of de enige
-  // ("Jensen Huang and the decline …") staat in de aflevering.
+  // De goede koppelingen van de woordregels blijven: de eerste naam van de kop ("Trump gives Scott Colom …": Scott Colom) of
+  // de enige ("Jensen Huang and the decline …") staat in de aflevering. (Sinds het herstel van 14 november koppelt The Daily
+  // daar niet meer: die aflevering zegt dat het vertrek pas na de opname bekend werd.)
   const xnow = Date.parse(X.now)
   const xr = koppel({ stories: X.stories, byId: new Map(X.items.map((i) => [i.id, i])), episodes: X.episodes, now: xnow, mainIds: MAIN_IDS })
   const kop = (re) => X.stories.find((s) => re.test(X.items.find((i) => i.id === s.leadId)?.title || ''))
   assert.equal(xr.byStory.get(kop(/Scott Colom/).id)?.showId, 'today-in-focus')
-  assert.equal(xr.byStory.get(kop(/decline of the visionary/).id)?.showId, 'the-daily')
-  assert.ok(xr.byStory.get(kop(/decline of the visionary/).id).andere.some((a) => a.showId === 'today-in-focus'))
+  assert.equal(xr.byStory.get(kop(/decline of the visionary/).id)?.showId, 'today-in-focus')
+  assert.ok(!(xr.byStory.get(kop(/decline of the visionary/).id).andere || []).some((a) => a.showId === 'the-daily'))
   // En PSV/Club Brugge bij VI ZSM (5 november).
   const d5 = VI.dagdelen.find((x) => /05-ochtend/.test(x.dagdeel))
   const r5 = koppel({ stories: d5.stories, byId: new Map(d5.items.map((i) => [i.id, i])), episodes: [...VI.episodes, ...EPS].filter((e) => e.t <= Date.parse(d5.now)), now: Date.parse(d5.now), mainIds: MAIN_IDS })

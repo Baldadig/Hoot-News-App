@@ -4,7 +4,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { koppel, koppelMetOordeel, paren, vangnet, paarKey, leesOordelen, codesVoor, oordeelPrompt, luisterRonde, OORDEEL_KEY, OORDEEL_MODEL, PER_VRAAG, MAX_POGINGEN, PROEF_KEY } from '../netlify/lib/luister.mjs'
+import { koppel, koppelMetOordeel, paren, vangnet, paarKey, leesOordelen, codesVoor, oordeelPrompt, luisterRonde, OORDEEL_KEY, OORDEEL_MODEL, PER_VRAAG, MAX_POGINGEN, PROEF_KEY, STEMMEN } from '../netlify/lib/luister.mjs'
 import { MODEL } from '../netlify/lib/editie-ai.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { nepClient, leesVraag, JA, NEE } from './helpers/nep-oordeel.mjs'
@@ -55,9 +55,13 @@ test('alleen een duidelijk ja koppelt: zelfde of verdieping, één onderwerp ja 
 test('een oordeel dat niet op tijd is: geen koppeling voor dat paar, nooit terugvallen op losser; de volgende ronde opnieuw', async () => {
   const { kv, get, update } = memKv()
   const hangt = nepClient(() => JA, { hangt: true })
+  // De woordregels zelf kosten rekentijd (op een drukke machine meer dan een seconde): die tellen niet mee.
+  const t1 = Date.now()
+  paren(OPTS)
+  const rekenen = Date.now() - t1
   const t0 = Date.now()
   const r = await koppelMetOordeel({ ...OPTS, client: hangt, get, update, timeoutMs: 60 })
-  assert.ok(Date.now() - t0 < 1000, 'de eigen tijdgrens houdt de ronde niet op')
+  assert.ok(Date.now() - t0 < 2 * rekenen + 1000, 'de eigen tijdgrens houdt de ronde niet op')
   assert.equal(r.byStory.size, 0, 'ook geen artikellink van de eigen uitgever')
   assert.ok(r.ai.timeouts >= 1)
   assert.ok(r.rows.afgevallen.some((a) => /geen oordeel op tijd/.test(a.reden)))
@@ -106,7 +110,7 @@ test('de opslag: elk paar (verhaal, aflevering) wordt één keer beoordeeld', as
   for (let k = 0; k < MAX_POGINGEN + 2; k++) await koppelMetOordeel({ ...OPTS, client: zwijgt, get: leeg.get, update: leeg.update })
   const perPaar = new Map()
   for (const c of zwijgt.calls) for (const v of leesVraag(c.messages[0].content)) perPaar.set(`${v.kop}|${v.titel}`, (perPaar.get(`${v.kop}|${v.titel}`) || 0) + 1)
-  assert.ok(perPaar.size > 0 && [...perPaar.values()].every((n) => n === MAX_POGINGEN))
+  assert.ok(perPaar.size > 0 && [...perPaar.values()].every((n) => n === MAX_POGINGEN * STEMMEN), 'elke poging is één vraag van STEMMEN aanroepen')
   // Oude oordelen (ouder dan vier dagen) gaan bij het schrijven weg.
   const oud = memKv()
   oud.kv.set(OORDEEL_KEY, { v: 1, o: { 'x|y': ['zelfde', 'ja', 'ja', 'oud', NOW - 5 * 864e5] } })
@@ -114,20 +118,29 @@ test('de opslag: elk paar (verhaal, aflevering) wordt één keer beoordeeld', as
   assert.ok(!('x|y' in oud.kv.get(OORDEEL_KEY).o))
 })
 
-test('per verhaal gebundeld: elk verhaal één keer in een aanroep, hooguit PER_VRAAG paren per aanroep, het hele verhaal in de vraag', async () => {
+test('één verhaal per vraag, hooguit PER_VRAAG paren, elke vraag STEMMEN keer, het hele verhaal in de vraag', async () => {
   const { get, update } = memKv()
   const client = nepClient(() => NEE)
   const r = await koppelMetOordeel({ ...OPTS, client, get, update })
-  assert.equal(client.calls.length, Math.ceil(r.ai.gevraagd / PER_VRAAG))
+  assert.equal(STEMMEN, 2)
+  assert.equal(r.ai.aanroepen, r.ai.vragen * STEMMEN)
+  assert.equal(client.calls.length, r.ai.aanroepen)
+  const perVerhaal = new Map()
+  const inhoud = new Map()
   for (const c of client.calls) {
     const vragen = leesVraag(c.messages[0].content)
     assert.ok(vragen.length >= 1 && vragen.length <= PER_VRAAG)
-    const koppen = vragen.map((v) => v.kop)
-    assert.equal(new Set(koppen).size, koppen.filter((k, i) => k !== koppen[i - 1]).length, 'de afleveringen van één verhaal staan bij elkaar')
+    // Herstel keuring 14 november: nooit twee verhalen in één vraag.
+    assert.equal(new Set(vragen.map((v) => v.kop)).size, 1, 'één verhaal per vraag')
+    assert.equal((c.messages[0].content.match(/^Verhaal [A-Z]:/gm) || []).length, 1)
+    for (const v of vragen) perVerhaal.set(v.kop, (perVerhaal.get(v.kop) || 0) + 1)
+    inhoud.set(c.messages[0].content, (inhoud.get(c.messages[0].content) || 0) + 1)
     assert.equal(c.model, OORDEEL_MODEL)
     assert.deepEqual(c.thinking, { type: 'disabled' })
     assert.equal(c.output_config.format.type, 'json_schema')
   }
+  assert.ok([...inhoud.values()].every((n) => n === STEMMEN), 'elke vraag precies STEMMEN keer')
+  assert.ok(perVerhaal.size >= 2, 'de fixture heeft kandidaten bij meer verhalen')
   // Het hele verhaal: elke kop en elke link van de stukken staat in de vraag, en de hele beschrijving van de aflevering.
   const p = paren(OPTS)
   const c = p.paren.find((c) => !vangnet(c, NOW) && c.x.items.length >= 4 && c.x.items.length <= 20)
@@ -161,7 +174,7 @@ test('Editie eerst: gaan twee verhalen over dezelfde zaak, dan krijgt het verhaa
   const { get, update } = memKv()
   const client = nepClient(() => NEE)
   await koppelMetOordeel({ ...OPTS, client, get, update, editie: { algemeen: new Set([oranje.id]), pool: new Set() }, maxVragen: 1 })
-  assert.equal(client.calls.length, 1)
+  assert.equal(client.calls.length, STEMMEN)
   assert.match(leesVraag(client.calls[0].messages[0].content)[0].kop, /Veerman/)
 })
 
@@ -220,4 +233,68 @@ test('in de ronde: de proef toont per koppeling het oordeel en de reden, de afge
   assert.equal(d.oordeel.model, OORDEEL_MODEL)
   assert.ok(d.oordeel.gevraagd >= 1 && d.oordeel.invoerTokens > 0)
   assert.equal(stories.filter((st) => st.luister).length, 1)
+})
+
+test('twee keer vragen: alleen twee keer een duidelijk ja koppelt; één nee is genoeg; één ja en geen tweede oordeel is nog niets', async () => {
+  // Een nep-client die per aanroep wisselt: de eerste aanroep van elke vraag ja, de tweede `tweede`.
+  const wissel = (tweede) => {
+    let n = 0
+    let worp = 0
+    const c = nepClient((v) => (!ORANJE(v) ? NEE : worp % 2 === 1 ? tweede : JA))
+    const create = c.messages.create
+    c.messages.create = (req) => {
+      worp = n++
+      return create(req)
+    }
+    return c
+  }
+  const draai = async (client) => {
+    const { kv, get, update } = memKv()
+    const r = await koppelMetOordeel({ ...OPTS, client, get, update })
+    return { r, kv, aan: r.rows.koppelingen.filter((k) => /Galavoorstelling/.test(k.aflevering)).length }
+  }
+  assert.equal((await draai(wissel(JA))).aan, 1, 'twee keer ja')
+  const oneens = await draai(wissel(NEE))
+  assert.equal(oneens.aan, 0, 'één ja en één nee: niets')
+  assert.ok(oneens.r.ai.oneens >= 1)
+  assert.ok(Object.values(oneens.kv.get(OORDEEL_KEY).o).some((v) => v[0] === 'anders'), 'het nee wordt bewaard')
+  const half = await draai(wissel(null))
+  assert.equal(half.aan, 0, 'één ja en geen tweede oordeel: niets')
+  assert.ok(Object.keys(half.kv.get(OORDEEL_KEY).p || {}).length >= 1, 'het paar komt de volgende ronde terug')
+})
+
+test('herstel keuring: The Daily "recorded before the news of Mr. Huang\'s resignation" koppelt niet aan het Nvidia-nieuws, ook niet bij een ja', async () => {
+  const daily = FIX.episodes.find((e) => /Huang’s Resignation Will Mean/.test(e.titel))
+  assert.ok(daily && /Mr\. Huang/.test(daily.tekst || daily.samenvatting))
+  const p = paren(OPTS)
+  const cs = p.paren.filter((c) => c.e.id === daily.id)
+  assert.ok(cs.length >= 1, 'The Daily is een kandidaat bij een Nvidia-verhaal')
+  for (const c of cs) assert.match(vangnet(c, NOW), /na de opname/)
+  const { get, update } = memKv()
+  const r = await koppelMetOordeel({ ...OPTS, client: nepClient(() => JA), get, update })
+  assert.ok(!r.rows.koppelingen.some((k) => k.aflevering === daily.titel))
+  assert.ok(!koppel(OPTS).rows.koppelingen.some((k) => k.aflevering === daily.titel), 'ook de woordregels niet meer')
+})
+
+test('herstel keuring: een mengverhaal (de kop deelt de gebeurtenis niet) krijgt niets, ook niet bij een ja van het model', async () => {
+  // Live 14 november: "Schrijnend contrast: Frenkie de Jong gaat van 6 procent Oranje-absentie naar 58" en de nabespreking
+  // van de 7-0, "Galavoorstelling Oranje". Hier: hetzelfde Oranje-verhaal met die kop.
+  const oranje = FIX.stories.find((st) => byId.get(st.leadId)?.title?.includes('Veerman'))
+  const lead = byId.get(oranje.leadId)
+  const meng = { ...lead, id: 'meng-kop', title: 'Schrijnend contrast: Frenkie de Jong gaat van 6 procent Oranje-absentie naar 58', summary: 'Frenkie de Jong miste de afgelopen jaren steeds vaker interlands van Oranje door blessures.' }
+  const byId2 = new Map(byId).set(meng.id, meng)
+  const stories = FIX.stories.map((st) => (st.id === oranje.id ? { ...st, leadId: meng.id, itemIds: [meng.id, ...st.itemIds] } : st))
+  const opts = { ...OPTS, stories, byId: byId2 }
+  const c = paren(opts).paren.find((c) => c.x.st.id === oranje.id && /Galavoorstelling/.test(c.e.titel))
+  assert.ok(c, 'nog steeds een kandidaat')
+  assert.equal(c.kop, false)
+  assert.match(vangnet(c, NOW), /kop van het verhaal deelt de gebeurtenis niet/)
+  const { get, update } = memKv()
+  const client = nepClient(() => JA)
+  const r = await koppelMetOordeel({ ...opts, client, get, update })
+  assert.ok(!r.rows.koppelingen.some((k) => k.verhaal === oranje.id && /Galavoorstelling/.test(k.aflevering)))
+  assert.ok(!client.calls.some((q) => leesVraag(q.messages[0].content).some((v) => /Schrijnend/.test(v.kop) && /Galavoorstelling/.test(v.titel))), 'niet eens gevraagd')
+  // De gewone kop van dat verhaal ("Met Veerman én De Jong op het middenveld …") deelt de gebeurtenis wel.
+  const goed = paren(OPTS).paren.find((c) => c.x.st.id === oranje.id && /Galavoorstelling/.test(c.e.titel))
+  assert.equal(goed.kop, true)
 })

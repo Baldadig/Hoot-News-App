@@ -103,7 +103,11 @@ for (const slot of ['ochtend', 'middag']) {
   const r = await draai({ stories, byId: new Map(items.map((i) => [i.id, i])), episodes: episodes.filter((e) => e.t <= at), now: at, mainIds: MAIN_IDS })
   runs.push({ dagdeel: `${cur.date}-${slot}`, nabouw: true, at, stories: stories.length, ...r })
 }
-const r = await draai({ stories: kern.stories || [], byId, episodes: episodes.filter((e) => e.t <= now), now, mainIds: MAIN_IDS })
+// De Editieplekken van het huidige dagdeel: de verhalen van de algemene Editie zoals de server ze nu heeft (de kern; de
+// Editiepool staat daar niet in). Een nabouw heeft geen Editieplekken.
+const editieIds = (kern.edition?.entries || []).flatMap((e) => (e.kind === 'story' ? [e.id, e.formerId] : [byId.get(e.id)?.storyId]).filter(Boolean))
+const editie = editieIds.length ? { algemeen: new Set(editieIds), pool: new Set() } : null
+const r = await draai({ stories: kern.stories || [], byId, episodes: episodes.filter((e) => e.t <= now), now, mainIds: MAIN_IDS, editie })
 runs.push({ dagdeel: cur.id, nabouw: false, at: now, stories: (kern.stories || []).length, ...r })
 
 if (args.includes('--json')) {
@@ -120,7 +124,7 @@ out.push(`Gedraaid op ${new Date().toISOString().slice(0, 10)} ${fixtures.length
 out.push('')
 out.push('## Regels')
 out.push('')
-out.push(`- **Het oordeel** (besluit 14 november): de woordregels zoeken de kandidaten (een artikellink, een centrale naam van het verhaal in de titel, of twee centrale namen; bij BNR twee) en sluiten hard uit (na de opname, een vooruitblik van vóór de kop, meer onderwerpen, een week- of meeronderwerpenshow zonder artikellink, ouder dan ${DEEP_H / 24} dagen). Het laatste woord ligt bij De Redacteur (${stand === 'model' ? 'het echte model' : stand === 'nep' ? 'hier een nep-oordeel' : 'hier geen oordeel: zonder sleutel'}): alleen zaak zelfde of verdieping, één onderwerp ja en zeker ja koppelt. Elk paar wordt één keer gevraagd, met het hele verhaal en de hele beschrijving.`)
+out.push(`- **Het oordeel** (besluit 14 november): de woordregels zoeken de kandidaten (een artikellink, een centrale naam van het verhaal in de titel, of twee centrale namen; bij BNR twee) en sluiten hard uit (na de opname, een vooruitblik van vóór de kop, een kop die de gebeurtenis niet deelt, meer onderwerpen, een week- of meeronderwerpenshow zonder artikellink, ouder dan ${DEEP_H / 24} dagen). Het laatste woord ligt bij De Redacteur (${stand === 'model' ? 'het echte model' : stand === 'nep' ? 'hier een nep-oordeel' : 'hier geen oordeel: zonder sleutel'}): alleen zaak zelfde of verdieping, één onderwerp ja en zeker ja koppelt. Eén verhaal per vraag, elke vraag twee keer (alleen twee keer ja koppelt), met het hele verhaal en de hele beschrijving; elk paar wordt één keer beoordeeld.`)
 out.push(`- **Hetzelfde** alleen vers (hooguit ${FRESH_H} uur oud, zonder artikellink niet van vóór het eerste stuk, met een link niet meer dan ${BEFORE_H} uur ervoor); anders verdiepend.`)
 out.push('- Zonder sleutel of bij een fout van het model: alleen een artikellink van de eigen uitgever. Niet op tijd: geen koppeling, de volgende ronde opnieuw.')
 out.push('- Eén aflevering per verhaal; past een aflevering bij twee verhalen, dan krijgt het verhaal met een Editieplek haar (de algemene Editie, dan de Editiepool), bij dezelfde plek geen van beide. Een aflevering van de eigen bron van het verhaal gaat voor BNR. Voorrang: dezelfde uitgever als de kop, dan een bron die de lezer volgt, dan een Nederlandstalige show. Taal volgt de bronkeuze.')

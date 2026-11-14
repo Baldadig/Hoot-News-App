@@ -15,7 +15,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { zoalsWoordregels } from './helpers/nep-oordeel.mjs'
-import { koppel, episodeOf, describe, boundNames, showPage, luisterRonde, loadEpisodes, readHead, SHOW, KOPPEL_MS, LUISTER_MS, FEED_MS, APPLE_MS, PROEF_KEY, STORE_KEY } from '../netlify/lib/luister.mjs'
+import { koppel, koppelMetOordeel, episodeOf, describe, boundNames, showPage, luisterRonde, loadEpisodes, readHead, SHOW, KOPPEL_MS, LUISTER_MS, FEED_MS, APPLE_MS, PROEF_KEY, STORE_KEY } from '../netlify/lib/luister.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { countsAsSource } from '../shared/edition-policy.mjs'
 
@@ -188,10 +188,14 @@ test('7. over de tijd: het koppelen gebeurt toch, met wat binnen is; een hangend
   // De ronde is al over de tijd: toch dezelfde koppelingen, en de proef zegt overTijd.
   const kv = new Map()
   const laat = FIX.stories.map((st) => ({ ...st }))
-  // Met een nep-oordeel dat ja zegt waar de woordregels koppelen (geen echte AI in de toetsen).
+  // Met een nep-oordeel dat ja zegt waar de woordregels koppelen (geen echte AI in de toetsen). Het vangnet (de kop deelt de
+  // gebeurtenis, herstel 14 november) houdt er een paar van tegen; op tijd geeft dezelfde koppelingen.
   const client = zoalsWoordregels(opts)
+  const opTijd = new Map()
+  const verwacht = (await koppelMetOordeel({ ...opts, client: zoalsWoordregels(opts), get: (k) => opTijd.get(k), update: (k, fn) => opTijd.set(k, fn(opTijd.get(k) ?? null)) })).byStory.size
+  assert.ok(verwacht >= 2)
   const n = await luisterRonde({ stories: laat, byId, now, episodesP: Promise.resolve({ episodes: FIX.episodes, status: {} }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), get: (k) => kv.get(k), client, deadline: Date.now() - 1 })
-  assert.equal(n, gewoon.byStory.size)
+  assert.equal(n, verwacht)
   assert.equal(laat.filter((st) => st.luister).length, n)
   assert.equal(kv.get(PROEF_KEY).dagdelen[0].overTijd, true)
   assert.equal(kv.get(PROEF_KEY).dagdelen[0].koppelingen.length, n)
@@ -214,11 +218,32 @@ test('7. over de tijd: het koppelen gebeurt toch, met wat binnen is; een hangend
   assert.equal(episodes.filter((e) => e.show === 'nos-de-dag').length, FIX.episodes.filter((e) => e.show === 'nos-de-dag').length, 'De Dag uit de opslag')
   const hang = FIX.stories.map((st) => ({ ...st }))
   const m = await luisterRonde({ stories: hang, byId, now, episodesP: Promise.resolve({ episodes, status }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), get: (k) => kv.get(k), client, deadline: Date.now() - 1 })
-  assert.equal(m, gewoon.byStory.size, 'dezelfde koppelingen als zonder hangende feed')
-  assert.deepEqual(hang.filter((st) => st.luister).map((st) => `${st.id}: ${st.luister.aflevering}`).sort(), [...gewoon.byStory].map(([id, l]) => `${id}: ${l.aflevering}`).sort())
+  assert.equal(m, verwacht, 'dezelfde koppelingen als zonder hangende feed')
+  const gekoppeld = (sts) => sts.filter((st) => st.luister).map((st) => `${st.id}: ${st.luister.aflevering}`).sort()
+  assert.deepEqual(gekoppeld(hang), gekoppeld(laat))
 
   // De ronde geeft de grens mee: KOPPEL_MS vanaf de start van buildFeed.
   const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
   assert.match(build, /const roundStart = Date\.now\(\)/)
   assert.match(build, /await luisterRonde\(\{.*deadline: roundStart \+ KOPPEL_MS \}\)/)
+})
+
+test('herstel keuring 14 november: het vangnet voor na de opname en vooruitblik, en de zinssplitser na afkortingen', async () => {
+  const { sentences } = await import('../netlify/lib/luister.mjs')
+  const d = (t) => describe({ titel: 'x', samenvatting: t, tekst: t })
+  const daily = 'This episode was recorded before the news of Mr. Huang’s resignation was made public. Jensen Huang resigned as the chief executive of Nvidia.'
+  assert.deepEqual(sentences(daily).length, 2)
+  assert.match(d(daily).naOpname, /Mr\. Huang/, 'de zin loopt door na "Mr."')
+  assert.equal(sentences('Een gesprek met dr. Jansen en J. Huang. Daarna de rest.').length, 2)
+  for (const t of [
+    'We namen deze aflevering op voor het begin van de gesprekken op het landgoed. Wat willen de partijen?',
+    'Deze aflevering namen we op voordat het crisisoverleg begon.',
+    'Deze podcast werd woensdag opgenomen, vóór het nieuws over Jetten bekend werd.',
+    'We spoke before the news of the resignation broke.',
+    'This conversation was taped prior to the announcement.',
+  ]) assert.ok(d(t).naOpname, t)
+  for (const t of ['Deze aflevering is opgenomen voor publiek in Carré.', 'We namen het op tegen Ajax.']) assert.equal(d(t).naOpname, null, t)
+  assert.equal(d('Morgen begint het crisisoverleg. Wat staat er op het spel?').vooruit, true)
+  assert.equal(d('Tomorrow the Senate votes on the bill.').vooruit, true)
+  assert.equal(d('De Kamer stemde in met de wet. Wat betekent dat voor boeren?').vooruit, false)
 })

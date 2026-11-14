@@ -68,17 +68,14 @@ test('goed: hetzelfde op tekst, twee centrale namen en dezelfde gebeurtenis (VI 
   assert.ok(!('alleenVolgers' in l))
 })
 
-test('verdiepend: The Daily over het vertrek van Huang (twee dagen oud) bij het grote Nvidia-verhaal; ouder dan 36 uur is nooit "hetzelfde"', () => {
-  const { byStory } = run()
+test('na de opname: The Daily ("recorded before the news of Mr. Huang\'s resignation") koppelt niet aan het Nvidia-verhaal', () => {
+  // Herstel keuring 14 november: tot dan knipte de zinssplitser na "Mr." en koppelde The Daily hier als verdieping. De
+  // aflevering zegt zelf dat het nieuws van het vertrek pas na de opname kwam.
+  const { byStory, rows } = run()
   const l = byStory.get(story(/decline of the visionary/).id)
-  assert.equal(l?.showId, 'the-daily')
-  assert.equal(l.soort, 'verdiepend')
-  assert.match(l.aflevering, /Jensen Huang’s Resignation/)
-  // Today in Focus over hetzelfde schandaal staat erbij als andere geldige koppeling (Engels, alleen voor wie The Guardian volgt).
-  assert.ok((l.andere || []).some((a) => a.showId === 'today-in-focus' && a.alleenVolgers))
-  // Meer dan drie dagen later koppelt dezelfde aflevering niet meer.
-  const later = run({ now: NOW + 2 * 864e5 }).byStory.get(story(/decline of the visionary/).id)
-  assert.ok(!later || later.showId !== 'the-daily' || later.aflevering !== l.aflevering)
+  assert.notEqual(l?.showId, 'the-daily')
+  assert.ok(!(l?.andere || []).some((a) => a.showId === 'the-daily'))
+  assert.ok(rows.afgevallen.some((a) => a.verhaal === story(/decline of the visionary/).id && /Jensen Huang’s Resignation/.test(a.aflevering) && /na de opname/.test(a.reden)))
 })
 
 test('vals: één gedeelde naam is nooit genoeg (Netflix, Mississippi, Oranje, Jetten), ook niet met die naam in de titel', () => {
@@ -156,8 +153,9 @@ test('taal volgt de bronkeuze: een Engelse show van een bron die de algemene lez
   assert.equal(l.alleenVolgers, true)
   assert.ok(!MAIN_IDS.has('guardian'))
   assert.equal(rows.koppelingen.find((k) => k.verhaal === story(/Scott Colom/).id).algemeen, false)
-  // De Daily (NYT, een basisbron) is wel voor de algemene lezer.
-  assert.equal(rows.koppelingen.find((k) => k.show === 'The Daily').algemeen, true)
+  // The Intelligence (The Economist, een basisbron) is wel voor de algemene lezer.
+  assert.ok(MAIN_IDS.has('economist'))
+  assert.equal(rows.koppelingen.find((k) => k.show === 'The Intelligence').algemeen, true)
 })
 
 test('voorrang: dezelfde uitgever als de kop gaat voor', () => {
