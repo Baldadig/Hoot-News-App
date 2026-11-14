@@ -104,8 +104,13 @@ test('ruis: in de Editie weert alleen A (harde aanwijzing); geen gelabelde nieuw
   const weg = items.filter((i) => excludedFromEdition(i) && !isRecensie(i)).map((i) => `${byUrl.get(i.url).set}: ${i.title}`)
   // Alleen de randgevallen van AI-keuring 1 en 2 (bekende ontwerprisico's van A, geen eis en vastgelegd in AI-VERSLAG.md en
   // AI-KEURING-2.md: "/deals/" als eerste segment, "Podcast:" vooraan, een podcastrubriek of "Luister:" zonder eigen intro).
-  assert.deepEqual(weg.filter((w) => !/^ai-k[12]-rand:/.test(w)), [])
-  assert.ok(weg.length <= 5, weg.join('\n'))
+  // Persona's 14 november, punt 4 (shared/vorm.mjs): een liveblog met een opsomming van onderwerpen en een column in de
+  // ik-vorm achter een rubrieklabel zijn in dit corpus als nieuws gelabeld, maar dragen bewust geen plek (een liveblog is
+  // nooit een plek; een column ook niet). Alleen die vorm, en hooguit twee.
+  const vorm = weg.filter((w) => /•|: I /.test(w))
+  assert.ok(vorm.length <= 2, vorm.join('\n'))
+  assert.deepEqual(weg.filter((w) => !/^ai-k[12]-rand:/.test(w) && !vorm.includes(w)), [])
+  assert.ok(weg.length <= 7, weg.join('\n'))
 })
 
 test('ruis: wat de oude woordfilter als deal weerde, gaat nu naar de Editie-route: A of de AI (zwak signaal)', () => {

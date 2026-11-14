@@ -98,12 +98,14 @@ test('live, schone beginnerseditie: geen licht stuk, tien plekken, bubbel apart'
   const regular = ed.entries.filter((e) => e.desk !== 'bubbel')
   assert.equal(editionStoryCount(ed.entries), 10)
   for (const e of regular) assert.ok(!/podcast/i.test(items.get(e.leadId || e.id)?.title || ''), items.get(e.leadId || e.id)?.title)
-  // Geen recensie, ook niet als bubbel (shared/recensie.mjs, 14 november). Het bubbelstuk van de server staat niet in deze
-  // bewaarde feed (4 november); tot 14 november nam het toestel dan een Parool-recensie ("In The One About Matthew Perry
-  // …", /recensie-…). Zonder ander bubbelstuk blijft die plek leeg: er staan tien plekken, en een bubbel staat achteraan.
+  // Geen recensie, ook niet als bubbel (shared/recensie.mjs, 14 november). Buiten je bubbel is optioneel en staat dan
+  // achteraan: sinds de persona's van 14 november (punt 5) niet van een bron die je volgt, gratis en buiten je regio. Het
+  // bubbelstuk van de server staat niet in deze bewaarde feed (4 november); tot 14 november nam het toestel dan een
+  // Parool-recensie. Zonder ander bubbelstuk blijft die plek leeg.
   for (const e of ed.entries) assert.ok(!isRecensie(items.get(e.leadId || e.id) || {}), items.get(e.leadId || e.id)?.title)
-  const k = ed.entries.findIndex((e) => e.desk === 'bubbel')
-  assert.ok(k === -1 || k === ed.entries.length - 1)
+  const bubble = ed.entries.filter((e) => e.desk === 'bubbel')
+  assert.ok(bubble.length <= 1)
+  if (bubble.length) assert.equal(ed.entries.at(-1).desk, 'bubbel')
 })
 
 test('Martha-vorm: een lifestylestuk van een basisbron vult geen gewone plek bij een beginner; bij Cultuur toegelaten', () => {

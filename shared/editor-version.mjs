@@ -69,7 +69,54 @@
 // 14 november 2026, recensies: geen recensie of kop zonder nieuws in de Editie, langs elke route (ook het cultuurblok uit
 // een interesse): feedrubriek, recensiemap of -slug, label of sterren in de kop, of de werkkop van een cultuurbron
 // ("Ciarán – Róisín"). Zie shared/recensie.mjs; excludedFromEdition in shared/editie-filter.mjs.
-export const EDITOR_REVISION = 'redacteur-2026-11-14-recensies'
+// 14 november 2026, persona: gekozen interesses krijgen echt ruimte. Het plafond voor sport en cultuur (EXTRA_MAX) groeit
+// mee met het aandeel daarvan in je keuze (extraMaxOf in src/lib/personal.js): alleen Cultuur en Sport geeft de helft van de
+// Editie; de groei ruilt alleen lichte nieuwsplekken, nooit groot nieuws of de voorpagina. Valt een plek weg, dan eerst de
+// volgende kandidaat uit je sport of cultuur, pas daarna de vulling.
+// Persona · 2: één onderwerp hooguit TOPIC_MAX (2) plekken per persoonlijke Editie (sameTopic in netlify/lib/stories.mjs),
+// één gebeurtenis in twee verhalen wordt één plek met de stukken van beide (samenvoegen in composePersonal), en geen
+// snijvlak met een plaats (PLACE_HIT in shared/editor.mjs: Binnenland als plaats, een werelddeel of land).
+// Persona · 3: de opening (keuze Alex: groot nieuws gaat voor). Plek 01 is groot nieuws of het sterkste stuk uit een gekozen
+// interesse, niet vanzelf Binnenland (composePersonal, stap 7); zonder Wereld opent buitenlands nieuws niet.
+// Persona · 4: geen plek voor een column in de ik-vorm, een dagoverzicht of een kop zonder informatie (shared/vorm.mjs, via
+// excludedFromEdition, ook in de algemene Editie); Foreign Policy "Argument" is opinie (opinieRubriek).
+// Persona · 5: Buiten je bubbel per lezer: niet van een bron die je volgt, niet uit een gekozen rubriek of je regio
+// (shared/lezer.mjs), gratis en leesbaar; uit wat overblijft kiest je eigen zaad (jitter), niet voor iedereen hetzelfde.
+// Persona · 6: de rubriek boven een plek kent de lezer (`rubriek` naast `desk`): sport en cultuur vóór de geografie, de
+// geografie vanaf je thuisland (readerHome, belgianSubject); het label toont een subonderwerp alleen als het zeker is.
+// Persona · 7: lokaal nieuws van elders (Amerikaans binnenland, een deelstaat; localAbroad) zakt in de persoonlijke Editie:
+// pas na al het andere, nooit op 01 of als Waar iedereen over schrijft, tenzij groot nieuws.
+// Persona · 8 (keuze Alex): wie geen Nederlandstalige bron volgt, krijgt buiten zijn bronnen geen Nederlands (languageRule).
+// Persona · 10: wie niets kiest, krijgt de algemene Editie als basis met hooguit NO_CHOICE_FILL_MAX (2) vulplekken per rubriek.
+// Persona · herstel na de keuring (14 november): samenvoegen alleen bij dezelfde gebeurtenis (sameEventToMerge: een gedeelde
+// verkiezing is geen gebeurtenis; het leidende stuk van een los verhaal, niet een ander stuk of het cluster). De vorige
+// revisie vooraan in EARLIER_REVISIONS is die van main (recensies): persona zelf is nooit uitgerold.
+// Persona · herstel, punt 4: "Naam: citaat" is geen ik-vorm; alleen "/" of "|" als rubriekscheiding maakt van Ik/Mijn een
+// column, achter een dubbele punt alleen het Engelse rubriekpatroon (shared/vorm.mjs).
+// Persona · herstel, punt 7: een plek die een gekozen interesse of onderwerp raakt (niet geleerd, geen plaats, niet Wereld),
+// zakt niet als lokaal nieuws van elders (touchesChoice in composePersonal).
+// Persona · samengevoegd met main (recensies, deals, dubbelcheck2, onboarding): één regel per onderwerp. Koppen zonder
+// nieuws (koopsignaal, recensie, vorm) samen in excludedFromEdition; de rubriek, de bubbel, de derde taal en het welkom
+// elk met één regel. recensies (de revisie van main) staat vooraan in EARLIER_REVISIONS; persona is nooit uitgerold.
+// Persona · herstel na de tweede keuring, punt 7: alleen een zelf gekozen onderwerp (origin 'gekozen') redt een plek van het
+// zakken; plek 01 en Waar iedereen over schrijft houden de strenge toets (rawLocal); wat ook een Nederlandse of Vlaamse
+// uitgever brengt, is geen lokaal nieuws van elders (localAbroad, publishers).
+// Persona · herstel na de tweede keuring, punt 10: buiten je bronnen alleen gratis, ook voor de basis uit de algemene Editie
+// (leadOk in composePersonal: leesbaar en gratis, of een bron die je volgt).
+// Persona · tweede keuring, open punt 1: een video of podcast opent nooit de Editie (opensEdition in openWithNews).
+// Persona · herstel na de derde keuring, punt 7: geen lokaal nieuws van elders pas bij minstens twee Nederlandse of Vlaamse
+// uitgevers, geteld per uitgever (homePublishersOf); één stuk van hier, ook als kop, is niet genoeg (localAbroad).
+// Persona · herstelkeuring 3, punt 7: een ander land als bijvoeglijk naamwoord (WORLD, COUNTRY_ADJ), een Nederlander of
+// een Nederlands bedrijf (NL_ANCHOR, HERE_CORP) in de kop maakt het geen lokaal nieuws van elders (localAbroad).
+// Persona · keuring na herstelkeuring 3, punt 7: de bijvoeglijke vormen en inwonersnamen van alle landen van countriesIn en
+// WORLD, Nederlands en Engels, in één tabel (COUNTRY_FORMS, alleen in localAbroad).
+// Persona · keuring na herstelkeuring 3, kleiner punt: Holland als achternaam (Tom Holland) is geen anker van hier
+// (NAME_HOLLAND, alleen in localAbroad).
+// Persona · keuring 4 na herstelkeuring 3, punt 7: werelddelen en regio's (Azië, Caribisch gebied, Arab, Balkan, Koerdisch)
+// maken een kop breder, Nederlands en Engels (REGIONS, alleen in localAbroad).
+// Persona · samengevoegd met main (luister2, overtijd, stroom, app 1.4): main houdt revisie recensies, die staat vooraan in
+// EARLIER_REVISIONS; persona is nooit uitgerold. De Luister-aflevering gaat mee op een plek van de persoonlijke Editie.
+export const EDITOR_REVISION = 'redacteur-2026-11-15-persona-4'
 // De afdruk van je bronnen en interesses (editionBasis in src/lib/personal.js) rekent met een vaste waarde, niet meer
 // met de revisie (Redacteur op de server, 11 november 2026). De server legt de Editie vast; app 1.2 rekent de afdruk
 // met de rekenkern die erin zit. Veranderde de afdruk bij elke revisie, dan paste de Editie van de server nooit bij
@@ -78,7 +125,7 @@ export const EDITOR_REVISION = 'redacteur-2026-11-14-recensies'
 export const BASIS_REVISION = 'redacteur-2026-11-07-taalregel'
 // Eerdere revisies, nieuwste eerst. Zet bij elke verhoging de vorige revisie vooraan: daaruit komt de vorige Editie
 // ("wat stond er al") en de Editie die tot het volgende dagdeel blijft staan.
-export const EARLIER_REVISIONS = ['redacteur-2026-11-14-deals', 'redacteur-2026-11-14-dubbelcheck2', 'redacteur-2026-11-14-luister-2', 'redacteur-2026-11-14-wapo', 'redacteur-2026-11-14-amerika', 'redacteur-2026-11-14-internationaal', 'redacteur-2026-11-14-raakt-volgorde', 'redacteur-2026-11-14-derde-taal', 'redacteur-2026-11-14-achterklap', 'redacteur-2026-11-14-sport-bubbel', 'redacteur-2026-11-14-zonder-url', 'redacteur-2026-11-13-bronnen', 'redacteur-2026-11-13-column', 'redacteur-2026-11-13-leeftijd', 'redacteur-2026-11-13-nl-opening', 'redacteur-2026-11-13-een-plek-per-cluster', 'redacteur-2026-11-13-nieuw-feit', 'redacteur-2026-11-11-filters-ai', 'redacteur-2026-11-11-frisse-ogen-5', 'redacteur-2026-11-11-frisse-ogen-4', 'redacteur-2026-11-11-frisse-ogen-3', 'redacteur-2026-11-11-frisse-ogen-2', 'redacteur-2026-11-11-bubbel', 'redacteur-2026-11-11-opinie', 'redacteur-2026-11-07-taalregel', 'redacteur-2026-11-02-beta2', 'redacteur-2026-11-02-beta1', 'redacteur-2026-11-01-r2']
+export const EARLIER_REVISIONS = ['redacteur-2026-11-14-recensies', 'redacteur-2026-11-14-deals', 'redacteur-2026-11-14-dubbelcheck2', 'redacteur-2026-11-14-luister-2', 'redacteur-2026-11-14-wapo', 'redacteur-2026-11-14-amerika', 'redacteur-2026-11-14-internationaal', 'redacteur-2026-11-14-raakt-volgorde', 'redacteur-2026-11-14-derde-taal', 'redacteur-2026-11-14-achterklap', 'redacteur-2026-11-14-sport-bubbel', 'redacteur-2026-11-14-zonder-url', 'redacteur-2026-11-13-bronnen', 'redacteur-2026-11-13-column', 'redacteur-2026-11-13-leeftijd', 'redacteur-2026-11-13-nl-opening', 'redacteur-2026-11-13-een-plek-per-cluster', 'redacteur-2026-11-13-nieuw-feit', 'redacteur-2026-11-11-filters-ai', 'redacteur-2026-11-11-frisse-ogen-5', 'redacteur-2026-11-11-frisse-ogen-4', 'redacteur-2026-11-11-frisse-ogen-3', 'redacteur-2026-11-11-frisse-ogen-2', 'redacteur-2026-11-11-bubbel', 'redacteur-2026-11-11-opinie', 'redacteur-2026-11-07-taalregel', 'redacteur-2026-11-02-beta2', 'redacteur-2026-11-02-beta1', 'redacteur-2026-11-01-r2']
 // Bewuste herbouw: noem hier een dagdeel (bijv. '2026-11-07-middag') om de Editie van dat dagdeel onder deze revisie
 // opnieuw samen te stellen, ook als hij onder een eerdere revisie al vaststaat. Anders null.
 export const EDITION_REBUILD_SLOT = null

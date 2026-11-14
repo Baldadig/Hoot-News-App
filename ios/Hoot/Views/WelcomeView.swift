@@ -43,6 +43,7 @@ struct WelcomeView: View {
     @State private var original: [String] = [] // wat er aan stond (opnieuw kiezen)
     @State private var interests: [String] = []
     @State private var picked: [String] = [] // je fijne onderwerpen van vroeger (blijven als je de interesse houdt)
+    @State private var optIn: [String] = [] // wat je zelf aantikt onder een interesse (Achterklap & showbizz onder Cultuur)
     @State private var vak: [String] = [] // de eerste keer leeg: een nieuwe lezer kiest zijn vak zelf, of later
     @State private var prepared = false
     @State private var login = false
@@ -117,6 +118,7 @@ struct WelcomeView: View {
         if again {
             interests = store.interests
             picked = Rubriek.picked(from: store.topics, interests: store.interests)
+            optIn = store.topics.filter { Rubriek.optIn.contains($0) }
             vak = store.digestFields
             selOpen = !vak.isEmpty
         }
@@ -145,7 +147,8 @@ struct WelcomeView: View {
 
     // Klaar: je interesses, onderwerpen, bronnen en vak worden je instellingen.
     private func finish(interests ids: [String], vak fields: [String]) {
-        store.applyWelcome(interests: ids, topics: Rubriek.resolve(ids, picked: picked), sources: mine, shown: store.newsSources, vak: fields)
+        let topics = Rubriek.withOptIn(Rubriek.resolve(ids, picked: picked.filter { !Rubriek.optIn.contains($0) }), interests: ids, on: optIn)
+        store.applyWelcome(interests: ids, topics: topics, sources: mine, shown: store.newsSources, vak: fields)
         onDone()
     }
 
@@ -676,6 +679,19 @@ struct WelcomeView: View {
             .padding(.top, Space.s5)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("Rubrieken")
+            // Wat je onder een gekozen interesse zelf aantikt (Achterklap & showbizz onder Cultuur; persona's 14 november,
+            // punt 9). Gelijk aan het web (Welcome.jsx, ob__optin).
+            ForEach(Rubriek.alle.filter { interests.contains($0.id) && $0.topics.contains(where: Rubriek.optIn.contains) }) { r in
+                VStack(alignment: .leading, spacing: Space.s3) {
+                    GroupTitle(text: "Onder \(r.label)")
+                    Flow {
+                        ForEach(r.topics.filter(Rubriek.optIn.contains), id: \.self) { t in
+                            ChoiceChip(label: Taste.label(t), on: optIn.contains(t)) { optIn = toggled(optIn, t) }
+                        }
+                    }
+                }
+                .padding(.top, Space.s5)
+            }
             if showSelectie { selectieKeuze }
         }
     }

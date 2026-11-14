@@ -331,6 +331,7 @@ struct EditionEntry: Codable, Hashable {
     var leadId: String?
     var formerId: String? // het verhaal heette in een vorige editie anders (samengevoegd of gesplitst)
     var desk: String?
+    var rubriek: String? // de rubriek boven de plek voor deze lezer (sport en cultuur, je thuisland), als die afwijkt van desk
     var fromDesk: String? // aangevuld uit de algemene Editie: de rubriek die het daar had
     var sourceCount: Int?
     var terms: [EntryTerm]?
@@ -690,6 +691,14 @@ struct Rubriek: Identifiable {
     // Onderwerpen die alleen meedoen als je ze aantikt (OPT_IN in src/lib/topics.js): "alles" is zonder deze.
     static let optIn: Set<String> = ["showbizz"]
     var base: [String] { topics.filter { !Rubriek.optIn.contains($0) } }
+
+    // Een optIn-onderwerp aantikken in het welkom (persona's 14 november, punt 9; withOptIn op het web): `topics` zonder
+    // optIn-onderwerpen, plus wat je aantikte (`on`) als je de interesse waar het onder valt nog kiest.
+    static func withOptIn(_ topics: [String], interests: [String], on: [String]) -> [String] {
+        var seen = Set<String>()
+        let extra = on.filter { t in optIn.contains(t) && alle.contains { interests.contains($0.id) && $0.topics.contains(t) } && seen.insert(t).inserted }
+        return topics.filter { !optIn.contains($0) } + extra
+    }
 
     // Wat je volgt (resolveTopics op de website): per gekozen interesse de onderwerpen die je
     // aantikte, of alle (zonder optIn) als je er geen koos. Op de volgorde van de rubrieken.

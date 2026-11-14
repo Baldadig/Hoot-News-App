@@ -28,6 +28,8 @@ import { koopGrond, koopVorm, koopBron } from './koopsignaal.mjs'
 
 import { isRecensie } from './recensie.mjs'
 
+import { geenPlekNaarVorm } from './vorm.mjs'
+
 const DEAL_RUBRIC = new Set(['deals', 'aanbiedingen', 'aanbieding', 'koopjes', 'coupons', 'kortingscodes', 'dagdeals'])
 const AUDIO_RUBRIC = new Set(['podcast', 'podcasts', 'luister'])
 // Alleen echte taal-/landsegmenten (herstel AI-keuring 1: "tv" in /tv/deals/ is een rubriek, geen taal).
@@ -115,7 +117,10 @@ export function audioEpisode(item = {}) {
   return AUDIO_LABEL.test(String(item.title || '')) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || ''))
 }
 
-// Eén toelating voor alle Editieroutes. Ook geen recensie of kop zonder nieuws (shared/recensie.mjs, 14 november 2026):
-// die staat niet in hardMark, want de Selectie (netlify/lib/vak.mjs) gebruikt hardMark en houdt recensies wel. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag
+// Eén toelating voor alle Editieroutes. Daarbij ook geen beschouwing en geen kop zonder nieuws, op vorm en kop, nooit op
+// onderwerp of bron: een recensie of werkkop (shared/recensie.mjs, 14 november 2026), een column in de ik-vorm, een
+// dagoverzicht of een lege kop (shared/vorm.mjs, persona's 14 november). Koopkoppen zitten al in hardMark
+// (shared/koopsignaal.mjs). Recensie en vorm staan niet in hardMark, want de Selectie (netlify/lib/vak.mjs) gebruikt
+// hardMark en houdt die stukken wel. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag
 // (alleen de server geeft die mee; het toestel rekent met A alleen).
-export const excludedFromEdition = (item, weg = null) => !!item && ((weg && weg.size > 0 && weg.has(item.id)) || hardMark(item) != null || isRecensie(item))
+export const excludedFromEdition = (item, weg = null) => !!item && ((weg && weg.size > 0 && weg.has(item.id)) || hardMark(item) != null || isRecensie(item) || geenPlekNaarVorm(item))

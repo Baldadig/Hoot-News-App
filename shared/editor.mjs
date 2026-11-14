@@ -162,6 +162,11 @@ export const SUM_MAX = 40
 // is een treffer GEO_NL ("Omdat je Binnenland volgt"), hooguit zo sterk als een geërfde interesse.
 // `geo`: 'nl', 'int' of null (geoOf).
 export const GEO_NL = 'geo:nl'
+// Treffers die zeggen waar iets speelt, niet waar het over gaat: Binnenland als plaats (GEO_NL), de werelddelen en landen
+// van Wereld, en de terugval op de rubriek (`gebied:`) of de bron (`bron:`). Ze geven punten en een waarom, maar geen
+// snijvlak (personalParts, `cross`).
+export const PLACE_TOPICS = new Set(['oekraine', 'middenoosten', 'azie', 'afrika', 'latam'])
+export const PLACE_HIT = (h) => h.t === GEO_NL || PLACE_TOPICS.has(h.t) || h.t.startsWith('gebied:') || h.t.startsWith('bron:')
 // Sport is sport (feedback 31 oktober: Aston Villa die naar de rechter stapt tegen Carragher was "Misdaad
 // & recht", en telde als Nederlands): een sportbericht krijgt geen onderwerp of treffer van Binnenland.
 // Sport: een sportonderwerp, een sportbron, een sport-URL of sport zonder eigen onderwerp (darts).
@@ -286,10 +291,15 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
     // Wetenschap én Binnenland" bij de rellen in Den Haag, door het trefwoord "angst"; "Raakt Cultuur
     // én Wetenschap" bij een animeprijs van Variety): elk gebied in meer dan de helft van de berichten,
     // en een vakbron telt alleen voor zijn eigen gebied (Variety is Cultuur, geen Gezondheid).
+    // Een plaats is geen tweede gebied (persona's 14 november: 14 van Henks 60 plekken waren "Raakt Politiek én
+    // Binnenland", Maarten kreeg 10 keer "Raakt Politiek én Wereld"): elk Haags stuk is ook Nederlands en elk stuk over
+    // buitenlandse politiek speelt ergens, dus die twee gebieden staan bijna altijd samen. Een snijvlak telt alleen tussen
+    // twee onderwerpen (PLACE_HIT: niet Binnenland als plaats, niet een werelddeel of land, niet een terugval op de rubriek
+    // of de bron).
     const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)]
-    const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && (!famCat(h) || famCat(h) === h.f)))
+    const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && !PLACE_HIT(h) && (!famCat(h) || famCat(h) === h.f)))
     const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length
-    const cross = pos.filter((h) => h.v >= CROSS_MIN && h.seen && famCover(h.f))
+    const cross = pos.filter((h) => h.v >= CROSS_MIN && h.seen && !PLACE_HIT(h) && famCover(h.f))
     const first = cross[0]
     const second = first && cross.find((h) => h.f !== first.f)
     if (second) parts.cross = { pts: P.CROSS, f: [first.f, second.f] }
@@ -411,7 +421,8 @@ export const chosenReason = (parts = {}) => {
 // Zegt de plek iets bij zichzelf? Een punt van minstens MIN_WHY_PTS dat het waarom ook kan noemen (whyOf).
 export const visibleReason = (parts = {}) => Object.entries(parts).some(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === 'interest' && x.shown === false))
 export const FRONT_SOURCES = 8 // vijf uitgevers uit twee landen wordt via entry.big bewezen
-export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio' }
+// Sport en Cultuur: de rubriek die De Redacteur boven een plek zet voor de lezer (persona's 14 november, punt 6).
+export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio', sport: 'Sport', cultuur: 'Cultuur' }
 const WHY_ORDER = ['followUp', 'cross', 'interest', 'favorite', 'mine', 'sourceRead']
 const topicLabel = (t) => topicById(t)?.label || t
 

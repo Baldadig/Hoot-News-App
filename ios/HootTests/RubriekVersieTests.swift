@@ -46,6 +46,18 @@ import XCTest
     }
 
     // De gedeelde gevallen: elke oude keuze wordt in de app dezelfde nieuwe keuze als op het web.
+    // Persona's 14 november, punt 9: Achterklap & showbizz tik je in het welkom onder Cultuur aan (withOptIn op het web,
+    // tests/persona-welkom.test.mjs met dezelfde gevallen). Cultuur blijft "alles"; zonder Cultuur geen showbizz.
+    func testShowbizzAantikkenInHetWelkom() {
+        let alles = Rubriek.resolve(["cultuur"], picked: [])
+        XCTAssertEqual(Rubriek.withOptIn(alles, interests: ["cultuur"], on: ["showbizz"]), alles + ["showbizz"])
+        XCTAssertEqual(Rubriek.withOptIn(alles, interests: ["cultuur"], on: []), alles)
+        XCTAssertEqual(Rubriek.withOptIn(Rubriek.resolve(["sport"], picked: []), interests: ["sport"], on: ["showbizz"]), Rubriek.resolve(["sport"], picked: []))
+        XCTAssertEqual(Rubriek.withOptIn(alles + ["showbizz"], interests: ["cultuur"], on: []), alles, "uitzetten haalt het weg")
+        XCTAssertEqual(Rubriek.withOptIn(["muziek"], interests: ["cultuur"], on: ["showbizz", "showbizz", "voetbal"]), ["muziek", "showbizz"])
+        XCTAssertEqual(Rubriek.picked(from: alles + ["showbizz"], interests: ["cultuur"]).filter { !Rubriek.optIn.contains($0) }, alles, "opnieuw kiezen: Cultuur-alles plus showbizz")
+    }
+
     func testGedeeldeGevallenGelijkAanWeb() throws {
         let url = EditionServerTests.repo.appending(path: "tests/fixtures/rubrieken-migratie.json")
         let cases = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [[String: Any]])

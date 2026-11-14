@@ -8,6 +8,9 @@ const COUNTRIES = [
     // Amerikaanse staten en grote steden (dubbelcheck 14 november, A6: een aanvaring op de Mississippi werd Binnenland). Niet:
     // Georgia (ook een land), Arizona (ook de Belgische regeringscoalitie), Indiana, Virginia en Montana (ook een naam), en andere namen die ook een gewoon woord zijn.
     'mississippi|louisiana|alabama|nevada|oregon|minnesota|illinois|pennsylvania|massachusetts|new jersey|north carolina|south carolina|tennessee|kentucky|missouri|wisconsin|iowa|kansas|utah|alaska|hawaii|oklahoma|arkansas|connecticut|maryland|nebraska|idaho|wyoming|vermont|' +
+    // Ook voor lokaal nieuws van elders (localAbroad, persona's 14 november, punt 7): één lijst van staten, dus hier ook de
+    // staten die daar eerst een eigen lijst hadden. West Virginia en Maine niet, om dezelfde reden als Virginia (ook een naam).
+    'delaware|new hampshire|new mexico|north dakota|south dakota|rhode island|' +
     'chicago|los angeles|san francisco|boston|seattle|miami|atlanta|philadelphia|las vegas|new orleans|detroit|houston|dallas|baltimore|minneapolis|pittsburgh'],
   ['in', 'india|indiaas|indiase|indian|new delhi|mumbai|modi'],
   ['fr', 'frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille'],

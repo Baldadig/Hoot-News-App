@@ -8,8 +8,8 @@ import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.j
 import { vakByDomain } from '../../shared/vak.mjs'
 import { offeredFields } from '../lib/selection-index.js'
 import { voorstel } from '../../shared/voorstel.mjs'
-import { INTERESTS, resolveTopics } from '../lib/topics.js'
-import { sourcesOn, pickedFrom } from '../lib/welcome.js'
+import { INTERESTS, OPT_IN, resolveTopics, topicById } from '../lib/topics.js'
+import { sourcesOn, pickedFrom, withOptIn } from '../lib/welcome.js'
 import { toggleFollow, freeStart, startIds, beginLabel, krantenSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, chosenIn, startsOpen, foldCount } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
@@ -83,7 +83,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     }
   }, [leaving])
 
-  const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
+  // Achterklap & showbizz (OPT_IN) tik je zelf aan, onder Cultuur (persona's 14 november, punt 9).
+  const [optIn, setOptIn] = useState(() => (prefs.topics || []).filter((t) => OPT_IN.has(t)))
+  const topics = useMemo(() => withOptIn(resolveTopics(interests, picked.filter((t) => !OPT_IN.has(t))), interests, optIn), [interests, picked, optIn])
   const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
   // Het voorstel bovenaan de bronnenstap (shared/voorstel.mjs): uit je interesses en je eigen onderwerpen.
   // Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt Nederlandse bronnen; Engelstalige alleen als je er
@@ -248,7 +250,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
               {view === 'bronnen' ? (
                 <Bronnen head={head} sources={pickable} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} filters={reopen && !prefs.browsing} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
-                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} digest={digest} selectie={reopen && !prefs.browsing} />
+                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} optIn={optIn} onOptIn={(id) => setOptIn((l) => toggleIn(l, id))} digest={digest} selectie={reopen && !prefs.browsing} />
               )}
             </div>
           </div>
@@ -482,7 +484,7 @@ function SourceRow({ s, on, pick = false, why = null, onPick }) {
 // ---- 2. Wat interesseert je? Rubrieken en, bij opnieuw kiezen, uitklapbaar je Selectie ----
 // `selectie`: alleen wie al eens koos (opnieuw kiezen, niet na meteen lezen) ziet de uitklapper; in het eerste
 // welkom vraagt de lege Selectie het zelf (Vak.jsx). Gelijk aan WelcomeView.swift.
-function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, digest = null, selectie = false }) {
+function Interesses({ head, interests, onInterest, optIn = [], onOptIn, vak, onVak, open, setOpen, digest = null, selectie = false }) {
   // Alleen onderwerpen die in de weekbundel zitten (offersField, "Tot dan verbergen."), zoals het welkom in de app.
   const domains = useMemo(() => vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length), [digest])
   return (
@@ -498,6 +500,19 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen, di
           </button>
         ))}
       </div>
+      {/* Wat je onder een interesse zelf aantikt (OPT_IN): alleen als je die interesse koos. Gelijk aan de app (WelcomeView). */}
+      {/* In .ob__sel voor dezelfde afstand als de groepen van de Selectie (geen nieuwe CSS). */}
+      {INTERESTS.filter((i) => interests.includes(i.id) && i.topics.some((t) => OPT_IN.has(t))).map((i) => (
+        <div key={i.id} className="ob__sel">
+          <ChipGroup label={`Onder ${i.label}`} level={2} className="ob__domain ob__optin">
+            {i.topics.filter((t) => OPT_IN.has(t)).map((t) => (
+              <button key={t} type="button" className="pill" aria-pressed={optIn.includes(t)} onClick={() => onOptIn(t)}>
+                {topicById(t)?.label || t}
+              </button>
+            ))}
+          </ChipGroup>
+        </div>
+      ))}
       {selectie ? (
       <button type="button" className="ob__disclose" aria-expanded={open} aria-controls="ob-sel" onClick={() => setOpen(!open)}>
         <span>

@@ -97,7 +97,9 @@ export function isOpinie(item = {}) {
 // Een woord in een langere categorie of een onderwerp telt nooit; bij twijfel blijft het nieuws.
 const CAT_PART = /^(opinie|opinies|opinion|opinions|column|columns|columnisten|columnists|commentaar|commentary|ingezonden|ingezonden brieven?|meningen|hoofdredactioneel)$/i
 const CAT_SPLIT = /\s*(?:&|\+|\/|\||,|\s-\s|\s–\s|\ben\b|\band\b)\s*/i
-const HOST_CAT = [[/(^|\.)nrc\.nl$/i, /^ondertussen$/i]]
+// Foreign Policy zet zijn opinie in de rubriek "Argument" (persona's 14 november: "Congress Can Do More to Defend U.S.
+// Alliances" stond als gewone plek in een Editie).
+const HOST_CAT = [[/(^|\.)nrc\.nl$/i, /^ondertussen$/i], [/(^|\.)foreignpolicy\.com$/i, /^argument$/i]]
 export function opinieRubriek(cats = [], url = '') {
   const list = (Array.isArray(cats) ? cats : [cats]).map((c) => String(c || '').replace(/&amp;/gi, '&').replace(/\s+/g, ' ').trim()).filter(Boolean)
   if (list.some((c) => c.split(CAT_SPLIT).filter(Boolean).every((p) => CAT_PART.test(p)))) return true

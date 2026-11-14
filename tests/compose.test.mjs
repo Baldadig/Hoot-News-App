@@ -76,7 +76,8 @@ test('De Redacteur: een gelezen aanvulling komt niet terug', () => {
   const base = { followed: new Set(), interests: ['wereld'], topics: [], favorites: [] }
   const first = composeFor(snap, base)
   const fill = first.entries.filter((e) => e.desk === 'extern')
-  assert.ok(fill.length >= 5, `${fill.length} aanvullingen`)
+  // Wie niets volgt, krijgt alleen gratis aanvullingen (buiten je bronnen alleen gratis, persona's 14 november): vier.
+  assert.ok(fill.length >= 4, `${fill.length} aanvullingen`)
   const isFill = (e) => e.desk === 'extern' || e.desk === 'breed' || e.desk === 'bubbel'
 
   // Alles van die aanvullingen gelezen: geen enkele komt terug. Zonder eigen bronnen is er dan
@@ -139,7 +140,9 @@ test('De Redacteur: geen sport zonder sportkeuze', () => {
 
 test('De Redacteur: de nieuwe lezer krijgt de gewone krant, zonder persoonlijk waarom', () => {
   const { edition } = byPersona.nieuw
-  assert.deepEqual(edition._plan, KERN.slice(0, edition._plan.length))
+  // De kernrubrieken in hun volgorde; zijn er meer zetels dan kernrubrieken (geen Waar iedereen over schrijft met een
+  // gratis kop, buiten je bronnen alleen gratis: persona's 14 november), dan begint de kern opnieuw.
+  assert.deepEqual(edition._plan, edition._plan.map((_, k) => KERN[k % KERN.length]))
   assert.ok(edition._plan.length >= 3)
   assert.deepEqual(edition.entries.filter((e) => !NOT_PERSONAL.has(e.why.code)).map((e) => e.why.code), [])
 })

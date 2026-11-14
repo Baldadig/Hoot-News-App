@@ -1,5 +1,5 @@
 import { withCleanIntro } from '../../shared/edition-display.mjs'
-import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, cultuurChosen, exceptionalDutchSport, coverageOf, majorGeneralNews } from '../../shared/edition-policy.mjs'
+import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, cultuurChosen, exceptionalDutchSport, coverageOf, majorGeneralNews, homePublishersOf } from '../../shared/edition-policy.mjs'
 import { withoutDebug, earlierEditions, editionBasis, personalRows } from './personal-basis.js'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -14,15 +14,17 @@ import { withoutDebug, earlierEditions, editionBasis, personalRows } from './per
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem } from '../../netlify/lib/stories.mjs'
+import { newFactIn, heldDown, selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, sameTopic, sameHeadEventOf, sameEventToMerge, TOPIC_MAX, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, centralItems, voteFamilyOf, FAMILY_MAX, previousHeads, curiosaDown, dutchFirst, isStale, sameCluster, isRunning, runningFact, RUNNING_MAX, voteFamilyOfItem, curioStory, peopleStory, weightyStory } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { excludedFromEdition, audioEpisode } from '../../shared/editie-filter.mjs'
-import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
+import { opensEdition } from '../../shared/aflevering.mjs'
+import { deskOfStory, storyForeignOf, VL_HOME, belgianSubject, localAbroad } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT, showbizzKind } from '../../netlify/lib/topics.mjs'
 import { INTERESTS, OPT_IN, baseTopics } from './topics.js'
 import { forEdition } from '../../shared/stroom.mjs'
 import { metKorteKoppen, herschrevenVan } from '../../shared/kort-kop.mjs'
-import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN } from '../../shared/editor.mjs'
+import { supplyOf, profileOf, personalParts, sumParts, PLACE_HIT, tempoWindows, outsideProfile, strongestFamily, whyOf, isSport, NEIGHBOURS, FAMILY_OF, INT_MAX, chosenDesks, KERN, KERN_MIN, jitter } from '../../shared/editor.mjs'
+import { readerRegions, inRegion, readerHome } from '../../shared/lezer.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
 export const WIDE = 'breed' // "Waar iedereen over schrijft"
@@ -37,6 +39,20 @@ export const INTEREST_BONUS = 10
 export const NEWS_CATS = new Set(['nl', 'vl', 'regio', 'int', 'economie', 'tech', 'wetenschap'])
 export const EXTRA_MAX = 2
 export const EXTRA_MIN = 0.5 // zo sterk moet sport, cultuur of games in je profiel zijn
+// Wie niets kiest: hooguit zoveel vulplekken per rubriek naast de algemene Editie (persona's 14 november, punt 10).
+export const NO_CHOICE_FILL_MAX = 2
+// Het plafond groeit mee met wat je koos (persona's 14 november: wie alleen Cultuur en Sport koos, kreeg in elke Editie
+// precies twee van zulke plekken en acht plekken nieuws uit de rubriekvulling). Het aandeel van de gekozen interesses dat
+// sport of cultuur is, krijgt hooguit de helft van de Editie: alleen Cultuur en Sport (2 van 2) geeft 5, Cultuur en
+// Sport naast één nieuwsinteresse 3; wie meer nieuws koos, houdt EXTRA_MAX. Alleen een gebied dat ook in het extra blok
+// meedoet (`kinds`, uit het profiel) telt. Zonder interesses blijft het EXTRA_MAX. Alleen gehele getallen (web en app gelijk).
+export const EXTRA_KIND_OF = { sport: 'sport', cultuur: 'cultuur' }
+export function extraMaxOf(interests = [], kinds = new Set(), size = EDITION_SIZE) {
+  const chosen = [...new Set(interests)].filter((id) => INTERESTS.some((f) => f.id === id))
+  const light = chosen.filter((id) => EXTRA_KIND_OF[id] && kinds.has(EXTRA_KIND_OF[id])).length
+  if (!light) return EXTRA_MAX
+  return Math.max(EXTRA_MAX, Math.floor((size * light) / (2 * chosen.length)))
+}
 // Ook uit een gewone nieuwsbron (NU.nl, de Volkskrant) is een voetbalbericht sport.
 const TOPIC_KIND = { voetbal: 'sport', f1: 'sport', wielrennen: 'sport', tennis: 'sport', wintersport: 'sport', olympisch: 'sport', muziek: 'cultuur', film: 'cultuur', boeken: 'cultuur', kunst: 'cultuur', games: 'games' }
 // Een bericht van een vakbron krijgt die rubriek, niet een rubriek uit de tekst ("Britse
@@ -101,6 +117,8 @@ function kindOfWith(catOf) {
   }
 }
 
+// Cultuur in de kop (voor de rubriek boven de plek, punt 6): zonder Media en Games ("omroep" in een kop is geen cultuur).
+const CULTURE_HEAD = new Set(['muziek', 'film', 'boeken', 'kunst', 'showbizz'])
 const NEWS_RUBRIC = new Set(['nl', 'vl', 'regio', 'int'])
 export const rubricOfCat = (cat) => (!cat || NEWS_RUBRIC.has(cat) ? 'nieuws' : cat)
 export function languageRule({ followed = new Set(), sources = [] } = {}) {
@@ -112,21 +130,29 @@ export function languageRule({ followed = new Set(), sources = [] } = {}) {
   // - Rubriek van een plek: die van zijn kop (rubricOf). Sport, cultuur of games als het onderwerp van het stuk dat is
   //   (zoals kindOf), anders de rubriek van de kopbron. Eén vaste regel per plek, ook voor een nieuwe kop of een vervolg.
   // - Taal van een stuk: `it.lang` (de server zet die alleen bij een stuk in een andere taal dan zijn bron), anders die
-  //   van de bron. Nederlands (ook Vlaams) is altijd leesbaar, net als elk stuk van een bron die je volgt. Een stuk van
+  //   van de bron. Nederlands (ook Vlaams) is leesbaar zodra je één Nederlandstalige bron volgt (zie onder), en elk stuk van
+  //   een bron die je volgt altijd. Een stuk van
   //   een anderstalige bron dat de server Nederlands noemt, telt niet als Nederlands: detectLang kent alleen nl en en, en
   //   noemde de Duitse kop "Von allmächtig zu ohnmächtig?" van Politico Europe Nederlands (feed van 5 november).
   // Is de kop onleesbaar, dan kiest relead (in composePersonal) opnieuw uit de leesbare stukken van dezelfde plek: eigen
   // bronnen, dan Nederlands, dan Vlaams, daarbinnen leadPool. Is er geen, dan valt de plek weg en vult de Editie aan zoals
   // altijd, of is ze eerlijk korter. Het gaat om de kop: de bundel achter "+N bronnen" en de bronvergelijking blijven heel.
   // Volg je in elke rubriek een Engelse bron, dan is alles leesbaar en is de Editie precies als zonder deze regel.
+  // Ook andersom (keuze van Alex, persona's 14 november, punt 8): volg je geen enkele Nederlandstalige bron (alleen Engelse,
+  // zoals een expat die geen Nederlands leest), dan is Nederlands buiten je bronnen niet leesbaar: geen Nederlandse kop van
+  // Waar iedereen over schrijft, de aanvulling of Buiten je bubbel. Is er in je taal geen stuk van dat verhaal, dan geen plek.
+  // Wie één Nederlandstalige bron volgt, of nog geen bron met een bekende taal, leest Nederlands zoals altijd.
   const langOfSource = new Map(sources.map((s) => [s.id, s.lang]))
   const readerLangs = new Map()
+  const allLangs = new Set()
   for (const s of sources) {
     if (!followed.has(s.id) || !s.lang || String(s.id).startsWith('bsky:')) continue
     const r = rubricOfCat(s.cat)
     if (!readerLangs.has(r)) readerLangs.set(r, new Set())
     readerLangs.get(r).add(s.lang)
+    allLangs.add(s.lang)
   }
+  const readsDutch = !allLangs.size || allLangs.has('nl')
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   const kindOf = kindOfWith(catOf)
   const rubricOf = (i) => {
@@ -136,11 +162,11 @@ export function languageRule({ followed = new Set(), sources = [] } = {}) {
   // Een onbekend stuk of een stuk zonder bekende taal laten we staan: daarover kunnen we niets zeggen.
   const readableIn = (i, rubric) => {
     if (!i || followed.has(i.source)) return true
-    const ok = (lang) => !lang || lang === 'nl' || !!readerLangs.get(rubric)?.has(lang)
+    const ok = (lang) => !lang || (lang === 'nl' ? readsDutch : !!readerLangs.get(rubric)?.has(lang))
     return ok(i.lang || langOfSource.get(i.source)) && ok(langOfSource.get(i.source))
   }
   const readable = (i) => !i || readableIn(i, rubricOf(i))
-  return { rubricOf, readableIn, readable, readerLangs }
+  return { rubricOf, readableIn, readable, readerLangs, readsDutch }
 }
 
 // `previous`: je vorige editie (zie previousOf in stories.mjs); wat daarin stond, komt alleen
@@ -296,12 +322,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // De taalregel (languageRule hierboven): een kop die je kunt lezen. `_langRule: false` alleen voor de toets dat de
   // regel niets verandert voor wie in elke rubriek een Engelse bron volgt (tests/taalregel.test.mjs).
   const { rubricOf, readableIn, readable } = _langRule ? languageRule({ followed, sources }) : { rubricOf: () => 'nieuws', readableIn: () => true, readable: () => true }
+  // Buiten je bronnen alleen gratis (persona's 14 november, punt 10, tweede keuring): wat de bubbel al eiste, geldt voor elke
+  // kop van een bron die je niet volgt, ook de basis uit de algemene Editie en de aanvulling (Jan, die alleen gratis wil,
+  // kreeg vijf betaalde plekken). Een betaalde bron die je volgt, blijft. Eén toets voor de kop: leesbaar en dit (leadOk).
+  const paidSource = new Set(sources.filter((s) => s.paid).map((s) => s.id))
+  const freeOrOwn = (i) => !i || followed.has(i.source) || !paidSource.has(i.source)
+  const leadOk = (i) => readable(i) && freeOrOwn(i)
   const storyMembers = (sid, id) => [...new Set([id, ...(storyById.get(sid)?.itemIds || [])])].map((x) => itemAny.get(x)).filter(Boolean)
   // De kop van een plek met kop `head` en stukken `xs`: dezelfde kop als die leesbaar is, anders de beste leesbare.
   const relead = (head, xs) => {
-    if (readable(head)) return head
+    if (leadOk(head)) return head
     const rubric = rubricOf(head)
-    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric))
+    const ok = xs.filter((i) => i && i.kind !== 'post' && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric) && freeOrOwn(i))
     if (!ok.length) return null
     // Eerst wat niet verouderd is, dan je eigen bronnen, dan Nederlands vóór Vlaams; daarbinnen leadPool (kern, vers).
     const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok
@@ -312,7 +344,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // bericht of een verhaal zonder leesbaar stuk).
   const releadEntry = (e) => {
     const head = itemAny.get(e.leadId || e.id)
-    if (readable(head)) return e
+    if (leadOk(head)) return e
     const next = e.kind === 'story' ? relead(head, [...membersOf(e)].map((x) => itemAny.get(x))) : null
     return next ? { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) } : null
   }
@@ -367,7 +399,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
   // Het extra blok kiest er een paar meer, zodat een verhaal dat het nieuws al heeft (de dood van een
   // acteur, met een stuk van NOS Cultuur) er niet twee keer in staat.
-  const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false }) : []
+  // Het plafond groeit mee met je keuze (extraMaxOf); de eerste EXTRA_MAX plekken gaan zoals altijd van het nieuws af,
+  // de groei daarna ruilt alleen lichte plekken (hieronder), zodat groot nieuws en de voorpagina blijven.
+  const extraMax = extraMaxOf(interests, extraKinds)
+  const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * extraMax, plan: false }) : []
   const extraN = Math.min(EXTRA_MAX, extraAll.length)
 
   // 3. Het nieuws, met jouw indeling. Een plek buiten de indeling en de voorpagina met een kop van
@@ -391,6 +426,27 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (un) abroad++
     extra.push({ ...e, desk: null })
   }
+  // De groei boven EXTRA_MAX (extraMaxOf): per extra plek ruilt de lichtste nieuwsplek, eerst een zonder gekozen interesse.
+  // Nooit de voorpagina of groot nieuws: dat blijft staan, ook als er dan minder groei is.
+  const extraIds = new Set(extra.flatMap((e) => e.itemIds || [e.id]))
+  const isMajor = (e) => majorNews(storyById.get(e.id) || e, (e.itemIds || [e.leadId || e.id]).map((id) => itemAny.get(id)).filter(Boolean))
+  for (const e of extraAll) {
+    if (extra.length >= extraMax) break
+    if (extra.includes(e) || extra.some((x) => x.id === e.id)) continue
+    const ids = e.itemIds || [e.id]
+    if (ids.some((id) => inNews.has(id) || extraIds.has(id))) continue
+    if (!eligible(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)) continue
+    // Ook niet de enige plek van een kernrubriek als de Editie er dan te weinig heeft (KERN_MIN, zoals bij het brede verhaal).
+    const kernIn = (es) => new Set(es.map((x) => x.desk).filter((d) => KERN.includes(d))).size
+    const keeps = (x) => kernIn(news.filter((y) => y !== x)) >= Math.min(KERN_MIN, kernIn(news))
+    const light = news.map((x, i) => ({ x, i })).filter(({ x }) => !x.front && !isMajor(x) && keeps(x)).sort((a, b) => (a.x.parts?.interest ? 1 : 0) - (b.x.parts?.interest ? 1 : 0) || (a.x.w || 0) - (b.x.w || 0) || byText(b.x.id, a.x.id))[0]
+    if (!light) break
+    news.splice(light.i, 1)
+    if (sel.counted.has(light.x.id)) abroad--
+    if (unchosenAbroad(e.leadId || e.id, e.kind === 'story' ? e.id : null)) abroad++
+    for (const id of ids) extraIds.add(id)
+    extra.push({ ...e, desk: null })
+  }
   const own = [...news, ...extra]
   // De berichten van een plek: het verhaal zoals het toestel het nu kent én zoals de algemene Editie het
   // vastlegde (`itemIds`), want de server kan een gebeurtenis sindsdien anders gebundeld hebben (feedback 31
@@ -412,9 +468,19 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)))
   // Ook geen breed verhaal over het onderwerp van een kop uit je vorige Editie (zoals selectForReader), tenzij het
   // zich ontwikkelde: dan komt het als vervolg.
+  // Eén toets voor "stond al in je vorige Editie": hetzelfde onderwerp als een kop van toen (sameSubject, dat dezelfde
+  // gebeurtenis omvat). Een gewone plek mag als vervolg terugkomen; Buiten je bubbel nooit (dubbelcheck A7, shownBefore).
   const prevHeads = previous ? previousHeads(sigAll, previous, now) : []
-  const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg
-  const free = (w) => w?.item?.id && !!wideLead(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId)
+  const shownBefore = (id) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s))
+  const sameAsPrevious = (id, sid) => shownBefore(id) && !againOf(id, sid).vervolg
+  // Lokaal nieuws van elders (persona's 14 november, punt 7; localAbroad in netlify/lib/desks.mjs) is geen "Waar iedereen
+  // over schrijft", tenzij het groot nieuws is: het Senaatsleiderschap van de Democraten of een rechtszaak in Delaware.
+  const localWide = (w) => {
+    const st = storyById.get(w.storyId) || {}
+    const xs = [wideLead(w) || w.item, ...storyMembers(w.storyId, w.item.id)]
+    return !bigWide(w) && localAbroad(xs, { desk: st.desk ?? null, homePublishers: homePublishersOf(xs.filter(Boolean), st) })
+  }
+  const free = (w) => w?.item?.id && !!wideLead(w) && !localWide(w) && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId)
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
   const wide0 =
     (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) ||
@@ -502,27 +568,52 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // 6. Buiten je bubbel: niet iets dat al in je Editie staat, en ook niet iets binnen je profiel
   //    (geen Ajax voor de sportlezer). Geen trend-signaal buiten je profiel? Dan het breedst gedekte
   //    verhaal in een gebied naast je sterkste interesse: "Naast je bubbel".
-  const shownBefore = (id) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameEvent(sigAll.get(id), s))
   const clashes = (id) => taken.has(id) || (sigAll.has(id) && [...taken].some((x) => sigAll.has(x) && sameEvent(sigAll.get(id), sigAll.get(x))))
   const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))]
   // Sport zonder onderwerp (een stuk onder /sport/, of een verhaal met `sport: true`) is voor de sportlezer niet buiten
   // zijn profiel (nachttest 14 november, R1): het gebied telt dan mee in outsideProfile.
   const familiesOfStory = (sid, id) => (storyById.get(sid)?.sport || (storyById.get(sid)?.itemIds || [id]).some((x) => itemAny.has(x) && isSport(itemAny.get(x), prof.catOf)) ? ['sport'] : [])
   let nearItem = null
+  // Buiten je bubbel per lezer (persona's 14 november, punt 5): niet van een bron die je volgt (Rijnmond voor wie Rijnmond
+  // volgt, VRT voor wie VRT volgt), niet in een rubriek die je koos (box 3 in de Kamer voor wie Binnenland koos: de
+  // onderwerpen van het stuk alleen, outsideProfile, zagen dat niet) en niet uit je regio (de plaatsen van je regionale
+  // bronnen: de Visserbrug in Groningen voor wie het Dagblad van het Noorden leest). Interesses (outsideProfile) en
+  // leestaal (readable) golden al. Gratis, zoals de server de kandidaten kiest (bubbleRejection), ook hier: een oudere
+  // kern leverde nog betaalde kandidaten. Komt het stuk zelf van een bron die je volgt, dan mag een ander stuk van hetzelfde
+  // verhaal van een bron die je niet volgt de kop zijn (wie de startset volgt, had anders vrijwel nooit een bubbel: de
+  // kandidaten komen vooral van NOS, NU.nl en RTL); is er geen, dan valt de kandidaat af.
+  const regions = readerRegions({ followed, sources })
+  const sourceById = new Map(sources.map((s) => [s.id, s]))
+  const bubbleDesks = chosenDesks(prof)
+  const outsideItem = (i) => !!i && i.kind !== 'post' && !isOpinion(i) && leadOk(i) && !followed.has(i.source) && !inRegion(i, regions, (s) => sourceById.get(s))
+  const bubbleLeadOf = (sid, id) => {
+    const it = itemAny.get(id)
+    if (!it) return null
+    const story = sid || it.storyId || null
+    const desk = storyById.get(story)?.desk ?? storyDesk.get(story) ?? deskOfStory([it])
+    if ((desk && bubbleDesks.has(desk)) || inRegion(it, regions, (s) => sourceById.get(s))) return null
+    if (outsideItem(it)) return it
+    const others = story ? storyMembers(story, id).filter((i) => i.id !== id && outsideItem(i)) : []
+    return leadCandidates(others, followed, preferred, now)[0] || null
+  }
   if (bubbleEntry) {
     // Zonder Wereld geen buitenlands bubbelstuk (feedback 31 oktober: Seedorf bij Corinthians, Braziliaans
     // voetbal, ook voor wie alleen Binnenland koos): dan het volgende signaal, of "Naast je bubbel".
     // Een los bericht met een onleesbare kop (de taalregel) slaan we over: dan het volgende signaal.
     // Nieuw onderwerp, niet eerder getoond (dubbelcheck A7): ook geen stuk over dezelfde gebeurtenis als een kop uit je
-    // vorige Editie, van welke bron ook. Dezelfde toets als de algemene Editie (shownToday in pickBubble, sameEvent);
-    // `unread` kijkt alleen naar ids en verhalen, en een los stuk van een andere bron glipte erdoor.
-    const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && !shownBefore(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
-    // Eerst het signaal dat de algemene editie koos, dan de andere kandidaten van de server.
+    // vorige Editie, van welke bron ook (shownBefore, sameEvent zoals pickBubble). En een kop buiten je bubbel
+    // (bubbleLeadOf, persona 5). Samen één toelating voor elk bubbelstuk, ook Naast je bubbel hieronder.
+    const okB = (b) => itemAny.has(b.id) && readable(itemAny.get(b.id)) && !!bubbleLeadOf(b.storyId, b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && !shownBefore(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof, familiesOfStory(b.storyId, b.id)) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
+    // Niet voor iedereen hetzelfde stuk: de trend is een bron van kandidaten, niet de keuze. Van de kandidaten die voor jou
+    // kunnen (het signaal van de algemene Editie en de andere van de server), kiest je eigen vaste zaad (jitter: je bronnen,
+    // interesses en het dagdeel). Zelfde lezer en dagdeel, zelfde stuk; geen toeval.
     const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id }
-    const alt = [first, ...(global.bubble || [])].find(okB)
+    const seenB = new Set()
+    const alt = [first, ...(global.bubble || [])].filter((b) => b?.id && !seenB.has(b.id) && seenB.add(b.id) && okB(b)).sort((a, b) => jitter(seed, a.id) - jitter(seed, b.id) || byText(a.id, b.id))[0]
     if (alt) {
-      if (alt.id !== bubbleEntry.id) bubbleEntry = { kind: 'item', id: alt.id, desk: 'bubbel', terms: alt.terms }
-      bubbleEntry = withHistory(bubbleEntry, alt.id, alt.storyId)
+      const lead = bubbleLeadOf(alt.storyId, alt.id)
+      if (lead.id !== bubbleEntry.id) bubbleEntry = { kind: 'item', id: lead.id, desk: 'bubbel', terms: alt.terms }
+      bubbleEntry = withHistory(bubbleEntry, lead.id, alt.storyId || lead.storyId)
     } else {
       const home = strongestFamily(prof)
       const next = new Set(NEIGHBOURS[home] || [])
@@ -530,9 +621,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
         .filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5)
         .sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id))
         .map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }))
-      const fits = (w) => w?.item?.id && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !shownBefore(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId))
-      // Met een leesbare kop (de taalregel): uit hetzelfde verhaal, of anders het volgende verhaal.
-      const nearLead = (w) => relead(w.item, storyMembers(w.storyId, w.item.id))
+      const fits = (w) => w?.item?.id && !!bubbleLeadOf(w.storyId, w.item.id) && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !shownBefore(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId))
+      // Met een leesbare kop (de taalregel) van een bron die je niet volgt: uit hetzelfde verhaal, of anders het volgende verhaal.
+      const nearLead = (w) => bubbleLeadOf(w.storyId, w.item.id)
       const pick0 = [...(global.near || []), ...recent].find((w) => fits(w) && nearLead(w))
       const pick = pick0 && nearLead(pick0) !== pick0.item ? { ...pick0, item: nearLead(pick0) } : pick0
       bubbleEntry = pick ? withHistory({ kind: 'story', id: pick.storyId, leadId: pick.item.id, desk: 'bubbel', near: home }, pick.item.id, pick.storyId) : null
@@ -548,7 +639,40 @@ export function composePersonal({ global, stories = [], items = [], sources = []
 
   // 7. Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
   //    "Waar iedereen over schrijft" direct daarna.
-  let entries = [...news, ...fill, ...extra]
+  // Wie niets kiest (Liever meteen lezen: geen interesses en geen onderwerpen; persona's 14 november, punt 10) krijgt de
+  // algemene Editie als basis: haar plekken in haar volgorde, met dezelfde toelating en, als een bron die je volgt het
+  // verhaal brengt, dat stuk als kop. Wat daarna nog vrij is, vult je eigen nieuws en de aanvulling, maar hooguit
+  // NO_CHOICE_FILL_MAX plekken per rubriek: Jan, met Tweakers in de startset, kreeg vijf Tech-plekken in één Editie en maar
+  // drie tot zeven van de algemene Editie.
+  // Niets gekozen: geen interesses, geen onderwerpen, geen voorkeursbron en een profiel zonder enige waarde (ook niets geleerd
+  // uit lezen of meer/minder): dan is er niets om de algemene Editie persoonlijk van te maken.
+  const noChoice = !interests.length && !topics.length && !preferred.size && Object.values(prof.topicP || {}).every((v) => !v)
+  const ownLeadOf = (g) => {
+    const xs = [...membersOf(g)].map((x) => itemAny.get(x)).filter((i) => i && i.kind !== 'post' && !isOpinion(i) && followed.has(i.source) && !isStale(i, now))
+    return xs.length ? leadPool(leadCandidates(xs, followed, preferred, now), xs, now, (i) => followed.has(i.source))[0] || null : null
+  }
+  const basis = noChoice
+    ? global.entries
+        .filter((g) => g.desk !== 'bubbel')
+        .map((g0) => {
+          // Staat het verhaal ook in je eigen nieuws, dan die plek (met de kop en het waarom van de selectie), op de plaats
+          // van de algemene Editie. Anders de plek van de algemene Editie: met een stuk van een bron die je volgt als kop als
+          // dat er is, en anders als aanvulling (Buiten je bronnen), met een leesbare kop (de taalregel).
+          const sid0 = g0.kind === 'story' ? g0.id : serverStory(g0)
+          const mine = news.find((x) => (x.kind === 'story' && sid0 && x.id === sid0) || (x.leadId || x.id) === (g0.leadId || g0.id))
+          if (mine) return { ...mine, _basis: true }
+          const g = releadEntry(g0)
+          if (!g) return null
+          const own = g.kind === 'story' ? ownLeadOf(g) : followed.has(itemAny.get(g.id)?.source) ? itemAny.get(g.id) : null
+          const e = own ? (own.id !== (g.leadId || g.id) ? { ...g, leadId: own.id, ...('title' in g ? { title: own.title || null } : {}) } : g) : { ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }
+          const id = e.leadId || e.id, sid = e.kind === 'story' ? e.id : null
+          // Groot nieuws heet ook hier zo (whyOf: `big`), zoals in de selectie.
+          const big = majorNews(storyById.get(sid0) || e, [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean))
+          return unread(id, sid) && !(e.desk === EXTERN && sameAsPrevious(id, sid)) ? { ...withHistory(e, id, sid), ...(big ? { big: true } : {}), _basis: true } : null
+        })
+        .filter(Boolean)
+    : []
+  let entries = [...basis, ...news, ...fill, ...extra]
   if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry)
 
   // Vul vrijgevallen gereserveerde plekken met toegelaten eigen nieuws; de norm wijkt niet
@@ -576,25 +700,87 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e))
     return st && isRunning(st, known, now) ? st : null
   }
+  // Samengevoegde stukken per plek (de plek zelf blijft hetzelfde object): alleen een verhaal neemt stukken op.
+  const mergedIds = new Map()
+  const mergeInto = (k, ids) => {
+    const t = accepted[k]
+    if (t.kind !== 'story') return
+    const have = new Set([...(t.itemIds || storyById.get(t.id)?.itemIds || [t.leadId || t.id]), ...(mergedIds.get(t) || [])])
+    const add = ids.filter((x) => !have.has(x) && !finalTaken.has(x))
+    if (!add.length) return
+    mergedIds.set(t, [...(mergedIds.get(t) || []), ...add])
+    for (const x of add) finalTaken.add(x)
+    acceptedItems[k] = [...acceptedItems[k], ...add.map((x) => itemAny.get(x)).filter(Boolean)]
+  }
+  // Lokaal nieuws van elders zakt (persona's 14 november, punt 7): een plek over Amerikaans binnenland of een deelstaat
+  // elders (localAbroad) die geen groot nieuws is, komt pas aan bod als al het andere toegelaten aanbod een plek kreeg (eigen
+  // nieuws, sport en cultuur, de vulling uit de algemene Editie), en staat dan achteraan.
+  // Behalve een plek die een onderwerp raakt dat je zelf aantikte (origin 'gekozen': wie in de instellingen Verenigde Staten
+  // aanzet, houdt Amerikaans binnenland). Een onderwerp dat het welkom met een interesse meegeeft (geërfd, zoals Verenigde
+  // Staten onder Politiek) of dat je uit lezen leerde, is geen keuze van de lezer: anders kreeg wie Politiek en Wereld koos
+  // Amerikaans binnenland in de top 3 (tweede keuring 14 november). Geen plaats (PLACE_HIT: geen land, werelddeel of
+  // terugval op de bron) en niet Wereld: Wereld is zelf het buitenland. De zakregel redt zo'n plek; bovenaan zetten doet
+  // hij niet: plek 01 kijkt naar de strenge toets (rawLocal).
+  const touchesChoice = (e) => {
+    const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
+    const hit = p.members?.length ? personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest : null
+    return !!hit && hit.pts > 0 && hit.shown !== false && !PLACE_HIT(hit) && hit.f !== 'wereld' && hit.origin === 'gekozen'
+  }
+  let deferLocal = true
+  const deferred = []
+  // De strenge toets: lokaal nieuws van elders, geen groot nieuws. Geldt voor plek 01 en Waar iedereen over schrijft.
+  const rawLocal = (e) => {
+    const head = itemAny.get(e.leadId || e.id)
+    if (!head || e.desk === 'bubbel') return false
+    const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
+    const xs = [...membersOf(e)].map((x) => itemAny.get(x)).filter(Boolean)
+    return localAbroad([head, ...xs.filter((i) => i !== head)], { desk: st.desk ?? e.fromDesk ?? e.desk ?? null, homePublishers: homePublishersOf([head, ...xs], st) }) && !majorNews(st, xs)
+  }
+  // Zakken: de strenge toets, behalve een plek die een zelf gekozen onderwerp raakt.
+  const localOf = (e) => rawLocal(e) && !touchesChoice(e)
+  const fillDesks = new Map() // wie niets koos: vulplekken per rubriek (NO_CHOICE_FILL_MAX)
+  let capFill = true
+  const fillDeskOf = (e) => (e.desk === EXTERN ? e.fromDesk : e.desk) || null
   const accept = e => {
     if (accepted.length >= capacity) return
+    if (noChoice && capFill && !e._basis && e.desk !== 'bubbel' && fillDeskOf(e) && (fillDesks.get(fillDeskOf(e)) || 0) >= NO_CHOICE_FILL_MAX) return
+    if (deferLocal && localOf(e)) {
+      if (!deferred.includes(e)) deferred.push(e)
+      return
+    }
     const id = e.leadId || e.id
-    // Vangnet van de taalregel: geen plek met een onleesbare kop, langs welke route ook.
-    if (!readable(itemAny.get(id))) return
+    // Vangnet van de taalregel en van "buiten je bronnen alleen gratis": geen plek met een onleesbare of betaalde kop van
+    // elders, langs welke route ook. Eerst een andere kop uit hetzelfde verhaal; is die er niet, dan geen plek.
+    if (!leadOk(itemAny.get(id))) {
+      const next = releadEntry(e)
+      return next && leadOk(itemAny.get(next.leadId || next.id)) ? accept(next) : undefined
+    }
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
-    if (ids.some(x => finalTaken.has(x)) || (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x))))) return
+    if (ids.some(x => finalTaken.has(x))) return
+    // Dezelfde gebeurtenis als een plek die er al staat (sameEvent, of dezelfde kop-gebeurtenis zonder een gebeurtenis-woord
+    // als naam: sameEventToMerge): geen tweede plek, en de stukken gaan bij die plek (persona's 14 november: één feit in twee
+    // verhalen, de Donbas-ruil op 02 en 05, het Amerikaanse vliegverbod op 04 en 06). Zo staat het verhaal één keer, met alle
+    // bronnen, en weet de volgende Editie dat beide helften er stonden.
+    const head = itemAny.get(id)
+    const known = ids.map((x) => itemAny.get(x)).filter(Boolean)
+    const same = sigAll.has(id) ? finalLeads.findIndex(x => sigAll.has(x) && (sameEvent(sigAll.get(id), sigAll.get(x)) || sameEventToMerge(sigAll, head, itemAny.get(x)))) : -1
+    if (same >= 0) return mergeInto(same, known.map((i) => i.id))
+    // Alleen hetzelfde onderwerp (sameSubject, de ruimere kop-gebeurtenis of hetzelfde cluster, zonder dezelfde gebeurtenis):
+    // geen tweede plek, maar ook niet samenvoegen (keuring 14 november: één verkiezing is nog geen gebeurtenis).
+    if (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && (sameSubject(sigAll.get(id), sigAll.get(x)) || sameHeadEventOf(sigAll, head, itemAny.get(x))))) return
+    if (acceptedItems.some((xs) => sameCluster(sigAll, known, xs))) return
     const fam = famKey(e)
     if (fam && (famTaken.get(fam) || 0) >= FAMILY_MAX) return
-    // Eén onderwerp op één dag, één plek (sameCluster), langs elke route: ook een breed verhaal of een aanvulling.
-    const known = ids.map((x) => itemAny.get(x)).filter(Boolean)
-    if (acceptedItems.some((xs) => sameCluster(sigAll, known, xs))) return
+    // Eén onderwerp hooguit TOPIC_MAX plekken (sameTopic), langs elke route.
+    if (head && finalLeads.filter((x) => sameTopic(sigAll, head, itemAny.get(x))).length >= TOPIC_MAX) return
     const allowed = p.allowed || (floorLight && p.reason === 'licht-buiten-interesse')
     if (!allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
     const run = runningStory(e, known)
     if (run && (runningN >= RUNNING_MAX || (!e._running && !runningFact(run, known, sigAll, now)))) return
     if (run) runningN++
     if (p.capped) internationalCount++
+    if (noChoice && !e._basis && e.desk !== 'bubbel' && fillDeskOf(e)) fillDesks.set(fillDeskOf(e), (fillDesks.get(fillDeskOf(e)) || 0) + 1)
     if (fam) famTaken.set(fam, (famTaken.get(fam) || 0) + 1)
     ids.forEach(x => finalTaken.add(x))
     finalLeads.push(id)
@@ -602,12 +788,35 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     accepted.push(e)
   }
   entries.forEach(accept)
+  // Valt er een plek weg, dan eerst de volgende kandidaat uit je gekozen sport of cultuur (tot het plafond), pas daarna
+  // de vulling met nieuws.
+  const extraIn = () => accepted.filter((e) => extra.includes(e) || e._extra).length
+  for (const e of extraAll) {
+    if (accepted.length >= EDITION_SIZE || extraIn() >= extraMax) break
+    if (extra.some((x) => x.id === e.id)) continue
+    accept({ ...e, desk: null, _extra: true })
+  }
   if (accepted.length < EDITION_SIZE) selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept)
   // Dan pas aanvullen uit de algemene Editie, met dezelfde toelating en zonder dubbel verhaal.
   for (const { g } of fillCands) {
     if (accepted.length >= EDITION_SIZE) break
+    // Ook hier geen aanvulling over het onderwerp van een kop uit je vorige Editie zonder ontwikkeling (sameAsPrevious, zoals
+    // het brede verhaal): sinds lokaal nieuws van elders zakt (punt 7) komt de vulling vaker zo ver.
+    if (sameAsPrevious(g.leadId || g.id, g.kind === 'story' ? g.id : null)) continue
     accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
   }
+  // Wie niets koos: haalt de Editie met hooguit NO_CHOICE_FILL_MAX vulplekken per rubriek geen tien, dan mag de vulling
+  // daarna verder (liever een volle krant dan een lege plek), in dezelfde volgorde.
+  if (noChoice && accepted.length < EDITION_SIZE) {
+    capFill = false
+    selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept)
+    for (const { g } of fillCands) {
+      if (accepted.length >= EDITION_SIZE) break
+      if (!sameAsPrevious(g.leadId || g.id, g.kind === 'story' ? g.id : null)) accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+    }
+  }
+  deferLocal = false
+  for (const e of deferred) if (!sameAsPrevious(e.leadId || e.id, e.kind === 'story' ? e.id : null)) accept(e)
   if (accepted.length < EDITION_FLOOR) {
     floorLight = true
     capacity = EDITION_FLOOR
@@ -617,17 +826,68 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   }
   // Pas na hooguit tien gewone plekken: één optionele bubbel, met dezelfde inhouds- en dubbelgrenzen.
   if (bubbleEntry) { capacity = accepted.length + 1; accept(bubbleEntry) }
+  // Uiteengevallen verhalen samenvoegen (persona's 14 november): een verhaal dat geen plek kreeg maar over dezelfde
+  // gebeurtenis gaat als een plek, binnen een dag, geeft zijn stukken aan die plek. Zo staat het feit één keer met al zijn
+  // bronnen, en komt de andere helft in het volgende dagdeel niet terug als nieuw (de vorige Editie kent dan beide helften).
+  // Dezelfde gebeurtenis: het leidende stuk van het verhaal en de kop van de plek (sameEvent of sameEventToMerge). Niet
+  // omdat een ander stuk aan een van beide kanten ergens op lijkt, en niet omdat de clusters elkaar raken (keuring 14
+  // november: een stuk over een Super PAC kwam zo bij "Trump verschijnt na de uitslag"; met alle stukken van de plek kwam
+  // "Recordaantal vervroegde stemmen" bij "De paus stemt"). Hetzelfde cluster blijft wel één plek.
+  const placedStories = new Set(accepted.filter((e) => e.kind === 'story').map((e) => e.id))
+  for (const st of stories) {
+    if (placedStories.has(st.id) || !(now - Date.parse(st.latestAt) < 24 * 36e5)) continue
+    const lead = itemAny.get(st.leadId)
+    if (!lead || lead.kind === 'post' || finalTaken.has(lead.id) || !sigAll.has(lead.id)) continue
+    const xs = st.itemIds.filter((x) => !finalTaken.has(x)).map((x) => itemAny.get(x)).filter((i) => i && i.kind !== 'post')
+    const k = accepted.findIndex((e) => {
+      const h = itemAny.get(e.leadId || e.id)
+      return e.kind === 'story' && e.desk !== 'bubbel' && !!h && sigAll.has(h.id) && (sameEvent(sigAll.get(lead.id), sigAll.get(h.id)) || sameEventToMerge(sigAll, lead, h))
+    })
+    if (k >= 0) mergeInto(k, xs.map((i) => i.id))
+  }
   entries = accepted
-  // Binnenland blijft de opening, ook bij een combinatie met Wereld en bij serveraanvulling.
-  // De stukken van een plek die dit toestel kent (voor plek 01: openWithNews).
+  // De opening (persona's 14 november, punt 3; keuze van Alex: groot nieuws gaat voor). Plek 01 is groot nieuws of het
+  // sterkste stuk uit een gekozen interesse, niet vanzelf Binnenland: wie Binnenland koos, opende elke Editie met het
+  // eerste binnenlandse stuk, ook een regionaal stuk van negen uur oud met één bron boven een wereldwijde storing met 27.
+  // - Staat er groot nieuws (majorNews) in de Editie en is plek 01 dat niet, dan opent het grootste (de meeste uitgevers;
+  //   bij gelijke stand de volgorde van de Editie). Is plek 01 al groot nieuws, dan blijft die staan.
+  // - Geen groot nieuws: is plek 01 de voorpagina of een gekozen interesse, dan blijft die; anders opent het sterkste stuk
+  //   met een gekozen interesse als reden (het gewicht van de selectie). Binnenland is dan een interesse als alle andere.
+  // Nooit Buiten je bubbel, Waar iedereen over schrijft of een plek die zonder nieuw feit blijft staan; alleen een plek
+  // met nieuws (geen sport of cultuur uit het extra blok), geen kuriositeit of verhaal over een bekend persoon dat geen
+  // zwaar nieuws is, en zonder Wereld geen buitenlands verhaal onder het plafond (31 oktober: wie Binnenland koos zonder
+  // Wereld, opent met Nederland, niet met de paus of Wall Street). De stukken van een plek die dit toestel kent (ook voor
+  // openWithNews).
   const knownOf = (e) => [...membersOf(e)].map((id) => itemAny.get(id)).filter(Boolean)
   const hasNews = (e) => knownOf(e).some((i) => !isOpinion(i))
-  if (prof.interests.has('binnenland')) {
-    const first = entries.findIndex(e => {
-      const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
-      return e.desk !== 'bubbel' && !e.held && !p.abroad && ['binnenland','regio'].includes(p.desk) && hasNews(e)
-    })
-    if (first > 0) entries.unshift(...entries.splice(first, 1))
+  const storyOfEntry = (e) => storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || {}
+  const placeOk = (e) => e.desk !== 'bubbel' && e.desk !== WIDE && !e.held && hasNews(e)
+  const opener = (e) => {
+    if (!placeOk(e) || rawLocal(e)) return false
+    const xs = knownOf(e)
+    const head = itemAny.get(e.leadId || e.id)
+    if (head && kindOf(head) !== 'nieuws' && !bigLight(head)) return false
+    if (curioStory(storyOfEntry(e), xs) || (peopleStory(xs, sources.length ? sources : undefined) && !weightyStory(storyOfEntry(e), xs, sources.length ? sources : undefined))) return false
+    return !(capAbroad && policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e).capped)
+  }
+  const pubsOf = (e) => {
+    const st = storyById.get(e.kind === 'story' ? e.id : serverStory(e))
+    return st?.publisherCount ?? st?.sourceCount ?? e.sourceCount ?? 1
+  }
+  const bigOpen = (e) => majorNews(storyById.get(e.kind === 'story' ? e.id : serverStory(e)) || e, knownOf(e))
+  const chosenHit = (e) => !!e.parts?.interest && e.parts.interest.shown !== false && e.parts.interest.pts > 0
+  // De voorpagina van de selectie (`front`, voor iedereen gelijk) blijft op 01 als er geen groter nieuws onder staat.
+  // Wat de selectie als groot nieuws bovenaan zette, blijft staan (ook buitenlands nieuws zonder Wereld: dat zakt niet).
+  // Lokaal nieuws van elders opent nooit (persona 7), ook niet als een zelf gekozen onderwerp het van het zakken redde: dan
+  // opent de eerste plek die wel mag.
+  const firstOk = !!entries[0] && placeOk(entries[0]) && !rawLocal(entries[0])
+  if (entries.length > 1 && !(firstOk && bigOpen(entries[0]))) {
+    const cands = entries.map((e, i) => ({ e, i })).filter(({ e, i }) => i > 0 && opener(e))
+    const big = cands.filter(({ e }) => bigOpen(e)).sort((a, b) => pubsOf(b.e) - pubsOf(a.e) || a.i - b.i)[0]
+    const keep = !big && firstOk && (entries[0].front || chosenHit(entries[0]))
+    const strong = !big && !keep && prof.interests.size ? cands.filter(({ e }) => chosenHit(e)).sort((a, b) => (b.e.w || 0) - (a.e.w || 0) || a.i - b.i)[0] : null
+    const pick = big || strong || (!keep && placeOk(entries[0]) && !firstOk ? cands[0] : null)
+    if (pick) entries.unshift(...entries.splice(pick.i, 1))
   }
   // Curiosa nooit in de top 3 (Redacteur 3b · 5): een kuriositeit of licht verhaal schuift naar plek 6.
   curiosaDown(entries, { itemsOf: knownOf, storyOf: (e) => (e.kind === 'story' ? storyById.get(e.id) : null) })
@@ -637,11 +897,14 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   heldDown(entries)
   // Plek 01 opent met nieuws, met een nieuwskop; liefst uit je eigen bronnen (keuring 6 november 2026).
   // Alleen een leesbare kop (de taalregel), in de rubriek van de huidige kop van plek 01.
+  // Geen video of podcast op 01 (opensEdition) en geen lokaal nieuws van elders (rawLocal), met een kop die je kunt lezen
+  // en die gratis is als hij niet van je eigen bronnen komt (leadOk).
   openWithNews(entries, {
     itemsOf: knownOf,
+    ok: (e) => !rawLocal(e) && knownOf(e).some((i) => !isOpinion(i) && opensEdition(i) && leadOk(i)),
     pick: (xs, all) => {
       const rubric = rubricOf(itemAny.get(entries[0].leadId || entries[0].id) || xs[0])
-      return leadPool(leadCandidates(xs.filter((i) => readableIn(i, rubric)), followed, preferred, now, { role: 'front' }), all, now, (i) => followed.has(i.source))[0]
+      return leadPool(leadCandidates(xs.filter((i) => readableIn(i, rubric) && freeOrOwn(i)), followed, preferred, now, { role: 'front' }), all, now, (i) => followed.has(i.source))[0]
     },
   })
 
@@ -657,8 +920,30 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    toestel zelf niet kent (developedSince).
   const srcName = new Map(sources.map((s) => [s.id, s.name]))
   const mineDesks = chosenDesks(prof) // "Jouw rubriek" alleen voor een rubriek die bij je keuzes hoort
+  // De rubriek boven de plek (persona's 14 november, punt 6), pas hier en apart (`rubriek`, alleen als die afwijkt): `desk`
+  // blijft de rubriek van het verhaal, voor iedereen gelijk, waarmee de samenstelling en de toetsen rekenen; wat je ziet
+  // (web: resolveEditionEntry, app: EditionView), volgt jou.
+  // - Sport en cultuur vóór de geografie: een sportverhaal (story.sport van de server, of de kop is sport: isSport) heet
+  //   Sport, ook als de server het onder Buitenland zette (Daleman op de 500 meter); een cultuurstuk (de kop van een
+  //   cultuurbron, of een cultuuronderwerp in de kop: CULTURE_HEAD) heet Cultuur. Zo krijgen ook sport en cultuur uit het
+  //   extra blok een rubriek; wat daar alleen via een onderwerp in de intro kwam, houdt er geen.
+  // - De geografie vanaf je thuisland (readerHome in shared/lezer.mjs: meer Vlaamse dan Nederlandse nieuwsbronnen is
+  //   België): voor een lezer in Vlaanderen is een Belgisch stuk Binnenland (belgianSubject) en Nederlands nieuws Buitenland.
+  // Niet voor Buiten je bubbel, Waar iedereen over schrijft of een aanvulling (die houden hun eigen label).
+  const home = readerHome({ followed, sources })
+  const shownDesk = (e) => {
+    if (['bubbel', WIDE, EXTERN].includes(e.desk)) return e.desk
+    const head = itemAny.get(e.leadId || e.id)
+    if (!head) return e.desk
+    if (storyOfEntry(e).sport || isSport(head, catOf)) return 'sport'
+    if (catOf.get(head.source) === 'cultuur' || (head.mainTopics || []).some((t) => CULTURE_HEAD.has(t))) return 'cultuur'
+    if (home === 'BE' && (e.desk === 'buitenland' || !e.desk) && belgianSubject(head)) return 'binnenland'
+    if (home === 'BE' && ['binnenland', 'regio'].includes(e.desk) && !belgianSubject(head)) return 'buitenland'
+    return e.desk
+  }
   const out = entries.map((e) => {
-    let why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s })
+    const desk = shownDesk(e)
+    let why = whyOf(desk === e.desk ? e : { ...e, desk }, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk, plannedDesk: !!e.planned && mineDesks.has(desk), sourceName: (s) => srcName.get(s) || s })
     if (e.supplement && !e.vervolg) {
       const p = policyOf(e.leadId || e.id,e.kind === 'story' ? e.id : null,e)
       const hit = personalParts(p.members,prof,{}, {desk:p.desk,foreign:p.abroad}).interest
@@ -666,14 +951,15 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       const reasons = {groot:`Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`,passend:`Aanvulling bij ${family}`,basis:'Actueel nieuws uit Nederland',eigen:'Uit je gekozen bronnen'}
       if (reasons[e.supplement]) why = {...why,text:reasons[e.supplement],detail:true}
     }
-    const { w, parts, planned, front, vervolg, big, ...rest } = e
+    const { w, parts, planned, front, vervolg, big, _extra, _basis, ...rest } = e
     const lead = e.leadId || e.id
-    const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
+    const itemIds0 = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
+    const itemIds = mergedIds.has(e) ? [...new Set([...itemIds0, ...mergedIds.get(e)])] : itemIds0
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
     // Luister verder (stap 3): de aflevering bij dit verhaal gaat mee, net als in de kern (netlify/lib/luister.mjs). Rekent
     // niet mee in de samenstelling; het toestel kiest welke aflevering bij de lezer past (alleenVolgers).
     const luister = e.kind === 'story' ? storyById.get(e.id)?.luister : null
-    return { ...rest, itemIds, ...(keys ? { keys } : {}), ...(luister ? { luister } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front }
+    return { ...rest, ...(desk !== e.desk ? { rubriek: desk } : {}), itemIds, ...(keys ? { keys } : {}), ...(luister ? { luister } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front, _local: localOf(e) }
   })
   // Bij een korte Editie geen blinde minimumverlaging: elke bekende kandidaat krijgt een
   // terminale reden uit dezelfde selectieroute. Dit is lokaal debugbewijs, geen accountpayload.
@@ -682,7 +968,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (regularCount < EDITION_AUDIT_BELOW) {
     const decisions = []
     selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions })
-    if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions })
+    if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * extraMax, plan: false, audit: decisions })
     const selectedIds = new Set(out.flatMap(e => e.itemIds || [e.leadId || e.id]))
     const selectedSigs = out.map(e => sigAll.get(e.leadId || e.id)).filter(Boolean)
     const represented = ids => ids.some(id => selectedIds.has(id) || (sigAll.has(id) && selectedSigs.some(s => sameSubject(sigAll.get(id), s))))

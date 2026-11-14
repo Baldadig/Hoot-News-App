@@ -12,7 +12,7 @@ import { keywordTopics } from './topics.mjs'
 import { hash } from '../../shared/util.mjs'
 import { SOURCES } from './sources.mjs'
 import { opinieBron } from '../../shared/opinie.mjs'
-import { isAflevering } from '../../shared/aflevering.mjs'
+import { isAflevering, opensEdition } from '../../shared/aflevering.mjs'
 import { SLOT_START, hhmm, amsterdamClock } from '../../shared/slot-times.mjs'
 import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, chosenDesks, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
@@ -628,6 +628,60 @@ function clusterHead(sig, item) {
   memo.set(item.id, h)
   return h
 }
+// Eén onderwerp, hooguit TOPIC_MAX plekken (persona's 14 november: de kabinetscrisis stond bij één lezer op vier plekken
+// van één Editie, de Amerikaanse tussentijdse verkiezingen op drie). Ruimer dan sameSubject en het cluster, die maar één
+// plek laten: twee invalshoeken van één dossier mogen allebei, een derde niet. Daarom mag dit grover zijn: twee echte
+// verhalen over één organisatie (KLM) houden allebei hun plek. `x`, `y`: de koppen van twee plekken (stukken met een
+// kenmerk in `sig`). Hetzelfde onderwerp, binnen EVENT_WINDOW, als:
+// - sameSubject het al zegt, of
+// - ze twee namen delen (eigen namen, bekende algemene namen of partijen; niet het land zelf, TOPIC_GENERIC), waarvan
+//   minstens één in een van de koppen staat, of
+// - ze één naam delen en hun koppen een woordstam (TOPIC_STEM letters vooraan; ook vooraan in het ene en achteraan in het
+//   andere woord: "kabinetscrisis" en "crisisoverleg"), of
+// - er één naam in beide koppen staat en ze een gebeurtenis-begrip delen.
+// Zonder lijst van onderwerpen of namen.
+export const TOPIC_MAX = 2
+export const TOPIC_STEM = 6
+const TOPIC_GENERIC = new Set(['nederland', 'us', 'uk', 'europe', 'un'])
+const topicNames = (s) => new Set([...s.strong, ...s.known, ...(s.parties || [])].filter((k) => !TOPIC_GENERIC.has(k)))
+const topicStems = (words) => {
+  const head = new Set()
+  const tail = new Set()
+  for (const w of words) if (w.length >= TOPIC_STEM && !/\d/.test(w)) (head.add(w.slice(0, TOPIC_STEM)), tail.add(w.slice(-TOPIC_STEM)))
+  return { head, tail }
+}
+// Dezelfde gebeurtenis in de koppen van twee stukken (sameHeadEvent op alleen de kop, met de woordenschat van `sig`): voor
+// wie na de selectie plekken samenvoegt (composePersonal).
+export const sameHeadEventOf = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(headSignature(sig, x), headSignature(sig, y))
+// Dezelfde gebeurtenis om twee plekken samen te voegen (keuring persona's 14 november): strenger dan sameHeadEventOf. Een
+// gedeelde naam die zelf een gebeurtenis-woord is (een verkiezing in een kop in titelkast) is geen handelende partij: twee
+// stukken over één verkiezing met een ander feit ("Trump verschijnt na de uitslag" en "Super PAC had weinig effect") zijn
+// één onderwerp, geen gebeurtenis. Alleen voor het samenvoegen; de algemene Editie houdt sameHeadEvent.
+const withoutConceptNames = (h) => h && { ...h, strong: new Set([...h.strong].filter((k) => !conceptWord(k))), known: new Set([...h.known].filter((k) => !conceptWord(k))) }
+export const sameEventToMerge = (sig, x, y) => !!x && !!y && x.id !== y.id && sameHeadEvent(withoutConceptNames(headSignature(sig, x)), withoutConceptNames(headSignature(sig, y)))
+export function sameTopic(sig, x, y) {
+  const a = x && sig.get(x.id)
+  const b = y && sig.get(y.id)
+  if (!a || !b || a === b) return false
+  if (sameSubject(a, b)) return true
+  if (Math.abs(a.t - b.t) > EVENT_WINDOW) return false
+  const na = topicNames(a)
+  const nb = topicNames(b)
+  const shared = [...na].filter((k) => nb.has(k))
+  if (!shared.length) return false
+  const ha = headSignature(sig, x) || a
+  const hb = headSignature(sig, y) || b
+  const hna = topicNames(ha)
+  const hnb = topicNames(hb)
+  if (shared.length >= 2 && shared.some((k) => hna.has(k) || hnb.has(k))) return true
+  // Een naam is geen woordstam ("Lumora-vlucht" en "Lumora schrapt banen" delen alleen de naam).
+  const plain = (w) => !na.has(w) && !nb.has(w) && !a.weak.has(w) && !b.weak.has(w)
+  const sa = topicStems([...sigWords(x.title)].filter(plain))
+  const sb = topicStems([...sigWords(y.title)].filter(plain))
+  if ([...sa.head].some((w) => sb.head.has(w) || sb.tail.has(w)) || [...sb.head].some((w) => sa.tail.has(w))) return true
+  return shared.some((k) => hna.has(k) && hnb.has(k)) && sharedCount(a.concepts, b.concepts) >= 1
+}
+
 // Eén plek per onderwerp: gaat een kandidaat over iets wat al een plek heeft (`placed`: kenmerken)?
 // Een ander hoofdonderwerp is een ander verhaal (toets 4 november 2026): een verhaal van minstens OWN_STORY
 // uitgevers is een eigen gebeurtenis en wordt alleen afgewezen als een van zijn koppen over hetzelfde
@@ -1871,19 +1925,28 @@ export function leadPool(cands, items, now, own = null, total = items.length, co
 //   de nieuwsstukken van het verhaal, liefst zonder beschouwende kop. Een opiniestuk blijft gewoon lid.
 // `itemsOf(e)`: de bekende stukken van een plek. `pick(kandidaten, alle stukken)`: de kop. Wijzigt `entries` (de plek
 // met een nieuwe kop is een kopie).
-export function openWithNews(entries, { itemsOf, pick }) {
+// Ook geen aflevering op 01 (opensEdition in shared/aflevering.mjs: een video of podcast opent nooit, persona's 14
+// november): heeft het verhaal een nieuwsstuk dat geen aflevering is, dan wordt dat de kop; anders opent de eerste plek
+// die wel zo'n stuk heeft. `ok(e)`: wat de aanroeper verder van plek 01 eist (de persoonlijke Editie: geen lokaal nieuws
+// van elders, een kop die je kunt lezen). Heeft geen enkele plek zo'n stuk, dan zoals voorheen het eerste nieuws.
+export function openWithNews(entries, { itemsOf, pick, ok = () => true }) {
   const news = (e) => itemsOf(e).some((i) => i && !isOpinion(i))
-  const k = entries.findIndex(news)
+  const leadOf = (e) => itemsOf(e).find((i) => i && i.id === (e.leadId || e.id))
+  const opens = (e) => ok(e) && itemsOf(e).some((i) => i && !isOpinion(i) && opensEdition(i)) && (e.kind === 'story' || opensEdition(leadOf(e)))
+  let k = entries.findIndex(opens)
+  if (k < 0) k = entries.findIndex(news)
   if (k < 0) return entries
   if (k > 0) entries.unshift(...entries.splice(k, 1))
   const e = entries[0]
   if (e.kind !== 'story') return entries
   const items = itemsOf(e).filter(Boolean)
   const lead = items.find((i) => i.id === e.leadId)
-  if (!lead || (!isOpinion(lead) && !verdictTitle(lead))) return entries
-  const fresh = items.filter((i) => !isOpinion(i))
+  const playable = !!lead && !opensEdition(lead)
+  if (!lead || (!playable && !isOpinion(lead) && !verdictTitle(lead))) return entries
+  const fresh = items.filter((i) => !isOpinion(i) && opensEdition(i))
+  if (!fresh.length) return entries
   const plain = fresh.filter((i) => !verdictTitle(i))
-  if (!isOpinion(lead) && !plain.length) return entries
+  if (!isOpinion(lead) && !playable && !plain.length) return entries
   const next = pick(plain.length ? plain : fresh, items)
   if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
   return entries

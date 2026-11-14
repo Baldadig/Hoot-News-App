@@ -1,5 +1,5 @@
 // Wat het welkom met je instellingen doet — pure functies (tests/welcome.test.mjs).
-import { RUBRIEKEN, ONDERWERPEN, OPT_IN } from './topics.js'
+import { RUBRIEKEN, ONDERWERPEN, OPT_IN, INTERESTS } from './topics.js'
 
 // Opnieuw kiezen (vanuit Bronnen of Instellingen): je bronnen beginnen met wat nu aan staat,
 // niet met een nieuw voorstel.
@@ -24,6 +24,14 @@ export function pickedFrom(topics = [], interests = [], all = []) {
       const base = i.topics.filter((t) => !OPT_IN.has(t))
       return mine.length === base.length && base.every((t) => mine.includes(t)) ? [] : mine
     })
+}
+
+// Een onderwerp dat je zelf aantikt (OPT_IN: Achterklap & showbizz) in het welkom (persona's 14 november, punt 9): wie
+// Cultuur koos, kan het eronder aantikken. Uit: `topics` zonder OPT_IN-onderwerpen, plus wat je aantikte (`on`) als je de
+// interesse waar het onder valt nog kiest. Gelijk aan Rubriek.withOptIn in de app.
+export function withOptIn(topics = [], interests = [], on = []) {
+  const under = (t) => INTERESTS.find((i) => i.topics.includes(t))?.id
+  return [...topics.filter((t) => !OPT_IN.has(t)), ...on.filter((t, k) => OPT_IN.has(t) && interests.includes(under(t)) && on.indexOf(t) === k)]
 }
 
 // Welkom klaar: interesses, onderwerpen en bronnen worden je instellingen. Alleen de bronnen die

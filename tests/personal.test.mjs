@@ -24,7 +24,7 @@ const global = {
     { kind: 'item', id: 'g2', desk: 'vs' },
     { kind: 'item', id: 'b1', desk: 'bubbel', terms: [{ via: 'google' }] },
   ],
-  items: [art('r1', 'nrc', 'Kabinet presenteert plan voor woningbouw'), art('g1', 'nyt', 'Wereldnieuws'), art('g2', 'nyt', 'Nieuws uit Washington'), art('b1', 'nu', 'Wat iedereen zoekt')],
+  items: [art('r1', 'nrc', 'Kabinet presenteert plan voor woningbouw'), art('g1', 'nyt', 'Wereldnieuws van vandaag'), art('g2', 'nyt', 'Nieuws uit Washington'), art('b1', 'nu', 'Wat iedereen zoekt')],
   bubble: [],
 }
 const followed = new Set(['nos', 'tweakers'])

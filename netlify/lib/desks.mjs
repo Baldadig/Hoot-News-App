@@ -48,7 +48,12 @@ const NL_INST = [
 // Nederlandse bedrijven en de beurs: Nederlands bezit, maar ze werken ook in het buitenland. Met een
 // buitenlandse plek bewijzen ze niets (feedback 31 oktober: "KLM-crew vol ongeloof" over een dode
 // Lufthansa-medewerker in India stond onder Binnenland).
-const NL_CORP = W(['klm', 'albert heijn', 'asml', 'tata steel', 'abn amro', 'rabobank', 'aex', 'damrak'])
+const NL_CORP_NAMES = ['klm', 'albert heijn', 'asml', 'tata steel', 'abn amro', 'rabobank', 'aex', 'damrak']
+const NL_CORP = W(NL_CORP_NAMES)
+// Voor lokaal nieuws van elders (localAbroad) ook de andere grote Nederlandse bedrijven en het adres van de beurs: een
+// Nederlands bedrijf in een kop over Amerika is nieuws van hier (herstelkeuring 3, punt 7: Philips en de Amerikaanse
+// justitie). Een eigen uitbreiding, zodat de rubriek (placeSignals) en de algemene Editie niet verschuiven.
+const HERE_CORP = W([...NL_CORP_NAMES, 'beursplein( 5)?', 'philips', 'heineken', 'ahold\\p{L}*', 'akzo\\p{L}*', 'kpn', 'postnl', 'aegon', 'adyen', 'prosus', 'wolters kluwer', 'boskalis', 'vopak'])
 const NL_PERSONS = ['jetten', 'wilders', 'yeşilgöz', 'yesilgoz', 'timmermans', 'bontenbal', 'van der plas', 'omtzigt', 'eerdmans', 'markuszower', 'dijkhoff', 'van essen', 'peter r\\. de vries']
 // Partijen: hoofdlettergevoelig (PvdA is Nederlands, PVDA Belgisch; CU, SP en BBB alleen als afkorting).
 const NL_PARTIES = W(['PVV', 'VVD', 'D66', 'CDA', 'GroenLinks', 'PvdA', 'GL-PvdA', 'SP', 'NSC', 'BBB', 'JA21', 'FvD', 'Forum voor Democratie', 'PvdD', 'Partij voor de Dieren', 'DENK', 'SGP', 'ChristenUnie', 'CU', '50Plus', '50PLUS', 'BIJ1'], 'u')
@@ -197,6 +202,271 @@ const WORLD = W([
   'fiji', 'nieuw-zeeland', 'new zealand', `papoea${L}`, `papua${L}`, 'samoa', 'tonga',
 ])
 const NL_ANCHOR = W(['nederland\\p{L}*', 'dutch', 'holland\\p{L}*'])
+// Lokaal nieuws van elders (persona's 14 november, punt 7): Australische deelstaatpolitiek en een rechtszaak in New South
+// Wales als vulsel, en puur Amerikaans binnenland (een ceremonie van Hegseth, de laatste zwarte senatoren uit Mississippi,
+// het leiderschap van de Democraten in de Senaat) als opener of als Waar iedereen over schrijft. Lokaal van elders is:
+// - Amerikaans binnenland: een Amerikaanse plek (rubriek VS, Amerikaanse politiek of een staat in de kop) zonder ander land,
+//   werelddeel of internationaal onderwerp in de kop (Oekraïne, het Midden-Oosten, de EU, de NAVO, China: RE.buitenland);
+// - een deelstaat of provincie van een ander land in de kop (Australië, Canada, de VS), of de binnenlandrubriek van een
+//   buitenlandse titel in de link (/australia-news/, /us-news/, /uk-news/, /nyregion/), ook dan zonder ander land.
+// Of het verhaal breder speelt (groot nieuws: majorNews, sinds de landenregel altijd met een tweede land), beslist de
+// aanroeper: `items` zijn de stukken, de kop eerst. Brengen minstens twee verschillende uitgevers van hier het verhaal
+// (`homePublishers`: de Nederlandse en Vlaamse uitgevers van de hele gebeurtenis, homePublishersOf in
+// shared/edition-policy.mjs, geteld per uitgever en niet per land), dan is het geen lokaal nieuws van elders: dan vond de
+// pers hier het nieuws (tweede keuring persona's 14 november: de uitslag van de Democraten bij NOS en NRC). Eén stuk van
+// hier is niet genoeg, ook niet als dat de kop zelf is: een Nederlandse krant brengt ook een schietpartij in een
+// Amerikaanse stad of een senaatsrace in een staat (derde keuring). Een Britse krant over Amerika telt niet: de Guardian
+// en de BBC brengen ook Amerikaans binnenland. Een Amerikaanse staat of stad herkent countriesIn (dubbelcheck A6),
+// één lijst voor de rubriek en voor lokaal nieuws van elders.
+const OTHER_STATES = W(['new south wales', 'nsw', 'queensland', 'tasmani\\p{L}*', 'western australia', 'south australia', 'northern territory', 'victorian', 'ontario', 'quebec', 'québec', 'alberta', 'british columbia', 'manitoba', 'saskatchewan', 'nova scotia'])
+const HOME_MIN = 2
+const LOCAL_SECTION = /\/(australia-news|us-news|uk-news|nyregion|us\/politics|politics\/us)\//i
+// De landen van een deelstaat of binnenlandrubriek: hun eigen naam maakt een stuk niet breder.
+const OWN_COUNTRY = /\b(australi\w*|canad\w*|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|uk|vk|schotland|scotland|schots\w*|scottish|wales|welsh|noord-ierland|northern ireland)\b/gi
+// Een land als bijvoeglijk naamwoord of inwonersnaam: één tabel voor elk land van countriesIn (shared/article-signals.mjs) en
+// WORLD, met de Nederlandse en Engelse vormen (herstelkeuring 3 en de keuring daarna, punt 7: "Iraanse", "Venezolaanse",
+// "Pakistaanse", "Turkish", "Polish" telden als Amerikaans binnenland). Een vaste, gesloten woordenschat, geen lijst van
+// gevallen. Een vorm die de naam of de stam van het land al vangt (Japanse, Canadian), staat er toch: dan is elke rij af en
+// hoeft niemand na te rekenen welke stam wat vangt. De sleutel is de landcode van countriesIn (voor de rest de naam), zodat
+// het eigen land van een deelstaat of binnenlandrubriek niet meetelt; Schotland, Wales en Noord-Ierland staan onder gb.
+// Niet in de tabel: de Verenigde Staten en Nederland zelf, en vormen die ook een gewoon woord of een voornaam zijn ("lets",
+// "letten", "pool", "poles", "finn", "dane", "est", "indians", "georgian": ook de Amerikaanse staat). Alleen voor lokaal
+// nieuws van elders (localAbroad), zodat de rubriek en de algemene Editie niet verschuiven.
+const COUNTRY_FORMS = [
+  // countriesIn
+  ['in', 'indiaas', 'indiase', `indiër${L}`, 'indiers', 'indian'],
+  ['fr', 'frans', 'franse', 'fransen', 'fransman', 'fransmannen', 'française', 'français', 'french', 'frenchman', 'frenchmen'],
+  ['de', 'duits', 'duitse', 'duitser', 'duitsers', 'german', 'germans'],
+  ['gb', 'brits', 'britse', 'brit', 'briten', 'british', 'briton', 'britons', 'engels', 'engelse', 'engelsen', 'engelsman', 'engelsmannen', 'english', 'englishman', 'englishmen'],
+  ['be', 'belgisch', 'belgische', 'belg', 'belgen', 'belgian', 'belgians'],
+  ['ua', `oekraïens${L}`, `oekraiens${L}`, `oekraïner${L}`, 'ukrainian', 'ukrainians'],
+  ['ru', 'russisch', 'russische', 'rus', 'russen', 'russian', 'russians'],
+  ['il', `israëlisch${L}`, `israelisch${L}`, `israëli${L}`, `israeli${L}`],
+  ['ir', `iraans${L}`, `iraniër${L}`, 'iranian', 'iranians'],
+  ['lb', 'libanees', 'libanese', 'libanezen', 'lebanese'],
+  ['cn', 'chinees', 'chinese', 'chinezen'],
+  ['jp', 'japans', 'japanse', 'japanner', 'japanners', 'japanese'],
+  ['ca', 'canadees', 'canadese', 'canadezen', 'canadian', 'canadians'],
+  ['br', `braziliaan${L}`, 'brazilian', 'brazilians'],
+  ['es', 'spaans', 'spaanse', `spanjaard${L}`, 'spanish', 'spaniard', 'spaniards'],
+  ['it', `italiaan${L}`, 'italian', 'italians'],
+  ['pl', 'pools', 'poolse', 'polish'],
+  ['ee', 'ests', 'estse', `estlander${L}`, 'estonian', 'estonians'],
+  ['sn', 'senegalees', 'senegalese', 'senegalezen'],
+  ['sa', `saoedisch${L}`, `saoediër${L}`, `saudisch${L}`, 'saudi', 'saudis'],
+  ['nz', `nieuw-zeelands${L}`, `nieuw-zeelander${L}`, 'new zealander', 'new zealanders'],
+  ['au', 'australisch', 'australische', `australiër${L}`, 'australian', 'australians'],
+  ['tr', 'turks', 'turkse', 'turk', 'turken', 'turkish'],
+  // Europa
+  ['albanië', `albanees${L}`, 'albanese', 'albanezen', 'albanian', 'albanians'],
+  ['andorra', 'andorrees', 'andorrese', 'andorran'],
+  ['armenië', 'armeens', 'armeense', `armeniër${L}`, 'armenian', 'armenians'],
+  ['azerbeidzjan', `azerbeidzjaan${L}`, `azerisch${L}`, 'azeri', 'azeris', 'azerbaijani', 'azerbaijanis'],
+  ['belarus', `wit-russisch${L}`, 'wit-rus', 'wit-russen', `belarussisch${L}`, `belarus${L}`, 'belarusian', 'belarusians'],
+  ['bosnië', 'bosnisch', 'bosnische', `bosniër${L}`, 'bosnian', 'bosnians'],
+  ['bulgarije', 'bulgaars', 'bulgaarse', 'bulgaren', 'bulgarian', 'bulgarians'],
+  ['cyprus', `cypriotisch${L}`, `cyprioot${L}`, 'cyprioten', 'cypriot', 'cypriots'],
+  ['denemarken', 'deens', 'deense', 'denen', 'danish', 'danes'],
+  ['finland', 'fins', 'finse', 'finnen', 'finnish', 'finns'],
+  ['georgië', 'georgisch', 'georgische', `georgiër${L}`],
+  ['griekenland', 'grieks', 'griekse', 'grieken', 'greek', 'greeks'],
+  ['hongarije', 'hongaars', 'hongaarse', 'hongaren', 'hungarian', 'hungarians'],
+  ['ierland', 'iers', 'ierse', 'ieren', 'irish', 'irishman', 'irishmen'],
+  ['ijsland', 'ijslands', 'ijslandse', `ijslander${L}`, 'icelandic', 'icelander', 'icelanders'],
+  ['kosovo', `kosovaar${L}`, 'kosovaren', 'kosovan', 'kosovar', 'kosovars'],
+  ['kroatië', 'kroatisch', 'kroatische', 'kroaat', 'kroaten', 'croatian', 'croatians', 'croat', 'croats'],
+  ['letland', 'letse', `letlander${L}`, 'latvian', 'latvians'],
+  ['liechtenstein', `liechtensteins${L}`, `liechtensteiner${L}`],
+  ['litouwen', 'litouws', 'litouwse', `litouwer${L}`, 'lithuanian', 'lithuanians'],
+  ['luxemburg', 'luxemburgs', 'luxemburgse', `luxemburger${L}`, 'luxembourgish', `luxembourger${L}`],
+  ['macedonië', 'macedonisch', 'macedonische', `macedoniër${L}`, 'macedonian', 'macedonians'],
+  ['malta', 'maltees', 'maltese', 'maltezer', 'maltezers'],
+  ['moldavië', 'moldavisch', 'moldavische', `moldaviër${L}`, 'moldovan', 'moldovans'],
+  ['monaco', `monegask${L}`, 'monegasque'],
+  ['montenegro', 'montenegrijns', 'montenegrijnse', `montenegrijn${L}`, 'montenegrin', 'montenegrins'],
+  ['noorwegen', 'noors', 'noorse', `noorweger${L}`, 'norwegian', 'norwegians'],
+  ['oostenrijk', 'oostenrijks', 'oostenrijkse', `oostenrijker${L}`, 'austrian', 'austrians'],
+  ['portugal', 'portugees', 'portugese', 'portugezen', 'portuguese'],
+  ['roemenië', 'roemeens', 'roemeense', `roemeen${L}`, `roemeniër${L}`, 'romanian', 'romanians'],
+  ['san marino', 'sanmarinees', 'sanmarinese'],
+  ['servië', 'servisch', 'servische', `serviër${L}`, 'serviers', 'serbian', 'serbians', 'serb', 'serbs'],
+  ['slovenië', 'sloveens', 'sloveense', 'sloveen', 'slovenen', 'slovenian', 'slovenians', 'slovene', 'slovenes'],
+  ['slowakije', 'slowaaks', 'slowaakse', 'slowaak', 'slowaken', 'slovak', 'slovaks', 'slovakian'],
+  ['tsjechië', 'tsjechisch', 'tsjechische', 'tsjech', 'tsjechen', 'czech', 'czechs'],
+  ['vaticaan', 'vaticaans', 'vaticaanse'],
+  ['gb', 'schots', 'schotse', 'schotten', 'scottish', 'scot', 'scots'],
+  ['gb', 'welsh', 'welshman', 'welshmen'],
+  ['gb', 'noord-iers', 'noord-ierse'],
+  ['zweden', 'zweeds', 'zweedse', 'zweed', 'zweden', 'swedish', 'swede', 'swedes'],
+  ['zwitserland', 'zwitsers', 'zwitserse', 'zwitser', 'swiss'],
+  // Afrika
+  ['algerije', 'algerijns', 'algerijnse', `algerijn${L}`, 'algerian', 'algerians'],
+  ['angola', 'angolees', 'angolese', 'angolezen', 'angolan', 'angolans'],
+  ['benin', 'beninees', 'beninese', 'beninezen', 'beninese'],
+  ['botswana', `botswaans${L}`, 'botswaan', 'botswanan', 'motswana', 'batswana'],
+  ['burkina faso', 'burkinees', 'burkinese', 'burkinezen', 'burkinabe', 'burkinabé'],
+  ['burundi', 'burundees', 'burundese', 'burundezen', 'burundian', 'burundians'],
+  ['centraal-afrikaanse republiek', `centraal-afrikaans${L}`, 'central african'],
+  ['comoren', 'comorees', 'comorese', 'comorian'],
+  ['congo', 'congolees', 'congolese', 'congolezen'],
+  ['djibouti', `djiboutiaans${L}`, 'djiboutian'],
+  ['egypte', 'egyptisch', 'egyptische', `egyptenaar${L}`, 'egyptenaren', 'egyptian', 'egyptians'],
+  ['equatoriaal-guinee', `equatoriaal-guinees${L}`, 'equatoguinean'],
+  ['eritrea', 'eritrees', 'eritrese', 'eritreeërs', 'eritrean', 'eritreans'],
+  ['eswatini', 'swazi', 'swazis'],
+  ['ethiopië', 'ethiopisch', 'ethiopische', `ethiopiër${L}`, 'ethiopian', 'ethiopians'],
+  ['gabon', 'gabonees', 'gabonese', 'gabonezen'],
+  ['gambia', `gambiaan${L}`, 'gambian', 'gambians'],
+  ['ghana', `ghanees${L}`, 'ghanese', 'ghanezen', 'ghanaian', 'ghanaians'],
+  ['guinee', `guinees${L}`, 'guinese', 'guinean', 'guineans'],
+  ['ivoorkust', `ivoriaan${L}`, 'ivorian', 'ivorians'],
+  ['kaapverdië', `kaapverdiaan${L}`, 'cape verdean', 'cape verdeans'],
+  ['kameroen', `kameroens${L}`, `kameroener${L}`, 'cameroonian', 'cameroonians'],
+  ['kenia', `keniaan${L}`, 'kenyan', 'kenyans'],
+  ['lesotho', 'basotho', 'mosotho'],
+  ['liberia', `liberiaan${L}`, 'liberian', 'liberians'],
+  ['libië', 'libisch', 'libische', `libiër${L}`, 'libyan', 'libyans'],
+  ['madagaskar', `malagassisch${L}`, `malagassiër${L}`, 'malagasy'],
+  ['malawi', `malawisch${L}`, `malawiër${L}`, 'malawian', 'malawians'],
+  ['mali', 'malinees', 'malinese', 'malinezen', 'malian', 'malians'],
+  ['marokko', 'marokkaans', 'marokkaanse', `marokkaan${L}`, 'moroccan', 'moroccans'],
+  ['mauritanië', 'mauritaans', 'mauritaanse', `mauritaniër${L}`, 'mauritanian', 'mauritanians'],
+  ['mauritius', `mauritiaan${L}`, 'mauritian', 'mauritians'],
+  ['mozambique', `mozambikaan${L}`, 'mozambican', 'mozambicans'],
+  ['namibië', 'namibisch', 'namibische', `namibiër${L}`, 'namibian', 'namibians'],
+  ['niger', 'nigerees', 'nigerese', 'nigerezen', 'nigerien', 'nigeriens'],
+  ['nigeria', `nigeriaan${L}`, 'nigerian', 'nigerians'],
+  ['oeganda', 'oegandees', 'oegandese', 'oegandezen', 'ugandan', 'ugandans'],
+  ['rwanda', `rwandees${L}`, 'rwandese', 'rwandezen', 'rwandan', 'rwandans'],
+  ['senegal', 'senegalees', 'senegalese'],
+  ['seychellen', `seychels${L}`, 'seychellois'],
+  ['sierra leone', `sierra leoons${L}`, 'sierra leonean', 'sierra leoneans'],
+  ['somalië', 'somalisch', 'somalische', `somaliër${L}`, 'somali', 'somalis'],
+  ['soedan', 'soedanees', 'soedanese', 'soedanezen', 'sudanese'],
+  ['tanzania', `tanzaniaan${L}`, 'tanzanian', 'tanzanians'],
+  ['tsjaad', `tsjadisch${L}`, `tsjadiër${L}`, 'chadian', 'chadians'],
+  ['togo', 'togolees', 'togolese', 'togolezen'],
+  ['tunesië', 'tunesisch', 'tunesische', `tunesiër${L}`, 'tunisian', 'tunisians'],
+  ['zambia', `zambiaan${L}`, 'zambian', 'zambians'],
+  ['zimbabwe', `zimbabwaan${L}`, 'zimbabwean', 'zimbabweans'],
+  ['zuid-afrika', `zuid-afrikaan${L}`, 'south african', 'south africans'],
+  // Azië
+  ['afghanistan', 'afghaans', 'afghaanse', 'afghaan', 'afghanen', 'afghan', 'afghans'],
+  ['bahrein', `bahreins${L}`, `bahreiner${L}`, 'bahraini', 'bahrainis'],
+  ['bangladesh', `bengaals${L}`, 'bengalen', 'bangladeshi', 'bangladeshis', 'bengali', 'bengalis'],
+  ['bhutan', `bhutaans${L}`, 'bhutanese'],
+  ['brunei', `bruneis${L}`, 'bruneian'],
+  ['cambodja', `cambodjaan${L}`, 'cambodian', 'cambodians'],
+  ['filipijnen', `filipijns${L}`, 'filipino', 'filipinos', 'filipina', 'philippine'],
+  ['hongkong', `hongkongs${L}`, `hongkonger${L}`, 'hong konger', 'hong kongers'],
+  ['indonesië', 'indonesisch', 'indonesische', `indonesiër${L}`, 'indonesian', 'indonesians'],
+  ['irak', 'iraaks', 'iraakse', 'irakees', 'irakezen', 'iraqi', 'iraqis'],
+  ['jemen', `jemenitisch${L}`, `jemeniet${L}`, 'jemenieten', 'yemeni', 'yemenis'],
+  ['jordanië', 'jordaans', 'jordaanse', `jordaniër${L}`, 'jordanian', 'jordanians'],
+  ['kazachstan', 'kazachs', 'kazachse', 'kazach', 'kazachen', 'kazakh', 'kazakhs', 'kazakhstani'],
+  ['kirgizië', 'kirgizisch', 'kirgizische', 'kirgies', 'kirgiezen', 'kyrgyz'],
+  ['koeweit', 'koeweits', 'koeweitse', 'koeweiti', `koeweiter${L}`, 'kuwaiti', 'kuwaitis'],
+  ['laos', `laotiaan${L}`, 'laotian', 'laotians', 'lao'],
+  ['maleisië', 'maleisisch', 'maleisische', `maleisiër${L}`, 'malaysian', 'malaysians'],
+  ['maldiven', `maldivisch${L}`, `maldiviër${L}`, 'maldivian', 'maldivians'],
+  ['mongolië', 'mongools', 'mongoolse', 'mongolen', 'mongolian', 'mongolians'],
+  ['myanmar', 'birmees', 'birmese', 'birmezen', 'myanmarees', 'myanmarese', 'burmese'],
+  ['nepal', `nepalees${L}`, 'nepalese', 'nepalezen', 'nepali', 'nepalis'],
+  ['korea', `koreaan${L}`, 'korean', 'koreans', `noord-koreaan${L}`, `zuid-koreaan${L}`, 'north korean', 'south korean'],
+  ['oezbekistan', 'oezbeeks', 'oezbeekse', 'oezbeek', 'oezbeken', 'uzbek', 'uzbeks'],
+  ['oman', `omaans${L}`, `omaniet${L}`, 'omani', 'omanis'],
+  ['pakistan', 'pakistaans', 'pakistaanse', `pakistaan${L}`, 'pakistani', 'pakistanis'],
+  ['qatar', 'qatarees', 'qatarese', 'qatarezen', 'qatari', 'qataris'],
+  ['singapore', 'singaporees', 'singaporese', 'singaporezen', 'singaporean', 'singaporeans'],
+  ['sri lanka', `sri lankaan${L}`, `srilankaan${L}`, 'sri lankan', 'sri lankans'],
+  ['syrië', 'syrisch', 'syrische', `syriër${L}`, 'syrian', 'syrians'],
+  ['tadzjikistan', 'tadzjieks', 'tadzjiekse', 'tadzjiek', 'tadzjieken', 'tajik', 'tajiks'],
+  ['taiwan', `taiwanees${L}`, 'taiwanese', 'taiwanezen'],
+  ['thailand', 'thais', 'thaise', 'thai'],
+  ['turkmenistan', `turkmeens${L}`, 'turkmeen', 'turkmenen', 'turkmen'],
+  ['emiraten', 'emiraats', 'emiraatse', 'emirati', 'emiratis'],
+  ['vietnam', `vietnamees${L}`, 'vietnamese', 'vietnamezen'],
+  ['oost-timor', `oost-timorees${L}`, 'timorese'],
+  // Amerika
+  ['argentinië', 'argentijns', 'argentijnse', `argentijn${L}`, 'argentine', 'argentinian', 'argentinians'],
+  ['bahama\'s', `bahamaan${L}`, 'bahamian', 'bahamians'],
+  ['barbados', `barbadiaan${L}`, 'barbadian', 'barbadians'],
+  ['belize', `belizaan${L}`, 'belizean', 'belizeans'],
+  ['bolivia', `boliviaan${L}`, 'bolivian', 'bolivians'],
+  ['chili', 'chileens', 'chileense', 'chileen', 'chilenen', 'chilean', 'chileans'],
+  ['colombia', `colombiaan${L}`, 'colombian', 'colombians'],
+  ['costa rica', `costa ricaan${L}`, 'costa rican', 'costa ricans'],
+  ['cuba', `cubaan${L}`, 'cuban', 'cubans'],
+  ['dominicaanse republiek', 'dominicaans', 'dominicaanse', 'dominicanen', 'dominican', 'dominicans'],
+  ['ecuador', `ecuadoraan${L}`, 'ecuadorian', 'ecuadorians'],
+  ['el salvador', `salvadoraan${L}`, 'salvadoran', 'salvadorans'],
+  ['guatemala', 'guatemalteeks', 'guatemalteekse', 'guatemalteek', 'guatemalteken', 'guatemalan', 'guatemalans'],
+  ['guyana', `guyaan${L}`, 'guyanese'],
+  ['haïti', `haïtiaan${L}`, `haitiaan${L}`, 'haitian', 'haitians'],
+  ['honduras', 'hondurees', 'hondurese', 'hondurezen', 'honduran', 'hondurans'],
+  ['jamaica', `jamaicaan${L}`, 'jamaican', 'jamaicans'],
+  ['mexico', 'mexicaans', 'mexicaanse', `mexicaan${L}`, 'mexican', 'mexicans'],
+  ['nicaragua', `nicaraguaan${L}`, 'nicaraguan', 'nicaraguans'],
+  ['panama', `panamees${L}`, 'panamese', 'panamezen', 'panamanian', 'panamanians'],
+  ['paraguay', `paraguayaan${L}`, 'paraguayan', 'paraguayans'],
+  ['peru', `peruaan${L}`, 'peruvian', 'peruvians'],
+  ['puerto rico', `puerto ricaan${L}`, 'puerto rican', 'puerto ricans'],
+  ['suriname', 'surinaams', 'surinaamse', `surinamer${L}`, 'surinamese'],
+  ['trinidad', `trinidadiaan${L}`, 'trinidadian', 'trinidadians'],
+  ['uruguay', `uruguayaan${L}`, 'uruguayan', 'uruguayans'],
+  ['venezuela', 'venezolaans', 'venezolaanse', 'venezolaan', 'venezolanen', 'venezuelan', 'venezuelans'],
+  ['groenland', 'groenlands', 'groenlandse', `groenlander${L}`, 'greenlandic', 'greenlander', 'greenlanders'],
+  // Oceanië
+  ['fiji', `fijisch${L}`, `fijiër${L}`, 'fijian', 'fijians'],
+  ['papoea-nieuw-guinea', `papoea${L}`, 'papua new guinean'],
+  ['samoa', `samoaan${L}`, 'samoan', 'samoans'],
+  ['tonga', `tongaan${L}`, 'tongan', 'tongans'],
+].map(([c, ...forms]) => [c, W(forms)])
+// "Holland" als achternaam is geen Nederlands anker (keuring na herstelkeuring 3: "Tom Holland" in NL_ANCHOR). Een woord met
+// een hoofdletter direct ervoor maakt er een naam van, behalve een voorzetsel, lidwoord of windrichting ("naar Holland",
+// "Visit Holland", "Noord Holland"). Alleen voor het anker van hier in localAbroad, zoals COUNTRY_FORMS.
+const NAME_HOLLAND = /(?<![\p{L}\p{N}])(?!(?:In|Uit|Naar|Van|Voor|Met|En|De|Het|Een|Over|Via|Bij|Tegen|Om|Door|To|From|Of|For|And|The|A|At|Across|Around|Into|Near|Against|Beat|Beats|Visit|Team|Made|Noord|Zuid|North|South)\s)\p{Lu}[\p{Ll}'’.-]+\s+Holland(?![\p{L}\p{N}])/gu
+const formsIn = (t, own = []) => COUNTRY_FORMS.some(([c, re]) => !own.includes(c) && re.test(t))
+// Werelddelen en regio's, met naam en bijvoeglijke vorm, Nederlands en Engels (keuring 4 na herstelkeuring 3, punt 7: "Trump
+// begint rondreis door Azië", "US strikes in the Caribbean", "Arab leaders meet Trump" en "Rubio visits the Balkans" telden
+// als Amerikaans binnenland). Een vaste woordenschat zoals COUNTRY_FORMS. Afrika, Europa en het Midden-Oosten vangt
+// RE.buitenland al deels; hier staan ook hun Engelse bijvoeglijke vormen. Een Amerikaanse bevolkingsgroep ("African
+// American", "Aziatisch-Amerikaanse") is geen ander werelddeel: Amerikaans of Amerikaan direct erachter telt niet. Arctic als
+// weerwoord ("Arctic blast hits Midwest") ook niet.
+const REGIONS = new RegExp(W([
+  `azi[eë]`, `aziat${L}`, 'asia', `asian${L}`, `afrika${L}`, `africa${L}`, 'arab', 'arabs', `arabi${L}`, `arabier${L}`,
+  `latijns-amerika${L}`, `latin america${L}`, `zuid-amerika${L}`, `south america${L}`, `midden-amerika${L}`, `central america${L}`,
+  `caribisch${L}`, `caraïb${L}`, `caraib${L}`, `caribbean${L}`, `balkan${L}`, `baltisch${L}`, 'baltic', `baltic state${L}`,
+  `scandinavi${L}`, 'sahel', `koerd${L}`, `kurd${L}`, 'arctic(?!\\s+(?:blast|air|cold|chill|freeze|front|storm|weather))', `arctisch${L}`, `noordpool${L}`, `poolgebied${L}`,
+]).source + '(?![\\s-]+(?:americ|amerikaan))', 'iu')
+const beyondIn = (t, own = []) => countriesIn(t).some((c) => !own.includes(c)) || WORLD.test(t) || formsIn(t, own) || REGIONS.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.buitenland.test(t) || /\b(UK|VK|EU|NAVO|NATO|VN|UN)\b/.test(t) || /\b(global\w*|world\w*|wereld\w*|internationa\w*|buitenland\w*|paus|pope|vaticaan|vatican)\b/i.test(t)
+export function localAbroad(items = [], { desk = null, homePublishers = [] } = {}) {
+  const head = items.find(Boolean)
+  const t = String(head?.title || '')
+  if (!t) return false
+  const elsewhere = () => new Set(homePublishers).size >= HOME_MIN
+  const usHere = desk === 'vs' || usPoliticsIn(t) || countriesIn(t).includes('us')
+  // Een anker van hier in de kop maakt het geen lokaal nieuws van elders: Nederlands bezit (placeSignals), ook een Nederlands
+  // bedrijf of de beurs (HERE_CORP), en een Nederlander of "Nederlandse" (NL_ANCHOR; Holland niet als achternaam).
+  const here = t.replace(NAME_HOLLAND, ' ')
+  const hereAnchor = () => placeSignals({ title: here }).home || HERE_CORP.test(here) || NL_ANCHOR.test(here)
+  if (usHere) return !beyondIn(t, ['us']) && !hereAnchor() && !elsewhere()
+  if (!(OTHER_STATES.test(t) || LOCAL_SECTION.test(String(head?.url || '').split('?')[0]))) return false
+  return !beyondIn(t.replace(OWN_COUNTRY, ' '), ['au', 'ca', 'gb']) && !hereAnchor() && !elsewhere()
+}
+
+// Gaat dit stuk over België? Voor de rubriek boven een plek bij een lezer in Vlaanderen (persona's 14 november, punt 6: voor
+// een Gentse lezer heette Belgisch nieuws Buitenland). Een Belgische plaats, instelling, persoon of partij in kop of intro
+// (BE), of een Vlaamse bron die het zelf onder Binnenland of Politiek zet; nooit met een ander land, Oekraïne, het
+// Midden-Oosten, Amerikaanse politiek of een Nederlands anker in de kop.
+export function belgianSubject(it = {}) {
+  const head = String(it.title || '')
+  if (!head) return false
+  if (countriesIn(head).some((c) => c !== 'be') || RE.oekraine.test(head) || RE.middenoosten.test(head) || usPoliticsIn(head) || NL_ANCHOR.test(head) || placeSignals({ title: head }).strong) return false
+  const t = `${head} ${it.summary || ''}`.replace(/zeeuws-vlaanderen/gi, '')
+  if (BE.test(t) || BE_CASE.test(t)) return true
+  return VL_HOME.has(it.source) && /\/(binnenland|belgie|politiek|regio)\//i.test(`${it.section || ''} ${String(it.url || '').split('?')[0]}`)
+}
 export function foreignHead(title = '') {
   const t = String(title || '')
   if (!t || !(WORLD.test(t) || RE.oekraine.test(t) || RE.middenoosten.test(t) || countriesIn(t).some((c) => c !== 'nl'))) return false

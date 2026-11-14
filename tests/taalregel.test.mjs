@@ -92,13 +92,15 @@ test('taalregel: Waar iedereen over schrijft neemt het Nederlandstalige stuk uit
   const byId = known(feed)
   const w = feed.edition.wide.find((x) => /Pope Leo/.test(x.item.title))
   assert.equal(w.item.source, 'aljazeera', 'de server koos de Engelse kop')
-  const ed = compose(feed, NL)
+  // Met een voorkeursbron: wie niets koos, krijgt sinds de persona's van 14 november (punt 10) de algemene Editie als basis,
+  // en daar staat het pausverhaal al als plek; deze toets gaat over de kop van Waar iedereen over schrijft.
+  const ed = compose(feed, NL, { favorites: ['nos'] })
   const e = ed.entries.find((x) => x.desk === 'breed')
   assert.equal(e.id, w.storyId, 'hetzelfde verhaal')
   assert.equal(byId.get(e.leadId).source, 'vrt')
   assert.match(e.title, /^Paus Leo XIV/)
   // Wie een Engelse nieuwsbron volgt, krijgt de kop van de server.
-  const en = compose(feed, [...NL, 'guardian']).entries.find((x) => x.desk === 'breed')
+  const en = compose(feed, [...NL, 'guardian'], { favorites: ['nos'] }).entries.find((x) => x.desk === 'breed')
   assert.equal(en.leadId, w.item.id)
 })
 
