@@ -103,6 +103,18 @@ const KIND_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'winterspo
 // onder Binnenland); darts en andere sport zonder eigen onderwerp is sport (OTHER_SPORT).
 const KIND_PATH = /\/(sport[\w-]*|voetbal|darts|cultuur|cultuur-media|entertainment|showbizz|boulevard|show|film|muziek|boeken|media)\//i
 const CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i
+// Een musicus in de kop is cultuur, net als een acteur (dubbelcheck 14 november, A6: de overleden drummer van Doe Maar
+// stond onder Buitenland, omdat de intro Spanje noemde). Alleen in de kop, en niet als de kop een politieke plek heeft: een
+// zanger die in de intro voorbijkomt, maakt een politiek stuk geen cultuur (herstelkeuring: de Obama-video's met Usher).
+const MUSICIAN = /\b(\w*drummer|zanger|zangeres|gitarist|bassist|toetsenist|popgroep|popband|rockband|popster|rapper)\b/i
+const musicianHead = (title) => MUSICIAN.test(title) && !usPoliticsIn(title)
+// Misdaad of een rechtszaak in de kop: dan is een musicus of acteur in die kop een beroep, geen cultuur (tweede keuring
+// van het herstel: "Rapper Boef veroordeeld voor mishandeling in Amsterdam" en "Zanger Marco Borsato vrijgesproken van
+// ontucht" zijn Binnenland). Alleen het beroep valt weg; een rubriek als /boulevard/ of /cultuur/ in de link blijft gelden.
+const CRIME_HEAD = /\b(drugging|murder\w*|convicted|arrested|acquitted|sentenced|verkracht\w*|ontucht|doodgeschoten|neergeschoten|doodgestoken|mishandel\w*|moord\w*|veroordeeld|vrijgesproken|opgepakt|aangehouden|gearresteerd|aangeklaagd|aanklacht|verdacht\w*|celstraf|gevangenisstraf|taakstraf|strafeis|rechtszaak|rechtbank|rechter|cassatie|hoger beroep|steekpartij|schietpartij)\b/i
+const PROFESSION = /\b(acteur|actrice)\b/i
+const PROFESSION_TOPICS = new Set(['muziek', 'film'])
+const professionInCrime = (it) => CRIME_HEAD.test(it.title || '') && (MUSICIAN.test(it.title || '') || PROFESSION.test(it.title || ''))
 const ownKind = (it) => {
   const visible = `${it.title || ''} ${it.summary || ''}`
   if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || '') || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || '')) return true
@@ -115,7 +127,13 @@ const ownKind = (it) => {
   if (/\b(journal article|research finds|study finds)\b/i.test(it.title || '')) return false
   // Showbizz is een eigen soort, met dezelfde rubrieken als het onderwerp (SHOWBIZZ_PATH): NU.nl /achterklap/ werd
   // anders Binnenland (nachttest 14 november, R3).
-  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || SHOWBIZZ_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible)
+  const path = KIND_PATH.test(it.url || '') || SHOWBIZZ_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '')
+  if (professionInCrime(it)) {
+    // Het beroep telt niet, ook niet als onderwerp (muziek, film); de rest van de kop en intro wel.
+    const rest = visible.replace(MUSICIAN, ' ').replace(PROFESSION, ' ')
+    return path || (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t) && !PROFESSION_TOPICS.has(t)) || CULTURE_SPORT.test(rest)
+  }
+  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || path || CULTURE_SPORT.test(visible) || musicianHead(it.title || '')
 }
 
 
@@ -247,7 +265,8 @@ export function isBinnenland(it, { storyForeign = false, foreign = textForeignOf
   if (nl && (home || !abroad)) return true
   if (!home) return false
   if (abroad || storyForeign) return false
-  const ts = it.topics || []
+  // Het beroep in een misdaadbericht (muziek, film) is geen onderwerp dat Binnenland tegenhoudt (zie ownKind).
+  const ts = (it.topics || []).filter((t) => !(PROFESSION_TOPICS.has(t) && professionInCrime(it)))
   if (NL_SECTION.test(sec) || ts.some((t) => NL_TOPICS.has(t)) || NL_WEAK.test(`${it.title || ''} ${it.summary || it.text || ''}`)) return true
   return it.source !== 'fd' && ts.every((t) => NL_TOPICS.has(t)) && !NOT_HOME_SECTION.test(sec)
 }
@@ -319,6 +338,10 @@ function deskSet(it, storyForeign) {
   if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
     out.add('binnenland') // Nederland gaat voor: een Nederlandse speler in het buitenland is Binnenland
   } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
+    // Een stuk van een Vlaamse bron blijft Buitenland: Belgisch nieuws noemt zelden een Belgische plek die we kennen (Geel,
+    // het kernkabinet), en zonder deze regel ontsnapt het aan het plafond voor buitenland. Cultuur en sport hebben hun
+    // eigen soort en komen hier niet (ownKind). Of Belgisch nieuws voor de Vlaamse lezer geen Buitenland heet, is een
+    // besluit voor Alex (herstelkeuring dubbelcheck 14 november, A6).
     out.add('buitenland')
   }
   if (headHome && out.has('binnenland')) for (const d of ['buitenland', 'vs', 'middenoosten', 'oekraine']) if (!usPoliticsIn(title) && !RE[d]?.test(title)) out.delete(d)

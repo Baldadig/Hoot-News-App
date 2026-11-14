@@ -147,11 +147,11 @@ export const SOURCES = [
   S('france24', 'France 24', 'int', 'en', 'Frans publiek wereldnieuws, in het Engels.', 'https://www.france24.com/en/rss', { publisher: 'france-medias-monde', color: '#00A3E0', bsky: 'france24.com', x: 'France24_en' }),
   S('rfi', 'RFI English', 'int', 'en', 'Franse publieke radio, sterk in Afrika.', 'https://www.rfi.fr/en/rss', { publisher: 'france-medias-monde', color: '#D7001D', bsky: 'rfi.fr', x: 'RFI_En' }),
   S('euronews', 'Euronews', 'int', 'en', 'Europees nieuws vanuit Europa.', 'https://www.euronews.com/rss?format=mrss&level=theme&name=news', { color: '#027DF0', bsky: 'euronews.com', x: 'euronews' }),
-  // De wereld van binnenuit: Australië, Oekraïne, en Israël met twee stemmen.
+  // De wereld van binnenuit: Australië, Oekraïne en Israël. The Times of Israel viel af (dubbelcheck 14 november, A2):
+  // Cloudflare weigert de server met een botcontrole, en die omzeilen we niet. Haaretz blijft voor Israël.
   S('abc-au', 'ABC News (Australië)', 'int', 'en', 'De publieke omroep van Australië.', 'https://www.abc.net.au/news/feed/51120/rss.xml', { color: '#1A1A1A', logo: 'https://www.abc.net.au/news-assets/touchicon-abc.png', x: 'abcnews' }),
   S('kyivindependent', 'The Kyiv Independent', 'int', 'en', 'Oekraïne van binnenuit, onafhankelijk.', 'https://kyivindependent.com/news-archive/rss/', { color: '#1A1A1A', bsky: 'kyivindependent.com', x: 'KyivIndependent' }),
   S('haaretz', 'Haaretz', 'int', 'en', 'Israëlische kwaliteitskrant, links-liberaal.', 'https://www.haaretz.com/srv/haaretz-latest-headlines', { login: 'https://login.haaretz.com/', paid: true, color: '#0E1734', bsky: 'haaretzcom.bsky.social', x: 'haaretzcom' }),
-  S('timesofisrael', 'The Times of Israel', 'int', 'en', 'Israëlisch nieuws, midden.', 'https://www.timesofisrael.com/feed/', { color: '#104F97', bsky: 'timesofisrael.com', x: 'TimesofIsrael' }),
   // Opinie (`opinie`): links en rechts samen. Vox progressief; National Review conservatief, The Free Press eigenzinnig
   // centrum-rechts. Reason viel af: te klein (kwaliteit boven aantal, Alex 14 november). Allemaal minstens vijf stukken per dag in de feed.
   S('vox', 'Vox', 'int', 'en', 'Uitleg en opinie, progressief.', 'https://www.vox.com/rss/index.xml', { opinie: true, login: 'https://www.vox.com/auth/login?returnPath=/', paid: true, color: '#FEF100', bsky: 'vox.com', x: 'voxdotcom' }),

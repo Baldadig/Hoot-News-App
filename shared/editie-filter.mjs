@@ -21,6 +21,7 @@ const AUDIO_RUBRIC = new Set(['podcast', 'podcasts', 'luister'])
 // Alleen echte taal-/landsegmenten (herstel AI-keuring 1: "tv" in /tv/deals/ is een rubriek, geen taal).
 const LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i
 const LABEL = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i
+const AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i
 
 // De padsegmenten vóór de slug (het laatste segment), in kleine letters.
 export function rubricSegments(url) {
@@ -76,6 +77,27 @@ export function hardMark(item = {}) {
   // Een kijkfragment (videorubriek, video-enclosure, "Video |", "Kijk:", "Watch:") weert A niet: de keuringen labelden
   // ook kijkfragmenten met een geleende intro als nieuws ("Video | Joe Biden bekogeld…"). Daarover oordeelt de AI.
   return null
+}
+
+// Een aflevering om te luisteren (dubbelcheck 14 november, A3): de feed markeert hem (hoofdcategorie Podcast, een
+// audio-enclosure, een iTunes-afleveringsnummer), de link staat in een podcastrubriek van de uitgever (/podcast/,
+// /luister/, een segment vóór de slug) of de kop begint met een luisterlabel ("Podcast:", "Luister |"). Zo'n stuk is
+// nooit de kop van een plek in de Editie, ook niet met een eigen intro: het mag wel als lid bij een verhaal (Vergelijken).
+// Een plek met alleen afleveringen valt weg. Dit is strenger dan hardMark (dat weert het stuk helemaal), want hier blijft
+// het stuk in de Editie, alleen niet bovenaan.
+// Een video niet (besluit chief of staff over B2, 14 november): een videostuk van RTL of de NOS is vaak gewoon nieuws, met
+// een kop en intro die het verhaal vertellen. Een video is dus geen harde uitsluiting als kop. Wel gaat elke aflevering,
+// ook een video, achter een nieuwsstuk bij de keuze van de kop en telt ze niet als bron (isAflevering in
+// shared/aflevering.mjs, Luister verder); de regels voor een kop met een kijklabel (VIDEO_HEAD) en filter B blijven.
+// Dezelfde tekens als afleveringSoort(...) === 'podcast', maar ook met een eigen intro.
+const AUDIO_EPISODE_DIR = new Set([...AUDIO_RUBRIC, 'audio'])
+export function audioEpisode(item = {}) {
+  if (!item || item.kind === 'post') return false
+  if (item.feedMark === 'podcast') return true
+  if (/^audio\//i.test(String(item.mediaType || ''))) return true
+  if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true
+  if (rubricSegments(item.url).some((s) => AUDIO_EPISODE_DIR.has(s))) return true
+  return AUDIO_LABEL.test(String(item.title || '')) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || ''))
 }
 
 // Eén toelating voor alle Editieroutes. `weg`: de ids die de AI op de server zeker als aanbieding of aankondiging zag

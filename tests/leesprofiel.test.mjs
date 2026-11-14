@@ -86,6 +86,7 @@ test('de samenvatting: alleen de gewichten die De Redacteur gebruikt, afgerond, 
 
 test('de 12 persona\'s: met de samenvatting geeft de server dezelfde Editie als de lokale samenstelling met hetzelfde profiel', async (t) => {
   let anders = 0
+  const gelijk = []
   for (const c of CASES) {
     const want = canon(withoutDebug(c.local(c.setup.affinity)))
     // Zonder account (samengesteld en bewaard in de cache).
@@ -103,12 +104,16 @@ test('de 12 persona\'s: met de samenvatting geeft de server dezelfde Editie als 
     const { reading, ...without } = c.request
     const zonder = await ask(deps(), without)
     if (canon(bare(zonder.json.edition)) !== want) anders++
+    else gelijk.push(c.p.id)
   }
   // De meting van redacteur-server (zonder gelezen berichten, op het tijdstip van de momentopname): 9 van 12. Hier, met
   // wat elke persona las en op de start van het dagdeel zoals de server rekent: 11 van 12 (alleen 'nieuw' heeft geen
   // leesprofiel). Met de samenvatting: 0 van 12.
-  t.diagnostic(`zonder samenvatting ${anders} van 12 anders, met samenvatting 0 van 12`)
-  assert.equal(anders, 11)
+  // Dubbelcheck 14 november (A6): sinds de rubriek van een plek beter klopt (Amerikaanse staten en het VK als land, een
+  // musicus in de kop is cultuur) geeft ook de gamer zonder samenvatting toevallig dezelfde Editie: 10 van 12. De toets die ertoe doet, met
+  // de samenvatting 0 van 12, blijft gelijk.
+  t.diagnostic(`zonder samenvatting ${anders} van 12 anders, met samenvatting 0 van 12; gelijk: ${gelijk.join(', ')}`)
+  assert.equal(anders, 10)
 })
 
 test('web = iPhone: voor elk profiel dezelfde samenvatting (tests/fixtures/leesprofiel-golden.json, ook in EditionServerTests)', () => {

@@ -98,7 +98,11 @@ test('momentopname: alleen Engelstalige Parool-stukken zijn offLang; taalfilter 
   const snap = loadSnapshot()
   const SL = new Map(SOURCES.map((s) => [s.id, s.lang]))
   const marked = snap.items.map((i) => ({ ...i, ...langOf(i, SL.get(i.source)) }))
-  const off = marked.filter((i) => i.offLang)
+  // Sinds de dubbelcheck (A10, de korte Duitse woorden) is ook de Duitse kop "Elif Eralp und der Palästina-Sumpf" van
+  // Politico Europe (Engelstalig) herkend als derde taal; verder alleen de Engelstalige Parool-rubrieken.
+  const derde = marked.filter((i) => i.offLang && i.lang === 'xx')
+  assert.deepEqual(derde.map((i) => i.source), ['politico-eu'])
+  const off = marked.filter((i) => i.offLang && i.lang !== 'xx')
   assert.equal(off.length, 10)
   assert.ok(off.every((i) => i.source === 'parool' && i.lang === 'en' && /parool\.nl\/(amsterdam-news|guide)\//.test(i.url)))
   // Zonder de rubriek-regel herkent de tekst ze ook allemaal.
@@ -130,4 +134,54 @@ test('taal: Frans, Duits en Spaans worden xx, en een Nederlandse lezer ziet ze n
   assert.equal(detectLang({ title: 'Les geven op de basisschool wordt zwaarder voor leraren' }), 'nl')
   assert.equal(detectLang({ title: 'Macron: “Je ne suis pas d’accord” met de plannen van de Commissie' }), 'nl')
   assert.notEqual(detectLang({ title: 'Le Pen loses appeal in court over embezzlement' }), 'xx')
+})
+
+// Dubbelcheck 14 november (A10): korte Franse en Duitse koppen met de meest voorkomende woorden, en Nederlandse koppen met
+// een Franse naam of uitdrukking als tegenvoorbeeld. dutchTier (de kop van een plek) behandelt elke niet-Nederlandse kop
+// van een Nederlandse bron als anderstalig, niet alleen een Engelse.
+test('taal: korte Franse, Duitse en Spaanse koppen zijn xx; Le Pen, des te meer en la la land blijven Nederlands', async () => {
+  const { detectLang, langOf } = await import('../shared/lang.mjs')
+  for (const title of [
+    "Macron dit qu'il ne démissionnera pas avant la fin de son mandat",
+    'Die Regierung will das Gesetz schon in dieser Woche beschließen',
+    'El gobierno aprobó la ley que limita los alquileres',
+  ]) {
+    assert.equal(detectLang({ title }), 'xx', title)
+    assert.deepEqual(langOf({ title }, 'nl'), { lang: 'xx', offLang: true }, title)
+  }
+  for (const title of [
+    'Le Pen mag niet meedoen aan de verkiezingen',
+    'Des te meer reden om het kabinet te steunen',
+    'La la land is de beste film van het jaar',
+    'Von der Leyen wil meer geld voor defensie',
+    'Rechter in Den Haag zet streep door plan voor Le Pen-bezoek',
+  ]) assert.notEqual(detectLang({ title }), 'xx', title)
+  // Een naam met hoofdletters (La La Land, Le Pen) telt niet als Franse tekst.
+  assert.notEqual(detectLang({ title: 'La La Land-ster Emma Stone speelt in film over Le Pen' }), 'xx')
+})
+
+// Tweede keuring van het herstel (14 november): "noch" is ook Nederlands ("noch … noch"), en "Von der Leyen" is een naam
+// met een tussenvoegsel. Zo'n kop van een Nederlandse bron is Nederlands, niet anderstalig.
+test('taal: noch is Nederlands, Von der Leyen is een naam', async () => {
+  const { detectLang, langOf, langCounts, visibleFor } = await import('../shared/lang.mjs')
+  const title = 'Von der Leyen wil noch Rusland noch China sparen'
+  assert.equal(langCounts(title).xx, 0, 'geen woord van de derde taal')
+  assert.notEqual(detectLang({ title }), 'xx')
+  const item = { title, ...langOf({ title }, 'nl') }
+  assert.equal(item.lang, 'nl')
+  assert.equal(item.offLang, false)
+  assert.ok(visibleFor(item))
+  // Met een Nederlandse intro telt de kop zeker als Nederlands.
+  assert.equal(detectLang({ title, summary: 'De Commissievoorzitter wil geen enkele grootmacht een voordeel geven in de handel met de Europese Unie.' }), 'nl')
+  // Een Duitse zin met von en der in kleine letters blijft Duits.
+  assert.equal(detectLang({ title: 'Die Partei von der Leyen ist nicht mehr für das Gesetz' }), 'xx')
+})
+
+test('dutchTier: een Franse kop van een Nederlandse bron is niet de Nederlandse kop van een plek', async () => {
+  const { leadPool, leadCandidates } = await import('../netlify/lib/stories.mjs')
+  const now = Date.parse('2026-11-14T12:00:00Z')
+  const fr = { id: 'fr', kind: 'article', source: 'nrc', title: "Macron dit qu'il ne démissionnera pas avant la fin de son mandat", summary: 'x', url: 'https://www.nrc.nl/nieuws/2026/11/14/macron-a1', publishedAt: '2026-11-14T11:30:00Z' }
+  const nl = { id: 'nl', kind: 'article', source: 'volkskrant', title: 'Macron zegt dat hij niet aftreedt voor het einde van zijn termijn', summary: 'x', url: 'https://www.volkskrant.nl/buitenland/macron~b1/', publishedAt: '2026-11-14T10:00:00Z' }
+  const ids = new Set(['nrc', 'volkskrant'])
+  assert.equal(leadPool(leadCandidates([fr, nl], ids, null, now), [fr, nl], now)[0].id, 'nl')
 })

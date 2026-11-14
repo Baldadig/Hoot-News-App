@@ -38,8 +38,17 @@ const PLACE_TOPICS = {
   middenoosten: ['middenoosten'], oekraine: ['oekraine'],
 }
 
+// De plek wint van een binnenlands onderwerp (dubbelcheck 14 november, A6: een misdaadverhaal uit het VK of België heette
+// "Binnenland · Misdaad & recht"). Een onderwerp van Binnenland (misdaad, verkeer, zorg, wonen, onderwijs, migratie) is niet
+// sterk op een buitenlandse plek, en ook niet zonder plek als het verhaal een buitenlands geografisch onderwerp draagt en
+// Den Haag niet.
+const FOREIGN_DESKS = new Set(['buitenland', 'vs', 'middenoosten', 'oekraine'])
+const FOREIGN_TOPICS = new Set(['vs-politiek', 'oekraine', 'middenoosten', 'azie', 'afrika', 'latam'])
+const abroad = (desk, topics) => FOREIGN_DESKS.has(desk) || (!desk && topics.some((x) => FOREIGN_TOPICS.has(x)) && !topics.includes('nederland'))
+
 // Draagt dit onderwerp het verhaal? Het past bij de rubriek van de plek, of het staat in de kop.
-export function strongTopic(t, { desk = null, mainTopics = [] } = {}) {
+export function strongTopic(t, { desk = null, mainTopics = [], topics = [] } = {}) {
+  if (INTEREST_OF[t] === 'binnenland' && abroad(desk, topics)) return false
   if (GEOGRAPHIC_TOPICS.has(t) && desk === 'buitenland' && !mainTopics.includes(t)) return false
   if (GEOGRAPHIC_TOPICS.has(t) && PLACE_TOPICS[desk] && !PLACE_TOPICS[desk].includes(t)) return false
   return (DESK_INTERESTS[desk] || []).includes(INTEREST_OF[t]) || mainTopics.includes(t)
@@ -51,7 +60,7 @@ export function strongTopic(t, { desk = null, mainTopics = [] } = {}) {
 // bericht zelf. `why`: { code, text } van De Redacteur. `followed`: de bron staat bij je bronnen.
 export function labelFor({ topics = [], mainTopics = [], follows = [], cat = null, desk = null, deskLabel = null, section = null, why = null, followed = null } = {}) {
   const outside = followed === false || (followed == null && (desk === 'extern' || why?.code === 'extern'))
-  const mine = topics.find((t) => follows.includes(t) && topicById(t) && INTEREST_OF[t] && strongTopic(t, { desk, mainTopics }))
+  const mine = topics.find((t) => follows.includes(t) && topicById(t) && INTEREST_OF[t] && strongTopic(t, { desk, mainTopics, topics }))
   let kicker = null
   if (desk === 'bubbel' || desk === 'breed') kicker = deskLabel // 'Buiten je bubbel · via …', 'Waar iedereen over schrijft · N bronnen'
   else if (mine) {
