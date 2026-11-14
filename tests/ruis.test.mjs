@@ -30,7 +30,7 @@ async function viaFeed(items) {
 }
 
 test('ruis: geen enkele gelabelde nieuwskop valt bij het ophalen weg (alle keuringen, corpora en AI-keuring 1 en 2)', async () => {
-  assert.ok(nieuws.length >= 1027, `${nieuws.length} nieuwskoppen`)
+  assert.ok(nieuws.length >= 1026, `${nieuws.length} nieuwskoppen`) // 1026 sinds Redacteur · deals: de Shure-deal is overal W
   assert.deepEqual(nieuws.filter((x) => isNoise({ title: x.title, link: x.url })).map((x) => `${x.set}: ${x.title}`), [])
   // Ook door de echte ophaalroute (rss-parser, loadSource): elke nieuwslink komt terug.
   const unique = [...new Map(nieuws.map((x) => [x.url, x])).values()]

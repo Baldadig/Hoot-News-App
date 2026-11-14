@@ -262,7 +262,7 @@ test('kortingscodes: het codewoord in het openingsdeel van de kop, de slug eindi
 
 test('kortingscodes: geen gelabeld nieuwsstuk valt weg; wat wegvalt in de sets is gelabeld als deal', () => {
   const nieuws = labels.filter((x) => x.label === 'N')
-  assert.ok(nieuws.length >= 1027, `${nieuws.length} nieuwskoppen`)
+  assert.ok(nieuws.length >= 1026, `${nieuws.length} nieuwskoppen`) // 1026 sinds Redacteur · deals: de Shure-deal is overal W
   // Strengst denkbaar: de Wired-regel op elk gelabeld stuk, van welke bron ook.
   assert.deepEqual(nieuws.filter((x) => isNoise({ title: x.title, link: x.url }, x.cats || [], wired)).map((x) => `${x.set}: ${x.title}`), [])
   const weg = labels.filter((x) => couponPage(x, wired))
