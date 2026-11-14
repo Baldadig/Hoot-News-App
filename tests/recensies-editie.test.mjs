@@ -226,3 +226,39 @@ test('"review" achteraan in kop of slug telt niet bij nieuws- en sportbronnen, e
   assert.equal(recensieMark(art({ source: 'ign', title: 'Heartland Review', url: 'https://www.ign.com/articles/heartland-netflix' })), 'kop')
   assert.equal(recensieMark(art({ source: 'theverge', title: 'A phone', url: 'https://www.theverge.com/2026/11/1/pixel-11-review' })), 'slug')
 })
+
+// Derde keuring, 14 november 2026, en de bronpoort: een verloren nieuwsstuk is erger dan een gemiste recensie. Een
+// toetsing door een toezichthouder, overheid of bedrijf ("charter review", "FCC review", "under review", "Is Reviewing")
+// en nieuws óver een recensie zijn geen recensie; noemt de kop zelf zo een vorm, dan telt de slug niet. "X recensie"
+// achteraan in kop of slug telt, net als "X review", alleen bij cultuur-, tech-, games- en muziekbronnen.
+test('toetsing en ophef over een recensie in de kop: slug en kopwoord tellen niet (bronpoort)', () => {
+  const nieuws = [
+    ['variety', 'BBC Charter Review: Government Sets Out Licence Fee Options', 'https://variety.com/2026/tv/global/bbc-charter-review-licence-fee-options-1236900100/'],
+    ['guardian-culture', 'BBC charter review: ministers set out future of licence fee', 'https://www.theguardian.com/tv-and-radio/2026/nov/14/bbc-charter-review-ministers-licence-fee'],
+    ['variety', 'Paramount-Warner Merger Gets FCC Review', 'https://variety.com/2026/biz/news/paramount-warner-merger-fcc-review-1236900101/'],
+    ['techcrunch', 'Nvidia’s Arm deal faces UK antitrust review', 'https://techcrunch.com/2026/11/14/nvidia-arm-deal-antitrust-review/'],
+    ['theverge', 'EU opens antitrust review of Microsoft Teams bundling', 'https://www.theverge.com/news/1030000/microsoft-teams-antitrust-review'],
+    ['guardian-music', 'Glastonbury licence under review after crowd crush', 'https://www.theguardian.com/music/2026/nov/14/glastonbury-licence-review-crowd-crush'],
+    ['wired', 'The FTC Is Reviewing Amazon’s Deal', 'https://www.wired.com/story/ftc-amazon-deal-review/'],
+    ['guardian-culture', 'Arts Council England review recommends sweeping changes', 'https://www.theguardian.com/culture/2026/nov/14/arts-council-england-review-recommends-sweeping-changes'],
+    ['nos-cultuur', 'Subsidieregeling kunstenaars onder review', 'https://nos.nl/artikel/2640000-subsidieregeling-kunstenaars-onder-review'],
+    ['nu', 'Ophef over recensie', 'https://www.nu.nl/cultuur/6400000/ophef-over-recensie.html'],
+    ['nos', 'Schrijver reageert woedend op vernietigende recensie', 'https://nos.nl/artikel/2640001-schrijver-reageert-woedend-op-vernietigende-recensie'],
+    ['nos-cultuur', 'Ophef om vernietigende recensie van NRC', 'https://nos.nl/artikel/2640002-ophef-om-vernietigende-recensie'],
+    ['volkskrant', 'Reisgids Chili ontploft na slechte recensie', 'https://www.volkskrant.nl/nieuws/reisgids-chili-ontploft-na-slechte-recensie~b1a2b3c4/'],
+    ['nu', 'Boek krijgt lovende recensie', 'https://www.nu.nl/cultuur/6400001/boek-krijgt-lovende-recensie.html'],
+    ['tweakers', 'EU start review van Microsoft-overname', 'https://tweakers.net/nieuws/240000/eu-start-review-van-microsoft-overname.html'],
+    ['variety', 'Merger Faces FCC Review', 'https://variety.com/2026/biz/news/merger-faces-fcc-review-1236900102/'],
+    ['bloomberg', 'Deal Under Review', 'https://www.bloomberg.com/news/articles/2026-11-14/deal-under-review'],
+  ]
+  const wrong = nieuws.filter(([source, title, url]) => isRecensie(art({ source, title, url }))).map(([s, t, u]) => `${s}: ${t} (${recensieMark(art({ source: s, title: t, url: u }))})`)
+  assert.deepEqual(wrong, [])
+  // De ondubbelzinnige vormen blijven bij elke bron tellen.
+  assert.equal(recensieMark(art({ source: 'volkskrant', title: 'Recensie: Wicked', url: 'https://www.volkskrant.nl/cultuur-media/wicked~b5d6e7f8/' })), 'label')
+  assert.equal(recensieMark(art({ source: 'parool', title: 'Een bitterzoete ode aan de stad', url: 'https://www.parool.nl/nieuws/recensie-the-only-living-pickpocket~b9a8b7c6/' })), 'slug')
+  assert.equal(recensieMark(art({ source: 'demorgen', title: '‘Ebenezer’ toont gene herboren Johnny Depp ★★☆☆☆', url: 'https://www.demorgen.be/nieuws/ebenezer~bb0ebbb9/' })), 'sterren')
+  assert.equal(recensieMark(art({ source: 'trouw', title: 'De pijn van een verkeersongeluk', url: 'https://www.trouw.nl/recensies/de-pijn~bbb8b913/' })), 'map')
+  // "X recensie" achteraan alleen bij een cultuurbron of met een cultuurmap in de link.
+  assert.equal(recensieMark(art({ source: 'nos-cultuur', title: 'The Batman: recensie', url: 'https://nos.nl/l/2640003' })), 'kop')
+  assert.equal(recensieMark(art({ source: 'nos', title: 'The Batman: recensie', url: 'https://nos.nl/l/2640004' })), null)
+})

@@ -25,6 +25,16 @@
 // review", "a hardcore record like no other"): dat houdt alleen de werkkop en "review" midden in de slug tegen.
 // Een toetsingswerkwoord vlak voor "review" (launches, faces, orders, opens …) maakt er een onderzoek van, geen
 // recensie ("Bafta launches review of voting rules", "Tour Faces Ticketing Review"). Bij twijfel blijft het staan.
+//
+// Bronpoort (14 november 2026, na drie keuringen): een verloren nieuwsstuk is erger dan een gemiste recensie. De
+// kopwoordregels ("X review"/"X recensie" achteraan in de kop, "-review"/"-recensie" achteraan in de slug, "review" midden
+// in de slug) gelden alleen bij bronnen die zulke stukken maken: een muziek-, cultuur-, tech- of gamesbron, of een
+// cultuurmap in de link. Bij nieuws, sport, economie, politiek en buitenland tellen alleen de ondubbelzinnige vormen: de
+// feedrubriek, een recensiemap, een label vooraan, sterren en een slug die met "recensie-" begint.
+// Noemt de kop zelf "review", "reviewing" of "recensie" in een toetsingsvorm (een toezichthouder, overheid of bedrijf
+// toetst: "charter review", "FCC review", "antitrust review", "under review", "onder review", "review recommends", "The
+// FTC Is Reviewing"), of is het nieuws óver een recensie ("Ophef over recensie", "reageert op vernietigende recensie"),
+// dan telt geen slug en geen kopwoord: de kop gaat voor de link.
 // Gedeeld door server, web en toestel (edition-core.js): zonder URL-object, alleen deterministische toetsen.
 import { SOURCES } from '../netlify/lib/sources.mjs'
 import { urlDelen } from './url-delen.mjs'
@@ -54,7 +64,7 @@ const CULTURE_DIR = /^(film|films|movies|tv|tv-and-radio|television|tv-movies|se
 
 // Een nieuwswerkwoord: dan is het nieuws over een werk of een maker, geen bespreking. Alleen werkwoorden die niet ook
 // een naamwoord in een titel zijn.
-const NEWS_VERB = /(?<![\p{L}\p{N}])(wint|winnen|wonnen|wins|overleden|overlijdt|sterft|gestorven|doodt|dies|died|killed|ontslagen|ontslaat|fired|sacked|kondigt|kondigen|aangekondigd|announces?|announced|unveils?|onthult|onthullen|stopt|stoppen|gestopt|uit elkaar|arrested|aangehouden|opgepakt|veroordeeld|sentenced|sued|aangeklaagd|klaagt|cancels?|cancell?ed|geschrapt|afgelast|postponed|uitgesteld|reunites?|reunited|verkoopt|nominated|genomineerd|benoemd|appointed|verlaat|vertrekt)(?![\p{L}\p{N}])/iu
+const NEWS_VERB = /(?<![\p{L}\p{N}])(reageert|reageren|reageerde|reacts|responds|wint|winnen|wonnen|wins|overleden|overlijdt|sterft|gestorven|doodt|dies|died|killed|ontslagen|ontslaat|fired|sacked|kondigt|kondigen|aangekondigd|announces?|announced|unveils?|onthult|onthullen|stopt|stoppen|gestopt|uit elkaar|arrested|aangehouden|opgepakt|veroordeeld|sentenced|sued|aangeklaagd|klaagt|cancels?|cancell?ed|geschrapt|afgelast|postponed|uitgesteld|reunites?|reunited|verkoopt|nominated|genomineerd|benoemd|appointed|verlaat|vertrekt)(?![\p{L}\p{N}])/iu
 // Nieuwswoorden die ook in de titel van een werk of in een recensiezin staan: alleen een veto voor de zwakste
 // aanwijzingen (de werkkop en "review" midden in de slug).
 const NEWS_WORD = /(?<![\p{L}\p{N}])(won|winning|dood|dead|death|splits?|quits?|breaks?|record|sells?|sold|named|leaves|grammys?|oscars?|edison|nominaties?)(?![\p{L}\p{N}])/iu
@@ -67,11 +77,24 @@ const TITLE_CAPS = /^\W*(RECENSIE|REVIEW)\.\s/
 // "review"/"recensie" als laatste woord van het eerste deel van de kop, met een woord ervoor dat geen onderzoek of
 // toetsing aanduidt ("Pentagon orders review", "plan under review", "peer review" blijven nieuws).
 const TITLE_END = /(?:^|\s)(?:([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+)?([\p{L}\p{N}’'”"‘.:)&!?/+-]+)\s+(review|recensie)(?:\s*\(\d{4}\))?\s*(?:$|[:|–—]|\s-\s)/iu
-const NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne)$/i
+const NOT_BEFORE = /^(under|peer|judicial|after|following|na|var|faces?|faced|facing|safety|strategic|security|policy|budget|spending|defen[cs]e|independent|internal|external|formal|full|urgent|annual|rapid|case|legal|performance|code|statutory|public|government|federal|official|price|pricing|orders?|ordered|launch(?:es|ed)?|starts?|started|opens?|opened|seeks?|demands?|calls?|for|a|an|the|een|de|het|start|begint|eist|vraagt|kritische|onafhankelijke|externe|interne|to|will|charter|antitrust|regulatory|competition|merger|deal|licen[cs]e|licensing|funding|fcc|ftc|cma|sec|doj|ofcom|eu|onder|op|over|om|vernietigende|slechte|negatieve|lovende)$/i
 // Een toetsingswerkwoord twee plaatsen voor "review": "faces ticketing review", "launches independent review".
-const TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt)$/i
-// Is "review" op plaats j een toetsing in plaats van een recensie? Kijkt naar het woord ervoor en dat daarvoor.
-const toetsing = (words, j) => NOT_BEFORE.test(words[j - 1] || '') || TOETS_VERB.test(words[j - 2] || '')
+const TOETS_VERB = /^(launch(?:es|ed|ing)?|faces?|faced|facing|orders?|ordered|opens?|opened|starts?|started|begins?|seeks?|demands?|calls?|announces?|announced|eist|vraagt|start|begint|kondigt|after|following|under|na|onder|over|op|om)$/i
+// Een nieuwswerkwoord direct na "review": de toetsing doet iets ("Arts Council England review recommends", "review finds
+// flaws", "review into").
+const NOT_AFTER = /^(recommends?|recommended|finds?|found|says?|said|concludes?|concluded|urges?|warns?|clears?|cleared|rejects?|rejected|backs?|blames?|critici[sz]es?|into|adviseert|concludeert|oordeelt)$/i
+// Is "review" op plaats j een toetsing in plaats van een recensie? Kijkt naar het woord ervoor, dat daarvoor en dat erna.
+const toetsing = (words, j) => NOT_BEFORE.test(words[j - 1] || '') || TOETS_VERB.test(words[j - 2] || '') || NOT_AFTER.test(words[j + 1] || '')
+// Noemt de kop zelf een toetsing of nieuws over een recensie? "reviewing" en "reviewed" (niet vooraan) zijn altijd een
+// handeling, nooit een bespreking; "review"/"recensie" telt met het woord ervoor, twee ervoor of erna.
+function kopToetsing(title) {
+  const words = title.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean)
+  return words.some((w, j) => {
+    if (w === 'reviewing') return true
+    if (w === 'reviewed') return j > 0
+    return /^(reviews?|recensies?)$/.test(w) && j > 0 && toetsing(words, j)
+  })
+}
 const STARS = /[★☆]{2,}|\(\s*[0-5](?:[.,]5)?\s*\/\s*5\s*\)/
 
 const plainTitle = (s) => String(s || '').replace(/\s+/g, ' ').trim()
@@ -97,8 +120,8 @@ function urlSignal(raw, cultuurBron) {
   if (/^recensie-/.test(slug)) return 'slug'
   const tokens = slug.split('-')
   const last = tokens[tokens.length - 1]
-  // "-review" achteraan alleen bij een cultuur-, tech- of gamesbron of onder een cultuurmap.
-  if ((last === 'recensie' || (last === 'review' && (cultuurBron || cultuurMap))) && tokens.length > 1 && !toetsing(tokens, tokens.length - 1)) return 'slug'
+  // "-review" en "-recensie" achteraan alleen bij een cultuur-, tech- of gamesbron of onder een cultuurmap (bronpoort).
+  if ((last === 'recensie' || last === 'review') && (cultuurBron || cultuurMap) && tokens.length > 1 && !toetsing(tokens, tokens.length - 1)) return 'slug'
   if (cultuurMap && tokens.some((t, j) => (t === 'review' || t === 'recensie') && j > 0 && j < tokens.length - 1 && !toetsing(tokens, j))) return 'midden'
   return null
 }
@@ -134,15 +157,17 @@ export function recensieMark(item = {}) {
   const url = urlSignal(item.url, cultuurBron)
   if (url === 'map') return 'map'
   if (news) return null
+  // De kop gaat voor de link: een toetsing of nieuws over een recensie in de kop houdt slug en kopwoord tegen.
+  if (kopToetsing(title)) return WORK_IDS.has(item.source) && workTitle(title) ? 'werkkop' : null
   // "review" midden in de slug is de zwakste linkaanwijzing: ook een nieuwswoord in de kop houdt die tegen (de kop zelf
   // kan dan nog een recensie zeggen, "Wet Leg live review: record-breaking crowd").
   if (url === 'midden') {
     if (!NEWS_WORD.test(title)) return 'slug'
   } else if (url) return url
   const end = TITLE_END.exec(title)
-  // "X review" aan het eind alleen bij een cultuur-, tech- of gamesbron of met een cultuurmap in de link ("recensie"
-  // overal: dat woord is in het Nederlands geen toetsing).
-  if (end && !toetsing([end[1] || '', end[2], end[3]], 2) && (end[3].toLowerCase() === 'recensie' || cultuurBron || cultuurLink(item.url))) return 'kop'
+  // "X review" en "X recensie" aan het eind alleen bij een cultuur-, tech- of gamesbron of met een cultuurmap in de link
+  // (bronpoort: bij een nieuwsbron is het vaak nieuws over een toetsing of over een recensie).
+  if (end && !toetsing([end[1] || '', end[2], end[3]], 2) && (cultuurBron || cultuurLink(item.url))) return 'kop'
   if (WORK_IDS.has(item.source) && workTitle(title)) return 'werkkop'
   return null
 }
