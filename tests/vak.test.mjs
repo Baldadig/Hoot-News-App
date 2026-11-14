@@ -171,16 +171,14 @@ test('gezondheid: kapot na een week zonder laden, stil na twee maanden zonder ni
   assert.equal(nieuw.paused.length, 0)
 })
 
-test('op pauze: niet elk uur, wel op maandagochtend', () => {
-  const day = 864e5
+test('op pauze: niet elk uur allemaal, wel elk uur een paar opnieuw (B13)', () => {
   const since = '2026-09-01T10:00:00Z'
   const health = { a: { since, lastOk: since }, b: { since, lastOk: '2026-10-25T10:00:00Z', newest: '2026-10-25T10:00:00Z' } }
   const sources = [{ id: 'a' }, { id: 'b' }]
   const tue = Date.parse('2026-10-27T10:00:00Z') // dinsdag
-  assert.deepEqual(sourcesToLoad(health, tue, sources).map((s) => s.id), ['b'])
-  const mon = Date.parse('2026-10-26T05:30:00Z') // maandag 06:30 in Amsterdam
-  assert.deepEqual(sourcesToLoad(health, mon, sources).map((s) => s.id), ['a', 'b'])
-  assert.ok(day)
+  // De bron op pauze staat vooraan, de gezonde volgt.
+  assert.deepEqual(sourcesToLoad(health, tue, sources).map((s) => s.id), ['a', 'b'])
+  assert.deepEqual(sourcesToLoad(health, tue, sources, { retry: 0 }).map((s) => s.id), ['b'])
 })
 
 test('veel bronnen: om het uur de helft, samen alles', () => {

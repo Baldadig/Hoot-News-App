@@ -1,6 +1,6 @@
 // De voorraad van de vakbronnen bijwerken en, als er een nieuwe week is, de Vakweek samenstellen.
 import { kvGet, kvSet, readDoc, writeDoc, KEYS } from './kv.mjs'
-import { loadVakItems, mergePool, composeVak, vakWeek, vakRange, editieSlotIds, addOgImages, updateHealth, sourcesToLoad } from './vak.mjs'
+import { loadVakItems, mergePool, composeVak, vakWeek, vakRange, editieSlotIds, addOgImages, updateHealth, sourcesToLoad, oneLine } from './vak.mjs'
 import { findEdition } from './edition-history.mjs'
 import { hash } from '../../shared/util.mjs'
 
@@ -19,13 +19,33 @@ export async function editieItems(wk, get = kvGet) {
 
 let running = null // binnen één functie-instantie nooit twee keer tegelijk
 
+// De tijd van een ronde (B13, nachttest 14 november). De planner van Netlify geeft een geplande functie na 15 seconden
+// op; een ronde die dat niet haalt, schrijft niets weg. Daarom: hooguit FETCH_MS voor de feeds en tot OG_MS voor de
+// artikelbeelden, gerekend vanaf het begin van de ronde; wat dan niet aan de beurt kwam, komt in een volgende ronde.
+export const FETCH_MS = 8000
+export const OG_MS = 11000
+
+// Eén logregel met de mislukte bronnen en hun reden, zodat het logboek van Netlify laat zien wie er weigert of hapert.
+// Alleen bron-id's en foutmeldingen, niets van gebruikers.
+export function failureLine(status = []) {
+  const failed = status.filter((r) => !r.skipped && !r.ok)
+  const skipped = status.filter((r) => r.skipped).length
+  const tried = status.length - skipped
+  if (!failed.length && !skipped) return null
+  const list = failed.map((r) => `${r.id} (${oneLine(r.error)})`).join('; ')
+  return `vak-refresh: ${failed.length} van ${tried} bronnen mislukt${skipped ? `, ${skipped} niet aan de beurt` : ''}${list ? ': ' + list : ''}`
+}
+
 // `force`: ook binnen dezelfde week opnieuw samenstellen (bijvoorbeeld na een wijziging in de bronnen).
 export function refreshVak({ now = Date.now(), force = false } = {}) {
   running ||= (async () => {
     try {
-      // Bronnen op pauze (kapot of al lang stil) slaan we over; op maandagochtend proberen we ze opnieuw.
+      // Bronnen op pauze (kapot, geweigerd of al lang stil) slaan we over; elk uur proberen we er een paar opnieuw.
+      const start = Date.now()
       const health = (await kvGet(KEYS.vakHealth)) || {}
-      const { items, status } = await loadVakItems(sourcesToLoad(health, now))
+      const { items, status } = await loadVakItems(sourcesToLoad(health, now), { deadline: start + FETCH_MS })
+      const line = failureLine(status)
+      if (line) console.log(line)
       await kvSet(KEYS.vakHealth, updateHealth(health, status, now))
       const pool = mergePool((await kvGet(KEYS.vakPool)) || [], items, now)
       // Sinds wanneer we verzamelen: tot er een volle week is, elk uur een voorproefje.
@@ -39,7 +59,7 @@ export function refreshVak({ now = Date.now(), force = false } = {}) {
       // Beeld van het artikel zelf, waar de feed geen (goed) beeld gaf: eerst voor wat nu in de
       // digest zou staan.
       const shown = new Set(composeVak(pool, { now, since, editie }).fields.flatMap((f) => [...f.top, ...f.more].map((e) => e.id)))
-      await addOgImages(pool, { first: shown, max: 30 })
+      await addOgImages(pool, { first: shown, max: 30, deadline: start + OG_MS })
       await kvSet(KEYS.vakPool, pool)
       const current = await readDoc(KEYS.vak)
       if (current && current.week === vakWeek(now).id && !current.preview && !force) return current

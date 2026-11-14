@@ -178,8 +178,19 @@ function pickImage(item) {
 // (The Independent), waar de parser anders over struikelt.
 async function readFeed(url) {
   const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml; q=0.9, */*; q=0.8' }, signal: AbortSignal.timeout(9000) })
-  if (!res.ok) throw new Error('HTTP ' + res.status)
+  if (!res.ok) throw new Error(feedError(res.status, res.headers))
   return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
+}
+
+// De reden van een mislukte feed, zo dat we hem kunnen bewaren en tonen (B13, nachttest 14 november). Een uitgever die
+// ons weigert (401, 403, 429, of een botcontrole van Cloudflare met de kop cf-mitigated) heet "geweigerd": dat lossen we
+// niet op door het vaker te proberen, wel door de uitgever te vragen HootReader toe te laten of de bron te vervangen.
+// Een weigering omzeilen we nooit.
+export const REFUSED = /^geweigerd:/
+export function feedError(status, headers) {
+  const mitigated = typeof headers?.get === 'function' ? headers.get('cf-mitigated') : headers?.['cf-mitigated']
+  if (status === 401 || status === 403 || status === 429 || mitigated) return `geweigerd: HTTP ${status}${mitigated ? ` (cf-mitigated: ${mitigated})` : ''}`
+  return 'HTTP ' + status
 }
 
 // Een feed die de oudste bovenaan zet (Hidde de Vries, Thuiswinkel.org) leverde met de grens alleen oude stukken, en de
@@ -271,13 +282,22 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
       lastErr = e
     }
   }
-  return { id: src.id, name: src.name, ok: false, used: null, count: 0, items: [], error: String((lastErr && lastErr.message) || lastErr) }
+  const error = String((lastErr && lastErr.message) || lastErr)
+  return { id: src.id, name: src.name, ok: false, used: null, count: 0, items: [], error, refused: REFUSED.test(error) }
 }
 // Eén herhaalpoging bij een mislukte bron (korte hapering), daarna opgeven zonder de rest te blokkeren.
-export async function loadSourceWithRetry(src, avatarsP, opts) {
-  const first = await loadSource(src, avatarsP, opts)
-  if (first.ok) return first
-  await new Promise((r) => setTimeout(r, 350))
-  const second = await loadSource(src, avatarsP, opts)
+// Niet bij een weigering: dan weigert de uitgever de tweede keer ook. Heeft de ronde een eindtijd (`deadline`, ms sinds
+// 1970), dan alleen als er nog minstens een seconde over is, en wacht de ronde niet langer dan tot die eindtijd: dan
+// telt de eerste poging (B13: de ronde moet op tijd klaar zijn om iets weg te schrijven). `loadOne`: alleen voor toetsen.
+const pause = (ms) => new Promise((r) => setTimeout(r, ms))
+export async function loadSourceWithRetry(src, avatarsP, opts = {}) {
+  const { loadOne = loadSource, ...rest } = opts
+  const first = await loadOne(src, avatarsP, rest)
+  if (first.ok || first.refused) return first
+  const left = opts.deadline ? opts.deadline - Date.now() - 350 : Infinity
+  if (left < 1000) return first
+  await pause(350)
+  const again = loadOne(src, avatarsP, rest)
+  const second = left === Infinity ? await again : await Promise.race([again, pause(left).then(() => first)])
   return second.ok ? second : first
 }
