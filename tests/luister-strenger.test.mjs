@@ -10,11 +10,11 @@
 //   4. "hetzelfde" alleen als de aflevering na het eerste stuk kwam, of met een artikellink;
 //   5. de artikellinks van de eigen uitgever blijven (dezelfde bron), alleen de pagina van de show valt weg;
 //   6. de kop van het verhaal: het stuk van de kop en de aflevering delen minstens twee namen (een mengverhaal);
-//   7. binnen de tijd van de ronde.
+//   7. over de tijd van de ronde: toch koppelen, met wat binnen is (overtijd, 14 november).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { koppel, episodeOf, describe, boundNames, showPage, luisterRonde, SHOW, KOPPEL_MS, PROEF_KEY } from '../netlify/lib/luister.mjs'
+import { koppel, episodeOf, describe, boundNames, showPage, luisterRonde, loadEpisodes, readHead, SHOW, KOPPEL_MS, LUISTER_MS, FEED_MS, APPLE_MS, PROEF_KEY, STORE_KEY } from '../netlify/lib/luister.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { countsAsSource } from '../shared/edition-policy.mjs'
 
@@ -170,19 +170,46 @@ test('6. de kop van het verhaal: een mengverhaal krijgt geen aflevering over iet
   assert.equal(r.of(/Zidane/).af(/Frenkie de Jong komt/), 'de kop van het verhaal deelt geen twee namen met de aflevering')
 })
 
-test('7. binnen de tijd: na de grens wordt er niet gekoppeld, en de proef zegt dat', async () => {
+test('7. over de tijd: het koppelen gebeurt toch, met wat binnen is; een hangende feed of lookup houdt niets op', async () => {
   assert.ok(KOPPEL_MS >= 8000 && KOPPEL_MS <= 12000, 'na het ophalen (LUISTER_MS), ruim onder de 15 s van de planner')
+  assert.ok(FEED_MS < LUISTER_MS && APPLE_MS < LUISTER_MS, 'elke feed en de lookup een eigen, kortere wachttijd')
   const byId = new Map(FIX.items.map((i) => [i.id, i]))
-  const opts = { stories: FIX.stories, byId, episodes: FIX.episodes, now: Date.parse(FIX.now), mainIds: MAIN_IDS }
-  assert.equal(koppel({ ...opts, deadline: Date.now() - 1 }).overTijd, true)
-  assert.equal(koppel({ ...opts, deadline: Date.now() - 1 }).byStory.size, 0)
-  assert.ok(koppel({ ...opts, deadline: Date.now() + 60000 }).byStory.size >= 3)
+  const now = Date.parse(FIX.now)
+  const opts = { stories: FIX.stories, byId, episodes: FIX.episodes, now, mainIds: MAIN_IDS }
+  const gewoon = koppel(opts)
+  assert.ok(gewoon.byStory.size >= 3)
+  assert.equal(koppel({ ...opts, deadline: Date.now() - 1 }).byStory.size, gewoon.byStory.size, 'geen grens in het koppelen')
+
+  // De ronde is al over de tijd: toch dezelfde koppelingen, en de proef zegt overTijd.
   const kv = new Map()
-  const stories = FIX.stories.map((st) => ({ ...st }))
-  const n = await luisterRonde({ stories, byId, now: opts.now, episodesP: Promise.resolve({ episodes: FIX.episodes, status: {} }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), deadline: Date.now() - 1 })
-  assert.equal(n, 0)
-  assert.ok(!stories.some((st) => st.luister))
+  const laat = FIX.stories.map((st) => ({ ...st }))
+  const n = await luisterRonde({ stories: laat, byId, now, episodesP: Promise.resolve({ episodes: FIX.episodes, status: {} }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), deadline: Date.now() - 1 })
+  assert.equal(n, gewoon.byStory.size)
+  assert.equal(laat.filter((st) => st.luister).length, n)
   assert.equal(kv.get(PROEF_KEY).dagdelen[0].overTijd, true)
+  assert.equal(kv.get(PROEF_KEY).dagdelen[0].koppelingen.length, n)
+
+  // Nep-fetch: De Dag hangt (het verzoek komt nooit terug en negeert het signaal), net als de iTunes-lookup; de andere
+  // feeds komen meteen. De Dag valt terug op de opslag, de rest wacht er niet op, en de ronde koppelt toch.
+  const shows = [...new Set(FIX.episodes.map((e) => e.show))].map((id) => SHOW.get(id))
+  const store = { shows: Object.fromEntries(shows.map((s) => [s.id, { at: 0, items: FIX.episodes.filter((e) => e.show === s.id) }])) }
+  const opslag = new Map([[STORE_KEY, store]])
+  const hangt = () => new Promise(() => {})
+  const rss = (s) => `<?xml version="1.0"?><rss version="2.0"><channel><title>${s.naam}</title><link>${s.web}</link><item><title>Iets anders</title><pubDate>${new Date(now - 36e5).toUTCString()}</pubDate><guid>${s.id}-x</guid></item></channel></rss>`
+  const fetcher = (url) => (url === SHOW.get('nos-de-dag').feed ? hangt() : Promise.resolve(new Response(rss(shows.find((s) => s.feed === url)))))
+  const t0 = Date.now()
+  const episodesP = loadEpisodes({ now, deadline: Date.now() + 400, get: (k) => opslag.get(k), set: (k, v) => opslag.set(k, v), read: (url, o) => readHead(url, { ...o, fetcher }), shows, lookup: hangt })
+  const { episodes, status } = await episodesP
+  assert.ok(Date.now() - t0 < 1500, `${Date.now() - t0} ms: de hangende feed hield de ronde niet op`)
+  assert.match(status['nos-de-dag'], /^mislukt/)
+  assert.match(status.apple, /^mislukt/)
+  assert.equal(status['vk-elke-dag'], 'opgehaald')
+  assert.equal(episodes.filter((e) => e.show === 'nos-de-dag').length, FIX.episodes.filter((e) => e.show === 'nos-de-dag').length, 'De Dag uit de opslag')
+  const hang = FIX.stories.map((st) => ({ ...st }))
+  const m = await luisterRonde({ stories: hang, byId, now, episodesP: Promise.resolve({ episodes, status }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), deadline: Date.now() - 1 })
+  assert.equal(m, gewoon.byStory.size, 'dezelfde koppelingen als zonder hangende feed')
+  assert.deepEqual(hang.filter((st) => st.luister).map((st) => `${st.id}: ${st.luister.aflevering}`).sort(), [...gewoon.byStory].map(([id, l]) => `${id}: ${l.aflevering}`).sort())
+
   // De ronde geeft de grens mee: KOPPEL_MS vanaf de start van buildFeed.
   const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
   assert.match(build, /const roundStart = Date\.now\(\)/)

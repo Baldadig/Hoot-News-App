@@ -70,8 +70,12 @@ export const FETCHED = SHOWS.filter((s) => s.soort !== 'overzicht' && s.feed)
 export const KEEP = 3 * 24 * H // drie dagen bewaren
 export const EVERY = 30 * 6e4 // een feed hooguit eens per half uur ophalen (de ronde is elke tien minuten)
 export const LUISTER_MS = 8000 // de feeds wachten hooguit zo lang vanaf de start van de ronde (de bronnen: FETCH_MS, 10 s)
-// Het koppelen rekent hooguit tot zo lang na de start van de ronde (keuring: daarna komen nog de beelden en het
-// wegschrijven, binnen de 15 s van de planner; late() van de trage bronnen wacht tot LATE_MS, 12,5 s, naast het wegschrijven).
+// Elke feed en de iTunes-lookup hebben daarbinnen een eigen, kortere wachttijd (overtijd, 14 november): een trage of
+// hangende feed (De Dag van de NOS, Wereldzaken) valt terug op de opslag en houdt de rest niet op.
+export const FEED_MS = 5000
+export const APPLE_MS = 2500
+// Na zo lang vanaf de start van de ronde is de ronde over de tijd (`overTijd` in de proef). Het koppelen gebeurt dan toch,
+// met wat binnen is (overtijd, 14 november: daarvoor sloeg het over, en kwam er live nooit een koppeling).
 export const KOPPEL_MS = 11000
 export const MAX_BYTES = 400000 // alleen het begin van de feed: de nieuwste afleveringen staan bovenaan
 export const STORE_KEY = 'luister-afleveringen-v1'
@@ -214,11 +218,19 @@ export async function loadEpisodes({ now = Date.now(), deadline = now + 8000, ge
   const due = shows.filter((s) => !(now - (store.shows[s.id]?.at || 0) < EVERY))
   const appleDue = !!lookup && !(now - (store.apple?.at || 0) < EVERY)
   const status = {}
-  const signal = AbortSignal.timeout(Math.max(1, deadline - Date.now()))
+  const round = AbortSignal.timeout(Math.max(1, deadline - Date.now()))
+  // Elk verzoek: zijn eigen wachttijd binnen de ronde. Ook een verzoek dat het signaal negeert, wacht niet langer.
+  const within = (ms, work) => {
+    const left = Math.max(1, Math.min(ms, deadline - Date.now()))
+    const signal = AbortSignal.any([round, AbortSignal.timeout(left)])
+    let t
+    const stop = new Promise((_, no) => (t = setTimeout(() => no(new Error('over de wachttijd')), left)))
+    return Promise.race([Promise.resolve().then(() => work(signal)), stop]).finally(() => clearTimeout(t))
+  }
   await Promise.all([
     ...due.map(async (s) => {
       try {
-        const feed = await read(s.feed, { signal })
+        const feed = await within(FEED_MS, (signal) => read(s.feed, { signal }))
         const eps = (feed.items || []).map((it) => episodeOf(s, it, feed.link)).filter((e) => e && now - e.t <= KEEP && e.t <= now + H)
         const old = store.shows[s.id]?.items || []
         const byId = new Map([...old, ...eps].map((e) => [e.id, e]))
@@ -228,9 +240,10 @@ export async function loadEpisodes({ now = Date.now(), deadline = now + 8000, ge
         status[s.id] = 'mislukt: ' + String(e?.message || e).slice(0, 80)
       }
     }),
+    // De lookup houdt niets op: lukt hij niet binnen APPLE_MS, dan blijven de links van de vorige lookup staan (of die
+    // naar de show) en probeert de volgende ronde het opnieuw.
     appleDue
-      ? Promise.resolve()
-          .then(() => lookup(shows, { signal }))
+      ? within(APPLE_MS, (signal) => lookup(shows, { signal }))
           .then((byShow) => {
             store.apple = { at: now, shows: byShow || {} }
             status.apple = 'opgehaald'
@@ -473,13 +486,12 @@ function sameIssue(es, items, sig) {
 // Alle verhalen tegen alle afleveringen. `stories`: de verhalen van de ronde; `byId`: de stukken.
 // `mainIds`: de bronnen die de algemene lezer volgt (taal volgt de bronkeuze). Geeft { byStory: Map(id → luister),
 // rows: de koppelingen en afvallers voor de proef }.
-// `deadline` (ms): na dat moment stopt het rekenen en komt er niets (geen halve uitkomst); dan `overTijd: true`.
-export function koppel({ stories = [], byId = new Map(), episodes = [], now = Date.now(), mainIds = new Set(), deadline = Infinity } = {}) {
+// Het koppelen rekent altijd af, ook als de ronde over de tijd is (overtijd, 14 november): geen grens hier.
+export function koppel({ stories = [], byId = new Map(), episodes = [], now = Date.now(), mainIds = new Set() } = {}) {
   const live = stories.map((st) => ({ st, items: (st.itemIds || []).map((id) => byId.get(id)).filter(counted) })).filter((x) => x.items.length >= 2)
   const eps = episodes.filter((e) => SHOW.has(e.show) && SHOW.get(e.show).soort !== 'overzicht').map((e) => ({ ...e, ...describe(e) }))
   const rows = { koppelingen: [], afgevallen: [] }
   if (!live.length || !eps.length) return { byStory: new Map(), rows }
-  if (Date.now() > deadline) return { byStory: new Map(), rows, overTijd: true }
   const pool = [...new Map(live.flatMap((x) => x.items).map((i) => [i.id, i])).values()]
   // De afleveringen krijgen een kenmerk met de woordenschat van de verhalen (`extra`: ze veranderen die niet); ook een
   // kenmerk van alleen de titel, voor de toets bij een artikellink.
@@ -499,7 +511,6 @@ export function koppel({ stories = [], byId = new Map(), episodes = [], now = Da
   const hits = new Map() // aflevering → [{ x, oordeel }]
   for (const e of eps) {
     const show = SHOW.get(e.show)
-    if (Date.now() > deadline) return { byStory: new Map(), rows: { koppelingen: [], afgevallen: [] }, overTijd: true }
     for (const x of live) {
       const o = judge(e, show, x.st, x.items, sig, now)
       if (o.soort) (hits.get(e.id) || hits.set(e.id, []).get(e.id)).push({ x, o })
@@ -594,16 +605,16 @@ export function withProef(stored, entry) {
 // ---------- In de ronde (build.mjs) ----------
 // Na het bundelen: elk live verhaal met een koppeling krijgt het veld `luister`; de proef van dit dagdeel gaat naar KV
 // (PROEF_KEY, gelezen door /api/luister-proef). Bij elke fout: geen koppelingen, de ronde gaat gewoon door.
-// Binnen de tijd van de ronde (keuring): `deadline` is het laatste moment waarop het koppelen nog mag rekenen
-// (build.mjs: KOPPEL_MS na de start van de ronde, ruim onder de 15 s van de planner). Is de ronde al later, dan wordt er
-// niet gekoppeld; loopt het rekenen erover, dan stopt het zonder uitkomst. Dan heeft geen verhaal deze ronde `luister`;
-// de proef zegt `overTijd`. Het wegschrijven van de proef wacht hooguit PROEF_MS.
+// De tijd van de ronde (overtijd, 14 november): het koppelen gebeurt altijd, met de afleveringen die binnen zijn (een feed
+// die niet op tijd kwam, telt uit de opslag; zie loadEpisodes). `deadline` (build.mjs: KOPPEL_MS na de start van de ronde)
+// zegt alleen of de ronde over de tijd is: dan zegt de proef `overTijd`. Het koppelen slaat daar nooit voor over; wat
+// erbij hoort (het wegschrijven van de proef) wacht hooguit PROEF_MS.
 export const PROEF_MS = 1000
 export async function luisterRonde({ stories, byId, now, episodesP, slot, mainIds, update, deadline = Infinity }) {
   try {
     const { episodes = [], status = {} } = (await episodesP) || {}
-    const late = Date.now() > deadline
-    const { byStory, rows, overTijd = late } = late ? { byStory: new Map(), rows: { koppelingen: [], afgevallen: [] } } : koppel({ stories, byId, episodes, now, mainIds, deadline })
+    const { byStory, rows } = koppel({ stories, byId, episodes, now, mainIds })
+    const overTijd = Date.now() > deadline
     for (const st of stories) if (byStory.has(st.id)) st.luister = byStory.get(st.id)
     if (update && slot) {
       let t
