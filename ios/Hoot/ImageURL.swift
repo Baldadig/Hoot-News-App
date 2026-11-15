@@ -14,6 +14,18 @@ extension ImageURL {
         return original
     }
 
+    // Laadt de variant van de uitgever niet, dan het origineel uit de feed (15 november: "NYT laadt ineens veel minder
+    // images"). The New York Times maakt niet bij elk beeld een 3:2-versie (The Morning, het Magazine): dan geeft
+    // threeByTwoMediumAt2X 404 en bestaat alleen het vierkant uit de feed. minBreed: hoe breed het origineel echt
+    // moet zijn (de poort, grootMinBreed) om op een grote plek te mogen; als miniatuur altijd. Gelijk aan
+    // originalFallback in src/lib/img.js.
+    static func publisherFallback(for sized: URL) -> (url: URL, minBreed: Double)? {
+        guard sized.scheme == "https", sized.host() == "static01.nyt.com", sized.query() == nil,
+              let m = sized.absoluteString.firstMatch(#"^(.*)-(threeByTwoMediumAt2X|square320)(\.jpe?g)$"#),
+              let original = URL(string: "\(m[1])-mediumSquareAt3X\(m[3])") else { return nil }
+        return (original, m[2] == "square320" ? 0 : grootMinBreed)
+    }
+
     // Hoe breed een beeld hooguit is, als het adres dat verraadt; anders nil.
     static func knownWidth(_ raw: String?) -> Int? {
         guard let raw, let u = URLComponents(string: raw), let host = u.host else { return nil }

@@ -35,8 +35,11 @@ enum ImageURL {
         if host == "media.wired.com", s.contains("/master/pass/") {
             return URL(string: s.replacingOccurrences(of: "/master/pass/", with: "/master/w_\(width),c_limit/"))
         }
-        if host == "static01.nyt.com", let r = s.range(of: "-mediumSquareAt3X", options: .backwards) {
-            return URL(string: s.replacingCharacters(in: r, with: kind == .thumb ? "-square320" : "-threeByTwoMediumAt2X"))
+        // The New York Times: alleen het gewone vierkant (…-mediumSquareAt3X.jpg) heeft meestal vaste broertjes. Een
+        // herziene uitsnede (…-mediumSquareAt3X-v3.jpg) heeft geen threeByTwo…-v3 (404): dan het vierkant zelf.
+        // Gelijk aan candidates in src/lib/img.js.
+        if host == "static01.nyt.com", let m = s.firstMatch(#"^(.*)-mediumSquareAt3X(\.jpe?g)$"#) {
+            return URL(string: "\(m[1])\(kind == .thumb ? "-square320" : "-threeByTwoMediumAt2X")\(m[2])")
         }
         if host == "platform.theverge.com" {
             return URL(string: "\(u.scheme ?? "https")://\(host)\(u.path())?quality=80&strip=all&w=\(width)")

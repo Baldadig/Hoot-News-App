@@ -38,6 +38,35 @@ final class RemoteImageFallbackTests: XCTestCase {
         await loader.load(original,transport:session())
         XCTAssertNil(loader.image); XCTAssertEqual(ImageFallbackProtocol.paths,["/hoot-test-image.png"])
     }
+    // 15 november: niet elk NYT-beeld heeft een 3:2-versie; dan het vierkant uit de feed (gelijk aan originalFallback op web).
+    func testNytMissingVariantFallsBackToFeedSquare() {
+        let feed = "https://static01.nyt.com/images/2026/11/09/multimedia/x/x-mediumSquareAt3X.jpg"
+        let large = ImageURL.url(feed, .large)!, thumb = ImageURL.url(feed, .thumb)!
+        XCTAssertEqual(large.absoluteString, "https://static01.nyt.com/images/2026/11/09/multimedia/x/x-threeByTwoMediumAt2X.jpg")
+        XCTAssertEqual(ImageURL.publisherFallback(for: large)?.url.absoluteString, feed)
+        XCTAssertEqual(ImageURL.publisherFallback(for: large)?.minBreed, ImageURL.grootMinBreed)
+        XCTAssertEqual(ImageURL.publisherFallback(for: thumb)?.url.absoluteString, feed)
+        XCTAssertEqual(ImageURL.publisherFallback(for: thumb)?.minBreed, 0)
+        XCTAssertNil(ImageURL.publisherFallback(for: URL(string: feed)!))
+        // Herziene uitsnede (-v3): threeByTwo…-v3 bestaat niet, dus meteen het vierkant zelf (zoals het web).
+        let v3 = "https://static01.nyt.com/images/2026/11/13/multimedia/y/y-mediumSquareAt3X-v3.jpg"
+        XCTAssertEqual(ImageURL.url(v3, .large)?.absoluteString, v3)
+        XCTAssertEqual(ImageURL.url(v3, .thumb)?.absoluteString, v3)
+    }
+    func testNytFallbackOnlyWhenWideEnoughForLargePlace() async {
+        // Het testbeeld is 1 px breed: als miniatuur goed, op een grote plek te klein (dan de beeldloze vorm).
+        let feed = "https://static01.nyt.com/images/x/x-mediumSquareAt3X.jpg"
+        ImageFallbackProtocol.originalStatus = 404
+        ImageFallbackProtocol.secondStatus = 200
+        let thumb = RemoteImageLoader()
+        await thumb.load(ImageURL.url(feed, .thumb), transport: session())
+        XCTAssertNotNil(thumb.image)
+        XCTAssertEqual(ImageFallbackProtocol.paths, ["/images/x/x-square320.jpg", "/images/x/x-mediumSquareAt3X.jpg"])
+        ImageFallbackProtocol.reset(); ImageFallbackProtocol.originalStatus = 404; ImageFallbackProtocol.secondStatus = 200
+        let large = RemoteImageLoader()
+        await large.load(ImageURL.url(feed, .large), transport: session())
+        XCTAssertNil(large.image); XCTAssertTrue(large.failed)
+    }
     func testCancelledRequestDoesNotStartFallback() async {
         let loader = RemoteImageLoader()
         let task = Task { await loader.load(ImageURL.url(original.absoluteString,.large),transport:session()) }
@@ -50,14 +79,15 @@ final class ImageFallbackProtocol: URLProtocol {
     private static let lock = NSLock()
     nonisolated(unsafe) static var primaryStatus = 503
     nonisolated(unsafe) static var originalStatus = 200
+    nonisolated(unsafe) static var secondStatus: Int? = nil // anders dan originalStatus voor het tweede verzoek (NYT-terugval)
     nonisolated(unsafe) static var paths: [String] = []
-    static func reset() { lock.withLock { primaryStatus=503; originalStatus=200; paths=[] } }
+    static func reset() { lock.withLock { primaryStatus=503; originalStatus=200; secondStatus=nil; paths=[] } }
     override class func canInit(with request:URLRequest)->Bool { true }
     override class func canonicalRequest(for request:URLRequest)->URLRequest { request }
     override func stopLoading() {}
     override func startLoading() {
         let path = request.url!.path
-        let status = Self.lock.withLock { Self.paths.append(path); return path == "/.netlify/images" ? Self.primaryStatus : Self.originalStatus }
+        let status = Self.lock.withLock { Self.paths.append(path); return path == "/.netlify/images" ? Self.primaryStatus : (Self.paths.count > 1 ? Self.secondStatus ?? Self.originalStatus : Self.originalStatus) }
         let data:Data
         if path == "/.netlify/images" { data=Data("kapot beeld".utf8) }
         else { data = Data(base64Encoded:"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aDBkAAAAASUVORK5CYII=")! }
