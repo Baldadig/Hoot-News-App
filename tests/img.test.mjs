@@ -275,3 +275,26 @@ test('beeldpoort: de app spiegelt de poort en de NU.nl-uitsnede (ImageURL.swift,
     assert.ok(!/\.resizable\(\)\.frame\(width: rect\.width/.test(src), f)
   }
 })
+
+// 15 november: "NYT laadt ineens veel minder images". The New York Times maakt niet bij elk beeld een 3:2-versie
+// (The Morning, het Magazine); dan geeft threeByTwo… 404 en bestaat alleen het vierkant uit de feed.
+test('NYT: ontbreekt de variant, dan het gemeten vierkant uit de feed in plaats van de placeholder', async () => {
+  const { originalFallback } = await import('../src/lib/img.js')
+  const image = 'https://static01.nyt.com/images/2026/11/09/multimedia/x/x-mediumSquareAt3X.jpg'
+  const meta = (w) => ({ w, h: w, crop: { l: 0, r: 0, t: 0, b: 0 }, ratio: 1 })
+  assert.equal(originalFallback({ image, imageMeta: meta(1800) }, 'lead'), image)
+  assert.equal(originalFallback({ image, imageMeta: meta(1800) }, 'thumb'), image)
+  // Ongemeten of te klein voor een grote plek: liever de placeholder dan een zacht beeld; als miniatuur wel.
+  assert.equal(originalFallback({ image }, 'lead'), null)
+  assert.equal(originalFallback({ image, imageMeta: meta(359) }, 'lead'), null)
+  assert.equal(originalFallback({ image }, 'thumb'), image)
+  // Herziene uitsnede (-v3): geen varianten, het vierkant zelf; daar is geen terugval nodig.
+  const v3 = 'https://static01.nyt.com/images/2026/11/13/multimedia/y/y-mediumSquareAt3X-v3.jpg'
+  assert.deepEqual(imgProps(v3, 'lead'), { src: v3 })
+  assert.equal(originalFallback({ image: v3, imageMeta: meta(1800) }, 'lead'), null)
+  // NU.nl: het vierkant uit de feed is 256 px, nooit terug naar dat origineel op een grote plek.
+  const nu = 'https://images.nu.nl/m/abc123_sqr256/0/10/536/536/naam.jpg'
+  assert.equal(originalFallback({ image: nu, imageMeta: meta(256) }, 'lead'), null)
+  // Via de beeld-CDN niet: daar valt Img al op het origineel terug.
+  assert.equal(originalFallback({ image: 'https://images.nrc.nl/a.jpg', imageMeta: meta(1800) }, 'lead'), null)
+})

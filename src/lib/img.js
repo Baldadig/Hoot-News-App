@@ -197,6 +197,27 @@ export function measuredOriginal(item, kind = 'lead') {
   return !(plain && candidates(item.image, kind))
 }
 
+// Laadt de variant van de uitgever niet, mag dan het origineel uit de feed? (15 november: "NYT laadt ineens
+// veel minder images".) The New York Times maakt niet bij elk beeld een 3:2-versie: bij The Morning en het
+// Magazine bestaat soms alleen het vierkant uit de feed, en threeByTwo... geeft 404. Sinds 5 november gaat
+// een gemeten beeld zonder randen via die varianten (measuredOriginal), dus werd dat de placeholder.
+// Het origineel mag als het op die plek past: als miniatuur altijd; groot alleen als de server het mat en het
+// door de poort komt (breed genoeg, verhouding in het bereik) en minstens zo breed is als de variant die we
+// vroegen, zodat het niet zachter wordt. Via de beeld-CDN niet: daar valt Img al op het origineel terug.
+export function originalFallback(item, kind = 'thumb') {
+  const url = item?.image
+  const list = url ? candidates(url, kind) : null
+  if (!list?.length || list[0][0].startsWith('/.netlify/images') || !/^https:\/\//.test(url)) return null
+  if (list.every(([u]) => u === url)) return null
+  if (kind === 'thumb') return url
+  const m = imageMeta(item)
+  if (!m) return null
+  const breedte = m.w - m.crop.l - m.crop.r
+  const nodig = sourceWidth(item)
+  if (!grootBeeldMag({ breedte, verhouding: m.ratio })) return null
+  return nodig == null || breedte >= nodig ? url : null
+}
+
 export function sourceWidth(item) {
   const url = item?.image
   if (!url) return null
