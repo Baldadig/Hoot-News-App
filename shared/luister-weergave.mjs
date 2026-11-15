@@ -57,10 +57,24 @@ export function dagVan(a, now = Date.now()) {
 export const duurVan = (sec) => (Number(sec) > 0 ? `${Math.max(1, Math.round(Number(sec) / 60))} min` : null)
 export const regelVan = (a, now = Date.now()) => [a.show, dagVan(a, now), duurVan(a.duur)].filter(Boolean).join(' · ')
 export const duurVoluit = (sec) => (Number(sec) > 0 ? `${Math.max(1, Math.round(Number(sec) / 60))} minuten` : null)
-// VoiceOver en schermlezer: "Luister verder, De Dag, gisteren, 29 minuten. Opent in Spotify."
+// De titel van de aflevering zonder de naam van de show ervoor ("De Dag: X" wordt "X"); null als er niets overblijft.
+export function afleveringVan(a) {
+  let t = String(a?.aflevering || '').trim()
+  const show = String(a?.show || '').trim()
+  if (show && t.toLowerCase().startsWith(show.toLowerCase())) {
+    const rest = t.slice(show.length)
+    if (!rest) t = ''
+    else if (/^[\s:\-–|·]/.test(rest)) t = rest.replace(/^[\s:\-–|·]+/, '').trim()
+  }
+  return t || null
+}
+// Welke podcast (melding Alex 15 november, build 59: "nergens de titel van de podcast"): "{show} · {aflevering}".
+// De tweede regel in het menu en in de vraag.
+export const wieVan = (a) => [a.show, afleveringVan(a)].filter(Boolean).join(' · ')
+// VoiceOver en schermlezer: "Luister verder: De Dag, De VVD in crisis, gisteren, 29 minuten. Opent in Spotify."
 export function labelVan(a, app, now = Date.now()) {
   const naam = appNaam(app)
-  return `Luister verder, ${[a.show, dagVan(a, now), duurVoluit(a.duur)].filter(Boolean).join(', ')}.${naam ? ` Opent in ${naam}.` : ''}`
+  return `Luister verder: ${[a.show, afleveringVan(a), dagVan(a, now), duurVoluit(a.duur)].filter(Boolean).join(', ')}.${naam ? ` Opent in ${naam}.` : ''}`
 }
 
 // Welke link een keuze opent. Apple Podcasts: de aflevering (of de show); Spotify: de show; anders, of als er geen

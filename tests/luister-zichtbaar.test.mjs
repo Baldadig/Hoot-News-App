@@ -14,7 +14,7 @@ import { SHOWS, SHOW, koppel, loadEpisodes, coverOf, appleUrl, appleLookup, STOR
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { luisterWebAan as serverFlag } from '../netlify/lib/build.mjs'
 import { composePersonal } from '../src/lib/personal.js'
-import { afleveringen, dagVan, duurVan, regelVan, labelVan, linkVoor, bijTik, KEUZES, APPS, VRAAG, MAX_VERGELIJKEN } from '../shared/luister-weergave.mjs'
+import { afleveringen, dagVan, duurVan, regelVan, labelVan, afleveringVan, wieVan, linkVoor, bijTik, KEUZES, APPS, VRAAG, MAX_VERGELIJKEN } from '../shared/luister-weergave.mjs'
 import { luisterWebAan, leesKeuze, bewaarKeuze, luisterLijst, LOCAL_FLAG } from '../src/lib/luister.js'
 
 const FIX = JSON.parse(readFileSync(new URL('./fixtures/luister-2026-11-14.json', import.meta.url), 'utf8'))
@@ -145,8 +145,19 @@ test('de regel: "{show} · {dag} · {duur}", de dag in woorden, nooit een klokti
   assert.equal(duurVan(null), null)
   assert.equal(regelVan({ show: 'X', tijd: '2026-11-14T06:00:00.000Z' }, now), 'X · vandaag')
   assert.ok(!/\d{1,2}[:.]\d{2}/.test(regelVan(L, now)), 'geen kloktijd')
-  assert.equal(labelVan(L, 'spotify', now), 'Luister verder, De Dag, gisteren, 29 minuten. Opent in Spotify.')
-  assert.equal(labelVan(L, '', now), 'Luister verder, De Dag, gisteren, 29 minuten.')
+  assert.equal(labelVan(L, 'spotify', now), 'Luister verder: De Dag, De VVD in (kabinets)crisis, gisteren, 29 minuten. Opent in Spotify.')
+  assert.equal(labelVan(L, '', now), 'Luister verder: De Dag, De VVD in (kabinets)crisis, gisteren, 29 minuten.')
+})
+
+// Melding Alex 15 november (build 59): "Er staat nu Luister Verder. Maar nergens de titel van de podcast." Overal staat
+// welke podcast: de show en de titel van de aflevering. Gelijk aan Luister.wie en Luister.aflevering op iOS.
+test('welke podcast: "{show} · {aflevering}", zonder de show dubbel', () => {
+  assert.equal(wieVan(L), 'De Dag · De VVD in (kabinets)crisis')
+  assert.equal(afleveringVan({ show: 'De Dag', aflevering: 'De Dag: Het kabinet valt' }), 'Het kabinet valt')
+  assert.equal(afleveringVan({ show: 'De Dag', aflevering: 'De Dagelijkse kost' }), 'De Dagelijkse kost', 'alleen de hele naam valt weg')
+  assert.equal(afleveringVan({ show: 'De Dag', aflevering: ' de dag ' }), null)
+  assert.equal(wieVan({ show: 'De Dag', aflevering: 'De Dag' }), 'De Dag')
+  assert.equal(labelVan({ show: 'De Dag', aflevering: '' }, ''), 'Luister verder: De Dag.')
 })
 
 test('wat een tik doet en welke link opent', () => {

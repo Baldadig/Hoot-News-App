@@ -38,8 +38,22 @@ import SwiftUI
         XCTAssertNil(Luister.dag(StoryLuister(show: "x", aflevering: "y", tijd: "2026-11-01T08:00:00.000Z", link: "https://x.nl"), now: Self.now))
         XCTAssertEqual(Luister.duur(20), "1 min")
         XCTAssertNil(Luister.regel(a, now: Self.now).range(of: #"\d{1,2}[:.]\d{2}"#, options: .regularExpression), "geen kloktijd")
-        XCTAssertEqual(Luister.label(a, app: "spotify", now: Self.now), "Luister verder, De Dag, gisteren, 29 minuten. Opent in Spotify.")
-        XCTAssertEqual(Luister.label(a, app: "", now: Self.now), "Luister verder, De Dag, gisteren, 29 minuten.")
+        XCTAssertEqual(Luister.label(a, app: "spotify", now: Self.now), "Luister verder: De Dag, De VVD in (kabinets)crisis, gisteren, 29 minuten. Opent in Spotify.")
+        XCTAssertEqual(Luister.label(a, app: "", now: Self.now), "Luister verder: De Dag, De VVD in (kabinets)crisis, gisteren, 29 minuten.")
+    }
+
+    // Melding Alex 15 november (build 59): "Er staat nu Luister Verder. Maar nergens de titel van de podcast." Het menu,
+    // het koptelefoontje, de vraag en de lezer zeggen welke podcast: de show en de titel van de aflevering.
+    func testWelkePodcast() {
+        let a = Self.story.luister!
+        XCTAssertEqual(Luister.wie(a), "De Dag · De VVD in (kabinets)crisis")
+        XCTAssertEqual(Luister.aflevering(StoryLuister(show: "De Dag", aflevering: "De Dag: Het kabinet valt", link: "https://x.nl")), "Het kabinet valt")
+        XCTAssertEqual(Luister.aflevering(StoryLuister(show: "De Dag", aflevering: "De Dagelijkse kost", link: "https://x.nl")), "De Dagelijkse kost", "alleen de hele naam valt weg")
+        XCTAssertNil(Luister.aflevering(StoryLuister(show: "De Dag", aflevering: " de dag ", link: "https://x.nl")))
+        XCTAssertEqual(Luister.wie(StoryLuister(show: "De Dag", aflevering: "De Dag", link: "https://x.nl")), "De Dag")
+        XCTAssertEqual(Luister.label(StoryLuister(show: "De Dag", aflevering: "", link: "https://x.nl"), app: ""), "Luister verder: De Dag.")
+        XCTAssertEqual(Luister.vraagBericht(a), "De Dag · De VVD in (kabinets)crisis\nHoot onthoudt je keuze.")
+        XCTAssertEqual(Luister.vraagTitel, "Waar luister je podcasts?")
     }
 
     func testTikEnLink() {
@@ -122,7 +136,9 @@ import SwiftUI
         XCTAssertTrue(met.contains("href=\"hoot://luister\""))
         XCTAssertTrue(met.contains("De Dag · gisteren · 29 min"))
         XCTAssertTrue(met.contains("Spotify\u{00A0}↗"))
-        XCTAssertTrue(met.contains("aria-label=\"Luister verder, De Dag, gisteren, 29 minuten. Opent in Spotify.\""), "VoiceOver: één link")
+        XCTAssertTrue(met.contains("aria-label=\"Luister verder: De Dag, De VVD in (kabinets)crisis, gisteren, 29 minuten. Opent in Spotify.\""), "VoiceOver: één link")
+        XCTAssertTrue(met.contains("<span class=\"luister__aflevering\">De VVD in (kabinets)crisis</span>"), "de titel van de aflevering")
+        XCTAssertTrue(met.contains("-webkit-line-clamp: 2"), "hooguit twee regels")
         XCTAssertTrue(met.contains("src=\"https://podcast.npo.nl/data/thumb/de-dag.jpg\""), "de cover van de uitgever")
         // De rij staat na de bronregel en vóór de tekst.
         let meta = met.range(of: "class=\"meta meta--luister\"")!, rij = met.range(of: "class=\"luister\"")!, tekst = met.range(of: "<p>Tekst.</p>")!

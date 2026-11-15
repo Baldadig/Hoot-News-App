@@ -74,6 +74,19 @@
   gap: var(--s2);
   font-weight: var(--fw-ui);
 }
+/* Een regel met een tweede regel eronder (Luister verder: welke podcast), zoals een menu op iOS. */
+.popmenu__twee {
+  display: grid;
+  min-width: 0;
+}
+.popmenu__onder {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: var(--t1);
+  color: var(--ink-3);
+}
 .popmenu__sep {
   height: 1px;
   margin: var(--s1) var(--s3);

@@ -11,6 +11,7 @@ import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
+import { labelVan, wieVan } from '../../shared/luister-weergave.mjs'
 import { avatarUrl, fitsLarge, fitsHero, sharpHere, measuredOriginal } from '../lib/img.js'
 import { Beeld } from './Beeld.jsx'
 import { focusMenuNotice } from '../lib/popmenu-dismiss.js'
@@ -90,12 +91,11 @@ export function SaveButton({ id, kind = 'item', payload }) {
 // Luister verder (stap 3): een stil koptelefoontje in de bronregel naast bewaren, alleen bij een verhaal met een
 // aflevering voor deze lezer (en op het web alleen met de schakelaar, src/lib/luister.js). Tik = luister verder.
 export function LuisterButton({ story }) {
-  const { luisterVoor, luisterTik } = useHoot()
+  const { luisterVoor, luisterTik, podcastKeuze } = useHoot()
   const a = luisterVoor?.(story)?.[0]
   if (!a) return null
-  const text = `Luister verder: ${a.show}`
   return (
-    <button type="button" className="iconbtn luisterbtn" onClick={() => luisterTik(a)} aria-label={text} title={text}>
+    <button type="button" className="iconbtn luisterbtn" onClick={() => luisterTik(a)} aria-label={labelVan(a, podcastKeuze)} title={`Luister verder: ${wieVan(a)}`}>
       <HeadphonesIcon />
     </button>
   )
@@ -302,7 +302,7 @@ export function TasteButton({ entryKey, item, story, withShare = false }) {
           ) : (
             <>
               {canShare ? <>{row('Deel', () => { close(); share(item) })}{luister ? null : <div role="separator" className="popmenu__sep" />}</> : null}
-              {luister ? <>{row('Luister verder', () => { close(); luisterTik(luister) }, <HeadphonesIcon size={ICON_SM} />)}<div role="separator" className="popmenu__sep" /></> : null}
+              {luister ? <>{row(<span className="popmenu__twee">Luister verder<span className="popmenu__onder">{wieVan(luister)}</span></span>, () => { close(); luisterTik(luister) }, <HeadphonesIcon size={ICON_SM} />)}<div role="separator" className="popmenu__sep" /></> : null}
               {voteOn ? <>{row('Meer hiervan', () => pick(1))}{row('Minder hiervan', () => pick(-1))}</> : null}
               {reportMistake ? <>{voteOn ? <div role="separator" className="popmenu__sep" /> : null}{row('Klopt dit niet?', () => setView('report'), <CaretIcon size={ICON_SM} />)}</> : null}
             </>

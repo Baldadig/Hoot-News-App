@@ -31,7 +31,7 @@ import { mutedSet, toggleSource } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
 import { JoinSheet, ConfirmDialog } from './components/Account.jsx'
 import { luisterWebAan, usePodcastKeuze, luisterLijst } from './lib/luister.js'
-import { bijTik, linkVoor, APPS, VRAAG } from '../shared/luister-weergave.mjs'
+import { bijTik, linkVoor, wieVan, APPS, VRAAG } from '../shared/luister-weergave.mjs'
 import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip, shouldShowAppCard } from './lib/install.js'
 import { shouldAskToJoin, JOIN_AUTO } from './lib/join.js'
@@ -902,7 +902,7 @@ export default function App() {
       <ConfirmDialog
         open={!!luisterVraag}
         title={VRAAG.titel}
-        message={VRAAG.tekst}
+        message={luisterVraag ? <>{wieVan(luisterVraag)}<br />{VRAAG.tekst}</> : VRAAG.tekst}
         onClose={() => setLuisterVraag(null)}
         actions={[
           ...APPS.map((app) => ({ label: app.naam, onClick: () => { const a = luisterVraag; setLuisterVraag(null); if (podcastKeuze !== 'vragen') setPodcastKeuze(app.id); if (a) openLuister(a, app.id) } })),
