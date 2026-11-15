@@ -134,8 +134,8 @@ test('het schema en de vraag: soort, vooruitblikOpVoorbij en opgenomenVoorDitNie
   assert.deepEqual({ ...een(VERDIEPING).get(1), reden: undefined }, { ...VERDIEPING, reden: undefined })
 })
 
-test('de opslag: v5 bewaart soort en de twee tijdvelden; een oordeel uit een oudere vorm is nooit een ja', async () => {
-  assert.equal(OORDEEL_KEY, 'luister-oordeel-v5', 'herstel keuring 4: de vraag over vooruitblikOpVoorbij is anders')
+test('de opslag: v6 bewaart soort en de twee tijdvelden; een oordeel uit een oudere vorm is nooit een ja', async () => {
+  assert.equal(OORDEEL_KEY, 'luister-oordeel-v6', 'v5: de vraag over vooruitblikOpVoorbij is anders (herstel keuring 4); v6: de vraag kent de weekshow (15 november)')
   const { kv, get, update } = memKv()
   await koppelMetOordeel({ ...opts([CRISIS_GISTEREN]), client: nepClient(() => VERDIEPING), get, update })
   const rij = Object.values(kv.get(OORDEEL_KEY).o)[0]
