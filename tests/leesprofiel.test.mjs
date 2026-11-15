@@ -178,7 +178,7 @@ test('de afdruk van de cache zonder account houdt rekening met de samenvatting, 
   }
   assert.deepEqual(said, [], 'geen console-uitvoer')
   assert.equal(new Set(kv.keys).size, 3)
-  for (const k of kv.keys) assert.match(k, /^pe:[^:]+:[^:]+:[0-9a-f]{64}$/, 'de sleutel is een hash, zonder ruwe waarden')
+  for (const k of kv.keys) assert.match(k, /^pe:[^:]+:[0-9a-f]{64}$/, 'de sleutel is een hash, zonder ruwe waarden (dagdeel-id en hash; sinds Editie stabiel zonder revisie)')
   for (const v of kv.values.values()) {
     const s = JSON.stringify(v)
     assert.doesNotMatch(s, /"reading"|"affinity"/, 'in de cache staat alleen de Editie')

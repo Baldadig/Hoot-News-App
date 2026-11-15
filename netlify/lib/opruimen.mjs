@@ -1,7 +1,9 @@
 // Opruimen: wat het privacybeleid belooft, de server bewaart je persoonlijke Editie (zonder account) hooguit een dag.
-// Vijf voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
-//   pe:<revisie>:<dagdeel-id>:<sha256>        de persoonlijke Editie zonder account (netlify/functions/edition.mjs, anonKey)
+// Zes voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
+//   pe:<dagdeel-id>:<sha256>                  de persoonlijke Editie zonder account (netlify/functions/edition.mjs, anonKey;
+//                                             tot 15 november 2026 met de revisie ervoor: pe:<revisie>:<dagdeel-id>:<sha256>)
 //   pe-quota:<sha256 user-id>:<dagdeel-id>    de teller per lid en dagdeel (edition.mjs)
+//   pe-member:<sha256 user-id>:<dagdeel-id>   de kopie van je Editie als lid (edition.mjs, memberCopyKey)
 //   tel:<dag>                                 de dagtellers van /api/tel (meten zonder volgen): hooguit 400 dagen
 //   brief-quota-<uid>|all-<dag>               de tellers van /api/brief (netlify/functions/brief.mjs), dag = UTC-datum
 //   filter-ai:<jjjj-mm-dd>                    de oordelen van de Editiefilter-AI per UTC-dag (netlify/lib/editie-ai.mjs):
@@ -17,8 +19,9 @@ import { KEEP_DAYS } from '../../shared/tel.mjs'
 const SLOT_INDEX = { ochtend: 0, middag: 1, avond: 2 }
 const DAY_MS = 864e5
 const SLOT_ID = '(\\d{4}-\\d{2}-\\d{2})-(ochtend|middag|avond)'
-const PE = new RegExp(`^pe:[A-Za-z0-9._-]+:${SLOT_ID}:[0-9a-f]{64}$`)
+const PE = new RegExp(`^pe:(?:[A-Za-z0-9._-]+:)?${SLOT_ID}:[0-9a-f]{64}$`)
 const PE_QUOTA = new RegExp(`^pe-quota:[0-9a-f]{64}:${SLOT_ID}$`)
+const PE_MEMBER = new RegExp(`^pe-member:[0-9a-f]{64}:${SLOT_ID}$`)
 const TEL_DAY = /^tel:(\d{4}-\d{2}-\d{2})$/
 const BRIEF_DAY = /^brief-quota-.+-(\d{4}-\d{2}-\d{2})$/
 const FILTER_AI_DAY = /^filter-ai:(\d{4}-\d{2}-\d{2})$/
@@ -37,8 +40,8 @@ const dayNumber = (date) => {
 
 // Mag deze sleutel weg? true / false (bewaren) / null (onleesbaar: overslaan).
 export function expired(prefix, key, { slotNow, dayNow }) {
-  if (prefix === 'pe:' || prefix === 'pe-quota:') {
-    const m = (prefix === 'pe:' ? PE : PE_QUOTA).exec(key)
+  if (prefix === 'pe:' || prefix === 'pe-quota:' || prefix === 'pe-member:') {
+    const m = (prefix === 'pe:' ? PE : prefix === 'pe-quota:' ? PE_QUOTA : PE_MEMBER).exec(key)
     const n = m ? slotNumber(m[1], m[2]) : null
     return n == null ? null : n < slotNow - 1 // lopend en vorig dagdeel blijven; ook een dagdeel in de toekomst blijft
   }
@@ -57,7 +60,7 @@ export function expired(prefix, key, { slotNow, dayNow }) {
   return n == null ? null : n < dayNow - 1 // vandaag en gisteren blijven
 }
 
-const PREFIXES = ['pe:', 'pe-quota:', 'brief-quota-', 'tel:', 'filter-ai:']
+const PREFIXES = ['pe:', 'pe-quota:', 'pe-member:', 'brief-quota-', 'tel:', 'filter-ai:']
 
 export async function opruimen({ now = Date.now(), list = kvListKeys, remove = kvDelete, log = console } = {}) {
   const cur = editionSlot(new Date(now))

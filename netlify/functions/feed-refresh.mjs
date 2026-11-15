@@ -7,6 +7,7 @@
 import { refresh } from '../lib/refresh.mjs'
 import { readDoc, KEYS } from '../lib/kv.mjs'
 import { beforeOchtend } from '../../shared/slot-times.mjs'
+import { warmEdition } from '../lib/warm.mjs'
 
 const editionId = (doc) => {
   try {
@@ -19,20 +20,7 @@ const editionId = (doc) => {
 // Alleen bij een nieuw dagdeel (een ander Editie-id dan voor deze ronde), en alleen met een adres van de site.
 export const shouldWarm = (before, after, base) => !!after && after !== before && !!base
 
-// POST /api/edition { v: 2, warm: true }: de kern en alle delen in het geheugen, één keer rekenen. Mislukt het,
-// dan niets: het is alleen een voorsprong.
-export async function warmEdition(base, { fetchImpl = fetch, timeout = 15000 } = {}) {
-  const ctl = new AbortController()
-  const timer = setTimeout(() => ctl.abort(), timeout)
-  try {
-    const r = await fetchImpl(`${base}/api/edition`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ v: 2, warm: true }), signal: ctl.signal })
-    return r.status
-  } catch {
-    return 0
-  } finally {
-    clearTimeout(timer)
-  }
-}
+export { warmEdition } // voor de tests (tests/editie-sneller.test.mjs)
 
 export default async () => {
   const prior = await readDoc(KEYS.core)

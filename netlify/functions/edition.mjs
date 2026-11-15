@@ -4,14 +4,22 @@
 //
 // Versie 2 (body `v: 2`; het web en app 1.2.1):
 //  - Als lid (header `Authorization: Bearer <token>`): de Editie in je account (`user_state.edition`) is de
-//    enige waarheid. Past die bij dit dagdeel en je bronnen en interesses (fitsAny), dan gaat zij
-//    ongewijzigd terug (`account`), ook als app 1.2 haar schreef. Anders stelt de server samen, met wat er
-//    in je vorige Edities stond (de Editie en haar `history` uit je account), en legt haar vast met jouw
-//    token: de eerste schrijver wint (claimFilter, zoals het web en app 1.2), en alleen over de rij die hij las
-//    (claimOver): nooit over een Editie van een later dagdeel heen (accountAhead). Wint de server: `claimed`;
-//    was een ander toestel net eerder: die Editie (`account`). Web en iPhone krijgen zo dezelfde Editie.
+//    enige waarheid, en per dagdeel wint de eerste schrijver (Editie stabiel, 15 november 2026: "Mijn ochtend
+//    editie is al 3x gewijzigd. Zomaar."). Staat er een Editie van dit dagdeel, dan gaat die terug (`account`),
+//    ook als app 1.2 haar schreef, ook na een deploy met een nieuwe Redacteur of een nieuwe feedronde. Een nieuwe
+//    keuze (andere bronnen of interesses) geeft alleen een nieuwe Editie als die keuze al in je account staat
+//    (`prefs`) en de vraag erbij past: elke Editie van de server draagt het merk van je account (`prefsMark`), en
+//    alleen een ander merk telt. Een toestel met een andere afdruk dan je account krijgt de rij zoals ze is; vraagt
+//    het als eerste, dan stelt de server samen met de keuze uit je account. Een rij zonder merk blijft staan.
+//    Alleen zonder Editie van dit dagdeel stelt de server samen, met wat er in je vorige Edities stond (de Editie
+//    en haar `history` uit je account), en legt haar vast met jouw token: de eerste schrijver wint (claimFilter),
+//    en alleen over de rij die hij las (claimOver): nooit over een Editie van een later dagdeel heen
+//    (accountAhead). Wint de server: `claimed`; was een ander toestel net eerder: die Editie (`account`). Een
+//    kopie per lid en dagdeel (`pe-member`) vangt een serverfout en een account zonder rij in user_state op
+//    (`kopie`): nooit een Editie naast je account. Web en iPhone krijgen zo dezelfde Editie.
 //  - Zonder account: samengesteld uit de body (met `earlier`: de history-regels van je vorige Edities op
 //    dit toestel) en bewaard per profiel-afdruk en dagdeel (`cache`), zodat dezelfde vraag één keer rekent.
+//    Niet per revisie: een deploy midden in het dagdeel laat de Editie staan.
 //  - Het toestel slaat het antwoord letterlijk op en rekent zelf alleen nog als offline-vangnet.
 // Je leesprofiel gaat mee als samenvatting (`reading`, besluit Alex 11 november 2026: "Leesprofiel meesturen"):
 // alleen de gewichten per onderwerp en bron die De Redacteur gebruikt (readingSummary in src/lib/affinity.js).
@@ -50,6 +58,8 @@ import { accountAhead, claimFilter, readAccountEdition, TABLE } from '../../src/
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 import { readingSummary } from '../../src/lib/affinity.js'
 import { currentChoice, RUBRIEKEN, withCrypto, ONDERWERPEN } from '../../src/lib/topics.js'
+import { normalizePrefs } from '../../src/lib/prefs.js'
+import { mutedSet } from '../../src/lib/sourcesel.js'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 
 const fail = (status, error, headers = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
@@ -234,12 +244,15 @@ export function anonKey(globalId, p, earlier) {
   // vraag in de oude en de nieuwe indeling dezelfde Editie krijgen. Niet omgezet: de afdruk van altijd.
   const read = sorted(p.interests).join() === sorted(asked.interests).join() && sorted(p.topics).join() === sorted(asked.topics).join() ? [] : [sorted(p.interests), sorted(p.topics)]
   const norm = JSON.stringify([sorted(p.followed), sorted(asked.interests), sorted(asked.topics), sorted(p.favorites), p.taste, sorted(p.readIds), earlier, p.reading ?? null, ...read])
-  return `pe:${EDITOR_REVISION}:${globalId}:${sha(norm)}`
+  // Zonder de revisie van De Redacteur (Editie stabiel, 15 november 2026): het dagdeel-id staat er al in, en een deploy
+  // midden in het dagdeel mag de Editie van een lezer zonder account niet laten wisselen. De Editie zelf draagt haar
+  // `revision` nog wel. Wat je las (`readIds`) blijft in de sleutel: dat komt bewust niet terug.
+  return `pe:${globalId}:${sha(norm)}`
 }
 
 // Samenstellen voor dit profiel, op de start van het dagdeel (`now = builtAt`), met `earlier` (Edities of
 // history-regels) als wat er al stond. Gestempeld zoals het web vastlegt: owner, afdruk, history.
-export function composeFor(start, items, p, { owner, earlier = [] }) {
+export function composeFor(start, items, p, { owner, earlier = [], prefsMark = null }) {
   const global = start.edition
   const bases = basesOf(p)
   const edition = composePersonal({
@@ -267,6 +280,7 @@ export function composeFor(start, items, p, { owner, earlier = [] }) {
     history: earlier.map(historyOf).filter(Boolean),
     revision: EDITOR_REVISION,
     server: true,
+    ...(prefsMark ? { prefsMark } : {}), // bij welke keuze in je account deze Editie hoort (prefsMarkOf)
   }
 }
 
@@ -282,12 +296,64 @@ export async function verifyToken(token, fetchImpl = fetch) {
 export const clientForToken = (token) =>
   createClient(SUPABASE_URL, SUPABASE_KEY, { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } })
 
-// De Editie uit je account; bij een fout gooien (dan liever het vangnet dan een Editie naast je account).
+// De Editie en je instellingen uit je account, in één keer (je eigen rij, met jouw token). `exists`: er is een rij in
+// user_state (zonder rij kan de server niets vastleggen, zie de kopie hieronder). Bij een fout gooien.
 async function accountEdition(client, uid) {
-  const { data, error } = await client.from(TABLE).select('edition').eq('user_id', uid).maybeSingle()
+  const { data, error } = await client.from(TABLE).select('edition, prefs').eq('user_id', uid).maybeSingle()
   if (error) throw new Error('account')
-  return data?.edition && typeof data.edition === 'object' ? data.edition : null
+  const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : null)
+  return { exists: !!data, edition: obj(data?.edition), prefs: obj(data?.prefs) }
 }
+
+// De keuze in je account (Editie stabiel, 15 november 2026) als profiel: je bronnen, interesses, onderwerpen en
+// voorkeursbronnen zoals een toestel ze na het ophalen van je account rekent (normalizePrefs, mutedSet, zoals
+// usePersonalEdition.js), in de indeling van nu. Smaak, wat je las en je leesprofiel komen van de vraag (`p`), want die
+// staan niet in je account. null als je account geen instellingen heeft: dan weten we het niet.
+export function accountProfileOf(start, prefs, p = null) {
+  if (!prefs || typeof prefs !== 'object' || Array.isArray(prefs) || !Object.keys(prefs).length) return null
+  const n = normalizePrefs(prefs)
+  const sources = start.sources || []
+  const off = mutedSet(n, sources)
+  const followed = sources.filter((s) => s.kind !== 'sociaal' && !off.has(s.id)).map((s) => s.id)
+  const own = profileOf(start, { followed, interests: n.interests, topics: n.topics, favorites: n.favorites, rubrieken: RUBRIEKEN, onderwerpen: ONDERWERPEN })
+  return p ? { ...p, followed: own.followed, interests: own.interests, topics: own.topics, asked: own.asked, favorites: own.favorites } : own
+}
+// De afdrukken van de keuze in je account (basesOf), of null.
+export function accountBasesOf(start, prefs) {
+  const own = accountProfileOf(start, prefs)
+  return own ? basesOf(own) : null
+}
+// Het merk van de keuze in je account (`prefsMark`): de server zet het op elke Editie die hij als lid samenstelt, ook
+// als de vrager zelf afwijkt. Zo weet hij later of je keuze in je account sindsdien echt veranderde, los van welk
+// toestel de rij schreef en met welke afdruk. null zonder instellingen.
+export const prefsMarkOf = (acctBases) => (acctBases ? sha(JSON.stringify([...acctBases].sort())) : null)
+
+// Een kopie van je Editie van dit dagdeel op de server (`pe-member:<sha256 user-id>:<dagdeel-id>`), voor als je account
+// even niet te lezen of te schrijven is, of als er (nog) geen rij in user_state staat: dan krijg je toch dezelfde
+// Editie, en geen vangnet. Opgeruimd na twee dagdelen (netlify/lib/opruimen.mjs). Per instantie onthouden we wat er al
+// staat, zodat een treffer niet bij elke vraag opnieuw schrijft.
+export const memberCopyKey = (uid, id) => `pe-member:${sha(uid)}:${id}`
+const copied = new WeakMap() // kv -> Map(sleutel -> merk)
+const COPY_MEMO_MAX = 5000
+function keepCopy(kv, waitUntil, key, e) {
+  if (!e || typeof e !== 'object') return
+  let memo = copied.get(kv)
+  if (!memo) copied.set(kv, (memo = new Map()))
+  const mark = JSON.stringify([e.basis, e.bases || null, e.builtAt, e.version, !!e.brief])
+  if (memo.get(key) === mark) return
+  memo.set(key, mark)
+  if (memo.size > COPY_MEMO_MAX) memo.delete(memo.keys().next().value)
+  const saving = Promise.resolve()
+    .then(() => kv.set(key, e))
+    .catch(() => memo.delete(key))
+  if (waitUntil) waitUntil(saving)
+}
+// Wat deze instantie nu per lid en dagdeel samenstelt (sleutel als de kopie): een belofte van de Editie van dit dagdeel.
+const flights = new Map()
+const readCopy = (kv, key, id) =>
+  Promise.resolve()
+    .then(() => kv.get(key))
+    .then((e) => (e && typeof e === 'object' && e.id === id && Array.isArray(e.entries) ? e : null), () => null)
 
 // Vastleggen zoals het web en app 1.2 (claimFilter: de eerste schrijver wint), maar alleen over de rij die we net
 // lazen (`seen`: zelfde id, afdruk en builtAt, of nog geen Editie). Schreef een ander toestel tussen ons lezen en
@@ -306,6 +372,8 @@ export async function claimOver(client, uid, stamped, seen) {
 
 // De kern en de delen uit het geheugen van deze instantie, of uit Blobs als ze nieuw zijn (netlify/lib/feed-geheugen.mjs).
 const memory = feedMemory({ readStart: (tag) => readDocIf(KEYS.start, tag), readPart: (id) => readDoc(KEYS.part(id)) })
+// Ook koud (na een deploy) eerst het startbestand uit Blobs; refresh() binnen de aanvraag alleen als dat er echt
+// niet is (een lege opslag). Nagekeken voor Editie stabiel: memory.loadStart geeft alleen null zonder body in Blobs.
 async function loadStart() {
   const s = await memory.loadStart()
   if (s) return s
@@ -339,15 +407,19 @@ const ok = (edition, source, watch = null) => Response.json({ edition, source, r
 
 // De Editie van v2 (zie boven). `deps` alleen voor de tests: nep-kern, nep-database, nep-opslag.
 // Sneller (Hoot-design/editie-sneller/METING.md): wat niet op elkaar hoeft te wachten, loopt tegelijk (B3): je token
-// en de kern; het quotum en het lezen van de delen. Het bewaren in de cache zonder account houdt het antwoord niet
-// op (B2, `waitUntil`). Wat er gekozen wordt, verandert niet: dezelfde stappen, dezelfde invoer.
+// en de kern, daarna je account en de kern (Editie stabiel); het quotum en het lezen van de delen. Het bewaren in de
+// cache zonder account en van de kopie als lid houdt het antwoord niet op (B2, `waitUntil`). Wat er gekozen wordt,
+// verandert niet: dezelfde stappen, dezelfde invoer.
+const KV = { get: kvGet, set: kvSet, take: kvTake }
 export async function editionV2(req, body, deps = {}) {
-  const { start: startOf = loadStart, items: itemsOf = loadItems, verify = verifyToken, clientFor = clientForToken, kv = { get: kvGet, set: kvSet, take: kvTake }, waitUntil = null } = deps
+  const { start: startOf = loadStart, items: itemsOf = loadItems, verify = verifyToken, clientFor = clientForToken, kv = KV, waitUntil = null } = deps
   const watch = stopwatch()
   const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim()
   const starting = watch.time('kern', startOf)
   starting.catch(() => {}) // een fout komt hieronder alsnog boven; nooit een onafgehandelde belofte
   let uid = null
+  let client = null
+  let reading = null // je account (Editie en instellingen), tegelijk met de kern
   if (token) {
     try {
       uid = await watch.time('token', () => verify(token))
@@ -355,6 +427,9 @@ export async function editionV2(req, body, deps = {}) {
       return fail2(503, 'Je account is nu niet bereikbaar.')
     }
     if (!uid) return fail2(401, 'Je sessie is verlopen.')
+    client = clientFor(token)
+    reading = watch.time('account', () => accountEdition(client, uid))
+    reading.catch(() => {})
   }
   const start = await starting
   if (!start?.edition?.id) return fail2(503, 'De feed is er nog niet.')
@@ -362,40 +437,126 @@ export async function editionV2(req, body, deps = {}) {
   const id = global.id
   const p = profileOf(start, body)
   // Alle afdrukken van deze vraag (basesOf): dezelfde bronnen en interesses in de oude of de nieuwe indeling
-  // herkennen dezelfde Editie. Echt andere bronnen of interesses: geen enkele afdruk past, een nieuwe Editie.
+  // herkennen dezelfde Editie. Echt andere bronnen of interesses: geen enkele afdruk past.
   const bases = basesOf(p)
   const fits = (e) => fitsAny(e, id, bases)
   const compose = (items, opts) => watch.time('rekenen', () => composeFor(start, items, p, opts))
 
   if (uid) {
-    const client = clientFor(token)
-    let row
-    try {
-      row = await watch.time('account', () => accountEdition(client, uid))
-    } catch {
-      return fail2(503, 'Je account is nu niet bereikbaar.')
+    const copyKey = memberCopyKey(uid, id)
+    const keep = (e) => keepCopy(kv, waitUntil, copyKey, e)
+    // De kopie van dit dagdeel (zie keepCopy), met de afdruk van de vraag als die past; anders zoals ze is.
+    const fromCopy = async () => {
+      const c = await readCopy(kv, copyKey, id)
+      return c ? ok(fits(c) ? forAsker(c, bases) : c, 'account', watch) : null
     }
-    // Al vastgelegd voor dit dagdeel en deze afdruk (door de server, het web of app 1.2): ongewijzigd terug.
-    if (fits(row)) return ok(forAsker(row, bases), 'account', watch)
-    // Staat er al een Editie van een later dagdeel (ons startbestand uit Blobs loopt tot een minuut achter, en
-    // een ander toestel had de kern van nu al): nooit daaroverheen schrijven (accountAhead, keuring P0 ronde 2
-    // §4; keuring server 1). Die Editie gaat terug; het web bewaart haar als 'ahead', iOS toont tot de kern
-    // bij is het vangnet.
-    if (accountAhead(row, global)) return ok(row, 'account', watch)
-    // Het quotum en de delen tegelijk; rekenen pas als het quotum ja zegt.
-    const reading = watch.time('delen', () => itemsOf(start, p.followed))
-    reading.catch(() => {})
-    if ((await watch.time('quotum', () => kv.take(`pe-quota:${sha(uid)}:${id}`, MEMBER_PER_SLOT))) == null) return fail2(429, 'Even te veel tegelijk.', { 'Retry-After': String(TIMEOUT_HINT_S) })
-    const earlier = earlierEditions({ local: null, account: row, id, owner: uid })
-    const mine = await compose(await reading, { owner: uid, earlier })
-    if (!mine) return fail2(503, 'Er is nog geen editie.')
-    const r = await watch.time('vastleggen', () => claimOver(client, uid, mine, row))
-    if (r.error) return fail2(503, 'Je account is nu niet bereikbaar.')
-    if (r.won) return ok(mine, 'claimed', watch)
-    // Een ander toestel (of een gelijktijdige aanvraag) was net eerder: die Editie, voor iedereen dezelfde.
-    if (fits(r.theirs)) return ok(forAsker(r.theirs, bases), 'account', watch)
-    if (accountAhead(r.theirs, global)) return ok(r.theirs, 'account', watch)
-    return ok(mine, 'composed', watch) // geen rij in user_state, of net een andere afdruk: niets om in vast te leggen
+    let acct
+    try {
+      acct = await reading
+    } catch {
+      // Je account is even niet te lezen: de kopie van dit dagdeel, anders pas een 503 (en het vangnet op het toestel).
+      return (await fromCopy()) || fail2(503, 'Je account is nu niet bereikbaar.')
+    }
+    const row = acct.edition
+    // Eén Editie per dagdeel (Editie stabiel, 15 november 2026: "Mijn ochtend editie is al 3x gewijzigd. Zomaar."):
+    // staat er al een Editie van dit dagdeel in je account, dan is dat de Editie van dit dagdeel, wie haar ook schreef
+    // en met welke afdruk. Opnieuw samenstellen doet de server alleen als je je keuze echt veranderde, en dat leest hij
+    // uit je account, niet uit de vraag: de rij draagt het merk van de keuze in je account toen de server haar
+    // samenstelde (`prefsMark`), en alleen als je account nu een ander merk geeft en de vraag bij je account past,
+    // rekent hij opnieuw (je koos andere bronnen of interesses, en dat staat al in je account). In alle andere gevallen
+    // gaat de rij terug: met de afdruk van de vraag als die bij de rij of (bij dezelfde keuze) bij je account past
+    // (forAsker), anders zoals ze is. Het toestel toont haar (het web en iOS op dagdeel en lezer) en vraagt een volgende
+    // ronde opnieuw, goedkoop en zonder quotum. Een rij zonder merk (door een toestel zelf vastgelegd, of van voor dit
+    // herstel) blijft het hele dagdeel staan. Zo geeft een toestel dat afwijkt (een oudere bronnenlijst, een keuze die
+    // nog niet is weggeschreven, iOS zonder `onderwerpen`) nooit een nieuwe Editie, ook niet als het als eerste vraagt.
+    const acctProfile = accountProfileOf(start, acct.prefs, p)
+    const acctBases = acctProfile ? basesOf(acctProfile) : null
+    const acctMark = prefsMarkOf(acctBases)
+    const askIsAccount = !!acctBases && bases.some((b) => acctBases.includes(b))
+    const sameChoice = (e) => fits(e) || (askIsAccount && fitsAny(e, id, acctBases))
+    const choiceChanged = (e) => askIsAccount && !!acctMark && typeof e?.prefsMark === 'string' && e.prefsMark !== acctMark
+    const answer = (e) => {
+      keep(e)
+      return ok(sameChoice(e) ? forAsker(e, bases) : e, 'account', watch)
+    }
+    if (row?.id === id) {
+      if (sameChoice(row) || !choiceChanged(row)) return answer(row)
+      // Anders: je keuze in je account is veranderd. Hieronder opnieuw samenstellen, alleen over deze rij heen.
+    } else if (accountAhead(row, global)) {
+      // Staat er al een Editie van een later dagdeel (ons startbestand uit Blobs loopt tot een minuut achter, en een
+      // ander toestel had de kern van nu al): nooit daaroverheen schrijven (accountAhead, keuring P0 ronde 2 §4;
+      // keuring server 1). Die Editie gaat terug; het web bewaart haar als 'ahead', iOS toont tot de kern bij is het vangnet.
+      return ok(row, 'account', watch)
+    } else {
+      // Geen Editie van dit dagdeel in je account. Gaf de server er in dit dagdeel toch al een (de kopie: er was nog
+      // geen rij in user_state, of de rij is net aangemaakt), dan blijft dat de Editie: zonder rij gaat zij zo terug,
+      // met een rij leggen we haar vast in plaats van opnieuw te rekenen. Behalve als je keuze in je account veranderde.
+      const prior = await readCopy(kv, copyKey, id)
+      if (prior && (sameChoice(prior) || !choiceChanged(prior))) {
+        if (!acct.exists) return answer(prior)
+        const r = await watch.time('vastleggen', () => claimOver(client, uid, prior, row)).catch((e) => ({ won: false, theirs: null, error: e || true }))
+        if (r.theirs?.id === id) return answer(r.theirs)
+        if (accountAhead(r.theirs, global)) return ok(r.theirs, 'account', watch)
+        return answer(prior)
+      }
+    }
+    // Rekent deze instantie voor jou al een Editie van dit dagdeel (web en iPhone tegelijk), dan wachten we daarop in
+    // plaats van zelf te rekenen: één keer gerekend, één Editie. Over instanties heen beslist claimOver.
+    const flying = flights.get(copyKey)
+    if (flying) {
+      const e = await flying.catch(() => null)
+      if (e?.id === id) return answer(e)
+    }
+    let settle = () => {}
+    const flight = new Promise((resolve) => (settle = resolve))
+    flights.set(copyKey, flight)
+    try {
+      const res = await composeAndClaim()
+      return res.edition ? (settle(res.edition), res.response) : res.response
+    } finally {
+      settle(null)
+      if (flights.get(copyKey) === flight) flights.delete(copyKey)
+    }
+
+    // Samenstellen en vastleggen. Past de vraag niet bij je account, dan met de keuze uit je account (je bronnen,
+    // interesses, onderwerpen en voorkeursbronnen uit `prefs`) in plaats van die uit de vraag: de eerste schrijver wint,
+    // ook als dat een toestel is dat afwijkt, en dan staat er toch de Editie van jouw keuze. Altijd met het merk van je
+    // account. Uitkomst: { edition (de Editie van dit dagdeel, of null), response }.
+    async function composeAndClaim() {
+      const prof = acctProfile && !askIsAccount ? acctProfile : p
+      // Het quotum en de delen tegelijk; rekenen pas als het quotum ja zegt. Alleen echte samenstellingen tellen.
+      const parts = watch.time('delen', () => itemsOf(start, prof.followed))
+      parts.catch(() => {})
+      if ((await watch.time('quotum', () => kv.take(`pe-quota:${sha(uid)}:${id}`, MEMBER_PER_SLOT))) == null) return { edition: null, response: fail2(429, 'Even te veel tegelijk.', { 'Retry-After': String(TIMEOUT_HINT_S) }) }
+      const earlier = earlierEditions({ local: null, account: row, id, owner: uid })
+      const items = await parts
+      const mine = await watch.time('rekenen', () => composeFor(start, items, prof, { owner: uid, earlier, prefsMark: acctMark }))
+      if (!mine) return { edition: null, response: fail2(503, 'Er is nog geen editie.') }
+      if (!acct.exists) {
+        // Nog steeds geen rij: deze Editie geldt voor het hele dagdeel (de kopie), tot er een rij is.
+        keep(mine)
+        return { edition: mine, response: ok(mine, 'kopie', watch) }
+      }
+      const r = await watch.time('vastleggen', () => claimOver(client, uid, mine, row)).catch((e) => ({ won: false, theirs: null, error: e || true }))
+      if (r.error) {
+        const c = await readCopy(kv, copyKey, id)
+        return c ? { edition: c, response: answer(c) } : { edition: null, response: fail2(503, 'Je account is nu niet bereikbaar.') }
+      }
+      if (r.won) {
+        keep(mine)
+        return { edition: mine, response: ok(mine, 'claimed', watch) }
+      }
+      // Een ander toestel (of een gelijktijdige aanvraag op een andere instantie) was net eerder: die Editie, voor
+      // iedereen dezelfde. Nooit een Editie naast je account ('composed' bestaat voor leden niet meer).
+      const theirs = r.theirs
+      if (theirs?.id === id) return { edition: theirs, response: answer(theirs) }
+      if (accountAhead(theirs, global)) return { edition: null, response: ok(theirs, 'account', watch) }
+      // De rij verdween tussen lezen en schrijven (of staat er zonder Editie van nu): de kopie, of deze Editie als kopie.
+      const c = await readCopy(kv, copyKey, id)
+      if (c) return { edition: c, response: answer(c) }
+      keep(mine)
+      return { edition: mine, response: ok(mine, 'kopie', watch) }
+    }
   }
 
   const earlier = cleanEarlier(body.earlier)
