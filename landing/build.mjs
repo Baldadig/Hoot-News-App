@@ -93,6 +93,12 @@ fs.copyFileSync(pub + '/icons/favicon-32.png', path.join(OUT, 'icons/favicon-32.
 // laat alleen beelden van de eigen site toe. Alleen wat het bronnenblok toont wordt opgehaald (hooguit acht per verhaal).
 fs.mkdirSync(path.join(OUT, 'img', 'bronnen'), { recursive: true });
 for (const f of fs.readdirSync(path.join(SRC, 'bronnen'))) if (f.endsWith('.webp')) fs.copyFileSync(path.join(SRC, 'bronnen', f), path.join(OUT, 'img', 'bronnen', f));
+// De placeholderbeelden voor de app (build 61, "server side bouwen"): dezelfde WebP's als het web, op /img/placeholder/,
+// en het manifest (gemaakt door scripts/placeholders.mjs) op /placeholders.json. De app haalt het manifest hooguit eens
+// per dag op en alleen de beelden waarvan de versie (?v=) anders is dan wat hij al heeft.
+fs.mkdirSync(path.join(OUT, 'img', 'placeholder'), { recursive: true });
+for (const f of fs.readdirSync(APP + '/src/assets/placeholder')) if (f.endsWith('.webp')) fs.copyFileSync(path.join(APP, 'src/assets/placeholder', f), path.join(OUT, 'img', 'placeholder', f));
+fs.copyFileSync(path.join(SRC, 'placeholders.json'), path.join(OUT, 'placeholders.json'));
 if (fs.existsSync(path.join(SRC, 'og.png'))) fs.copyFileSync(path.join(SRC, 'og.png'), path.join(OUT, 'img/og.png'));
 
 // headers en redirects
@@ -141,6 +147,9 @@ fs.writeFileSync(path.join(OUT, '_headers'), `/
 
 /robots.txt
   Cache-Control: public, max-age=86400
+
+/placeholders.json
+  Cache-Control: public, max-age=3600
 
 /sitemap.xml
   Cache-Control: public, max-age=86400
