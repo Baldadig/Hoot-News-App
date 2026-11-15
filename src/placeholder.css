@@ -1,116 +1,86 @@
 /* Gegenereerd door scripts/placeholders.mjs uit shared/placeholder.mjs. Niet met de hand aanpassen. */
-/* Placeholderbeeld: vult het beeldvak van een stuk zonder (passend) beeld (Beeld.jsx, Beeldloos). */
+/* Placeholderbeeld (knipsel): vult het beeldvak van een stuk zonder (passend) beeld (Beeld.jsx, Beeldloos). */
 .ph {
   background-color: var(--paper);
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
 }
-.ph--1 { background-image: url('./assets/placeholder/beeld-1.svg'); }
-.ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-klein.svg'); }
-.ph--2 { background-image: url('./assets/placeholder/beeld-2.svg'); }
-.ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-klein.svg'); }
-.ph--3 { background-image: url('./assets/placeholder/beeld-3.svg'); }
-.ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-klein.svg'); }
-.ph--4 { background-image: url('./assets/placeholder/beeld-4.svg'); }
-.ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-klein.svg'); }
-.ph--5 { background-image: url('./assets/placeholder/beeld-5.svg'); }
-.ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-klein.svg'); }
-.ph--6 { background-image: url('./assets/placeholder/beeld-6.svg'); }
-.ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-klein.svg'); }
-.ph--7 { background-image: url('./assets/placeholder/beeld-7.svg'); }
-.ph--7.ph--klein { background-image: url('./assets/placeholder/beeld-7-klein.svg'); }
-.ph--8 { background-image: url('./assets/placeholder/beeld-8.svg'); }
-.ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-klein.svg'); }
-.ph--9 { background-image: url('./assets/placeholder/beeld-9.svg'); }
-.ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-klein.svg'); }
-.ph--10 { background-image: url('./assets/placeholder/beeld-10.svg'); }
-.ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-klein.svg'); }
-.ph--11 { background-image: url('./assets/placeholder/beeld-11.svg'); }
-.ph--11.ph--klein { background-image: url('./assets/placeholder/beeld-11-klein.svg'); }
-.ph--12 { background-image: url('./assets/placeholder/beeld-12.svg'); }
-.ph--12.ph--klein { background-image: url('./assets/placeholder/beeld-12-klein.svg'); }
-.ph--13 { background-image: url('./assets/placeholder/beeld-13.svg'); }
-.ph--13.ph--klein { background-image: url('./assets/placeholder/beeld-13-klein.svg'); }
-.ph--14 { background-image: url('./assets/placeholder/beeld-14.svg'); }
-.ph--14.ph--klein { background-image: url('./assets/placeholder/beeld-14-klein.svg'); }
-.ph--15 { background-image: url('./assets/placeholder/beeld-15.svg'); }
-.ph--15.ph--klein { background-image: url('./assets/placeholder/beeld-15-klein.svg'); }
-.ph--16 { background-image: url('./assets/placeholder/beeld-16.svg'); }
-.ph--16.ph--klein { background-image: url('./assets/placeholder/beeld-16-klein.svg'); }
-.ph--17 { background-image: url('./assets/placeholder/beeld-17.svg'); }
-.ph--17.ph--klein { background-image: url('./assets/placeholder/beeld-17-klein.svg'); }
-.ph--18 { background-image: url('./assets/placeholder/beeld-18.svg'); }
-.ph--18.ph--klein { background-image: url('./assets/placeholder/beeld-18-klein.svg'); }
-:root[data-theme='dark'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-donker.svg'); }
-:root[data-theme='dark'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-donker.svg'); }
-:root[data-theme='dark'] .ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-donker.svg'); }
-:root[data-theme='dark'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-donker.svg'); }
-:root[data-theme='dark'] .ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-donker.svg'); }
-:root[data-theme='dark'] .ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-donker.svg'); }
-:root[data-theme='dark'] .ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--7 { background-image: url('./assets/placeholder/beeld-7-donker.svg'); }
-:root[data-theme='dark'] .ph--7.ph--klein { background-image: url('./assets/placeholder/beeld-7-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--8 { background-image: url('./assets/placeholder/beeld-8-donker.svg'); }
-:root[data-theme='dark'] .ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--9 { background-image: url('./assets/placeholder/beeld-9-donker.svg'); }
-:root[data-theme='dark'] .ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--10 { background-image: url('./assets/placeholder/beeld-10-donker.svg'); }
-:root[data-theme='dark'] .ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--11 { background-image: url('./assets/placeholder/beeld-11-donker.svg'); }
-:root[data-theme='dark'] .ph--11.ph--klein { background-image: url('./assets/placeholder/beeld-11-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--12 { background-image: url('./assets/placeholder/beeld-12-donker.svg'); }
-:root[data-theme='dark'] .ph--12.ph--klein { background-image: url('./assets/placeholder/beeld-12-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--13 { background-image: url('./assets/placeholder/beeld-13-donker.svg'); }
-:root[data-theme='dark'] .ph--13.ph--klein { background-image: url('./assets/placeholder/beeld-13-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--14 { background-image: url('./assets/placeholder/beeld-14-donker.svg'); }
-:root[data-theme='dark'] .ph--14.ph--klein { background-image: url('./assets/placeholder/beeld-14-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--15 { background-image: url('./assets/placeholder/beeld-15-donker.svg'); }
-:root[data-theme='dark'] .ph--15.ph--klein { background-image: url('./assets/placeholder/beeld-15-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--16 { background-image: url('./assets/placeholder/beeld-16-donker.svg'); }
-:root[data-theme='dark'] .ph--16.ph--klein { background-image: url('./assets/placeholder/beeld-16-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--17 { background-image: url('./assets/placeholder/beeld-17-donker.svg'); }
-:root[data-theme='dark'] .ph--17.ph--klein { background-image: url('./assets/placeholder/beeld-17-donker-klein.svg'); }
-:root[data-theme='dark'] .ph--18 { background-image: url('./assets/placeholder/beeld-18-donker.svg'); }
-:root[data-theme='dark'] .ph--18.ph--klein { background-image: url('./assets/placeholder/beeld-18-donker-klein.svg'); }
-:root[data-theme='night'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-nacht.svg'); }
-:root[data-theme='night'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-nacht.svg'); }
-:root[data-theme='night'] .ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-nacht.svg'); }
-:root[data-theme='night'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-nacht.svg'); }
-:root[data-theme='night'] .ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-nacht.svg'); }
-:root[data-theme='night'] .ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-nacht.svg'); }
-:root[data-theme='night'] .ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--7 { background-image: url('./assets/placeholder/beeld-7-nacht.svg'); }
-:root[data-theme='night'] .ph--7.ph--klein { background-image: url('./assets/placeholder/beeld-7-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--8 { background-image: url('./assets/placeholder/beeld-8-nacht.svg'); }
-:root[data-theme='night'] .ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--9 { background-image: url('./assets/placeholder/beeld-9-nacht.svg'); }
-:root[data-theme='night'] .ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--10 { background-image: url('./assets/placeholder/beeld-10-nacht.svg'); }
-:root[data-theme='night'] .ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--11 { background-image: url('./assets/placeholder/beeld-11-nacht.svg'); }
-:root[data-theme='night'] .ph--11.ph--klein { background-image: url('./assets/placeholder/beeld-11-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--12 { background-image: url('./assets/placeholder/beeld-12-nacht.svg'); }
-:root[data-theme='night'] .ph--12.ph--klein { background-image: url('./assets/placeholder/beeld-12-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--13 { background-image: url('./assets/placeholder/beeld-13-nacht.svg'); }
-:root[data-theme='night'] .ph--13.ph--klein { background-image: url('./assets/placeholder/beeld-13-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--14 { background-image: url('./assets/placeholder/beeld-14-nacht.svg'); }
-:root[data-theme='night'] .ph--14.ph--klein { background-image: url('./assets/placeholder/beeld-14-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--15 { background-image: url('./assets/placeholder/beeld-15-nacht.svg'); }
-:root[data-theme='night'] .ph--15.ph--klein { background-image: url('./assets/placeholder/beeld-15-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--16 { background-image: url('./assets/placeholder/beeld-16-nacht.svg'); }
-:root[data-theme='night'] .ph--16.ph--klein { background-image: url('./assets/placeholder/beeld-16-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--17 { background-image: url('./assets/placeholder/beeld-17-nacht.svg'); }
-:root[data-theme='night'] .ph--17.ph--klein { background-image: url('./assets/placeholder/beeld-17-nacht-klein.svg'); }
-:root[data-theme='night'] .ph--18 { background-image: url('./assets/placeholder/beeld-18-nacht.svg'); }
-:root[data-theme='night'] .ph--18.ph--klein { background-image: url('./assets/placeholder/beeld-18-nacht-klein.svg'); }
+.ph--1 { background-image: url('./assets/placeholder/beeld-1-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-1-licht-800.webp') 1x, url('./assets/placeholder/beeld-1-licht-1600.webp') 2x); }
+.ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-1-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-1-licht-klein-360.webp') 2x); }
+.ph--2 { background-image: url('./assets/placeholder/beeld-2-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-2-licht-800.webp') 1x, url('./assets/placeholder/beeld-2-licht-1600.webp') 2x); }
+.ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-2-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-2-licht-klein-360.webp') 2x); }
+.ph--3 { background-image: url('./assets/placeholder/beeld-3-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-3-licht-800.webp') 1x, url('./assets/placeholder/beeld-3-licht-1600.webp') 2x); }
+.ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-3-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-3-licht-klein-360.webp') 2x); }
+.ph--4 { background-image: url('./assets/placeholder/beeld-4-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-4-licht-800.webp') 1x, url('./assets/placeholder/beeld-4-licht-1600.webp') 2x); }
+.ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-4-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-4-licht-klein-360.webp') 2x); }
+.ph--5 { background-image: url('./assets/placeholder/beeld-5-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-5-licht-800.webp') 1x, url('./assets/placeholder/beeld-5-licht-1600.webp') 2x); }
+.ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-5-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-5-licht-klein-360.webp') 2x); }
+.ph--6 { background-image: url('./assets/placeholder/beeld-6-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-6-licht-800.webp') 1x, url('./assets/placeholder/beeld-6-licht-1600.webp') 2x); }
+.ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-6-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-6-licht-klein-360.webp') 2x); }
+.ph--8 { background-image: url('./assets/placeholder/beeld-8-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-8-licht-800.webp') 1x, url('./assets/placeholder/beeld-8-licht-1600.webp') 2x); }
+.ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-8-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-8-licht-klein-360.webp') 2x); }
+.ph--9 { background-image: url('./assets/placeholder/beeld-9-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-9-licht-800.webp') 1x, url('./assets/placeholder/beeld-9-licht-1600.webp') 2x); }
+.ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-9-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-9-licht-klein-360.webp') 2x); }
+.ph--10 { background-image: url('./assets/placeholder/beeld-10-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-10-licht-800.webp') 1x, url('./assets/placeholder/beeld-10-licht-1600.webp') 2x); }
+.ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-10-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-10-licht-klein-360.webp') 2x); }
+.ph--11 { background-image: url('./assets/placeholder/beeld-11-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-11-licht-800.webp') 1x, url('./assets/placeholder/beeld-11-licht-1600.webp') 2x); }
+.ph--11.ph--klein { background-image: url('./assets/placeholder/beeld-11-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-11-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-11-licht-klein-360.webp') 2x); }
+.ph--12 { background-image: url('./assets/placeholder/beeld-12-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-12-licht-800.webp') 1x, url('./assets/placeholder/beeld-12-licht-1600.webp') 2x); }
+.ph--12.ph--klein { background-image: url('./assets/placeholder/beeld-12-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-12-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-12-licht-klein-360.webp') 2x); }
+.ph--13 { background-image: url('./assets/placeholder/beeld-13-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-13-licht-800.webp') 1x, url('./assets/placeholder/beeld-13-licht-1600.webp') 2x); }
+.ph--13.ph--klein { background-image: url('./assets/placeholder/beeld-13-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-13-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-13-licht-klein-360.webp') 2x); }
+.ph--18 { background-image: url('./assets/placeholder/beeld-18-licht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-18-licht-800.webp') 1x, url('./assets/placeholder/beeld-18-licht-1600.webp') 2x); }
+.ph--18.ph--klein { background-image: url('./assets/placeholder/beeld-18-licht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-18-licht-klein-180.webp') 1x, url('./assets/placeholder/beeld-18-licht-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-1-donker-800.webp') 1x, url('./assets/placeholder/beeld-1-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-1-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-1-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-2-donker-800.webp') 1x, url('./assets/placeholder/beeld-2-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-2-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-2-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-3-donker-800.webp') 1x, url('./assets/placeholder/beeld-3-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-3-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-3-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-4-donker-800.webp') 1x, url('./assets/placeholder/beeld-4-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-4-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-4-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-5-donker-800.webp') 1x, url('./assets/placeholder/beeld-5-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-5-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-5-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-6-donker-800.webp') 1x, url('./assets/placeholder/beeld-6-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-6-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-6-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--8 { background-image: url('./assets/placeholder/beeld-8-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-8-donker-800.webp') 1x, url('./assets/placeholder/beeld-8-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-8-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-8-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--9 { background-image: url('./assets/placeholder/beeld-9-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-9-donker-800.webp') 1x, url('./assets/placeholder/beeld-9-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-9-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-9-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--10 { background-image: url('./assets/placeholder/beeld-10-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-10-donker-800.webp') 1x, url('./assets/placeholder/beeld-10-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-10-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-10-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--11 { background-image: url('./assets/placeholder/beeld-11-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-11-donker-800.webp') 1x, url('./assets/placeholder/beeld-11-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--11.ph--klein { background-image: url('./assets/placeholder/beeld-11-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-11-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-11-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--12 { background-image: url('./assets/placeholder/beeld-12-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-12-donker-800.webp') 1x, url('./assets/placeholder/beeld-12-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--12.ph--klein { background-image: url('./assets/placeholder/beeld-12-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-12-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-12-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--13 { background-image: url('./assets/placeholder/beeld-13-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-13-donker-800.webp') 1x, url('./assets/placeholder/beeld-13-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--13.ph--klein { background-image: url('./assets/placeholder/beeld-13-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-13-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-13-donker-klein-360.webp') 2x); }
+:root[data-theme='dark'] .ph--18 { background-image: url('./assets/placeholder/beeld-18-donker-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-18-donker-800.webp') 1x, url('./assets/placeholder/beeld-18-donker-1600.webp') 2x); }
+:root[data-theme='dark'] .ph--18.ph--klein { background-image: url('./assets/placeholder/beeld-18-donker-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-18-donker-klein-180.webp') 1x, url('./assets/placeholder/beeld-18-donker-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-1-nacht-800.webp') 1x, url('./assets/placeholder/beeld-1-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-1-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-1-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-2-nacht-800.webp') 1x, url('./assets/placeholder/beeld-2-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-2-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-2-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-3-nacht-800.webp') 1x, url('./assets/placeholder/beeld-3-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-3-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-3-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-4-nacht-800.webp') 1x, url('./assets/placeholder/beeld-4-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-4-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-4-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-5-nacht-800.webp') 1x, url('./assets/placeholder/beeld-5-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-5-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-5-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-6-nacht-800.webp') 1x, url('./assets/placeholder/beeld-6-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-6-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-6-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--8 { background-image: url('./assets/placeholder/beeld-8-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-8-nacht-800.webp') 1x, url('./assets/placeholder/beeld-8-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-8-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-8-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--9 { background-image: url('./assets/placeholder/beeld-9-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-9-nacht-800.webp') 1x, url('./assets/placeholder/beeld-9-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-9-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-9-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--10 { background-image: url('./assets/placeholder/beeld-10-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-10-nacht-800.webp') 1x, url('./assets/placeholder/beeld-10-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-10-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-10-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--11 { background-image: url('./assets/placeholder/beeld-11-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-11-nacht-800.webp') 1x, url('./assets/placeholder/beeld-11-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--11.ph--klein { background-image: url('./assets/placeholder/beeld-11-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-11-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-11-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--12 { background-image: url('./assets/placeholder/beeld-12-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-12-nacht-800.webp') 1x, url('./assets/placeholder/beeld-12-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--12.ph--klein { background-image: url('./assets/placeholder/beeld-12-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-12-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-12-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--13 { background-image: url('./assets/placeholder/beeld-13-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-13-nacht-800.webp') 1x, url('./assets/placeholder/beeld-13-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--13.ph--klein { background-image: url('./assets/placeholder/beeld-13-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-13-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-13-nacht-klein-360.webp') 2x); }
+:root[data-theme='night'] .ph--18 { background-image: url('./assets/placeholder/beeld-18-nacht-800.webp'); background-image: image-set(url('./assets/placeholder/beeld-18-nacht-800.webp') 1x, url('./assets/placeholder/beeld-18-nacht-1600.webp') 2x); }
+:root[data-theme='night'] .ph--18.ph--klein { background-image: url('./assets/placeholder/beeld-18-nacht-klein-180.webp'); background-image: image-set(url('./assets/placeholder/beeld-18-nacht-klein-180.webp') 1x, url('./assets/placeholder/beeld-18-nacht-klein-360.webp') 2x); }

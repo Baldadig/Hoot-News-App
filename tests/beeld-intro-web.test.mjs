@@ -8,7 +8,7 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { wholeSentences, introMax, INTRO_LINES, KAART_LINES } from '../shared/zinnen.mjs'
 import { fitsLarge, fitsHero } from '../src/lib/img.js'
-import { placeholderBase, placeholderSet, PLACEHOLDER_COUNT, PLACEHOLDER_SHIFT } from '../shared/placeholder.mjs'
+import { placeholderBase, placeholderSet, placeholderInReeks, PLACEHOLDER_COUNT, PLACEHOLDER_SHIFT } from '../shared/placeholder.mjs'
 
 const src = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const fixture = JSON.parse(src('tests/fixtures/placeholder.json'))
@@ -133,7 +133,12 @@ test('beeldloos: een beeld dat pas bij het laden mislukt, volgt ook de buurregel
   assert.equal(planFor(rows).has(b), false) // met beeld: geen placeholder
   const plan = planFor(rows, new Set([b]))
   assert.equal(plan.get('a'), placeholderBase('a'))
-  assert.equal(plan.get(b), (placeholderBase('a') + PLACEHOLDER_SHIFT) % PLACEHOLDER_COUNT) // niet hetzelfde beeld en niet dezelfde set als de buur
+  // Doorschuiven met drie, voorbij lege plekken (beelden die weg zijn): niet hetzelfde beeld en niet dezelfde set als de buur.
+  let k = placeholderBase('a')
+  do k = (k + PLACEHOLDER_SHIFT) % PLACEHOLDER_COUNT
+  while (!placeholderInReeks(k) || placeholderSet(k) === placeholderSet(placeholderBase('a')))
+  assert.equal(plan.get(b), k)
+  assert.ok(placeholderInReeks(plan.get(b)))
   assert.notEqual(placeholderSet(plan.get(b)), placeholderSet(plan.get('a')))
   // Beeld meldt het mislukken aan de lijst.
   assert.match(src('src/components/Beeld.jsx'), /markFailed\?\.\(item\?\.id\)/)

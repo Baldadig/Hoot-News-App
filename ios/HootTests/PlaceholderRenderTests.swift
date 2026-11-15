@@ -2,7 +2,7 @@ import XCTest
 import SwiftUI
 @testable import Hoot
 
-// Placeholderbeelden zoals de app ze tekent, als PNG's om naast het web te leggen (keuring van een nieuwe
+// Placeholderbeelden (knipsel-bitmaps) zoals de app ze toont, als PNG's om naast het web te leggen (keuring van een nieuwe
 // ronde). Draait alleen met TEST_RUNNER_HOOT_PLACEHOLDER_UIT=<map> bij xcodebuild test; anders overgeslagen.
 // Per beeld: Licht, Donker en Nacht, groot 2:1 (344 × 172) en 3:2 (344 × 229), en klein (96 × 64), op 3×.
 final class PlaceholderRenderTests: XCTestCase {
@@ -15,7 +15,7 @@ final class PlaceholderRenderTests: XCTestCase {
         try FileManager.default.createDirectory(at: uit, withIntermediateDirectories: true)
         let maten: [(String, CGSize)] = [("groot", CGSize(width: 344, height: 172)), ("groot32", CGSize(width: 344, height: 229)), ("klein", CGSize(width: 96, height: 64))]
         let themas: [(String, ColorScheme, Bool)] = [("licht", .light, false), ("donker", .dark, false), ("nacht", .dark, true)]
-        for i in PlaceholderBeelden.beelden.indices {
+        for i in PlaceholderBeelden.keuze {
             for (thema, scheme, nacht) in themas {
                 for (naam, size) in maten {
                     let view = PlaceholderBeeld(index: i, klein: naam == "klein")
