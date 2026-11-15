@@ -143,3 +143,16 @@ test('momentopname: alleen zeker en ja, nieuwste eerst, met betaalbron en rubrie
   assert.equal(s.verhalen[1].betaald, true)
   assert.equal(s.verhalen[1].rubriek, 'cultuur')
 })
+
+test('de ronde laat een volgzaak die vandaag vol zit uit de wachtrij, en legt een bewaard oordeel over twijfel', async () => {
+  const io = wereld({ volgersGta: 9, volgersTata: 1 })
+  io.kv.set('volgzaak-dag-usd:2026-11-20', { dag: '2026-11-20', usd: 1, per: { 'gta-6': 12 } })
+  io.kv.set('volgzaak-oordeel:tata-steel', { v: 1, o: {}, p: {} })
+  await volgzaakRonde({ now: NOW, env: { HOOT_VOLGZAKEN: 'aan' }, io })
+  assert.deepEqual(io.kv.get('volgzaak-wachtrij-v1').vragen.map((v) => `${v.slug}|${v.key}`), ['tata-steel|s3'])
+  // Een oordeel dat de treffers niet haalde, komt er de volgende ronde alsnog in.
+  io.kv.set('volgzaak-oordeel:tata-steel', { v: 1, o: { s3: ['j', NOW, 'nep'] } })
+  await volgzaakRonde({ now: NOW + 6e5, env: { HOOT_VOLGZAKEN: 'aan' }, io })
+  assert.equal(io.kv.get('volgzaak-treffers:tata-steel').s.s3[0], 'j')
+  assert.deepEqual(io.kv.get('volgzaak-wachtrij-v1').vragen, [])
+})

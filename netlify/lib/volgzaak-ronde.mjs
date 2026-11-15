@@ -4,7 +4,8 @@
 // 2. Met de vlag uit stopt het hier: geen matching, geen wachtrij, geen kosten.
 // 3. Matching: de actieve volgzaken uit de index (bij 'aan' alleen met volgers, bij 'proef' alle), hooguit RONDE_MAX per
 //    keer, wie het langst niet aan de beurt was eerst. Een nieuwe volgzaak (nog zonder treffers) krijgt de hele voorraad.
-// 4. De wachtrij voor het oordeel: de twijfel zonder oordeel, gesorteerd zoals het plafond wil (meeste volgers eerst).
+// 4. De wachtrij voor het oordeel: de twijfel zonder oordeel, gesorteerd zoals het plafond wil (meeste volgers eerst),
+//    zonder volgzaken die vandaag vol zitten en zonder verhalen waarvan de pogingen op zijn (kiesWachtrij).
 // 5. Het feeddocument (alleen bij 'aan'): zeker of ja, uit de laatste FEED_UREN, per verhaal de volgzaak met de meeste
 //    volgers.
 // 6. Een momentopname per dagdeel per volgzaak, zodat web en app het hele dagdeel hetzelfde zien.
@@ -12,7 +13,8 @@
 // 8. Tellingen voor de proef; het log krijgt alleen aantallen.
 import { SOURCES } from './sources.mjs'
 import { editionSlot } from './stories.mjs'
-import { VK, volgzakenStand, geldigeSlug, dagNL, binnen, KV_MS, TREFFERS_KEEP, STIL_NA, FEED_UREN } from './volgzaak-basis.mjs'
+import { VK, volgzakenStand, geldigeSlug, dagNL, binnen, KV_MS, TREFFERS_KEEP, STIL_NA, FEED_UREN, MAX_OORDELEN_PER_DAG } from './volgzaak-basis.mjs'
+import { MAX_POGINGEN } from './luister.mjs'
 import { voorraadRonde, stukkenUit, voorraadDagen } from './volgzaak-voorraad.mjs'
 import { matchVerhalen, haagseBundels, koppenVan } from './volgzaak-match.mjs'
 import { oordeelVraag } from './volgzaak-oordeel.mjs'
@@ -51,6 +53,40 @@ export const laatstNieuwVan = (doc) => Math.max(0, ...Object.values(doc?.s || {}
 // beoordeeld is; binnen een volgzaak de verhalen met de meeste uitgevers, dan de nieuwste.
 export function ordeWachtrij(vragen, { vandaag = {} } = {}) {
   return [...vragen].sort((a, b) => (b.volgers || 0) - (a.volgers || 0) || (vandaag[a.slug] || 0) - (vandaag[b.slug] || 0) || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0) || (b.pubs || 0) - (a.pubs || 0) || (b.laatst || 0) - (a.laatst || 0) || (a.key < b.key ? -1 : 1))
+}
+
+// De wachtrij van deze keer (zuiver): eerst weg wat toch niet gevraagd wordt, dan ordeWachtrij, dan per volgzaak hooguit
+// de oordelen die er vandaag nog over zijn, dan hooguit `max`. Weg valt: een volgzaak die vandaag vol zit
+// (vandaag[slug] >= maxPerDag), een verhaal dat al een oordeel heeft (oordelen[slug].o) en een verhaal waarvan de
+// pogingen op zijn (oordelen[slug].p >= maxPogingen). Zo houdt een volle of vastgelopen volgzaak de rij niet bezet.
+export function kiesWachtrij(vragen, { vandaag = {}, oordelen = {}, maxPerDag = MAX_OORDELEN_PER_DAG, maxPogingen = MAX_POGINGEN, max = MAX_VRAGEN } = {}) {
+  const over = (slug) => Math.max(0, maxPerDag - (Number(vandaag[slug]) || 0))
+  const kan = vragen.filter((v) => {
+    const doc = oordelen[v.slug]
+    return over(v.slug) > 0 && !doc?.o?.[v.key] && (Number(doc?.p?.[v.key]?.[0]) || 0) < maxPogingen
+  })
+  const perSlug = {}
+  const rij = []
+  for (const v of ordeWachtrij(kan, { vandaag })) {
+    if (rij.length >= max) break
+    if ((perSlug[v.slug] || 0) >= over(v.slug)) continue
+    perSlug[v.slug] = (perSlug[v.slug] || 0) + 1
+    rij.push(v)
+  }
+  return rij
+}
+
+// Een bewaard oordeel (volgzaak-oordeel:<slug>.o) over twijfel heen leggen, voor het geval de oordeelronde het in de
+// treffers niet kwijt kon (zuiver; geeft het aantal aangepaste regels).
+export function legOordelenOver(doc, oordeelDoc) {
+  let n = 0
+  for (const [k, o] of Object.entries(oordeelDoc?.o || {})) {
+    if (doc.s[k]?.[0] === 't' && Array.isArray(o) && (o[0] === 'j' || o[0] === 'n')) {
+      doc.s[k] = [o[0], ...doc.s[k].slice(1)]
+      n++
+    }
+  }
+  return n
 }
 
 // De momentopname van een volgzaak voor dit dagdeel (alleen zeker en ja).
@@ -107,8 +143,8 @@ export async function volgzaakRonde({ now = Date.now(), start = now, env = proce
     // De defs, treffers en volgers van deze keer.
     const per = await Promise.all(
       actief.map(async ([slug, e]) => {
-        const [def, treffers, volgers] = await Promise.all([binnen(get(VK.def(slug)), kvMs).catch(() => null), binnen(get(VK.treffers(slug)), kvMs).catch(() => undefined), binnen(get(VK.volgers(slug)), kvMs).catch(() => null)])
-        return { slug, e, def, treffers, volgers: Math.max(0, Number(volgers) || 0) }
+        const [def, treffers, volgers, oordeel] = await Promise.all([binnen(get(VK.def(slug)), kvMs).catch(() => null), binnen(get(VK.treffers(slug)), kvMs).catch(() => undefined), binnen(get(VK.volgers(slug)), kvMs).catch(() => null), binnen(get(VK.oordeel(slug)), kvMs).catch(() => null)])
+        return { slug, e, def, treffers, oordeel, volgers: Math.max(0, Number(volgers) || 0) }
       }),
     )
     // 3. De stukken: vandaag en gisteren uit de voorraad; een nieuwe volgzaak de hele voorraad.
@@ -126,6 +162,7 @@ export async function volgzaakRonde({ now = Date.now(), start = now, env = proce
     const dag = dagNL(now)
     const dagDoc = await binnen(get(VK.dagUsd(dag)), kvMs).catch(() => null)
     const vandaag = dagDoc?.per && typeof dagDoc.per === 'object' ? dagDoc.per : {}
+    const oordelen = {}
     const slot = editionSlot(new Date(now)).id
     const vragen = []
     const nieuwIndex = {}
@@ -135,6 +172,8 @@ export async function volgzaakRonde({ now = Date.now(), start = now, env = proce
       if (!p.def || Date.now() > tot) continue
       const matches = matchVerhalen(p.def, stukken, { verhalen, bundels })
       const { doc, nieuwZeker } = voegTreffersSamen(p.treffers, matches, { now, cursor: vr.docs ? Object.values(vr.docs)[0]?.meta?.builtAt || null : null })
+      legOordelenOver(doc, p.oordeel)
+      if (p.oordeel) oordelen[p.slug] = p.oordeel
       if (JSON.stringify(doc.s) !== JSON.stringify(p.treffers?.s || {})) await binnen(set(VK.treffers(p.slug), doc), kvMs).catch(() => {})
       const laatstNieuw = laatstNieuwVan(doc)
       const at = Date.parse(p.def.at) || now
@@ -161,7 +200,7 @@ export async function volgzaakRonde({ now = Date.now(), start = now, env = proce
       nieuwIndex[p.slug] = { volgers: p.volgers, laatstNieuw: laatstNieuw ? new Date(laatstNieuw).toISOString() : null, status: stil ? 'stil' : p.e.status === 'stil' ? 'stil' : 'actief', beurt: now, stand: standSlot }
       voorFeed.push({ slug: p.slug, label: p.def.label, volgers: p.volgers, treffers: doc })
     }
-    const rij = ordeWachtrij(vragen, { vandaag }).slice(0, MAX_VRAGEN)
+    const rij = kiesWachtrij(vragen, { vandaag, oordelen })
     stats.wachtrij = rij.length
     stats.twijfel = vragen.length
     await binnen(set(VK.wachtrij, { v: 1, at: now, vragen: rij }), kvMs).catch(() => {})
