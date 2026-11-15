@@ -215,7 +215,8 @@ var HootCore = (() => {
   // netlify/lib/sources.mjs
   var S = (id, name, cat, lang, about, url, more = {}) => ({ id, name, cat, lang, about, urls: Array.isArray(url) ? url : [url], ...more });
   var OWN_LOGO_BASE = "https://gethoot.app/img/bronnen/";
-  var own = (id) => OWN_LOGO_BASE + id + ".webp";
+  var OWN_LOGO_VERSIE = { nos: 2, "nos-economie": 2, "nos-sport": 2, "nos-cultuur": 2 };
+  var own = (id) => OWN_LOGO_BASE + id + ".webp" + (OWN_LOGO_VERSIE[id] ? "?v=" + OWN_LOGO_VERSIE[id] : "");
   var SOURCES = [
     // Nederland
     S("nos", "NOS", "nl", "nl", "Het publieke nieuws: snel, breed en gratis.", ["https://feeds.nos.nl/nosnieuwsalgemeen", "http://feeds.nos.nl/nosnieuwsalgemeen"], { pick: true, base: true, logo: own("nos"), x: "nos", color: "#B5121B" }),
