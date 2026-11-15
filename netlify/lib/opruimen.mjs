@@ -1,5 +1,5 @@
 // Opruimen: wat het privacybeleid belooft, de server bewaart je persoonlijke Editie (zonder account) hooguit een dag.
-// Zes voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
+// Deze voorvoegsels, en niets anders (geen feed, geen archief, geen docs):
 //   pe:<dagdeel-id>:<sha256>                  de persoonlijke Editie zonder account (netlify/functions/edition.mjs, anonKey;
 //                                             tot 15 november 2026 met de revisie ervoor: pe:<revisie>:<dagdeel-id>:<sha256>)
 //   pe-quota:<sha256 user-id>:<dagdeel-id>    de teller per lid en dagdeel (edition.mjs)
@@ -8,6 +8,11 @@
 //   brief-quota-<uid>|all-<dag>               de tellers van /api/brief (netlify/functions/brief.mjs), dag = UTC-datum
 //   filter-ai:<jjjj-mm-dd>                    de oordelen van de Editiefilter-AI per UTC-dag (netlify/lib/editie-ai.mjs):
 //                                             alleen bericht-id's, een kop-hash en het oordeel; hooguit 7 dagen
+// En voor volgen 1.5 (netlify/lib/volgzaak-basis.mjs; gedeeld en anoniem, de tellers per lid zonder slug):
+//   volgzaak-voorraad:<jjjj-mm-dd>            de voorraad per Nederlandse dag: veertien dagen plus vandaag
+//   volgzaak-stand:<slug>:<dagdeel-id>        de momentopname per dagdeel: het lopende en vijf vorige
+//   volgzaak-dag-usd:<jjjj-mm-dd>             de kosten van het oordeel per dag: hooguit 7 dagen
+//   volgzaak-quota-<uid>|all-<dag>, volgzaak-tik-<uid>-<dag>   de tellers van /api/volgzaak: vandaag en gisteren (UTC)
 // Een dagdeel-id is `<jjjj-mm-dd>-<ochtend|middag|avond>` (editionSlot in netlify/lib/stories.mjs).
 // We houden het lopende dagdeel en het vorige (marge voor de overgang), en bij de briefteller vandaag en gisteren
 // (UTC, i.v.m. tijdzones). Een sleutel die we niet kunnen lezen laten we staan en tellen we als 'overgeslagen'.
@@ -15,6 +20,7 @@
 import { kvListKeys, kvDelete } from './kv.mjs'
 import { editionSlot } from './stories.mjs'
 import { KEEP_DAYS } from '../../shared/tel.mjs'
+import { VOORRAAD_KEEP_DAYS, STAND_KEEP, DAG_USD_KEEP_DAYS } from './volgzaak-basis.mjs'
 
 const SLOT_INDEX = { ochtend: 0, middag: 1, avond: 2 }
 const DAY_MS = 864e5
@@ -26,6 +32,11 @@ const TEL_DAY = /^tel:(\d{4}-\d{2}-\d{2})$/
 const BRIEF_DAY = /^brief-quota-.+-(\d{4}-\d{2}-\d{2})$/
 const FILTER_AI_DAY = /^filter-ai:(\d{4}-\d{2}-\d{2})$/
 export const FILTER_AI_KEEP_DAYS = 7
+const VOORRAAD_DAY = /^volgzaak-voorraad:(\d{4}-\d{2}-\d{2})$/
+const STAND_SLOT = new RegExp(`^volgzaak-stand:[a-z0-9-]{2,40}:${SLOT_ID}$`)
+const DAG_USD_DAY = /^volgzaak-dag-usd:(\d{4}-\d{2}-\d{2})$/
+const VOLGZAAK_TELLER = /^volgzaak-(?:quota|tik)-.+-(\d{4}-\d{2}-\d{2})$/
+const DAG_PREFIX = { 'volgzaak-voorraad:': [VOORRAAD_DAY, VOORRAAD_KEEP_DAYS], 'volgzaak-dag-usd:': [DAG_USD_DAY, DAG_USD_KEEP_DAYS], 'volgzaak-quota-': [VOLGZAAK_TELLER, 1], 'volgzaak-tik-': [VOLGZAAK_TELLER, 1] }
 
 // Het volgnummer van een dagdeel: oplopend in de tijd (3 per dag). null als de datum niet bestaat.
 export function slotNumber(date, slot) {
@@ -55,12 +66,23 @@ export function expired(prefix, key, { slotNow, dayNow }) {
     const n = f ? dayNumber(f[1]) : null
     return n == null ? null : n < dayNow - FILTER_AI_KEEP_DAYS // de laatste 7 dagen (en vandaag) blijven
   }
+  if (prefix === 'volgzaak-stand:') {
+    const m = STAND_SLOT.exec(key)
+    const n = m ? slotNumber(m[1], m[2]) : null
+    return n == null ? null : n < slotNow - STAND_KEEP // het lopende dagdeel en vijf vorige blijven
+  }
+  if (prefix in DAG_PREFIX) {
+    const [re, keep] = DAG_PREFIX[prefix]
+    const m = re.exec(key)
+    const n = m ? dayNumber(m[1]) : null
+    return n == null ? null : n < dayNow - keep
+  }
   const d = BRIEF_DAY.exec(key)
   const n = d ? dayNumber(d[1]) : null
   return n == null ? null : n < dayNow - 1 // vandaag en gisteren blijven
 }
 
-const PREFIXES = ['pe:', 'pe-quota:', 'pe-member:', 'brief-quota-', 'tel:', 'filter-ai:']
+export const PREFIXES = ['pe:', 'pe-quota:', 'pe-member:', 'brief-quota-', 'tel:', 'filter-ai:', 'volgzaak-voorraad:', 'volgzaak-stand:', 'volgzaak-dag-usd:', 'volgzaak-quota-', 'volgzaak-tik-']
 
 export async function opruimen({ now = Date.now(), list = kvListKeys, remove = kvDelete, log = console } = {}) {
   const cur = editionSlot(new Date(now))

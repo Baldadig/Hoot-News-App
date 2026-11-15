@@ -21,6 +21,7 @@ import { VL_HOME } from './desks.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories, bubbleRejection, headWords, sportOpBubbel } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { verschillenAan, verschillenUitKV, metVerschillen } from './verschillen.mjs'
+import { volgzakenStand, volgzaakUitKV, metVolgzaak } from './volgzaak-basis.mjs'
 import { crossLanguagePairs } from './taalgrens.mjs'
 import { freeDutchFill, morningTopUp, OCHTEND_AANVULLING } from './aanvulling.mjs'
 import { haagsDossier } from './dossiers.mjs'
@@ -63,6 +64,10 @@ const inEdition = (it) => !excludedFromEdition(it) && EDITION_CATS.has(SOURCE.ge
 export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const roundStart = Date.now()
   const apiKey = process.env.ANTHROPIC_API_KEY
+  // Volgen 1.5 (achter HOOT_VOLGZAKEN=aan): het veld `volgzaak` op verhalen. Hier alleen één kant-en-klaar document uit KV
+  // lezen, vroeg gestart en pas aan het eind afgewacht; schrijven doet de eigen geplande functie volgzaak-ronde. Met de
+  // vlag uit wordt er niets gelezen en verandert de feed geen byte.
+  const volgzaakP = volgzakenStand() === 'aan' ? volgzaakUitKV({ get: kvGet, budget: 1500 }) : Promise.resolve(null)
   const anthropic = client !== undefined ? client : apiKey ? new Anthropic({ apiKey, timeout: 25000, maxRetries: 1 }) : null
 
   // 1. Ophalen — alles tegelijk; een bron die uitvalt houdt de rest niet op.
@@ -179,12 +184,13 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   for (const it of out) (parts[it.source] ||= []).push(it)
   const storyItems = out.filter((i) => i.storyId)
   const blokken = await verschillen
+  const volgzaken = await volgzaakP
   return {
     sources: sourceList({ mainGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
     items: out.filter(inStroom),
     parts,
     related: [...storyItems, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id) || !i.storyId)],
-    stories: metVerschillen([...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))], blokken),
+    stories: metVerschillen(metVolgzaak([...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))], volgzaken), blokken),
     edition: edition.public,
     // Niet voor de app: refresh.mjs haalt dit eruit en bewaart er de feed van dit dagdeel mee (frisse ogen · 2).
     archive: edition.archive,
