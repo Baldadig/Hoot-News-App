@@ -183,6 +183,40 @@ const PROBES = [
   ['ook-en', 'Kabinet-Jetten wankelt', `${ZIN} Ook het asieldebat. En de stikstofwet.`],
   ['plus-en', 'Kabinet-Jetten wankelt', `${ZIN} Plus: het asieldebat en de stikstof.`],
   ['telling', 'Kabinet-Jetten wankelt', `${ZIN} Twee: het asieldebat. Drie: de stikstofwet.`],
+  // Tweede keuring (15 november): omgedraaid, elk signaal van een tweede deel telt, wat er ook achter staat.
+  // 5. Een signaalwoord of volgorde-woord aan het begin van een zin, gevolgd door een voorzetsel of bijwoord.
+  ['ook-over', 'Kabinet-Jetten wankelt', `${ZIN} Ook over het asieldebat.`],
+  ['verder-over', 'Kabinet-Jetten wankelt', `${ZIN} Verder over asiel en stikstof.`],
+  ['ook-nog', 'Kabinet-Jetten wankelt', `${ZIN} Ook nog: de stikstofwet.`],
+  ['en-dan-nog', 'Kabinet-Jetten wankelt', `${ZIN} En dan nog de stikstofwet.`],
+  ['en-natuurlijk', 'Kabinet-Jetten wankelt', `${ZIN} En natuurlijk het asieldebat.`],
+  ['daarnaast-nog', 'Kabinet-Jetten wankelt', `${ZIN} Daarnaast nog iets over asiel.`],
+  ['ook-over-asiel-en-stikstof', 'Kabinet-Jetten wankelt', `${ZIN} Ook over asiel en stikstof.`],
+  ['en-dan-nog-asiel', 'Kabinet-Jetten wankelt', `${ZIN} En dan nog het asieldebat.`],
+  ['daarna', 'Kabinet-Jetten wankelt', `${ZIN} Daarna het asieldebat.`],
+  ['daarna-gaat-het', 'Kabinet-Jetten wankelt', `${ZIN} Daarna gaat het over het asieldebat.`],
+  ['eerst-dan', 'Kabinet-Jetten wankelt', `Eerst: ${ZIN} Dan: de stikstofwet.`],
+  // 6. "ook" midden in de zin als het een tweede onderwerp inleidt.
+  ['ook-midden', 'Kabinet-Jetten wankelt', 'Het gaat ook over het asieldebat en de stikstofwet.'],
+  // 7. Een lijst met streepjes, bolletjes of regeleinden, en een korte opsomming na een dubbele punt.
+  ['lijst-streepjes', 'Kabinet-Jetten wankelt', 'In deze aflevering:\n- de VVD stemt tegen het Belastingplan van het kabinet-Jetten\n- het asieldebat\n- de stikstofwet'],
+  ['lijst-bolletjes', 'Kabinet-Jetten wankelt', 'In deze aflevering: • de VVD stemt tegen het Belastingplan van het kabinet-Jetten • het asieldebat • de stikstofwet'],
+  ['lijst-na-zin', 'Kabinet-Jetten wankelt', `${ZIN}\n- het asieldebat\n- de stikstofwet`],
+  ['lijst-regels', 'Kabinet-Jetten wankelt', `In deze aflevering:\n${ZIN}\nHet asieldebat\nDe stikstofwet`],
+  ['met-twee', 'Kabinet-Jetten wankelt', `${ZIN} Met: het asieldebat, de stikstofwet.`],
+  // 8. Een titel met twee delen rond | / & + , een streep, "en" of een signaalwoord.
+  ['titel-streep', 'Kabinetscrisis | asiel', ZIN],
+  ['titel-schuin', 'Kabinetscrisis / stikstof', ZIN],
+  ['titel-ampersand', 'Kabinetscrisis & asiel', ZIN],
+  ['titel-plus', 'Kabinetscrisis + asiel', ZIN],
+  ['titel-komma', 'Kabinetscrisis, asiel', ZIN],
+  ['titel-en-dubbelepunt', 'Kabinetscrisis. En: de stikstofwet', ZIN],
+  ['titel-en', 'Het kabinet-Jetten en de stikstofwet', ZIN],
+  ['titel-en-kort', 'Kabinet-Jetten en de stikstof', ZIN],
+  ['titel-ampersand-stikstof', 'Kabinetscrisis & stikstof', ZIN],
+  ['titel-plus-stikstof', 'Kabinet-Jetten wankelt + stikstof', ZIN],
+  ['titel-gedachtestreep', 'Kabinet-Jetten wankelt - en de stikstof', ZIN],
+  ['titel-tweede-zin', 'Valt het kabinet? En wat met de stikstof?', ZIN],
 ].map(([id, titel, tekst]) => variant(`p-${id}`, titel, tekst))
 
 test('herstel keuring: een opsomming in de titel, over losse zinnen of met puntkomma\'s en de week als verloop zijn een weekoverzicht', () => {
@@ -216,7 +250,8 @@ test('herstel keuring: een tweede onderwerp in de titel maakt een andere naam in
   const zonder = variant('p-trump', 'Kabinet-Jetten wankelt', tekst)
   // Alleen in de titel, met een beschrijving over één onderwerp: de titel wordt zelf ook gelezen.
   // (Het eerste woord van een zin in de titel telt niet: titels beginnen elke zin met een hoofdletter.)
-  const alleenTitel = variant('p-alleen-titel', 'Kabinet-Jetten wankelt, Trump dreigt', ZIN)
+  // (Tweede keuring: een komma in de titel is nu zelf al een tweede deel; daarom hier een titel zonder komma.)
+  const alleenTitel = variant('p-alleen-titel', 'Kabinet-Jetten wankelt onder druk van Trump', ZIN)
   for (const e of [metTitel, zonder, alleenTitel]) {
     const { r } = await ronde(() => JA, [...FIX.episodes.filter((x) => x.id !== HZ.id), e])
     assert.ok(!r.rows.koppelingen.some((k) => k.aflevering === e.titel), `${e.id}: niet gekoppeld`)

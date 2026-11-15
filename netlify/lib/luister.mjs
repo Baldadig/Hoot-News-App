@@ -106,6 +106,12 @@
 //     opsomming" en "geen andere onderwerpen" ook hard zonder eigen naam of werkwoord. En bij een weekshow tellen de woorden
 //     van de titel niet als bekend in andereNaam: de titel wordt zelf gelezen, zodat een titel met twee onderwerpen een andere
 //     naam in de beschrijving niet onschadelijk maakt.
+//     Tweede keuring van branch weekshow (15 november): omgedraaid. Bij een weekshow zonder artikellink is elk signaal van
+//     een tweede deel weekMeer, wat er ook achter staat: een signaalwoord of volgorde-woord aan het begin van een zin of
+//     titeldeel ("Ook over …", "En dan nog …", "Daarna …", "Eerst: … Dan: …"), "ook" midden in de zin als het een tweede
+//     onderwerp inleidt ("Het gaat ook over …"), een lijst met streepjes, bolletjes of regeleinden, een korte opsomming na
+//     een dubbele punt ("Met: A, B."), en een titel met twee of meer delen rond | / & + ; een komma, een streep of "en"
+//     ("Kabinetscrisis & asiel", "Kabinet-Jetten en de stikstof"); de zinsregels gelden ook voor de zinnen van de titel.
 //   - Herstel na de keuring van 14 november (avond): één verhaal per vraag aan het model (nooit twee verhalen in één vraag),
 //     elke vraag twee keer en alleen twee keer een duidelijk ja koppelt; "de kop deelt de gebeurtenis" is een harde
 //     voorwaarde in het vangnet (kopDeelt), die voor een ja van het model gaat; de zinssplitser knipt niet na "Mr." en andere
@@ -586,36 +592,58 @@ const WEEK_MEER = [
 ]
 // "de week in Den Haag", "deze week in Washington": de week in een plaats met een hoofdletter (zonder i-vlag).
 const WEEK_IN = /\b[Ww]eek\s+in\s+(?:(?:de|het|den)\s+)?\p{Lu}/u
-// Herstel keuring van branch weekshow (15 november): de vorm van een opsomming over losse zinnen en in de titel.
-// - Een zin die begint met een signaalwoord en dan een onderwerp noemt: "Ook: het asieldebat.", "Ook de stikstofwet en het
-//   asiel.", "En de stikstofwet.", "Plus: …", "Verder het asieldebat." (een dubbele punt, een lidwoord, een naam of een getal
-//   na het signaalwoord). Een zin die naar de uitgever verwijst ("Of lees hier …") telt niet.
-// - Een telling: "Twee: het asieldebat. Drie: de stikstofwet.", "Ten eerste …".
-// - Een opsomming met puntkomma's: "In deze aflevering: A; B; C."
-// - In de titel: een opsomming ("Het Belastingplan, de stikstof en de NAVO-top"), drie delen met streep of punt
-//   ("Kabinetscrisis | stikstof | NAVO-top"), een puntkomma, of een tweede onderwerp na een komma ("…, en Trump").
-// Bij een weekshow is dat bij twijfel genoeg: dan koppelt alleen een artikellink.
-const SIGNAAL_BEGIN = /^(?:en\s+ook|en\s+verder|ook|plus|verder|daarnaast|bovendien|tevens|voorts|en)(?![\p{L}\d])\s*(:)?\s*([^\s]*)/iu
-const signaalZin = (z) => {
-  const m = String(z || '').match(SIGNAAL_BEGIN)
-  if (!m) return false
-  if (m[1]) return true
-  return /^(de|het|een|’t|'t)$/i.test(m[2]) || /^\p{Lu}/u.test(m[2]) || /^\d/.test(m[2])
-}
+// Herstel keuring van branch weekshow (15 november) en tweede keuring: omgedraaid. Bij een weekshow zonder artikellink is
+// elk signaal van een tweede deel genoeg (bij twijfel niets), niet alleen een signaal met een bepaalde vorm erachter:
+// - Een zin of titeldeel dat begint met een signaalwoord, gevolgd door wat dan ook: "Ook over het asieldebat.", "En dan nog
+//   de stikstofwet.", "En natuurlijk het asieldebat.", "Daarnaast nog iets over asiel.", "Plus: …", "Verder over asiel en
+//   stikstof." Ook een volgorde-woord: "Eerst: … Dan: de stikstofwet.", "Daarna het asieldebat.", "Tot slot …". Een zin die
+//   naar de uitgever verwijst ("Of lees hier …", PROMO) telt niet.
+// - "ook" midden in de zin als het een tweede onderwerp inleidt: "Het gaat ook over het asieldebat", "ook nog", "ook
+//   aandacht voor", "bespreken ook". Een gewone "ook" ("is ook het Belastingplan aangenomen", "praat ook dit weekend
+//   verder") niet; "daarna", "vervolgens" en "tot slot" tellen overal in de zin.
+// - Een lijst: regels die beginnen met een streepje, bolletje of nummer, een bolletje waar dan ook, een dubbele punt met
+//   twee of meer regels erna, of een dubbele punt met een korte opsomming ("Met: het asieldebat, de stikstofwet.").
+// - Een telling ("Twee: het asieldebat.", "Ten eerste …") en een opsomming met puntkomma's.
+// - In de titel: twee of meer delen rond | / & + ; · • een komma, een streep met spaties, "en" of "and"
+//   ("Kabinetscrisis | asiel", "Kabinetscrisis & asiel", "Kabinet-Jetten en de stikstof"), en dezelfde zinsregels als
+//   hierboven op de zinnen van de titel ("Valt het kabinet? En wat met de stikstof?"). Een streepje binnen een woord
+//   ("Kabinet-Jetten", "slow-motion") en "of" ("Val in slowmotion of doorstart?") zijn geen tweede deel.
+// Generiek: alleen de vorm van de tekst, geen namen of onderwerpen in de code.
+const SIGNAAL_BEGIN = /^\W*(?:ook|plus|verder|daarnaast|bovendien|tevens|voorts|en|eerst|dan|daarna|vervolgens|tenslotte|ten\s+slotte|tot\s+slot|als\s+laatste|nog|natuurlijk|maar\s+ook)(?![\p{L}\d])/iu
+const OOK_MIDDEN = /\book\s+(?:over|nog|aandacht|aan\s+bod|stil|in\s+op|iets\s+over)\b|\b(?:gaat|gaan|ging|gingen|bespreken|bespreekt|bespraken|hebben\s+het|hadden\s+het|komt|komen|kwam|kwamen)\s+(?:\S+\s+){0,2}?ook\b/i
+const VOLGORDE = /\b(?:daarna|vervolgens|tot\s+slot|ten\s+slotte|tenslotte|als\s+laatste|daarnaast)\b/i
+const signaalZin = (z) => SIGNAAL_BEGIN.test(String(z || '')) || OOK_MIDDEN.test(String(z || '')) || VOLGORDE.test(String(z || ''))
 const TELLING = /^(?:(?:één|een|twee|drie|vier|vijf|zes|eerste|tweede|derde|vierde|laatste)\s*:|ten\s+(?:eerste|tweede|derde)\b|\d{1,2}\s*[:)])/i
 const puntkomma = (z) => String(z || '').split(';').filter((d) => /\p{L}{2,}/u.test(d)).length >= 2
+// Een lijst in de shownotes: streepjes, bolletjes of nummers aan het begin van een regel, een bolletje waar dan ook, of een
+// dubbele punt met twee of meer regels erna.
+const LIJST_REGEL = /(?:^|\n)\s*(?:[-–—*▪●◦]|\d{1,2}[.)])\s*\p{L}/u
+const BOLLETJE = /[•▪●◦]/
+const regelLijst = (t) => {
+  const s = String(t || '')
+  if (LIJST_REGEL.test(s) || BOLLETJE.test(s)) return true
+  const m = s.match(/:[ \t]*\n([\s\S]*)/)
+  return !!m && m[1].split('\n').filter((r) => /\p{L}{2,}/u.test(r)).length >= 2
+}
+// Een korte opsomming na een dubbele punt ("Met: het asieldebat, de stikstofwet."): twee of meer korte delen.
+const korteLijst = (z) => {
+  const i = String(z || '').indexOf(':')
+  if (i < 0) return false
+  const delen = String(z).slice(i + 1).replace(/[.!?]+\s*$/, '').split(/\s*,\s*|\s+(?:en|and|&)\s+/).filter((d) => /\p{L}{2,}/u.test(d))
+  return delen.length >= 2 && delen.every((d) => d.trim().split(/\s+/).length <= 4)
+}
+const TITEL_DELEN = /\s*[|·•;&+/]\s*|\s+[-–—]\s+|\s*,\s*|\s+(?:en|and)\s+/i
 const titelLijst = (t) => {
-  const titel = String(t || '')
+  const titel = String(t || '').trim()
   if (!titel) return false
-  if (opsomming(titel) || puntkomma(titel)) return true
-  if (titel.split(/\s*[|·•]\s*|\s+\/\s+/).filter((d) => /\p{L}{2,}/u.test(d)).length >= 3) return true
-  return /,\s*(?:en|plus|maar\s+ook|and|&)\s+\S/i.test(titel)
+  if (titel.split(TITEL_DELEN).filter((d) => /\p{L}{2,}/u.test(d)).length >= 2) return true
+  return sentences(titel).some((z) => !PROMO.test(z) && (signaalZin(z) || TELLING.test(z) || korteLijst(z)))
 }
 export const weekOverzicht = (ep) => {
   const heel = ep.tekst || ep.samenvatting || ''
   const alles = `${ep.titel || ''}. ${heel}`
-  if (WEEK_MEER.some((re) => re.test(alles)) || WEEK_IN.test(alles) || MEER_STRENG.test(heel) || titelLijst(ep.titel)) return true
-  return sentences(heel).some((z) => !NA_OPNAME.test(z) && !PROMO.test(z) && (opsomming(z, ep.vast) || signaalZin(z) || TELLING.test(z) || puntkomma(z)))
+  if (WEEK_MEER.some((re) => re.test(alles)) || WEEK_IN.test(alles) || MEER_STRENG.test(heel) || titelLijst(ep.titel) || regelLijst(heel)) return true
+  return sentences(heel.replace(/\s*\n+\s*/g, ' ')).some((z) => !NA_OPNAME.test(z) && !PROMO.test(z) && (opsomming(z, ep.vast) || signaalZin(z) || TELLING.test(z) || puntkomma(z) || korteLijst(z)))
 }
 export function describe(ep, show = null) {
   const text = `${ep.titel || ''}. ${ep.samenvatting || ''}`
