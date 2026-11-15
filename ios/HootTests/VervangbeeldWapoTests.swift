@@ -5,7 +5,7 @@ import SwiftUI
 // Vervangbeeld (14 november, Alex: "Deze image mag er wel uit."): beeld 14 (Eclips) is uit de reeks. De Stroom
 // met beeldloze stukken van The Washington Post, dezelfde ids als tests/visual/vervangbeeld-wapo.jsx op het web:
 // die kregen tot 14 november Eclips, nu een van de zestien andere (sinds 15 november is ook Walsen uit de reeks;
-// gelijk aan het web: 3, 6, 1, 5, 3).
+// sinds 15 november dertien knipsel-beelden; gelijk aan het web: 6, 9, 11, 2, 6).
 // Stills (voor en na, 390 breed) naar Hoot-design/vervangbeeld-2026-11-14/een-beeld als die map bestaat.
 @MainActor
 final class VervangbeeldWapoTests: XCTestCase {
@@ -43,7 +43,7 @@ final class VervangbeeldWapoTests: XCTestCase {
         let ids = items.map(\.id)
         XCTAssertEqual(ids.map { oudPlan(ids)[$0]! + 1 }, [14, 6, 14, 2, 14]) // zo stond het
         let plan = Placeholder.plan(items.map { ($0, BeeldloosView.Kind.tijdlijn) })
-        XCTAssertEqual(ids.map { plan[$0]! + 1 }, [3, 6, 1, 5, 3]) // gelijk aan het web
+        XCTAssertEqual(ids.map { plan[$0]! + 1 }, [6, 9, 11, 2, 6]) // gelijk aan het web
         XCTAssertFalse(plan.values.contains { PlaceholderBeelden.uit.contains($0) })
     }
 

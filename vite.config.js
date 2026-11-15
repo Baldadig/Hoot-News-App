@@ -55,7 +55,13 @@ function securityHeaders() {
 
 export default defineConfig({
   base: '/lees/',
-  build: { outDir: 'dist/lees', emptyOutDir: true },
+  build: {
+    outDir: 'dist/lees',
+    emptyOutDir: true,
+    // De placeholderbeelden (knipsel-WebP's) nooit als data-URI in de CSS: dan laadt elke bezoeker ze allemaal
+    // vooraf. Als los bestand haalt de browser alleen op wat in beeld komt.
+    assetsInlineLimit: (file) => (file.includes('/assets/placeholder/') ? false : undefined),
+  },
   // Versienummer zichtbaar in het menu, zodat je ziet welke versie er draait.
   define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [

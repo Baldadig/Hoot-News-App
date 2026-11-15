@@ -5,8 +5,8 @@ import SwiftUI
 // anders het beeld zou staan: het stuk heeft geen beeld, het beeld is te klein voor die plek, of het laadt
 // niet. Nooit een grijs vlak. Een beeld van een ander verhaal nooit; wel (besluit Alex, 7 november) dat van een
 // andere bron over hetzelfde feit, dat de server al als `image` meegeeft (borrowImagesFromStories). Pas daarna dit.
-// Achttien beelden: tien in vijf sets en acht die elk een eigen set zijn (shared/placeholder.mjs, de tekening
-// in PlaceholderBeelden.swift): welk, volgt
+// Dertien knipsel-beelden (sinds 15 november): Zonnestand en Iris elk drie, Raster twee, en De stapel, De kop,
+// Vouw, Baan en Koepels elk een eigen set (shared/placeholder.mjs, de bitmaps in Resources/Placeholder): welk, volgt
 // uit de id van het artikel, en twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit
 // dezelfde set (Placeholder.plan, via de omgeving). Het is decoratie: verborgen voor VoiceOver.
 struct BeeldloosView: View {
@@ -47,8 +47,10 @@ struct BeeldloosView: View {
     }
 }
 
-// Beeld 1 tot 18 (index 0 tot 17), getekend op de echte maat. Het vult het vak als een foto (cover): de
-// kortste kant past, de rest valt weg, gecentreerd. Zoals de SVG's met background-size: cover op het web.
+// Beeld 1 tot 18 (index 0 tot 17; dertien bestaan): de knipsel-collage als bitmap (PlaceholderBestand). Het vult
+// het vak als een foto (cover): de kortste kant past, de rest valt weg, gecentreerd. Zoals de WebP's met
+// background-size: cover op het web. Het vak heeft zijn eigen maat, dus er verspringt niets; tot het beeld er is
+// (of als het ontbreekt) staat er het papier van de weergave.
 struct PlaceholderBeeld: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.nachtActief) private var nacht
@@ -58,57 +60,38 @@ struct PlaceholderBeeld: View {
     private var theme: String { scheme == .dark ? (nacht ? "nacht" : "donker") : "licht" }
 
     var body: some View {
-        let beeld = PlaceholderBeelden.beelden[index % PlaceholderBeelden.beelden.count]
-        let t = (klein ? beeld.klein : nil) ?? beeld.groot
-        let kleuren = PlaceholderBeelden.palettes[beeld.familie]?[theme] ?? [:]
-        Canvas { ctx, size in
-            func kleur(_ rol: String?) -> Color { Color(hex: rol.flatMap { kleuren[$0] } ?? 0) }
-            let s = max(size.width / t.w, size.height / t.h)
-            let ox = (size.width - t.w * s) / 2, oy = (size.height - t.h * s) / 2
-            func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: ox + x * s, y: oy + y * s) }
-            ctx.fill(Path(CGRect(origin: .zero, size: size)), with: .color(kleur("bg")))
-            for v in t.vormen {
-                ctx.drawLayer { layer in
-                    if v.clip, let clipY = t.clipY { layer.clip(to: Path(CGRect(x: ox, y: oy, width: t.w * s, height: clipY * s))) }
-                    switch v.soort {
-                    case .rect:
-                        let o = p(v.a, v.b)
-                        layer.fill(Path(CGRect(x: o.x, y: o.y, width: max(1, v.c * s), height: max(1, v.d * s))), with: .color(kleur(v.fill)))
-                    case .line:
-                        var path = Path()
-                        path.move(to: p(v.a, v.b))
-                        path.addLine(to: p(v.c, v.d))
-                        layer.stroke(path, with: .color(kleur(v.stroke)), lineWidth: v.fixed ? 1 : v.sw * s)
-                    case .circle:
-                        let c = p(v.a, v.b), r = v.c * s
-                        let circle = Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: 2 * r, height: 2 * r))
-                        if v.fill != nil { layer.fill(circle, with: .color(kleur(v.fill))) }
-                        if v.stroke != nil { layer.stroke(circle, with: .color(kleur(v.stroke)), lineWidth: v.fixed ? 1 : v.sw * s) }
-                    }
+        Rectangle()
+            .fill(Theme.paper)
+            .overlay {
+                if let image = PlaceholderBestand.beeld(index, thema: theme, klein: klein) {
+                    Image(decorative: image, scale: 1)
+                        .resizable()
+                        .interpolation(.high)
+                        .scaledToFill()
                 }
             }
-        }
-        .accessibilityHidden(true)
+            .clipped()
+            .accessibilityHidden(true)
     }
 }
 
 // De keuze, gelijk aan shared/placeholder.mjs (tests/fixtures/placeholder.json draait op beide).
 enum Placeholder {
-    static let count = 18
-    // Doorschuiven: drie verder valt altijd in een andere set (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9
-    // · De kop, Vouw, Baan, Eclips, Walsen (die twee uit de reeks), Zetsel, De rij en Koepels elk een eigen set, 10–17).
+    static let count = PlaceholderBeelden.count // 18 plekken in de hash, vijf leeg (weg uit het product)
+    // Doorschuiven: drie verder; komt dat op een lege plek of in dezelfde set, dan nog eens drie. Sets: zon 0–2 ·
+    // iris 3–5 · raster 7–8 · stapel 9 · De kop, Vouw, Baan en Koepels (10, 11, 12, 17) elk een eigen set.
     static let shift = 3
-    // De set van beeld k: zon, iris, lijn, raster, stapel of een van de acht eenlingen.
-    static func set(_ k: Int) -> String { PlaceholderBeelden.beelden[k].familie }
+    // De set van beeld k (nil: weg uit het product).
+    static func set(_ k: Int) -> String? { PlaceholderBeelden.familie[k] }
     // FNV-1a (32 bit) over de UTF-8-bytes van de id.
     static func fnv1a(_ s: String) -> UInt32 {
         var h: UInt32 = 0x811c9dc5
         for b in s.utf8 { h ^= UInt32(b); h = h &* 0x01000193 }
         return h
     }
-    // Het beeld op zich: hash mod 18, maar nooit een beeld dat uit de reeks is (beeld 14, Eclips, sinds 14 november;
-    // beeld 15, Walsen, sinds 15 november): dan kiest (hash / 18) mod 16 een van de zestien andere. Elk stuk met een
-    // van die zestien houdt zijn beeld.
+    // Het beeld op zich: hash mod 18, maar nooit een beeld dat weg is (7 Horizonlijnen, 14 Eclips, 15 Walsen,
+    // 16 Zetsel en 17 De rij): dan kiest (hash / 18) mod 13 een van de dertien. Elk stuk met een van de dertien
+    // houdt zijn beeld.
     static func base(_ id: String) -> Int { PlaceholderBeelden.index(hash: fnv1a(id)) }
     // Een lijst van boven naar onder: zit het beeld in dezelfde set als dat van de beeldloze rij erboven,
     // dan schuift het drie door, naar een andere set. Een rij met beeld breekt de reeks.
@@ -119,7 +102,7 @@ enum Placeholder {
             guard r.bare else { prev = nil; continue }
             var k = base(r.id)
             if let prev, set(k) == set(prev) {
-                // Doorschuiven; komt dat op een beeld uit de reeks (De kop → Eclips, Vouw → Walsen), dan nog eens drie.
+                // Doorschuiven; komt dat op een lege plek (De kop → Eclips, Vouw → Walsen, Iris → Horizonlijnen), dan nog eens drie.
                 repeat { k = (k + shift) % count } while PlaceholderBeelden.uit.contains(k) || set(k) == set(prev)
             }
             out[r.id] = k

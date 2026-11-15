@@ -66,7 +66,7 @@
 				"Resources/Fonts/SchibstedGrotesk-600.ttf",
 				"Resources/Fonts/SchibstedGrotesk-800.ttf",
 				Views/PlaceholderBeelden.swift,
-				Views/PlaceholderVormen.swift,
+				Views/PlaceholderBestand.swift,
 			);
 			target = A10000000000000000000104 /* HootWidgetExtension */;
 		};
