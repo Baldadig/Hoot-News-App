@@ -357,7 +357,7 @@ test('de tijd van het oordeel: de ronde vraagt niets en zet de vragen in de wach
   assert.equal(kv.get(OORDEEL_KEY), undefined, 'geen poging en geen kosten bewaard')
   // De ronde in build.mjs zet de wachtrij aan en geeft de start mee.
   const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
-  assert.match(build, /luisterRonde\(\{[^\n]*start: roundStart, wachtrij: true \}\)/)
+  assert.match(build, /luisterRonde\(\{[^\n]*start: roundStart, wachtrij: true(, ids: zoekIds)? \}\)/)
 })
 
 test('de tijd van het oordeel: de eigen functie stelt de vragen met ruim meer tijd dan 8 s per aanroep, en de volgende ronde koppelt', async () => {
