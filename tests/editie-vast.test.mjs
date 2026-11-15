@@ -121,22 +121,29 @@ test('app 1.2.1 met keuzes die het web al in de nieuwe indeling in je account ze
   assert.equal(pg.writes().length, 1)
 })
 
-test('echt andere interesses of bronnen: wel een nieuwe Editie (zoals altijd)', async () => {
-  const pg = fakePostgrest([{ user_id: UID, edition: null }])
+test('echt andere interesses of bronnen: wel een nieuwe Editie, als die keuze in je account staat (Editie stabiel)', async () => {
+  // Je instellingen in je account zoals de sync ze wegschrijft (uit wat je niet volgt, aan wat optioneel is).
+  const news = snap.sources.filter((s) => s.kind !== 'sociaal')
+  const prefsFor = (followed, choice) => ({ muted: news.filter((s) => !s.optional && !followed.includes(s.id)).map((s) => s.id), enabled: news.filter((s) => s.optional && followed.includes(s.id)).map((s) => s.id), favorites: base.favorites, ...choice })
+  const pg = fakePostgrest([{ user_id: UID, edition: null, prefs: prefsFor(base.followed, OLD) }])
   const d = deps(pg)
   const a = await ask(d, web())
-  // Cultuur weg op het web.
-  const b = await ask(d, web({ interests: NEW.interests.filter((i) => i !== 'cultuur'), topics: NEW.topics.filter((t) => !['muziek', 'film', 'boeken', 'kunst', 'media', 'games'].includes(t)) }))
+  // Cultuur weg op het web, en dat staat in je account.
+  const less = { interests: NEW.interests.filter((i) => i !== 'cultuur'), topics: NEW.topics.filter((t) => !['muziek', 'film', 'boeken', 'kunst', 'media', 'games'].includes(t)) }
+  pg.table[0].prefs = prefsFor(base.followed, { ...less, rubrieken: RUBRIEKEN })
+  const b = await ask(d, web(less))
   assert.equal(b.source, 'claimed')
   assert.notEqual(b.edition.basis, a.edition.basis)
-  // Daarna vraagt app 1.2.1 nog met de oude keuze (nog niet bijgewerkt): die past niet meer, dus opnieuw.
+  // Daarna vraagt app 1.2.1 nog met de oude keuze (nog niet opgehaald): die schrijft er niet meer overheen.
   const c = await ask(d, app121())
-  assert.equal(c.source, 'claimed')
-  // Een bron minder op de iPhone: ook een andere Editie.
+  assert.equal(c.source, 'account')
+  assert.equal(content(c.edition), content(b.edition))
+  // Een bron minder op de iPhone, en dat staat in je account: een andere Editie.
+  pg.table[0].prefs = prefsFor(base.followed.slice(1), OLD)
   const e = await ask(d, app121({ followed: base.followed.slice(1) }))
   assert.equal(e.source, 'claimed')
-  assert.equal(d.composes, 4)
-  assert.equal(pg.writes().length, 4)
+  assert.equal(d.composes, 3)
+  assert.equal(pg.writes().length, 3)
 })
 
 test('het web legt zijn samenvatting vast op de rij, ook als die de afdruk van app 1.2.1 draagt', async () => {

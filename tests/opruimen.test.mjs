@@ -43,7 +43,7 @@ test('andere voorvoegsels blijven staan en worden niet eens opgevraagd', async (
   const gevraagd = []
   const list = async (p) => { gevraagd.push(p); return n.list(p) }
   await opruimen({ now: NOW, list, remove: n.remove, log: n.log })
-  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'brief-quota-', 'tel:', 'filter-ai:'])
+  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'pe-member:', 'brief-quota-', 'tel:', 'filter-ai:'])
   for (const k of andere) assert.ok(n.s.has(k), k)
   assert.equal(n.s.size, andere.length)
 })
@@ -123,4 +123,16 @@ test('filter-ai: oordelen van de Editiefilter-AI blijven 7 dagen, daarna weg; ee
   assert.equal(r.perVoorvoegsel['filter-ai:'].overgeslagen, 2)
   // Geen ander voorvoegsel raakt een filter-ai-sleutel, en filter-ai raakt geen pe-sleutel.
   assert.equal(expired('filter-ai:', `pe:${rev}:2026-11-01-ochtend:${H('a')}`, { slotNow: 1e9, dayNow: 1e9 }), null)
+})
+
+test('Editie stabiel: pe-sleutels zonder revisie en de kopie als lid (pe-member) volgen dezelfde regel', async () => {
+  const oud = [`pe:2026-11-10-avond:${H('a')}`, `pe-member:${H('d')}:2026-11-10-middag`]
+  const houd = [`pe:2026-11-11-middag:${H('a')}`, `pe-member:${H('d')}:2026-11-11-ochtend`, `pe-member:${H('d')}:2026-11-11-middag`, `pe:${rev}:2026-11-11-middag:${H('b')}`]
+  const raar = ['pe-member:kort:2026-11-01-ochtend', `pe-member:${H('d')}:2026-11-01-nacht`]
+  const n = nepStore([...oud, ...houd, ...raar])
+  const r = await opruimen({ now: NOW, list: n.list, remove: n.remove, log: n.log })
+  for (const k of oud) assert.ok(!n.s.has(k), k)
+  for (const k of [...houd, ...raar]) assert.ok(n.s.has(k), k)
+  assert.equal(r.verwijderd, 2)
+  assert.equal(r.overgeslagen, 2)
 })
