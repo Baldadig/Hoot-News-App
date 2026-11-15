@@ -37,6 +37,22 @@ const LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/
 const LABEL = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i
 const AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i
 
+// Een programmalabel achteraan (15 november 2026): het laatste stuk van de kop, na een | of een streep met spaties eromheen
+// (gedachtestreep of koppelteken), is een programmawoord voor luisteren of kijken, alleen of met een korte aanvulling: een voorzetsel met één of
+// twee woorden ("| Luisterverhaal op zondag", "| Video van de dag") of een afleveringsnummer ("– Podcast 12"). Aanleiding:
+// "Als AI de journalistiek binnendringt | Luisterverhaal op zondag" van NRC, een aflevering van NRC Vandaag onder /nieuws/,
+// stond als plek 04 in de Editie. Het is een label, geen inhoud: "Spotify koopt podcastbedrijf | Tech", "Brand |
+// Video toont chaos", "Kabinet valt – Luister naar de Kamer" en een woord ergens in de kop tellen niet. Een dubbele punt
+// telt hier niet als scheidingsteken: daarachter staat in echte feeds inhoud ("…: best podcasts of the week").
+// Gedeeld door server en toestel; 'podcast' | 'video' | null.
+const TAIL_AUDIO = new Set(['podcast', 'podcasts', 'luisterverhaal', 'luisterstuk', 'luister', 'listen', 'audio'])
+const TAIL_LABEL = /\p{L}.*?(?:\s*\|\s*|\s[–—-]\s+)(podcasts?|luisterverhaal|luisterstuk|luister|listen|audio|video|kijk|watch)(?:\s+(?:op|van|bij|met|uit|in|voor|of|on|from|with|for)(?:\s+[^\s|–—]+){1,2}|\s+(?:aflevering|episode|ep\.?)\s*#?\d+|\s+#?\d+)?\s*$/iu
+export function labelAchteraan(title) {
+  const m = TAIL_LABEL.exec(String(title || '').replace(/\s+/g, ' ').trim())
+  if (!m) return null
+  return TAIL_AUDIO.has(m[1].toLowerCase()) ? 'podcast' : 'video'
+}
+
 // De padsegmenten vóór de slug (het laatste segment), in kleine letters.
 export function rubricSegments(url) {
   // Zonder URL-object: JavaScriptCore op het toestel heeft er geen, en zo rekenen web en app gelijk.
@@ -98,7 +114,8 @@ export function hardMark(item = {}) {
 
 // Een aflevering om te luisteren (dubbelcheck 14 november, A3): de feed markeert hem (hoofdcategorie Podcast, een
 // audio-enclosure, een iTunes-afleveringsnummer), de link staat in een podcastrubriek van de uitgever (/podcast/,
-// /luister/, een segment vóór de slug) of de kop begint met een luisterlabel ("Podcast:", "Luister |"). Zo'n stuk is
+// /luister/, een segment vóór de slug) of de kop begint met een luisterlabel ("Podcast:", "Luister |") of eindigt op
+// een programmalabel om te luisteren ("| Luisterverhaal op zondag", labelAchteraan). Zo'n stuk is
 // nooit de kop van een plek in de Editie, ook niet met een eigen intro: het mag wel als lid bij een verhaal (Vergelijken).
 // Een plek met alleen afleveringen valt weg. Dit is strenger dan hardMark (dat weert het stuk helemaal), want hier blijft
 // het stuk in de Editie, alleen niet bovenaan.
@@ -114,7 +131,7 @@ export function audioEpisode(item = {}) {
   if (/^audio\//i.test(String(item.mediaType || ''))) return true
   if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true
   if (rubricSegments(item.url).some((s) => AUDIO_EPISODE_DIR.has(s))) return true
-  return AUDIO_LABEL.test(String(item.title || '')) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || ''))
+  return AUDIO_LABEL.test(String(item.title || '')) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || '')) || labelAchteraan(item.title) === 'podcast'
 }
 
 // Eén toelating voor alle Editieroutes. Daarbij ook geen beschouwing en geen kop zonder nieuws, op vorm en kop, nooit op

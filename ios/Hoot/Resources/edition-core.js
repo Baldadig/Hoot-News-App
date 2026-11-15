@@ -2722,6 +2722,13 @@ var HootCore = (() => {
   var LANG_SEGMENT = /^(?:nl|en|de|fr|es|it|pt|be|uk|us|eu|intl)(?:-[a-z]{2})?$/i;
   var LABEL4 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
   var AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i;
+  var TAIL_AUDIO = /* @__PURE__ */ new Set(["podcast", "podcasts", "luisterverhaal", "luisterstuk", "luister", "listen", "audio"]);
+  var TAIL_LABEL = /\p{L}.*?(?:\s*\|\s*|\s[–—-]\s+)(podcasts?|luisterverhaal|luisterstuk|luister|listen|audio|video|kijk|watch)(?:\s+(?:op|van|bij|met|uit|in|voor|of|on|from|with|for)(?:\s+[^\s|–—]+){1,2}|\s+(?:aflevering|episode|ep\.?)\s*#?\d+|\s+#?\d+)?\s*$/iu;
+  function labelAchteraan(title) {
+    const m = TAIL_LABEL.exec(String(title || "").replace(/\s+/g, " ").trim());
+    if (!m) return null;
+    return TAIL_AUDIO.has(m[1].toLowerCase()) ? "podcast" : "video";
+  }
   function rubricSegments(url) {
     const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
     if (!m) return [];
@@ -2771,7 +2778,7 @@ var HootCore = (() => {
     if (/^audio\//i.test(String(item.mediaType || ""))) return true;
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true;
     if (rubricSegments(item.url).some((s) => AUDIO_EPISODE_DIR.has(s))) return true;
-    return AUDIO_LABEL.test(String(item.title || "")) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || ""));
+    return AUDIO_LABEL.test(String(item.title || "")) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || "")) || labelAchteraan(item.title) === "podcast";
   }
   var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null || isRecensie(item) || geenPlekNaarVorm(item));
 
@@ -2796,6 +2803,8 @@ var HootCore = (() => {
     if (label2 === "podcast" || label2 === "luister" || label2 === "listen") return "podcast";
     if (label2 === "video" || label2 === "kijk" || label2 === "watch") return "video";
     if (TAIL.test(title)) return "podcast";
+    const achteraan = labelAchteraan(title);
+    if (achteraan) return achteraan;
     return null;
   }
   var isAflevering = (item) => afleveringSoort(item) !== null;
