@@ -7,7 +7,8 @@ import { Switch } from './Sources.jsx'
 import { AccountSettings, Avatar, accountName } from '../components/Account.jsx'
 import { PLACES, NO_WEATHER } from '../lib/weather.js'
 import { vakByDomain } from '../../shared/vak.mjs'
-import { offeredFields, allChosen, chooseAll } from '../lib/selection-index.js'
+import { telGekozen } from '../lib/tel.js'
+import { offeredFields, pickDomains, canChoose, VAK_MAX_TEKST, ENGELS, englishOn, followsEnglish } from '../lib/selection-index.js'
 import { topicById } from '../lib/topics.js'
 import { CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { supplyOf, profileOf, profileSummary } from '../../shared/editor.mjs'
@@ -208,35 +209,43 @@ function StroomBlad() {
   )
 }
 
-// Selectie: de onderwerpen per domein, zoals in de app (DigestFieldsList). Alle onderwerpen in één keer
-// aan of uit (de oude schakelaar Selectie) staat bovenaan. Een onderwerp dat nog niet in de weekbundel zit, staat
-// er niet tot de bundel het heeft (offersField, "Tot dan verbergen."), en telt ook bij Alle onderwerpen niet mee.
+// Selectie: de onderwerpen per domein, zoals in de app (DigestFieldsList). Bovenaan de taal: "Ook Engelstalige stukken"
+// (besluit 15 november; zonder eigen keuze aan als je een Engelse bron volgt). Alles in één keer kiezen kan niet meer: je kiest er
+// hooguit acht (VAK_MAX); wie al meer volgt houdt ze, maar kiest er geen bij. Een onderwerp dat nog niet in de weekbundel
+// zit, staat er niet tot de bundel het heeft (offersField, "Tot dan verbergen."); een onderwerp uit de keuze (inKeuze)
+// alleen voor wie het al volgt.
 function SelectieBlad({ digest = null }) {
-  const { prefs, setPref } = useHoot()
+  const { prefs, setPref, sourcesById, muted } = useHoot()
   const chosen = prefs.vak
   const order = vakByDomain().flatMap((d) => d.fields.map((f) => f.id))
-  const offered = offeredFields(order, digest)
-  const toggle = (id, on) => setPref('vak', on ? order.filter((f) => f === id || chosen.includes(f)) : chosen.filter((f) => f !== id))
+  const counted = offeredFields(chosen, digest)
+  const english = englishOn(prefs.vakEngels, followsEnglish([...(sourcesById?.values?.() || [])], muted))
+  // Elk nieuw gekozen onderwerp telt als totaal (telGekozen; uit tot de privacyzin er is).
+  const toggle = (id, on) => {
+    const next = on ? order.filter((f) => f === id || chosen.includes(f)) : chosen.filter((f) => f !== id)
+    telGekozen(chosen, next)
+    setPref('vak', next)
+  }
   return (
     <>
       <div className="rows dset__group">
-        <Row label="Alle onderwerpen">
-          <Switch checked={allChosen(chosen, offered)} onChange={(v) => setPref('vak', chooseAll(v, order, chosen, offered))} label="Alle onderwerpen" />
+        <Row label={ENGELS}>
+          <Switch checked={english} onChange={(v) => setPref('vakEngels', v)} label={ENGELS} />
         </Row>
       </div>
-      {vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length).map((d) => (
+      {pickDomains(vakByDomain(), digest, chosen).map((d) => (
         <div key={d.id}>
           <h2 className="sect sect--plain">{d.label}</h2>
           <div className="rows">
             {d.fields.map((f) => (
               <Row key={f.id} label={f.label}>
-                <Switch checked={chosen.includes(f.id)} onChange={(v) => toggle(f.id, v)} label={f.label} />
+                <Switch checked={chosen.includes(f.id)} disabled={!canChoose(counted, f.id)} onChange={(v) => toggle(f.id, v)} label={f.label} />
               </Row>
             ))}
           </div>
         </div>
       ))}
-      <p className="hint setfoot">Elke maandag drie stukken per onderwerp.</p>
+      <p className="hint setfoot">Elke maandag drie stukken per onderwerp. {VAK_MAX_TEKST}</p>
     </>
   )
 }

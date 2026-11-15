@@ -241,4 +241,5 @@ export const KEYS = {
   vak: 'vak-digest-v1', // de Vakweek die nu geldt
   vakSince: 'vak-since-v1', // sinds wanneer we de vakbronnen verzamelen
   vakHealth: 'vak-health-v1', // per vakbron: wanneer hij het laatst werkte en zijn nieuwste stuk
+  vakPrevious: 'vak-previous-v1', // per onderwerp de bronnen uit de top van vorige week (rouleren, keuzeregel 15 november)
 }

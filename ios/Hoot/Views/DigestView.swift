@@ -26,8 +26,14 @@ struct DigestView: View {
     }
     private var chosen: [DigestField] {
         let offered = Dictionary((store.digest?.fields ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        // De taal (besluit 15 november): met "Ook Engelstalige stukken" uit vallen de Engelse stukken weg; een onderwerp
+        // toont dan minder dan drie. Gelijk aan inLanguage in src/lib/selection-index.js.
+        let engels = store.selectieEngels
         return Self.fields.filter { store.digestFields.contains($0.id) }.map { f in
-            offered[f.id] ?? DigestField(id: f.id, label: f.label, top: [], more: [])
+            var field = offered[f.id] ?? DigestField(id: f.id, label: f.label, top: [], more: [])
+            field.top = SelectionOverview.inLanguage(field.top, english: engels)
+            field.more = SelectionOverview.inLanguage(field.more, english: engels)
+            return field
         }
     }
     private var overview: SelectionOverview { SelectionOverview(chosen, offered: Set((store.digest?.fields ?? []).map(\.id))) }
@@ -168,7 +174,7 @@ struct DigestView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(SelectionOverview.choose).uitleg().foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
             ForEach(DigestFieldsList.domains, id: \.label) { d in
-                let fields = d.fields.filter { store.offersField($0.id) }
+                let fields = d.fields.filter { store.offersField($0.id) && DigestFieldsList.inKeuze($0.id, chosen: []) }
                 if !fields.isEmpty {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         GroupTitle(text: d.label)
@@ -177,12 +183,17 @@ struct DigestView: View {
                                 ChoiceChip(label: f.label, on: draft.contains(f.id)) {
                                     draft = draft.contains(f.id) ? draft.filter { $0 != f.id } : draft + [f.id]
                                 }
+                                .disabled(!SelectionOverview.canChoose(draft, f.id))
                             }
                         }
                     }
                     .padding(.top, Space.s5)
                     .disabled(!preferencesReady)
                 }
+            }
+            if draft.count >= SelectionOverview.max {
+                Text(SelectionOverview.maxTekst).uitleg().foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, Space.s5)
             }
             Button {
                 let keuze = Set(draft)
@@ -331,6 +342,15 @@ struct SelectionOverview {
     static let choose = "Elke maandag drie stukken over je werk of hobby. Kies waarover."
     // De knop onder de lege Selectie (gelijk aan bewaarLabel in src/lib/selection-index.js).
     static func bewaarLabel(_ n: Int) -> String { n == 0 ? "Kies een onderwerp" : n == 1 ? "Bewaar 1 onderwerp" : "Bewaar \(n) onderwerpen" }
+    // De maat (besluit 15 november): hooguit acht onderwerpen; wie al meer volgt houdt ze, maar kiest er geen bij.
+    // Gelijk aan VAK_MAX, VAK_MAX_TEKST en canChoose in src/lib/selection-index.js.
+    static let max = 8
+    static let maxTekst = "Kies er hooguit acht. Dan lees je het ook uit."
+    static func canChoose(_ chosen: [String], _ id: String) -> Bool { chosen.contains(id) || chosen.count < max }
+    // De taal (besluit 15 november): gelijk aan ENGELS, englishOn en inLanguage in src/lib/selection-index.js.
+    static let engels = "Ook Engelstalige stukken"
+    static func englishOn(_ pref: Bool?, followsEnglish: Bool) -> Bool { pref ?? followsEnglish }
+    static func inLanguage(_ items: [DigestItem], english: Bool) -> [DigestItem] { english ? items : items.filter { $0.lang != "en" } }
     // Het voorproefje bij een lege Selectie (gelijk aan voorproefje() in src/lib/selection-index.js): per domein
     // (de vaste volgorde van shared/vak.mjs) het eerste onderwerp met stukken, hooguit `max`, met zijn beste stuk.
     static let voorproef = "Zo ziet het eruit: per onderwerp een stuk uit de Selectie van deze week."
@@ -338,7 +358,7 @@ struct SelectionOverview {
         let byId = Dictionary((digest?.fields ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         var out: [(id: String, label: String, item: DigestItem)] = []
         for d in DigestFieldsList.domains {
-            if let f = d.fields.lazy.compactMap({ byId[$0.id] }).first(where: { !$0.top.isEmpty }), let top = f.top.first {
+            if let f = d.fields.lazy.filter({ !DigestFieldsList.uitKeuze.contains($0.id) }).compactMap({ byId[$0.id] }).first(where: { !$0.top.isEmpty }), let top = f.top.first {
                 out.append((f.id, f.label, top))
             }
             if out.count >= max { break }

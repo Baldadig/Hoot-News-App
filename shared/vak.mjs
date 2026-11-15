@@ -59,9 +59,15 @@ export const VAK_FIELDS = [
   { id: 'geek', domain: 'cultuur', label: 'Geekcultuur', about: 'Sciencefiction, fantasy, strips, bordspellen en internetcultuur' },
   { id: 'eten', domain: 'cultuur', label: 'Eten & drinken', about: 'Koken, restaurants, wijn en de foodwereld' },
   { id: 'reizen', domain: 'cultuur', label: 'Reizen', about: 'Bestemmingen, reisverhalen en de reiswereld' },
-  { id: 'sport', domain: 'cultuur', label: 'Sport', about: 'Achtergrond en analyse, niet alleen de uitslag' },
-  { id: 'geschiedenis', domain: 'cultuur', label: 'Geschiedenis', about: 'Verhalen uit het verleden en nieuw historisch onderzoek' },
+  // Sport en Geschiedenis staan niet meer in de keuze (`uitKeuze`, besluit 15 november, Selectie-review punt 7): te
+  // weinig bronnen voor drie goede stukken (Sport 6, Geschiedenis 3). Wie ze al volgt, houdt ze; de server stelt ze
+  // gewoon samen. Terugzetten: haal `uitKeuze` weg (en in DigestFieldsList.uitKeuze in de app).
+  { id: 'sport', domain: 'cultuur', label: 'Sport', about: 'Achtergrond en analyse, niet alleen de uitslag', uitKeuze: true },
+  { id: 'geschiedenis', domain: 'cultuur', label: 'Geschiedenis', about: 'Verhalen uit het verleden en nieuw historisch onderzoek', uitKeuze: true },
 ]
+// Een onderwerp dat uit de keuze is, staat er alleen nog voor wie het al volgt.
+export const inKeuze = (f, chosen = []) => !f.uitKeuze || chosen.includes(f.id)
+export const VAK_UIT_KEUZE = VAK_FIELDS.filter((f) => f.uitKeuze).map((f) => f.id)
 export const VAK_FIELD_IDS = VAK_FIELDS.map((f) => f.id)
 // Per domein zijn onderwerpen, in de volgorde hierboven.
 export const vakByDomain = (fields = VAK_FIELDS) => VAK_DOMAINS.map((d) => ({ ...d, fields: fields.filter((f) => f.domain === d.id) })).filter((d) => d.fields.length)

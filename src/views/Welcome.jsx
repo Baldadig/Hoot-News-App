@@ -6,7 +6,8 @@ import { BrandLogo, useBrandBar } from '../components/Brand.jsx'
 import SunArt from '../components/SunArt.jsx'
 import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
-import { offeredFields } from '../lib/selection-index.js'
+import { offeredFields, pickDomains, canChoose } from '../lib/selection-index.js'
+import { telGekozen } from '../lib/tel.js'
 import { voorstel } from '../../shared/voorstel.mjs'
 import { INTERESTS, OPT_IN, resolveTopics, topicById } from '../lib/topics.js'
 import { sourcesOn, pickedFrom, withOptIn } from '../lib/welcome.js'
@@ -214,7 +215,10 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
 
   // ---- Keuzes ----
   const pickSource = (id) => setEdited(toggleFollow(mine, id))
-  const finish = (choice = {}) => onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
+  const finish = (choice = {}) => {
+    telGekozen(prefs.vak || [], choice.vak ?? vak) // nieuw gekozen Selectie-onderwerpen als totaal (uit tot de privacyzin er is)
+    onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
+  }
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
   const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable, quick: true })
 
@@ -486,7 +490,9 @@ function SourceRow({ s, on, pick = false, why = null, onPick }) {
 // welkom vraagt de lege Selectie het zelf (Vak.jsx). Gelijk aan WelcomeView.swift.
 function Interesses({ head, interests, onInterest, optIn = [], onOptIn, vak, onVak, open, setOpen, digest = null, selectie = false }) {
   // Alleen onderwerpen die in de weekbundel zitten (offersField, "Tot dan verbergen."), zoals het welkom in de app.
-  const domains = useMemo(() => vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length), [digest])
+  // Zonder wat uit de keuze is (Sport, Geschiedenis; wie het al volgt ziet het nog), en hooguit acht (besluit 15 november).
+  const domains = useMemo(() => pickDomains(vakByDomain(), digest, vak), [digest, vak])
+  const counted = offeredFields(vak, digest)
   return (
     <>
       <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
@@ -530,7 +536,7 @@ function Interesses({ head, interests, onInterest, optIn = [], onOptIn, vak, onV
           {domains.map((d) => (
             <ChipGroup key={d.id} label={d.label} level={2} className="ob__domain">
               {d.fields.map((f) => (
-                <button key={f.id} type="button" className="pill" aria-pressed={vak.includes(f.id)} onClick={() => onVak(f.id)}>
+                <button key={f.id} type="button" className="pill" aria-pressed={vak.includes(f.id)} disabled={!canChoose(counted, f.id)} onClick={() => onVak(f.id)}>
                   {f.label}
                 </button>
               ))}

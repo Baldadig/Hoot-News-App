@@ -74,9 +74,12 @@ test('samenstellen: drie per vak, afwisselend, bedrijfsblog alleen met bijval, m
   const d = composeVak(pool, { now, sources: SOURCES })
   const ps = d.fields.find((f) => f.id === 'paid-social')
   assert.equal(ps.top.length, 3)
-  assert.equal(ps.top[0].id, 'c') // twee vakbronnen schreven erover
-  assert.ok(!ps.top[0].why.some((w) => /vakbronnen/.test(w))) // geen telregel meer (Selectie-review, punt 3): de bron staat bij naam
-  assert.equal(ps.top[0].also[0].sourceName, 'PPC Land')
+  // Keuzeregel met drie plekken (15 november): geen verhaal met drie bronnen, dus eerst de kenner (Jon Loomer), dan de
+  // stand, waar het stuk van twee vakbronnen voorgaat.
+  assert.equal(ps.top[0].source, 'vak:jonloomer')
+  assert.equal(ps.top[1].id, 'c') // twee vakbronnen schreven erover
+  assert.ok(!ps.top[1].why.some((w) => /vakbronnen/.test(w))) // geen telregel meer (Selectie-review, punt 3): de bron staat bij naam
+  assert.equal(ps.top[1].also[0].sourceName, 'PPC Land')
   assert.ok(!ps.top.some((e) => e.id === 'e')) // Meta Newsroom zonder bijval: niet in de top
   assert.equal(ps.top.filter((e) => e.source === 'vak:jonloomer').length, 1) // hooguit één per bron
   assert.ok(![...ps.top, ...ps.more].some((e) => e.id === 'old'))

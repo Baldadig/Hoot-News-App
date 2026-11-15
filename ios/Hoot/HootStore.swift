@@ -29,6 +29,10 @@ final class HootStore {
     var muted: Set<String> { didSet { save("hoot.muted", Array(muted)); synced() } }
     var enabled: Set<String> { didSet { save("hoot.enabled", Array(enabled)); synced() } }
     var digestFields: [String] { didSet { save("hoot.digestFields", digestFields); synced() } }
+    // "Ook Engelstalige stukken" in de Selectie (besluit 15 november): true, false, of nil (aan als je een Engelse bron
+    // volgt). Gaat mee met je account, als `vakEngels` (zoals op het web).
+    var vakEngels: Bool? { didSet { save("hoot.vakEngels", vakEngels); synced() } }
+    var selectieEngels: Bool { SelectionOverview.englishOn(vakEngels, followsEnglish: followed.contains { $0.lang == "en" }) }
     // Bewaard en gelezen: in een eigen bestand (Application Support), niet in UserDefaults; gelezen
     // op volgorde, zodat we bij de grens van 2.000 de oudste vergeten en niet een willekeurige.
     private(set) var saved: [Item] { didSet { Self.write(saved, to: "saved.json"); synced() } }
@@ -173,6 +177,8 @@ final class HootStore {
         quickPending = load("hoot.quickPending") ?? false
         browsing = load("hoot.browsing") ?? false
         digestFields = load("hoot.digestFields") ?? [] // een nieuwe lezer kiest zijn vak zelf (of later)
+        let engels: Bool? = load("hoot.vakEngels")
+        vakEngels = engels
         // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
         let oldSaved: [Item]? = load("hoot.saved")
         let oldRead: [String]? = load("hoot.read")
@@ -349,6 +355,7 @@ final class HootStore {
             var muted: [String]?
             var enabled: [String]?
             var vak: [String]?
+            var vakEngels: Bool?
             var images: String?
             var layout: String?
             var theme: String?
@@ -365,12 +372,13 @@ final class HootStore {
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website (een kapotte rij valt weg, niet de hele lijst)
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, rubrieken, favorites, social, taste }
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, vakEngels, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, rubrieken, favorites, social, taste }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
                 enabled = try? c.decodeIfPresent([String].self, forKey: .enabled)
                 vak = try? c.decodeIfPresent([String].self, forKey: .vak)
+                vakEngels = try? c.decodeIfPresent(Bool.self, forKey: .vakEngels)
                 images = try? c.decodeIfPresent(String.self, forKey: .images)
                 layout = try? c.decodeIfPresent(String.self, forKey: .layout)
                 theme = try? c.decodeIfPresent(String.self, forKey: .theme)
@@ -423,6 +431,7 @@ final class HootStore {
         if let v = p?.muted, Set(v) != muted { muted = Set(v); save("hoot.muted", v) }
         if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
+        if let v = p?.vakEngels, v != vakEngels { vakEngels = v }
         if let v = p?.images, v != images, ["aan", "hoofd", "uit"].contains(v) { images = v; save("hoot.images", v) }
         if let v = p?.layout, v != layout, ["tijdlijn", "krant"].contains(v) { layout = v; save("hoot.layout", v) }
         if let v = p?.bubble, v != bubble { bubble = v; save("hoot.bubble", v) }
@@ -479,7 +488,7 @@ final class HootStore {
         let theme = ThemePreferences.read()
         return [
             "theme": theme.theme, "themeDark": theme.dark,
-            "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
+            "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "vakEngels": vakEngels.map { $0 as Any } ?? NSNull(), "images": images, "layout": layout,
             "bubble": bubble, "bluesky": bluesky, "bskyInStream": bskyInStream.sorted(), "preview": preview == 0 ? "alles" as Any : preview as Any, "regels": preview == 0 ? "alles" as Any : preview as Any,
             "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "onderwerpen": OnderwerpVersie.current, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],
@@ -642,6 +651,7 @@ final class HootStore {
         topics = []
         favorites = []
         digestFields = []
+        vakEngels = nil
         taste = Taste()
         less = []
         affinity = Affinity()

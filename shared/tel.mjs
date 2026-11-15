@@ -65,8 +65,9 @@ export function tikEvent(code) {
   return LANDING.includes(e) ? e : null
 }
 
-// Alle gebeurtenissen die nu meetellen: de zeven vaste, plus de nieuwe als de vlag aan staat.
-export const eventsFor = (nieuw = NIEUWE_TELLERS) => (nieuw ? [...EVENTS, ...NIEUW] : EVENTS)
+// Alle gebeurtenissen die nu meetellen: de zeven vaste, plus de nieuwe als de vlag aan staat. `extra`: een eigen lijst
+// achter een eigen vlag (de Selectie-onderwerpen, shared/tel-onderwerp.mjs), standaard leeg.
+export const eventsFor = (nieuw = NIEUWE_TELLERS, extra = []) => [...(nieuw ? [...EVENTS, ...NIEUW] : EVENTS), ...extra]
 export const isOnce = (e) => ONCE.includes(e) || NIEUW_ONCE.includes(e)
 
 // '?via=IG' -> 'via:ig'; een onbekend of leeg label -> 'via:anders'; geen via -> null.
@@ -97,11 +98,11 @@ export function majorMinor(v) {
 }
 
 // Strikt: een object met alleen e, d, p (v, n mogen), een bekend vocabulaire, een dagdeel van eergisteren tot morgen. Alles anders is null en wordt genegeerd (de server antwoordt toch 204). Geeft de gewone vorm terug.
-export function parseTel(body, now = new Date(), { nieuw = NIEUWE_TELLERS } = {}) {
+export function parseTel(body, now = new Date(), { nieuw = NIEUWE_TELLERS, extra = [] } = {}) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   if (Object.keys(body).some((k) => !KEYS.includes(k))) return null
   const { e, d, p, v, n } = body
-  if (!eventsFor(nieuw).includes(e) || !PLATFORMS.includes(p) || typeof d !== 'string') return null
+  if (!eventsFor(nieuw, extra).includes(e) || !PLATFORMS.includes(p) || typeof d !== 'string') return null
   const m = SLOT_ID.exec(d)
   const num = m ? dayNumber(m[1]) : null
   if (num == null) return null

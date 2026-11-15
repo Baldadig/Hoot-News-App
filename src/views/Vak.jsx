@@ -11,7 +11,9 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
 import { reduced } from '../lib/motion.js'
-import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF, offeredFields, bewaarLabel, SLOT } from '../lib/selection-index.js'
+import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF, offeredFields, bewaarLabel, SLOT, pickDomains, canChoose, VAK_MAX, VAK_MAX_TEKST, ENGELS, englishOn, followsEnglish, inLanguage } from '../lib/selection-index.js'
+import { Switch } from './Sources.jsx'
+import { telGekozen } from '../lib/tel.js'
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
@@ -146,7 +148,7 @@ function IndexRow({ kind, name, sub, big = false, expanded, flash = false, ...re
 // `onChooseTopics`: het blad Selectie uit Instellingen (Instellingen D, #/instellingen?blad=selectie). Is dat er,
 // dan opent de rij "Kies onderwerpen" in de lege Selectie dat blad; anders het eigen blad hieronder.
 export default function Vak({ active, digest, status, refreshFailed = false, onRefresh, onChooseTopics = null }) {
-  const { prefs, setPref, account, selectionReady = true } = useHoot()
+  const { prefs, setPref, account, selectionReady = true, sourcesById, muted } = useHoot()
   const ref = useRef(null)
   // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de Selectie.
   const hostRef = useRef(null)
@@ -155,7 +157,10 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
   const owner = account?.status === 'in' ? account.user.id : 'anon'
   const byId = new Map((digest?.fields || []).map(f => [f.id, f]))
   const offered = new Set(byId.keys())
-  const overview = selectionOverview(VAK_FIELDS.filter(f => chosen.includes(f.id)).map(f => ({ ...f, ...byId.get(f.id), top: byId.get(f.id)?.top || [], more: byId.get(f.id)?.more || [] })), offered)
+  // De taal (besluit 15 november): met "Ook Engelstalige stukken" uit vallen de Engelse stukken weg; een onderwerp toont
+  // dan minder dan drie (inLanguage). Gelijk aan DigestView.swift.
+  const english = englishOn(prefs.vakEngels, followsEnglish([...(sourcesById?.values?.() || [])], muted))
+  const overview = selectionOverview(VAK_FIELDS.filter(f => chosen.includes(f.id)).map(f => ({ ...f, ...byId.get(f.id), top: inLanguage(byId.get(f.id)?.top || [], english), more: inLanguage(byId.get(f.id)?.more || [], english) })), offered)
   const fields = overview.fields
   const [closed, setClosed] = useSelectionFold(owner, chosen, selectionReady)
   const [choosing, setChoosing] = useState(false)
@@ -186,7 +191,13 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
   const toggleField = id => setClosed(closed.includes(id) ? closed.filter(x => x !== id) : [...closed, id])
 
   const order = vakByDomain().flatMap((d) => d.fields.map((f) => f.id))
-  const toggle = (id) => setPref('vak', chosen.includes(id) ? chosen.filter((f) => f !== id) : order.filter((f) => f === id || chosen.includes(f)))
+  const choose = (next) => {
+    telGekozen(chosen, next) // elk nieuw gekozen onderwerp telt als totaal (uit tot de privacyzin er is)
+    setPref('vak', next)
+  }
+  const toggle = (id) => choose(chosen.includes(id) ? chosen.filter((f) => f !== id) : order.filter((f) => f === id || chosen.includes(f)))
+  // Hooguit acht onderwerpen (VAK_MAX); wie al meer volgt houdt ze, maar kiest er geen bij.
+  const counted = offeredFields(chosen, digest)
   const seen = fields.reduce((n, f) => n + (f.count || 0), 0)
   // De lege Selectie: "Kies onderwerpen" gaat naar het Selectie-blad van Instellingen als dat er is.
   const pickRow = (name, sub) => (
@@ -201,7 +212,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
   // De lege Selectie: eerst kies je hier (draft), "Bewaar" zet het in prefs.vak. Alleen wat de bundel levert.
   const [draft, setDraft] = useState([])
   useEffect(() => { if (chosen.length) setDraft([]) }, [chosen.length])
-  const domains = vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length)
+  const domains = pickDomains(vakByDomain(), digest)
   const gekozen = `${offeredFields(chosen, digest).length} gekozen` // wat de bundel niet levert, telt niet (offersField)
   const proef = chosen.length ? [] : voorproefje(vakByDomain(), digest?.fields || [])
   const how = seen > 0 ? (
@@ -222,16 +233,24 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
         {/* Kiezen: dezelfde onderwerpen als altijd, per domein, in een blad achter de laatste rij. */}
         <Dialog open={choosing} onClose={() => setChoosing(false)} labelledBy="selectie-kies-title" className="dpick">
           <DialogHeader id="selectie-kies-title" title="Onderwerpen" onClose={() => setChoosing(false)} />
-          {vakByDomain().map((d) => ({ ...d, fields: offeredFields(d.fields, digest) })).filter((d) => d.fields.length).map((d) => (
+          <div className="rows dset__group">
+            <div className="setrow">
+              <div className="setrow__text">
+                <span className="setrow__label">{ENGELS}</span>
+              </div>
+              <Switch checked={english} onChange={(v) => setPref('vakEngels', v)} label={ENGELS} />
+            </div>
+          </div>
+          {pickDomains(vakByDomain(), digest, chosen).map((d) => (
             <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
               {d.fields.map((f) => (
-                <button key={f.id} type="button" className="pill pill--sm hit" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
+                <button key={f.id} type="button" className="pill pill--sm hit" aria-pressed={chosen.includes(f.id)} disabled={!canChoose(counted, f.id)} onClick={() => toggle(f.id)}>
                   {f.label}
                 </button>
               ))}
             </ChipGroup>
           ))}
-          <p className="sheet__note">Elke maandag drie stukken per onderwerp.</p>
+          <p className="sheet__note">Elke maandag drie stukken per onderwerp. {VAK_MAX_TEKST}</p>
         </Dialog>
 
         {!chosen.length ? (
@@ -241,14 +260,15 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
             {domains.map((d) => (
               <ChipGroup key={d.id} label={d.label} className="dkies__domein">
                 {d.fields.map((f) => (
-                  <button key={f.id} type="button" className="pill" aria-pressed={draft.includes(f.id)} disabled={!selectionReady} onClick={() => setDraft((l) => (l.includes(f.id) ? l.filter((x) => x !== f.id) : [...l, f.id]))}>
+                  <button key={f.id} type="button" className="pill" aria-pressed={draft.includes(f.id)} disabled={!selectionReady || !canChoose(draft, f.id)} onClick={() => setDraft((l) => (l.includes(f.id) ? l.filter((x) => x !== f.id) : [...l, f.id]))}>
                     {f.label}
                   </button>
                 ))}
               </ChipGroup>
             ))}
+            {draft.length >= VAK_MAX ? <p className="dempty__text dkies__max">{VAK_MAX_TEKST}</p> : null}
             <div className="dkies__voet">
-              <button type="button" className="btn btn--lg dkies__knop" disabled={!draft.length || !selectionReady} onClick={() => setPref('vak', order.filter((f) => draft.includes(f)))}>
+              <button type="button" className="btn btn--lg dkies__knop" disabled={!draft.length || !selectionReady} onClick={() => choose(order.filter((f) => draft.includes(f)))}>
                 {bewaarLabel(draft.length)}
               </button>
             </div>

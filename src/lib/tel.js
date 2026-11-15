@@ -6,6 +6,7 @@
 // Wat het niet doet: niets sturen bij Do Not Track of Global Privacy Control, niets buiten productie, nooit
 // wachten of falen (sendBeacon is fire-and-forget), geen cookie, geen id.
 import { NIEUWE_TELLERS, eventsFor, isOnce, viaEvent, slotIdNow, majorMinor } from '../../shared/tel.mjs'
+import { ONDERWERP_TELLER, onderwerpExtra, nieuwGekozen } from '../../shared/tel-onderwerp.mjs'
 
 export const KEY = 'hoot:geteld' // { 'editie-open': '2026-11-11-ochtend', 'editie-einde': '…' }
 export const URL_TEL = '/api/tel'
@@ -38,8 +39,8 @@ const write = (storage, v) => {
 // De body voor één gebeurtenis, of null als er niets te sturen valt (onbekend, of dit dagdeel al geteld).
 // Markeert "geteld" in `storage` zodra hij de body teruggeeft. Zonder bruikbare opslag tellen we elke keer
 // (dan telt een toestel zonder localStorage meermaals; liever dat dan helemaal niet).
-export function plan(e, dagdeel, { storage = null, n = 1, version = null, nieuw = NIEUWE_TELLERS } = {}) {
-  if (!eventsFor(nieuw).includes(e) || typeof dagdeel !== 'string' || !dagdeel) return null
+export function plan(e, dagdeel, { storage = null, n = 1, version = null, nieuw = NIEUWE_TELLERS, extra = [] } = {}) {
+  if (!eventsFor(nieuw, extra).includes(e) || typeof dagdeel !== 'string' || !dagdeel) return null
   if (isOnce(e)) {
     const done = storage ? read(storage) : {}
     if (done[e] === dagdeel) return null
@@ -66,7 +67,7 @@ export function tel(e, dagdeel, opts = {}) {
     const nav = opts.nav ?? (typeof navigator === 'undefined' ? null : navigator)
     if (!allowed({ nav, prod: opts.prod ?? !!import.meta.env?.PROD, win: opts.win })) return false
     const version = opts.version ?? (typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : null)
-    const body = plan(e, dagdeel, { storage: opts.storage ?? localStore(), n: opts.n, version, nieuw: opts.nieuw ?? NIEUWE_TELLERS })
+    const body = plan(e, dagdeel, { storage: opts.storage ?? localStore(), n: opts.n, version, nieuw: opts.nieuw ?? NIEUWE_TELLERS, extra: opts.extra ?? [] })
     if (!body) return false
     // Een Blob van text/plain: geen preflight, sendBeacon stuurt same-origin wel de gewone cookies en referer mee; Hoot zet geen cookies, de server leest en bewaart ze niet.
     return nav.sendBeacon(opts.url || URL_TEL, new Blob([JSON.stringify(body)], { type: 'text/plain' }))
@@ -99,5 +100,20 @@ export function telVia(opts = {}) {
     return e
   } catch {
     return null
+  }
+}
+
+// De Selectie-onderwerpen (shared/tel-onderwerp.mjs, uit tot de privacyzin er is): elk nieuw gekozen onderwerp telt één
+// keer, weghalen telt niet. Met de vlag uit gebeurt hier niets. Geeft de getelde gebeurtenissen terug.
+export function telGekozen(before = [], next = [], opts = {}) {
+  try {
+    const aan = opts.onderwerp ?? ONDERWERP_TELLER
+    if (!aan) return []
+    const events = nieuwGekozen(before, next)
+    const dagdeel = opts.dagdeel || slotIdNow(opts.now)
+    for (const e of events) tel(e, dagdeel, { ...opts, extra: onderwerpExtra(aan) })
+    return events
+  } catch {
+    return []
   }
 }

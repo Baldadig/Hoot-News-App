@@ -471,19 +471,22 @@ struct DigestFieldsList: View {
         ("Cultuur & vrije tijd", [("film", "Film & series", "film"), ("muziek", "Muziek", "music.note"), ("boeken", "Boeken", "book"), ("kunst", "Kunst & musea", "photo.artframe"), ("gaming", "Games", "gamecontroller"), ("geek", "Geekcultuur", "wand.and.stars"), ("eten", "Eten & drinken", "fork.knife"), ("reizen", "Reizen", "airplane"), ("sport", "Sport", "figure.run"), ("geschiedenis", "Geschiedenis", "scroll")]),
     ]
     static let fields: [Field] = domains.flatMap(\.fields)
+    // Uit de keuze (besluit 15 november, gelijk aan `uitKeuze` in shared/vak.mjs): te weinig bronnen voor drie goede
+    // stukken. Wie ze al volgt, houdt ze en ziet ze hier nog.
+    nonisolated static let uitKeuze: Set<String> = ["sport", "geschiedenis"]
+    static func inKeuze(_ id: String, chosen: [String]) -> Bool { !uitKeuze.contains(id) || chosen.contains(id) }
 
     var body: some View {
-        let offered = Self.fields.map(\.id).filter(store.offersField)
+        // Hooguit acht (SelectionOverview.max); wat de bundel niet levert, telt niet mee. Alles in één keer kiezen kan niet meer.
+        let counted = store.digestFields.filter(store.offersField)
         Form {
-            // Alles in één keer aan of uit (zoals op het web; Instellingen D).
+            // De taal bovenaan (besluit 15 november; gelijk aan het blad Selectie op het web).
             Section {
-                Toggle(isOn: Binding(get: { !offered.isEmpty && offered.allSatisfy(store.digestFields.contains) }, set: { on in
-                    store.digestFields = on ? Self.fields.map(\.id).filter { offered.contains($0) || store.digestFields.contains($0) } : []
-                })) { Text("Alle onderwerpen") }
+                Toggle(isOn: Binding(get: { store.selectieEngels }, set: { store.vakEngels = $0 })) { Text(SelectionOverview.engels) }
             }
             .hootRows()
             ForEach(Self.domains, id: \.label) { domain in
-                let offered = domain.fields.filter { store.offersField($0.id) }
+                let offered = domain.fields.filter { store.offersField($0.id) && Self.inKeuze($0.id, chosen: store.digestFields) }
                 if !offered.isEmpty {
                     Section {
                         ForEach(offered, id: \.id) { f in
@@ -492,6 +495,7 @@ struct DigestFieldsList: View {
                             })) {
                                 FormLabel(f.label, systemImage: f.icon)
                             }
+                            .disabled(!SelectionOverview.canChoose(counted, f.id))
                         }
                     } header: {
                         FormHeader(domain.label)
@@ -500,7 +504,7 @@ struct DigestFieldsList: View {
                 }
             }
             Section {} footer: {
-                Text("Elke maandag drie stukken per onderwerp.").foregroundStyle(Theme.ink3)
+                Text("Elke maandag drie stukken per onderwerp. \(SelectionOverview.maxTekst)").foregroundStyle(Theme.ink3)
             }
         }
         .hootForm()
