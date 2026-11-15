@@ -271,7 +271,15 @@ struct LuisterKnop: View {
         .accessibilityLabel(Luister.label(a, app: store.podcastApp))
         .accessibilityAddTraits(.isLink)
         .luisterVraag($vraag, store: store)
+        .preference(key: LuisterKnopAantal.self, value: 1)
     }
+}
+
+/// Hoeveel koptelefoontjes er echt in beeld staan (alleen de gekozen variant van een ViewThatFits telt). Voor de
+/// toets dat een aflevering altijd het icoon geeft (LuisterTests).
+struct LuisterKnopAantal: PreferenceKey {
+    static let defaultValue = 0
+    static func reduce(value: inout Int, nextValue: () -> Int) { value += nextValue() }
 }
 
 /// Vergelijken › Luister: hooguit drie afleveringen, de beste eerst. Cover 44 (Radius.sm), de titel in de kopletter,

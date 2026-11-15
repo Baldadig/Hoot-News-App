@@ -690,13 +690,12 @@ struct SourceLine: View {
         }
     }
 
-    // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Eerst één regel mét koptelefoontje, dan
-    // één regel zónder (de kaart blijft even hoog; "Luister verder" staat ook in het ⋯-menu), en pas dan de bron
-    // bovenaan en de rest eronder, zoals de gewone bronregel.
+    // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Eerst één regel, en past die niet, de bron
+    // bovenaan en de rest eronder, zoals de gewone bronregel. Elke variant heeft het koptelefoontje: een aflevering
+    // geeft altijd het icoon, hoe lang de bronregel ook is (keuring podlink, 15 november).
     private var kaartBody: some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: Space.s1) { source(oneLine: true); Spacer(minLength: 8); kaartCount; luisterKnop; SaveButton(item: item); KaartMore(item: item) }
-            HStack(spacing: Space.s1) { source(oneLine: true); Spacer(minLength: 8); kaartCount; SaveButton(item: item); KaartMore(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
                 HStack(spacing: Space.s1) { kaartCount; Spacer(minLength: 0); luisterKnop; SaveButton(item: item); KaartMore(item: item) }
@@ -733,11 +732,10 @@ struct SourceLine: View {
         // Eén bronlabel, overal hetzelfde: "N bronnen ›" (minder rood, keuze B). Is de regel te smal
         // (iPhone mini, grote tekst), dan bron en tijd bovenaan en label en bewaren eronder.
         // Luister verder (melding Alex 15 november: "Graag ook icoontje in de Stroom"): het stille koptelefoontje naast
-        // bewaren, net als op de kaart. Past het niet op één regel, eerst één regel zonder (het staat ook in het menu),
-        // dan de knoppen eronder mét.
+        // bewaren, net als op de kaart. Elke variant heeft het: past de regel niet, dan gaan de knoppen eronder, mét
+        // het icoon. Nooit een variant zonder, want dan hangt het icoon af van de lengte van de bronregel.
         ViewThatFits(in: .horizontal) {
             HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; luisterKnop; SaveButton(item: item) }
-            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
                 HStack { more; Spacer(); luisterKnop; SaveButton(item: item) }

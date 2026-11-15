@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import Hoot
 
 // Luister verder (build 56): gelijk aan shared/luister-weergave.mjs en tests/luister-zichtbaar.test.mjs op het web.
@@ -129,5 +130,40 @@ import XCTest
         let vragen = ReaderHTML.luisterRij(a, app: "vragen", now: Self.now)
         XCTAssertTrue(vragen.contains(">↗</span>"), "nog niet gekozen of Altijd vragen: alleen de pijl")
         XCTAssertTrue(ReaderHTML.luisterRij(a, app: "apple", kleineApp: true, now: Self.now).contains(">↗</span>"), "grootste tekst: de naam valt weg")
+    }
+
+    // Keuring podlink (15 november): in de Stroom viel het koptelefoontje stil weg zodra "Abonnement" en "8 bronnen" samen
+    // op de regel stonden (een tweede variant zonder icoon). Een aflevering geeft altijd het icoon, op elke breedte en
+    // tekstgrootte, in de gewone bronregel en op de kaart.
+    func testAfleveringGeeftAltijdHetIcoon() {
+        let store = HootStore(defaults: UserDefaults(suiteName: "luister-icoon-\(UUID().uuidString)")!)
+        var story = Self.story
+        story.sourceCount = 8
+        var item = Item(id: "a", source: "nos", title: "Crisisoverleg", url: "https://nos.nl/")
+        item.sourceName = "NRC Handelsblad"; item.publishedAt = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-16 * 3600))
+        final class Teller { var n = 0 }
+        func heeftIcoon(kaart: Bool, width: CGFloat, size: DynamicTypeSize) -> Bool {
+            let teller = Teller()
+            let regel = SourceLine(item: item, story: story, kaart: kaart, paid: true).environment(store).environment(Reader())
+                .frame(width: width).environment(\.dynamicTypeSize, size)
+                .onPreferenceChange(LuisterKnopAantal.self) { teller.n = $0 }
+            let host = UIHostingController(rootView: NavigationStack { regel })
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 600))
+            window.rootViewController = host
+            window.makeKeyAndVisible()
+            host.view.layoutIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+            window.isHidden = true
+            return teller.n == 1
+        }
+        for kaart in [false, true] {
+            for width in [280, 320, 343, 358, 390] as [CGFloat] {
+                for size in [DynamicTypeSize.large, .xLarge, .xxLarge, .xxxLarge] {
+                    XCTAssertTrue(heeftIcoon(kaart: kaart, width: width, size: size), "kaart \(kaart), \(Int(width)) breed, \(size)")
+                }
+            }
+        }
+        store.podcastApp = "uit"
+        XCTAssertFalse(heeftIcoon(kaart: false, width: 390, size: .large), "Niet tonen: geen icoon (en de teller telt echt)")
     }
 }
