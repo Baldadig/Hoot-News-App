@@ -504,7 +504,10 @@ const VOORUIT = /\b(vooruitbli\w*|vooruitgeblikt|blik(t|ken)\s+(\S+\s+){0,3}voor
 // "opgenomen, vóór het nieuws" (met een komma), "recorded/taped … prior to" en "before the news".
 // Herstel keuring 2 van branch shows (14 november, late avond): ook "Sinds de opname van deze aflevering is …", "sinds we dit
 // opnamen", "since we recorded", "recorded … ahead of".
-const NA_OPNAME = /\bopgenomen[,;]?\s+([^\s.!?]+\s+){0,4}?(voordat|vóór|voor\s+(het|de|dat)\b)|\bnam(en)?\s+([^\s.!?]+\s+){0,5}?op[,;]?\s+(voordat|vóór|voor\s+(het|de|dat)\b)|\b(recorded|taped)[,;]?\s+([^\s.!?]+\s+){0,4}?(before|prior\s+to|ahead\s+of)\b|\bsinds\s+(de\s+|het\s+)?(opname|opnemen)\b|\bsinds\s+(we|wij)\s+([^\s.!?]+\s+){0,3}?(opnamen|opnemen|opgenomen|maakten)\b|\bsince\s+(we|i)\s+(recorded|taped)\b|\bsince\s+(this\s+(episode|conversation|interview)\s+was\s+)?(recorded|taped|recording)\b|\bbefore\s+(the\s+)?news\b|\bna\s+(het\s+)?(opnemen|opname|afronden)\b|\bkwam\s+(\S+\s+){0,3}pas\s+na\b|\bnadat\s+(we|wij)\s+(\S+\s+){0,3}(opgenomen|opnamen)\b|\b(ten tijde van|tijdens|op het moment van)\s+(de\s+|het\s+)?(opname|opnemen)\b|\bafter\s+(we\s+|this\s+episode\s+was\s+)?record(ed|ing)\b|\bat the time of recording\b/i
+// Herstel keuring 6 en 7 van branch shows (15 november): ook één of twee korte woorden tussen "op" en "voordat/voor" ("We
+// namen dit gesprek op vlak voordat …", "We namen deze aflevering vrijdagochtend op, nog voor de aankomst"). Alleen met "we",
+// "wij" of "ik" naast "namen": "Hij nam contact op, kort voordat …" is geen opname.
+const NA_OPNAME = /\bopgenomen[,;]?\s+([^\s.!?]+\s+){0,4}?(voordat|vóór|voor\s+(het|de|dat)\b)|\bnam(en)?\s+([^\s.!?]+\s+){0,5}?op[,;]?\s+(voordat|vóór|voor\s+(het|de|dat)\b)|\b(?:(?:we|wij|ik)\s+nam(?:en)?|nam(?:en)?\s+(?:we|wij|ik))\s+([^\s.!?]+\s+){0,5}?op[,;]?\s+((?:vlak|kort|nog|net|even)[,;]?\s+){1,2}(voordat|vóór|voor\s+(het|de|dat)\b)|\b(recorded|taped)[,;]?\s+([^\s.!?]+\s+){0,4}?(before|prior\s+to|ahead\s+of)\b|\bsinds\s+(de\s+|het\s+)?(opname|opnemen)\b|\bsinds\s+(we|wij)\s+([^\s.!?]+\s+){0,3}?(opnamen|opnemen|opgenomen|maakten)\b|\bsince\s+(we|i)\s+(recorded|taped)\b|\bsince\s+(this\s+(episode|conversation|interview)\s+was\s+)?(recorded|taped|recording)\b|\bbefore\s+(the\s+)?news\b|\bna\s+(het\s+)?(opnemen|opname|afronden)\b|\bkwam\s+(\S+\s+){0,3}pas\s+na\b|\bnadat\s+(we|wij)\s+(\S+\s+){0,3}(opgenomen|opnamen)\b|\b(ten tijde van|tijdens|op het moment van)\s+(de\s+|het\s+)?(opname|opnemen)\b|\bafter\s+(we\s+|this\s+episode\s+was\s+)?record(ed|ing)\b|\bat the time of recording\b/i
 // Opgenomen vóór dit nieuws, in twee zinnen (herstel keuring 3 van branch shows): de aflevering verwijst naar haar opname
 // ("Let op: deze aflevering maakten we woensdagavond", "opgenomen op dinsdag", "recorded on Wednesday") en zegt elders dat er
 // sindsdien iets gebeurde ("Inmiddels is het crisisoverleg begonnen", "Huang has since resigned"). Dan horen de zinnen met
@@ -587,8 +590,13 @@ export function judge(ep, show, story, items, sig, now) {
   const age = (now - ep.t) / H
   const { firstAt, urls, central, runs, bound, dubbel, wide } = prepOf(items, sig)
   const linked = ep.links.some((u) => urls.has(u))
+  // De centrale namen voor de voorselectie zijn dezelfde als die van het vangnet op de kop (centraleNamen: de clusternamen
+  // en de namen in minstens een kwart van de stukken; herstel keuring 7 van branch shows). Met alleen de clusternamen viel
+  // De Dag "Hoe premier Jetten zijn kabinetscrisis (mis)managet" bij het crisisverhaal van de avondkern af voordat De
+  // Redacteur haar zag: Jetten staat in 7 van de 17 stukken, maar is geen clusternaam.
+  const centraal = centraleNamen(items, sig)
   // Snel weg: geen link en geen enkele centrale naam gemeen (verreweg de meeste paren). Geen kandidaat.
-  if (!linked && !central.some((k) => es.strong.has(k))) return { af: 'geen centrale naam van het verhaal' }
+  if (!linked && ![...centraal].some((k) => es.strong.has(k))) return { af: 'geen centrale naam van het verhaal' }
   // Een samengestelde naam telt als één naam (keuring: "Jong Oranje" is geen "Frenkie de Jong"; zie boundNames).
   const has = (s, k) => !!s && s.strong.has(k) && !dubbel.has(k) && (!bound.has(k) || adjacent(s.runs, k, bound.get(k)))
   const find = grouper([...runs, ...(es.titleRuns || [])])
@@ -603,8 +611,11 @@ export function judge(ep, show, story, items, sig, now) {
   const names = [...perGroup.values()].map((ks) => ks.join(' '))
   const lead = items.find((i) => i.id === story.leadId) || items[0]
   const leadAt = Date.parse(lead?.publishedAt) || firstAt
-  // Een kandidaat (voor de proef): een artikellink, een centrale naam in de titel, of twee centrale namen.
-  const kandidaat = linked || inTitle >= 1 || shared >= 2
+  // Een kandidaat (voor het oordeel): een artikellink, een centrale naam in de titel, of twee centrale namen. Centraal in de
+  // zin van centraleNamen (zie boven); de woordregels hieronder rekenen nog met de clusternamen (shared, inTitle).
+  const kandGroups = new Map()
+  for (const k of centraal) if (has(es, k)) kandGroups.set(find(k), (kandGroups.get(find(k)) || false) || titleKeys.has(k))
+  const kandidaat = linked || [...kandGroups.values()].some(Boolean) || kandGroups.size >= 2
   // Dezelfde gebeurtenis (sameEvent): met minstens twee stukken van het verhaal, of met het enige.
   const event = items.filter((i) => sig.get(i.id) && sameEvent(es, sig.get(i.id), true)).length >= Math.min(2, items.length)
   // Dezelfde handeling in de titel van de aflevering en in een kop van het verhaal (vonnis, opstappen, …), met een naam.
@@ -621,7 +632,7 @@ export function judge(ep, show, story, items, sig, now) {
     const kopNaam = [...(lk?.strong || [])].some((k) => !BROAD.has(k) && na.strong.has(k)) || [...(lk?.weak || [])].some((k) => !BROAD.has(k) && na.weak.has(k))
     // Ook een kernwoord van de kop telt ("voordat het overleg begon" bij de kop "Crisisoverleg op landgoed begonnen").
     const kopWoord = deeltWoord(kernVan(lead?.title, lk), kernVan(ep.naOpname, na))
-    if (central.some((k) => na.strong.has(k)) || kopNaam || kopWoord) return { af: 'de aflevering zegt dat dit nieuws pas na de opname kwam', names, kandidaat: true, hard: true }
+    if ([...centraal].some((k) => na.strong.has(k)) || kopNaam || kopWoord) return { af: 'de aflevering zegt dat dit nieuws pas na de opname kwam', names, kandidaat: true, hard: true }
   }
   // Een vooruitblik is geen verdieping van de afloop (keuring: "Kolkende Kuip moet Feyenoord aan drie punten helpen" bij de
   // nasleep van de nederlaag): een aflevering die vooruitkijkt en verscheen vóór de kop van het verhaal, koppelt niet.
