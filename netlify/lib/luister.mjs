@@ -99,6 +99,13 @@
 //     model zegt bij de show "weekshow" en wat dat betekent (alleen zelfde of verdieping als de hele aflevering over dit
 //     verhaal gaat); daarom OORDEEL_KEY v6. Eén aflevering per verhaal en geen aflevering bij twee verhalen gelden
 //     onveranderd. Via een artikellink koppelt een weekshow zoals voorheen.
+//     Herstel na de keuring van branch weekshow (15 november): het weekoverzicht leest ook de titel (een opsomming, drie
+//     delen met een streep, een puntkomma, "…, en X"), een zin die begint met een signaalwoord en een onderwerp ("Ook: het
+//     asieldebat.", "En de stikstofwet.", "Plus: …"), een telling ("Twee: …"), een opsomming met puntkomma's, "tweede
+//     onderwerp" en de week als verloop ("een week vol …", "de week begon met … en eindigde met …"). Zo zijn "geen
+//     opsomming" en "geen andere onderwerpen" ook hard zonder eigen naam of werkwoord. En bij een weekshow tellen de woorden
+//     van de titel niet als bekend in andereNaam: de titel wordt zelf gelezen, zodat een titel met twee onderwerpen een andere
+//     naam in de beschrijving niet onschadelijk maakt.
 //   - Herstel na de keuring van 14 november (avond): één verhaal per vraag aan het model (nooit twee verhalen in één vraag),
 //     elke vraag twee keer en alleen twee keer een duidelijk ja koppelt; "de kop deelt de gebeurtenis" is een harde
 //     voorwaarde in het vangnet (kopDeelt), die voor een ja van het model gaat; de zinssplitser knipt niet na "Mr." en andere
@@ -570,13 +577,45 @@ const WEEK_MEER = [
   /\bweek(overzicht|terugblik|samenvatting|nieuws|journaal|update|afsluiter|analyse)\w*\b|\bweek\s*in\s*review\b/i,
   /\b(onderwerpen|thema'?s|dossiers|kwesties|hoofdpunten)\b/i,
   /\bmaar\s+ook\b|\bnaast\s+(de|het)\s+\S+\s+(ook|gaat|bespreken|hebben)\b/i,
+  // Herstel keuring van branch weekshow (15 november): ook de week als verloop. "Het was een week vol politiek nieuws",
+  // "een week waarin …", "De week begon met het asieldebat en eindigde met …", "wat een week". Een week met alleen een
+  // bijvoeglijk woord en een plaats of toestand ("deze knotsgekke week in een wervelstorm") blijft geen signaal.
+  /\b(een|de|deze|die|wat\s+een)\s+(\S+\s+)?week\s+(vol|met|waarin|waar|begon|eindigde|startte|sloot|opende|bracht|stond|draaide|kende)\b|\bweek\s+(begon|eindigde|startte|opende|sloot)\b|\bhet\s+was\s+(\S+\s+){0,2}week\b|\bwat\s+een\s+week\b|\bbegon\s+met\b[^.?!]{0,150}\beindigde\s+met\b/i,
+  // Een tweede onderwerp bij naam ("Tweede onderwerp: …", "het volgende onderwerp", "nog een kwestie").
+  /\b(tweede|derde|vierde|volgende|ander|andere|laatste|nog\s+een)\s+(onderwerp|thema|item|kwestie|dossier|punt)\b/i,
 ]
 // "de week in Den Haag", "deze week in Washington": de week in een plaats met een hoofdletter (zonder i-vlag).
 const WEEK_IN = /\b[Ww]eek\s+in\s+(?:(?:de|het|den)\s+)?\p{Lu}/u
+// Herstel keuring van branch weekshow (15 november): de vorm van een opsomming over losse zinnen en in de titel.
+// - Een zin die begint met een signaalwoord en dan een onderwerp noemt: "Ook: het asieldebat.", "Ook de stikstofwet en het
+//   asiel.", "En de stikstofwet.", "Plus: …", "Verder het asieldebat." (een dubbele punt, een lidwoord, een naam of een getal
+//   na het signaalwoord). Een zin die naar de uitgever verwijst ("Of lees hier …") telt niet.
+// - Een telling: "Twee: het asieldebat. Drie: de stikstofwet.", "Ten eerste …".
+// - Een opsomming met puntkomma's: "In deze aflevering: A; B; C."
+// - In de titel: een opsomming ("Het Belastingplan, de stikstof en de NAVO-top"), drie delen met streep of punt
+//   ("Kabinetscrisis | stikstof | NAVO-top"), een puntkomma, of een tweede onderwerp na een komma ("…, en Trump").
+// Bij een weekshow is dat bij twijfel genoeg: dan koppelt alleen een artikellink.
+const SIGNAAL_BEGIN = /^(?:en\s+ook|en\s+verder|ook|plus|verder|daarnaast|bovendien|tevens|voorts|en)(?![\p{L}\d])\s*(:)?\s*([^\s]*)/iu
+const signaalZin = (z) => {
+  const m = String(z || '').match(SIGNAAL_BEGIN)
+  if (!m) return false
+  if (m[1]) return true
+  return /^(de|het|een|’t|'t)$/i.test(m[2]) || /^\p{Lu}/u.test(m[2]) || /^\d/.test(m[2])
+}
+const TELLING = /^(?:(?:één|een|twee|drie|vier|vijf|zes|eerste|tweede|derde|vierde|laatste)\s*:|ten\s+(?:eerste|tweede|derde)\b|\d{1,2}\s*[:)])/i
+const puntkomma = (z) => String(z || '').split(';').filter((d) => /\p{L}{2,}/u.test(d)).length >= 2
+const titelLijst = (t) => {
+  const titel = String(t || '')
+  if (!titel) return false
+  if (opsomming(titel) || puntkomma(titel)) return true
+  if (titel.split(/\s*[|·•]\s*|\s+\/\s+/).filter((d) => /\p{L}{2,}/u.test(d)).length >= 3) return true
+  return /,\s*(?:en|plus|maar\s+ook|and|&)\s+\S/i.test(titel)
+}
 export const weekOverzicht = (ep) => {
   const heel = ep.tekst || ep.samenvatting || ''
   const alles = `${ep.titel || ''}. ${heel}`
-  return WEEK_MEER.some((re) => re.test(alles)) || WEEK_IN.test(alles) || MEER_STRENG.test(heel) || sentences(heel).some((z) => !NA_OPNAME.test(z) && opsomming(z, ep.vast))
+  if (WEEK_MEER.some((re) => re.test(alles)) || WEEK_IN.test(alles) || MEER_STRENG.test(heel) || titelLijst(ep.titel)) return true
+  return sentences(heel).some((z) => !NA_OPNAME.test(z) && !PROMO.test(z) && (opsomming(z, ep.vast) || signaalZin(z) || TELLING.test(z) || puntkomma(z)))
 }
 export function describe(ep, show = null) {
   const text = `${ep.titel || ''}. ${ep.samenvatting || ''}`
@@ -844,24 +883,31 @@ const gewoonWoord = (w, klein) => BEGIN.has(w) || (w.length < 5 ? klein.has(w) :
 // genormaliseerd zoals de namen van de kenmerken. Zonder host.
 const linkWoorden = (links = []) => new Set(links.flatMap((u) => norm(String(u).split('/').slice(1).join(' ')).split(/[^\p{L}\d]+/u)).filter((w) => w.length >= 2))
 const PROMO = /^\W*(?:(?:of|en)\s+)?(?:lees|luister|bekijk|abonneer|volg|meld|download|word\s+abonnee|meer\s+weten|read|listen|subscribe|follow)\b/i
+// Bij een weekshow (herstel keuring van branch weekshow, 15 november) telt de titel niet als bekend: anders maakt een titel
+// met twee onderwerpen ("Kabinet-Jetten wankelt, en Trump") het tweede onderwerp in de beschrijving onschadelijk. De titel
+// wordt dan zelf ook gelezen, zin voor zin, zoals de beschrijving, maar zonder het eerste woord van elke zin van de titel.
 function andereNaam(ep, show, items) {
+  const week = show?.soort === 'week'
   const woorden = verhaalWoorden(items)
-  const eigen = new Set(woordenVan([ep.titel, show?.naam, ...(ep.vast || [])].join(' ')))
+  const eigen = new Set(woordenVan([week ? '' : ep.titel, show?.naam, ...(ep.vast || [])].join(' ')))
   const zinnen = ep.zinTekst || []
+  const titelZinnen = week ? sentences(ep.titel) : []
   const klein = ep.klein || kleinVan([zinnen.join(' '), ...items.map((i) => `${i.title || ''} ${i.summary || ''}`)])
-  for (let k = 0; k < zinnen.length; k++) {
+  const alle = [...zinnen, ...titelZinnen]
+  for (let k = 0; k < alle.length; k++) {
     if (k === ep.onderwerpK) continue
     // Bij een weekshow is een zin die naar de uitgever verwijst ("Lees al onze verhalen over de kabinetscrisis hier. Of
     // lees hier de analyse van verslaggever …", "Luister ook …", "Abonneer je …") geen onderwerp, zoals een artikellink.
-    if (show?.soort === 'week' && PROMO.test(zinnen[k])) continue
-    let z = zinnen[k]
+    if (week && PROMO.test(alle[k])) continue
+    let z = alle[k]
     const p = z.search(PANEL)
     if (p >= 0) z = z.slice(0, p)
     for (const m of z.matchAll(/(?<![\p{L}\d'’-])\p{Lu}[\p{L}\d'’-]*/gu)) {
       const w = norm(m[0]).replace(/[^\p{L}\d]/gu, '')
       if (w.length < 2) continue
       // Het eerste woord van de zin (alleen leestekens ervoor): alleen een naam als het geen gewoon woord is.
-      if (!/[\p{L}\d]/u.test(z.slice(0, m.index)) && gewoonWoord(w, klein)) continue
+      // In de titel nooit: een titel begint elke zin met een hoofdletter ("Val in slowmotion of doorstart? Zo escaleerde …").
+      if (!/[\p{L}\d]/u.test(z.slice(0, m.index)) && (k >= zinnen.length || gewoonWoord(w, klein))) continue
       const pre = w.slice(0, 5)
       if (!eigen.has(w) && !woorden.some((x) => x.startsWith(pre))) return m[0]
     }

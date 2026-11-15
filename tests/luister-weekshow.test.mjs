@@ -161,3 +161,79 @@ test('via een artikellink koppelt een weekshow zoals voorheen, ook met de taal v
   assert.equal(c.o.grond, 'link')
   assert.ok(c.o.soort, c.o.af)
 })
+
+// Herstel keuring van branch weekshow (15 november): elke vorm van een tweede onderwerp of een weekoverzicht is hard, ook
+// zonder eigen naam of werkwoord, over losse zinnen, en in de titel. Elk geval los gedraaid, met een ja van het model.
+const ZIN = 'De VVD stemde tegen het Belastingplan van het kabinet-Jetten.'
+const PROBES = [
+  // 1. Een opsomming in de titel.
+  ['titel-opsomming', 'Het Belastingplan, de stikstof en de NAVO-top', ZIN],
+  ['titel-strepen', 'Kabinetscrisis | stikstof | NAVO-top', ZIN],
+  ['titel-puntkomma', 'Het Belastingplan; de stikstof', ZIN],
+  // 2. Een tweede onderwerp zonder eigen naam of werkwoord.
+  ['ook-dubbelepunt', 'Een kabinetsval in slow-motion?', `${ZIN} Ook: het asieldebat.`],
+  ['ook-lidwoord', 'Een kabinetsval in slow-motion?', `${ZIN} Ook de stikstofwet en het asiel.`],
+  ['plus', 'Een kabinetsval in slow-motion?', `${ZIN} Plus: de stikstofwet.`],
+  ['tweede-onderwerp', 'Een kabinetsval in slow-motion?', `${ZIN} Tweede onderwerp: de stikstofwet.`],
+  ['puntkomma', 'Een kabinetsval in slow-motion?', 'In deze aflevering: de VVD tegen het Belastingplan van het kabinet-Jetten; de stikstofwet; het asieldebat.'],
+  // 3. De week als verloop.
+  ['week-vol', 'Kabinet-Jetten wankelt', `Het was een week vol politiek nieuws. ${ZIN}`],
+  ['week-begon', 'Kabinet-Jetten wankelt', 'De week begon met het asieldebat en eindigde met de VVD die tegen het Belastingplan van het kabinet-Jetten stemde.'],
+  // 4. Een opsomming over losse zinnen, of met een signaalwoord zonder werkwoord.
+  ['ook-en', 'Kabinet-Jetten wankelt', `${ZIN} Ook het asieldebat. En de stikstofwet.`],
+  ['plus-en', 'Kabinet-Jetten wankelt', `${ZIN} Plus: het asieldebat en de stikstof.`],
+  ['telling', 'Kabinet-Jetten wankelt', `${ZIN} Twee: het asieldebat. Drie: de stikstofwet.`],
+].map(([id, titel, tekst]) => variant(`p-${id}`, titel, tekst))
+
+test('herstel keuring: een opsomming in de titel, over losse zinnen of met puntkomma\'s en de week als verloop zijn een weekoverzicht', () => {
+  for (const e of PROBES) assert.equal(weekOverzicht(e), true, `${e.id}: ${e.titel} / ${e.samenvatting}`)
+  // De echte afleveringen van 14 november blijven één onderwerp (het Haags Halfuurtje: "Val in slowmotion of doorstart? Zo
+  // escaleerde de kabinetscrisis" is geen opsomming, en "Val" en "Zo" in de titel zijn geen andere naam).
+  for (const e of FIX.episodes.filter((e) => e.show === 'nrc-haagse-zaken' || e.show === 'trouw-haags-halfuurtje')) assert.equal(weekOverzicht(e), false, e.titel)
+  // En gewone zinnen met "week" of "ook" midden in de zin niet.
+  assert.equal(weekOverzicht({ titel: 'Een kabinetsval in slow-motion?', samenvatting: `${ZIN} De coalitie praat ook dit weekend verder.` }), false)
+})
+
+for (const e of PROBES) {
+  test(`herstel keuring: ${e.id} valt hard af, ook bij een ja en een verdieping van het model`, async () => {
+    for (const oordeel of [JA, VERDIEPING]) {
+      const { r } = await ronde(() => oordeel, [...FIX.episodes.filter((x) => x.id !== HZ.id), e])
+      assert.ok(!r.rows.koppelingen.some((k) => k.aflevering === e.titel || (k.andere || []).some((a) => a.endsWith(e.titel))), `${e.id}: niet gekoppeld`)
+      assert.ok(r.rows.afgevallen.some((a) => a.verhaal === CRISIS.id && a.aflevering === e.titel && /^weekshow zonder artikellink: |^deze aflevering gaat over meer onderwerpen/.test(a.reden)), `${e.id}: hard af bij het crisisverhaal`)
+    }
+    const p = paren({ ...OPTS, episodes: [e] })
+    const c = p.paren.find((c) => c.x.st.id === CRISIS.id)
+    assert.ok(c, `${e.id} is een kandidaat`)
+    assert.equal(c.e.weekMeer, true)
+    assert.match(vangnet(c, NOW), /^weekshow zonder artikellink: |^deze aflevering gaat over meer onderwerpen/)
+    if (!c.e.meer) assert.equal(vangnet({ ...c, o: { ...c.o, hard: false } }, NOW), 'weekshow zonder artikellink: de aflevering bespreekt de week of meer onderwerpen')
+  })
+}
+
+test('herstel keuring: een tweede onderwerp in de titel maakt een andere naam in de beschrijving niet onschadelijk', async () => {
+  const tekst = `${ZIN} Trump kondigt nieuwe tarieven aan.`
+  const metTitel = variant('p-titel-trump', 'Kabinet-Jetten wankelt, en Trump', tekst)
+  const zonder = variant('p-trump', 'Kabinet-Jetten wankelt', tekst)
+  // Alleen in de titel, met een beschrijving over één onderwerp: de titel wordt zelf ook gelezen.
+  // (Het eerste woord van een zin in de titel telt niet: titels beginnen elke zin met een hoofdletter.)
+  const alleenTitel = variant('p-alleen-titel', 'Kabinet-Jetten wankelt, Trump dreigt', ZIN)
+  for (const e of [metTitel, zonder, alleenTitel]) {
+    const { r } = await ronde(() => JA, [...FIX.episodes.filter((x) => x.id !== HZ.id), e])
+    assert.ok(!r.rows.koppelingen.some((k) => k.aflevering === e.titel), `${e.id}: niet gekoppeld`)
+    const c = paren({ ...OPTS, episodes: [e] }).paren.find((c) => c.x.st.id === CRISIS.id)
+    assert.ok(c, `${e.id} is een kandidaat`)
+    assert.match(vangnet(c, NOW), /^weekshow zonder artikellink: /, e.id)
+  }
+  const c = paren({ ...OPTS, episodes: [zonder] }).paren.find((c) => c.x.st.id === CRISIS.id)
+  assert.match(c.o.af, /noemt ook iets anders \(Trump\)/)
+  const t = paren({ ...OPTS, episodes: [alleenTitel] }).paren.find((c) => c.x.st.id === CRISIS.id)
+  assert.match(t.o.af, /noemt ook iets anders \(Trump\)/)
+})
+
+test('herstel keuring: de echte weekshows van 14 november blijven kandidaat bij het crisisverhaal', async () => {
+  const { r } = await ronde(() => JA)
+  const k = r.rows.koppelingen.find((k) => k.verhaal === CRISIS.id)
+  assert.equal(k.show, 'NRC Haagse Zaken')
+  assert.ok(k.andere.some((a) => /^Haags Halfuurtje: Val in slowmotion/.test(a)), 'het Haags Halfuurtje staat bij de andere')
+  assert.ok(!r.rows.afgevallen.some((a) => a.show === 'Haags Halfuurtje' && a.verhaal === CRISIS.id))
+})
