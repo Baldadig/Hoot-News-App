@@ -29,7 +29,7 @@ final class EditionEngine: @unchecked Sendable {
         }
     }
 
-    private let queue = DispatchQueue(label: "nl.hootnews.Hoot.edition-core", qos: .userInitiated)
+    private let queue: DispatchQueue
     private var context: JSContext? // alleen op `queue`
     private var loadFailure: Failure? // idem: één keer mislukt laden blijft mislukt
     private var exception: String? // de laatste JavaScript-fout, gezet door de exceptionHandler
@@ -75,6 +75,7 @@ final class EditionEngine: @unchecked Sendable {
         }
         Self.log.info("rekenkern geladen in \(Int(Date().timeIntervalSince(t0) * 1000)) ms (versie \(core.forProperty("CORE_VERSION")?.toInt32() ?? 0))")
         context = ctx
+        geladen.withLock { $0 = true }
         return ctx
     }
 
@@ -128,10 +129,10 @@ final class EditionEngine: @unchecked Sendable {
             }
             return try self.callNow("composeEdition", [inputJSON])
         }
-        if DispatchQueue.getSpecific(key: Self.queueKey) != nil { return try run() }
+        if DispatchQueue.getSpecific(key: queueKey) != nil { return try run() }
         return try queue.sync { try run() }
     }
-    private static let queueKey = DispatchSpecificKey<Bool>()
+    private let queueKey = DispatchSpecificKey<Bool>() // per rekenkern: elke heeft zijn eigen wachtrij en context
 
     // ---- Het voorstel van de bronnenstap (1.1.1, shared/voorstel.mjs) ----
     // Uit je interesses (en je eigen onderwerpen) de drie tot vijf bronnen bovenaan de bronnenstap, met per bron
@@ -190,7 +191,73 @@ final class EditionEngine: @unchecked Sendable {
         return try JSONDecoder().decode(ProfileSummary.self, from: Data(text.utf8))
     }
 
-    private init() {
-        queue.setSpecific(key: Self.queueKey, value: true)
+    // ---- Volgen 1.5 (shared/volgzaak-weergave.mjs, in dezelfde bundel als het web) ----
+    // Alle volgregels per lezer met JSON heen en terug, byte voor byte gelijk aan node (VolgzaakParityTests, uit
+    // tests/fixtures/volgzaak-golden.json). `name`: volgzaakVoorrangJSON, volgzaakViewJSON, erSpeeldeAlJSON,
+    // rubriekRegelJSON of volgtVanJSON.
+    func volg(_ name: String, _ args: [String]) async throws -> String { try await call(name, args) }
+
+    // Blokkerend, voor de Stroom: de voorrang ligt vast op het moment dat de grens vastgaat (StreamView), in dezelfde
+    // tekenronde, zodat er niets verspringt. Klein werk (een lijst ids), maar de eerste keer laadt de bundel; daarom warmt
+    // de app hem voor (`warm`) zodra je iets volgt. Nooit aangeroepen met de vlag uit of zonder gevolgde volgzaak.
+    func volgNu(_ name: String, _ args: [String]) throws -> String {
+        if DispatchQueue.getSpecific(key: queueKey) != nil { return try callNow(name, args) }
+        return try queue.sync { try callNow(name, args) }
+    }
+
+    // De bundel alvast laden, op de eigen wachtrij (niet op de main actor).
+    func warm() async {
+        _ = try? await withCheckedThrowingContinuation { (cont: CheckedContinuation<Bool, Error>) in
+            queue.async { cont.resume(with: Result { _ = try self.loaded(); return true }) }
+        }
+    }
+    // Zonder te wachten: is de bundel al geladen? (Nooit queue.sync: dan wacht de main actor op het laden.)
+    var isLoaded: Bool { geladen.withLock { $0 } }
+    private let geladen = OSAllocatedUnfairLock(initialState: false)
+
+    // De voorrang in de Stroom (volgzaakVoorrang): per stuk het label, en de stukken die bovenaan staan.
+    struct Voorrang: Decodable, Equatable, Sendable {
+        var labels: [String: StoryVolgzaak] = [:]
+        var voorrang: [String] = []
+        static let leeg = Voorrang()
+    }
+    func voorrangNu(_ invoer: Data) throws -> Voorrang {
+        let out = try volgNu("volgzaakVoorrangJSON", [String(decoding: invoer, as: UTF8.self)])
+        return try JSONDecoder().decode(Voorrang.self, from: Data(out.utf8))
+    }
+
+    // De pagina per lezer (volgzaakView) en "Er speelde al" (erSpeeldeAl).
+    struct VolgVerhaal: Codable, Hashable, Sendable, Identifiable {
+        var verhaal: String
+        var kop: String
+        var bron: String
+        var url: String?
+        var bronnen: Int
+        var at: String?
+        var buiten: Bool
+        var id: String { verhaal }
+    }
+    struct VolgWeek: Decodable, Hashable, Sendable { var week: String; var verhalen: [VolgVerhaal] }
+    struct VolgPagina: Decodable, Hashable, Sendable {
+        var nieuw: [VolgVerhaal] = []
+        var eerder: [VolgWeek] = []
+        var aantal = 0
+    }
+    func volgzaakView(_ invoer: Data) async throws -> VolgPagina {
+        let out = try await volg("volgzaakViewJSON", [String(decoding: invoer, as: UTF8.self)])
+        return try JSONDecoder().decode(VolgPagina.self, from: Data(out.utf8))
+    }
+    func erSpeeldeAl(_ invoer: Data) async throws -> [VolgVerhaal] {
+        let out = try await volg("erSpeeldeAlJSON", [String(decoding: invoer, as: UTF8.self)])
+        return try JSONDecoder().decode([VolgVerhaal].self, from: Data(out.utf8))
+    }
+
+    // Een tweede rekenkern met een eigen context en wachtrij, voor de kleine volgregels (Volgen 1.5): de Stroom wacht zo
+    // nooit op het samenstellen van een Editie (ongeveer een seconde zonder JIT) op de gewone wachtrij.
+    static let volg = EditionEngine(label: "nl.hootnews.Hoot.volg-core")
+
+    private init(label: String = "nl.hootnews.Hoot.edition-core") {
+        queue = DispatchQueue(label: label, qos: .userInitiated)
+        queue.setSpecific(key: queueKey, value: true)
     }
 }

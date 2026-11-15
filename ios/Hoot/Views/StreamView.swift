@@ -20,6 +20,9 @@ struct StreamView: View {
     @State private var volger = StroomVolger()
     @State private var older = 0
     @State private var bezoek = 0 // telt op als de app naar de achtergrond gaat: dan staan de grenzen opnieuw vast
+    // Volgen 1.5 (achter de vlag): het label "Je volgt" en de voorrang, vast met de grens (VolgStroom hieronder).
+    @State private var volgStroom = VolgStroom()
+    @State private var volgKlaar = 0 // de rekenkern voor de volgregels is geladen: opnieuw tekenen
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
     @State private var knopAs: CGFloat? // de knop rechtsboven: het voorste logo van de stapel ligt eronder
@@ -83,6 +86,18 @@ struct StreamView: View {
             let cap = StroomEinde.cap(count: items.count, grensIndex: bIdx, older: older)
             // "Hier was je gebleven" alleen als je onder de grens echt iets zag (vastgelegd met de grens).
             let eerder = (eindGrens?.eerder ?? false) && bIdx < items.count
+            // Volgen 1.5, richting A met voorrang: het label "Je volgt" op het nieuwste stuk per gevolgde volgzaak, en wat
+            // daarvan nieuw is sinds je vorige bezoek (boven de grens, uit het laatste etmaal, niet gelezen) bovenaan Alles en
+            // bovenaan de eigen rubriek, hooguit drie, nieuwste eerst; niet onder Buiten je bubbel. Uitgerekend in de gedeelde
+            // rekenkern (volgzaakVoorrang) en vastgezet samen met de grens: niets springt terwijl je kijkt. Het label volgt je
+            // lijst live (ontvolgen haalt het meteen weg); het stuk blijft staan tot je opnieuw opent. Met de vlag uit, of als je
+            // niets volgt, rekent hier niets en is de lijst precies de oude.
+            let volgAan = rub != "bubbel" && store.volgtIets && EditionEngine.volg.isLoaded && volgKlaar >= 0
+            let volgSoort = rub.isEmpty ? "alles" : Rubriek.byId[rub] != nil ? "rubriek" : "tab"
+            // Lag de grens al vast zonder voorrang (je volgde toen nog niets), dan pas bij het volgende bezoek.
+            let voorrang: [String] = !volgAan ? [] : volgStroom.vastgezet(weergave) ?? (volger.vastgezet(weergave) != nil ? [] : volgStroom.voorrang(weergave, sleutel: VolgStroom.sleutel(weergave, items, bIdx)) { store.voorrangInvoer(items, weergave: volgSoort, grens: bIdx) })
+            let labels = volgAan ? volgStroom.labels(VolgStroom.sleutel(weergave, items, -1) + "|" + Volgzaken.actief(store.volgzaken).map(\.slug).joined(separator: ",")) { store.voorrangInvoer(items, weergave: volgSoort, grens: 0) } : [:]
+            let lijst = VolgStroom.metVoorrang(items, voorrang)
             ScrollViewReader { scroll in
             ScrollView {
                 VStack(spacing: 0) {
@@ -158,11 +173,14 @@ struct StreamView: View {
                             // De grens: daaronder heb je alles al gezien. In de lijst staat de streep pas als je
                             // ouder nieuws opende; anders staat hij bij het einde.
                             let marker = eerder && older > 0 && bIdx > 0 && bIdx < cap
-                            ForEach(Array(items.prefix(cap).enumerated()), id: \.element.id) { i, item in
+                            ForEach(Array(lijst.prefix(cap).enumerated()), id: \.element.id) { i, item in
                                 if marker && i == bIdx { SeenMarker() }
                                 Group {
                                     if item.isPost { PostRow(item: item) }
-                                    else { ItemRow(item: item, story: store.story(of: item), form: compact ? .krant : nil, dicht: compact) } // dicht op de Duo: dichte rijen
+                                    else {
+                                        let volgt = labels[item.id]
+                                        ItemRow(item: item, label: volgt == nil ? nil : Self.rubriekLabel(item, cat: cats[item.source] ?? nil), story: store.story(of: item), volgt: volgt, form: compact ? .krant : nil, dicht: compact) // dicht op de Duo: dichte rijen
+                                    }
                                 }
                                     .transition(.identity)
                                     .plekAnker(item.id) // je plek bij vouwen en draaien (Krant.swift)
@@ -212,7 +230,20 @@ struct StreamView: View {
             }
             // De grens vastzetten: bij het openen van een weergave, zodra er berichten zijn, en na de achtergrond.
             .onChange(of: "\(weergave)|\(items.isEmpty)|\(bezoek)", initial: true) {
-                if rub != "bubbel" { _ = volger.grens(weergave, items: items, gezien: store.streamGezien) }
+                guard rub != "bubbel" else { return }
+                let alVast = volger.vastgezet(weergave) != nil
+                let g = volger.grens(weergave, items: items, gezien: store.streamGezien)
+                // De voorrang ligt vast op hetzelfde moment als de grens (zelfde invoer als bij het tekenen: geen sprong).
+                if volgAan, !alVast, let g {
+                    let idx = StroomEinde.index(items, grens: g)
+                    volgStroom.zetVast(weergave, sleutel: VolgStroom.sleutel(weergave, items, idx)) { store.voorrangInvoer(items, weergave: volgSoort, grens: idx) }
+                }
+            }
+            // De rekenkern voor de volgregels nog niet geladen (koude start): laden en dan opnieuw tekenen.
+            .task(id: store.volgtIets) {
+                guard store.volgtIets, !EditionEngine.volg.isLoaded else { return }
+                await EditionEngine.volg.warm()
+                volgKlaar += 1
             }
             // Stilstaand kijken telt ook: wat al even helemaal in beeld staat.
             .task(id: weergave) {
@@ -224,6 +255,7 @@ struct StreamView: View {
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
             .hootKopScreen(bronnen: { lijn.open = false; showSources = true }) // de bronnen: in de kopregel, of in de verticale balk
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .volgBestemming(debug: true) // Volgen 1.5: het label en "Naar GTA 6" openen de pagina
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .hootRefresh(indicator: !store.stream.isEmpty, label: "Stroom", failed: { store.coreFailed }) { await store.load() }
@@ -249,7 +281,21 @@ struct StreamView: View {
         .onChange(of: rubriek) { older = 0; volger.nieuweWeergave() }
         .onChange(of: picks) { categoryTask?.cancel(); older = 0; volger.nieuweWeergave() }
         // Terug uit de achtergrond is een nieuw bezoek: dan bepalen we elke grens opnieuw.
-        .onChange(of: phase) { _, now in if now == .background { volger.vergeet(); bezoek += 1 } }
+        .onChange(of: phase) { _, now in if now == .background { volger.vergeet(); volgStroom.vergeet(); bezoek += 1 } }
+        // "Naar Games in de Stroom" uit de kop in Zoeken.
+        .onChange(of: store.stroomNaarRubriek, initial: true) { _, r in
+            guard let r else { return }
+            rubriek = r
+            store.stroomNaarRubriek = nil
+        }
+    }
+
+    // De rubriek boven een stuk met het label "Je volgt" (in de Stroom staat er verder geen rubriekregel): de rubriek van de
+    // uitgever, of anders die van de bron.
+    static func rubriekLabel(_ item: Item, cat: String?) -> String? {
+        if let s = item.section, !s.isEmpty { return s }
+        let labels = ["binnenland": "Binnenland", "buitenland": "Wereld", "wereld": "Wereld", "economie": "Economie", "tech": "Tech", "wetenschap": "Wetenschap", "cultuur": "Cultuur", "sport": "Sport", "politiek": "Politiek", "music": "Cultuur"]
+        return cat.flatMap { labels[$0] }
     }
 
     // De weergave: rubriek en bronkeuze. Elke weergave heeft een eigen grens (positionKey op het web).
@@ -288,6 +334,50 @@ struct StreamView: View {
         .padding(.top, Space.s4) // met de 8 onder de lijn 24, zoals in het prototype
         .padding(.bottom, Space.s5)
         .overlay(alignment: .bottom) { Rule() }
+    }
+}
+
+// Volgen 1.5 in de Stroom: de voorrang per weergave, vast tot een nieuw bezoek (zoals StroomVolger de grens), en het label
+// per stuk. Een gewone klasse (geen @Observable): uitrekenen tekent niet opnieuw. Beide komen uit de gedeelde rekenkern
+// (volgzaakVoorrang in shared/volgzaak-weergave.mjs, EditionEngine.volg), elk één keer per invoer.
+@MainActor
+final class VolgStroom {
+    private var vast: [String: [String]] = [:]
+    private var berekend: (sleutel: String, ids: [String])?
+    private var label: (sleutel: String, labels: [String: StoryVolgzaak])?
+
+    static func sleutel(_ weergave: String, _ items: [Item], _ grens: Int) -> String {
+        "\(weergave)|\(items.count)|\(items.first?.id ?? "")|\(items.last?.id ?? "")|\(grens)"
+    }
+    // De voorrang van een weergave: de vastgezette, of (nog niet vast) dezelfde berekening zonder te bewaren.
+    func voorrang(_ weergave: String, sleutel: String, invoer: () -> Data) -> [String] {
+        if let v = vast[weergave] { return v }
+        if let b = berekend, b.sleutel == sleutel { return b.ids }
+        let ids = (try? EditionEngine.volg.voorrangNu(invoer()))?.voorrang ?? []
+        berekend = (sleutel, ids)
+        return ids
+    }
+    func zetVast(_ weergave: String, sleutel: String, invoer: () -> Data) {
+        guard vast[weergave] == nil else { return }
+        vast[weergave] = voorrang(weergave, sleutel: sleutel, invoer: invoer)
+    }
+    func vastgezet(_ weergave: String) -> [String]? { vast[weergave] }
+    func labels(_ sleutel: String, invoer: () -> Data) -> [String: StoryVolgzaak] {
+        if let l = label, l.sleutel == sleutel { return l.labels }
+        let labels = (try? EditionEngine.volg.voorrangNu(invoer()))?.labels ?? [:]
+        label = (sleutel, labels)
+        return labels
+    }
+    // Een nieuw bezoek (terug uit de achtergrond): alles opnieuw bepalen, samen met de grenzen.
+    func vergeet() { vast = [:]; berekend = nil }
+
+    // De lijst met de voorrang bovenaan (metVoorrang): de stukken verhuizen, de rest blijft in de tijd.
+    static func metVoorrang(_ items: [Item], _ ids: [String]) -> [Item] {
+        guard !ids.isEmpty else { return items }
+        let byId = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let boven = ids.compactMap { byId[$0] }
+        let weg = Set(boven.map(\.id))
+        return boven + items.filter { !weg.contains($0.id) }
     }
 }
 
@@ -534,6 +624,7 @@ struct SavedView: View {
             .hootKopScreen() // de kopregel met je account, zoals Editie, Stroom en Selectie
             .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .volgBestemming() // Volgen 1.5: het label en "Naar GTA 6" openen de pagina
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
         }
@@ -548,13 +639,32 @@ struct SearchView: View {
     @State private var query = DebugLaunch.query ?? ""
     @State private var scope: SearchHits.Scope = .mijn // standaard Mijn bronnen, zoals op het web
     @State private var extra: [Item] = [] // Alle bronnen: ook wat alleen binnen een verhaal staat
+    // Volgen 1.5 (achter de vlag): na Return vraagt Zoeken de server of er iets te volgen valt (de tekst in een POST-body).
+    // De gewone treffers staan er meteen, zoals altijd; de kop van De Redacteur komt erboven. Alleen met een account (duiden
+    // kost iets en telt voor je quotum); zonder account blijft Zoeken zoals het was.
+    struct Duid: Equatable { let voor: String; let antwoord: VolgzaakAPI.Duiding }
+    @State private var kop: Duid?
+    @State private var stuurBij: VolgzaakAPI.Def?
+    private func duid(_ opdracht: String) async {
+        let tekst = opdracht.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard store.volgzakenAan, store.volgLid, tekst.count >= 2 else { return }
+        let a = await VolgzaakAPI.vraag("duiden", ["opdracht": tekst], token: await store.volgToken())
+        if a.ok, let d = a.lees(VolgzaakAPI.Duiding.self) { kop = Duid(voor: opdracht, antwoord: d) }
+    }
     var body: some View {
         NavigationStack {
             // Breed zoeken, zoals het web: woord, bron en auteur, ook in Bewaard (SearchHits).
             let q = SearchHits.words(query)
             let hits = q.isEmpty ? [] : Array(store.withoutCopies(SearchHits.hits(query: query, stream: store.stream, saved: store.saved, extra: scope == .alle ? extra : [], muted: store.muted)).prefix(SearchHits.limit))
+            let kopNu = kop?.voor == query && !q.isEmpty ? kop?.antwoord : nil
+            let jeVolgt = q.isEmpty && store.volgtIets
             List {
                 Section {
+                    if let kopNu {
+                        VolgKopView(antwoord: kopNu, onKies: { o in query = o; kop = nil; Task { await duid(o) } }, onStuurBij: { stuurBij = kopNu.volgzaak }, opdracht: query)
+                            .padding(.vertical, Space.s2)
+                            .listRowBackground(Theme.surface)
+                    }
                     if !hits.isEmpty {
                         Text(SearchHits.status(count: hits.count, scope: scope)).uitleg().foregroundStyle(Theme.ink2).listRowBackground(Color.clear)
                     }
@@ -582,15 +692,30 @@ struct SearchView: View {
                         }
                     }.textCase(nil).listRowInsets(EdgeInsets())
                 }
+                // Zoeken zonder zoekterm is het thuis van wat je volgt (scherm 05d): Nieuw of Niets nieuws, rechts Wijzig.
+                if jeVolgt {
+                    Section {
+                        JeVolgtRijen().listRowBackground(Theme.surface)
+                    } header: {
+                        HStack(alignment: .firstTextBaseline) {
+                            Kicker(text: VolgTekst.jeVolgt).accessibilityAddTraits(.isHeader)
+                            Spacer()
+                            Button(VolgTekst.wijzig) { store.volgBeheer = true }
+                                .font(.ui(.subheadline, .semibold)).tint(Theme.ink)
+                                .frame(minHeight: Space.tap)
+                        }
+                        .textCase(nil)
+                    }
+                }
             }
             .task(id: scope) { extra = scope == .alle ? await store.searchPoolAll() : [] }
             .scrollContentBackground(.hidden)
             .readableList()
             .background(Theme.paper)
             .overlay {
-                if q.isEmpty {
+                if q.isEmpty && !jeVolgt {
                     EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: SearchHits.emptyText)
-                } else if hits.isEmpty {
+                } else if hits.isEmpty && kopNu == nil && !q.isEmpty {
                     EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: SearchHits.noHitsText, action: scope == .mijn ? (label: "Zoek in alle bronnen", systemImage: nil, run: { scope = .alle }) : nil)
                 }
             }
@@ -598,9 +723,15 @@ struct SearchView: View {
             .zoekKop() // "hoot." en je account in de balk: het zoekveld heeft die balk nodig
             .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .volgBestemming() // Volgen 1.5: de pagina, en Zoeken als thuis van wat je volgt
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek op woord of bron") // past ook op de SE; auteurs noemt de lege staat
+            .onSubmit(of: .search) { Task { await duid(query) } }
+            .sheet(item: $stuurBij) { def in StuurBijBlad(def: def).debugAppearance() }
+            #if DEBUG
+            .task { if DebugLaunch.screen("volg-zoeken") { try? await Task.sleep(for: .seconds(12)); await duid(query) } }
+            #endif
         }
     }
 }

@@ -18,7 +18,9 @@ import { firstImages, latestChoice, warmImages } from '../lib/rubriek-crossfade.
 import { imgProps } from '../lib/img.js'
 import { withoutRepeats } from '../../shared/stroom.mjs'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
-import { weergaveGrens, grensIndex, vergeetGrenzen, markeerGezien, volgGezien } from '../lib/stroom-einde.js'
+import { weergaveGrens, grensIndex, vergeetGrenzen, markeerGezien, volgGezien, weergaveVoorrang, leesGezien } from '../lib/stroom-einde.js'
+import { volgzaakVoorrang, metVoorrang } from '../../shared/volgzaak-weergave.mjs'
+import { INTERESTS } from '../lib/topics.js'
 
 const PAGE = 60 // zoveel berichten tegelijk tekenen; wat je al zag pas met "Ouder nieuws tonen"
 
@@ -56,7 +58,7 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
 }
 
 export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
-  const { storiesById, sourcesById, muted, setMuted, prefs, layout } = useHoot()
+  const { storiesById, sourcesById, muted, setMuted, prefs, layout, volgAan, volgzaken, read } = useHoot()
   const ref = useRef(null)
   // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de berichten.
   const hostRef = useRef(null)
@@ -83,7 +85,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
       return true
     }))
   }
-  const list = useMemo(
+  const lijst = useMemo(
     () => select(filters),
     [stream, bubble, picks, filters.onderwerp, filters.rubriek, filters.soort, sourcesById]
   )
@@ -112,7 +114,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
   const setFilter = (key, value) => apply({ ...filters, [key]: value })
   const clear = () => apply({})
 
-  useScrollMemory(ref, positionKey('stroom', filters), list.length > 0, list.length + ':' + (list[0]?.id || ''), active)
+  useScrollMemory(ref, positionKey('stroom', filters), lijst.length > 0, lijst.length + ':' + (lijst[0]?.id || ''), active)
 
   // Het einde van de Stroom (lib/stroom-einde.js): de lijst houdt op na het laatste bericht van de
   // laatste 24 uur dat je in deze weergave (tab, bronkeuze) nog niet zag. Daar staat "Je bent bij." met een stille knop "Ouder
@@ -124,10 +126,31 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
   const bubbelLijst = filters.onderwerp === 'bubbel'
   const [vers, setVers] = useState(0) // "N nieuwe berichten": de grenzen opnieuw bepalen
   const grens = useMemo(
-    () => (active && !bubbelLijst && !loading && list.length ? weergaveGrens(posKey, list) : null),
-    [active, bubbelLijst, loading, posKey, vers, list.length > 0], // eslint-disable-line react-hooks/exhaustive-deps
+    () => (active && !bubbelLijst && !loading && lijst.length ? weergaveGrens(posKey, lijst) : null),
+    [active, bubbelLijst, loading, posKey, vers, lijst.length > 0], // eslint-disable-line react-hooks/exhaustive-deps
   )
-  const bIdx = bubbelLijst ? list.length : grens ? grensIndex(list, grens) : list.length
+  const bIdx = bubbelLijst ? lijst.length : grens ? grensIndex(lijst, grens) : lijst.length
+
+  // Volgen 1.5 (achter de vlag), richting A met voorrang: het label "Je volgt" op het nieuwste stuk per gevolgde volgzaak, en
+  // wat daarvan nieuw is sinds je vorige bezoek (boven de grens, uit het laatste etmaal, niet gelezen) bovenaan Alles en
+  // bovenaan de eigen rubriek, hooguit drie, nieuwste eerst; niet onder Buiten je bubbel of een tab. Uitgerekend in de
+  // gedeelde rekenkern (volgzaakVoorrang) en vastgezet samen met de grens (weergaveVoorrang). Het label volgt je lijst live:
+  // ontvolgen haalt het meteen weg, het stuk blijft staan tot je opnieuw opent. Met de vlag uit: precies de oude lijst.
+  const weergave = bubbelLijst ? 'bubbel' : !filters.rubriek ? 'alles' : INTERESTS.some((i) => i.id === filters.rubriek) ? 'rubriek' : 'tab'
+  const volgInvoer = (extra) => {
+    const verhalen = {}
+    for (const i of lijst) {
+      const v = i.storyId ? storiesById.get(i.storyId)?.volgzaak : null
+      if (v) verhalen[i.storyId] = { volgzaak: v }
+    }
+    return { lijst: lijst.map((i) => ({ id: i.id, storyId: i.storyId || null, publishedAt: i.publishedAt, kind: i.kind })), verhalen, volgzaken, now: Date.now(), weergave, ...extra }
+  }
+  const voorrang = useMemo(
+    () => (volgAan && grens && !bubbelLijst ? weergaveVoorrang(posKey, () => volgzaakVoorrang(volgInvoer({ grens: bIdx, gezien: leesGezien(), gelezen: [...(read || [])] })).voorrang) : []),
+    [volgAan, grens, posKey, vers], // eslint-disable-line react-hooks/exhaustive-deps
+  )
+  const labels = useMemo(() => (volgAan && volgzaken?.length ? volgzaakVoorrang(volgInvoer({ grens: 0 })).labels : {}), [volgAan, volgzaken, lijst, storiesById]) // eslint-disable-line react-hooks/exhaustive-deps
+  const list = useMemo(() => metVoorrang(lijst, voorrang), [lijst, voorrang])
   // "Hier was je gebleven" alleen als je onder de grens echt iets zag (vastgelegd met de grens, grensVan).
   const eerder = !!grens?.eerder && bIdx < list.length
   const [older, setOlder] = useState(0)
@@ -287,7 +310,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
                 {shown.map((item, index) => (
                   <div key={item.id} className={index < Math.min(freshShown, 6) ? 'stream-new' : undefined} style={index < 6 ? { '--rise-delay': `${index * 40}ms` } : undefined}>
                     {eerder && older > 0 && index === bIdx && bIdx > 0 ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
-                    <Entry item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
+                    <Entry item={item} story={item.storyId ? storiesById.get(item.storyId) : null} volgt={labels[item.id] || null} />
                   </div>
                 ))}
                 {shown.length < cap ? (

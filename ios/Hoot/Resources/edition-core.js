@@ -23,17 +23,26 @@ var HootCore = (() => {
   // src/lib/editionCore.js
   var editionCore_exports = {};
   __export(editionCore_exports, {
+    BUITEN_JE_BRONNEN: () => BUITEN_JE_BRONNEN,
     CORE_VERSION: () => CORE_VERSION,
+    ER_SPEELDE_AL_MAX: () => ER_SPEELDE_AL_MAX,
     HISTORY_SIZE: () => HISTORY_SIZE,
+    JE_VOLGT: () => JE_VOLGT,
+    VOLGZAKEN_MAX: () => VOLGZAKEN_MAX,
+    VOORRANG_MS: () => VOORRANG_MS,
+    actieveVolgzaken: () => actieveVolgzaken,
     basisOf: () => basisOf,
     compose: () => compose,
     composeEdition: () => composeEdition,
     earlierEditions: () => earlierEditions,
     earlierEditionsJSON: () => earlierEditionsJSON,
     editionBasis: () => editionBasis,
+    erSpeeldeAl: () => erSpeeldeAl,
+    erSpeeldeAlJSON: () => erSpeeldeAlJSON,
     historyJSON: () => historyJSON,
     historyOf: () => historyOf,
     mergePrevious: () => mergePrevious,
+    metVoorrang: () => metVoorrang,
     nextHistory: () => nextHistory,
     nextHistoryJSON: () => nextHistoryJSON,
     previousFrom: () => previousFrom,
@@ -45,7 +54,16 @@ var HootCore = (() => {
     readingSummary: () => readingSummary,
     readingSummaryJSON: () => readingSummaryJSON,
     recentEditions: () => recentEditions,
-    voorstelJSON: () => voorstelJSON
+    rubriekRegel: () => rubriekRegel,
+    rubriekRegelJSON: () => rubriekRegelJSON,
+    volgtVan: () => volgtVan,
+    volgtVanJSON: () => volgtVanJSON,
+    volgzaakView: () => volgzaakView,
+    volgzaakViewJSON: () => volgzaakViewJSON,
+    volgzaakVoorrang: () => volgzaakVoorrang,
+    volgzaakVoorrangJSON: () => volgzaakVoorrangJSON,
+    voorstelJSON: () => voorstelJSON,
+    weekNaam: () => weekNaam
   });
 
   // shared/edition-display.json
@@ -6201,6 +6219,161 @@ var HootCore = (() => {
     const { sources = [], interests = [], topics = [], english = false } = JSON.parse(jsonIn || "{}");
     return JSON.stringify(voorstel(sources, interests, topics, { english: !!english }));
   }
+
+  // shared/volgzaak-weergave.mjs
+  var VOLGZAKEN_MAX = 3;
+  var VOORRANG_MS = 24 * 60 * 60 * 1e3;
+  var JE_VOLGT = "Je volgt";
+  var BUITEN_JE_BRONNEN = "Buiten je bronnen";
+  var tijd = (v) => {
+    const t = typeof v === "number" ? v : Date.parse(v || "");
+    return Number.isFinite(t) ? t : 0;
+  };
+  var lijst = (v) => Array.isArray(v) ? v : [];
+  var alsSet = (v) => new Set(lijst(v));
+  var alsMap = (v) => v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  function actieveVolgzaken(volgzaken) {
+    const out = [];
+    const gehad = /* @__PURE__ */ new Set();
+    for (const z of lijst(volgzaken)) {
+      if (!z || typeof z.slug !== "string" || !z.slug || typeof z.label !== "string" || !z.label) continue;
+      if (z.status && z.status !== "actief") continue;
+      if (gehad.has(z.slug)) continue;
+      gehad.add(z.slug);
+      out.push({ slug: z.slug, label: z.label });
+      if (out.length >= VOLGZAKEN_MAX) break;
+    }
+    return out;
+  }
+  function volgtVan(story, volgzaken) {
+    const slug = story?.volgzaak?.slug;
+    if (!slug) return null;
+    const z = actieveVolgzaken(volgzaken).find((x) => x.slug === slug);
+    return z ? { slug: z.slug, label: z.label } : null;
+  }
+  function rubriekRegel({ rubriek = null, volgt = null, buiten = false } = {}) {
+    const delen = [];
+    if (rubriek) delen.push(rubriek);
+    if (volgt) delen.push(JE_VOLGT);
+    else if (buiten) delen.push(BUITEN_JE_BRONNEN);
+    return { delen, volgt: !!volgt, buiten: !volgt && !!buiten };
+  }
+  var VOORRANG_WEERGAVEN = ["alles", "rubriek"];
+  function volgzaakVoorrang(input = {}) {
+    const items = lijst(input.lijst);
+    const verhalen = alsMap(input.verhalen);
+    const actief = actieveVolgzaken(input.volgzaken);
+    const labels = {};
+    if (!actief.length || !items.length || input.weergave === "bubbel") return { labels, voorrang: [] };
+    const perSlug = new Map(actief.map((z) => [z.slug, z]));
+    const gezien = Array.isArray(input.gezien) ? alsSet(input.gezien) : new Set(Object.keys(alsMap(input.gezien)));
+    const gelezen = alsSet(input.gelezen);
+    const now = tijd(input.now);
+    const grens = Number.isInteger(input.grens) ? input.grens : items.length;
+    const nieuwste = /* @__PURE__ */ new Map();
+    items.forEach((it, index) => {
+      if (!it || !it.id || it.kind === "post" || !it.storyId) return;
+      const slug = verhalen[it.storyId]?.volgzaak?.slug;
+      if (!slug || !perSlug.has(slug)) return;
+      const t = tijd(it.publishedAt);
+      const cur = nieuwste.get(slug);
+      if (!cur || t > cur.t) nieuwste.set(slug, { it, t, index });
+    });
+    for (const [slug, { it }] of nieuwste) labels[it.id] = { slug, label: perSlug.get(slug).label };
+    if (!VOORRANG_WEERGAVEN.includes(input.weergave || "alles")) return { labels, voorrang: [] };
+    const voorrang = [...nieuwste.values()].filter(({ it, t, index }) => index < grens && !gezien.has(it.id) && !gelezen.has(it.id) && now - t <= VOORRANG_MS && t <= now + VOORRANG_MS).sort((a, b) => b.t - a.t || a.index - b.index).slice(0, VOLGZAKEN_MAX).map(({ it }) => it.id);
+    return { labels, voorrang };
+  }
+  function metVoorrang(items, voorrang) {
+    const ids = lijst(voorrang);
+    if (!ids.length) return items;
+    const byId2 = new Map(items.map((it) => [it.id, it]));
+    const boven = ids.map((id) => byId2.get(id)).filter(Boolean);
+    const weg = new Set(boven.map((it) => it.id));
+    return [...boven, ...items.filter((it) => !weg.has(it.id))];
+  }
+  var MAANDEN = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
+  var laatsteZondag = (y, m) => {
+    const eind = Date.UTC(y, m + 1, 0);
+    return eind - new Date(eind).getUTCDay() * 864e5;
+  };
+  function dagAms(t) {
+    const y = new Date(t).getUTCFullYear();
+    const zomer = t >= laatsteZondag(y, 2) + 36e5 && t < laatsteZondag(y, 9) + 36e5;
+    const d = new Date(t + (zomer ? 2 : 1) * 36e5);
+    return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()];
+  }
+  function maandagVan(t) {
+    const [y, m, d] = dagAms(t);
+    const dag = Math.floor(Date.UTC(y, m - 1, d) / 864e5);
+    const wd = (new Date(dag * 864e5).getUTCDay() + 6) % 7;
+    return dag - wd;
+  }
+  function weekNaam(t, now) {
+    const w = maandagVan(t);
+    const nu = maandagVan(now);
+    if (w >= nu) return "Deze week";
+    if (w === nu - 7) return "Vorige week";
+    const d = new Date(w * 864e5);
+    return `Week van ${d.getUTCDate()} ${MAANDEN[d.getUTCMonth()]}`;
+  }
+  var kopSleutel = (s) => String(s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  function volgzaakView(input = {}) {
+    const now = tijd(input.now);
+    const bronnen = new Map(lijst(input.bronnen).filter((b) => b && b.id).map((b) => [b.id, b]));
+    const eigen = alsSet(input.eigen);
+    const gelezen = alsSet(input.gelezen);
+    const gezien = input.gezien ? tijd(input.gezien) : 0;
+    const telling = /* @__PURE__ */ new Map();
+    for (const id of eigen) {
+      const lang = bronnen.get(id)?.lang || "nl";
+      telling.set(lang, (telling.get(lang) || 0) + 1);
+    }
+    const talen = [...telling.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([l]) => l);
+    if (!talen.length) talen.push("nl");
+    const gehad = /* @__PURE__ */ new Set();
+    const koppen = /* @__PURE__ */ new Set();
+    const rijen = [];
+    const ruw = lijst(input.stand?.verhalen).filter((v) => v && v.verhaal && v.kop && v.bron);
+    ruw.sort((a, b) => tijd(b.at) - tijd(a.at) || (a.verhaal < b.verhaal ? -1 : 1));
+    for (const v of ruw) {
+      if (gehad.has(v.verhaal)) continue;
+      const k = kopSleutel(v.kop);
+      if (k && koppen.has(k)) continue;
+      const bron = bronnen.get(v.bron);
+      const mijn = eigen.has(v.bron);
+      const lang = bron?.lang || "nl";
+      if (!mijn) {
+        if (!bron || v.betaald || bron.paid) continue;
+        if (!talen.includes(lang)) continue;
+      }
+      gehad.add(v.verhaal);
+      if (k) koppen.add(k);
+      rijen.push({ v: { verhaal: v.verhaal, kop: v.kop, bron: v.bron, url: v.url || null, bronnen: Number(v.bronnen) || 1, at: v.at, buiten: !mijn }, taal: Math.max(0, talen.indexOf(lang)), mijn, t: tijd(v.at) });
+    }
+    const orde = (a, b) => a.taal - b.taal || (a.mijn === b.mijn ? 0 : a.mijn ? -1 : 1) || b.t - a.t || (a.v.verhaal < b.v.verhaal ? -1 : 1);
+    const nieuw = rijen.filter((r) => r.t > gezien && !gelezen.has(r.v.verhaal)).sort(orde);
+    const nieuwIds = new Set(nieuw.map((r) => r.v.verhaal));
+    const weken = /* @__PURE__ */ new Map();
+    for (const r of rijen.filter((r2) => !nieuwIds.has(r2.v.verhaal)).sort((a, b) => b.t - a.t)) {
+      const w = weekNaam(r.t, now);
+      if (!weken.has(w)) weken.set(w, []);
+      weken.get(w).push(r);
+    }
+    const eerder = [...weken.entries()].map(([week, rs]) => ({ week, verhalen: rs.sort(orde).map((r) => r.v) }));
+    return { nieuw: nieuw.map((r) => r.v), eerder, aantal: rijen.length };
+  }
+  var ER_SPEELDE_AL_MAX = 3;
+  function erSpeeldeAl(input = {}) {
+    const view = volgzaakView({ stand: { verhalen: lijst(input.eerder) }, bronnen: input.bronnen, eigen: input.eigen, gezien: null, gelezen: [], now: input.now });
+    return [...view.nieuw, ...view.eerder.flatMap((w) => w.verhalen)].slice(0, ER_SPEELDE_AL_MAX);
+  }
+  var lees = (j) => typeof j === "string" ? JSON.parse(j) : j;
+  var volgzaakViewJSON = (j) => JSON.stringify(volgzaakView(lees(j)));
+  var volgzaakVoorrangJSON = (j) => JSON.stringify(volgzaakVoorrang(lees(j)));
+  var rubriekRegelJSON = (j) => JSON.stringify(rubriekRegel(lees(j)));
+  var erSpeeldeAlJSON = (j) => JSON.stringify(erSpeeldeAl(lees(j)));
+  var volgtVanJSON = (storyJSON, volgzakenJSON) => JSON.stringify(volgtVan(lees(storyJSON), lees(volgzakenJSON)));
 
   // src/lib/editionCore.js
   var CORE_VERSION = 1;

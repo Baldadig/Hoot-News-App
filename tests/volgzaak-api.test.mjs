@@ -81,6 +81,7 @@ test('duiden: een nieuwe volgzaak met def, alias, index, "Er speelde al" en tref
   assert.deepEqual(b.volgzaak, { slug: 'gta-6', label: 'GTA 6', regel: 'De nieuwe Grand Theft Auto van Rockstar', soort: 'product', mijlpaal: 'de release', rubriek: 'cultuur', loopt: true })
   assert.equal(b.eerder.length, 1)
   assert.equal(b.eerder[0].verhaal, 's1')
+  assert.equal(typeof b.eerder[0].betaald, 'boolean', 'met betaald: het toestel kiest per lezer (erSpeeldeAl), nooit een betaalmuur van buiten')
   assert.deepEqual(b.bronnen, { nos: 1, tweakers: 1 })
   assert.equal(model.calls.length, 1)
   const call = model.calls[0]

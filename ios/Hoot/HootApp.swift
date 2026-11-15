@@ -393,6 +393,9 @@ struct RootView: View {
         // Op de Editie zelf letten (id en rijen), niet op het aantal rijen (keuring 2).
         // Ook op het account: is je sessie hersteld (of blijk je uitgelogd), dan komt je eigen Editie of vervalt de link.
         .onChange(of: widgetWachtSleutel) { widgetVerhaalStap() }
+        // Volgen 1.5: het blad uit het kaartmenu, het beheerblad, de vraag om in te loggen en de melding met Ongedaan maken
+        // (VolgViews.swift), één keer voor de hele app.
+        .volgBladen()
         .environment(reader)
         .environment(krant)
         // De lezer als blad. Ligt de krant open, dan staat hij op de rechterbladzijde (KrantPagina) en is

@@ -33,6 +33,18 @@ final class HootStore {
     // volgt). Gaat mee met je account, als `vakEngels` (zoals op het web).
     var vakEngels: Bool? { didSet { save("hoot.vakEngels", vakEngels); synced() } }
     var selectieEngels: Bool { SelectionOverview.englishOn(vakEngels, followsEnglish: followed.contains { $0.lang == "en" }) }
+    // Volgen 1.5 (Volgzaken.swift, HootStore+Volgen.swift): wat je volgt, hooguit drie, in de vorm van het web. Gaat mee met
+    // je account als `volgzaken`. Alleen zichtbaar als de server de functie aanzet (`volgzakenServer`).
+    var volgzaken: [Volgzaak] { didSet { save("hoot.volgzaken", volgzaken); synced(); volgzakenGewijzigd() } }
+    // `meta.volgzaken: true` in de laatste kern (HOOT_VOLGZAKEN=aan). Een oudere server stuurt het niet: dan blijft alles uit.
+    var volgzakenServer = false // alleen de kern zet hem (fetchAll), en de toetsen
+    // De melding onderaan na volgen of stoppen (met Ongedaan maken), en de bladen die vanuit elk scherm opengaan.
+    var volgMelding: VolgMelding?
+    var volgBlad: StoryVolgzaak? // "Volg GTA 6" uit het kaartmenu of Vergelijken: de kop als blad
+    var volgBeheer = false // het beheerblad "Je volgt"
+    var volgInloggen: StoryVolgzaak? // Volg zonder account: de vraag om in te loggen (daarna volg je het alsnog)
+    var volgPaginaBlad: VolgRoute? // "Naar GTA 6" waar geen eigen navigatie is (bijvoorbeeld in de lezer)
+    var stroomNaarRubriek: String? // "Naar Games in de Stroom" uit de kop in Zoeken: de Stroom opent op die rubriek
     // Bewaard en gelezen: in een eigen bestand (Application Support), niet in UserDefaults; gelezen
     // op volgorde, zodat we bij de grens van 2.000 de oudste vergeten en niet een willekeurige.
     private(set) var saved: [Item] { didSet { Self.write(saved, to: "saved.json"); synced() } }
@@ -179,6 +191,11 @@ final class HootStore {
         digestFields = load("hoot.digestFields") ?? [] // een nieuwe lezer kiest zijn vak zelf (of later)
         let engels: Bool? = load("hoot.vakEngels")
         vakEngels = engels
+        var gevolgd = Volgzaken.normaliseer(load("hoot.volgzaken") ?? [])
+        #if DEBUG
+        if DebugLaunch.volgNep { gevolgd = VolgNep.beginLijst() } // -HootVolgzaken nep: elke start dezelfde lijst
+        #endif
+        volgzaken = gevolgd
         // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
         let oldSaved: [Item]? = load("hoot.saved")
         let oldRead: [String]? = load("hoot.read")
@@ -278,6 +295,9 @@ final class HootStore {
         bskyInStream = Set(load("hoot.bskyInStream") ?? keptSocial.map(\.id))
         importSettings()
         repairStreamChoice(stage: "local")
+        #if DEBUG
+        VolgNep.zet(self) // -HootVolgzaken nep: /api/volgzaak antwoordt vanaf de start uit VolgNep
+        #endif
         canonicalizeBlueskyIDs()
     }
 
@@ -372,7 +392,8 @@ final class HootStore {
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website (een kapotte rij valt weg, niet de hele lijst)
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, vakEngels, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, rubrieken, favorites, social, taste }
+            var volgzaken: [Volgzaak]? // Volgen 1.5: een kapotte rij valt weg, niet de hele lijst
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, vakEngels, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, rubrieken, favorites, social, taste, volgzaken }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
@@ -392,6 +413,7 @@ final class HootStore {
                 favorites = try? c.decodeIfPresent([String].self, forKey: .favorites)
                 social = (try? c.decodeIfPresent([Lossy<BlueskyAccount>].self, forKey: .social))?.compactMap(\.value)
                 taste = try? c.decodeIfPresent(Taste.self, forKey: .taste)
+                volgzaken = (try? c.decodeIfPresent([Lossy<Volgzaak>].self, forKey: .volgzaken))?.compactMap(\.value)
                 // Op de website is het 1, 2, 3 of "alles".
                 preview = (try? c.decodeIfPresent(Int.self, forKey: .preview)) ?? ((try? c.decodeIfPresent(String.self, forKey: .preview)) == "alles" ? 0 : nil)
                 regels = (try? c.decodeIfPresent(Int.self, forKey: .regels)) ?? ((try? c.decodeIfPresent(String.self, forKey: .regels)) == "alles" ? 0 : nil)
@@ -456,6 +478,7 @@ final class HootStore {
         if let v = nextTopics, v != topics { topics = v; save("hoot.topics", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
         if let v = p?.taste?.migrated, v != taste { taste = v; save("hoot.taste", v) }
+        if let v = p?.volgzaken.map({ Volgzaken.normaliseer($0) }), v != volgzaken { volgzaken = v }
         if let v = p?.social {
             // De eerste keer met een account (`unite`): wat hier al stond blijft erbij. Daarna gaat je
             // account voor, zodat ook weghalen op een ander toestel meekomt.
@@ -493,6 +516,7 @@ final class HootStore {
             "interests": interests, "topics": topics, "rubrieken": RubriekVersie.current, "onderwerpen": OnderwerpVersie.current, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],
             "social": ownBluesky.map { ["handle": $0.handle, "name": $0.name, "avatar": $0.avatar as Any] },
+            "volgzaken": volgzaken.map(\.alsPref), // Volgen 1.5, zoals SYNCED_PREFS op het web (`volgzakenOmgezet` kent alleen het web)
         ]
     }
     var readIds: [String] { readOrder }
@@ -652,6 +676,8 @@ final class HootStore {
         favorites = []
         digestFields = []
         vakEngels = nil
+        volgzaken = []
+        volgMelding = nil
         taste = Taste()
         less = []
         affinity = Affinity()
@@ -769,6 +795,8 @@ final class HootStore {
             relatedVersion = start.meta.related
             stroomTabs = StroomTab.uit(start.stroomTabs)
             parts = start.meta.parts ?? [:]
+            volgzakenServer = start.meta.volgzaken == true
+            volgzakenGewijzigd() // de rekenkern voor de voorrang alvast laden, als je iets volgt
             stale = false // een mislukt deel zet hem hieronder weer aan
             coreFailed = fromCache
             coreFresh = !fromCache
@@ -787,6 +815,9 @@ final class HootStore {
             status = .ready
             if !fromCache { Task.detached(priority: .background) { HootAPI.Offline.prune() } }
             await loadPersonal()
+            #if DEBUG
+            VolgNep.koppel(self) // -HootVolgzaken nep: de velden op echte verhalen, nu Editie en Stroom er zijn
+            #endif
         } catch {
             stale = !itemsById.isEmpty
             coreFailed = true

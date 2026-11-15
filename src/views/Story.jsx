@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { CompactItem, Meta, SaveButton, ShareButton, SourceMeta, useHoot, linkOf, viaLength } from '../components/Items.jsx'
-import { isFollowing } from '../lib/follow.js'
+import { isFollowing } from '../lib/follow-volgzaken.js'
+import { volgtVan } from '../../shared/volgzaak-weergave.mjs'
+import { TEKST as VOLG_TEKST } from '../lib/volgzaak.js'
 import { CloseIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
@@ -58,8 +60,12 @@ function SourceItem({ item, note }) {
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
 // `tappedId`: het stuk waarop je tikte om te vergelijken; dat is de kop (ook als je de bron niet volgt).
 export default function Story({ story, items, tappedId = null, overlay, onClose, onBack, onSeen, seenBefore }) {
-  const { sourcesById, muted, followStories, followStory, markRead } = useHoot()
+  const { sourcesById, muted, followStories, followStory, markRead, volgAan, volgzaken, volgZaak, openVolg } = useHoot()
   const following = isFollowing(followStories, story)
+  // Volgen 1.5 (achter de vlag): de pil "Volg dit verhaal" wordt "Volg GTA 6" als het verhaal bij iets te volgen hoort, en
+  // "Volgend" (naar de pagina) als je het al volgt. Zonder veld `volgzaak` geen pil.
+  const zaak = volgAan ? story.volgzaak || null : null
+  const gevolgd = zaak ? volgtVan(story, volgzaken) : null
   // Wat je de vorige keer al zag, vastgelegd bij het openen (zodat "nieuw" niet meteen verdwijnt).
   const [prev] = useState(() => seenBefore)
   const headRef = useRef(null)
@@ -120,12 +126,23 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
         </p>
         <div className="story__acts">
           {/* In een smal paneel (of bij grote tekst) staat er alleen "Volg"; de naam blijft voluit. */}
-          <button type="button" className={`pill pill--sm hit followbtn${following ? ' is-on' : ''}`} aria-pressed={following} onClick={() => followStory(story, lead?.title || '')}>
-            <span className="followbtn__long">{following ? 'Je volgt dit' : 'Volg dit verhaal'}</span>
-            <span className="followbtn__short" aria-hidden="true">
-              Volg
-            </span>
-          </button>
+          {volgAan ? (
+            zaak ? (
+              <button type="button" className={`pill pill--sm hit followbtn${gevolgd ? ' is-on' : ''}`} aria-pressed={!!gevolgd} onClick={() => (gevolgd ? openVolg(gevolgd.slug) : volgZaak({ slug: zaak.slug, label: zaak.label }))}>
+                <span className="followbtn__long">{gevolgd ? VOLG_TEKST.volgend : VOLG_TEKST.volgNaam(zaak.label)}</span>
+                <span className="followbtn__short" aria-hidden="true">
+                  {gevolgd ? VOLG_TEKST.volgend : VOLG_TEKST.volg}
+                </span>
+              </button>
+            ) : null
+          ) : (
+            <button type="button" className={`pill pill--sm hit followbtn${following ? ' is-on' : ''}`} aria-pressed={following} onClick={() => followStory(story, lead?.title || '')}>
+              <span className="followbtn__long">{following ? 'Je volgt dit' : 'Volg dit verhaal'}</span>
+              <span className="followbtn__short" aria-hidden="true">
+                Volg
+              </span>
+            </button>
+          )}
           {/* Het verhaal delen = het stuk bovenaan delen, met de link van zijn uitgever (zoals de app). */}
           {lead ? <ShareButton item={lead} label="verhaal" /> : null}
           <SaveButton id={story.id} kind="story" payload={lead ? withLead(story, lead.id) : story} label="verhaal" />

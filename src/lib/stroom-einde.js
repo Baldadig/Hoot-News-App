@@ -20,6 +20,7 @@ export const DAG = 24 * 60 * 60 * 1000 // alleen ongeziene berichten van de laat
 export const GEZIEN_MS = 1500 // zo lang helemaal in beeld (na zelf scrollen) telt als gezien
 export const GEZIEN_KEY = 'hoot:stroom-gezien'
 export const GRENZEN_KEY = 'hoot:stroom-grenzen'
+export const VOORRANG_KEY = 'hoot:stroom-voorrang' // Volgen 1.5: de voorrang per weergave, vast met de grens
 // Oud (tot 14 november): één tijd voor alle weergaven, gezet bij het laden. Die zei niets over lezen.
 const OUD = { local: 'hoot:stroom-bij', session: 'hoot:stroom-grens' }
 
@@ -116,10 +117,23 @@ export function weergaveGrens(sleutel, list, { local = globalThis.localStorage, 
   return grens
 }
 
+// Volgen 1.5: de voorrang van een weergave (de stukken die bovenaan staan, shared/volgzaak-weergave.mjs), uitgerekend op
+// hetzelfde moment als de grens en net zo vastgezet: niets springt terwijl je kijkt, ook niet als je ontvolgt (dan gaat
+// alleen het label weg). `bereken()` geeft de lijst ids; alleen aangeroepen als er nog niets vastligt.
+export function weergaveVoorrang(sleutel, bereken, { session = globalThis.sessionStorage } = {}) {
+  const alles = (session && lees(session, VOORRANG_KEY)) || {}
+  if (Array.isArray(alles[sleutel])) return alles[sleutel]
+  const ids = bereken() || []
+  alles[sleutel] = ids
+  if (session) schrijf(session, VOORRANG_KEY, alles)
+  return ids
+}
+
 // "N nieuwe berichten" tonen: alle weergaven opnieuw bepalen (wat je net las, telt dan als gezien).
 export function vergeetGrenzen({ session = globalThis.sessionStorage } = {}) {
   try {
     session?.removeItem(GRENZEN_KEY)
+    session?.removeItem(VOORRANG_KEY)
   } catch {
     /* niet erg */
   }

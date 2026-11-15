@@ -43,6 +43,10 @@ import SwiftUI
 //                        verhalen van de Editie, "**" voor elk verhaal, ook in de Stroom)   -HootLuisterApps apple,spotify   -HootPodcastApp spotify|vragen|uit|leeg
 //   -HootUitleg <begrip>   (het blad met de uitleg van dat begrip gaat open bij de eerste pil die het heeft)
 //   -HootBegrippen YES   (in het verhaal staan de Begrippen en elk begrip opengeklapt)
+//   -HootVolgzaken nep   (Volgen 1.5 met nepdata, zonder server: de vlag aan, je volgt GTA 6 en Kabinetsformatie, een paar
+//                        verhalen krijgen het veld volgzaak, en /api/volgzaak antwoordt uit VolgNep.swift)
+//   -HootVolgLid NO   (met nepdata: alsof je geen account hebt)   -HootVolgMelding vast   (de melding blijft staan)
+//   -HootScreen volg-pagina|volg-stuurbij|volg-beheer|volg-blad|volg-inloggen|volg-ongedaan|volg-gevolgd|volg-zoeken
 //   -HootTrekProef <punten>   (de Editie ververst vanzelf alsof je trok en scrolt daarna zoveel punten omlaag,
 //                             om te zien wat de trekstrook doet als je tijdens het verversen verder leest; samen
 //                             met -HootRefreshDelay)
@@ -109,7 +113,19 @@ enum DebugLaunch {
         return map[storyId] ?? (luisterDemo.contains(storyId) ? map["*"] : nil) ?? map["**"] // "**": elk verhaal (de Stroom)
     }
     nonisolated(unsafe) static var luisterDemo: Set<String> = []
+    // Volgen 1.5 met nepdata (VolgNep.swift).
+    static var volgNep: Bool { defaults.string(forKey: "HootVolgzaken") == "nep" }
+    static var volgMeldingVast: Bool { defaults.string(forKey: "HootVolgMelding") == "vast" }
+    static var volgNepLid: Bool { volgNep && (defaults.object(forKey: "HootVolgLid") == nil || defaults.bool(forKey: "HootVolgLid")) }
+    nonisolated(unsafe) static var volgNepVerhalen: [String: StoryVolgzaak] = [:]
+    static func volgzaak(_ storyId: String) -> StoryVolgzaak? { volgNep ? volgNepVerhalen[storyId] : nil }
+    static var volgPaginaStart: VolgRoute? { screen("volg-pagina") || screen("volg-stuurbij") ? VolgRoute(slug: "kabinetsformatie", label: "Kabinetsformatie") : nil }
     #else
+    static let volgNep = false
+    static let volgMeldingVast = false
+    static let volgNepLid = false
+    static func volgzaak(_ storyId: String) -> StoryVolgzaak? { nil }
+    static let volgPaginaStart: VolgRoute? = nil
     static func luister(_ storyId: String) -> StoryLuister? { nil }
     static func verschillen(_ storyId: String) -> StoryVerschillen? { nil }
     static func vasteStukken(_ storyId: String) -> [Item]? { nil }

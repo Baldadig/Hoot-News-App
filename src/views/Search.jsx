@@ -3,10 +3,12 @@ import { Empty, ViewHeader } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { CloseIcon, SearchArt } from '../components/icons.jsx'
 import { searchHits } from '../lib/zoek.js'
+import { VolgKop, JeVolgtSectie, StuurBijBlad } from '../components/Volg.jsx'
+import { vraagVolgzaak } from '../lib/volgzaak.js'
 
 // Zoeken is een tab (telefoon) en staat in de zijbalk (breed): geen terugknop, wel een schermtitel (h1) zoals elk scherm.
 export default function Search() {
-  const { itemsById, saved, storiesById, muted, prefs } = useHoot()
+  const { itemsById, saved, storiesById, muted, prefs, volgAan, account, tokenVan, openVolg } = useHoot()
   const [q, setQ] = useState('')
   const [scope, setScope] = useState('mijn') // mijn | alle
   const inputRef = useRef(null)
@@ -16,11 +18,25 @@ export default function Search() {
   const ownMuted = useMemo(() => new Set(prefs?.muted || []), [prefs])
   const results = useMemo(() => searchHits(q, { itemsById, saved, scope, muted, ownMuted }), [q, scope, itemsById, saved, muted, ownMuted])
 
+  // Volgen 1.5 (achter de vlag): na Return vraagt Zoeken de server of er iets te volgen valt (de tekst in een POST-body).
+  // De gewone treffers staan er meteen, zoals altijd; de kop van De Redacteur komt erboven. Alleen met een account (duiden
+  // kost iets en telt voor je quotum); zonder account blijft Zoeken zoals het was.
+  const [kop, setKop] = useState(null) // { voor, antwoord }
+  const [stuur, setStuur] = useState(false)
+  const lid = account?.status === 'in'
+  const duid = async (opdracht) => {
+    const tekst = opdracht.trim()
+    if (!volgAan || !lid || tekst.length < 2) return
+    const r = await vraagVolgzaak('duiden', { opdracht: tekst }, { token: await tokenVan?.() })
+    if (r.status === 200 && r.data?.soort) setKop({ voor: opdracht, antwoord: r.data })
+  }
+  const kopNu = kop && kop.voor === q ? kop.antwoord : null
+
   return (
     <section className="view view--page" aria-label="Zoeken">
       <div className="col col--read">
         <ViewHeader title="Zoeken" showSearch={false}>
-          <form className="searchbar" role="search" onSubmit={(e) => (e.preventDefault(), inputRef.current?.blur())}>
+          <form className="searchbar" role="search" onSubmit={(e) => (e.preventDefault(), inputRef.current?.blur(), duid(q))}>
             <label className="visually-hidden" htmlFor="q">
               Zoek in berichten
             </label>
@@ -41,11 +57,16 @@ export default function Search() {
             </button>
           </div>
         </ViewHeader>
-        {!q.trim() ? (
+        {!q.trim() && volgAan && (prefs?.volgzaken || []).some((z) => z.status !== 'gestopt') ? (
+          // Zoeken zonder zoekterm is het thuis van wat je volgt (scherm 05d).
+          <JeVolgtSectie />
+        ) : !q.trim() ? (
           <Empty art={SearchArt} title="Zoek in je nieuws">
             In koppen, intro’s, bronnen en auteurs, ook in Bewaard.
           </Empty>
-        ) : results.length === 0 ? (
+        ) : null}
+        {q.trim() && kopNu ? <VolgKop antwoord={kopNu} onKies={(o) => { setQ(o); setKop(null); duid(o) }} onStuurBij={() => setStuur(true)} /> : null}
+        {!q.trim() ? null : results.length === 0 ? (
           <Empty
             art={SearchArt}
             title={`Niets gevonden voor ‘${q.trim()}’`}
@@ -73,6 +94,7 @@ export default function Search() {
           </>
         )}
       </div>
+      {stuur && kopNu?.volgzaak ? <StuurBijBlad zaak={kopNu.volgzaak} open={stuur} onClose={() => setStuur(false)} onKlaar={(naar) => openVolg(naar)} /> : null}
     </section>
   )
 }

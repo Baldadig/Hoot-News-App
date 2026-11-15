@@ -1,0 +1,509 @@
+/* Volgen 1.5 op het web (src/components/Volg.jsx, src/views/Volg.jsx, VolgLabel in Items.jsx). Alleen bestaande tokens.
+   Gelijk aan de schermen 01 tot 24 van Hoot-design/ontwerp/volgen-1.5. Alles verschijnt alleen met de vlag aan. */
+
+/* ---------- Het label "Je volgt" in de rubriekregel (scherm 05f, 23) ----------
+   In de rubriekkleur (die van .kicker), zonder onderstreping of knopvorm, met een klein vinkje. Het raakvlak is onzichtbaar
+   44 hoog: het groeit naar boven, in de witruimte boven de kaart, en --s2 opzij; nooit naar beneden over de kop. Bij
+   aanraken dimt het even, zoals een systeemknop.
+   Nooit een knop in een link: staat de rubriekregel in de link van de kaart, dan is .volglabel alleen beeld en ligt de
+   echte knop (.volglabel-knop, een eigen <button> naast de link) er precies overheen (VolgLabelKnop in Items.jsx). In de
+   Editie staat de rubriekregel buiten de link en is het label zelf de knop (.volglabel--knop). */
+.volglabel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity var(--dur-kort) var(--ease-bediening), color var(--dur-kort) var(--ease-bediening);
+}
+.volglabel > svg {
+  flex: none;
+  translate: 0 -0.5px;
+}
+.volglabel--knop {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.volglabel--knop::after,
+.volglabel-knop::after {
+  content: '';
+  position: absolute;
+  inset-block: calc(var(--lh-1) - var(--tap)) 0;
+  inset-inline: calc(-1 * var(--s2));
+}
+.volglabel--knop:active {
+  opacity: 0.45;
+}
+.volglabel--knop:focus-visible,
+.volglabel-knop:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* De knop naast de link: onzichtbaar, met de plek en maat van het label (inline gemeten). Tot hij geplaatst is, staat hij
+   op de plek van de kaart zonder raakvlak, zodat hij nooit over de kop valt. */
+.entry:has(> .volglabel-knop) {
+  position: relative;
+}
+.volglabel-knop {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.volglabel-knop:not([data-geplaatst])::after {
+  content: none;
+}
+.entry:has(> .volglabel-knop:active) .volglabel {
+  opacity: 0.45;
+}
+@media (hover: hover) and (pointer: fine) {
+  .volglabel--knop:hover,
+  .entry:has(> .volglabel-knop:hover) .volglabel {
+    color: var(--ink-2);
+  }
+}
+
+/* ---------- De knoppen Volg en Volgend ---------- */
+.volgknop {
+  min-height: var(--control-sm);
+  box-shadow: none;
+}
+.volgend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  flex: none;
+  min-height: var(--control-sm);
+  padding: 0 var(--s3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--sel-bg);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: var(--t2);
+  font-weight: var(--fw-action);
+  line-height: var(--lh-2);
+  cursor: pointer;
+}
+.volgend:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.volgend[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--sel-bg) 80%, var(--accent));
+}
+.vh__row .volgend,
+.vh__row .volgknop {
+  align-self: center;
+}
+.volg__stop,
+.volg__stop > svg {
+  color: var(--accent) !important;
+}
+
+/* ---------- De kop van De Redacteur in Zoeken (scherm 01, 02, 17 tot 19, 22) ---------- */
+.volgkop {
+  margin-block: var(--s4) var(--s5);
+  padding: var(--s4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+.volgkop__kop {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+}
+.volgtegel {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink-2);
+}
+.volgkop__titels {
+  min-width: 0;
+}
+.volgkop__naam {
+  margin: 0;
+}
+.volgkop__regel {
+  margin: 2px 0 0;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.volgkop__knop {
+  margin-top: var(--s3);
+}
+.volgkop__vol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s3);
+}
+.volgkop__vol .volgkop__regel {
+  margin: 0;
+}
+.volgkop__label {
+  margin: var(--s4) 0 var(--s1);
+}
+.volgkop > .volgkop__label:first-child {
+  margin-top: 0;
+}
+.volgkop__naar {
+  margin-top: var(--s3);
+  text-decoration: none;
+}
+.volgkop__tip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--s2);
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.volgkop__stil {
+  margin: var(--s4) 0;
+  color: var(--ink-3);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.volgkop__keuzes {
+  margin: var(--s2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.volgkeuze {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s2) 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.volgkeuze > svg {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--ink-3);
+}
+.volgkeuze__tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.volgkeuze__naam {
+  font-weight: var(--fw-ui);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.volgkeuze__regel {
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+
+/* ---------- Een verhaal op de pagina en onder "Er speelde al" ---------- */
+.volgrij {
+  display: grid;
+  gap: var(--s1);
+  width: 100%;
+  padding: var(--s3) 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  text-decoration: none;
+}
+button.volgrij,
+a.volgrij {
+  cursor: pointer;
+}
+.volgrij__kop--klein {
+  font-family: var(--serif);
+  font-weight: var(--fw-head);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+}
+.volgrij__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s2);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+.volgrij__meta .mark {
+  margin-inline-end: calc(-1 * var(--s1));
+}
+.volgrij__bron {
+  color: var(--ink-2);
+  font-weight: var(--fw-ui);
+}
+.volgrij__meer {
+  color: var(--accent);
+}
+.volgrij__meer::before,
+.volgrij__buiten::before {
+  content: '·';
+  margin-inline-end: var(--s2);
+  color: var(--ink-3);
+}
+
+/* ---------- Zoeken zonder zoekterm: Je volgt (scherm 05d) ---------- */
+.jevolgt {
+  margin-top: var(--s4);
+}
+.jevolgt__kop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--tap);
+}
+.jevolgt__wijzig {
+  color: var(--accent);
+  font-weight: var(--fw-action);
+}
+.jevolgt__lijst {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  overflow: hidden;
+}
+.jevolgt__lijst > li + li {
+  border-top: 1px solid var(--rule);
+}
+.jevolgt__rij {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--s2) var(--s4);
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .jevolgt__rij:hover {
+    background: var(--state-hover);
+  }
+}
+.jevolgt__rij > svg {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--ink-3);
+}
+.jevolgt__tekst {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.jevolgt__naam {
+  font-weight: var(--fw-ui);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+}
+.jevolgt__stand {
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+.jevolgt__stand.is-nieuw {
+  color: var(--accent);
+  font-weight: var(--fw-ui);
+}
+
+/* ---------- Het beheerblad en Stuur bij (scherm 11, 21) ---------- */
+.beheer__kop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+.beheer__titel {
+  margin: 0;
+}
+.beheer__klaar {
+  color: var(--accent);
+  font-weight: var(--fw-action);
+}
+.beheer__lijst {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.beheer__rij {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  min-height: 56px;
+  border-top: 1px solid var(--rule);
+}
+.beheer__rij.is-sleep {
+  opacity: 0.5;
+}
+.beheer__greep {
+  flex: none;
+  margin-inline-start: calc(-1 * var(--s3));
+  color: var(--ink-3);
+  cursor: grab;
+}
+.beheer__naam {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--fw-ui);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+}
+.beheer__rij.is-gestopt .beheer__naam {
+  color: var(--ink-3);
+}
+.beheer__stop {
+  flex: none;
+  min-height: var(--tap);
+  padding: 0 var(--s2);
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  cursor: pointer;
+}
+.beheer__label {
+  margin: var(--s5) 0 var(--s2);
+}
+.beheer__leeg {
+  color: var(--ink-3);
+  font-size: var(--t2);
+}
+.stuurbij__regel {
+  margin: 0 0 var(--s3);
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.stuurbij__groep {
+  margin-bottom: var(--s3);
+}
+.stuurbij__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+  margin: var(--s2) 0 0;
+}
+.stuurbij__chip {
+  padding: 2px var(--s2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  color: var(--ink-2);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+.stuurbij__form {
+  display: grid;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+.stuurbij__form .btn {
+  justify-self: start;
+  margin-top: var(--s2);
+}
+.stuurbij__fout {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: var(--t2);
+}
+
+/* ---------- De pagina (scherm 24) ---------- */
+.volgvh__ruimte {
+  flex: 1;
+}
+.volgvh__titel {
+  margin: var(--s1) 0 0;
+}
+.volgvh__regel {
+  max-inline-size: var(--measure-prose);
+}
+.volgdeel__label {
+  margin: var(--s5) 0 var(--s1);
+}
+.volgweek__label {
+  margin: var(--s4) 0 var(--s1);
+}
+.volgstil {
+  margin: var(--s4) 0 0;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.volgslot {
+  margin-top: var(--s4);
+  padding: var(--s4);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+.volgslot__zin {
+  margin: 0 0 var(--s3);
+}
+.volgslot__knoppen {
+  display: flex;
+  gap: var(--s2);
+}
+.volgstand {
+  margin-top: var(--s4);
+}
+.volgstand__tekst {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+}
+.volgstand__bron {
+  margin: var(--s1) 0 0;
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+.volgeinde {
+  padding-bottom: var(--s6);
+}

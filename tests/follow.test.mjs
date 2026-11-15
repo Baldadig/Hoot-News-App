@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { toggleFollow, isFollowing, followedNow, FOLLOW_MAX, FOLLOW_DAYS } from '../src/lib/follow.js'
+import { toggleFollow, isFollowing, followedNow, FOLLOW_MAX, FOLLOW_DAYS } from '../src/lib/follow-volgzaken.js'
 
 const NOW = Date.parse('2026-10-22T12:00:00Z')
 const story = (id, formerIds = []) => ({ id, formerIds, itemIds: [] })

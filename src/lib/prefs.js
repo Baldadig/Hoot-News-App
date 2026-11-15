@@ -6,6 +6,7 @@ import { currentTopics, currentTopicMap, currentChoice, RUBRIEKEN, withCrypto, O
 import { TASTE_CAP } from './affinity.js'
 import { INTRO_LINES } from '../../shared/zinnen.mjs'
 import { textSizePref } from './tekstgrootte.js'
+import { normalizeVolgzaken } from './follow-volgzaken.js'
 export const DEFAULT_PREFS = {
   theme: 'system',
   themeDark: 'dark',
@@ -29,7 +30,8 @@ export const DEFAULT_PREFS = {
   vakEngels: null, // "Ook Engelstalige stukken" in de Selectie: true, false, of null (aan als je een Engelse bron volgt)
   bskyInStream: [], // expliciete keuze; oude profielen zonder dit veld behouden hun gevolgde accounts
   weatherPlace: 'de-bilt', // neutraal; plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
-  followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
+  followStories: [], // verhalen die je volgden tot 1.5: [{ id, title, at }] (src/lib/follow-volgzaken.js); lopen stil af
+  volgzaken: [], // Volgen 1.5: [{ slug, label, opdracht, at, gezien, status, gestoptAt }], hooguit drie actief (src/lib/follow-volgzaken.js)
   taste: { topics: {}, sources: {} }, // meer of minder hiervan (src/lib/affinity.js); gaat mee met je account
 }
 
@@ -59,6 +61,8 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.topics)) out.topics = []
   if (typeof out.weatherPlace !== 'string') out.weatherPlace = DEFAULT_PREFS.weatherPlace
   if (!Array.isArray(out.followStories)) out.followStories = []
+  out.volgzaken = normalizeVolgzaken(out.volgzaken)
+  if (typeof out.volgzakenOmgezet !== 'boolean') delete out.volgzakenOmgezet
   // Meer of minder hiervan: per onderwerp en bron een getal, ook negatief.
   const signed = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([, v]) => Number.isFinite(v)))
   out.taste = { topics: currentTopicMap(signed(out.taste?.topics), TASTE_CAP), sources: signed(out.taste?.sources) }

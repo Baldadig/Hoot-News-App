@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { loadSnapshot, nowOf, PERSONAS, setupFor, readIdsOf, composeFor, generalEdition, storiesPrint } from '../tests/helpers/snapshot.mjs'
 import { compose } from '../src/lib/editionCore.js'
 import { ROOT } from './build-edition-core.mjs'
+import { writeVolgzaakGolden } from './make-volgzaak-golden.mjs'
 
 export const GOLDEN = 'tests/fixtures/edition-golden.json'
 export const GENERAL_GOLDEN = 'tests/fixtures/edition-general-golden.json'
@@ -76,4 +77,6 @@ if (isMain) {
   writeFileSync(resolve(ROOT, GOLDEN), text + '\n')
   for (const g of golden) console.log(`${g.name}: ${g.input.items.length} berichten in, ${g.output.entries.length} plekken uit, basis ${g.output.basis}`)
   console.log(`${GOLDEN}: ${(text.length / 1024).toFixed(0)} kB`)
+  // Volgen 1.5: de volgregels van de rekenkern (label, voorrang, pagina), voor web en app.
+  writeVolgzaakGolden()
 }
