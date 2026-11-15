@@ -44,13 +44,60 @@ const AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i
 // stond als plek 04 in de Editie. Het is een label, geen inhoud: "Spotify koopt podcastbedrijf | Tech", "Brand |
 // Video toont chaos", "Kabinet valt – Luister naar de Kamer" en een woord ergens in de kop tellen niet. Een dubbele punt
 // telt hier niet als scheidingsteken: daarachter staat in echte feeds inhoud ("…: best podcasts of the week").
+// Aangescherpt (aflevering-2, 15 november, opmerkingen van de keuring): "watch", "audio" en "kijk" zijn ook gewone woorden
+// of rubrieken, dus die tellen alleen kaal of met een afleveringsnummer ("Column | Kijk op de week", "Rolex Daytona – watch
+// of the year" en "Fed meeting - watch for rate cut" zijn inhoud), en kaal "watch" of "audio" niet achter een productkop
+// ("Apple Watch Series 12 review - Watch", "Sony WH-1000XM6 review | Audio": een review, of het woord staat al vooraan).
+// "Video op …" zegt waar een video te zien is, geen programma ("| Video op sociale media"). "(Podcast)" en "(Video)"
+// achteraan tellen ook (Bloomberg).
 // Gedeeld door server en toestel; 'podcast' | 'video' | null.
 const TAIL_AUDIO = new Set(['podcast', 'podcasts', 'luisterverhaal', 'luisterstuk', 'luister', 'listen', 'audio'])
-const TAIL_LABEL = /\p{L}.*?(?:\s*\|\s*|\s[–—-]\s+)(podcasts?|luisterverhaal|luisterstuk|luister|listen|audio|video|kijk|watch)(?:\s+(?:op|van|bij|met|uit|in|voor|of|on|from|with|for)(?:\s+[^\s|–—]+){1,2}|\s+(?:aflevering|episode|ep\.?)\s*#?\d+|\s+#?\d+)?\s*$/iu
+const TAIL_KAAL = new Set(['watch', 'audio', 'kijk'])
+const TAIL_NUM = /^(?:(?:aflevering|episode|ep\.?)\s*#?\d+|#?\d+)$/i
+const TAIL_LABEL = /^([^\p{L}]*\p{L}.*?)(?:\s*\|\s*|\s[–—-]\s+)(podcasts?|luisterverhaal|luisterstuk|luister|listen|audio|video|kijk|watch)(?:\s+((?:op|van|bij|met|uit|in|voor|of|on|from|with|for)(?:\s+[^\s|–—]+){1,2}|(?:aflevering|episode|ep\.?)\s*#?\d+|#?\d+))?\s*$/iu
+const TAIL_HAAKJES = /\p{L}.*\(\s*(podcast|video)\s*\)\s*$/iu
+const PRODUCTKOP = /\b(?:review|reviews|getest|test|hands-on|unboxing)\b/i
 export function labelAchteraan(title) {
-  const m = TAIL_LABEL.exec(String(title || '').replace(/\s+/g, ' ').trim())
+  const t = String(title || '').replace(/\s+/g, ' ').trim()
+  const h = TAIL_HAAKJES.exec(t)
+  if (h) return h[1].toLowerCase() === 'podcast' ? 'podcast' : 'video'
+  const m = TAIL_LABEL.exec(t)
   if (!m) return null
-  return TAIL_AUDIO.has(m[1].toLowerCase()) ? 'podcast' : 'video'
+  const woord = m[2].toLowerCase()
+  const rest = m[3] || ''
+  if (TAIL_KAAL.has(woord)) {
+    if (rest && !TAIL_NUM.test(rest)) return null
+    if (woord !== 'kijk' && !rest && (PRODUCTKOP.test(m[1]) || new RegExp(`\\b${woord}\\b`, 'i').test(m[1]))) return null
+  }
+  if (woord === 'video' && /^(?:op|on)\s/i.test(rest)) return null
+  return TAIL_AUDIO.has(woord) ? 'podcast' : 'video'
+}
+
+// De showcover van een vaste aflevering (aflevering-2, 15 november 2026, besluit Alex): NRC zet afleveringen van NRC
+// Vandaag als gewoon nieuwsstuk onder /nieuws/ in de feed, vaak zonder label in de kop ("Seks en spionage: de druk op
+// Nvidia neemt toe"). Het enige teken is de afbeelding: de cover van de show uit de taxonomie van de uitgever. Een
+// kleine, benoemde lijst (uitgever + patroon op de afbeelding, na het ontcijferen van dubbel gecodeerde spaties), zodat
+// later een andere show erbij kan. Nu alleen NRC Vandaag: columns, commentaren, puzzels en andere podcasts van NRC hebben
+// een eigen taxonomie-afbeelding en vallen er niet onder. Gemeten op 15 november: 11 stukken in tests/fixtures en 1 in de
+// live feed van NRC, allemaal afleveringen van NRC Vandaag. Het veld is `image` (rss.mjs).
+export const SHOWCOVERS = [
+  { show: 'NRC Vandaag', bronnen: ['nrc'], patroon: /\/\/(?:[^/]+\/)*static\.nrc\.nl\/taxonomy\/[^/]*\bnrc ?vandaag[^/]*$/i },
+]
+const ontcijfer = (url) => {
+  let s = String(url || '')
+  for (let k = 0; k < 3 && /%[0-9a-f]{2}/i.test(s); k++) {
+    try {
+      s = decodeURIComponent(s)
+    } catch {
+      break
+    }
+  }
+  return s.replace(/\+/g, ' ')
+}
+export function showcover(item = {}) {
+  if (!item || item.kind === 'post' || !item.image) return null
+  const img = ontcijfer(item.image).split(/[?#]/)[0]
+  return SHOWCOVERS.find((c) => c.bronnen.includes(item.source) && c.patroon.test(img))?.show || null
 }
 
 // De padsegmenten vóór de slug (het laatste segment), in kleine letters.
@@ -131,8 +178,25 @@ export function audioEpisode(item = {}) {
   if (/^audio\//i.test(String(item.mediaType || ''))) return true
   if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true
   if (rubricSegments(item.url).some((s) => AUDIO_EPISODE_DIR.has(s))) return true
-  return AUDIO_LABEL.test(String(item.title || '')) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || '')) || labelAchteraan(item.title) === 'podcast'
+  if (showcover(item)) return true
+  return AUDIO_LABEL.test(String(item.title || '')) || labelAchteraan(item.title) === 'podcast'
 }
+
+// Een video met een programmalabel in de kop (aflevering-2, 15 november 2026, besluit Alex): "Video |", "Video:", "Kijk:",
+// "Watch:" vooraan, of achteraan "| Video", "– Kijk", "(Video)" (labelAchteraan). Zo'n stuk is aanbod om te kijken en krijgt
+// net als een podcast geen eigen plek en is geen kop (geenPlekAflevering); het mag wel lid van een verhaal zijn. Een video
+// die alleen aan de rubriek (/video/) of de feed (feedMark, enclosure) herkend wordt, blijft zoals hij was (besluit B2:
+// bij RTL en de NOS vaak gewoon nieuws).
+const VIDEO_LABEL = /^[\s"'‘“(]*(video|kijk|watch)\s*[:|]/i
+export function videoMetLabel(item = {}) {
+  if (!item || item.kind === 'post') return false
+  const t = String(item.title || '')
+  return VIDEO_LABEL.test(t) || labelAchteraan(t) === 'video'
+}
+
+// Geen eigen plek en nooit de kop van een plek: een aflevering om te luisteren (audioEpisode) of een video met een
+// programmalabel (videoMetLabel). Eén voorwaarde voor alle Editieroutes, server en toestel.
+export const geenPlekAflevering = (item) => audioEpisode(item) || videoMetLabel(item)
 
 // Eén toelating voor alle Editieroutes. Daarbij ook geen beschouwing en geen kop zonder nieuws, op vorm en kop, nooit op
 // onderwerp of bron: een recensie of werkkop (shared/recensie.mjs, 14 november 2026), een column in de ik-vorm, een

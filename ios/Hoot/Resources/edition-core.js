@@ -2723,11 +2723,44 @@ var HootCore = (() => {
   var LABEL4 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
   var AUDIO_LABEL = /^[\s"'‘“(]*(podcast|luister|listen)\s*[:|]/i;
   var TAIL_AUDIO = /* @__PURE__ */ new Set(["podcast", "podcasts", "luisterverhaal", "luisterstuk", "luister", "listen", "audio"]);
-  var TAIL_LABEL = /\p{L}.*?(?:\s*\|\s*|\s[–—-]\s+)(podcasts?|luisterverhaal|luisterstuk|luister|listen|audio|video|kijk|watch)(?:\s+(?:op|van|bij|met|uit|in|voor|of|on|from|with|for)(?:\s+[^\s|–—]+){1,2}|\s+(?:aflevering|episode|ep\.?)\s*#?\d+|\s+#?\d+)?\s*$/iu;
+  var TAIL_KAAL = /* @__PURE__ */ new Set(["watch", "audio", "kijk"]);
+  var TAIL_NUM = /^(?:(?:aflevering|episode|ep\.?)\s*#?\d+|#?\d+)$/i;
+  var TAIL_LABEL = /^([^\p{L}]*\p{L}.*?)(?:\s*\|\s*|\s[–—-]\s+)(podcasts?|luisterverhaal|luisterstuk|luister|listen|audio|video|kijk|watch)(?:\s+((?:op|van|bij|met|uit|in|voor|of|on|from|with|for)(?:\s+[^\s|–—]+){1,2}|(?:aflevering|episode|ep\.?)\s*#?\d+|#?\d+))?\s*$/iu;
+  var TAIL_HAAKJES = /\p{L}.*\(\s*(podcast|video)\s*\)\s*$/iu;
+  var PRODUCTKOP = /\b(?:review|reviews|getest|test|hands-on|unboxing)\b/i;
   function labelAchteraan(title) {
-    const m = TAIL_LABEL.exec(String(title || "").replace(/\s+/g, " ").trim());
+    const t = String(title || "").replace(/\s+/g, " ").trim();
+    const h = TAIL_HAAKJES.exec(t);
+    if (h) return h[1].toLowerCase() === "podcast" ? "podcast" : "video";
+    const m = TAIL_LABEL.exec(t);
     if (!m) return null;
-    return TAIL_AUDIO.has(m[1].toLowerCase()) ? "podcast" : "video";
+    const woord = m[2].toLowerCase();
+    const rest = m[3] || "";
+    if (TAIL_KAAL.has(woord)) {
+      if (rest && !TAIL_NUM.test(rest)) return null;
+      if (woord !== "kijk" && !rest && (PRODUCTKOP.test(m[1]) || new RegExp(`\\b${woord}\\b`, "i").test(m[1]))) return null;
+    }
+    if (woord === "video" && /^(?:op|on)\s/i.test(rest)) return null;
+    return TAIL_AUDIO.has(woord) ? "podcast" : "video";
+  }
+  var SHOWCOVERS = [
+    { show: "NRC Vandaag", bronnen: ["nrc"], patroon: /\/\/(?:[^/]+\/)*static\.nrc\.nl\/taxonomy\/[^/]*\bnrc ?vandaag[^/]*$/i }
+  ];
+  var ontcijfer = (url) => {
+    let s = String(url || "");
+    for (let k = 0; k < 3 && /%[0-9a-f]{2}/i.test(s); k++) {
+      try {
+        s = decodeURIComponent(s);
+      } catch {
+        break;
+      }
+    }
+    return s.replace(/\+/g, " ");
+  };
+  function showcover(item = {}) {
+    if (!item || item.kind === "post" || !item.image) return null;
+    const img = ontcijfer(item.image).split(/[?#]/)[0];
+    return SHOWCOVERS.find((c) => c.bronnen.includes(item.source) && c.patroon.test(img))?.show || null;
   }
   function rubricSegments(url) {
     const m = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]*([^?#]*)/i.exec(String(url || "").trim());
@@ -2778,15 +2811,22 @@ var HootCore = (() => {
     if (/^audio\//i.test(String(item.mediaType || ""))) return true;
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return true;
     if (rubricSegments(item.url).some((s) => AUDIO_EPISODE_DIR.has(s))) return true;
-    return AUDIO_LABEL.test(String(item.title || "")) || /\(\s*podcast\s*\)\s*$/i.test(String(item.title || "")) || labelAchteraan(item.title) === "podcast";
+    if (showcover(item)) return true;
+    return AUDIO_LABEL.test(String(item.title || "")) || labelAchteraan(item.title) === "podcast";
   }
+  var VIDEO_LABEL = /^[\s"'‘“(]*(video|kijk|watch)\s*[:|]/i;
+  function videoMetLabel(item = {}) {
+    if (!item || item.kind === "post") return false;
+    const t = String(item.title || "");
+    return VIDEO_LABEL.test(t) || labelAchteraan(t) === "video";
+  }
+  var geenPlekAflevering = (item) => audioEpisode(item) || videoMetLabel(item);
   var excludedFromEdition = (item, weg = null) => !!item && (weg && weg.size > 0 && weg.has(item.id) || hardMark(item) != null || isRecensie(item) || geenPlekNaarVorm(item));
 
   // shared/aflevering.mjs
   var AUDIO_DIR = /* @__PURE__ */ new Set(["podcast", "podcasts", "luister", "audio"]);
   var VIDEO_DIR = /* @__PURE__ */ new Set(["video", "videos", "kijk"]);
   var LABEL5 = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i;
-  var TAIL = /\(\s*podcast\s*\)\s*$/i;
   function afleveringSoort(item) {
     if (!item || item.kind === "post") return null;
     if (item.podcastEpisode != null && String(item.podcastEpisode).trim()) return "podcast";
@@ -2802,9 +2842,9 @@ var HootCore = (() => {
     const label2 = LABEL5.exec(title)?.[1]?.toLowerCase();
     if (label2 === "podcast" || label2 === "luister" || label2 === "listen") return "podcast";
     if (label2 === "video" || label2 === "kijk" || label2 === "watch") return "video";
-    if (TAIL.test(title)) return "podcast";
     const achteraan = labelAchteraan(title);
     if (achteraan) return achteraan;
+    if (showcover(item)) return "podcast";
     return null;
   }
   var isAflevering = (item) => afleveringSoort(item) !== null;
@@ -4447,7 +4487,7 @@ var HootCore = (() => {
   function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
     const score = (i) => (/\bpodcast\b/i.test(i.title || "") || isAflevering(i) || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
     const scores = new Map(items.map((i) => [i, score(i)]));
-    const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : audioEpisode(i) ? 1 : 0]));
+    const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : geenPlekAflevering(i) ? 1 : 0]));
     return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b));
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b|(^|:\s*)(bekijk|vind|volg|lees) hier\b|^\W*praat mee\b|^\W*spoorboekje\b|\bresults live\b|\blive results\b|\blive briefing\b|:\s*all the news\s*$/i;
@@ -4829,7 +4869,7 @@ var HootCore = (() => {
   };
   function leadPool(cands, items, now, own2 = null, total = items.length, coreItems = centralItems) {
     let xs = prefer(cands, (i) => !isOpinion(i));
-    xs = prefer(xs, (i) => !audioEpisode(i));
+    xs = prefer(xs, (i) => !geenPlekAflevering(i));
     xs = prefer(xs, (i) => !isStale(i, now));
     if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
     if (own2) xs = prefer(xs, own2);
@@ -5002,7 +5042,7 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie");
         continue;
       }
-      if (!items.some((i) => !isOpinion(i) && !audioEpisode(i))) {
+      if (!items.some((i) => !isOpinion(i) && !geenPlekAflevering(i))) {
         reject("story", st.id, st.itemIds, "alleen-aflevering");
         continue;
       }
@@ -5065,14 +5105,14 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "alleen-opinie-nieuw");
         continue;
       }
-      if (heads?.length && !heads.some((i) => !isOpinion(i) && !audioEpisode(i))) {
+      if (heads?.length && !heads.some((i) => !isOpinion(i) && !geenPlekAflevering(i))) {
         reject("story", st.id, st.itemIds, "alleen-aflevering-nieuw");
         continue;
       }
       cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie });
     }
     for (const it of pool) {
-      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || audioEpisode(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
+      if (!mainIds.has(it.source) || it.kind !== "article" || isOpinion(it) || geenPlekAflevering(it) || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
         reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
         continue;
       }
@@ -5574,7 +5614,7 @@ var HootCore = (() => {
     const newsPool = pool.filter((i) => kindOf(i) === "nieuws" || !sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i]) || bigLight(i));
     const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)));
     let bubbleEntry = global.entries.find((e) => e.desk === "bubbel") || null;
-    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !audioEpisode(i)).map((i) => i.id));
+    const ownIds = new Set(items.filter((i) => followed.has(i.source) && !isOpinion(i) && !geenPlekAflevering(i)).map((i) => i.id));
     const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id));
     const bigWide = (w) => majorNews(storyById.get(w.storyId) || w, [w.item]);
     const wideLeads = /* @__PURE__ */ new Map();
@@ -5601,7 +5641,7 @@ var HootCore = (() => {
     const relead = (head, xs) => {
       if (leadOk(head)) return head;
       const rubric = rubricOf(head);
-      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !audioEpisode(i) && readableIn(i, rubric) && freeOrOwn(i));
+      const ok = xs.filter((i) => i && i.kind !== "post" && !isOpinion(i) && !geenPlekAflevering(i) && readableIn(i, rubric) && freeOrOwn(i));
       if (!ok.length) return null;
       const fresh = ok.some((i) => !isStale(i, now)) ? ok.filter((i) => !isStale(i, now)) : ok;
       const mine = fresh.filter((i) => followed.has(i.source));
