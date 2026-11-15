@@ -52,3 +52,17 @@ test('de kolom Oordeel: soort en alle velden, nooit "undefined"', async () => {
   assert.match(md, /\| soort verdieping, vooruitblik op voorbij nee/)
   assert.match(md, /\| soort anders, /)
 })
+
+// Derde keuring van branch weekshow: de ronde vraagt het model niet meer zelf (wachtrij, eigen functie luister-oordeel). De
+// proef toont wanneer het koppelen begon, hoeveel vragen in de wachtrij staan en de laatste ronde van De Redacteur met de
+// begintijd en de tijd per aanroep.
+test('de proef met de wachtrij: begintijd van het koppelen en de laatste ronde van De Redacteur, nooit "undefined"', () => {
+  const oordeel = { model: 'claude-sonnet-5-5', kandidaten: 20, uitOpslag: 16, wachtrij: 4, koppelNaMs: 10400, redacteur: { inWachtrij: 11, gevraagd: 11, aanroepen: 11, beoordeeld: 10, invoerTokens: 44000, uitvoerTokens: 2200, begonNaMs: 900, timeoutMs: 16000, timeouts: 1 } }
+  const md = asText({ dagdelen: [{ dagdeel: '2026-11-15-middag', at: '2026-11-15T12:00:00.000Z', afleveringen: 30, koppelingen: [], afgevallen: [], oordeel }] })
+  assert.match(md, /4 vragen in de wachtrij voor De Redacteur, koppelen begon 10400 ms na de start van de ronde\./)
+  assert.match(md, /Laatste ronde van De Redacteur: 11 vragen open, 11 gevraagd in 11 aanroepen, 10 beoordeeld, 44000 en 2200 tokens, begonnen 900 ms na de start, hooguit 16000 ms per aanroep, 1 niet op tijd\./)
+  assert.doesNotMatch(md, /undefined/)
+  // Zonder laatste ronde: alleen de wachtrij.
+  const kaal = asText({ dagdelen: [{ dagdeel: 'x', at: '2026-11-15T12:00:00.000Z', afleveringen: 1, koppelingen: [], afgevallen: [], oordeel: { model: 'm', wachtrij: 0 } }] })
+  assert.doesNotMatch(kaal, /undefined|Laatste ronde van De Redacteur/)
+})

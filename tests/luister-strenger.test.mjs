@@ -228,7 +228,7 @@ test('7. over de tijd: het koppelen gebeurt toch, met wat binnen is; een hangend
   // De ronde geeft de grens mee: KOPPEL_MS vanaf de start van buildFeed.
   const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
   assert.match(build, /const roundStart = Date\.now\(\)/)
-  assert.match(build, /await luisterRonde\(\{.*deadline: roundStart \+ KOPPEL_MS, oordeelTot: roundStart \+ OORDEEL_TOT_MS \}\)/)
+  assert.match(build, /await luisterRonde\(\{.*deadline: roundStart \+ KOPPEL_MS, start: roundStart, wachtrij: true \}\)/)
 })
 
 test('herstel keuring 14 november: het vangnet voor na de opname en vooruitblik, en de zinssplitser na afkortingen', async () => {

@@ -14,11 +14,15 @@ const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim
 // Een ontbrekend veld heet "onbekend", nooit "undefined".
 const veld = (x) => (x === undefined || x === null || x === '' ? 'onbekend' : esc(x))
 export const oordeelTekst = (o) => (o ? `soort ${veld(o.soort)}, vooruitblik op voorbij ${veld(o.vooruitblikOpVoorbij)}, opgenomen vóór dit nieuws ${veld(o.opgenomenVoorDitNieuws)}, één onderwerp ${veld(o.eenOnderwerp)}, zeker ${veld(o.zeker)}` : 'geen')
+// De laatste keer dat De Redacteur de wachtrij afwerkte (functions/luister-oordeel.mjs, oordeelRonde): de begintijd van de
+// aanroepen na de start van die functie en de tijd per aanroep, zodat een "niet op tijd" te verklaren is.
+export const redacteurTekst = (r) =>
+  r ? ` Laatste ronde van De Redacteur: ${r.inWachtrij || 0} vragen open, ${r.gevraagd || 0} gevraagd in ${r.aanroepen || 0} aanroepen, ${r.beoordeeld || 0} beoordeeld, ${r.invoerTokens || 0} en ${r.uitvoerTokens || 0} tokens${r.begonNaMs != null ? `, begonnen ${r.begonNaMs} ms na de start` : ''}${r.timeoutMs ? `, hooguit ${r.timeoutMs} ms per aanroep` : ''}${r.timeouts ? `, ${r.timeouts} niet op tijd` : ''}${r.fouten ? `, ${r.fouten} fouten` : ''}${r.geenTijd ? ', geen tijd' : ''}${r.plafond ? ', dagplafond bereikt' : ''}.` : ''
 export function asText(doc) {
   const out = ['# Luister verder · proef', '']
   for (const d of doc.dagdelen || []) {
     const o = d.oordeel
-    const oordeel = o ? (o.uit ? ` Oordeel: uit (${o.uit}).` : ` Oordeel (${o.model}): ${o.kandidaten || 0} kandidaten, ${o.uitOpslag || 0} uit de opslag, ${o.gevraagd || 0} gevraagd in ${o.aanroepen || 0} aanroepen, ${o.invoerTokens || 0} en ${o.uitvoerTokens || 0} tokens${o.timeouts ? `, ${o.timeouts} niet op tijd` : ''}${o.fouten ? `, ${o.fouten} fouten` : ''}.`) : ''
+    const oordeel = o ? (o.uit ? ` Oordeel: uit (${o.uit}).` : o.wachtrij != null ? ` Oordeel (${o.model}): ${o.kandidaten || 0} kandidaten, ${o.uitOpslag || 0} uit de opslag, ${o.wachtrij} vragen in de wachtrij voor De Redacteur${o.koppelNaMs != null ? `, koppelen begon ${o.koppelNaMs} ms na de start van de ronde` : ''}.${redacteurTekst(o.redacteur)}` : ` Oordeel (${o.model}): ${o.kandidaten || 0} kandidaten, ${o.uitOpslag || 0} uit de opslag, ${o.gevraagd || 0} gevraagd in ${o.aanroepen || 0} aanroepen, ${o.invoerTokens || 0} en ${o.uitvoerTokens || 0} tokens${o.timeouts ? `, ${o.timeouts} niet op tijd` : ''}${o.fouten ? `, ${o.fouten} fouten` : ''}.`) : ''
     out.push(`## ${d.dagdeel}`, '', `Laatste ronde ${d.at.slice(0, 10)}, ${d.afleveringen} afleveringen, ${d.koppelingen.length} koppelingen.${d.overTijd ? ' Over de tijd van de ronde.' : ''}${oordeel}`, '')
     if (d.koppelingen.length) {
       out.push('| Verhaal | Aflevering | Soort | Oordeel | Editie | Reden |', '|---|---|---|---|---|---|')

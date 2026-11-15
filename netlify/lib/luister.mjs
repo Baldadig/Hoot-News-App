@@ -49,9 +49,10 @@
 //     twee centrale namen; bij BNR twee) en als vangnet (harde uitsluitingen die altijd voorgaan: na de opname, een
 //     vooruitblik van vóór de kop, een aflevering met meer onderwerpen, een overzichts- of meeronderwerpenshow zonder
 //     artikellink, een weekshow zonder artikellink met een weekoverzicht, ouder dan drie dagen). Alleen een duidelijk ja koppelt: soort zelfde of verdieping, één onderwerp
-//     ja en zeker ja. Elk paar (verhaal, aflevering) wordt één keer beoordeeld (OORDEEL_KEY in KV). Is het oordeel er niet
-//     op tijd, dan deze ronde geen koppeling voor dat paar (nooit terugvallen op losser); de volgende ronde probeert het
-//     opnieuw. Zonder sleutel of bij een fout van het model blijft alleen een koppeling via een artikellink van de eigen
+//     ja en zeker ja. Elk paar (verhaal, aflevering) wordt één keer beoordeeld (OORDEEL_KEY in KV). Sinds de derde keuring
+//     van branch weekshow vraagt de ronde het model niets: de open vragen gaan naar een wachtrij (WACHTRIJ_KEY) en de eigen
+//     geplande functie luister-oordeel stelt ze (oordeelRonde). Zonder oordeel deze ronde geen koppeling voor dat paar
+//     (nooit terugvallen op losser); de volgende ronde koppelt wat De Redacteur intussen beoordeelde. Zonder sleutel of bij een fout van het model blijft alleen een koppeling via een artikellink van de eigen
 //     uitgever over, verder niets.
 //   - Herstel na keuring 2 van branch shows (14 november, late avond): het oordeel beantwoordt de tijd apart (voorHetNieuws:
 //     gemaakt vóór het nieuws van de kop; alleen "nee" koppelt), met de tijd van de kop en van het eerste stuk in de vraag.
@@ -109,6 +110,10 @@
 //     ja bij hetzelfde verhaal, dan gaat de dagelijkse show voor (verser en strakker) en staat de weekshow bij `andere`
 //     (perVerhaal). Bij een weekshow tellen de woorden van de titel niet als bekend in andereNaam: de titel wordt zelf
 //     gelezen.
+//     Herstel na de derde keuring van branch weekshow (15 november): het vangnet hield nog gewone zinnen over één zaak hard
+//     tegen ("deze week", "wat een week", "de week van", "Dan:", "Jetten & Yeşilgöz", de naam van een gast). Nu houdt het
+//     alleen een ondubbelzinnig weekoverzicht hard tegen (WEEK_MEER, weekOverzicht); het eerste onderwerp, andere
+//     onderwerpen en andereNaam zijn bij een weekshow een aanwijzing zonder `hard`, en het model beslist (weekPoort).
 //   - Herstel na de keuring van 14 november (avond): één verhaal per vraag aan het model (nooit twee verhalen in één vraag),
 //     elke vraag twee keer en alleen twee keer een duidelijk ja koppelt; "de kop deelt de gebeurtenis" is een harde
 //     voorwaarde in het vangnet (kopDeelt), die voor een ja van het model gaat; de zinssplitser knipt niet na "Mr." en andere
@@ -566,44 +571,36 @@ export function weekdagVooruit(ep, leadAt) {
 }
 // Een weekshow (besluit Alex, 15 november) bespreekt vaak "de week in Den Haag" met meer onderwerpen. Zonder artikellink
 // beslist De Redacteur of een aflevering over één onderwerp gaat (eenOnderwerp, zie weekPoort en de vraag); de woordregels
-// hieronder zijn alleen een goedkoop vangnet voor de duidelijke gevallen (koerswijziging 15 november, na twee keuringen die
-// vastliepen op steeds nieuwe varianten: het oordeel komt van het model, woordregels zijn voorselectie en vangnet). Daarom
-// weinig, breed en zeker: een vals tegengehouden aflevering over één onderwerp is erger dan een gat dat het model dichtzet.
-// Een woord dat ook gewoon in een verhaal over één zaak staat ("ondertussen", "daarna", "maar ook", een gedachtestreep,
-// "en" in de titel, een opsomming van drie namen) telt hier dus niet; dat beoordeelt het model.
-// Wel, als vangnet:
-// - de taal van een weekoverzicht: "deze week", "afgelopen week", "de week van …", "de week in Den Haag", "de politieke week",
-//   "terugblik op de week", "weekoverzicht", "de onderwerpen", "een week vol …", "de week begon met …", "wat een week". Een
-//   bijvoeglijk woord bij de week zonder overzicht ("Zo eindigde deze knotsgekke week in een wervelstorm", NRC Haagse Zaken
-//   over de kabinetscrisis) is geen signaal;
-// - een tweede onderwerp bij naam: "tweede onderwerp", "en verder", "na de pauze", "het tweede deel";
-// - een zin die met een signaalwoord en een dubbele punt begint ("Ook: …", "Plus: …", "Verder: …", "En: …", "Dan: …", "Tot slot: …"),
-//   of met "En dan nog", "Daarnaast nog", "Verder ook", "Ook nog"; een telling ("Twee: …", "Ten tweede …");
-// - een bolletje (de feedtekst kent geen regeleinden meer: episodeOf voegt alle witruimte samen, dus een lijst is alleen
-//   nog te zien aan bolletjes);
-// - een titel met twee of meer delen rond | · • / & + of een puntkomma ("Kabinetscrisis | asiel", "Kabinetscrisis & asiel").
+// hieronder zijn alleen een goedkoop vangnet voor de ondubbelzinnige gevallen (koerswijziging 15 november: het oordeel komt
+// van het model, woordregels zijn voorselectie en vangnet). Weinig, breed en zeker: een vals tegengehouden aflevering over
+// één onderwerp is erger dan een gat dat het model dichtzet.
+// Herstel na de derde keuring van branch weekshow (15 november): het vangnet hield gewone zinnen over één zaak hard tegen,
+// vóór het model iets zag. "Zo eindigde deze week in een wervelstorm" (de echte Haagse Zaken zonder "knotsgekke"), "Wat een
+// week voor het kabinet-Jetten", "De week van de waarheid voor Jetten", "Deze week in Kyiv: …", "De onderwerpen waarover de
+// coalitie ruziet", "praten en verder onderhandelen", "Ten eerste wil de VVD …", "Dan: de vraag of …", een titel als
+// "Jetten & Yeşilgöz" of "… / NRC" en een bolletje midden in een zin ("Trouw • politiek"). In een weekshow is "deze week"
+// de gewoonste formulering; zulke woorden beoordeelt het model. Het vangnet kent nu alleen:
+// - een woord dat zelf een weekoverzicht is: "weekoverzicht", "weekterugblik", "weeksamenvatting", "weekjournaal";
+// - "de week in Den Haag": de week met lidwoord "de" in een plaats met een hoofdletter ("deze week in Kyiv" is een tijd);
+// - een terugblik op de week als geheel: "terugblik op de (politieke) week", "we kijken terug op de week" (niet "op de week
+//   waarin …", "van …": dan gaat het over één zaak);
+// - "de onderwerpen van de week" en een tweede onderwerp bij naam: "tweede onderwerp", "nog een onderwerp";
+// - een bolletjeslijst: een bolletje aan het begin van de tekst of na een dubbele punt of het einde van een zin (de
+//   feedtekst kent geen regeleinden meer: episodeOf voegt alle witruimte samen).
 // Generiek: alleen de vorm van de tekst, geen namen of onderwerpen in de code. Geldt alleen zonder artikellink (judge,
 // vangnet): via een artikellink koppelt een weekshow zoals voorheen.
 const WEEK_MEER = [
-  /\b(deze|afgelopen|vorige)\s+week\b|\bde\s+(afgelopen|voorbije|vorige)\s+week\b/i,
-  /\bde\s+week\s+(van|rond)\b|\b(politieke|haagse|parlementaire|internationale)\s*week\b/i,
-  /\bterug(blik\w*|\s*kijk\w*|\s*keken|\s+op)\b[^.?!]{0,40}\bweek\b/i,
-  /\bweek(overzicht|terugblik|samenvatting|journaal|update)\w*\b/i,
-  /\bonderwerpen\b|\b(tweede|derde|volgende|ander|andere|nog\s+een)\s+(onderwerp|thema|item)\b/i,
-  /\b(een|de)\s+week\s+(vol|waarin)\b|\bde\s+week\s+(begon|eindigde)\b|\bwat\s+een\s+week\b/i,
-  /\ben\s+verder\b|\bna\s+de\s+(pauze|break|reclame)\b|\bhet\s+(tweede|derde|laatste)\s+(deel|gedeelte)\b/i,
+  /\bweek(?:overzicht|terugblik|samenvatting|journaal)\w*\b/i,
+  /\bterug(?:blik\w*|\s*kijk\w*|\s*keken)?\s+op\s+de\s+(?:afgelopen\s+|voorbije\s+|politieke\s+|haagse\s+)?week\b(?!\s+(?:waarin|waar|dat|die|van|toen|met)\b)/i,
+  /\bonderwerpen\s+van\s+(?:de|deze)\s+week\b|\b(?:tweede|derde|vierde|nog\s+een)\s+onderwerp\b/i,
 ]
-// "de week in Den Haag", "deze week in Washington": de week in een plaats met een hoofdletter (zonder i-vlag).
-const WEEK_IN = /\b[Ww]eek\s+in\s+(?:(?:de|het|den)\s+)?\p{Lu}/u
-const SIGNAAL = /^\W*(?:(?:ook|plus|verder|daarnaast|en|eerst|dan|daarna|tot\s+slot|ten\s+slotte|tenslotte)(?:\s+nog)?\s*:|en\s+dan\s+nog\b|daarnaast\s+nog\b|verder\s+ook\b|ook\s+nog\b|(?:één|een|twee|drie|vier|eerste|tweede|derde|vierde)\s*:|ten\s+(?:eerste|tweede|derde)\b)/i
-const TITEL_DELEN = /\s[|·•/&+]\s|;/
+const WEEK_IN = /(?<![\p{L}\d])[Dd]e\s+week\s+in\s+(?:(?:de|het|den)\s+)?\p{Lu}/u
+const LIJST = /(?:^|[:.!?]\s*)[•▪●◦]/
 export const weekOverzicht = (ep) => {
-  const heel = ep.tekst || ep.samenvatting || ''
-  const titel = String(ep.titel || '')
+  const heel = String(ep.tekst || ep.samenvatting || '').trim()
+  const titel = String(ep.titel || '').trim()
   const alles = `${titel}. ${heel}`
-  if (WEEK_MEER.some((re) => re.test(alles)) || WEEK_IN.test(alles) || /[•▪●◦]/.test(alles)) return true
-  if (titel.split(TITEL_DELEN).filter((d) => /\p{L}{2,}/u.test(d)).length >= 2) return true
-  return [...sentences(titel), ...sentences(heel)].some((z) => !PROMO.test(z) && SIGNAAL.test(z))
+  return WEEK_MEER.some((re) => re.test(alles)) || WEEK_IN.test(alles) || LIJST.test(heel) || LIJST.test(titel)
 }
 export function describe(ep, show = null) {
   const text = `${ep.titel || ''}. ${ep.samenvatting || ''}`
@@ -747,18 +744,20 @@ export function judge(ep, show, story, items, sig, now) {
   const about = (z) => central.some((k) => has(z, k)) || [...z.weak].some((k) => wide.has(k)) || [...z.strong].some((k) => wide.has(k) && has(z, k))
   const elders = Array.from({ length: ep.zinnen || 0 }, (_, k) => sig.get(`${ep.id}#zin${k}`)).filter((z) => named(z) && !about(z))
   // Een weekshow zonder artikellink (besluit Alex, 15 november): alleen een aflevering over één onderwerp, en dat onderwerp
-  // is het verhaal. Deze eisen zijn hard (`hard`: het vangnet sluit uit, ook bij een ja van De Redacteur), want een
-  // weekshow bespreekt vaak de hele week: (a) geen taal van een weekoverzicht en geen opsomming (weekMeer, WEEK_MEER);
-  // (b) het eerste onderwerp van de beschrijving is het verhaal; (c) de rest gaat niet over iets anders (elders, zoals
-  // hieronder); (d) strenge voorwaarde 2 van een show zonder Hoot-bron: één eigen naam buiten het eerste onderwerp die
-  // nergens in het verhaal staat, is genoeg om af te vallen (andereNaam, de hele beschrijving gelezen).
+  // is het verhaal. Hard (`hard`: het vangnet sluit uit, ook bij een ja van De Redacteur) is alleen het ondubbelzinnige
+  // weekoverzicht (weekMeer, WEEK_MEER). De rest beslist het model (weekPoort: eenOnderwerp ja): het eerste onderwerp is iets
+  // anders, de beschrijving gaat ook over iets anders, of noemt een naam die niet in het verhaal staat (andereNaam). Herstel
+  // na de derde keuring van branch weekshow: andereNaam hield als harde eis een aflevering tegen om de naam van een gast of
+  // maker van één aflevering ("Met Floor Rusman en Guus Valk.", "Presentatie: Floor Rusman.", "Met verslaggever Janne
+  // Chaudron."); vastVan vangt alleen makers die in bijna elke aflevering terugkomen. De vraag zegt zelf "Makers en gasten
+  // zijn geen onderwerp". Deze redenen staan nu zonder `hard`: de aflevering gaat als kandidaat naar het model.
   if (show.soort === 'week') {
-    const af = (reden) => ({ af: `weekshow zonder artikellink: ${reden}`, names, kandidaat, hard: true })
-    if (ep.weekMeer !== false) return af('de aflevering bespreekt de week of meer onderwerpen')
-    if (!first || !about(first)) return af('het eerste onderwerp van de aflevering is iets anders')
-    if (elders.length >= 2 || new Set(elders.flatMap((z) => (z.runs || []).map((run) => run.join(' ')))).size >= ELDERS) return af('de aflevering gaat ook over andere onderwerpen')
+    if (ep.weekMeer !== false) return { af: 'weekshow zonder artikellink: de aflevering bespreekt de week of meer onderwerpen', names, kandidaat, hard: true }
+    const af = (reden) => ({ af: `weekshow zonder artikellink: ${reden} (het model beslist)`, names, kandidaat })
+    if (!first || !about(first)) return af('het eerste onderwerp van de aflevering lijkt iets anders')
+    if (elders.length >= 2 || new Set(elders.flatMap((z) => (z.runs || []).map((run) => run.join(' ')))).size >= ELDERS) return af('de aflevering lijkt ook over andere onderwerpen te gaan')
     const anders = andereNaam(ep, show, items)
-    if (anders) return af(`de beschrijving noemt ook iets anders (${anders})`)
+    if (anders) return af(`de beschrijving noemt ook een naam buiten het verhaal (${anders})`)
   }
   if (!shared) return { af: 'geen centrale naam van het verhaal', names, kandidaat }
   if (!inTitle) return { af: 'geen centrale naam in de titel van de aflevering', names, kandidaat }
@@ -1210,7 +1209,7 @@ const eigenLink = (c) => !!c.o.soort && c.o.grond === 'link' && publisherOf(c.sh
 // Het besluit van 14 november: het vangnet, dan het oordeel. `oordelen`: Map(paarKey → { soort, vooruitblikOpVoorbij,
 // opgenomenVoorDitNieuws, eenOnderwerp, zeker, reden })
 // of null (geen sleutel). `fout`: Set(paarKey) waarvoor het model een fout gaf.
-function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(), oordelen = null, fout = null, editie = null, plafond = false } = {}) {
+function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(), oordelen = null, fout = null, editie = null, plafond = false, wachtrij = false } = {}) {
   const rows = { koppelingen: [], afgevallen: [] }
   const plek = plekVan(editie)
   const hits = new Map() // aflevering → [{ x, o }]
@@ -1236,7 +1235,7 @@ function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(
     if (!oordelen || fout?.has(key)) {
       if (eigenLink(c)) hit(c, { ...c.o, reden: `zonder oordeel (${!oordelen ? 'geen sleutel' : 'fout'}): de eigen uitgever linkt naar een stuk in het verhaal` })
       else rows.afgevallen.push(row(c.e, c.x, `geen oordeel (${!oordelen ? 'geen sleutel' : 'fout'}): dan alleen een artikellink van de eigen uitgever`))
-    } else rows.afgevallen.push(row(c.e, c.x, plafond ? 'geen oordeel: het dagplafond van het oordeel is bereikt, deze ronde geen koppeling' : 'geen oordeel op tijd: deze ronde geen koppeling'))
+    } else rows.afgevallen.push(row(c.e, c.x, plafond ? 'geen oordeel: het dagplafond van het oordeel is bereikt, deze ronde geen koppeling' : wachtrij ? 'nog geen oordeel: De Redacteur beoordeelt het paar in zijn eigen ronde, deze ronde geen koppeling' : 'geen oordeel op tijd: deze ronde geen koppeling'))
   }
   const per = new Map()
   for (const e of p.eps) {
@@ -1339,18 +1338,25 @@ export const OORDEEL_KEY = 'luister-oordeel-v7'
 export const OORDEEL_DAG_USD = 3
 export const AANROEP_USD = 0.015
 // De tijd van het oordeel (onderzoek live proef 2026-11-15-ochtend: "11 gevraagd in 11 aanroepen ... 8 niet op tijd", de
-// duur precies 8001 ms, de ronde over de tijd). Oorzaak: het oordeel zit midden in de verversingsronde, en de planner van
-// Netlify geeft die ronde na 15 seconden op (build.mjs, vakRefresh.mjs). Het oordeel begint pas na het ophalen en de Editie
-// en had een vaste grens van 8 seconden per aanroep, los van hoe laat het al was. Een vraag met het hele verhaal (ongeveer
-// 4000 tokens invoer, ongeveer 200 tokens uitvoer) aan claude-sonnet-5-5, met elf tegelijk, haalde dat maar drie keer. Een
-// time-out is wel betaald (AANROEP_USD voor het plafond) en telt als poging (hooguit MAX_POGINGEN), dus te krap kost geld
-// en koppelingen, en een late start trok de hele ronde over de tijd. Langer wachten kan binnen de ronde niet.
-// Nu: elke aanroep hooguit OORDEEL_MS, en samen niet voorbij `tot` (build.mjs: OORDEEL_TOT_MS na de start van de ronde,
-// zoals LATE_MS ruim onder de 15 s van de planner). Is er minder dan OORDEEL_MIN_MS over, dan vraagt de ronde niets (geen
-// kosten, geen poging) en probeert de volgende ronde het; de bewaarde oordelen gelden wel.
-export const OORDEEL_MS = 8000 // elke aanroep: hooguit zo lang (alle aanroepen van een ronde tegelijk)
-export const OORDEEL_TOT_MS = 12500 // vanaf de start van de ronde: dan moeten alle aanroepen klaar zijn
-export const OORDEEL_MIN_MS = 4000 // minder tijd over: deze ronde niets vragen
+// duur precies 8001 ms). Oorzaak: de grens van OORDEEL_MS (8 s) per aanroep. Elf vragen tegelijk met het hele verhaal
+// (ongeveer 4000 tokens invoer) aan claude-sonnet-5-5 duren rond die 8 s; drie van de elf haalden het, de rest werd door de
+// eigen grens afgekapt. De ronde zelf stopte niet: de aanroepen liepen hun volle 8001 ms en daarna werd de proef nog
+// geschreven. (De eerste reparatie, een grens tot 12,5 s na de start van de ronde, gaf de aanroepen alleen minder tijd: het
+// koppelen begint pas na het ophalen van de bronnen, FETCH_MS 10 s, en de Editie, en elke ronde stond live "over de tijd"
+// (KOPPEL_MS 11 s), dus er bleef bijna nooit genoeg over en er werd niets meer gevraagd. Derde keuring van branch weekshow.)
+// Een time-out is wel betaald (AANROEP_USD voor het plafond) en telt als poging (hooguit MAX_POGINGEN), dus te krap kost geld
+// en koppelingen.
+// Nu, zoals verschillen-refresh: de ronde vraagt het model niets meer. Ze zet de open vragen (tekst, codes, sleutels) in de
+// wachtrij (WACHTRIJ_KEY) en leest alleen de bewaarde oordelen. Een eigen geplande functie (functions/luister-oordeel.mjs,
+// een paar minuten na elke ronde) stelt die vragen met de ruimte van een eigen functie: elke aanroep hooguit
+// OORDEEL_VRAAG_MS, alles binnen OORDEEL_BUDGET_MS na de start van de functie, en bewaart de oordelen. De volgende ronde
+// koppelt dan. De begintijd van de aanroepen (begonNaMs) en de tijd per aanroep (timeoutMs) staan in de proef.
+export const OORDEEL_MS = 8000 // de vraag in één keer (toetsen, scripts): elke aanroep hooguit zo lang
+export const OORDEEL_VRAAG_MS = 16000 // in de eigen functie: elke aanroep hooguit zo lang (alle aanroepen tegelijk)
+export const OORDEEL_BUDGET_MS = 21000 // de eigen functie: alles binnen zo lang na de start (een geplande functie heeft ± 30 s)
+export const OORDEEL_MIN_MS = 4000 // minder tijd over: niets vragen (geen kosten, geen poging)
+export const WACHTRIJ_KEY = 'luister-wachtrij-v1'
+export const WACHTRIJ_KEEP = 30 * 6e4 // een wachtrij van een ronde die ouder is, telt niet meer
 export const OORDEEL_KV_MS = 1500 // de opslag lezen of schrijven: hooguit zo lang
 export const MAX_VRAGEN = 24 // nieuwe paren per ronde (de volgende ronde, tien minuten later, de volgende)
 // Eén paar per aanroep (herstel keuring 3; zie hierboven): elk paar los, zoals in de randgevallen van PROEF-4, waar het
@@ -1507,10 +1513,17 @@ export function leesOordelen(text, n, codes) {
   }
   return out
 }
-// Eén aanroep met een eigen tijdgrens (ook als de client het signaal negeert). Geeft { byKey: Map(paarKey → oordeel), usage }
-// of gooit: Error('time-out') als het niet op tijd was, anders de fout van de client.
-export async function vraagOordeel(client, lijst, timeoutMs = OORDEEL_MS) {
+// Eén vraag zoals ze in de wachtrij kan: de sleutels van de paren, hun codes en de tekst.
+export function vraagVan(lijst) {
   const codes = codesVoor(lijst)
+  return { keys: lijst.map(paarKey), codes, prompt: oordeelPrompt(lijst, codes) }
+}
+const geldigeVraag = (v) => !!v && typeof v.prompt === 'string' && Array.isArray(v.keys) && v.keys.length > 0 && v.keys.every((k) => typeof k === 'string') && Array.isArray(v.codes) && v.codes.length === v.keys.length
+// Eén aanroep met een eigen tijdgrens (ook als de client het signaal negeert). `lijst`: de paren, of een vraag uit vraagVan.
+// Geeft { byKey: Map(paarKey → oordeel), usage } of gooit: Error('time-out') als het niet op tijd was, anders de fout van de
+// client.
+export async function vraagOordeel(client, lijst, timeoutMs = OORDEEL_MS) {
+  const vraag = Array.isArray(lijst) ? vraagVan(lijst) : lijst
   let t
   const grens = new Promise((_, no) => (t = setTimeout(() => no(new Error('time-out')), timeoutMs)))
   try {
@@ -1519,13 +1532,13 @@ export async function vraagOordeel(client, lijst, timeoutMs = OORDEEL_MS) {
         client.messages.create(
           {
             model: OORDEEL_MODEL,
-            max_tokens: 400 + 220 * lijst.length,
+            max_tokens: 400 + 220 * vraag.keys.length,
             // Een classificatie: geen denkstap (bij dit model heet dat between_tools; "disabled" geeft een fout), lage
             // inspanning. Geen temperatuur: dit model kent alleen de standaard.
             thinking: { type: 'between_tools' },
             output_config: { effort: 'low', format: { type: 'json_schema', schema: OORDEEL_SCHEMA } },
             system: OORDEEL_SYSTEM,
-            messages: [{ role: 'user', content: oordeelPrompt(lijst, codes) }],
+            messages: [{ role: 'user', content: vraag.prompt }],
           },
           { timeout: timeoutMs, maxRetries: 0, signal: AbortSignal.timeout(timeoutMs + 250) },
         ),
@@ -1535,12 +1548,49 @@ export async function vraagOordeel(client, lijst, timeoutMs = OORDEEL_MS) {
     const byKey = new Map()
     if (res?.stop_reason === 'end_turn') {
       const text = (res.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
-      for (const [nr, v] of leesOordelen(text, lijst.length, codes)) byKey.set(paarKey(lijst[nr - 1]), v)
+      for (const [nr, v] of leesOordelen(text, vraag.keys.length, vraag.codes)) byKey.set(vraag.keys[nr - 1], v)
     }
     return { byKey, usage: res?.usage || null }
   } finally {
     clearTimeout(t)
   }
+}
+// De vragen stellen, alle tegelijk, elke vraag stemmen keer. Per paar: één geldig nee beslist (nee), alleen stemmen keer
+// een duidelijk ja is ja; anders geen oordeel (de volgende keer opnieuw, hooguit MAX_POGINGEN keer). Telt in `stats`.
+async function stelVragen(vragen, { client, ms, stemmen, stats }) {
+  const nieuw = new Map()
+  const geprobeerd = []
+  const fout = new Set()
+  await Promise.all(
+    vragen.map(async (vraag) => {
+      const worpen = await Promise.allSettled(Array.from({ length: stemmen }, () => vraagOordeel(client, vraag, ms)))
+      let fouteWorp = false
+      for (const w of worpen) {
+        if (w.status === 'fulfilled') {
+          stats.invoerTokens += w.value.usage?.input_tokens || 0
+          stats.uitvoerTokens += w.value.usage?.output_tokens || 0
+        } else if (isTimeout(w.reason)) stats.timeouts++
+        else {
+          stats.fouten++
+          fouteWorp = true
+        }
+      }
+      for (const k of vraag.keys) {
+        const vs = worpen.filter((w) => w.status === 'fulfilled').map((w) => w.value.byKey.get(k)).filter(Boolean)
+        const nee = vs.find((v) => !ja(v))
+        if (nee) {
+          if (vs.some(ja)) stats.oneens++
+          nieuw.set(k, nee)
+        } else if (vs.length === stemmen) nieuw.set(k, vs[0])
+        else {
+          // Niet op tijd: geen koppeling (nooit losser); een fout van het model: alleen een artikellink van de eigen uitgever.
+          if (fouteWorp) fout.add(k)
+          geprobeerd.push(k)
+        }
+      }
+    }),
+  )
+  return { nieuw, geprobeerd, fout }
 }
 const isTimeout = (e) => e?.message === 'time-out' || /timeout|abort/i.test(`${e?.name || ''} ${e?.constructor?.name || ''}`)
 const binnen = (p, ms) => {
@@ -1574,7 +1624,7 @@ export function schrijfOpslag(cur, { nieuw = new Map(), geprobeerd = [], now, ko
 // De oordelen voor deze kandidaten (paren die het vangnet doorstonden): uit de opslag, en de nieuwe paren gevraagd (de
 // verhalen met een Editieplek eerst, dan de grootste verhalen, dan de nieuwste afleveringen). Geeft { oordelen: Map,
 // fout: Set(paarKey), stats }. Nooit een fout naar buiten.
-export async function oordelenVoor(kandidaten, { client, get, update, now = Date.now(), editie = null, timeoutMs = OORDEEL_MS, kvMs = OORDEEL_KV_MS, maxVragen = MAX_VRAGEN, perVraag = PER_VRAAG, maxPogingen = MAX_POGINGEN, stemmen = STEMMEN, maxAanroepen = MAX_AANROEPEN, dagUsd = OORDEEL_DAG_USD, aanroepUsd = AANROEP_USD, tot = Infinity, minMs = OORDEEL_MIN_MS } = {}) {
+export async function oordelenVoor(kandidaten, { client, get, update, now = Date.now(), editie = null, timeoutMs = OORDEEL_MS, kvMs = OORDEEL_KV_MS, maxVragen = MAX_VRAGEN, perVraag = PER_VRAAG, maxPogingen = MAX_POGINGEN, stemmen = STEMMEN, maxAanroepen = MAX_AANROEPEN, dagUsd = OORDEEL_DAG_USD, aanroepUsd = AANROEP_USD, tot = Infinity, minMs = OORDEEL_MIN_MS, wachtrij = false } = {}) {
   const stats = { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uitOpslag: 0, gevraagd: 0, vragen: 0, aanroepen: 0, stemmen, beoordeeld: 0, ja: 0, oneens: 0, invoerTokens: 0, uitvoerTokens: 0, kostenUsd: 0, timeouts: 0, fouten: 0, dagPlafondUsd: dagUsd }
   const fout = new Set()
   let doc
@@ -1610,49 +1660,26 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
   const deze = vragen.slice(0, Math.min(maxAanroepen, ruimte))
   const gevraagd = deze.flat()
   stats.overgeslagen = kandidaten.length - oordelen.size - gevraagd.length
-  if (!gevraagd.length || !client) return { oordelen, fout, stats }
-  // De tijd die deze ronde nog heeft (zie OORDEEL_MS): te weinig, dan niets vragen.
+  if (!client) return { oordelen, fout, stats }
+  // De ronde (build.mjs): niets vragen, alleen de open vragen in de wachtrij zetten voor de eigen functie (oordeelRonde). Ook
+  // een lege wachtrij: dan stelt de functie geen vragen van paren die er niet meer zijn.
+  if (wachtrij) {
+    const vragen = deze.map(vraagVan)
+    let laatste = null
+    if (update) await binnen(Promise.resolve().then(() => update(WACHTRIJ_KEY, (cur) => ((laatste = cur?.laatste || null), { v: 1, at: now, vragen, ...(laatste ? { laatste } : {}) }))), kvMs).catch(() => {})
+    return { oordelen, fout, stats: { ...stats, wachtrij: vragen.length, ...(laatste ? { redacteur: laatste } : {}) } }
+  }
+  if (!gevraagd.length) return { oordelen, fout, stats }
+  // De tijd die er nog is (`tot`): te weinig, dan niets vragen.
   const ms = Math.min(timeoutMs, tot - Date.now())
   if (!(ms >= Math.min(minMs, timeoutMs))) return { oordelen, fout, stats: { ...stats, overgeslagen: stats.overgeslagen + gevraagd.length, geenTijd: true } }
   stats.timeoutMs = Math.round(ms)
   stats.gevraagd = gevraagd.length
   stats.vragen = deze.length
   stats.aanroepen = deze.length * stemmen
-  const nieuw = new Map()
-  const geprobeerd = []
   const t0 = Date.now()
-  await Promise.all(
-    deze.map(async (lijst) => {
-      // Elke vraag stemmen keer (nu één keer), tegelijk. Per paar: één geldig nee beslist (nee), alleen stemmen keer een
-      // duidelijk ja is ja; anders geen oordeel (de volgende ronde opnieuw, hooguit maxPogingen keer).
-      const worpen = await Promise.allSettled(Array.from({ length: stemmen }, () => vraagOordeel(client, lijst, ms)))
-      let fouteWorp = false
-      for (const w of worpen) {
-        if (w.status === 'fulfilled') {
-          stats.invoerTokens += w.value.usage?.input_tokens || 0
-          stats.uitvoerTokens += w.value.usage?.output_tokens || 0
-        } else if (isTimeout(w.reason)) stats.timeouts++
-        else {
-          stats.fouten++
-          fouteWorp = true
-        }
-      }
-      for (const c of lijst) {
-        const k = paarKey(c)
-        const vs = worpen.filter((w) => w.status === 'fulfilled').map((w) => w.value.byKey.get(k)).filter(Boolean)
-        const nee = vs.find((v) => !ja(v))
-        if (nee) {
-          if (vs.some(ja)) stats.oneens++
-          nieuw.set(k, nee)
-        } else if (vs.length === stemmen) nieuw.set(k, vs[0])
-        else {
-          // Niet op tijd: geen koppeling (nooit losser); een fout van het model: alleen een artikellink van de eigen uitgever.
-          if (fouteWorp) fout.add(k)
-          geprobeerd.push(k)
-        }
-      }
-    }),
-  )
+  const { nieuw, geprobeerd, fout: fouten } = await stelVragen(deze.map(vraagVan), { client, ms, stemmen, stats })
+  for (const k of fouten) fout.add(k)
   for (const [k, v] of nieuw) oordelen.set(k, v)
   stats.ms = Date.now() - t0 // de duur van alle aanroepen samen (tegelijk)
   stats.beoordeeld = nieuw.size
@@ -1665,12 +1692,64 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
   return { oordelen, fout, stats }
 }
 
+// De eigen geplande functie van het oordeel (functions/luister-oordeel.mjs): de vragen uit de wachtrij van de laatste ronde,
+// voor zover die paren nog geen oordeel hebben en niet te vaak geprobeerd zijn, binnen het dagplafond. Elke aanroep hooguit
+// vraagMs, en alles binnen `budget` na `start` (de start van de functie), met tijd over om weg te schrijven. Bewaart de
+// oordelen (OORDEEL_KEY) en de tellingen van deze keer bij de wachtrij (`laatste`, voor de proef van de volgende ronde).
+// Geeft { stats }. Nooit een fout naar buiten.
+export async function oordeelRonde({ client, get, update, now = Date.now(), start = now, budget = OORDEEL_BUDGET_MS, vraagMs = OORDEEL_VRAAG_MS, minMs = OORDEEL_MIN_MS, kvMs = OORDEEL_KV_MS, maxPogingen = MAX_POGINGEN, stemmen = STEMMEN, maxAanroepen = MAX_AANROEPEN, dagUsd = OORDEEL_DAG_USD, aanroepUsd = AANROEP_USD, keep = WACHTRIJ_KEEP } = {}) {
+  const stats = { model: OORDEEL_MODEL, inWachtrij: 0, gevraagd: 0, vragen: 0, aanroepen: 0, stemmen, beoordeeld: 0, ja: 0, oneens: 0, invoerTokens: 0, uitvoerTokens: 0, kostenUsd: 0, timeouts: 0, fouten: 0, dagPlafondUsd: dagUsd }
+  if (!client || !get || !update) return { stats: { ...stats, uit: 'geen sleutel' } }
+  let rij, doc
+  try {
+    ;[rij, doc] = await Promise.all([binnen(get(WACHTRIJ_KEY), kvMs), binnen(get(OORDEEL_KEY), kvMs)])
+  } catch {
+    return { stats: { ...stats, opslag: 'niet te lezen' } }
+  }
+  const vers = rij && Number.isFinite(Number(rij.at)) && now - Number(rij.at) <= keep
+  const { oordelen, pogingen, dagKosten } = leesOpslag(doc, now)
+  stats.dagKostenUsd = dagKosten
+  const open = (vers && Array.isArray(rij.vragen) ? rij.vragen : []).filter(geldigeVraag).filter((v) => v.keys.some((k) => !oordelen.has(k) && (pogingen.get(k) || 0) < maxPogingen))
+  stats.inWachtrij = open.length
+  const ruimte = Math.max(0, Math.floor((dagUsd - dagKosten) / (aanroepUsd * stemmen) + 1e-9))
+  if (ruimte < Math.min(open.length, maxAanroepen)) stats.plafond = true
+  const deze = open.slice(0, Math.min(maxAanroepen, ruimte))
+  const schrijfLaatste = () => binnen(Promise.resolve().then(() => update(WACHTRIJ_KEY, (cur) => ({ ...(cur && typeof cur === 'object' ? cur : { v: 1, vragen: [] }), laatste: { ...stats, at: new Date(now).toISOString() } }))), kvMs).catch(() => {})
+  if (!deze.length) {
+    if (vers) await schrijfLaatste()
+    return { stats }
+  }
+  // De tijd per aanroep: hooguit vraagMs, en binnen het budget van de functie (met tijd om weg te schrijven).
+  const ms = Math.min(vraagMs, start + budget - kvMs * 2 - Date.now())
+  stats.begonNaMs = Math.max(0, Date.now() - start)
+  if (!(ms >= minMs)) {
+    stats.geenTijd = true
+    await schrijfLaatste()
+    return { stats }
+  }
+  stats.timeoutMs = Math.round(ms)
+  stats.gevraagd = deze.reduce((n, v) => n + v.keys.length, 0)
+  stats.vragen = deze.length
+  stats.aanroepen = deze.length * stemmen
+  const t0 = Date.now()
+  const { nieuw, geprobeerd } = await stelVragen(deze, { client, ms, stemmen, stats })
+  stats.ms = Date.now() - t0
+  stats.beoordeeld = nieuw.size
+  stats.ja = [...nieuw.values()].filter(ja).length
+  stats.kostenUsd = kostenVan(stats.invoerTokens, stats.uitvoerTokens)
+  const kosten = stats.kostenUsd + stats.timeouts * aanroepUsd
+  stats.dagKostenUsd = Math.round((dagKosten + kosten) * 1e4) / 1e4
+  if (nieuw.size || geprobeerd.length || kosten > 0) await binnen(Promise.resolve().then(() => update(OORDEEL_KEY, (cur) => schrijfOpslag(cur, { nieuw, geprobeerd, now, kosten }))), kvMs).catch(() => {})
+  await schrijfLaatste()
+  return { stats }
+}
+
 // De hele koppeling met het oordeel (de ronde en de proef). Zonder client: alleen een artikellink van de eigen uitgever.
 export async function koppelMetOordeel({ stories = [], byId = new Map(), episodes = [], now = Date.now(), mainIds = new Set(), editie = null, client = null, get = null, update = null, ...opts } = {}) {
   const p = paren({ stories, byId, episodes, now })
   const kandidaten = p.paren.filter((c) => !vangnet(c, now))
   const r = client ? await oordelenVoor(kandidaten, { client, get, update, now, editie, ...opts }) : { oordelen: null, fout: new Set(), stats: { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uit: 'geen sleutel' } }
-  return { ...kiesOordeel(p, { byId, mainIds, now, oordelen: r.oordelen, fout: r.fout, editie, plafond: !!r.stats.plafond }), ai: r.stats }
+  return { ...kiesOordeel(p, { byId, mainIds, now, oordelen: r.oordelen, fout: r.fout, editie, plafond: !!r.stats.plafond, wachtrij: r.stats.wachtrij != null }), ai: r.stats }
 }
 const day = (t) => new Date(t).toISOString().slice(0, 10)
 function field({ e, o }, lead) {
@@ -1723,18 +1802,22 @@ export function withProef(stored, entry) {
 // zegt alleen of de ronde over de tijd is: dan zegt de proef `overTijd`. Het koppelen slaat daar nooit voor over; wat
 // erbij hoort (het wegschrijven van de proef) wacht hooguit PROEF_MS.
 // Het oordeel (besluit 14 november): `client` is de client van De Redacteur (build.mjs, uit ANTHROPIC_API_KEY; null zonder
-// sleutel), `get` en `update` de opslag, `editie` de verhalen met een Editieplek ({ algemeen, pool }). Het oordeel heeft
-// zijn eigen tijdgrens (OORDEEL_MS per aanroep, alle aanroepen tegelijk, samen niet voorbij `oordeelTot`); wat niet op tijd
-// is, koppelt deze ronde niet.
+// sleutel), `get` en `update` de opslag, `editie` de verhalen met een Editieplek ({ algemeen, pool }). Met `wachtrij` (de
+// ronde in build.mjs) vraagt de ronde het model niets: de open vragen gaan naar de wachtrij en de eigen functie
+// (luister-oordeel, oordeelRonde) stelt ze; deze ronde koppelt alleen wat al een oordeel heeft. `start`: de start van de
+// ronde, voor de begintijd van het koppelen in de proef (koppelNaMs).
 export const PROEF_MS = 1000
-export async function luisterRonde({ stories, byId, now, episodesP, slot, mainIds, update, get = null, client = null, editie = null, deadline = Infinity, oordeelTot = Infinity }) {
+export async function luisterRonde({ stories, byId, now, episodesP, slot, mainIds, update, get = null, client = null, editie = null, deadline = Infinity, start = null, wachtrij = false }) {
   try {
     const { episodes = [], status = {} } = (await episodesP) || {}
-    const { byStory, rows, ai } = await koppelMetOordeel({ stories, byId, episodes, now, mainIds, editie, client, get, update, tot: oordeelTot })
+    const begon = start != null ? Math.max(0, Date.now() - start) : null
+    const r = await koppelMetOordeel({ stories, byId, episodes, now, mainIds, editie, client, get, update, wachtrij })
+    const { byStory, rows } = r
+    const ai = r.ai && begon != null ? { ...r.ai, koppelNaMs: begon } : r.ai
     const overTijd = Date.now() > deadline
     for (const st of stories) if (byStory.has(st.id)) st.luister = byStory.get(st.id)
     // Alleen aantallen in het log.
-    if (ai) console.log(`[luister-oordeel] kandidaten ${ai.kandidaten || 0}, uit opslag ${ai.uitOpslag || 0}, gevraagd ${ai.gevraagd || 0} in ${ai.aanroepen || 0} aanroepen, ja ${ai.ja || 0}${ai.oneens ? `, oneens ${ai.oneens}` : ''}, tokens ${ai.invoerTokens || 0}/${ai.uitvoerTokens || 0} ($${kostenVan(ai.invoerTokens, ai.uitvoerTokens)})${ai.timeouts ? `, time-outs ${ai.timeouts}` : ''}${ai.fouten ? `, fouten ${ai.fouten}` : ''}${ai.uit ? `, ${ai.uit}` : ''}${ai.ms ? `, ${ai.ms} ms` : ""}${ai.geenTijd ? ', geen tijd meer in de ronde' : ''}${ai.dagKostenUsd != null ? `, vandaag $${ai.dagKostenUsd} van $${ai.dagPlafondUsd}${ai.plafond ? ' (plafond)' : ''}` : ''}, koppelingen ${byStory.size}`)
+    if (ai) console.log(`[luister-oordeel] kandidaten ${ai.kandidaten || 0}, uit opslag ${ai.uitOpslag || 0}, gevraagd ${ai.gevraagd || 0} in ${ai.aanroepen || 0} aanroepen, ja ${ai.ja || 0}${ai.oneens ? `, oneens ${ai.oneens}` : ''}, tokens ${ai.invoerTokens || 0}/${ai.uitvoerTokens || 0} ($${kostenVan(ai.invoerTokens, ai.uitvoerTokens)})${ai.timeouts ? `, time-outs ${ai.timeouts}` : ''}${ai.fouten ? `, fouten ${ai.fouten}` : ''}${ai.uit ? `, ${ai.uit}` : ''}${ai.ms ? `, ${ai.ms} ms` : ""}${ai.geenTijd ? ', geen tijd meer in de ronde' : ''}${ai.wachtrij != null ? `, in de wachtrij ${ai.wachtrij}` : ''}${ai.dagKostenUsd != null ? `, vandaag $${ai.dagKostenUsd} van $${ai.dagPlafondUsd}${ai.plafond ? ' (plafond)' : ''}` : ''}, koppelingen ${byStory.size}`)
     if (update && slot) {
       let t
       const write = Promise.resolve().then(() => update(PROEF_KEY, (cur) => withProef(cur, proefEntry({ slot, now, rows, status, episodes, overTijd, ai })))).catch(() => {})

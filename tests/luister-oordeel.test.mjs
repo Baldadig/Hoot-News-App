@@ -328,35 +328,98 @@ test('herstel keuring 3: een bewaard oordeel geldt alleen voor de kop waarop het
   assert.ok(!r2.rows.koppelingen.some((k) => k.verhaal === oranje.id && /Galavoorstelling/.test(k.aflevering)), 'het oude ja telt niet voor de nieuwe kop')
 })
 
-// Onderzoek live proef 2026-11-15-ochtend ("11 gevraagd in 11 aanroepen ... 8 niet op tijd", 8001 ms, over de tijd): het
-// oordeel zit in de ronde van 15 seconden en had een vaste grens van 8 seconden per aanroep, hoe laat het ook al was. Nu
-// samen niet voorbij `tot` (OORDEEL_TOT_MS na de start van de ronde), en met te weinig tijd over niets vragen: geen
-// kosten, geen poging, de volgende ronde opnieuw.
-test('de tijd van het oordeel: niet voorbij het einde van de ronde, en met te weinig tijd over niets vragen', async () => {
-  const { OORDEEL_MS, OORDEEL_TOT_MS, OORDEEL_MIN_MS, KOPPEL_MS } = await import('../netlify/lib/luister.mjs')
-  assert.ok(OORDEEL_TOT_MS > KOPPEL_MS && OORDEEL_TOT_MS <= 13000, 'ruim onder de 15 s van de planner')
-  assert.ok(OORDEEL_MIN_MS < OORDEEL_MS)
-  // Te weinig tijd over: niets gevraagd, niets betaald, niets als poging geteld.
-  const kort = memKv()
+// Onderzoek live proef 2026-11-15-ochtend ("11 gevraagd in 11 aanroepen ... 8 niet op tijd", 8001 ms): de aanroepen werden
+// afgekapt door hun eigen grens van 8 s (OORDEEL_MS), niet door de planner; elf vragen tegelijk aan Sonnet duren rond die
+// 8 s. Een grens tot 12,5 s na de start van de ronde gaf alleen minder tijd (derde keuring van branch weekshow): het
+// koppelen begint live pas rond 9,5 tot 11 s na de start. Nu, zoals verschillen-refresh: de ronde vraagt niets en zet de
+// open vragen in de wachtrij; een eigen geplande functie (oordeelRonde) stelt ze met meer tijd per aanroep, en de volgende
+// ronde koppelt. Met een realistische begintijd van de ronde.
+test('de tijd van het oordeel: de ronde vraagt niets en zet de vragen in de wachtrij, ook als ze laat begint', async () => {
+  const { WACHTRIJ_KEY, KOPPEL_MS } = await import('../netlify/lib/luister.mjs')
+  const { kv, get, update } = memKv()
   const client = nepClient(() => JA)
-  const r = await koppelMetOordeel({ ...OPTS, client, get: kort.get, update: kort.update, tot: Date.now() + 1000 })
-  assert.equal(client.calls.length, 0, 'niets gevraagd')
-  assert.equal(r.ai.geenTijd, true)
-  assert.equal(r.ai.aanroepen, 0)
-  assert.equal(r.byStory.size, 0)
-  assert.ok(r.rows.afgevallen.some((a) => /geen oordeel op tijd/.test(a.reden)))
-  assert.equal(kort.kv.get(OORDEEL_KEY), undefined, 'geen poging en geen kosten bewaard')
-  // Genoeg tijd over: elke aanroep krijgt hooguit wat er tot het einde van de ronde over is.
-  const ruim = memKv()
+  // Het koppelen begint zoals live: ruim na de start van de ronde (na FETCH_MS en de Editie), en zelfs over KOPPEL_MS.
+  const start = Date.now() - (KOPPEL_MS + 500)
+  const n = await luisterRonde({ ...OPTS, episodesP: Promise.resolve({ episodes: FIX.episodes, status: {} }), slot: '2026-11-14-middag', client, get, update, start, wachtrij: true })
+  assert.equal(client.calls.length, 0, 'de ronde vraagt het model niets')
+  assert.equal(n, 0, 'nog geen oordeel: deze ronde geen koppeling')
+  const rij = kv.get(WACHTRIJ_KEY)
+  assert.ok(rij?.vragen?.length >= 1, 'de open vragen staan in de wachtrij')
+  assert.equal(rij.at, NOW)
+  for (const v of rij.vragen) {
+    assert.ok(typeof v.prompt === 'string' && v.prompt.length > 100)
+    assert.equal(v.keys.length, v.codes.length)
+  }
+  const proef = kv.get(PROEF_KEY).dagdelen[0]
+  assert.equal(proef.oordeel.wachtrij, rij.vragen.length)
+  assert.ok(proef.oordeel.koppelNaMs >= KOPPEL_MS + 500, 'de werkelijke begintijd van het koppelen staat in de proef')
+  assert.ok(proef.afgevallen.some((a) => /^nog geen oordeel: De Redacteur beoordeelt het paar in zijn eigen ronde/.test(a.reden)))
+  assert.equal(kv.get(OORDEEL_KEY), undefined, 'geen poging en geen kosten bewaard')
+  // De ronde in build.mjs zet de wachtrij aan en geeft de start mee.
+  const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
+  assert.match(build, /luisterRonde\(\{[^\n]*start: roundStart, wachtrij: true \}\)/)
+})
+
+test('de tijd van het oordeel: de eigen functie stelt de vragen met ruim meer tijd dan 8 s per aanroep, en de volgende ronde koppelt', async () => {
+  const { oordeelRonde, WACHTRIJ_KEY, OORDEEL_MS, OORDEEL_VRAAG_MS, OORDEEL_BUDGET_MS } = await import('../netlify/lib/luister.mjs')
+  assert.ok(OORDEEL_VRAAG_MS > OORDEEL_MS * 1.5, 'meer dan de 8 s waarop de aanroepen live afgekapt werden')
+  assert.ok(OORDEEL_BUDGET_MS > OORDEEL_VRAAG_MS && OORDEEL_BUDGET_MS <= 25000, 'binnen de ± 30 s van een geplande functie')
+  const fn = readFileSync(new URL('../netlify/functions/luister-oordeel.mjs', import.meta.url), 'utf8')
+  assert.match(fn, /schedule: '5,15,25,35,45,55 \* \* \* \*'/, 'een paar minuten na elke ronde')
+  assert.match(fn, /oordeelRonde\(/)
+  const { kv, get, update } = memKv()
+  const ronde = () => koppelMetOordeel({ ...OPTS, client: nepClient(() => NEE), get, update, wachtrij: true, ...ALLES })
+  const r1 = await ronde()
+  const open = kv.get(WACHTRIJ_KEY).vragen.length
+  assert.ok(open >= 1)
+  assert.equal(r1.byStory.size, 0)
+  // De functie: start nu (zoals een geplande functie), de vragen meteen; elke aanroep krijgt OORDEEL_VRAAG_MS.
+  const client = nepClient((v) => (ORANJE(v) ? JA : NEE), { wacht: 20 })
+  const start = Date.now()
+  const { stats } = await oordeelRonde({ client, get, update, now: NOW, start, maxAanroepen: Infinity })
+  assert.equal(client.calls.length, open, 'elke vraag uit de wachtrij één keer')
+  assert.equal(stats.inWachtrij, open)
+  assert.equal(stats.timeoutMs, OORDEEL_VRAAG_MS)
+  assert.ok(stats.begonNaMs < 2000, `${stats.begonNaMs} ms na de start begonnen`)
+  assert.equal(stats.timeouts, 0)
+  assert.equal(stats.beoordeeld, stats.gevraagd)
+  assert.equal(kv.get(WACHTRIJ_KEY).laatste.gevraagd, stats.gevraagd, 'de tellingen staan bij de wachtrij, voor de proef')
+  // Nog eens: alles heeft al een oordeel, dus niets gevraagd.
+  const nog = nepClient(() => JA)
+  await oordeelRonde({ client: nog, get, update, now: NOW, maxAanroepen: Infinity })
+  assert.equal(nog.calls.length, 0)
+  // De volgende ronde koppelt uit de opslag, zonder het model te vragen, en meldt de laatste ronde van De Redacteur.
+  const r2 = await ronde()
+  assert.ok(r2.rows.koppelingen.some((k) => /Galavoorstelling/.test(k.aflevering)), 'de volgende ronde koppelt')
+  assert.equal(r2.ai.uitOpslag, r2.ai.kandidaten)
+  assert.equal(r2.ai.redacteur.gevraagd, 0)
+})
+
+test('de tijd van het oordeel: de eigen functie blijft binnen haar budget, telt een time-out als poging, en laat een oude wachtrij liggen', async () => {
+  const { oordeelRonde, WACHTRIJ_KEY, WACHTRIJ_KEEP } = await import('../netlify/lib/luister.mjs')
+  const { kv, get, update } = memKv()
+  await koppelMetOordeel({ ...OPTS, client: nepClient(() => NEE), get, update, wachtrij: true, ...ALLES })
+  // Een hangend model: elke aanroep hooguit wat er van het budget over is.
   const hangt = nepClient(() => JA, { hangt: true })
   const t0 = Date.now()
-  // (Met een lage drempel: de woordregels zelf kosten op een drukke machine meer dan een seconde.)
-  const h = await koppelMetOordeel({ ...OPTS, client: hangt, get: ruim.get, update: ruim.update, tot: Date.now() + 3000, minMs: 200 })
-  assert.equal(h.ai.geenTijd, undefined)
-  assert.ok(h.ai.timeoutMs <= 3000 && h.ai.timeoutMs < OORDEEL_MS, `${h.ai.timeoutMs} ms per aanroep`)
-  assert.ok(Date.now() - t0 < OORDEEL_MS, 'niet de volle OORDEEL_MS gewacht')
-  assert.ok(h.ai.timeouts >= 1)
-  // De ronde geeft het einde mee.
-  const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
-  assert.match(build, /oordeelTot: roundStart \+ OORDEEL_TOT_MS/)
+  const { stats } = await oordeelRonde({ client: hangt, get, update, now: NOW, start: t0, budget: 3500, kvMs: 500, minMs: 200 })
+  assert.ok(stats.timeoutMs <= 2500, `${stats.timeoutMs} ms per aanroep`)
+  assert.ok(Date.now() - t0 < 3500, 'binnen het budget')
+  assert.equal(stats.timeouts, stats.aanroepen)
+  const doc = kv.get(OORDEEL_KEY)
+  assert.ok(Object.keys(doc.p || {}).length >= 1, 'een time-out telt als poging')
+  assert.ok(doc.k[1] > 0, 'en als kosten voor het dagplafond')
+  // Te weinig tijd over: niets gevraagd, en geenTijd in de tellingen.
+  const kort = nepClient(() => JA)
+  const g = await oordeelRonde({ client: kort, get, update, now: NOW, start: Date.now() - 20000 })
+  assert.equal(kort.calls.length, 0)
+  assert.equal(g.stats.geenTijd, true)
+  // Een wachtrij van een oude ronde telt niet.
+  const oud = nepClient(() => JA)
+  const o = await oordeelRonde({ client: oud, get, update, now: NOW + WACHTRIJ_KEEP + 60000 })
+  assert.equal(oud.calls.length, 0)
+  assert.equal(o.stats.inWachtrij, 0)
+  // Zonder sleutel: niets.
+  assert.equal((await oordeelRonde({ client: null, get, update })).stats.uit, 'geen sleutel')
+  assert.ok(kv.get(WACHTRIJ_KEY))
 })
