@@ -9,10 +9,14 @@
 //      audio- of video-enclosure (`mediaType`) zonder eigen intro (een nieuwsbericht met een voorleesversie blijft een
 //      bericht);
 //   2. de rubriek in de link, vóór de slug: /podcast/, /podcasts/, /luister/, /audio/, /video/, /videos/, /kijk/;
-//   3. een programmalabel vooraan in de kop ("Podcast:", "Video |", "Luister:", "Kijk:", "Watch:", "Listen:") of
-//      "(Podcast)" achteraan (Bloomberg).
-// Een woord in de slug of ergens in de kop telt nooit. Gedeeld door server en toestel (edition-core.js): geen URL-object.
-import { rubricSegments, ownIntro, audioEpisode } from './editie-filter.mjs'
+//   3. een programmalabel vooraan in de kop ("Podcast:", "Video |", "Luister:", "Kijk:", "Watch:", "Listen:"),
+//      "(Podcast)" achteraan (Bloomberg), of een programmalabel als laatste stuk na een scheidingsteken ("| Luisterverhaal
+//      op zondag" van NRC, "– Podcast", "| Video van de dag"; labelAchteraan in shared/editie-filter.mjs, 15 november).
+//      Dat laatste stuk is dan alleen het programmawoord, eventueel met een voorzetsel en een of twee woorden of een
+//      afleveringsnummer: "Spotify koopt podcastbedrijf | Tech" of "Brand | Video toont chaos" is geen label.
+// Een woord in de slug of ergens anders in de kop telt nooit. De afbeelding telt ook niet: een vaste rubrieksafbeelding
+// (bij NRC de cover van NRC Vandaag uit /taxonomy/) hoort ook bij columns, commentaren en puzzels. Gedeeld door server en toestel (edition-core.js): geen URL-object.
+import { rubricSegments, ownIntro, audioEpisode, labelAchteraan } from './editie-filter.mjs'
 
 const AUDIO_DIR = new Set(['podcast', 'podcasts', 'luister', 'audio'])
 const VIDEO_DIR = new Set(['video', 'videos', 'kijk'])
@@ -36,6 +40,8 @@ export function afleveringSoort(item) {
   if (label === 'podcast' || label === 'luister' || label === 'listen') return 'podcast'
   if (label === 'video' || label === 'kijk' || label === 'watch') return 'video'
   if (TAIL.test(title)) return 'podcast'
+  const achteraan = labelAchteraan(title)
+  if (achteraan) return achteraan
   return null
 }
 
