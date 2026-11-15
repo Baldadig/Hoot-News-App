@@ -34,8 +34,8 @@ test('vakgebied: een brede bron telt alleen mee als het stuk erbij past', () => 
   assert.equal(fieldOf({ title: 'Meta makes advertisers responsible for AI ad edits' }, src('adweek')), 'merk') // Adweek telt alleen bij Merk & reclame
   assert.equal(fieldOf({ title: 'Nepversie van WhatsApp ruim 500.000 keer gedownload' }, src('emerce')), null) // platform, geen adverteren
   assert.equal(fieldOf({ title: 'Google Ads Introduces Channel Prioritization' }, src('sej-paid')), 'paid-social') // Online adverteren: ook zoekadvertenties
-  assert.equal(fieldOf({ title: 'New book celebrates the lost graphics of holiday brochures' }, src('creativereview')), null)
-  assert.equal(fieldOf({ title: 'Apple Music’s new brand identity is ‘made by sound’' }, src('creativereview')), 'design')
+  assert.equal(fieldOf({ title: 'New book celebrates the lost graphics of holiday brochures' }, src('itsnicethat')), null)
+  assert.equal(fieldOf({ title: 'Apple Music’s new brand identity is ‘made by sound’' }, src('itsnicethat')), 'design')
   assert.equal(fieldOf({ title: 'A simple guide to calm UI' }, src('sidebar')), 'ux')
   assert.equal(fieldOf({ title: 'Everyone is starting over' }, src('sidebar')), null)
 })

@@ -47,8 +47,10 @@ export const BASE_SOURCES = [
   V('uxcollective', 'UX Collective', 'community', ['ux'], 'https://uxdesign.cc/feed'),
   V('figma', 'Figma', 'officieel', ['ux'], 'https://www.figma.com/blog/feed/atom.xml'),
   // Digital Design
-  V('creativereview', 'Creative Review', 'vakblad', ['design', 'merk'], 'https://www.creativereview.co.uk/feed/', { filter: true }),
-  V('designweek', 'Design Week', 'vakblad', ['design'], 'https://www.designweek.co.uk/feed/', { filter: true }),
+  // It's Nice That en PRINT in plaats van Creative Review en Design Week (15 november): die weigeren de server (Cloudflare-
+  // check); de oude regels staan in het archief (ARCHIVED_SOURCES). It's Nice That: de feed die de site zelf aangeeft.
+  V('itsnicethat', "It's Nice That", 'vakblad', ['design', 'merk'], 'https://feeds.feedburner.com/itsnicethat/SlXC', { filter: true }),
+  V('printmag', 'PRINT', 'vakblad', ['design'], 'https://www.printmag.com/feed/', { filter: true }),
   V('fastco-design', 'Fast Company Design', 'vakblad', ['design'], 'https://www.fastcompany.com/co-design/rss', { filter: true }),
   V('awwwards', 'Awwwards', 'vakblad', ['design'], 'https://www.awwwards.com/blog/feed/'),
   // AI voor je werk: vakmensen die er zelf mee werken, de AI-rubriek van vakbladen, en de
@@ -85,17 +87,17 @@ export const BASE_SOURCES = [
   V('annhandley', 'Ann Handley', 'expert', ['seo'], 'https://annhandley.com/feed/', { about: 'Schrijver van Everybody Writes, over content en schrijven' }),
   V('moz', 'Moz', 'community', ['seo'], 'https://moz.com/posts/rss/blog'),
   V('ahrefs', 'Ahrefs', 'community', ['seo'], 'https://ahrefs.com/blog/feed/', { filter: true }),
-  // Merk & reclame: de Nederlandse vakbladen (Adformatie, MarketingTribune), de internationale, en merkstrategen met naam. Adweek en Creative Review staan hierboven.
+  // Merk & reclame: de Nederlandse vakbladen (Adformatie, MarketingTribune), de internationale, en merkstrategen met naam. Adweek en It's Nice That staan hierboven.
+  // Marketing Dive in plaats van Marketing Week (15 november; Marketing Week weigert de server, staat in het archief).
   V('adformatie', 'Adformatie', 'vakblad', ['merk'], 'https://www.adformatie.nl/feeds/articles.rss', { filter: true }),
   V('marketingtribune', 'MarketingTribune', 'vakblad', ['merk'], 'https://www.marketingtribune.nl/rss/rss.xml', { filter: true }),
   V('campaign', 'Campaign', 'vakblad', ['merk'], 'https://www.campaignlive.com/rss/news', { filter: true }),
-  V('marketingweek', 'Marketing Week', 'vakblad', ['merk'], 'https://www.marketingweek.com/feed/', { filter: true }),
+  V('marketingdive', 'Marketing Dive', 'vakblad', ['merk'], 'https://www.marketingdive.com/feeds/news/', { filter: true }),
   V('musebyclios', 'Muse by Clio', 'vakblad', ['merk'], 'https://musebyclios.com/feed/', { filter: true }),
   V('brandingstrategy', 'Branding Strategy Insider', 'vakblad', ['merk'], 'https://brandingstrategyinsider.com/feed/'),
   V('marketoonist', 'Tom Fishburne', 'expert', ['merk'], 'https://marketoonist.com/feed', { about: 'Tekent en schrijft wekelijks over marketing (Marketoonist)', filter: true }),
   V('markschaefer', 'Mark Schaefer', 'expert', ['merk'], 'https://businessesgrow.com/feed/', { about: 'Marketingstrateeg en auteur, over merken en vertrouwen', filter: true }),
-  // Startups & ondernemen: Nederlandse vakbladen (MT/Sprout, IO+), Sifted en TechCrunch, en oprichters en investeerders die zelf schrijven (Lenny en Andrew Chen staan bij Productmanagement).
-  V('sprout', 'MT/Sprout', 'vakblad', ['ondernemen'], 'https://mtsprout.nl/feed', { filter: true }),
+  // Startups & ondernemen: Nederlandse vakbladen (IO+; MT/Sprout weigert de server en staat sinds 15 november in het archief), Sifted en TechCrunch, en oprichters en investeerders die zelf schrijven (Lenny en Andrew Chen staan bij Productmanagement).
   V('ioplus', 'IO+', 'vakblad', ['ondernemen'], 'https://ioplus.nl/nl/feed', { filter: true }),
   V('sifted', 'Sifted', 'vakblad', ['ondernemen'], 'https://sifted.eu/feed'),
   V('tc-startups', 'TechCrunch', 'vakblad', ['ondernemen'], 'https://techcrunch.com/category/startups/feed/', { filter: true }),
@@ -348,10 +350,12 @@ export function podcastLabel(title = '') {
   // Met een dubbele punt alleen een eigen naam: "The Low Culture Podcast: …" (niet "Video Podcast: …").
   return SHOW_NAME.test(t.split(/\s*:\s*/)[0].trim()) && t.includes(':')
 }
+// Gesponsord volgens het adres zelf (It's Nice That zet het alleen in de link, niet in de kop).
+const SPONSORED_URL = /[/-](sponsored(-content)?|partner-content|advertorial)([/-]|$)/i
 // `textOnly` (een bron die ook audio en video plaatst, zoals Paul Krugman): alleen de geschreven stukken.
 const AV = /^(audio|video)\//i
 export const isReading = (it, src = null) =>
-  !!it.title && !NOT_READING.test(it.title) && !isListicle(it.title) && !ROUNDUP.test(it.title) && !COLLECTION.test(it.title) && !isBuying(it.title) && !ANNOUNCE.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
+  !!it.title && !SPONSORED_URL.test(it.url || '') && !NOT_READING.test(it.title) && !isListicle(it.title) && !ROUNDUP.test(it.title) && !COLLECTION.test(it.title) && !isBuying(it.title) && !ANNOUNCE.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
 const AMS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short' })

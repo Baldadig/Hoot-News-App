@@ -35,7 +35,8 @@ export const MORE_SOURCES = [
   V('dezeen-arch', 'Dezeen', 'vakblad', ['architectuur'], 'https://www.dezeen.com/architecture/feed/'),
   V('archreview', 'The Architectural Review', 'vakblad', ['architectuur'], 'https://www.architectural-review.com/feed'),
   V('archdaily', 'ArchDaily', 'vakblad', ['architectuur'], 'https://www.archdaily.com/feed'),
-  V('archpaper', 'The Architect\'s Newspaper', 'vakblad', ['architectuur'], 'https://www.archpaper.com/feed/'),
+  // ARCHITECT (het blad van de Amerikaanse architectenvereniging AIA) in plaats van The Architect's Newspaper (15 november).
+  V('architectmag', 'ARCHITECT', 'vakblad', ['architectuur'], 'https://www.architectmagazine.com/feed/'),
   V('focusmagazine', 'Focus', 'vakblad', ['fotografie'], 'https://focusmagazine.nl/feed/', { about: 'Fotografiemagazine: fotografen, exposities en fotoboeken' }),
   V('fotografienl', 'Fotografie.nl', 'vakblad', ['fotografie'], 'https://www.fotografie.nl/post/rss.xml'),
   V('photofacts', 'Photofacts', 'community', ['fotografie'], 'https://feeds.feedburner.com/Photofacts', { about: 'Vlaams-Nederlands platform met praktijkstukken van fotografen' }),
@@ -140,10 +141,10 @@ export const MORE_SOURCES = [
   V('astroblogs', 'Astroblogs', 'community', ['wetenschap'], 'https://www.astroblogs.nl/feed/', { about: 'Sterrenkundigen en liefhebbers schrijven over nieuw ruimteonderzoek' }),
   V('quanta', 'Quanta Magazine', 'vakblad', ['wetenschap'], 'https://api.quantamagazine.org/feed/'),
   V('nemokennislink', 'NEMO Kennislink', 'vakblad', ['wetenschap'], 'https://www.nemokennislink.nl/feed.xml', { about: 'Wetenschap uitgelegd, van NEMO Science Museum', x: 'NEMOKennislink' }),
-  V('skipr', 'Skipr', 'vakblad', ['zorg'], 'https://www.skipr.nl/feed/'),
+  // ICT&health in plaats van Skipr (15 november). Skipr, Zorg+Welzijn en Nursing weigeren de server (HTTP 403) en staan in
+  // het archief; voor Nursing en Zorg+Welzijn is geen gelijkwaardig Nederlands vakblad met een open feed gevonden.
+  V('icthealth', 'ICT&health', 'vakblad', ['zorg'], 'https://www.icthealth.nl/rss/news.xml', { about: 'Vakblad over digitale zorg' }),
   V('zorgvisie', 'Zorgvisie', 'vakblad', ['zorg'], 'https://www.zorgvisie.nl/feed/'), // /rss stuurt naar een cookiepagina; /feed/ geeft de site zelf aan
-  V('zorgwelzijn', 'Zorg+Welzijn', 'vakblad', ['zorg'], 'https://www.zorgwelzijn.nl/feed/'),
-  V('nursing', 'Nursing', 'vakblad', ['zorg'], 'https://www.nursing.nl/feed/'),
   V('trouw-gezondheid', 'Trouw Gezondheid', 'vakblad', ['zorg'], 'https://www.trouw.nl/gezondheid/rss.xml'),
   V('nu-gezondheid', 'NU.nl Gezondheid', 'vakblad', ['zorg'], 'https://www.nu.nl/rss/Gezondheid'),
   V('rivm', 'RIVM', 'officieel', ['zorg'], 'https://www.rivm.nl/nieuws/rss.xml'),
@@ -327,6 +328,16 @@ export const MORE_SOURCES = [
 // meer gebruikt: de Selectie is leesvoer, geen nieuws van de week. Bewust bewaard, niet weggegooid: niet in VAK_SOURCES, dus niet opgehaald en niet getoond. Terug
 // in gebruik? Zet de regel weer in MORE_SOURCES. NOS en NU.nl Economie staan er nog, alleen niet meer bij Economie.
 export const ARCHIVED_SOURCES = [
+  // Weigeren de Hoot-server (Cloudflare-check of HTTP 403), werken alleen vanaf een gewone verbinding (15 november).
+  // Niets omzeild; vervangen of zonder vervanger uitgezet (BESLUITEN-15NOV.md). Werkt de feed weer: regel terugzetten.
+  V('creativereview', 'Creative Review', 'vakblad', ['design', 'merk'], 'https://www.creativereview.co.uk/feed/', { filter: true }),
+  V('designweek', 'Design Week', 'vakblad', ['design'], 'https://www.designweek.co.uk/feed/', { filter: true }),
+  V('marketingweek', 'Marketing Week', 'vakblad', ['merk'], 'https://www.marketingweek.com/feed/', { filter: true }),
+  V('sprout', 'MT/Sprout', 'vakblad', ['ondernemen', 'leiderschap'], 'https://mtsprout.nl/feed', { filter: true }),
+  V('archpaper', 'The Architect\'s Newspaper', 'vakblad', ['architectuur'], 'https://www.archpaper.com/feed/'),
+  V('skipr', 'Skipr', 'vakblad', ['zorg'], 'https://www.skipr.nl/feed/'),
+  V('zorgwelzijn', 'Zorg+Welzijn', 'vakblad', ['zorg'], 'https://www.zorgwelzijn.nl/feed/', { paid: true }), // betaald: stond in PAID_SOURCES
+  V('nursing', 'Nursing', 'vakblad', ['zorg'], 'https://www.nursing.nl/feed/'),
   // The Athletic: de feed is nieuws (blessures, transfers, fantasy-waarden), en Amerikaans.
   V('athletic', 'The Athletic', 'vakblad', ['sport'], 'https://www.nytimes.com/athletic/rss/news/'),
   V('vk-economie', 'de Volkskrant Economie', 'vakblad', ['economie'], 'https://www.volkskrant.nl/economie/rss.xml'),
@@ -366,7 +377,7 @@ export const PAID_SOURCES = new Set(
     'hln-wetenschap', 'hln-games', 'hln-reizen', 'nyt-travel', 'economist-fe', 'ft-work', 'ftm', 'groene', 'vn',
     // 2. minstens twee van de drie nieuwste stukken betaald
     'archreview', 'cobouw', 'dearchitect', 'deptofproduct', 'distrifood', 'energeia', 'kentbeck', 'missethoreca', 'pensioenpro',
-    'pragmatic', 'pw', 'sifted', 'stat', 'usermag', 'vastgoedmarkt', 'verge-ai', 'verge-creators', 'verna', 'zorgvisie', 'zorgwelzijn',
+    'pragmatic', 'pw', 'sifted', 'stat', 'usermag', 'vastgoedmarkt', 'verge-ai', 'verge-creators', 'verna', 'zorgvisie',
   ].map((id) => 'vak:' + id),
 )
 
@@ -380,7 +391,6 @@ export const EXTEND = [
   ['vak:marketingtribune', 'paid-social'],
   ['vak:socialmediatoday', 'social'],
   ['vak:marketingfacts', 'data'],
-  ['vak:sprout', 'leiderschap'],
   ['vak:adformatie', 'media'],
 ]
 
