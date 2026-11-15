@@ -1,7 +1,7 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
 import { EDITION_TARGET, coverageOf, countedPublishers, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf, openWorld } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, verdictTitle } from '../../shared/article-signals.mjs'
-import { audioEpisode } from '../../shared/editie-filter.mjs'
+import { geenPlekAflevering } from '../../shared/editie-filter.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
@@ -791,8 +791,9 @@ export function leadCandidates(items, mainIds, preferred = null, now = null, { r
   // Een fotogalerij of slideshow is nooit het hoofdbericht als er iets anders is (isGallery).
   const score = (i) => (/\bpodcast\b/i.test(i.title || '') || isAflevering(i) || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image && !i.imageFrom ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
   const scores = new Map(items.map(i => [i, score(i)]))
-  // Een aflevering om te luisteren (audioEpisode, dubbelcheck A3; een video wel, besluit B2) gaat net als opinie achter elk nieuwsstuk.
-  const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : audioEpisode(i) ? 1 : 0]))
+  // Een aflevering om te luisteren of een video met een programmalabel (geenPlekAflevering, dubbelcheck A3 en aflevering-2;
+  // een video zonder label wel, besluit B2) gaat net als opinie achter elk nieuwsstuk.
+  const op = new Map(items.map((i) => [i, isOpinion(i) ? 2 : geenPlekAflevering(i) ? 1 : 0]))
   return [...items].sort((a, b) => op.get(a) - op.get(b) || scores.get(b) - scores.get(a) || byRecency(a, b))
 }
 
@@ -1908,7 +1909,7 @@ const prefer = (xs, f) => {
 export function leadPool(cands, items, now, own = null, total = items.length, coreItems = centralItems) {
   // Nieuws vóór alles (leadCandidates): ook eigen bronnen, de kern en versheid halen een opiniestuk niet naar voren.
   let xs = prefer(cands, (i) => !isOpinion(i))
-  xs = prefer(xs, (i) => !audioEpisode(i)) // geen aflevering als kop (dubbelcheck A3)
+  xs = prefer(xs, (i) => !geenPlekAflevering(i)) // geen aflevering als kop (dubbelcheck A3)
   xs = prefer(xs, (i) => !isStale(i, now))
   if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source))
   if (own) xs = prefer(xs, own)
@@ -2004,7 +2005,7 @@ export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, 
     // Alex, 11 november: bovenaan gaat een Nederlandse portretkop voor een Engelse nieuwskop).
     const dutchLead = dutchTier(lead) === 0
     if (dutchLead && !weakHead(lead)) continue
-    const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !audioEpisode(i) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)) && timeOf(i) > since && !staleOutlook(i, items))
+    const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !geenPlekAflevering(i) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)) && timeOf(i) > since && !staleOutlook(i, items))
     const news = fit.filter((i) => !weakHead(i))
     const pool = news.length ? news : dutchLead ? [] : fit
     if (!pool.length) continue
@@ -2045,7 +2046,7 @@ export function sourceCap(entries, { itemsOf, mainIds = new Set(), now = null, s
     if (e.kind !== 'story') { dropped.push(...entries.splice(k, 1)); count.set(src, count.get(src) - 1); continue }
     const items = itemsOf(e).filter(Boolean)
     const tier = dutchTier(lead)
-    const fit = items.filter((i) => publisherOf(i.source) !== src && (isFree(i.source) || mainIds.has(i.source)) && (count.get(publisherOf(i.source)) || 0) < max && dutchTier(i) <= tier && (tier !== 0 || dutchTier(i) === 0) && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !audioEpisode(i) && !VIDEO_HEAD.test(i.title) && !/\?/.test(i.title) && !weakHead(i) && timeOf(i) > since && !staleOutlook(i, items))
+    const fit = items.filter((i) => publisherOf(i.source) !== src && (isFree(i.source) || mainIds.has(i.source)) && (count.get(publisherOf(i.source)) || 0) < max && dutchTier(i) <= tier && (tier !== 0 || dutchTier(i) === 0) && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !geenPlekAflevering(i) && !VIDEO_HEAD.test(i.title) && !/\?/.test(i.title) && !weakHead(i) && timeOf(i) > since && !staleOutlook(i, items))
     if (!fit.length) continue
     const core = new Set(centralItems(items))
     const near = linkedItems(items, fit.filter((i) => core.has(i)))
@@ -2081,7 +2082,7 @@ export function freeHeads(entries, { itemsOf, mainIds = new Set(), now = null, s
     const lead = leadOf(e)
     if (!lead || !paid(lead.source) || dutchTier(lead) !== 0) return
     const items = itemsOf(e).filter(Boolean)
-    const fit = items.filter((i) => FREE_HEAD.has(i.source) && (count.get(publisherOf(i.source)) || 0) < max && dutchTier(i) === 0 && titled(i) && !isOpinion(i) && i.type !== 'opinie' && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !audioEpisode(i) && !VIDEO_HEAD.test(i.title) && !/\?/.test(i.title) && !weakHead(i) && timeOf(i) > since && !staleOutlook(i, items))
+    const fit = items.filter((i) => FREE_HEAD.has(i.source) && (count.get(publisherOf(i.source)) || 0) < max && dutchTier(i) === 0 && titled(i) && !isOpinion(i) && i.type !== 'opinie' && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !geenPlekAflevering(i) && !VIDEO_HEAD.test(i.title) && !/\?/.test(i.title) && !weakHead(i) && timeOf(i) > since && !staleOutlook(i, items))
     if (!fit.length) return
     const core = new Set(centralItems(items))
     const inCore = fit.filter((i) => core.has(i))
@@ -2365,7 +2366,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     // alleen galerijen doen niet mee, behalve groot Oranje-sportnieuws (exceptionalDutchSport).
     if (items.every(isGallery) || (sportStory(st, items) && !exceptionalDutchSport(st, items))) continue
     // Een verhaal van alleen afleveringen (en opinie) heeft geen kop (dubbelcheck A3).
-    if (items.some(audioEpisode) && items.every((i) => audioEpisode(i) || isOpinion(i))) continue
+    if (items.some(geenPlekAflevering) && items.every((i) => geenPlekAflevering(i) || isOpinion(i))) continue
     // Games, cultuur, lifestyle en consumententech zijn ook een eigen soort (4 november 2026: GTA VI en
     // Elder Scrolls VI op plek 3 en 4): alleen als algemene nieuwsuitgevers het groot nieuws vinden.
     if (lightNews(st, items) && !majorGeneralNews(st, items)) continue
@@ -2374,7 +2375,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight({ sourceCount: st.publisherCount ?? st.sourceCount, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous) + fav })
   }
   for (const it of pool) {
-    if (!mainIds.has(it.source) || it.kind !== 'article' || isOpinion(it) || audioEpisode(it) || it.storyId || isLive(it)) continue // een liveblog of een aflevering is geen editieplek
+    if (!mainIds.has(it.source) || it.kind !== 'article' || isOpinion(it) || geenPlekAflevering(it) || it.storyId || isLive(it)) continue // een liveblog of een aflevering is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     if (previous?.itemIds?.has(it.id)) continue // stond er al
     if (isGallery(it) || lightVideoFiller(it) || lightNews({}, [it])) continue // een galerij of een licht stuk is geen eigen plek
@@ -2576,7 +2577,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // gedeelde namen in een sportverhaal van vier andere bronnen hing, werd zo de kop van plek 08.
     if (!items.some((i) => !isOpinion(i))) { reject('story', st.id, st.itemIds, 'alleen-opinie'); continue }
     // Een aflevering om te luisteren of te kijken is ook nooit de kop (dubbelcheck A3): zonder ander nieuwsstuk geen plek.
-    if (!items.some((i) => !isOpinion(i) && !audioEpisode(i))) { reject('story', st.id, st.itemIds, 'alleen-aflevering'); continue }
+    if (!items.some((i) => !isOpinion(i) && !geenPlekAflevering(i))) { reject('story', st.id, st.itemIds, 'alleen-aflevering'); continue }
     // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
     // telt hier alleen voor de volgorde, niet voor de plek).
     let dev = null
@@ -2646,11 +2647,11 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // geen nieuws om mee te openen. Anders werd de nieuwe column de kop ("Texas Republicans Get Washed", The Atlantic
     // /ideas/, boven het nieuws van NYT, Rolling Stone en NRC in de herbouw van 4 november avond).
     if (heads?.length && !heads.some((i) => !isOpinion(i))) { reject('story', st.id, st.itemIds, 'alleen-opinie-nieuw'); continue }
-    if (heads?.length && !heads.some((i) => !isOpinion(i) && !audioEpisode(i))) { reject('story', st.id, st.itemIds, 'alleen-aflevering-nieuw'); continue }
+    if (heads?.length && !heads.some((i) => !isOpinion(i) && !geenPlekAflevering(i))) { reject('story', st.id, st.itemIds, 'alleen-aflevering-nieuw'); continue }
     cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, held, heads, running, w: belang + sumParts(parts) + jitter(seed, st.id) - tie })
   }
   for (const it of pool) {
-    if (!mainIds.has(it.source) || it.kind !== 'article' || isOpinion(it) || audioEpisode(it) || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
+    if (!mainIds.has(it.source) || it.kind !== 'article' || isOpinion(it) || geenPlekAflevering(it) || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
     if (!titled(it)) { reject('item', it.id, [it.id], 'zonder-titel'); continue }
     if (!fresh(it.publishedAt, Math.max(ctx.tempo?.get(it.source) || TEMPO_MIN_H, floor ? FLOOR_ITEM_H : 0)) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
     if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) { reject('item', it.id, [it.id], 'eerder-getoond-of-gelezen'); continue } // stond er al, of je las het al

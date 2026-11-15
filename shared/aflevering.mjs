@@ -14,14 +14,17 @@
 //      op zondag" van NRC, "– Podcast", "| Video van de dag"; labelAchteraan in shared/editie-filter.mjs, 15 november).
 //      Dat laatste stuk is dan alleen het programmawoord, eventueel met een voorzetsel en een of twee woorden of een
 //      afleveringsnummer: "Spotify koopt podcastbedrijf | Tech" of "Brand | Video toont chaos" is geen label.
-// Een woord in de slug of ergens anders in de kop telt nooit. De afbeelding telt ook niet: een vaste rubrieksafbeelding
-// (bij NRC de cover van NRC Vandaag uit /taxonomy/) hoort ook bij columns, commentaren en puzzels. Gedeeld door server en toestel (edition-core.js): geen URL-object.
-import { rubricSegments, ownIntro, audioEpisode, labelAchteraan } from './editie-filter.mjs'
+//      "(Video)" achteraan telt sinds aflevering-2 ook, en "watch", "audio" en "kijk" achteraan alleen kaal of met een nummer;
+//   4. de showcover van een vaste show als afbeelding (showcover in shared/editie-filter.mjs, aflevering-2, 15 november,
+//      besluit Alex): een kleine, benoemde lijst per uitgever, nu alleen de cover van NRC Vandaag uit NRC's taxonomie.
+//      Columns, commentaren en puzzels van NRC hebben een eigen taxonomie-afbeelding en vallen er niet onder.
+// Een woord in de slug of ergens anders in de kop telt nooit, en een andere afbeelding ook niet. Gedeeld door server en
+// toestel (edition-core.js): geen URL-object.
+import { rubricSegments, ownIntro, audioEpisode, labelAchteraan, showcover } from './editie-filter.mjs'
 
 const AUDIO_DIR = new Set(['podcast', 'podcasts', 'luister', 'audio'])
 const VIDEO_DIR = new Set(['video', 'videos', 'kijk'])
 const LABEL = /^[\s"'‘“(]*(video|podcast|luister|kijk|watch|listen)\s*[:|]/i
-const TAIL = /\(\s*podcast\s*\)\s*$/i
 
 // 'podcast' | 'video' | null
 export function afleveringSoort(item) {
@@ -39,9 +42,9 @@ export function afleveringSoort(item) {
   const label = LABEL.exec(title)?.[1]?.toLowerCase()
   if (label === 'podcast' || label === 'luister' || label === 'listen') return 'podcast'
   if (label === 'video' || label === 'kijk' || label === 'watch') return 'video'
-  if (TAIL.test(title)) return 'podcast'
-  const achteraan = labelAchteraan(title)
+  const achteraan = labelAchteraan(title) // ook "(Podcast)" en "(Video)" achteraan
   if (achteraan) return achteraan
+  if (showcover(item)) return 'podcast'
   return null
 }
 
@@ -49,6 +52,7 @@ export const isAflevering = (item) => afleveringSoort(item) !== null
 
 // Wie mag de Editie openen? Eén regel voor kijken en luisteren (persona's 14 november, tweede keuring): een aflevering
 // (podcast, audio of video: isAflevering) en een aflevering om te luisteren (audioEpisode, ook met een eigen intro) opent
-// nooit, ook niet als kop van een verhaal. Een podcast is daarbij nooit de kop van een plek (audioEpisode, dubbelcheck A3);
-// een video mag dat wel zijn (besluit B2), maar niet op plek 01. Onbekend (geen stuk) laat de plek staan.
+// nooit, ook niet als kop van een verhaal. Een podcast is daarbij nooit de kop van een plek (audioEpisode, dubbelcheck A3),
+// en een video met een programmalabel ook niet (geenPlekAflevering, aflevering-2); een andere video mag dat wel zijn
+// (besluit B2), maar niet op plek 01. Onbekend (geen stuk) laat de plek staan.
 export const opensEdition = (item) => !item || (!isAflevering(item) && !audioEpisode(item))
