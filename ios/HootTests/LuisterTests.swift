@@ -56,6 +56,43 @@ import XCTest
         XCTAssertEqual(Luister.keuzes.map(\.naam), ["Apple Podcasts", "Spotify", "Altijd vragen", "Niet tonen"])
     }
 
+    // Melding Alex 15 november (build 58): "Oh 2e keer wel". De eerste tik (met de vraag ervoor) opende de app zonder de
+    // aflevering. Nu opent de keuze in het blad precies wat de tweede tik opent, en pas als het blad weg is.
+    func testEersteTikNaDeVraagOpentHetzelfdeAlsDeTweede() {
+        let a = Self.story.luister!
+        for app in ["apple", "spotify"] {
+            // Eerste tik: de vraag. De keuze in het blad opent bestemming(a, app).
+            XCTAssertEqual(Luister.bijTik("", apps: ["apple", "spotify"]), .vraag(["apple", "spotify"]))
+            let eerste = Luister.bestemming(a, app: app)
+            // Tweede tik: de keuze is onthouden en opent direct.
+            guard case let .open(tweedeApp, _) = Luister.bijTik(app, apps: ["apple", "spotify"]) else { return XCTFail("tweede tik opent") }
+            let tweede = Luister.bestemming(a, app: tweedeApp)
+            XCTAssertEqual(eerste?.url, tweede?.url, app)
+            XCTAssertEqual(eerste?.inApp, true, "in de app, niet de pagina van de uitgever")
+        }
+        XCTAssertEqual(Luister.bestemming(a, app: "apple")?.url.absoluteString, a.apple, "Apple: de aflevering (?i=)")
+        XCTAssertEqual(Luister.bestemming(a, app: nil)?.url.absoluteString, a.link)
+        XCTAssertEqual(Luister.bestemming(a, app: nil)?.inApp, false)
+        XCTAssertGreaterThanOrEqual(Luister.naVraag, .milliseconds(300), "eerst het blad laten sluiten")
+    }
+
+    // De ids per aflevering van de server (luister-ids.mjs). Oude servers sturen ze niet: dan de link zoals hij is.
+    func testAfleveringIdsVanDeServer() throws {
+        let json = #"{"show":"De Dag","aflevering":"Hoe premier Jetten","link":"https://www.nporadio1.nl/podcasts/de-dag","apple":"https://podcasts.apple.com/nl/podcast/id1339219119","spotify":"https://open.spotify.com/show/2Oeh3L5u0y9R54jEz8Mgty","appleEpisode":"1000801742880","spotifyEpisode":"2TfC4jQTneU8xeRoEB6V5o"}"#
+        let a = try JSONDecoder().decode(StoryLuister.self, from: Data(json.utf8))
+        XCTAssertEqual(Luister.link(a, app: "apple")?.absoluteString, "https://podcasts.apple.com/nl/podcast/id1339219119?i=1000801742880")
+        XCTAssertEqual(Luister.link(a, app: "spotify")?.absoluteString, "https://open.spotify.com/episode/2TfC4jQTneU8xeRoEB6V5o")
+        // Heeft de link al een ?i=, dan blijft hij zoals hij is.
+        var b = a
+        b.apple = "https://podcasts.apple.com/nl/podcast/x/id1339219119?i=1000801742880"
+        XCTAssertEqual(Luister.link(b, app: "apple")?.absoluteString, b.apple)
+        // Een vreemd id wordt genegeerd.
+        let raar = try JSONDecoder().decode(StoryLuister.self, from: Data(json.replacingOccurrences(of: "2TfC4jQTneU8xeRoEB6V5o", with: "../x").replacingOccurrences(of: "1000801742880", with: "abc").utf8))
+        XCTAssertNil(raar.spotifyEpisode)
+        XCTAssertNil(raar.appleEpisode)
+        XCTAssertEqual(Luister.link(raar, app: "spotify")?.absoluteString, "https://open.spotify.com/show/2Oeh3L5u0y9R54jEz8Mgty")
+    }
+
     func testKeuzeOnthoudenEnNietTonen() {
         let suite = "luister-tests-\(UUID().uuidString)"
         let d = UserDefaults(suiteName: suite)!

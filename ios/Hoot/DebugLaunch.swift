@@ -40,7 +40,7 @@ import SwiftUI
 //                            het blok ze zag; alleen voor schermen)
 //   -HootVerhaal <verhaal-id>   (met -HootScreen verhaal: dit verhaal openen in plaats van dat met de meeste bronnen)
 //   -HootLuister <pad>   (Luister verder: een JSON-bestand verhaal-id → luister; "*" voor de lezer en de eerste twee
-//                        verhalen van de Editie)   -HootLuisterApps apple,spotify   -HootPodcastApp spotify|vragen|uit|leeg
+//                        verhalen van de Editie, "**" voor elk verhaal, ook in de Stroom)   -HootLuisterApps apple,spotify   -HootPodcastApp spotify|vragen|uit|leeg
 //   -HootUitleg <begrip>   (het blad met de uitleg van dat begrip gaat open bij de eerste pil die het heeft)
 //   -HootBegrippen YES   (in het verhaal staan de Begrippen en elk begrip opengeklapt)
 //   -HootTrekProef <punten>   (de Editie ververst vanzelf alsof je trok en scrolt daarna zoveel punten omlaag,
@@ -103,10 +103,10 @@ enum DebugLaunch {
     }
     // `-HootLuister <pad>`: Luister verder voor schermen, een JSON-bestand verhaal-id → het veld luister zoals de server
     // het meegeeft. De sleutel "*" geldt voor het verhaal van de lezer (-HootScreen lezer) en de eerste twee verhalen
-    // van de Editie, voor verhalen waar de feed er (nog) geen heeft.
+    // van de Editie, voor verhalen waar de feed er (nog) geen heeft; "**" voor elk verhaal (schermen van de Stroom).
     static func luister(_ storyId: String) -> StoryLuister? {
         guard let pad = defaults.string(forKey: "HootLuister"), let data = FileManager.default.contents(atPath: pad), let map = try? JSONDecoder().decode([String: StoryLuister].self, from: data) else { return nil }
-        return map[storyId] ?? (luisterDemo.contains(storyId) ? map["*"] : nil)
+        return map[storyId] ?? (luisterDemo.contains(storyId) ? map["*"] : nil) ?? map["**"] // "**": elk verhaal (de Stroom)
     }
     nonisolated(unsafe) static var luisterDemo: Set<String> = []
     #else

@@ -652,6 +652,7 @@ struct SourceLine: View {
             }
             .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: Space.s2)
+            luisterKnop // Luister verder, ook in de smalle kolom en de dichte rij
             SaveButton(item: item)
         }
         .frame(minHeight: Space.tap)
@@ -731,11 +732,15 @@ struct SourceLine: View {
         // buiten het scherm.
         // Eén bronlabel, overal hetzelfde: "N bronnen ›" (minder rood, keuze B). Is de regel te smal
         // (iPhone mini, grote tekst), dan bron en tijd bovenaan en label en bewaren eronder.
+        // Luister verder (melding Alex 15 november: "Graag ook icoontje in de Stroom"): het stille koptelefoontje naast
+        // bewaren, net als op de kaart. Past het niet op één regel, eerst één regel zonder (het staat ook in het menu),
+        // dan de knoppen eronder mét.
         ViewThatFits(in: .horizontal) {
+            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; luisterKnop; SaveButton(item: item) }
             HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
-                HStack { more; Spacer(); SaveButton(item: item) }
+                HStack { more; Spacer(); luisterKnop; SaveButton(item: item) }
             }
         }
     }

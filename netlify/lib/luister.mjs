@@ -101,6 +101,7 @@ import { publisherOf } from '../../shared/edition-policy.mjs'
 import { isAflevering } from '../../shared/aflevering.mjs'
 import { opinieBron } from '../../shared/opinie.mjs'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
+import { appleIdUit, appleEpisodeUrl, spotifyEpisodeUrl } from './luister-ids.mjs'
 
 const H = 36e5
 
@@ -110,8 +111,8 @@ const H = 36e5
 // vijf of meer onderwerpen: koppelt nooit, wordt niet opgehaald). `bron`: de Hoot-bron van de uitgever. `apple`: het id van
 // de show in Apple Podcasts (BRONNEN.md, gemeten 14 november). `pad`: alleen afleveringen waarvan de pagina dit bevat (een
 // feed met meer shows van de uitgever). `web`: de pagina van de show, als de aflevering geen eigen pagina heeft.
-// `spotify`: het id van de show bij Spotify (één keer met de hand opgezocht, 14 november; zonder sleutel opent Spotify de
-// show, niet de aflevering). Ontbreekt het, dan zoekt Spotify op de naam van de show.
+// `spotify`: het id van de show bij Spotify (één keer met de hand opgezocht, 14 november). De aflevering zelf zoekt de
+// ronde op de openbare showpagina op (luister-ids.mjs, 15 november); ontbreekt het show-id, dan zoekt Spotify op de naam.
 // `opinie`: een opiniepodcast (nooit in de Editie); er staat er nu geen in de lijst.
 // `opsomming`: een sportshow waar een opsomming ("A, B en C") in een zin de hele speelronde betekent (`meer`); de makers
 // en het panel tellen niet (NIEUWE-SHOWS.md, controle; keuring 14 november).
@@ -1543,7 +1544,7 @@ function field({ e, o }, lead) {
     link: e.pagina,
     // Zichtbaar (stap 3): wanneer (het toestel zegt vandaag, gisteren of de dag; nooit een kloktijd), de cover van de
     // show (url van de uitgever), Apple Podcasts (de aflevering als de lookup haar kent, anders de show) en Spotify (de
-    // show; zonder sleutel geen aflevering).
+    // show). luisterRonde zet daarna de ids per aflevering (metIds), zodat beide links naar de aflevering zelf wijzen.
     tijd: new Date(e.t).toISOString(),
     ...(e.cover ? { cover: e.cover } : {}),
     ...(e.appleUrl || show.apple ? { apple: e.appleUrl || `https://podcasts.apple.com/nl/podcast/id${show.apple}` } : {}),
@@ -1577,10 +1578,50 @@ export function withProef(stored, entry) {
 // sleutel), `get` en `update` de opslag, `editie` de verhalen met een Editieplek ({ algemeen, pool }). Het oordeel heeft
 // zijn eigen tijdgrens (OORDEEL_MS per aanroep, alle aanroepen tegelijk); wat niet op tijd is, koppelt deze ronde niet.
 export const PROEF_MS = 1000
-export async function luisterRonde({ stories, byId, now, episodesP, slot, mainIds, update, get = null, client = null, editie = null, deadline = Infinity }) {
+// De ids per aflevering (luister-ids.mjs, melding 15 november): `apple` en `spotify` wijzen dan naar de aflevering zelf,
+// en `appleEpisode`/`spotifyEpisode` dragen het id. Oude app-builds lezen alleen `apple` en `spotify` en openen zo ook de
+// aflevering. Zonder id blijft de link naar de show staan (zoals voorheen).
+const sleutelVan = (showId, tijd, titel) => `${showId}|${tijd}|${titel}`
+export function afleveringenVan(byStory, episodes = []) {
+  const opSleutel = new Map(episodes.map((e) => [sleutelVan(e.show, new Date(e.t).toISOString(), e.titel), e]))
+  const uit = new Map()
+  for (const l of byStory.values())
+    for (const a of [l, ...(l.andere || [])]) {
+      const e = opSleutel.get(sleutelVan(a.showId, a.tijd, a.aflevering))
+      const show = e && SHOW.get(e.show)
+      if (show) uit.set(e.id, { id: e.id, show: e.show, titel: e.titel, t: e.t, guid: e.guid || null, apple: show.apple || null, spotify: show.spotify || null, appleUrl: e.appleUrl || null })
+    }
+  return [...uit.values()]
+}
+export function metIds(byStory, episodes, ids) {
+  const opSleutel = new Map(episodes.map((e) => [sleutelVan(e.show, new Date(e.t).toISOString(), e.titel), e]))
+  for (const l of byStory.values())
+    for (const a of [l, ...(l.andere || [])]) {
+      const e = opSleutel.get(sleutelVan(a.showId, a.tijd, a.aflevering))
+      const r = e && ids.get(e.id)
+      const show = e && SHOW.get(e.show)
+      if (!r || !show) continue
+      if (r.apple && show.apple) {
+        a.appleEpisode = r.apple
+        if (appleIdUit(a.apple) !== r.apple) a.apple = appleEpisodeUrl(show.apple, r.apple)
+      }
+      if (r.spotify) {
+        a.spotifyEpisode = r.spotify
+        a.spotify = spotifyEpisodeUrl(r.spotify)
+      }
+    }
+}
+export async function luisterRonde({ stories, byId, now, episodesP, slot, mainIds, update, get = null, client = null, editie = null, deadline = Infinity, ids = null }) {
   try {
     const { episodes = [], status = {} } = (await episodesP) || {}
     const { byStory, rows, ai } = await koppelMetOordeel({ stories, byId, episodes, now, mainIds, editie, client, get, update })
+    // `ids`: zoekIds uit luister-ids.mjs (build.mjs); begrensd in tijd, een fout kost alleen de ids.
+    if (ids && byStory.size) {
+      const gevonden = await Promise.resolve()
+        .then(() => ids(afleveringenVan(byStory, episodes), { get, update, now }))
+        .catch(() => null)
+      if (gevonden) metIds(byStory, episodes, gevonden)
+    }
     const overTijd = Date.now() > deadline
     for (const st of stories) if (byStory.has(st.id)) st.luister = byStory.get(st.id)
     // Alleen aantallen in het log.
