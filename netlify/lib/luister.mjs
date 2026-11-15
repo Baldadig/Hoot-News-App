@@ -53,7 +53,8 @@
 //     van branch weekshow vraagt de ronde het model niets: de open vragen gaan naar een wachtrij (WACHTRIJ_KEY) en de eigen
 //     geplande functie luister-oordeel stelt ze (oordeelRonde). Zonder oordeel deze ronde geen koppeling voor dat paar
 //     (nooit terugvallen op losser); de volgende ronde koppelt wat De Redacteur intussen beoordeelde. Zonder sleutel of bij een fout van het model blijft alleen een koppeling via een artikellink van de eigen
-//     uitgever over, verder niets.
+//     uitgever over, verder niets; een fout in de eigen functie bewaart de opslag per paar (`f` in OORDEEL_KEY), zodat de
+//     volgende ronde die terugval ook kent. Zijn de pogingen voor een paar op, dan zegt de proef dat eerlijk.
 //   - Herstel na keuring 2 van branch shows (14 november, late avond): het oordeel beantwoordt de tijd apart (voorHetNieuws:
 //     gemaakt vóór het nieuws van de kop; alleen "nee" koppelt), met de tijd van de kop en van het eerste stuk in de vraag.
 //     Het vangnet sloot een aflevering van vóór de kop uit die zelf iets over haar opname of over "inmiddels" zegt (TIJD; sinds
@@ -1203,13 +1204,15 @@ export function tijdGrens(c, v) {
   if ((v.soort === 'zelfde' || v.soort === 'verdieping') && c.e.t < leadAt - DEEP_H * H) return `${v.soort === 'zelfde' ? 'volgens het oordeel precies dit nieuws, en als verdieping' : 'een verdieping, maar'} meer dan ${DEEP_H / 24} dagen ouder dan de kop`
   return null
 }
-// Zonder sleutel of bij een fout van het model: alleen een artikellink van de eigen uitgever (met het woordoordeel).
+// Zonder sleutel of bij een fout van het model (deze ronde of, via de opslag, in de eigen functie): alleen een artikellink
+// van de eigen uitgever (met het woordoordeel).
 const eigenLink = (c) => !!c.o.soort && c.o.grond === 'link' && publisherOf(c.show.bron) === publisherOf(leadVan(c.x)?.source)
 
 // Het besluit van 14 november: het vangnet, dan het oordeel. `oordelen`: Map(paarKey → { soort, vooruitblikOpVoorbij,
 // opgenomenVoorDitNieuws, eenOnderwerp, zeker, reden })
-// of null (geen sleutel). `fout`: Set(paarKey) waarvoor het model een fout gaf.
-function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(), oordelen = null, fout = null, editie = null, plafond = false, wachtrij = false } = {}) {
+// of null (geen sleutel). `fout`: Set(paarKey) waarvoor de laatste poging een fout van het model gaf (ook uit de opslag).
+// `op`: Set(paarKey) zonder oordeel waarvan de pogingen op zijn (die worden niet meer gevraagd).
+function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(), oordelen = null, fout = null, op = null, editie = null, plafond = false, wachtrij = false } = {}) {
   const rows = { koppelingen: [], afgevallen: [] }
   const plek = plekVan(editie)
   const hits = new Map() // aflevering → [{ x, o }]
@@ -1235,7 +1238,8 @@ function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(
     if (!oordelen || fout?.has(key)) {
       if (eigenLink(c)) hit(c, { ...c.o, reden: `zonder oordeel (${!oordelen ? 'geen sleutel' : 'fout'}): de eigen uitgever linkt naar een stuk in het verhaal` })
       else rows.afgevallen.push(row(c.e, c.x, `geen oordeel (${!oordelen ? 'geen sleutel' : 'fout'}): dan alleen een artikellink van de eigen uitgever`))
-    } else rows.afgevallen.push(row(c.e, c.x, plafond ? 'geen oordeel: het dagplafond van het oordeel is bereikt, deze ronde geen koppeling' : wachtrij ? 'nog geen oordeel: De Redacteur beoordeelt het paar in zijn eigen ronde, deze ronde geen koppeling' : 'geen oordeel op tijd: deze ronde geen koppeling'))
+    } else if (op?.has(key)) rows.afgevallen.push(row(c.e, c.x, `geen oordeel: De Redacteur kreeg het paar in ${MAX_POGINGEN} pogingen niet beoordeeld, het wordt niet meer gevraagd; geen koppeling`))
+    else rows.afgevallen.push(row(c.e, c.x, plafond ? 'geen oordeel: het dagplafond van het oordeel is bereikt, deze ronde geen koppeling' : wachtrij ? 'nog geen oordeel: De Redacteur beoordeelt het paar in zijn eigen ronde, deze ronde geen koppeling' : 'geen oordeel op tijd: deze ronde geen koppeling'))
   }
   const per = new Map()
   for (const e of p.eps) {
@@ -1599,47 +1603,67 @@ const binnen = (p, ms) => {
 }
 
 // De opslag: { v: 1, o: { paarKey: [soort, eenOnderwerp, zeker, reden, tijd, vooruitblikOpVoorbij, opgenomenVoorDitNieuws] },
-// p: { paarKey: [pogingen, tijd] }, k: [dag, dollars] } (k: de kosten van de Nederlandse dag, voor het dagplafond).
+// p: { paarKey: [pogingen, tijd] }, f: { paarKey: tijd }, k: [dag, dollars] } (k: de kosten van de Nederlandse dag, voor
+// het dagplafond). `f` (herstel keuring 4 van branch weekshow): de paren waarvoor de laatste poging een fout van het model
+// gaf. De ronde vraagt zelf niets meer (wachtrij), dus zonder `f` kwam de fout nooit bij kiesOordeel aan en viel de
+// koppeling via een artikellink van de eigen uitgever bij een storing van het model weg.
 export function leesOpslag(doc, now) {
   const oordelen = new Map()
   const pogingen = new Map()
+  const fouten = new Set()
   for (const [k, v] of Object.entries(doc?.o && typeof doc.o === 'object' ? doc.o : {})) if (Array.isArray(v) && now - (Number(v[4]) || 0) <= OORDEEL_KEEP) oordelen.set(k, { soort: v[0], eenOnderwerp: v[1], zeker: v[2], reden: String(v[3] || ''), vooruitblikOpVoorbij: v[5], opgenomenVoorDitNieuws: v[6] })
   for (const [k, v] of Object.entries(doc?.p && typeof doc.p === 'object' ? doc.p : {})) if (Array.isArray(v) && now - (Number(v[1]) || 0) <= OORDEEL_KEEP) pogingen.set(k, Number(v[0]) || 0)
-  return { oordelen, pogingen, dagKosten: dagKostenVan(doc, now) }
+  for (const [k, t] of Object.entries(doc?.f && typeof doc.f === 'object' ? doc.f : {})) if (!oordelen.has(k) && now - (Number(t) || 0) <= OORDEEL_KEEP) fouten.add(k)
+  return { oordelen, pogingen, fouten, dagKosten: dagKostenVan(doc, now) }
 }
 // De kosten van vandaag (Nederlandse dag) uit de opslag; een andere dag telt als 0.
 export const dagKostenVan = (doc, now) => (Array.isArray(doc?.k) && doc.k[0] === dagNL(now) ? Math.max(0, Number(doc.k[1]) || 0) : 0)
-export function schrijfOpslag(cur, { nieuw = new Map(), geprobeerd = [], now, kosten = 0 }) {
+export function schrijfOpslag(cur, { nieuw = new Map(), geprobeerd = [], fout = new Set(), now, kosten = 0 }) {
   const o = {}
   for (const [k, v] of Object.entries(cur?.o && typeof cur.o === 'object' ? cur.o : {})) if (Array.isArray(v) && now - (Number(v[4]) || 0) <= OORDEEL_KEEP) o[k] = v
   for (const [k, v] of nieuw) o[k] = [v.soort, v.eenOnderwerp, v.zeker, v.reden, now, v.vooruitblikOpVoorbij, v.opgenomenVoorDitNieuws]
   const p = {}
   for (const [k, v] of Object.entries(cur?.p && typeof cur.p === 'object' ? cur.p : {})) if (Array.isArray(v) && !(k in o) && now - (Number(v[1]) || 0) <= OORDEEL_KEEP) p[k] = v
   for (const k of geprobeerd) if (!(k in o)) p[k] = [(Number(p[k]?.[0]) || 0) + 1, now]
+  // De fouten: de laatste poging telt (een fout zet het paar erin, een time-out of een oordeel haalt het eruit).
+  const f = {}
+  for (const [k, t] of Object.entries(cur?.f && typeof cur.f === 'object' ? cur.f : {})) if (!(k in o) && now - (Number(t) || 0) <= OORDEEL_KEEP) f[k] = t
+  for (const k of geprobeerd) if (fout.has(k) && !(k in o)) f[k] = now
+  else delete f[k]
   // De kosten optellen bij wat er nu staat (een ronde die tegelijk schreef, telt mee).
   const dag = Math.round((dagKostenVan(cur, now) + Math.max(0, Number(kosten) || 0)) * 1e4) / 1e4
-  return { v: 1, o, ...(Object.keys(p).length ? { p } : {}), ...(dag > 0 ? { k: [dagNL(now), dag] } : {}) }
+  return { v: 1, o, ...(Object.keys(p).length ? { p } : {}), ...(Object.keys(f).length ? { f } : {}), ...(dag > 0 ? { k: [dagNL(now), dag] } : {}) }
 }
 
 // De oordelen voor deze kandidaten (paren die het vangnet doorstonden): uit de opslag, en de nieuwe paren gevraagd (de
 // verhalen met een Editieplek eerst, dan de grootste verhalen, dan de nieuwste afleveringen). Geeft { oordelen: Map,
-// fout: Set(paarKey), stats }. Nooit een fout naar buiten.
+// fout: Set(paarKey), op: Set(paarKey), stats }. `fout`: de laatste poging gaf een fout van het model (ook uit de opslag,
+// van de eigen functie); `op`: geen oordeel en de pogingen zijn op (die worden niet meer gevraagd). Nooit een fout naar buiten.
 export async function oordelenVoor(kandidaten, { client, get, update, now = Date.now(), editie = null, timeoutMs = OORDEEL_MS, kvMs = OORDEEL_KV_MS, maxVragen = MAX_VRAGEN, perVraag = PER_VRAAG, maxPogingen = MAX_POGINGEN, stemmen = STEMMEN, maxAanroepen = MAX_AANROEPEN, dagUsd = OORDEEL_DAG_USD, aanroepUsd = AANROEP_USD, tot = Infinity, minMs = OORDEEL_MIN_MS, wachtrij = false } = {}) {
   const stats = { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uitOpslag: 0, gevraagd: 0, vragen: 0, aanroepen: 0, stemmen, beoordeeld: 0, ja: 0, oneens: 0, invoerTokens: 0, uitvoerTokens: 0, kostenUsd: 0, timeouts: 0, fouten: 0, dagPlafondUsd: dagUsd }
   const fout = new Set()
+  const op = new Set()
   let doc
   try {
     doc = get ? await binnen(get(OORDEEL_KEY), kvMs) : null
   } catch {
     // De opslag is niet te lezen: niets vragen (anders elke ronde opnieuw), en dit telt als een fout.
     for (const c of kandidaten) fout.add(paarKey(c))
-    return { oordelen: new Map(), fout, stats: { ...stats, opslag: 'niet te lezen' } }
+    return { oordelen: new Map(), fout, op, stats: { ...stats, opslag: 'niet te lezen' } }
   }
-  const { oordelen: opgeslagen, pogingen, dagKosten } = leesOpslag(doc, now)
+  const { oordelen: opgeslagen, pogingen, fouten: opgeslagenFout, dagKosten } = leesOpslag(doc, now)
   stats.dagKostenUsd = dagKosten
   const oordelen = new Map()
-  for (const c of kandidaten) if (opgeslagen.has(paarKey(c))) oordelen.set(paarKey(c), opgeslagen.get(paarKey(c)))
+  for (const c of kandidaten) {
+    const k = paarKey(c)
+    if (opgeslagen.has(k)) oordelen.set(k, opgeslagen.get(k))
+    else {
+      if (opgeslagenFout.has(k)) fout.add(k)
+      if ((pogingen.get(k) || 0) >= maxPogingen) op.add(k)
+    }
+  }
   stats.uitOpslag = oordelen.size
+  if (fout.size) stats.foutUitOpslag = fout.size
   const plek = plekVan(editie)
   const open = kandidaten
     .filter((c) => !oordelen.has(paarKey(c)) && (pogingen.get(paarKey(c)) || 0) < maxPogingen)
@@ -1660,27 +1684,30 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
   const deze = vragen.slice(0, Math.min(maxAanroepen, ruimte))
   const gevraagd = deze.flat()
   stats.overgeslagen = kandidaten.length - oordelen.size - gevraagd.length
-  if (!client) return { oordelen, fout, stats }
+  if (!client) return { oordelen, fout, op, stats }
   // De ronde (build.mjs): niets vragen, alleen de open vragen in de wachtrij zetten voor de eigen functie (oordeelRonde). Ook
   // een lege wachtrij: dan stelt de functie geen vragen van paren die er niet meer zijn.
   if (wachtrij) {
     const vragen = deze.map(vraagVan)
     let laatste = null
     if (update) await binnen(Promise.resolve().then(() => update(WACHTRIJ_KEY, (cur) => ((laatste = cur?.laatste || null), { v: 1, at: now, vragen, ...(laatste ? { laatste } : {}) }))), kvMs).catch(() => {})
-    return { oordelen, fout, stats: { ...stats, wachtrij: vragen.length, ...(laatste ? { redacteur: laatste } : {}) } }
+    return { oordelen, fout, op, stats: { ...stats, wachtrij: vragen.length, ...(laatste ? { redacteur: laatste } : {}) } }
   }
-  if (!gevraagd.length) return { oordelen, fout, stats }
+  if (!gevraagd.length) return { oordelen, fout, op, stats }
   // De tijd die er nog is (`tot`): te weinig, dan niets vragen.
   const ms = Math.min(timeoutMs, tot - Date.now())
-  if (!(ms >= Math.min(minMs, timeoutMs))) return { oordelen, fout, stats: { ...stats, overgeslagen: stats.overgeslagen + gevraagd.length, geenTijd: true } }
+  if (!(ms >= Math.min(minMs, timeoutMs))) return { oordelen, fout, op, stats: { ...stats, overgeslagen: stats.overgeslagen + gevraagd.length, geenTijd: true } }
   stats.timeoutMs = Math.round(ms)
   stats.gevraagd = gevraagd.length
   stats.vragen = deze.length
   stats.aanroepen = deze.length * stemmen
   const t0 = Date.now()
   const { nieuw, geprobeerd, fout: fouten } = await stelVragen(deze.map(vraagVan), { client, ms, stemmen, stats })
+  // De laatste poging telt: deze ronde een fout, dan fout; een oordeel of een time-out haalt een oude fout weg.
+  for (const k of [...nieuw.keys(), ...geprobeerd]) fout.delete(k)
   for (const k of fouten) fout.add(k)
   for (const [k, v] of nieuw) oordelen.set(k, v)
+  for (const k of geprobeerd) if ((pogingen.get(k) || 0) + 1 >= maxPogingen) op.add(k)
   stats.ms = Date.now() - t0 // de duur van alle aanroepen samen (tegelijk)
   stats.beoordeeld = nieuw.size
   stats.ja = [...nieuw.values()].filter(ja).length
@@ -1688,8 +1715,8 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
   // Voor het dagplafond: de gemeten kosten, en een vraag die niet op tijd was als AANROEP_USD (onbekend, maar wel betaald).
   const kosten = stats.kostenUsd + stats.timeouts * aanroepUsd
   stats.dagKostenUsd = Math.round((dagKosten + kosten) * 1e4) / 1e4
-  if (update && (nieuw.size || geprobeerd.length || kosten > 0)) await binnen(update(OORDEEL_KEY, (cur) => schrijfOpslag(cur, { nieuw, geprobeerd, now, kosten })), kvMs).catch(() => {})
-  return { oordelen, fout, stats }
+  if (update && (nieuw.size || geprobeerd.length || kosten > 0)) await binnen(update(OORDEEL_KEY, (cur) => schrijfOpslag(cur, { nieuw, geprobeerd, fout: fouten, now, kosten })), kvMs).catch(() => {})
+  return { oordelen, fout, op, stats }
 }
 
 // De eigen geplande functie van het oordeel (functions/luister-oordeel.mjs): de vragen uit de wachtrij van de laatste ronde,
@@ -1732,14 +1759,15 @@ export async function oordeelRonde({ client, get, update, now = Date.now(), star
   stats.vragen = deze.length
   stats.aanroepen = deze.length * stemmen
   const t0 = Date.now()
-  const { nieuw, geprobeerd } = await stelVragen(deze, { client, ms, stemmen, stats })
+  // De fouten gaan mee de opslag in (`f`): de volgende ronde ziet ze en laat dan de artikellink van de eigen uitgever toe.
+  const { nieuw, geprobeerd, fout } = await stelVragen(deze, { client, ms, stemmen, stats })
   stats.ms = Date.now() - t0
   stats.beoordeeld = nieuw.size
   stats.ja = [...nieuw.values()].filter(ja).length
   stats.kostenUsd = kostenVan(stats.invoerTokens, stats.uitvoerTokens)
   const kosten = stats.kostenUsd + stats.timeouts * aanroepUsd
   stats.dagKostenUsd = Math.round((dagKosten + kosten) * 1e4) / 1e4
-  if (nieuw.size || geprobeerd.length || kosten > 0) await binnen(Promise.resolve().then(() => update(OORDEEL_KEY, (cur) => schrijfOpslag(cur, { nieuw, geprobeerd, now, kosten }))), kvMs).catch(() => {})
+  if (nieuw.size || geprobeerd.length || kosten > 0) await binnen(Promise.resolve().then(() => update(OORDEEL_KEY, (cur) => schrijfOpslag(cur, { nieuw, geprobeerd, fout, now, kosten }))), kvMs).catch(() => {})
   await schrijfLaatste()
   return { stats }
 }
@@ -1748,8 +1776,8 @@ export async function oordeelRonde({ client, get, update, now = Date.now(), star
 export async function koppelMetOordeel({ stories = [], byId = new Map(), episodes = [], now = Date.now(), mainIds = new Set(), editie = null, client = null, get = null, update = null, ...opts } = {}) {
   const p = paren({ stories, byId, episodes, now })
   const kandidaten = p.paren.filter((c) => !vangnet(c, now))
-  const r = client ? await oordelenVoor(kandidaten, { client, get, update, now, editie, ...opts }) : { oordelen: null, fout: new Set(), stats: { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uit: 'geen sleutel' } }
-  return { ...kiesOordeel(p, { byId, mainIds, now, oordelen: r.oordelen, fout: r.fout, editie, plafond: !!r.stats.plafond, wachtrij: r.stats.wachtrij != null }), ai: r.stats }
+  const r = client ? await oordelenVoor(kandidaten, { client, get, update, now, editie, ...opts }) : { oordelen: null, fout: new Set(), op: new Set(), stats: { model: OORDEEL_MODEL, kandidaten: kandidaten.length, uit: 'geen sleutel' } }
+  return { ...kiesOordeel(p, { byId, mainIds, now, oordelen: r.oordelen, fout: r.fout, op: r.op, editie, plafond: !!r.stats.plafond, wachtrij: r.stats.wachtrij != null }), ai: r.stats }
 }
 const day = (t) => new Date(t).toISOString().slice(0, 10)
 function field({ e, o }, lead) {
