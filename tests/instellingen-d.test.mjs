@@ -50,8 +50,9 @@ const INVENTARIS_WEB = [
   ['Account verwijderen', account, /Account verwijderen/],
   ['Interesses', web, /label="Interesses"/],
   ['Bronnen', web, /label="Bronnen"/],
-  ['Selectie (alles aan of uit)', web, /label="Alle onderwerpen"/],
-  ['Selectie per onderwerp', web, /vakByDomain\(\)\.map/],
+  // "Alle onderwerpen" is weg sinds 15 november (hooguit acht, BESLUITEN-15NOV.md); op die plek staat de taal.
+  ['Selectie (Ook Engelstalige stukken)', web, /<Row label=\{ENGELS\}>/],
+  ['Selectie per onderwerp', web, /pickDomains\(vakByDomain\(\), digest, chosen\)\.map/],
   ['Buiten je bubbel', web, /label="Buiten je bubbel"/],
   ['De Editie in één minuut', web, /label="De Editie in één minuut"/],
   ['Weer', web, /label="Weer"/],

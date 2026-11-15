@@ -732,14 +732,17 @@ struct WelcomeView: View {
             Text("Elke maandag drie stukken over je werk of hobby.")
                 .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
                 .padding(.top, Space.s4)
+            // Zonder wat uit de keuze is, en hooguit acht (besluit 15 november; gelijk aan Welcome.jsx).
+            let counted = vak.filter(store.offersField)
             ForEach(DigestFieldsList.domains, id: \.label) { d in
-                let fields = d.fields.filter { store.offersField($0.id) }
+                let fields = d.fields.filter { store.offersField($0.id) && DigestFieldsList.inKeuze($0.id, chosen: vak) }
                 if !fields.isEmpty {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         GroupTitle(text: d.label)
                         Flow {
                             ForEach(fields, id: \.id) { f in
                                 ChoiceChip(label: f.label, on: vak.contains(f.id)) { vak = toggled(vak, f.id) }
+                                    .disabled(!SelectionOverview.canChoose(counted, f.id))
                             }
                         }
                     }

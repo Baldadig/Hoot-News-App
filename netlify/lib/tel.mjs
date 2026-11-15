@@ -4,6 +4,7 @@
 // de dag is de dag van het dagdeel. Een gelijktijdige telling gaat atomair (kvUpdate: voorwaardelijk schrijven).
 import { kvUpdate, kvGet } from './kv.mjs'
 import { EVENTS, PLATFORMS, SLOT_NAMES, VERSIONS_MAX, READ_MAX, VIA_LABELS, VIA_ANDERS, WELKOM_STAPPEN, APPSTORE_TIK, LANDING_OPEN, VRAAG_OPEN, WEB_PLEKKEN, APPSTORE_PLEKKEN, APPSTORE_APP_PLEKKEN, counterKey, versionKey, docKey, dayNumber, dayOf } from '../../shared/tel.mjs'
+import { ONDERWERP_EVENTS } from '../../shared/tel-onderwerp.mjs'
 
 const MAX = 1e9
 
@@ -63,6 +64,8 @@ export function shapeDay(date, doc) {
   out.web_tik = Object.fromEntries(WEB_PLEKKEN.map((p) => [p, dagtotaal(`web-tik:${p}`)]))
   out.vraag_open = dagtotaal(VRAAG_OPEN)
   out.welkom = Object.fromEntries(WELKOM_STAPPEN.map((s) => [s, dagtotaal(s)]))
+  // De Selectie-onderwerpen (shared/tel-onderwerp.mjs; alleen gevuld als ONDERWERP_TELLER aan staat): hoe vaak gekozen.
+  out.onderwerpen = Object.fromEntries(ONDERWERP_EVENTS.map((e) => [e.slice('onderwerp:'.length), dagtotaal(e)]))
   return out
 }
 

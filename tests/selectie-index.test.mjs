@@ -63,7 +63,7 @@ test('index B: geen glasknoppen, blad "Ga naar onderwerp" of "Alles inklappen" m
 
 // "Tot dan verbergen." (besluit Alex 14 november): een onderwerp dat nog niet in de weekbundel zit, is op het web
 // verborgen tot de bundel het heeft, zoals de app (HootStore.offersField). Generiek: elk onderwerp, niet één naam.
-import { offersField, offeredFields, allChosen, chooseAll } from '../src/lib/selection-index.js'
+import { offersField, offeredFields, pickDomains } from '../src/lib/selection-index.js'
 import { VAK_FIELD_IDS, vakByDomain } from '../shared/vak.mjs'
 
 test('Tot dan verbergen: een onderwerp buiten de bundel telt nergens mee, op web en app gelijk', () => {
@@ -77,28 +77,20 @@ test('Tot dan verbergen: een onderwerp buiten de bundel telt nergens mee, op web
   const offered = offeredFields(order, digest)
   assert.equal(offered.length, VAK_FIELD_IDS.length - 1)
   assert.deepEqual(offeredFields([{ id: nieuw }, { id: order[0] }], digest), [{ id: order[0] }])
-  // "Alle onderwerpen" is aan zodra alle aangeboden onderwerpen gekozen zijn, en telt dan zoveel als de app
-  assert.equal(allChosen(offered, offered), true)
-  assert.equal(allChosen(offered.slice(1), offered), false)
-  assert.equal(allChosen([], []), false)
-  const alle = chooseAll(true, order, [], offered)
-  assert.deepEqual(alle, offered)
-  assert.equal(offeredFields(alle, digest).length, offered.length)
-  // wie het verborgen onderwerp al had, houdt het (het komt terug zodra de bundel het heeft)
-  assert.deepEqual(chooseAll(true, order, [nieuw], offered), order)
-  assert.deepEqual(chooseAll(false, order, order, offered), [])
+  // kiezen per domein: alleen wat de bundel levert ("Alle onderwerpen" is weg sinds 15 november: hooguit acht)
+  assert.ok(!pickDomains(vakByDomain(), digest).some((d) => d.fields.some((x) => x.id === nieuw)))
   // de Selectie zelf: een gekozen onderwerp buiten de bundel staat er niet
   const o = selectionOverview([f(order[0], 'Een', 2), f(nieuw, 'Nieuw', 0)], new Set(offered))
   assert.deepEqual(o.fields.map((x) => x.id), [order[0]])
   // web: Instellingen, kiezen in de Selectie en het welkom tonen alleen aangeboden onderwerpen; de app ook
   const settings = readFileSync(new URL('../src/views/Settings.jsx', import.meta.url), 'utf8')
   const welkom = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
-  for (const [naam, src] of [['Vak.jsx', web], ['Settings.jsx', settings], ['Welcome.jsx', welkom]]) assert.match(src, /offeredFields\(d\.fields, digest\)/, naam)
-  assert.match(settings, /allChosen\(chosen, offered\)/)
-  assert.match(settings, /chooseAll\(v, order, chosen, offered\)/)
+  for (const [naam, src] of [['Vak.jsx', web], ['Settings.jsx', settings], ['Welcome.jsx', welkom]]) assert.match(src, /pickDomains\(vakByDomain\(\), digest/, naam)
+  assert.doesNotMatch(settings, /Alle onderwerpen/)
   assert.doesNotMatch(settings, /VAK_FIELD_IDS/)
   const iosSettings = readFileSync(new URL('../ios/Hoot/Views/SettingsView.swift', import.meta.url), 'utf8')
-  assert.match(iosSettings, /let offered = Self\.fields\.map\(\\\.id\)\.filter\(store\.offersField\)/)
+  assert.match(iosSettings, /let counted = store\.digestFields\.filter\(store\.offersField\)/)
+  assert.doesNotMatch(iosSettings, /Alle onderwerpen/)
   assert.match(iosSettings, /store\.digestFields\.filter\(store\.offersField\)\.count/)
   assert.match(ios, /chosen\.filter \{ offered\.contains\(\$0\.id\) \}/)
 })

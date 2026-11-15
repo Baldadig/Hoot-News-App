@@ -48,7 +48,7 @@ test('lege Selectie: de onderwerpen staan er zelf, geen rij naar een ander blad'
   for (const src of [web, app]) assert.ok(!src.includes('Kies je onderwerpen'), 'de oude kop is weg')
   // Web: pillen per domein uit wat de bundel levert, Bewaar schrijft prefs.vak in de vaste volgorde.
   assert.match(web, /className="dempty__text dkies__tekst">\{CHOOSE\}/)
-  assert.match(web, /setPref\('vak', order\.filter\(\(f\) => draft\.includes\(f\)\)\)/)
+  assert.match(web, /choose\(order\.filter\(\(f\) => draft\.includes\(f\)\)\)/) // choose: setPref('vak') plus de (uitgezette) teller
   assert.match(web, /disabled=\{!draft\.length \|\| !selectionReady\}/)
   // iOS: hetzelfde, in de volgorde van DigestFieldsList.
   assert.match(app, /if store\.digestFields\.isEmpty \{\s*kies\s/)

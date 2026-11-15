@@ -8,6 +8,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { parseTel, BODY_MAX, today, dayNumber, NIEUWE_TELLERS } from '../../shared/tel.mjs'
 import { record, readDay, readRange } from '../lib/tel.mjs'
+import { onderwerpExtra, ONDERWERP_TELLER } from '../../shared/tel-onderwerp.mjs'
 
 const quiet = () => new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store' } })
 const sha = (s) => createHash('sha256').update(String(s)).digest()
@@ -20,14 +21,15 @@ export function allowed(req, env = process.env) {
 }
 
 // `nieuw`: telt de herkomst, de App Store-tik en het welkom mee (shared/tel.mjs, NIEUWE_TELLERS; standaard uit).
-export async function handle(req, { env = process.env, now = new Date(), write = record, day = readDay, range = readRange, nieuw = NIEUWE_TELLERS } = {}) {
+// `onderwerp`: telt hoe vaak een Selectie-onderwerp gekozen wordt (shared/tel-onderwerp.mjs; uit tot de privacyzin er is).
+export async function handle(req, { env = process.env, now = new Date(), write = record, day = readDay, range = readRange, nieuw = NIEUWE_TELLERS, onderwerp = ONDERWERP_TELLER } = {}) {
   if (req.method === 'POST') {
     try {
       const len = Number(req.headers.get('content-length'))
       if (Number.isFinite(len) && len > BODY_MAX) return quiet()
       const text = await req.text()
       if (text.length > BODY_MAX) return quiet()
-      const parsed = parseTel(JSON.parse(text), now, { nieuw })
+      const parsed = parseTel(JSON.parse(text), now, { nieuw, extra: onderwerpExtra(onderwerp) })
       if (parsed) await write(parsed)
     } catch {
       // onleesbaar of een storing: negeren, en niets loggen (geen body, geen adres)

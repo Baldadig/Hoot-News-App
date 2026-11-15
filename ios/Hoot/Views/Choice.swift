@@ -63,6 +63,7 @@ struct ChoiceChip: View {
     let action: () -> Void
     static let tint = 0.08 // het zachte inktvlak van gekozen (web: --tint, 6 % licht en 10 % donker)
     @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(\.isEnabled) private var isEnabled // uit (de grens van acht in de Selectie): stil, zoals :disabled op het web
 
     var body: some View {
         Button {
@@ -89,6 +90,7 @@ struct ChoiceChip: View {
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
+        .opacity(isEnabled ? 1 : 0.45)
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

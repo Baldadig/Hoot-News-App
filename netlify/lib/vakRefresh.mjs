@@ -1,7 +1,7 @@
 // De voorraad van de vakbronnen bijwerken en, als er een nieuwe week is, de Vakweek samenstellen. Op maandag tot de
 // middag elk uur opnieuw, met wat al in de top stond op zijn plek (Selectie-review 14 november, punt 10).
 import { kvGet, kvSet, readDoc, writeDoc, KEYS } from './kv.mjs'
-import { loadVakItems, mergePool, composeVak, vakWeek, vakRange, editieSlotIds, addOgImages, updateHealth, sourcesToLoad, oneLine, recomposing, beforeNextBundle, nextBundleAt, topIds } from './vak.mjs'
+import { loadVakItems, mergePool, composeVak, vakWeek, vakRange, editieSlotIds, addOgImages, updateHealth, sourcesToLoad, oneLine, recomposing, beforeNextBundle, nextBundleAt, topIds, topSources } from './vak.mjs'
 import { findEdition } from './edition-history.mjs'
 import { hash } from '../../shared/util.mjs'
 
@@ -69,7 +69,16 @@ export function refreshVak({ now = Date.now(), force = false } = {}) {
       const same = current && current.week === vakWeek(now).id && !current.preview
       if (same && !force && !recomposing(now)) return current
       const before = same ? JSON.parse(current.body) : null
-      const digest = composeVak(pool, { now, since, editie, keep: before && !force ? topIds(before) : {} })
+      // Rouleren (keuzeregel, 15 november): de bronnen uit de top van vorige week wijken bij gelijke stand. Bij een nieuwe
+      // week is dat de bundel die er nu staat (apart bewaard, niet in /api/vak); binnen de week blijft het wat bij het
+      // verschijnen werd bewaard. Lukt lezen niet, dan zonder.
+      let previous = {}
+      if (same) previous = (await kvGet(KEYS.vakPrevious).catch(() => null)) || {}
+      else if (current && !current.preview) {
+        previous = topSources(JSON.parse(current.body))
+        await kvSet(KEYS.vakPrevious, previous).catch(() => {})
+      }
+      const digest = composeVak(pool, { now, since, editie, keep: before && !force ? topIds(before) : {}, previous })
       if (before && !force && JSON.stringify(digest.fields) === JSON.stringify(before.fields)) return current
       const body = JSON.stringify(digest)
       const doc = { body, builtAt: new Date(now).toISOString(), etag: hash(body), week: vakWeek(now).id, preview: digest.preview }

@@ -26,6 +26,7 @@ export const DEFAULT_PREFS = {
   bluesky: false, // Bluesky-posts in de Stroom; geen aparte bestemming
   favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je Editie en staan vooraan
   vak: [], // vakgebieden in de Selectie (shared/vak.mjs); leeg = geen tab Selectie
+  vakEngels: null, // "Ook Engelstalige stukken" in de Selectie: true, false, of null (aan als je een Engelse bron volgt)
   bskyInStream: [], // expliciete keuze; oude profielen zonder dit veld behouden hun gevolgde accounts
   weatherPlace: 'de-bilt', // neutraal; plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
   followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
@@ -70,6 +71,7 @@ export function normalizePrefs(raw) {
   // Crypto onder Economie (13 november 2026): wie Economie helemaal volgde, houdt alles (topics.js withCrypto).
   if (out.onderwerpen !== ONDERWERPEN) Object.assign(out, { topics: withCrypto(out.interests, out.topics), onderwerpen: ONDERWERPEN })
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
+  if (typeof out.vakEngels !== 'boolean') out.vakEngels = null
   // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
   out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []
   if (!Object.hasOwn(p, 'bluesky') && out.social.length) out.bluesky = true

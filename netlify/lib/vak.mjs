@@ -6,7 +6,9 @@
 //   1. hoeveel vakbronnen over hetzelfde schrijven;
 //   2. of mensen het zelf hebben uitgekozen (de redactie van Sidebar kiest elke werkdag vijf links);
 //   3. wie het schreef: een vakexpert weegt zwaarder dan een vakblad, en dat zwaarder dan een
-//      bedrijfsblog. In de onderwerpen met veel nieuws (LEESVOER) beslist dit, en telt 1 alleen bij gelijke stand.
+//      bedrijfsblog.
+// Sinds 15 november kiest één regel met drie plekken: het verhaal van de week, een kenner, en de rest op de stand, met
+// een Nederlands stuk als de rest Engels is (zie "De keuzeregel" hieronder).
 // Wat die week al in een Editie stond, komt niet in de top: de Selectie is leesvoer, geen herhaling.
 // Alleen mensenwerk: redactionele bronnen en vakmensen met naam; geen gesponsorde stukken,
 // webinars, podcastafleveringen, dealpagina's, vacatures of "10 tools"-lijstjes. Geen AI-tekst: bij elk stuk staat de
@@ -399,6 +401,8 @@ export function beforeNextBundle(now = Date.now()) {
 export const nextBundleAt = (now = Date.now()) => Date.parse(vakWeek(now).next) + 60e3
 // Per onderwerp de id's van de topstukken van een bundel (voor `keep`).
 export const topIds = (digest) => Object.fromEntries((digest?.fields || []).map((f) => [f.id, (f.top || []).map((e) => e.id)]))
+// Per onderwerp de bronnen in de top van een bundel (voor `previous`, keuzeregel: rouleren).
+export const topSources = (digest) => Object.fromEntries((digest?.fields || []).map((f) => [f.id, [...new Set((f.top || []).map((e) => e.source))]]))
 
 // ---- Over hetzelfde? Genoeg gedeelde, betekenisvolle woorden in de kop ----
 const STOP = new Set('about after again against also among another because been before being between both could does doing during each from further have having here into itself just more most much must need only other over same should some such than that their them then there these they this those through under until very want were what when where which while will with would your yours year years week weeks today heres whats how why new news announces launches says adds update updates over naar voor door over deze voor zijn wordt worden heeft hebben niet meer maar onze jouw jullie'.split(' '))
@@ -469,10 +473,38 @@ export function sameSubject(a, b, df = new Map()) {
 }
 
 const WEIGHT = { expert: 3, vakblad: 2, curator: 2, community: 1, officieel: 1 }
-// Leesvoer, geen nieuws van de week (Selectie · fase 3): in deze onderwerpen schrijven veel bronnen over hetzelfde
-// nieuws (een debat, een wedstrijd, een première). Daar beslist het gewicht van de schrijver (WEIGHT); hoeveel bronnen
-// erover schreven telt alleen nog bij gelijke stand.
+// Leesvoer, geen nieuws van de week (Selectie · fase 3): in deze onderwerpen staan analyse- en achtergrondbronnen in
+// plaats van de nieuwsfeeds van kranten. Sinds de keuzeregel met drie plekken (15 november, hieronder) geldt in alle
+// onderwerpen dezelfde regel; de lijst blijft voor de samenstelling van de bronnen (tests/selectie-fase3.test.mjs).
 export const LEESVOER = new Set(['politiek', 'economie', 'sport', 'film', 'muziek'])
+
+// ---- De keuzeregel: drie plekken, elk met een eigen grond (Selectie-review 14 november, punt 1; besluit 15 november) ----
+// Eén regel voor alle onderwerpen. De top vult zich in deze volgorde:
+//   1. het verhaal van de week: een groep waar minstens drie echte bronnen over schreven (een curator telt niet), en
+//      geen personeelsbericht (wie komt, gaat of benoemd wordt);
+//   2. een kenner: het langste stuk van een kenner (leestijd uit de feed), niet het nieuwste;
+//   3. de rest op de gewone stand (gewicht van de schrijver, andere bronnen, gekozen door een redactie). Is alles in de
+//      top tot dan Engels, dan gaat de laatste plek eerst naar het beste Nederlandse stuk.
+// Bij gelijke stand wijkt een bron die vorige week in de top van dit onderwerp stond (`previous`): zo rouleert het.
+// De afwisseling blijft: hooguit één stuk per bron en één betaald stuk in de top, niets uit de Editie van die week.
+export const STORY_SOURCES = 3
+// Personeelsberichten en accountnieuws: "Annechien Steenhuizen terug bij NOS Journaal", "Account-update: Conscious Group
+// checkt in bij Gardeners", "Directeur Jumbo België vertrekt", "X names Y as CEO". Ze blijven in de Selectie, maar zijn
+// nooit het verhaal van de week: dat zij met drie bronnen komen, zegt iets over het persbericht, niet over het belang.
+const PEOPLE_NEWS = /\b(?:terug (?:bij|naar)|keert terug bij|vertrekt(?: bij| als)?|stapt (?:op|over)|maakt (?:de )?overstap|overstap naar|benoemd|aangesteld|treedt aan|aan de slag (?:als|bij)|neemt afscheid|nieuwe (?:ceo|cmo|cfo|cto|coo|directeur|directrice|topman|topvrouw|voorzitter|president|hoofdredacteur|creative director|baas)|checkt in bij|account-?updates?|accountwissel\w*|personalia|joins|appointed|appoints|hires|hired|names\s+(?:[\p{L}'’.-]+\s+){1,4}(?:as\s+)?(?:new\s+)?(?:ceo|cmo|cfo|cto|chief|president|head|editor)|steps? down|to step down|departs|promoted to|new (?:ceo|cmo|cfo|cto|chief\s+\w+|head of|editor)|people moves)\b/iu
+export const isPeopleNews = (title = '') => PEOPLE_NEWS.test(title)
+// Vooral Engelstalig (Selectie-review punt 5 en fase 6; taalkeuze 15 november): een onderwerp met minder dan drie
+// Nederlandstalige bronnen (en meer Engelse), of waarvan driekwart of meer van de bronnen Engels schrijft, zegt dat in
+// zijn omschrijving.
+// Nu: SEO & content, UI/UX, Digitaal ontwerp, Development en Productmanagement. Komt er een Nederlandse bron bij, dan
+// verdwijnt het label vanzelf. Server: web en app krijgen het tegelijk, zonder app-update.
+export const MOSTLY_EN_LABEL = 'Vooral Engelstalig'
+export function mostlyEnglish(fieldId, sources = VAK_SOURCES) {
+  const mine = sources.filter((s) => s.fields.includes(fieldId))
+  const nl = mine.filter((s) => s.lang === 'nl').length
+  const en = mine.filter((s) => s.lang === 'en').length
+  return mine.length > 0 && ((nl < 3 && en > nl) || en / mine.length >= 0.75)
+}
 
 // Stond dit stuk (zelfde link of zelfde verhaal) deze week al in een Editie? `editie`: de stukken van de bewaarde
 // Edities van de week ({ title, url }), zie editieItems in vakRefresh.mjs. Zo'n stuk komt niet in de top.
@@ -539,7 +571,9 @@ export function editieSlotIds({ from, to }) {
 // `keep` (Selectie-review 14 november, punt 10): per onderwerp de id's van de stukken die al in de top van deze week
 // stonden. Op maandagochtend stellen we elk uur opnieuw samen; wat al in de top stond blijft op zijn plek (met hetzelfde
 // stuk vooraan in zijn groep), er komt alleen bij wat ontbrak. Zo verspringt er niets voor wie al las.
-export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top = 3, more = 5, since = null, editie = [], keep = {} } = {}) {
+// `previous` (keuzeregel, 15 november): per onderwerp de bron-id's uit de top van vorige week (topSources); die wijken
+// bij gelijke stand.
+export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top = 3, more = 5, since = null, editie = [], keep = {}, previous = {} } = {}) {
   const { preview, wk } = vakRange(now, since)
   const byId = new Map(sources.map((s) => [s.id, s]))
   const inWeek = pool.filter((i) => i.publishedAt >= wk.from && i.publishedAt < wk.to && byId.has(i.source) && isReading(i, byId.get(i.source)) && inReaderLang(i, byId.get(i.source)) && (byId.get(i.source).kind !== 'curator' || isArticleLink(i.url)))
@@ -552,6 +586,8 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
   const fields = VAK_FIELDS.filter((f) => covered.has(f.id)).map((f) => {
     const its = inWeek.filter((i) => fieldOf(i, byId.get(i.source), { kenner: true }) === f.id)
     const keepIds = new Set(keep[f.id] || [])
+    const wasTop = new Set(previous[f.id] || [])
+    const nSrc = new Map() // per stuk: hoeveel echte bronnen erover schreven (voor het verhaal van de week)
     // Groepen: stukken over hetzelfde, uit verschillende bronnen.
     const groups = []
     for (const it of its) {
@@ -572,8 +608,8 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const lead = kept || [...g.items].sort((a, b) => rank(b) - rank(a) || (a.publishedAt < b.publishedAt ? -1 : 1))[0]
       const src = byId.get(lead.source)
       const extra = 2.5 * Math.max(0, srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
-      // Leesvoer: het gewicht eerst, de rest alleen bij gelijke stand (extra blijft ruim onder de 100).
-      const score = LEESVOER.has(f.id) ? WEIGHT[src.kind] * 100 + extra : WEIGHT[src.kind] + extra
+      // Eén stand voor alle onderwerpen (keuzeregel, 15 november): de plekken hieronder geven elk hun eigen grond.
+      const score = WEIGHT[src.kind] + extra
       // Geen telregel ("N vakbronnen schreven erover") meer: de andere bronnen staan bij naam onder de kaart ("Ook bij …",
       // `also`), web en app gelijk (Selectie-review, punt 3).
       const why = []
@@ -589,6 +625,9 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
         via: curator ? src.name : null,
         // Betaald: "Abonnement" in de bronregel (web en app). Een Sidebar-link wijst naar een site die we niet kennen.
         paid: !curator && !!src.paid,
+        // De taal van het stuk (de feed bepaalt hem per stuk, anders die van de bron): de schakelaar "Ook Engelstalige
+        // stukken" op web en in de app (taalkeuze, 15 november).
+        lang: lead.lang || src.lang || null,
         why,
         // Ook bij: elke andere bron één keer, bij naam (niet drie keer Eurogamer), in een vaste volgorde (oudste eerst, dan
         // de naam), zodat een nieuwe samenstelling zonder nieuws precies dezelfde bundel geeft.
@@ -601,29 +640,32 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       }
       if (inEditie(g.items)) hidden.add(entry)
       ids.set(entry, g.items.map((i) => i.id))
+      nSrc.set(entry, srcs.size)
       delete entry.text
       delete entry.cats
       delete entry.ogTried
       return entry
     })
-    // Bij helemaal gelijke stand beslist de id: dezelfde voorraad geeft altijd dezelfde volgorde (punt 10).
-    scored.sort((a, b) => b.score - a.score || b.also.length - a.also.length || (a.publishedAt > b.publishedAt ? -1 : a.publishedAt < b.publishedAt ? 1 : a.id < b.id ? -1 : 1))
+    // Bij gelijke stand wijkt een bron die vorige week in de top stond (keuzeregel, rouleren). Bij helemaal gelijke stand
+    // beslist de id: dezelfde voorraad geeft altijd dezelfde volgorde (punt 10).
+    const before = (e) => (wasTop.has(e.source) ? 1 : 0)
+    scored.sort((a, b) => b.score - a.score || before(a) - before(b) || b.also.length - a.also.length || (a.publishedAt > b.publishedAt ? -1 : a.publishedAt < b.publishedAt ? 1 : a.id < b.id ? -1 : 1))
     // Afwisseling: in de top hooguit één stuk per bron, daaronder hooguit twee.
     // `paidMax`: in de top hooguit één betaald stuk (Selectie-review, punt 9): van drie stukken kun je er dan hooguit één
     // niet lezen zonder abonnement.
+    const keyOf = (e) => (e.via ? 'sidebar:' + e.sourceName : e.source)
     const pick = (list, n, perSource, paidMax = Infinity, seed = []) => {
       const out = [...seed]
       const count = {}
       let paid = 0
       for (const e of seed) {
-        const key = e.via ? 'sidebar:' + e.sourceName : e.source
-        count[key] = (count[key] || 0) + 1
+        count[keyOf(e)] = (count[keyOf(e)] || 0) + 1
         if (e.paid) paid++
       }
       for (const e of list) {
         if (out.length >= n) break
-        const key = e.via ? 'sidebar:' + e.sourceName : e.source
-        if ((count[key] || 0) >= perSource) continue
+        const key = keyOf(e)
+        if (out.includes(e) || (count[key] || 0) >= perSource) continue
         if (e.paid && paid >= paidMax) continue
         count[key] = (count[key] || 0) + 1
         if (e.paid) paid++
@@ -634,9 +676,20 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
     // Een bedrijfsblog (Meta, Figma) haalt de top alleen als ook anderen erover schrijven.
     // Wat al in de top stond eerst, in de volgorde van toen (ook als het nu anders zou scoren of in een Editie stond).
     const seed = [...keepIds].map((id) => scored.find((e) => ids.get(e).includes(id))).filter((e, k, all) => e && all.indexOf(e) === k).slice(0, top)
-    const topList = pick(scored.filter((e) => !seed.includes(e) && !hidden.has(e) && (byId.get(e.source).kind !== 'officieel' || e.also.length)), top, 1, 1, seed)
+    const open = scored.filter((e) => !seed.includes(e) && !hidden.has(e) && (byId.get(e.source).kind !== 'officieel' || e.also.length))
+    // De drie plekken (keuzeregel, 15 november). Elke plek neemt de eerste kandidaat die de afwisseling toelaat.
+    const story = open.filter((e) => nSrc.get(e) >= STORY_SOURCES && !isPeopleNews(e.title)).sort((a, b) => nSrc.get(b) - nSrc.get(a) || scored.indexOf(a) - scored.indexOf(b))
+    const expert = open.filter((e) => byId.get(e.source).kind === 'expert').sort((a, b) => (b.readMin || 0) - (a.readMin || 0) || scored.indexOf(a) - scored.indexOf(b))
+    let topList = seed.slice(0, top)
+    const add = (list) => (topList = pick(list, Math.min(top, topList.length + 1), 1, 1, topList))
+    add(story)
+    add(expert)
+    // De rest op de stand; is alles tot de laatste plek Engels, dan eerst het beste Nederlandse stuk.
+    topList = pick(open, Math.max(topList.length, top - 1), 1, 1, topList)
+    if (topList.length === top - 1 && topList.length && topList.every((e) => e.lang === 'en')) add(open.filter((e) => e.lang === 'nl'))
+    topList = pick(open, top, 1, 1, topList)
     const rest = pick(scored.filter((e) => !topList.includes(e)), more, 2)
-    return { ...f, count: its.length, top: topList, more: rest }
+    return { ...f, ...(mostlyEnglish(f.id, sources) ? { about: `${f.about} · ${MOSTLY_EN_LABEL}`, en: true } : {}), count: its.length, top: topList, more: rest }
   })
 
   return {

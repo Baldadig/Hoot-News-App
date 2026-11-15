@@ -47,7 +47,7 @@ test('elk leesvoer-onderwerp houdt genoeg bronnen, met een vakexpert en Nederlan
   assert.equal(vakLang(VAK_SOURCES.find((s) => s.id === 'vak:helden')), 'nl')
 })
 
-test('weging: in de leesvoer-onderwerpen beslist het gewicht van de schrijver, niet hoeveel bronnen erover schreven', () => {
+test('weging: sinds de keuzeregel (15 november) één regel voor alle onderwerpen, ook de leesvoer-onderwerpen', () => {
   const sources = [S('expert', 'expert', ['politiek', 'merk']), S('a', 'vakblad', ['politiek', 'merk']), S('b', 'vakblad', ['politiek', 'merk']), S('c', 'vakblad', ['politiek', 'merk']), S('d', 'community', ['politiek', 'merk'])]
   const nieuws = 'Kabinet wankelt na akkoord over belastingplan met oppositie'
   const pool = (f) => [
@@ -55,16 +55,14 @@ test('weging: in de leesvoer-onderwerpen beslist het gewicht van de schrijver, n
     it(f + '4', 'vak:expert', 'Waarom kiezers zich achtergesteld voelen: een analyse van groepsgevoel'),
     it(f + '5', 'vak:d', 'Een blog over gemeenteraden en lokale democratie'),
   ]
-  // Elke bron heeft één onderwerp per stuk (het eerste); twee pools, één per onderwerp.
   const polS = sources.map((s) => ({ ...s, fields: ['politiek'] }))
   const merkS = sources.map((s) => ({ ...s, fields: ['merk'] }))
   const pol = composeVak(pool('p'), { now: NOW, sources: polS })
   const merk = composeVak(pool('m'), { now: NOW, sources: merkS })
-  // Politiek: de expert eerst, ook al schreven drie vakbladen over het kabinet.
-  assert.deepEqual(topOf(pol, 'politiek')[0], 'p4')
-  assert.equal(pol.fields.find((x) => x.id === 'politiek').top[1].also.length, 2, 'bij gelijke stand telt het aantal bronnen nog (bij naam, zonder telregel)')
-  // Merk (geen leesvoer-onderwerp): drie bronnen over hetzelfde wint het nog van de expert.
-  assert.equal(topOf(merk, 'merk')[0], 'm1')
+  // Het verhaal van de week (drie bronnen) eerst, dan de kenner, in beide onderwerpen gelijk.
+  assert.deepEqual(topOf(pol, 'politiek').slice(0, 2), ['p1', 'p4'])
+  assert.deepEqual(topOf(merk, 'merk').slice(0, 2), ['m1', 'm4'])
+  assert.equal(pol.fields.find((x) => x.id === 'politiek').top[0].also.length, 2, 'de andere bronnen bij naam, zonder telregel')
 })
 
 test('weging: bij gelijk gewicht telt het aantal bronnen', () => {
