@@ -20,17 +20,6 @@ Inhoud: [0 Wat is nieuw](#0--wat-is-nieuw-in-v25) · [1 Keuzes](#1--keuzes-voor-
 
 Wat in v2.4 nieuw was (Rubrica, Voor jou, de Bluesky-kaart A+, de woordenlijst, de punt in inkt op rood), geldt ongewijzigd; zie [`brand-guide-v2.4.md` §0](brand-guide-v2.4.md#0--wat-is-nieuw-in-v24).
 
----|---|
-| Kleur | **Merkrood Rubrica** (PMS 484 C), scherm `#9A3324`, voor `accent` en `brand-red` (was `#A3201B`); `accent-soft` `#F2E4DF`. Donker `#EC7A70` en Nacht `#DF8276` blijven; de eindkaart in Nacht is `#41150F`. Overal in de merkmap doorgevoerd: logo's, app-icoon (bron en web), kleurstaal, beeldtaal, social, opstartscherm en de beelden in de gids. Nog met de waaier: CMYK uit Pantone Color Bridge en HKS K/N (§2). |
-| Beelden | **Tien placeholders** in vijf sets: Zonnestand 1–3 (beeld 3 nu een vol rood vlak), Iris 4–6, Horizonlijnen 7, Raster 8–9, De stapel 10 (§6c). |
-| Editie | **Geen "Jouw Editie" meer onder de titel**: alleen de datum, en alleen wat afwijkt erachter ("Om te beginnen", "De Editie voor iedereen"). Web en app gelijk. |
-| Welkom | **Voor jou**: het voorstel in de bronnenstap, opgebouwd uit je interesses (drie tot vijf bronnen). Alleen gratis bronnen staan alvast aan; een betaalde staat erbij met "Abonnement", uit. "Later kiezen" is weg; de regel "Alvast gevolgd." staat direct onder de kop. Categorieën zijn in te klappen (§7). |
-| Stroom | **Bluesky-kaart A+**: een Bluesky-bericht op het ritme van kaart A+, met een stille rubriek "Bluesky" en de tekst schreefloos (§4b). |
-| Stem en toon | **Eén woordenlijst** op web, app en landing: Vergelijken, Instellingen, Account, "Hoot kiest elke Editie", drie keer per dag tien verhalen, elke maandag de Selectie (§10). |
-| Landing | **Op rood staat de punt achter een kop in inkt**, nooit rood op rood (§6). |
-
-Wat in v2.3 nieuw was (twee families, kaart A+, witte randen, De stapel, Tien, de leesstijl), geldt ongewijzigd; zie [`brand-guide-v2.3.md` §0](brand-guide-v2.3.md#0--wat-is-nieuw-in-v23).
-
 ---
 
 ## 1 · Keuzes voor 1.1.0 en 1.1.1
@@ -63,7 +52,7 @@ Door Alex gemaakt op 4 en 5 november; norm vanaf v2.2. Nieuw in v2.3, v2.4 en v2
 | **Accountkaart (v2.3, 5 nov)** | De kaart bovenaan Instellingen toont de profielfoto van het account (Google) of, zonder foto, een monogram (48, rond, haarlijn als een bronlogo). Privacy-label: Naam en Foto's. |
 | **Tekstgrootte (v2.3)** | Eén schuif in Instellingen › Lezen schaalt alles in verhouding, bovenop Dynamische tekst: Kleiner ×0,9 · Zoals je toestel ×1 · Groter ×1,15 · Nog groter ×1,3 · Grootst ×1,45, nooit voorbij de grootste systeemmaat. Per toestel. De intro groeit duidelijk mee. Geen losse maten per tekstsoort. |
 | **Merkrood (v2.4)** | Rubrica, PMS 484 C, `#9A3324` (5 november, na build 48). Uitwijk als 484 C op de waaier te bruin uitvalt: `#A14336`. |
-| **Placeholders (v2.4)** | Tien beelden; de oude 7 en 12 zijn weg, beeld 3 is een vol rood vlak (5 november). |
+| **Placeholders (v2.4)** | Tien beelden; de oude 7 en 12 zijn weg (oude nummering van 5 november, niet de huidige 7 Horizonlijnen en 12 Vouw), beeld 3 is een vol rood vlak (5 november). Sinds v2.5 vervangen door de dertien knipsels (§6c). |
 | **Editiekop (v2.4)** | Geen "Jouw Editie" onder de titel; dat is het altijd. |
 | **Voor jou (v2.4)** | De groep bovenaan de bronnenstap heet "Voor jou". Alleen gratis alvast aan; NOS Economie als gratis economiebron; bij Politiek en Binnenland NU.nl. Geen "Later kiezen". |
 | **Bluesky-kaart (v2.4)** | Rubriek "Bluesky" erboven, tekst Schibsted 17/24 in inkt (niet 18/28 zoals een intro). |
@@ -383,7 +372,7 @@ Nacht is nog donkerder en zachter dan Donker, met weinig contrast: geen licht vl
 - **Geen betekenis.** Geen dagdeel, geen rubriek. De zon zegt niets over de tijd.
 - **Het vak.** Het beeld is 16:9 en wordt in het vak uitgesneden (2:1 onder de kaart), rand tot rand.
 
-**Bestanden.** Hoge resolutie (2048 × 1152, PNG), per beeld en thema: `Hoot-design/merk/placeholders-luma-2026-11-15/hires/beeld-N-licht.png`, `-donker.png`, `-nacht.png`. Referentiebeelden in de Luma-workspace "hoot-placeholders". De oude vlakke SVG's blijven de compositiebron. In de code volgt de wissel naar de knipsels en naar dertien beelden in `shared/placeholder.mjs`; tot die er is, geldt daar nog de vlakke set.
+**Bestanden.** Hoge resolutie (2048 × 1152, PNG), per beeld en thema: `Hoot-design/merk/placeholders-luma-2026-11-15/hires/beeld-N-licht.png`, `-donker.png`, `-nacht.png`. Referentiebeelden in de Luma-workspace "hoot-placeholders". De oude vlakke SVG's blijven de compositiebron. In de code staan de knipsels sinds 15 november: `shared/placeholder.mjs` kiest uit de dertien, `scripts/placeholders.mjs` maakt er WebP's van voor web (`src/assets/placeholder/`, `src/placeholder.css`) en app (`ios/Hoot/Resources/Placeholder/`, `PlaceholderBeelden.swift`). De keuze blijft hash mod 18 met de oude nummers: valt een stuk op een leeg nummer, dan kiest de rest van de hash uit de dertien (elk beeld precies een dertiende). Zo houdt elk stuk met een van de dertien zijn beeld. Register: `tokens.json` › `brand.photos.placeholder`.
 
 ---
 
