@@ -173,9 +173,9 @@ test('review 13 november: de nieuwe tekst uit deel 5', () => {
   assert.equal((SRC.match(/Lees de Editie van nu/g) || []).length, 2) // onder 01 en onder 04, verder niet
   assert.doesNotMatch(SRC, /href="\/lees\/#\/(stroom|selectie)/) // geen links die het welkom niet leveren
   assert.doesNotMatch(t, /Probeer Hoot op het web|Veelgestelde vragen|Voor iPhone, iPad en Web/)
-  // zeven vragen, in dezelfde volgorde in de pagina en in het JSON-LD
+  // acht vragen (15 november: 'Kan ik ook luisteren?'), in dezelfde volgorde in de pagina en in het JSON-LD
   const lijst = vragen({ appUrl: APP_URL })
-  assert.equal(lijst.length, 7)
+  assert.equal(lijst.length, 8)
   assert.deepEqual([...vul(true).matchAll(/<summary>([^<]+)<\/summary>/g)].map((m) => m[1]), lijst.map((x) => x[0]))
   const ld = JSON.parse(jsonld({ lijst, appUrl: APP_URL, beschrijving: 'x' }))
   assert.deepEqual(ld['@graph'][1].mainEntity.map((q) => q.name), lijst.map((x) => x[0]))
@@ -439,4 +439,13 @@ test('landing: de Editie die nu geldt volgt slotIdNow (zelfde grenzen als SLOT_S
   const js = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
   assert.match(js, new RegExp(`var OCHTEND = ${SLOT_START.ochtend}, MIDDAG = ${SLOT_START.middag}, AVOND = ${SLOT_START.avond};`))
   assert.match(js, /wanneer\(ed\.date, ed\.slot\)/)
+})
+
+test('held: het koptelefoontje van Luister verder staat direct naast bewaren (besluit Alex 15 november)', () => {
+  const t = vul(true)
+  const held = t.slice(t.indexOf('js-held-lead'), t.indexOf('</a>', t.indexOf('js-held-lead')))
+  assert.match(held, /<svg class="sc-lu"[^>]*><use href="#i-luister"\/><\/svg><svg class="sc-bm"/)
+  assert.match(t, /<symbol id="i-luister"/)
+  // alleen in de held, niet in de andere voorbeelden
+  assert.equal((t.match(/class="sc-lu"/g) || []).length, 1)
 })

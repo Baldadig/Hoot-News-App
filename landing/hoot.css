@@ -197,6 +197,10 @@ h2 .rgl{display:block}
 .sc-bm{width:1em;height:1.25em;flex:none;fill:none;stroke:var(--s-ink2);stroke-width:1.6}
 .k-bron span+.sc-bm{margin-left:auto}
 .k-n+.sc-bm{margin-left:.7em}
+.sc-lu{width:1.25em;height:1.25em;flex:none;fill:none;stroke:var(--s-ink2);stroke-width:1.6;stroke-linejoin:round}
+.k-bron span+.sc-lu{margin-left:auto}
+.k-n+.sc-lu{margin-left:.7em}
+.sc-lu+.sc-bm{margin-left:.6em}
 .k-meer{width:1.15em;height:1.15em;flex:none;margin-left:.6em;fill:var(--s-ink2)}
 .sc-blok{margin-top:1.6em;border-radius:.9em;background:var(--s-blok);color:#F5F1E8;text-align:center;padding:1.8em 1.4em 1.8em}
 .sc-blok svg{height:2.4em;width:auto;display:block;margin:0 auto .5em;fill:#F5F1E8;--wm-dot:#F5F1E8}
