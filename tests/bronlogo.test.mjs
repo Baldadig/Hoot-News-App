@@ -35,3 +35,40 @@ test('bronlogo: de NOS-familie toont de rode O (beeldmerk, geen onleesbaar woord
     assert.ok(r[0] > 200 && r[1] < 80 && r[2] < 80, id + ' ring rood ' + r)
   }
 })
+
+// Besluit Alex 15 november: "Mag je bij alle NOS bronnen stoppen." Elke bron die NOS heet (nieuws, Selectie, ook in het
+// archief) toont dezelfde rode O: het eigen logo van de NOS uit de catalogus, met de versie in de url.
+test('bronlogo: elke NOS-bron, ook in de Selectie, toont dezelfde rode O', async () => {
+  const { VAK_SOURCES, composeVak } = await import('../netlify/lib/vak.mjs')
+  const { MORE_SOURCES, ARCHIVED_SOURCES } = await import('../netlify/lib/vakBronnen.mjs')
+  const isNos = (s) => /^NOS\b/.test(s.name)
+  const nosIds = new Set(SOURCES.filter(isNos).map((s) => s.id))
+  const oLogos = new Set([...nosIds].map(ownLogo))
+  assert.deepEqual([...nosIds].sort(), ['nos', 'nos-cultuur', 'nos-economie', 'nos-sport'])
+  // Het nieuws: het eigen bestand per bron (hierboven op kleur getoetst), allemaal met een versie.
+  for (const id of nosIds) assert.match(SOURCES.find((s) => s.id === id).logo, /\.webp\?v=\d+$/, id)
+  // De Selectie (in gebruik en in het archief): het logo van de NOS zelf, geen favicon van nos.nl.
+  const vak = [...VAK_SOURCES, ...MORE_SOURCES, ...ARCHIVED_SOURCES].filter(isNos)
+  assert.deepEqual([...new Set(vak.map((s) => s.id))].sort(), ['vak:nos-economie', 'vak:nos-media', 'vak:nos-politiek', 'vak:nos-sport', 'vak:nos-tech'])
+  for (const s of vak) assert.ok(oLogos.has(s.logo), s.id + ' ' + s.logo)
+  // Een stuk dat al in de voorraad stond (met de oude favicon) krijgt in de Selectie het logo van nu.
+  const src = VAK_SOURCES.find((s) => s.id === 'vak:nos-tech')
+  const now = Date.parse('2026-11-12T10:00:00Z')
+  const pool = [{ id: 'n1', source: src.id, sourceName: src.name, title: 'Hoe een groot datalek bij een ziekenhuis ontstond en wat er nu verandert', summary: 'Een eigen intro over dit stuk en wat het betekent.', url: 'https://nos.nl/l/1', publishedAt: '2026-11-05T09:00:00Z', avatar: 'https://www.google.com/s2/favicons?domain=nos.nl&sz=128', avatarContain: true }]
+  const out = composeVak(pool, { now, sources: [src] })
+  const entry = out.fields.flatMap((f) => [...f.top, ...f.more]).find((e) => e.id === 'n1')
+  assert.ok(entry, 'stuk in de Selectie')
+  assert.equal(entry.avatar, src.logo)
+  assert.equal(entry.avatarContain, false)
+  // De deelkaart: dezelfde O voor de NOS-bronnen van de Selectie die in gebruik zijn.
+  const marks = JSON.parse(readFileSync(new URL('../shared/deelkaart/publisher-marks.json', import.meta.url), 'utf8'))
+  for (const id of nosIds) assert.equal(marks[id], marks.nos, id)
+  for (const s of VAK_SOURCES.filter(isNos)) assert.equal(marks[s.id], marks.nos, s.id)
+})
+
+test('bronlogo: de NOS-podcasts horen bij de NOS (de cover van de show blijft die van de show)', async () => {
+  const { SHOWS } = await import('../netlify/lib/luister.mjs')
+  const nos = SHOWS.filter((s) => s.uitgever === 'NOS')
+  assert.ok(nos.length >= 3)
+  for (const s of nos) assert.equal(s.bron, 'nos', s.id)
+})
