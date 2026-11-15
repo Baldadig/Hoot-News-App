@@ -7,6 +7,8 @@ import CoreGraphics
 // web). Los van Beeldloos.swift, zodat ook de widgetextensie ze kan laden (WidgetBeeldloos): de widget heeft ze niet
 // zelf, maar leest ze uit de bundel van de app waar hij in zit (Hoot.app/PlugIns/HootWidgetExtension.appex).
 // Gedecodeerd met ImageIO, op hooguit `maxPixel` (de widget rekent klein), en bewaard in een cache.
+// Sinds build 61 kan een beeld ook van de server komen (PlaceholderOpslag, in de App Group): dan gaat dat voor, en
+// anders de bundel. De cache onthoudt per bestand, en een nieuw beeld heeft een nieuwe bestandsnaam.
 enum PlaceholderBestand {
     nonisolated(unsafe) private static let cache: NSCache<NSString, CGImage> = {
         let c = NSCache<NSString, CGImage>()
@@ -16,6 +18,7 @@ enum PlaceholderBestand {
 
     // De map met de bestanden: de app zelf, of vanuit de widget de app eromheen.
     static func url(_ naam: String) -> URL? {
+        if let u = PlaceholderOpslag.url(naam) { return u }
         if let u = Bundle.main.url(forResource: naam, withExtension: "webp") { return u }
         if let u = Bundle.main.url(forResource: naam, withExtension: "webp", subdirectory: "Placeholder") { return u }
         let app = Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent()
@@ -23,12 +26,13 @@ enum PlaceholderBestand {
         return bundel.url(forResource: naam, withExtension: "webp") ?? bundel.url(forResource: naam, withExtension: "webp", subdirectory: "Placeholder")
     }
 
-    // Beeld `index` (0 tot 17) in een weergave (licht, donker, nacht), groot (2:1) of klein (3:2).
+    // Beeld `index` (0 tot count - 1 van de actieve reeks) in een weergave (licht, donker, nacht), groot (2:1) of klein (3:2).
     static func beeld(_ index: Int, thema: String, klein: Bool, maxPixel: Int? = nil) -> CGImage? {
         let naam = PlaceholderBeelden.bestand(index, thema: thema, klein: klein)
-        let sleutel = "\(naam)@\(maxPixel ?? 0)" as NSString
+        guard let url = url(naam) else { return nil }
+        let sleutel = "\(url.lastPathComponent)@\(maxPixel ?? 0)" as NSString
         if let c = cache.object(forKey: sleutel) { return c }
-        guard let url = url(naam), let bron = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+        guard let bron = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
         var opties: [CFString: Any] = [kCGImageSourceShouldCacheImmediately: true, kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceCreateThumbnailWithTransform: true]
         opties[kCGImageSourceThumbnailMaxPixelSize] = maxPixel ?? (klein ? PlaceholderBeelden.klein.w : PlaceholderBeelden.groot.w)
         guard let image = CGImageSourceCreateThumbnailAtIndex(bron, 0, opties as CFDictionary) else { return nil }

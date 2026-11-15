@@ -4,7 +4,10 @@
 // - dezelfde 2x-bestanden voor de app (ios/Hoot/Resources/Placeholder/ph-N-thema[-klein].webp);
 // - de CSS die ze per beeld en weergave kiest (src/placeholder.css);
 // - de tabel voor Swift (ios/Hoot/Views/PlaceholderBeelden.swift);
-// - bron.json: de instellingen en de sha256 van elk bronbeeld, zodat --check ziet of alles bij is.
+// - bron.json: de instellingen en de sha256 van elk bronbeeld, zodat --check ziet of alles bij is;
+// - het manifest voor de app (landing/placeholders.json, op gethoot.app/placeholders.json): de reeks en de urls
+//   van de beelden met hun versie (build 61, "server side bouwen"); landing/build.mjs zet beelden en manifest online;
+// - tests/fixtures/placeholder-manifest.json: een andere reeks, met de keuze die web en app er allebei uit maken.
 //
 // Bron: ../Hoot-design/merk/placeholders-luma-2026-11-15/hires/beeld-N-thema.png (2048 x 1152), of de map
 // in HOOT_PLACEHOLDER_BRON. Bitmaps worden alleen opnieuw gemaakt als een bronbeeld of een instelling
@@ -16,12 +19,14 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import sharp from 'sharp'
-import { PLACEHOLDERS, PLACEHOLDER_COUNT, PLACEHOLDER_UIT, PLACEHOLDER_NUMMERS, PLACEHOLDER_BRON, PLACEHOLDER_MATEN, PLACEHOLDER_KWALITEIT, THEMES, placeholderFile, placeholderAppFile } from '../shared/placeholder.mjs'
+import { PLACEHOLDERS, PLACEHOLDER_COUNT, PLACEHOLDER_UIT, PLACEHOLDER_NUMMERS, PLACEHOLDER_BRON, PLACEHOLDER_MATEN, PLACEHOLDER_KWALITEIT, THEMES, placeholderFile, placeholderAppFile, placeholderManifest, placeholderManifestFout, placeholderReeksUitManifest, placeholderVersie, PLACEHOLDER_SITE, PLACEHOLDER_BEELD_PAD } from '../shared/placeholder.mjs'
 
 const root = new URL('../', import.meta.url)
 const WEB = 'src/assets/placeholder/'
 const APP = 'ios/Hoot/Resources/Placeholder/'
 const MANIFEST = WEB + 'bron.json'
+export const SERVER_MANIFEST = 'landing/placeholders.json'
+export const MANIFEST_FIXTURE = 'tests/fixtures/placeholder-manifest.json'
 const SELECTOR = { licht: '', donker: ":root[data-theme='dark'] ", nacht: ":root[data-theme='night'] " }
 export const bronMap = () => process.env.HOOT_PLACEHOLDER_BRON || fileURLToPath(new URL('../Hoot-design/merk/placeholders-luma-2026-11-15/hires/', root))
 const bronFile = (n, theme) => join(bronMap(), `beeld-${n}-${theme}.png`)
@@ -41,8 +46,9 @@ export function bitmaps() {
 
 const instellingen = () => ({ bron: PLACEHOLDER_BRON, maten: PLACEHOLDER_MATEN, kwaliteit: PLACEHOLDER_KWALITEIT, nummers: PLACEHOLDER_NUMMERS, themas: THEMES, kleinRechts: PLACEHOLDER_NUMMERS.filter((n) => PLACEHOLDERS[n - 1].klein === 'rechts') })
 
-// De tekstbestanden: CSS en de Swift-tabel.
-export function textOutputs() {
+// De tekstbestanden: CSS, de Swift-tabel, het manifest voor de app en de fixture. `shas`: pad in WEB → sha256 (hex)
+// van elke WebP (bron.json.uit).
+export function textOutputs(shas = {}) {
   const files = new Map()
   const url = (b) => `url('./assets/placeholder/${placeholderFile(b.n, b.theme, b.uitsnede, b.breed)}')`
   // CSS: het beeld vult het vak als een foto (cover); het vak heeft zijn eigen vaste maat, dus er
@@ -61,11 +67,51 @@ export function textOutputs() {
     }
   }
   files.set('src/placeholder.css', css)
-  files.set('ios/Hoot/Views/PlaceholderBeelden.swift', swift())
+  const shaVan = (f) => shas[WEB + f] ?? '0'.repeat(64)
+  const manifest = placeholderManifest(shaVan, sha)
+  files.set('ios/Hoot/Views/PlaceholderBeelden.swift', swift(manifest, shaVan))
+  files.set(SERVER_MANIFEST, JSON.stringify(manifest, null, 1) + '\n')
+  files.set(MANIFEST_FIXTURE, JSON.stringify(manifestFixture()) + '\n')
   return files
 }
 
-function swift() {
+// Een andere reeks dan de huidige, om te toetsen dat web en app er dezelfde keuze uit maken: twintig plekken, De kop
+// (11) uit, twee nieuwe beelden (19 in een nieuwe set, 20 bij Iris). Plus manifesten die de app moet weigeren.
+export function manifestFixture() {
+  const v = (n) => placeholderVersie(sha(`fixture-${n}`))
+  const urls = (n) => Object.fromEntries(THEMES.map((t) => [t, Object.fromEntries(['groot', 'klein'].map((u) => [u, Object.fromEntries(PLACEHOLDER_MATEN[u].maten.map((breed, i) => [i ? '2x' : '1x', `${PLACEHOLDER_SITE}${PLACEHOLDER_BEELD_PAD}${placeholderFile(n, t, u, breed)}?v=${v(`${n}-${t}-${u}-${breed}`)}`]))]))]))
+  const sets = { ...Object.fromEntries(PLACEHOLDER_NUMMERS.map((n) => [n, PLACEHOLDERS[n - 1].family])), 19: 'golf', 20: 'iris' }
+  const uit = [7, 11, 14, 15, 16, 17]
+  const manifest = { schema: 1, versie: v('versie'), count: 20, uit, beelden: Object.entries(sets).map(([n, set]) => ({ nummer: Number(n), set, ...urls(Number(n)) })) }
+  if (placeholderManifestFout(manifest)) throw new Error('fixture-manifest: ' + placeholderManifestFout(manifest))
+  const reeks = placeholderReeksUitManifest(manifest)
+  const ids = Array.from({ length: 60 }, (_, i) => (i % 3 ? `https://nos.nl/artikel/${2560000 + i * 977}` : `nrc:https://www.nrc.nl/nieuws/2026/11/15/stuk-${i}`))
+  const base = ids.map((id) => ({ id, beeld: reeks.base(id) + 1 }))
+  const lijsten = [0, 1, 2].map((t) => {
+    const rows = Array.from({ length: 24 }, (_, i) => ({ id: `lijst-${t}-${i}`, bare: (t + i * 5) % 7 !== 0 }))
+    return { naam: `lijst ${t}`, rows, beelden: Object.fromEntries([...reeks.plan(rows)].map(([id, k]) => [id, k + 1])) }
+  })
+  const kapot = (naam, wijzig) => {
+    const m = structuredClone(manifest)
+    wijzig(m)
+    const fout = placeholderManifestFout(m)
+    if (!fout) throw new Error('fixture: ' + naam + ' zou fout moeten zijn')
+    return { naam, fout, manifest: m }
+  }
+  const ongeldig = [
+    kapot('ander schema', (m) => (m.schema = 2)),
+    kapot('geen versie', (m) => delete m.versie),
+    kapot('count te klein', (m) => (m.count = 1)),
+    kapot('uit buiten de reeks', (m) => m.uit.push(21)),
+    kapot('beeld ontbreekt', (m) => (m.beelden = m.beelden.filter((b) => b.nummer !== 19))),
+    kapot('url van een andere site', (m) => (m.beelden[0].licht.groot['2x'] = 'https://example.com/img/placeholder/beeld-1-licht-1600.webp?v=000000000000')),
+    kapot('url zonder versie', (m) => (m.beelden[0].nacht.klein['2x'] = m.beelden[0].nacht.klein['2x'].replace(/\?v=.*/, ''))),
+    kapot('alles in een set', (m) => m.beelden.forEach((b) => (b.set = 'zon'))),
+  ]
+  return { manifest, uit: uit, base, lijsten, ongeldig }
+}
+
+function swift(manifest, shaVan) {
   let s = '// Gegenereerd door scripts/placeholders.mjs uit shared/placeholder.mjs. Niet met de hand aanpassen.\n'
   s += '// De placeholderbeelden (knipsel): welke er zijn, hun set en hun bestand (ios/Hoot/Resources/Placeholder/).\n'
   s += '// PlaceholderBeeld (Beeldloos.swift) en WidgetBeeldloos tonen ze, zoals de WebP\'s op het web.\n'
@@ -89,6 +135,17 @@ function swift() {
   const groot = PLACEHOLDER_MATEN.groot, klein = PLACEHOLDER_MATEN.klein
   const px = (m) => [Math.max(...m.maten), Math.round((Math.max(...m.maten) * m.crop.h) / m.crop.w)]
   s += `    // Maat van de bestanden in pixels.\n    static let groot = (w: ${px(groot)[0]}, h: ${px(groot)[1]})\n    static let klein = (w: ${px(klein)[0]}, h: ${px(klein)[1]})\n`
+  s += '    // Het manifest op de server (landing/placeholders.json) dat precies deze bundel beschrijft: met deze versie hoeft de\n'
+  s += '    // app niets op te halen (PlaceholderReeks, PlaceholderOphalen).\n'
+  s += `    static let versie = "${manifest.versie}"\n`
+  s += '    // Per bestand in de bundel de versie (eerste twaalf tekens van de sha256), zoals ?v= in het manifest: is die gelijk,\n'
+  s += '    // dan is het gebundelde bestand hetzelfde beeld en hoeft het niet opgehaald.\n'
+  s += '    static let versies: [String: String] = [\n'
+  for (const n of PLACEHOLDER_NUMMERS) for (const theme of THEMES) for (const uitsnede of ['groot', 'klein']) {
+    const naam = placeholderAppFile(n, theme, uitsnede).replace(/\.webp$/, '')
+    s += `        "${naam}": "${placeholderVersie(shaVan(placeholderFile(n, theme, uitsnede, Math.max(...PLACEHOLDER_MATEN[uitsnede].maten))))}",\n`
+  }
+  s += '    ]\n'
   s += '}\n'
   return s
 }
@@ -112,8 +169,8 @@ function overbodig(dir, hoort) {
 
 export async function check() {
   const fouten = []
-  for (const [path, text] of textOutputs()) if (read(path)?.toString('utf8') !== text) fouten.push(`${path}: niet bij`)
   const manifest = JSON.parse(read(MANIFEST)?.toString('utf8') ?? 'null')
+  for (const [path, text] of textOutputs(manifest?.uit)) if (read(path)?.toString('utf8') !== text) fouten.push(`${path}: niet bij`)
   if (!manifest) fouten.push(`${MANIFEST}: ontbreekt`)
   else if (JSON.stringify(manifest.instellingen) !== JSON.stringify(instellingen())) fouten.push(`${MANIFEST}: instellingen veranderd`)
   const hoort = new Set([MANIFEST])
@@ -162,7 +219,7 @@ export async function bouw() {
     manifest.uit[b.web] = sha(buf)
   }
   writeFileSync(new URL(MANIFEST, root), JSON.stringify(manifest, null, 1) + '\n')
-  for (const [path, text] of textOutputs()) if (read(path)?.toString('utf8') !== text) { writeFileSync(new URL(path, root), text); console.log('geschreven:', path) }
+  for (const [path, text] of textOutputs(manifest.uit)) if (read(path)?.toString('utf8') !== text) { writeFileSync(new URL(path, root), text); console.log('geschreven:', path) }
   // Wat er niet meer bij hoort gaat naar de prullenbak (nooit rm).
   const hoort = new Set([MANIFEST, ...bitmaps().flatMap((b) => [b.web, b.app].filter(Boolean))])
   for (const f of [...overbodig(WEB, hoort), ...overbodig(APP, hoort)]) {

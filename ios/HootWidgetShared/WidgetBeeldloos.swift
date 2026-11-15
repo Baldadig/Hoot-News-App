@@ -11,7 +11,7 @@ struct WidgetBeeldloos: View {
     static func index(_ id: String) -> Int {
         var h: UInt32 = 0x811c9dc5
         for b in id.utf8 { h ^= UInt32(b); h = h &* 0x01000193 }
-        return PlaceholderBeelden.index(hash: h)
+        return PlaceholderOpslag.actief.index(hash: h) // dezelfde reeks als de app (PlaceholderReeks.swift)
     }
 
     var body: some View {

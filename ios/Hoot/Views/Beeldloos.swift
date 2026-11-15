@@ -76,13 +76,15 @@ struct PlaceholderBeeld: View {
 }
 
 // De keuze, gelijk aan shared/placeholder.mjs (tests/fixtures/placeholder.json draait op beide).
+// Sinds build 61 uit de actieve reeks (PlaceholderOpslag.actief: het manifest van de server als dat volledig binnen is,
+// anders de bundel), zodat een andere reeks geen app-update vraagt.
 enum Placeholder {
-    static let count = PlaceholderBeelden.count // 18 plekken in de hash, vijf leeg (weg uit het product)
+    static var count: Int { PlaceholderOpslag.actief.count } // in de bundel 18 plekken in de hash, vijf leeg (weg uit het product)
     // Doorschuiven: drie verder; komt dat op een lege plek of in dezelfde set, dan nog eens drie. Sets: zon 0–2 ·
     // iris 3–5 · raster 7–8 · stapel 9 · De kop, Vouw, Baan en Koepels (10, 11, 12, 17) elk een eigen set.
     static let shift = 3
     // De set van beeld k (nil: weg uit het product).
-    static func set(_ k: Int) -> String? { PlaceholderBeelden.familie[k] }
+    static func set(_ k: Int) -> String? { PlaceholderOpslag.actief.set(k) }
     // FNV-1a (32 bit) over de UTF-8-bytes van de id.
     static func fnv1a(_ s: String) -> UInt32 {
         var h: UInt32 = 0x811c9dc5
@@ -92,18 +94,20 @@ enum Placeholder {
     // Het beeld op zich: hash mod 18, maar nooit een beeld dat weg is (7 Horizonlijnen, 14 Eclips, 15 Walsen,
     // 16 Zetsel en 17 De rij): dan kiest (hash / 18) mod 13 een van de dertien. Elk stuk met een van de dertien
     // houdt zijn beeld.
-    static func base(_ id: String) -> Int { PlaceholderBeelden.index(hash: fnv1a(id)) }
+    static func base(_ id: String) -> Int { base(id, reeks: PlaceholderOpslag.actief) }
+    static func base(_ id: String, reeks: PlaceholderReeks) -> Int { reeks.index(hash: fnv1a(id)) }
     // Een lijst van boven naar onder: zit het beeld in dezelfde set als dat van de beeldloze rij erboven,
     // dan schuift het drie door, naar een andere set. Een rij met beeld breekt de reeks.
-    static func plan(ids rows: [(id: String, bare: Bool)]) -> [String: Int] {
+    static func plan(ids rows: [(id: String, bare: Bool)], reeks: PlaceholderReeks = PlaceholderOpslag.actief) -> [String: Int] {
         var out: [String: Int] = [:]
         var prev: Int?
         for r in rows {
             guard r.bare else { prev = nil; continue }
-            var k = base(r.id)
-            if let prev, set(k) == set(prev) {
+            var k = base(r.id, reeks: reeks)
+            if let prev, reeks.set(k) == reeks.set(prev) {
                 // Doorschuiven; komt dat op een lege plek (De kop → Eclips, Vouw → Walsen, Iris → Horizonlijnen), dan nog eens drie.
-                repeat { k = (k + shift) % count } while PlaceholderBeelden.uit.contains(k) || set(k) == set(prev)
+                // Een reeks van de server is gekeurd (PlaceholderManifest.fout): er is altijd een ander beeld.
+                k = reeks.doorschuiven(k, weg: reeks.set(prev)) ?? k
             }
             out[r.id] = k
             prev = k

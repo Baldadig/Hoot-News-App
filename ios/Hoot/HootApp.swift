@@ -11,6 +11,9 @@ struct HootApp: App {
     init() {
         // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
+        // Placeholderbeelden van de server (build 61): wat de vorige keer volledig binnenkwam, wordt nu actief, voor de
+        // eerste weergave (PlaceholderReeks.swift).
+        PlaceholderOpslag.activeer()
         // Schermtitels (Middageditie, Stroom, Selectie …) in Newsreader 800, zoals op de website. Groeit
         // mee met de tekstgrootte, de grote titel tot 40 pt: daarboven werd "Ochtendeditie" op een mini
         // "Ochtended…".
@@ -73,6 +76,13 @@ struct HootApp: App {
                 store.themePreferencesChanged()
             }
             .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
+            // Placeholderbeelden: het manifest na de eerste weergave ophalen (hooguit eens per dag); een nieuwe reeks pas
+            // wisselen als niemand kijkt, op weg naar de achtergrond.
+            .task { await PlaceholderOphalen.naStart() }
+            .onChange(of: phase) { _, now in
+                if now == .background { PlaceholderOpslag.activeer() }
+                if now == .active { Task { await PlaceholderOphalen.naStart(wacht: false) } } // een app die dagen openstaat
+            }
             // Seintjes: opnieuw plannen bij elke wijziging, bij een nieuwe Editie, terug in de app en als
             // de klok verspringt.
             .task(id: alertPlan) { await planAlerts() }
