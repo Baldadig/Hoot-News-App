@@ -2142,6 +2142,276 @@
   }
  },
  {
+  "name": "er-speelde-al-alleen-nederlands",
+  "fn": "erSpeeldeAlJSON",
+  "input": {
+   "eerder": [
+    {
+     "verhaal": "v1",
+     "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+     "bron": "nu",
+     "bronnen": 4,
+     "at": "2026-11-20T06:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v2",
+     "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+     "bron": "tweakers",
+     "bronnen": 2,
+     "at": "2026-11-20T04:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v3",
+     "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+     "bron": "nrc",
+     "bronnen": 6,
+     "at": "2026-11-18T09:30:00.000Z",
+     "betaald": true
+    },
+    {
+     "verhaal": "v4",
+     "kop": "GTA 6 release date confirmed",
+     "bron": "verge",
+     "bronnen": 3,
+     "at": "2026-11-17T09:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v5",
+     "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+     "bron": "nos",
+     "bronnen": 3,
+     "at": "2026-11-11T09:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v6",
+     "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+     "bron": "nu",
+     "bronnen": 2,
+     "at": "2026-11-10T09:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v7",
+     "kop": "Eerste beelden van GTA 6 uitgelekt",
+     "bron": "fd",
+     "bronnen": 2,
+     "at": "2026-11-08T09:30:00.000Z",
+     "betaald": true
+    }
+   ],
+   "bronnen": [
+    {
+     "id": "nos",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nu",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "tweakers",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nrc",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "fd",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "guardian",
+     "lang": "en",
+     "paid": false
+    },
+    {
+     "id": "verge",
+     "lang": "en",
+     "paid": false
+    }
+   ],
+   "eigen": [
+    "nos",
+    "nu"
+   ],
+   "now": 1795167000000
+  },
+  "output": [
+   {
+    "verhaal": "v1",
+    "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+    "bron": "nu",
+    "url": null,
+    "bronnen": 4,
+    "at": "2026-11-20T06:30:00.000Z",
+    "buiten": false
+   },
+   {
+    "verhaal": "v5",
+    "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+    "bron": "nos",
+    "url": null,
+    "bronnen": 3,
+    "at": "2026-11-11T09:30:00.000Z",
+    "buiten": false
+   },
+   {
+    "verhaal": "v2",
+    "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+    "bron": "tweakers",
+    "url": null,
+    "bronnen": 2,
+    "at": "2026-11-20T04:30:00.000Z",
+    "buiten": true
+   }
+  ]
+ },
+ {
+  "name": "er-speelde-al-met-engels",
+  "fn": "erSpeeldeAlJSON",
+  "input": {
+   "eerder": [
+    {
+     "verhaal": "v1",
+     "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+     "bron": "nu",
+     "bronnen": 4,
+     "at": "2026-11-20T06:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v2",
+     "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+     "bron": "tweakers",
+     "bronnen": 2,
+     "at": "2026-11-20T04:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v3",
+     "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+     "bron": "nrc",
+     "bronnen": 6,
+     "at": "2026-11-18T09:30:00.000Z",
+     "betaald": true
+    },
+    {
+     "verhaal": "v4",
+     "kop": "GTA 6 release date confirmed",
+     "bron": "verge",
+     "bronnen": 3,
+     "at": "2026-11-17T09:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v5",
+     "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+     "bron": "nos",
+     "bronnen": 3,
+     "at": "2026-11-11T09:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v6",
+     "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+     "bron": "nu",
+     "bronnen": 2,
+     "at": "2026-11-10T09:30:00.000Z",
+     "betaald": false
+    },
+    {
+     "verhaal": "v7",
+     "kop": "Eerste beelden van GTA 6 uitgelekt",
+     "bron": "fd",
+     "bronnen": 2,
+     "at": "2026-11-08T09:30:00.000Z",
+     "betaald": true
+    }
+   ],
+   "bronnen": [
+    {
+     "id": "nos",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nu",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "tweakers",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nrc",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "fd",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "guardian",
+     "lang": "en",
+     "paid": false
+    },
+    {
+     "id": "verge",
+     "lang": "en",
+     "paid": false
+    }
+   ],
+   "eigen": [
+    "nos",
+    "guardian"
+   ],
+   "now": 1795167000000
+  },
+  "output": [
+   {
+    "verhaal": "v4",
+    "kop": "GTA 6 release date confirmed",
+    "bron": "verge",
+    "url": null,
+    "bronnen": 3,
+    "at": "2026-11-17T09:30:00.000Z",
+    "buiten": true
+   },
+   {
+    "verhaal": "v5",
+    "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+    "bron": "nos",
+    "url": null,
+    "bronnen": 3,
+    "at": "2026-11-11T09:30:00.000Z",
+    "buiten": false
+   },
+   {
+    "verhaal": "v1",
+    "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+    "bron": "nu",
+    "url": null,
+    "bronnen": 4,
+    "at": "2026-11-20T06:30:00.000Z",
+    "buiten": true
+   }
+  ]
+ },
+ {
   "name": "regel-volgt-voor-buiten",
   "fn": "rubriekRegelJSON",
   "input": {

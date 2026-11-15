@@ -7,7 +7,7 @@
 // - StuurBijBlad: "Zeg het scherper"; De Redacteur duidt opnieuw.
 // - VerhaalRij: een verhaal op de pagina en onder "Er speelde al".
 // Alles alleen als de vlag aan is (de aanroepers kijken naar volgAan).
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useHoot, SourceMark } from './Items.jsx'
 import { Popmenu } from './Popmenu.jsx'
 import { Dialog } from './Dialog.jsx'
@@ -15,6 +15,7 @@ import { CheckIcon, CaretIcon, CloseIcon, ShareIcon, INTEREST_ICONS, ICON_SM } f
 import { TEKST, vraagVolgzaak, deelLink, gratisTip, weinigInEigen } from '../lib/volgzaak.js'
 import { volgt as volgtSlug, isVol, actief, gestopt, inVolgorde, nieuwTekst } from '../lib/follow-volgzaken.js'
 import { INTERESTS } from '../lib/topics.js'
+import { erSpeeldeAl } from '../../shared/volgzaak-weergave.mjs'
 import { toHash } from '../lib/context.js'
 
 const rubriekNaam = (id) => INTERESTS.find((i) => i.id === id)?.label || ''
@@ -131,6 +132,13 @@ export function VolgKnop({ zaak, onStuurBij }) {
 // keuze uit Bedoel je of binnen een rubriek.
 export function VolgKop({ antwoord, onKies, onStuurBij }) {
   const { openStory, storiesById, sourcesById, muted, setMuted } = useHoot()
+  // "Er speelde al" per lezer (het antwoord is gedeeld per volgzaak): de regels van de pagina, uit de rekenkern.
+  const eerder = useMemo(() => {
+    if (!antwoord?.eerder?.length) return []
+    const bronnen = [...(sourcesById?.values?.() || [])].map((s) => ({ id: s.id, lang: s.lang || 'nl', paid: !!s.paid, followed: !!s.followed }))
+    const eigen = bronnen.filter((b) => b.followed && !muted.has(b.id)).map((b) => b.id)
+    return erSpeeldeAl({ eerder: antwoord.eerder, bronnen, eigen, now: Date.now() })
+  }, [antwoord, sourcesById, muted])
   if (!antwoord) return null
   if (antwoord.soort === 'geen') return <p className="volgkop__stil">{TEKST.geen}</p>
   if (antwoord.soort === 'bedoel' && antwoord.keuzes?.length)
@@ -210,12 +218,12 @@ export function VolgKop({ antwoord, onKies, onStuurBij }) {
             </p>
           ) : null}
         </div>
-      ) : antwoord.eerder?.length ? (
+      ) : eerder.length ? (
         <>
           <h3 className="label label--section volgkop__label">{TEKST.erSpeeldeAl}</h3>
           <div className="volgkop__lijst">
-            {antwoord.eerder.map((e) => (
-              <VerhaalRij key={e.verhaal} compact v={{ verhaal: e.verhaal, kop: e.kop, bron: e.bron, bronnen: e.bronnen, url: null }} onOpen={storiesById?.has(e.verhaal) ? () => openStory(e.verhaal) : null} />
+            {eerder.map((e) => (
+              <VerhaalRij key={e.verhaal} compact v={{ verhaal: e.verhaal, kop: e.kop, bron: e.bron, bronnen: e.bronnen, url: null, buiten: e.buiten }} onOpen={storiesById?.has(e.verhaal) ? () => openStory(e.verhaal) : null} />
             ))}
           </div>
         </>

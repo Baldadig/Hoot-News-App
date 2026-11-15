@@ -4,37 +4,78 @@
 /* ---------- Het label "Je volgt" in de rubriekregel (scherm 05f, 23) ----------
    In de rubriekkleur (die van .kicker), zonder onderstreping of knopvorm, met een klein vinkje. Het raakvlak is onzichtbaar
    44 hoog: het groeit naar boven, in de witruimte boven de kaart, en --s2 opzij; nooit naar beneden over de kop. Bij
-   aanraken dimt het even, zoals een systeemknop. */
+   aanraken dimt het even, zoals een systeemknop.
+   Nooit een knop in een link: staat de rubriekregel in de link van de kaart, dan is .volglabel alleen beeld en ligt de
+   echte knop (.volglabel-knop, een eigen <button> naast de link) er precies overheen (VolgLabelKnop in Items.jsx). In de
+   Editie staat de rubriekregel buiten de link en is het label zelf de knop (.volglabel--knop). */
 .volglabel {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 3px;
   color: inherit;
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: opacity var(--dur-kort) var(--ease-bediening);
-}
-.volglabel::after {
-  content: '';
-  position: absolute;
-  inset-block: calc(var(--lh-1) - var(--tap)) 0;
-  inset-inline: calc(-1 * var(--s2));
+  transition: opacity var(--dur-kort) var(--ease-bediening), color var(--dur-kort) var(--ease-bediening);
 }
 .volglabel > svg {
   flex: none;
   translate: 0 -0.5px;
 }
-.volglabel:active {
+.volglabel--knop {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.volglabel--knop::after,
+.volglabel-knop::after {
+  content: '';
+  position: absolute;
+  inset-block: calc(var(--lh-1) - var(--tap)) 0;
+  inset-inline: calc(-1 * var(--s2));
+}
+.volglabel--knop:active {
   opacity: 0.45;
 }
-.volglabel:focus-visible {
+.volglabel--knop:focus-visible,
+.volglabel-knop:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/* De knop naast de link: onzichtbaar, met de plek en maat van het label (inline gemeten). Tot hij geplaatst is, staat hij
+   op de plek van de kaart zonder raakvlak, zodat hij nooit over de kop valt. */
+.entry:has(> .volglabel-knop) {
+  position: relative;
+}
+.volglabel-knop {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.volglabel-knop:not([data-geplaatst])::after {
+  content: none;
+}
+.entry:has(> .volglabel-knop:active) .volglabel {
+  opacity: 0.45;
+}
 @media (hover: hover) and (pointer: fine) {
-  .volglabel:hover {
+  .volglabel--knop:hover,
+  .entry:has(> .volglabel-knop:hover) .volglabel {
     color: var(--ink-2);
   }
 }

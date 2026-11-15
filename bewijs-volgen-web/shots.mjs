@@ -108,6 +108,13 @@ for (const maat of MATEN) {
     await typ('#q', 'vredesoverleg oekraine')
     await b.sleep(1500)
     await b.shot(f('zoeken-kop'))
+    // Dezelfde kop voor een lezer die alleen Nederlandse bronnen koos (de Engelse basisbronnen uit): "Er speelde al" per
+    // lezer (erSpeeldeAl), dus geen Engels en geen betaalmuur van buiten.
+    await zet({ ...prefsMet(TWEE), muted: ['nyt', 'economist', 'atlantic', 'theverge', 'wired'] })
+    await naar('#/zoek', 2500)
+    await typ('#q', 'vredesoverleg oekraine')
+    await b.sleep(1500)
+    await b.shot(f('zoeken-kop-alleen-nederlands'))
     console.log(tag, 'klaar', b.logs.splice(0).slice(0, 5))
   }
 }

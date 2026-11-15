@@ -25,6 +25,7 @@ var HootCore = (() => {
   __export(editionCore_exports, {
     BUITEN_JE_BRONNEN: () => BUITEN_JE_BRONNEN,
     CORE_VERSION: () => CORE_VERSION,
+    ER_SPEELDE_AL_MAX: () => ER_SPEELDE_AL_MAX,
     HISTORY_SIZE: () => HISTORY_SIZE,
     JE_VOLGT: () => JE_VOLGT,
     VOLGZAKEN_MAX: () => VOLGZAKEN_MAX,
@@ -36,6 +37,8 @@ var HootCore = (() => {
     earlierEditions: () => earlierEditions,
     earlierEditionsJSON: () => earlierEditionsJSON,
     editionBasis: () => editionBasis,
+    erSpeeldeAl: () => erSpeeldeAl,
+    erSpeeldeAlJSON: () => erSpeeldeAlJSON,
     historyJSON: () => historyJSON,
     historyOf: () => historyOf,
     mergePrevious: () => mergePrevious,
@@ -6360,10 +6363,16 @@ var HootCore = (() => {
     const eerder = [...weken.entries()].map(([week, rs]) => ({ week, verhalen: rs.sort(orde).map((r) => r.v) }));
     return { nieuw: nieuw.map((r) => r.v), eerder, aantal: rijen.length };
   }
+  var ER_SPEELDE_AL_MAX = 3;
+  function erSpeeldeAl(input = {}) {
+    const view = volgzaakView({ stand: { verhalen: lijst(input.eerder) }, bronnen: input.bronnen, eigen: input.eigen, gezien: null, gelezen: [], now: input.now });
+    return [...view.nieuw, ...view.eerder.flatMap((w) => w.verhalen)].slice(0, ER_SPEELDE_AL_MAX);
+  }
   var lees = (j) => typeof j === "string" ? JSON.parse(j) : j;
   var volgzaakViewJSON = (j) => JSON.stringify(volgzaakView(lees(j)));
   var volgzaakVoorrangJSON = (j) => JSON.stringify(volgzaakVoorrang(lees(j)));
   var rubriekRegelJSON = (j) => JSON.stringify(rubriekRegel(lees(j)));
+  var erSpeeldeAlJSON = (j) => JSON.stringify(erSpeeldeAl(lees(j)));
   var volgtVanJSON = (storyJSON, volgzakenJSON) => JSON.stringify(volgtVan(lees(storyJSON), lees(volgzakenJSON)));
 
   // src/lib/editionCore.js

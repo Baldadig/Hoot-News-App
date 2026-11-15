@@ -171,4 +171,4 @@ export { voorstelJSON } from '../../shared/voorstel.mjs'
 
 // Volgen 1.5 (volgzaak): label, voorrang in de Stroom, de rubriekregel en de pagina per lezer. Web en app rekenen met
 // dezelfde regels (shared/volgzaak-weergave.mjs, tests/fixtures/volgzaak-golden.json); de JSON-varianten zijn voor Swift.
-export { volgzaakView, volgzaakVoorrang, metVoorrang, volgtVan, rubriekRegel, actieveVolgzaken, weekNaam, VOLGZAKEN_MAX, VOORRANG_MS, JE_VOLGT, BUITEN_JE_BRONNEN, volgzaakViewJSON, volgzaakVoorrangJSON, rubriekRegelJSON, volgtVanJSON } from '../../shared/volgzaak-weergave.mjs'
+export { volgzaakView, erSpeeldeAl, erSpeeldeAlJSON, ER_SPEELDE_AL_MAX, volgzaakVoorrang, metVoorrang, volgtVan, rubriekRegel, actieveVolgzaken, weekNaam, VOLGZAKEN_MAX, VOORRANG_MS, JE_VOLGT, BUITEN_JE_BRONNEN, volgzaakViewJSON, volgzaakVoorrangJSON, rubriekRegelJSON, volgtVanJSON } from '../../shared/volgzaak-weergave.mjs'

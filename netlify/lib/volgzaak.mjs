@@ -232,7 +232,11 @@ async function leesVoorraad(io, now, dagen, kvMs) {
   await Promise.all(voorraadDagen(now, dagen).map(async (d) => (docs[d] = await binnen(io.leesArchief(VK.voorraad(d)), kvMs * 2).catch(() => null))))
   return stukkenUit(docs)
 }
-// "Er speelde al": hooguit drie zekere verhalen, nieuwste eerst, en per bron het aantal treffers.
+// "Er speelde al": de zekere verhalen, nieuwste eerst (hooguit EERDER_KANDIDATEN), en per bron het aantal treffers. Het
+// antwoord is gedeeld per volgzaak; het toestel kiest er hooguit drie uit per lezer (erSpeeldeAl in
+// shared/volgzaak-weergave.mjs: de taal van je bronkeuze, je eigen bronnen eerst, van buiten alleen gratis). Daarom gaan er
+// meer mee dan drie, met `betaald`.
+export const EERDER_KANDIDATEN = 12
 export function eerderVan(def, { stukken, verhalen }) {
   const matches = matchVerhalen(def, stukken, { verhalen })
   const zeker = [...matches].filter(([, m]) => m.oordeel === 'z').sort((a, b) => b[1].laatst - a[1].laatst)
@@ -242,7 +246,7 @@ export function eerderVan(def, { stukken, verhalen }) {
     const b = byId.get(id)?.bron
     if (b) bronnen[b] = (bronnen[b] || 0) + 1
   }
-  return { matches, eerder: zeker.slice(0, 3).map(([key, m]) => ({ verhaal: key, kop: m.kop, bron: m.bron, bronnen: m.pubs, at: new Date(m.laatst).toISOString() })), bronnen }
+  return { matches, eerder: zeker.slice(0, EERDER_KANDIDATEN).map(([key, m]) => ({ verhaal: key, kop: m.kop, bron: m.bron, bronnen: m.pubs, at: new Date(m.laatst).toISOString(), betaald: !!SOURCE.get(m.bron)?.paid })), bronnen }
 }
 const publiek = (def) => ({ slug: def.slug, label: def.label, regel: def.regel, soort: def.soort, mijlpaal: def.mijlpaal || null, rubriek: def.rubriek })
 

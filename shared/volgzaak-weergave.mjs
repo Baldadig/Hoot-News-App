@@ -1,7 +1,7 @@
 // Volgen in Hoot 1.5 (codenaam volgzaak): de rekenregels per lezer, in de gedeelde rekenkern. Web (Stream.jsx,
 // Edition.jsx, de pagina) en de app (EditionEngine.swift, via src/lib/editionCore.js en Resources/edition-core.js) rekenen
-// met precies deze code, met dezelfde toetsen (tests/volgzaak-weergave.test.mjs, tests/fixtures/volgzaak-golden.json en
-// ios/HootTests/VolgzaakParityTests.swift).
+// met precies deze code, met dezelfde toetsen (tests/volgzaak-weergave.test.mjs en tests/fixtures/volgzaak-golden.json; de
+// app krijgt ze in bouwplanstap 1.7 als ios/HootTests/VolgzaakParityTests.swift).
 //
 // Wat de server deelt is voor iedereen gelijk: het veld `volgzaak { slug, label }` op een verhaal (alleen zekere treffers)
 // en per dagdeel een momentopname per volgzaak (de verhalen van de pagina). Hier wordt dat jouw Stroom en jouw pagina:
@@ -11,6 +11,7 @@
 //   Uitgerekend met de grens van de weergave (lib/stroom-einde.js), dus vast tot je opnieuw opent.
 // - volgtVan: het label in de Editie (op elke plek waarvan het verhaal bij een gevolgde volgzaak hoort; geen extra verhalen).
 // - rubriekRegel: de rubriekregel heeft hooguit twee delen; "Je volgt" gaat voor "Buiten je bronnen".
+// - erSpeeldeAl: "Er speelde al" in de kop van Zoeken, per lezer met de regels van volgzaakView (hooguit drie).
 // - volgzaakView: de pagina per lezer: eerst de taal van je bronkeuze, dan je eigen bronnen, gratis stukken van buiten met
 //   "Buiten je bronnen", nooit een betaalmuur van buiten, Nieuw (sinds je vorige bezoek) en Eerder per week, dubbelen eruit,
 //   en wat je al las telt niet als nieuw.
@@ -212,9 +213,21 @@ export function volgzaakView(input = {}) {
   return { nieuw: nieuw.map((r) => r.v), eerder, aantal: rijen.length }
 }
 
+// "Er speelde al" in de kop van Zoeken: het antwoord van de server is gedeeld per volgzaak (alle bronnen en talen), dus hier
+// per lezer met dezelfde regels als de pagina (volgzaakView): alleen de taal van je bronkeuze, je eigen bronnen eerst, van
+// buiten alleen gratis en met "Buiten je bronnen", nooit een betaalmuur van buiten. Hooguit drie.
+// Invoer (JSON): { eerder: [{ verhaal, kop, bron, bronnen, at, betaald }], bronnen, eigen, now }.
+// Uitkomst: [V] met V zoals bij volgzaakView.
+export const ER_SPEELDE_AL_MAX = 3
+export function erSpeeldeAl(input = {}) {
+  const view = volgzaakView({ stand: { verhalen: lijst(input.eerder) }, bronnen: input.bronnen, eigen: input.eigen, gezien: null, gelezen: [], now: input.now })
+  return [...view.nieuw, ...view.eerder.flatMap((w) => w.verhalen)].slice(0, ER_SPEELDE_AL_MAX)
+}
+
 // Met tekst heen en terug, voor Swift.
 const lees = (j) => (typeof j === 'string' ? JSON.parse(j) : j)
 export const volgzaakViewJSON = (j) => JSON.stringify(volgzaakView(lees(j)))
 export const volgzaakVoorrangJSON = (j) => JSON.stringify(volgzaakVoorrang(lees(j)))
 export const rubriekRegelJSON = (j) => JSON.stringify(rubriekRegel(lees(j)))
+export const erSpeeldeAlJSON = (j) => JSON.stringify(erSpeeldeAl(lees(j)))
 export const volgtVanJSON = (storyJSON, volgzakenJSON) => JSON.stringify(volgtVan(lees(storyJSON), lees(volgzakenJSON)))

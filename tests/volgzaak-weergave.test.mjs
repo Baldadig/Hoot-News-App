@@ -5,7 +5,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { createContext, runInContext } from 'node:vm'
-import { volgzaakVoorrang, metVoorrang, volgzaakView, volgtVan, rubriekRegel, actieveVolgzaken, weekNaam, VOLGZAKEN_MAX, VOORRANG_MS, JE_VOLGT, BUITEN_JE_BRONNEN } from '../src/lib/editionCore.js'
+import { volgzaakVoorrang, metVoorrang, volgzaakView, erSpeeldeAl, ER_SPEELDE_AL_MAX, volgtVan, rubriekRegel, actieveVolgzaken, weekNaam, VOLGZAKEN_MAX, VOORRANG_MS, JE_VOLGT, BUITEN_JE_BRONNEN } from '../src/lib/editionCore.js'
 import * as core from '../src/lib/editionCore.js'
 import { readCore } from '../scripts/build-edition-core.mjs'
 import { makeVolgzaakGolden, callCase } from '../scripts/make-volgzaak-golden.mjs'
@@ -101,6 +101,20 @@ test('pagina: Nieuw sinds je vorige bezoek, gelezen telt niet als nieuw, Eerder 
   const gelezen = volgzaakView({ stand, bronnen: BRONNEN, eigen: ['nos', 'nu'], gezien: uur(10), gelezen: ['a'], now: NOW })
   assert.deepEqual(gelezen.nieuw, [])
   assert.deepEqual(volgzaakView({ now: NOW }), { nieuw: [], eerder: [], aantal: 0 }, 'zonder momentopname: leeg, geen fout')
+})
+
+test('Er speelde al: per lezer met de regels van de pagina; nooit Engels als je dat niet koos, nooit een betaalmuur van buiten, hooguit drie', () => {
+  // Zoals de server het geeft: gedeeld per volgzaak, uit alle bronnen en talen (zonder url).
+  const eerder = [v('en', 'verge', 1), v('muur', 'nrc', 2, { betaald: true }), v('vrij', 'tw', 3), v('eigen1', 'nos', 4), v('eigen2', 'nu', 5), v('eigen3', 'nos', 6)].map(({ url, ...e }) => e)
+  const r = erSpeeldeAl({ eerder, bronnen: BRONNEN, eigen: ['nos', 'nu'], now: NOW })
+  assert.equal(r.length, ER_SPEELDE_AL_MAX)
+  assert.deepEqual(r.map((x) => [x.verhaal, x.buiten]), [['eigen1', false], ['eigen2', false], ['eigen3', false]], 'je eigen bronnen eerst')
+  const weinig = erSpeeldeAl({ eerder: eerder.slice(0, 4), bronnen: BRONNEN, eigen: ['nos', 'nu'], now: NOW })
+  assert.deepEqual(weinig.map((x) => [x.verhaal, x.buiten]), [['eigen1', false], ['vrij', true]], 'gratis van buiten met Buiten je bronnen; geen Engels, geen betaalmuur')
+  const engels = erSpeeldeAl({ eerder: eerder.slice(0, 3), bronnen: BRONNEN, eigen: ['nos', 'nu', 'verge'], now: NOW })
+  assert.deepEqual(engels.map((x) => x.verhaal), ['vrij', 'en'], 'koos je Engels, dan mag het, na je eigen taal')
+  assert.deepEqual(erSpeeldeAl({ now: NOW }), [], 'zonder antwoord: leeg, geen fout')
+  assert.deepEqual(erSpeeldeAl({ eerder: [v('x', 'onbekend', 1)], bronnen: BRONNEN, eigen: ['nos'], now: NOW }), [], 'een onbekende bron van buiten niet')
 })
 
 test('weken: Deze week, Vorige week, daarna "Week van" de maandag (Amsterdamse kalender, ook rond de zomertijd)', () => {

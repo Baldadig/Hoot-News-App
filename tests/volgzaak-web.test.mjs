@@ -88,11 +88,32 @@ test('met de vlag uit verandert er niets: geen route, oude Editie-blok en oude p
   assert.match(read('netlify/lib/build.mjs'), /volgzakenStand\(\) === 'aan' \? \{ volgzaken: true \} : \{\}/, 'meta.volgzaken alleen bij aan')
 })
 
-test('het label: een eigen knop in de rubriekregel met een raakvlak van 44 dat naar boven groeit, nooit over de kop', () => {
+test('het label: een eigen knop, nooit in de link van de kaart (WCAG 4.1.2), met een raakvlak van 44 dat naar boven groeit', () => {
   const items = read('src/components/Items.jsx')
-  assert.match(items, /className="volglabel" role="button" tabIndex=\{0\} aria-label=\{VOLG_TEKST\.label\(volgt\.label\)\}/)
-  assert.match(items, /e\.preventDefault\(\)\n\s*e\.stopPropagation\(\)/, 'tik op het label opent de pagina, niet het verhaal')
+  // In de link is het label alleen beeld: niet focusbaar, verborgen voor de schermlezer, geen knop-rol.
+  assert.match(items, /<span className="volglabel" data-volglabel="" aria-hidden="true">/)
+  assert.doesNotMatch(items, /role="button"/, 'geen nep-knop meer in een link')
+  assert.match(items, /bits\.push\(<VolgLabel key="v" volgt=\{volgt\} inLink \/>\)/, 'de Kicker staat in de link, dus daar alleen beeld')
+  // Elke kaart die de Kicker in een link zet, zet de echte knop ernaast (na de </a>, in de kaart).
+  const kickers = (items.match(/<Kicker item=\{item\}[^>]*volgt=\{volgt\}/g) || []).length
+  const knoppen = (items.match(/<\/a>\n\s*\{volgt \? <VolgLabelKnop volgt=\{volgt\} \/> : null\}/g) || []).length
+  assert.equal(kickers, 4)
+  assert.equal(knoppen, kickers, 'bij elke Kicker met label een knop naast de link')
+  assert.match(items, /<button\n\s*type="button"\n\s*ref=\{ref\}\n\s*className="volglabel-knop"\n\s*aria-label=\{VOLG_TEKST\.label\(volgt\.label\)\}/, 'VoiceOver: een aparte knop met een eigen naam')
+  // De echte knop staat nooit binnen een <a>: tussen <a en </a> in de kaarten komt geen VolgLabelKnop voor.
+  for (const blok of items.split(/<a className=/).slice(1)) assert.doesNotMatch(blok.slice(0, blok.indexOf('</a>')), /<VolgLabelKnop|<button/, 'geen knop in een link')
+  // In de Editie staat de rubriekregel buiten de link: daar is het label zelf een echte knop.
+  assert.match(items, /<button type="button" className="volglabel volglabel--knop" aria-label=\{VOLG_TEKST\.label\(volgt\.label\)\}/)
   const css = read('src/styles/volg.css')
   assert.match(css, /inset-block: calc\(var\(--lh-1\) - var\(--tap\)\) 0;/, 'boven 44 - regel erbij, onder 0')
+  assert.match(css, /\.entry:has\(> \.volglabel-knop\) \{\n\s*position: relative;/, 'de knop ligt in de kaart over het label')
+  assert.match(css, /\.volglabel-knop:not\(\[data-geplaatst\]\)::after \{\n\s*content: none;/, 'nog niet geplaatst: geen raakvlak, dus nooit over de kop')
   assert.equal(TEKST.label('GTA 6'), 'Je volgt GTA 6, opent de pagina')
+})
+
+test('Er speelde al in Zoeken: per lezer uit de rekenkern, niet het gedeelde antwoord van de server', () => {
+  const volg = read('src/components/Volg.jsx')
+  assert.match(volg, /import \{ erSpeeldeAl \} from '\.\.\/\.\.\/shared\/volgzaak-weergave\.mjs'/)
+  assert.match(volg, /erSpeeldeAl\(\{ eerder: antwoord\.eerder, bronnen, eigen, now: Date\.now\(\) \}\)/)
+  assert.doesNotMatch(volg, /antwoord\.eerder\.map/, 'nooit het ongefilterde antwoord tonen')
 })

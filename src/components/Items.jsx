@@ -121,13 +121,15 @@ export function ShareButton({ item, label = 'bericht', inMenu = false }) {
 
 // De rubriek boven de kop. In de Editie staat de telling vooraan (`n`: "01 · BUITENLAND", zie
 // numberRows in src/lib/edition.js); de punt ertussen is die van .kicker.
+// `volgt`: het label "Je volgt"; de Kicker staat altijd in de link van de kaart, dus het label is daar alleen beeld en de
+// kaart zet er VolgLabelKnop naast.
 function Kicker({ item, extra, followed, volgt = null, n = null }) {
   const bits = []
   if (n) bits.push(<EditionNumber key="n" n={n} />)
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (opinieInStroom(item)) bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
-  if (volgt) bits.push(<VolgLabel key="v" volgt={volgt} />) // Volgen 1.5: het label gaat voor het oude "Je volgt"
+  if (volgt) bits.push(<VolgLabel key="v" volgt={volgt} inLink />) // Volgen 1.5: het label gaat voor het oude "Je volgt"
   else if (followed) bits.push(<span key="f" className="label--meta front__followed">{followed}</span>) // stil: een staat, geen rubriek
   return bits.length ? <p className="label label--kicker kicker">{bits}</p> : null
 }
@@ -135,20 +137,68 @@ function Kicker({ item, extra, followed, volgt = null, n = null }) {
 // Volgen 1.5: het label "Je volgt" met een klein vinkje in de rubriekregel, overal hetzelfde (Stroom, Editie). Tikbaar: het
 // opent de pagina; de rest van de kaart opent het verhaal. In de rubriekkleur, zonder onderstreping of knopvorm. Het
 // raakvlak is onzichtbaar 44 px hoog en groeit naar boven (de witruimte boven de kaart) en een stukje opzij, nooit over de
-// kop (src/styles/volg.css). Het staat binnen de link van de kaart, dus een eigen knop-rol die de klik niet doorgeeft.
-// `volgt`: { slug, label } (shared/volgzaak-weergave.mjs).
-export function VolgLabel({ volgt }) {
+// kop (src/styles/volg.css). `volgt`: { slug, label } (shared/volgzaak-weergave.mjs).
+// Twee vormen, zodat er nooit een knop in een link staat (WCAG 4.1.2, geneste interactieve elementen):
+// - `inLink`: de rubriekregel staat in de link van de kaart. Dan is dit alleen het beeld (aria-hidden, niet focusbaar) en
+//   staat de echte knop als VolgLabelKnop naast de link, in de kaart, precies over dit label.
+// - anders (de Editie, waar de rubriekregel buiten de link staat): meteen een echte knop.
+export function VolgLabel({ volgt, inLink = false }) {
   const { openVolg } = useHoot()
-  const open = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    openVolg?.(volgt.slug)
-  }
-  return (
-    <span className="volglabel" role="button" tabIndex={0} aria-label={VOLG_TEKST.label(volgt.label)} onClick={open} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && open(e)}>
+  const inhoud = (
+    <>
       <CheckIcon size={11} />
       {VOLG_TEKST.jeVolgt}
-    </span>
+    </>
+  )
+  if (inLink)
+    return (
+      <span className="volglabel" data-volglabel="" aria-hidden="true">
+        {inhoud}
+      </span>
+    )
+  return (
+    <button type="button" className="volglabel volglabel--knop" aria-label={VOLG_TEKST.label(volgt.label)} onClick={() => openVolg?.(volgt.slug)}>
+      {inhoud}
+    </button>
+  )
+}
+
+// De echte knop bij een label in de link: een eigen <button> naast de link (VoiceOver en de Tab-toets krijgen een aparte
+// knop "Je volgt X, opent de pagina"), in de kaart gelegd over het label dat in de link staat. Plek en maat komen uit dat
+// label (gemeten, ook als een beeld laadt of de breedte verandert); het raakvlak van 44 komt uit volg.css.
+export function VolgLabelKnop({ volgt }) {
+  const { openVolg } = useHoot()
+  const ref = useRef(null)
+  const [plek, setPlek] = useState(null)
+  useLayoutEffect(() => {
+    const knop = ref.current
+    const kaart = knop?.parentElement
+    const label = kaart?.querySelector('[data-volglabel]')
+    if (!knop || !kaart || !label) return undefined
+    const meet = () => {
+      const k = kaart.getBoundingClientRect()
+      const l = label.getBoundingClientRect()
+      if (!l.width) return
+      const nieuw = { top: Math.round(l.top - k.top), left: Math.round(l.left - k.left), width: Math.round(l.width), height: Math.round(l.height) }
+      setPlek((oud) => (oud && oud.top === nieuw.top && oud.left === nieuw.left && oud.width === nieuw.width && oud.height === nieuw.height ? oud : nieuw))
+    }
+    meet()
+    if (typeof ResizeObserver !== 'function') return undefined
+    const ro = new ResizeObserver(meet)
+    ro.observe(kaart)
+    ro.observe(label)
+    return () => ro.disconnect()
+  }, [volgt.slug])
+  return (
+    <button
+      type="button"
+      ref={ref}
+      className="volglabel-knop"
+      aria-label={VOLG_TEKST.label(volgt.label)}
+      style={plek || undefined}
+      data-geplaatst={plek ? '' : undefined}
+      onClick={() => openVolg?.(volgt.slug)}
+    />
   )
 }
 
@@ -391,6 +441,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
         <Summary item={item} className="lead__sum" fit={{ max: 240, rek: 240 }} />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
+      {volgt ? <VolgLabelKnop volgt={volgt} /> : null}
       <TermHelp text={`${item.title} ${item.summary || ''}`} />
       <Meta item={item} story={story} taste={taste} outside={outside && !volgt} />
     </article>
@@ -430,6 +481,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
             {(onFail) => <MeasuredImg item={item} kind="lead" onFail={onFail} />}
           </Beeld>
         </a>
+        {volgt ? <VolgLabelKnop volgt={volgt} /> : null}
         <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
       </article>
     )
@@ -448,6 +500,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}
         </Beeld>
       </a>
+      {volgt ? <VolgLabelKnop volgt={volgt} /> : null}
       <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>
   )
@@ -543,6 +596,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
           {lead ? null : beeld}
         </div>
       </a>
+      {volgt ? <VolgLabelKnop volgt={volgt} /> : null}
       <TermHelp text={`${item.title} ${item.summary || ''}`} max={1} />
       <KaartMeta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>

@@ -7,7 +7,7 @@
 import { writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { volgzaakViewJSON, volgzaakVoorrangJSON, rubriekRegelJSON, volgtVanJSON } from '../src/lib/editionCore.js'
+import { volgzaakViewJSON, volgzaakVoorrangJSON, rubriekRegelJSON, volgtVanJSON, erSpeeldeAlJSON } from '../src/lib/editionCore.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 export const VOLGZAAK_GOLDEN = 'tests/fixtures/volgzaak-golden.json'
@@ -63,6 +63,9 @@ const STAND = {
     { verhaal: 'v1', kop: 'Dubbel verhaal', bron: 'nos', url: 'https://nos.nl/1b', bronnen: 4, at: uur(8), betaald: false, rubriek: 'games' },
   ],
 }
+// "Er speelde al" zoals de server het geeft: gedeeld per volgzaak, uit alle bronnen en talen (zonder url en rubriek).
+const EERDER = STAND.verhalen.slice(0, 7).map(({ verhaal, kop, bron, bronnen, at, betaald }) => ({ verhaal, kop, bron, bronnen, at, betaald }))
+const erSpeeldeAl = (name, extra) => ({ name, fn: 'erSpeeldeAlJSON', input: { eerder: EERDER, bronnen: BRONNEN, eigen: ['nos', 'nu'], now: NOW, ...extra } })
 const view = (name, extra) => ({ name, fn: 'volgzaakViewJSON', input: { stand: STAND, bronnen: BRONNEN, eigen: ['nos', 'nu', 'nrc'], gezien: dag(1), gelezen: [], now: NOW, ...extra } })
 
 export const CASES = [
@@ -81,6 +84,8 @@ export const CASES = [
   view('pagina-gelezen', { gelezen: ['v1'] }),
   view('pagina-met-engels', { eigen: ['nos', 'guardian'] }),
   view('pagina-zonder-bronnen', { eigen: [], gezien: dag(4) }),
+  erSpeeldeAl('er-speelde-al-alleen-nederlands', {}),
+  erSpeeldeAl('er-speelde-al-met-engels', { eigen: ['nos', 'guardian'] }),
   { name: 'regel-volgt-voor-buiten', fn: 'rubriekRegelJSON', input: { rubriek: 'Politiek', volgt: { slug: 'kabinetsformatie', label: 'Kabinetsformatie' }, buiten: true } },
   { name: 'regel-alleen-buiten', fn: 'rubriekRegelJSON', input: { rubriek: 'Wereld', volgt: null, buiten: true } },
   { name: 'regel-alleen-volgt', fn: 'rubriekRegelJSON', input: { rubriek: 'Games', volgt: { slug: 'gta-6', label: 'GTA 6' }, buiten: false } },
@@ -88,7 +93,7 @@ export const CASES = [
   { name: 'label-editie-gestopt', fn: 'volgtVanJSON', input: { story: VERHALEN.sTata, volgzaken: VOLGZAKEN } },
 ]
 
-const FNS = { volgzaakViewJSON, volgzaakVoorrangJSON, rubriekRegelJSON, volgtVanJSON }
+const FNS = { volgzaakViewJSON, volgzaakVoorrangJSON, rubriekRegelJSON, volgtVanJSON, erSpeeldeAlJSON }
 // Eén aanroep zoals Swift hem doet: één JSON-tekst in (volgtVan krijgt er twee), één tekst uit.
 export function callCase(fns, c) {
   if (c.fn === 'volgtVanJSON') return fns.volgtVanJSON(JSON.stringify(c.input.story), JSON.stringify(c.input.volgzaken))

@@ -56,8 +56,9 @@ function volgzaak(body) {
   if (a === 'duiden') {
     const o = String(body.opdracht || '').toLowerCase()
     if (/oekra/.test(o)) {
-      const st = stand('vredesoverleg-oekraine').verhalen.slice(0, 3)
-      return { soort: 'volgzaak', volgzaak: { ...publiek('vredesoverleg-oekraine'), loopt: true }, eerder: st.map((v) => ({ verhaal: v.verhaal, kop: v.kop, bron: v.bron, bronnen: v.bronnen, at: v.at })), bronnen: { nos: 3, nu: 2, bbc: 2 } }
+      // Zoals de echte server: gedeeld per volgzaak, uit alle bronnen en talen, tot 12, met betaald (het toestel kiest er drie).
+      const st = stand('vredesoverleg-oekraine').verhalen.slice(0, 12)
+      return { soort: 'volgzaak', volgzaak: { ...publiek('vredesoverleg-oekraine'), loopt: true }, eerder: st.map((v) => ({ verhaal: v.verhaal, kop: v.kop, bron: v.bron, bronnen: v.bronnen, at: v.at, betaald: !!v.betaald })), bronnen: { nos: 3, nu: 2, bbc: 2 } }
     }
     if (/tata/.test(o)) return { soort: 'bedoel', keuzes: [{ naam: 'Rechtszaak tegen Tata Steel', regel: 'Omwonenden in IJmuiden tegen het staalbedrijf', opdracht: 'rechtszaak tata steel' }, { naam: 'Groen staal in IJmuiden', regel: 'De plannen en het geld voor schoner staal', opdracht: 'groen staal ijmuiden' }] }
     if (/^games?$/.test(o)) return { soort: 'rubriek', rubriek: 'cultuur', binnen: [{ naam: 'GTA 6', regel: 'De nieuwe Grand Theft Auto van Rockstar', opdracht: 'gta 6' }] }
