@@ -214,10 +214,13 @@ struct Story: Codable, Identifiable, Hashable {
     var verschillen: StoryVerschillen?
     // Luister verder (build 56): de aflevering bij dit verhaal, van de server (Luister.swift), of niets.
     var luister: StoryLuister?
+    // Volgen 1.5 (codenaam volgzaak, Volgzaken.swift): waar dit verhaal bij hoort, van de server, alleen met de vlag
+    // HOOT_VOLGZAKEN aan en alleen voor een zekere treffer. Ontbreekt het of klopt het niet, dan nil.
+    var volgzaak: StoryVolgzaak?
 
     // `tappedId` hoort niet in de opslag: het geldt alleen voor één keer openen.
     private enum CodingKeys: String, CodingKey {
-        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt, sport, light, verschillen, luister
+        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt, sport, light, verschillen, luister, volgzaak
     }
 }
 
@@ -290,6 +293,7 @@ extension Story {
         light = try c.decodeIfPresent(StoryLight.self, forKey: .light)
         verschillen = (try? c.decodeIfPresent(StoryVerschillen.self, forKey: .verschillen)) ?? nil
         luister = (try? c.decodeIfPresent(StoryLuister.self, forKey: .luister)) ?? nil
+        volgzaak = (try? c.decodeIfPresent(StoryVolgzaak.self, forKey: .volgzaak)) ?? nil
     }
 }
 
@@ -419,6 +423,22 @@ struct FeedMeta: Codable, Hashable {
     var updatedAt: String? = nil
     var parts: [String: String]? = nil
     var related: String? = nil
+    // Volgen 1.5: alleen `true` als de server HOOT_VOLGZAKEN=aan heeft. Anders (of een oudere server) ziet de app niets
+    // nieuws: geen kop in Zoeken, geen label, geen voorrang, geen menu-regel (Volgzaken.swift).
+    var volgzaken: Bool? = nil
+
+    private enum CodingKeys: String, CodingKey { case updatedAt, parts, related, volgzaken }
+    init(updatedAt: String? = nil, parts: [String: String]? = nil, related: String? = nil, volgzaken: Bool? = nil) {
+        self.updatedAt = updatedAt; self.parts = parts; self.related = related; self.volgzaken = volgzaken
+    }
+    // Leest nooit fout: een onverwachte waarde van `volgzaken` maakt de kern niet onbruikbaar.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        updatedAt = try c.decodeIfPresent(String.self, forKey: .updatedAt)
+        parts = try c.decodeIfPresent([String: String].self, forKey: .parts)
+        related = try c.decodeIfPresent(String.self, forKey: .related)
+        volgzaken = (try? c.decodeIfPresent(Bool.self, forKey: .volgzaken)) ?? nil
+    }
 }
 
 struct FeedStart: Codable {

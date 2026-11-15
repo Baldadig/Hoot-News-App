@@ -118,7 +118,9 @@ import XCTest
         let body = bron.components(separatedBy: "ScrollViewReader { scroll in").first ?? ""
         XCTAssertFalse(body.contains("volger.grens("), "body leest alleen (volger.vastgezet)")
         XCTAssertTrue(body.contains("volger.vastgezet("))
-        XCTAssertTrue(bron.contains("_ = volger.grens(weergave, items: items, gezien: store.streamGezien)"), "vastzetten in .onChange")
+        // Volgen 1.5: .onChange zet de grens vast en daarmee de voorrang (volgStroom.zetVast), nooit body.
+        XCTAssertTrue(bron.contains("let g = volger.grens(weergave, items: items, gezien: store.streamGezien)"), "vastzetten in .onChange")
+        XCTAssertFalse(body.contains("zetVast("), "body zet ook geen voorrang vast")
     }
 
     // Tweede keuring: "Hier was je gebleven" alleen als je onder de grens echt iets zag. Verse opslag: nooit. Gelijk

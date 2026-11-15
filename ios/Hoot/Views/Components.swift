@@ -476,13 +476,16 @@ struct Kicker: View {
     var number: Int? = nil
     var read = false
     var lead = false
+    // Volgen 1.5: het label "✓ Je volgt" achter de rubriek (VolgLabelBeeld). Tikbaar via de knop die de kaart erover legt
+    // (volgLabelKnop), zodat er nooit een knop in de knop van de kaart staat.
+    var volgt: StoryVolgzaak? = nil
     private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
     private var dot: Text { Text(" · ").foregroundStyle(Theme.ink3) }
     var body: some View {
         let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
         HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
             EditionNumber(number: number, read: read, lead: lead)
-            if number != nil && !parts.isEmpty { Text("·").font(.ui(.caption)).foregroundStyle(Theme.hint).accessibilityHidden(true) }
+            if number != nil && (!parts.isEmpty || volgt != nil) { Text("·").font(.ui(.caption)).foregroundStyle(Theme.hint).accessibilityHidden(true) }
             if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
@@ -496,6 +499,10 @@ struct Kicker: View {
                 rubric.font(.ui(.caption, .heavy)).tracking(0.6).fixedSize(horizontal: false, vertical: true)
             }
         }
+            if let volgt {
+                if !parts.isEmpty { Text("·").font(.ui(.caption)).foregroundStyle(Theme.ink3).accessibilityHidden(true).padding(.horizontal, -Space.s1) }
+                VolgLabelBeeld(volgt: volgt)
+            }
         }
     }
 }
@@ -891,6 +898,8 @@ struct ArticleMenuContent: View {
             Section {
                 Button("Meer hiervan", systemImage: "hand.thumbsup") { respond(true) }
                 Button("Minder hiervan", systemImage: "hand.thumbsdown") { respond(false) }
+                // Volgen 1.5 (achter de vlag): "Volg GTA 6", of "Naar GTA 6" en "Stop met volgen" (VolgViews.swift).
+                if let zaak = store.volgzaakVan(item) { VolgMenuRegels(zaak: zaak) }
             }
             Menu("Klopt dit niet?", systemImage: "flag") {
                 ForEach(CorrectionReason.allCases, id: \.self) { reason in
@@ -1045,6 +1054,7 @@ struct LeadCard: View {
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
+    var volgt: StoryVolgzaak? = nil // Volgen 1.5: het label "Je volgt" in de rubriekregel (gaat voor "Buiten je bronnen")
     var hang = false // iPad staand (B): het nummer in de kantlijn, het beeld over de hele kolom
     var imageHeight: CGFloat? = nil // iPad liggend (A): het beeld zo hoog als de zijkolom ernaast
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
@@ -1073,9 +1083,9 @@ struct LeadCard: View {
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
-            if number != nil || label != nil || why != nil {
+            if number != nil || label != nil || why != nil || volgt != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label, number: hang ? nil : number, read: store.isRead(item))
+                    Kicker(text: label, number: hang ? nil : number, read: store.isRead(item), volgt: volgt)
                     WhyLine(text: why)
                 }
             }
@@ -1091,6 +1101,10 @@ struct LeadCard: View {
     }
 
     var body: some View {
+        Group { leadBody }.volgLabelKnop(volgt) // Volgen 1.5: de knop over het label (VolgViews.swift)
+    }
+
+    @ViewBuilder private var leadBody: some View {
         if kaart {
             kaartLead
         } else if hang {
@@ -1101,7 +1115,7 @@ struct LeadCard: View {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()).opensArticle(item)
                         UitlegPillen(item: item) // buiten het tikvlak van het artikel (Uitleg.swift)
-                        SourceLine(item: item, story: story, outside: outside)
+                        SourceLine(item: item, story: story, outside: outside && volgt == nil)
                     }
                 }
             }
@@ -1115,9 +1129,9 @@ struct LeadCard: View {
     private func vouwTekst(kop: CGFloat, intro: String?, regels: Int) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: Space.s2) {
-                if number != nil || label != nil || why != nil {
+                if number != nil || label != nil || why != nil || volgt != nil {
                     VStack(alignment: .leading, spacing: 0) {
-                        Kicker(text: label, number: number, read: store.isRead(item), lead: true)
+                        Kicker(text: label, number: number, read: store.isRead(item), lead: true, volgt: volgt)
                         WhyLine(text: why, compact: true)
                     }
                 }
@@ -1135,7 +1149,7 @@ struct LeadCard: View {
             .opensArticle(item)
             // De pil telt mee in wat boven de vouw moet passen, zoals .terms binnen de meting van src/lib/vouw.js.
             UitlegPillen(item: item, max: 1, top: Space.s2)
-            SourceLine(item: item, story: story, outside: outside, kaart: true).padding(.top, Space.s3)
+            SourceLine(item: item, story: story, outside: outside && volgt == nil, kaart: true).padding(.top, Space.s3)
         }
     }
 
@@ -1186,9 +1200,9 @@ struct LeadCard: View {
                 }
                 .padding(.horizontal, -Space.s4) // tot de rand van het scherm
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    if number != nil || label != nil || why != nil {
+                    if number != nil || label != nil || why != nil || volgt != nil {
                         VStack(alignment: .leading, spacing: 0) {
-                            Kicker(text: label, number: number, read: store.isRead(item), lead: true)
+                            Kicker(text: label, number: number, read: store.isRead(item), lead: true, volgt: volgt)
                             WhyLine(text: why, compact: true)
                         }
                     }
@@ -1206,7 +1220,7 @@ struct LeadCard: View {
             .contentShape(Rectangle())
             .opensArticle(item)
             UitlegPillen(item: item, max: 1, top: Space.s2) // buiten het tikvlak (Uitleg.swift)
-            SourceLine(item: item, story: story, outside: outside, kaart: true).padding(.top, Space.s3)
+            SourceLine(item: item, story: story, outside: outside && volgt == nil, kaart: true).padding(.top, Space.s3)
             StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4 + Space.s1) // de sterke inktlijn: het begin van de lijst, 20 onder 01 (gelijk aan het web)
         }
     }
@@ -1230,7 +1244,7 @@ struct LeadCard: View {
             .contentShape(Rectangle())
             .opensArticle(item)
             UitlegPillen(item: item) // hooguit twee, zoals LeadStory op het web
-            SourceLine(item: item, story: story, outside: outside)
+            SourceLine(item: item, story: story, outside: outside && volgt == nil)
         }
     }
 }
@@ -1254,6 +1268,7 @@ struct ItemRow: View {
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
+    var volgt: StoryVolgzaak? = nil // Volgen 1.5: het label "Je volgt" in de rubriekregel (gaat voor "Buiten je bronnen")
     var linkSource = true
     var form: Form?
     var boven: CGFloat? = nil // in een paar (A): het beeld groot boven het verhaal, zo hoog
@@ -1287,7 +1302,10 @@ struct ItemRow: View {
     private var dichtVorm: Bool { dicht && !item.isPost && !typeSize.isAccessibilitySize && boven == nil }
 
     var body: some View {
-        if dichtVorm { dichtBody } else if kaart { if klein { kaartKlein } else { kaartBody } } else { regular }
+        Group {
+            if dichtVorm { dichtBody } else if kaart { if klein { kaartKlein } else { kaartBody } } else { regular }
+        }
+        .volgLabelKnop(volgt) // Volgen 1.5: de knop over het label (VolgViews.swift)
     }
 
     // De dichte rij (Voorpagina.swift): rubriek en waarom op één regel, de kop over de volle breedte (zo breekt hij
@@ -1297,18 +1315,18 @@ struct ItemRow: View {
     private var dichtBody: some View {
         VStack(alignment: .leading, spacing: Space.s1) {
             VStack(alignment: .leading, spacing: Space.s1) {
-                if number != nil || label != nil || why != nil {
+                if number != nil || label != nil || why != nil || volgt != nil {
                     // Rubriek en waarom op één regel als dat past ("02 · VS · Groot nieuws"), anders onder elkaar.
                     ViewThatFits(in: .horizontal) {
                         HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
-                            Kicker(text: label, number: number, read: store.isRead(item)).fixedSize()
+                            Kicker(text: label, number: number, read: store.isRead(item), volgt: volgt).fixedSize()
                             if WhyLine.shows(why) {
                                 Text("·").font(.ui(.caption)).foregroundStyle(Theme.hint).accessibilityHidden(true)
                                 WhyLine(text: why, compact: true).fixedSize()
                             }
                         }
                         VStack(alignment: .leading, spacing: 0) {
-                            Kicker(text: label, number: number, read: store.isRead(item))
+                            Kicker(text: label, number: number, read: store.isRead(item), volgt: volgt)
                             WhyLine(text: why, compact: true)
                         }
                     }
@@ -1322,7 +1340,7 @@ struct ItemRow: View {
             .contentShape(Rectangle())
             .opensArticle(item)
             HStack(alignment: .center, spacing: Space.s3) {
-                SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, narrow: true, dicht: true)
+                SourceLine(item: item, story: story, linkSource: linkSource, outside: outside && volgt == nil, narrow: true, dicht: true)
                 if store.showsImage(lead: false) {
                     Group {
                         if hasPicture {
@@ -1365,7 +1383,7 @@ struct ItemRow: View {
             .contentShape(Rectangle())
             .opensArticle(item)
             UitlegPillen(item: item, max: 1) // buiten het tikvlak van het artikel (Uitleg.swift)
-            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, kaart: true)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside && volgt == nil, kaart: true)
         }
         .padding(.vertical, Space.s2)
     }
@@ -1393,7 +1411,7 @@ struct ItemRow: View {
             .contentShape(Rectangle())
             .opensArticle(item)
             UitlegPillen(item: item, max: 1) // buiten het tikvlak van het artikel (Uitleg.swift)
-            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, kaart: true)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside && volgt == nil, kaart: true)
         }
         .padding(.vertical, Space.s2)
     }
@@ -1407,9 +1425,9 @@ struct ItemRow: View {
     }
 
     @ViewBuilder private var kaartKicker: some View {
-        if number != nil || label != nil || why != nil {
+        if number != nil || label != nil || why != nil || volgt != nil {
             VStack(alignment: .leading, spacing: 0) {
-                Kicker(text: label, number: number, read: store.isRead(item))
+                Kicker(text: label, number: number, read: store.isRead(item), volgt: volgt)
                 WhyLine(text: why, compact: true)
             }
         }
@@ -1487,7 +1505,7 @@ struct ItemRow: View {
             // intro geen gat tussen kop en bron: dan volgt de bronregel op de kop en komt de witruimte onderaan
             // (.pairs > .fitem zonder .fitem__sum op het web; kaartkwaliteit).
             if pinSource && krantIntro != nil { Spacer(minLength: 0) }
-            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, narrow: narrow)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside && volgt == nil, narrow: narrow)
             if pinSource && krantIntro == nil { Spacer(minLength: 0) }
         }
         .padding(.vertical, Space.s2)
@@ -1510,9 +1528,9 @@ struct ItemRow: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            if number != nil || label != nil || why != nil || whySpace {
+            if number != nil || label != nil || why != nil || volgt != nil || whySpace {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label, number: number, read: store.isRead(item))
+                    Kicker(text: label, number: number, read: store.isRead(item), volgt: volgt)
                     WhyLine(text: why)
                     if whySpace && !WhyLine.shows(why) { WhyLine(text: "Groot nieuws").hidden().accessibilityHidden(true) } // .why--leeg op het web
                 }
