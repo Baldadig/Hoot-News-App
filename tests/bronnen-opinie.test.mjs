@@ -20,10 +20,14 @@ import { buildStories, selectForReader } from '../netlify/lib/stories.mjs'
 import { profileOf } from '../shared/editor.mjs'
 import { NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
 import { VAK_SOURCES, VAK_FIELDS, fieldOf } from '../netlify/lib/vak.mjs'
+import { ARCHIVED_SOURCES } from '../netlify/lib/vakBronnen.mjs'
+import { followedOf } from '../netlify/functions/edition.mjs'
+import { existsSync } from 'node:fs'
 import { STARTER } from '../src/lib/topics.js'
 
 const byId = new Map(SOURCES.map((s) => [s.id, s]))
-const OPINIE = ['joop', 'groene', 'vn', 'sargasso', 'hpdetijd', 'wyniasweek', 'tpo', 'geenstijl', 'socialevraagstukken']
+// Wynia's Week viel af (besluit Alex 15 november 2026): zie de toets 'Wynia's Week' onderaan.
+const OPINIE = ['joop', 'groene', 'vn', 'sargasso', 'hpdetijd', 'tpo', 'geenstijl', 'socialevraagstukken']
 const OMROEPEN = ['nhnieuws', 'omroepwest', 'rijnmond', 'rtvutrecht', 'omroepgelderland', 'rtvoost', 'rtvnoord', 'rtvdrenthe', 'omropfryslan', 'omroepbrabant', 'l1', 'omroepzeeland']
 const NIEUW = [...OPINIE, ...OMROEPEN, 'zembla', 'argos', 'rd', 'caribischnetwerk', 'duic', 'versbeton', 'apache', 'bruzz', 'humo', 'villamedia', 'mediacourant', 'cuttingedge', 'nieuwemuze']
 
@@ -142,7 +146,7 @@ test('Geschiedenis: een onderwerp van de Selectie, met bronnen, op de server, he
 
 test('Selectie: opinie van links tot rechts, en Nederlandstalige cultuur, taal en media', () => {
   const ids = new Set(VAK_SOURCES.map((s) => s.id))
-  for (const id of ['joop', 'hpdetijd', 'wyniasweek', 'tpo', 'socialevraagstukken', 'nederlandrechtsstaat', 'oneworld', 'opiniez', 'dewereldmorgen', 'uitpers', 'groene', 'vn', 'sargasso'])
+  for (const id of ['joop', 'hpdetijd', 'tpo', 'socialevraagstukken', 'nederlandrechtsstaat', 'oneworld', 'opiniez', 'dewereldmorgen', 'uitpers', 'groene', 'vn', 'sargasso'])
     assert.ok(ids.has('vak:' + id), id)
   for (const id of ['mediacourant', 'cuttingedge', 'nieuwemuze', 'placedelopera', 'jazzism', 'neerlandistiek', 'hardhoofd', 'filosofie', 'theaterkrant', 'delagelanden', 'nemokennislink'])
     assert.ok(ids.has('vak:' + id), id)
@@ -170,4 +174,17 @@ test('elke feed, elk logo en elke inlogpagina is een geldige https-URL; elke bro
   }
   // Betaalde titels zeggen het.
   for (const id of ['groene', 'vn', 'hpdetijd', 'tpo', 'rd', 'apache', 'humo']) assert.equal(byId.get(id).paid, true, id)
+})
+
+test("Wynia's Week: uit de bronnen (besluit Alex 15 november 2026), en wie hem volgde, krijgt geen fout", () => {
+  assert.ok(!byId.has('wyniasweek') && !OPINIE_IDS.has('wyniasweek') && !NL_HOME.has('wyniasweek'))
+  assert.ok(!VAK_SOURCES.some((s) => s.id === 'vak:wyniasweek'), 'niet in de Selectie')
+  assert.ok(ARCHIVED_SOURCES.some((s) => s.id === 'vak:wyniasweek'), 'de Selectie-regel staat in het archief')
+  assert.ok(!existsSync(new URL('../landing/bronnen/wyniasweek.webp', import.meta.url)), 'geen logo op de landing')
+  // Een oude keuze valt stil weg: de server rekent alleen met bronnen die bestaan.
+  const start = { sources: SOURCES.map((s) => ({ id: s.id, kind: 'nieuws' })) }
+  assert.deepEqual(followedOf(start, { followed: ['joop', 'wyniasweek', 'tpo'] }), ['joop', 'tpo'])
+  // Rechts in de Stroom-tab Opinie blijven TPO en GeenStijl; in Selectie · Politiek TPO.
+  for (const id of ['tpo', 'geenstijl']) assert.ok(OPINIE_IDS.has(id), id)
+  assert.ok(VAK_SOURCES.some((s) => s.id === 'vak:tpo'))
 })

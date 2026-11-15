@@ -236,14 +236,14 @@ var HootCore = (() => {
     S("rd", "Reformatorisch Dagblad", "nl", "nl", "Orthodox-christelijk dagblad: nieuws en duiding.", "https://www.rd.nl/rss-feed", { login: "https://www.rd.nl/login", paid: true, color: "#245BA7", bsky: "rd.nl", x: "refdag" }),
     S("caribischnetwerk", "Caribisch Netwerk", "nl", "nl", "Nieuws uit Caribisch Nederland, Aruba, Curaçao en Sint Maarten (NTR).", "https://caribischnetwerk.ntr.nl/feed/", { color: "#25B8CC", x: "CaribischNet" }),
     // Opinie (13 november 2026): in de Stroom en de Selectie, niet in de Editie (`opinie`). Allemaal minstens vijf
-    // stukken per week, gemeten in de feed. Links Joop, De Groene, Vrij Nederland en Sargasso; rechts Wynia's Week, TPO
-    // en GeenStijl; HP/De Tijd daartussen; Sociale Vraagstukken zonder partijkleur.
+    // stukken per week, gemeten in de feed. Links Joop, De Groene, Vrij Nederland en Sargasso; rechts TPO en GeenStijl;
+    // HP/De Tijd daartussen; Sociale Vraagstukken zonder partijkleur. Wynia's Week viel af (besluit Alex 15 november 2026);
+    // wie hem volgde, krijgt geen fout: een onbekende bron valt stil weg (followedOf in netlify/functions/edition.mjs).
     S("joop", "Joop", "nl", "nl", "Opinie en commentaar van BNNVARA, progressief.", "https://www.joop.nl/feed", { opinie: true, color: "#FC3E28", bsky: "joop.nl" }),
     S("groene", "De Groene Amsterdammer", "nl", "nl", "Opinieweekblad met essays, analyses en reportages, links.", "https://www.groene.nl/rss.xml", { opinie: true, login: "https://www.groene.nl/", paid: true, color: "#E10005", bsky: "groene.nl", x: "DeGroene" }),
     S("vn", "Vrij Nederland", "nl", "nl", "Opinieblad met essays en reportages, links-liberaal.", "https://www.vn.nl/feed/", { opinie: true, login: "https://www.vn.nl/inloggen/", paid: true, color: "#E20006", bsky: "vn.nl", x: "vrij_nederland" }),
     S("sargasso", "Sargasso", "nl", "nl", "Groepsblog over politiek en beleid, links en genuanceerd.", "https://sargasso.nl/feed/", { opinie: true, color: "#65C26A", bsky: "sargassoblog.bsky.social" }),
     S("hpdetijd", "HP/De Tijd", "nl", "nl", "Opinieblad: eigenzinnig, liberaal en kritisch.", "https://www.hpdetijd.nl/rss", { opinie: true, login: "https://www.hpdetijd.nl/login", paid: true, color: "#E40815", bsky: "hpdetijd.bsky.social", x: "HPdeTijdNL" }),
-    S("wyniasweek", "Wynia's Week", "nl", "nl", "Opinie en analyse, rechts-liberaal.", "https://www.wyniasweek.nl/feed/", { opinie: true, color: "#EC2027", x: "wyniasweek" }),
     S("tpo", "TPO", "nl", "nl", "Opinie en commentaar, conservatief.", "https://tpo.nl/feed/", { opinie: true, login: "https://tpo.nl/inloggen/", paid: true, color: "#0F4166", logo: "https://tpo.nl/wp-content/uploads/2025/10/cropped-TPO_Logobox_New-02-192x192.jpg" }),
     S("geenstijl", "GeenStijl", "nl", "nl", "Provocerend weblog, rechts-populistisch.", "https://www.geenstijl.nl/feeds/recent.atom", { opinie: true, color: "#ED2690", bsky: "geenstijlhq.bsky.social" }),
     S("socialevraagstukken", "Sociale Vraagstukken", "nl", "nl", "Wetenschappers over de samenleving, zonder partijkleur.", "https://www.socialevraagstukken.nl/feed/", { opinie: true, color: "#E63400", logo: "https://socialevraagstukken.b-cdn.net/wp-content/uploads/cropped-favicon-192x192.png" }),
@@ -673,7 +673,6 @@ var HootCore = (() => {
     "vn",
     "sargasso",
     "hpdetijd",
-    "wyniasweek",
     "tpo",
     "geenstijl",
     "socialevraagstukken",
