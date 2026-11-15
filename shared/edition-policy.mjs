@@ -34,6 +34,10 @@ export const publisherCountry = id => COUNTRIES[publisherOf(id)] || null
 // grootste aantal algemene nieuwsuitgevers dat een buitenlands land vóór deze regel had (Amerika en Groot-Brittannië,
 // elk zes). Nederland en Vlaanderen tellen onbegrensd: groot Nederlands en Vlaams nieuws telt precies als voorheen.
 // Een uitgever zonder bekend land telt gewoon mee.
+// Eén telling overal (dubbelcheck B7, 15 november 2026): ook de rangorde (het gewicht van een verhaal), de familie en
+// de plafonds als HOLD_PUBS rekenen met deze begrensde telling, niet met het ruwe aantal uitgevers. Anders weegt een
+// Amerikaans verhaal zwaarder naarmate de catalogus meer Amerikaanse uitgevers krijgt, en dat is precies wat deze regel
+// voorkomt. Groot nieuws voor een wereldverhaal blijft zoals voorheen: vijf uit minstens twee landen (majorNews).
 export const COUNTRY_MAX = FRONT_MIN
 const UNCAPPED = new Set(['NL', 'BE'])
 // Het aantal uitgevers (al ontdubbeld: publisherOf) volgens de landenregel.

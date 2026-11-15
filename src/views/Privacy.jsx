@@ -111,7 +111,7 @@ export default function Privacy({ onBack, backLabel }) {
         <p>
           Vragen over je gegevens? Mail naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>.
         </p>
-        <p>Bijgewerkt op 13 november 2026.</p>
+        <p>Bijgewerkt op 14 november 2026.</p>
       </div>
     </section>
   )
