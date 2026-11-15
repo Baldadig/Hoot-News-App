@@ -18,6 +18,7 @@ import { SOURCES, MAIN_IDS, OPINIE_IDS, MUSIC_IDS } from '../netlify/lib/sources
 import { opinieBron, isOpinie } from '../shared/opinie.mjs'
 import { coverageOf, publisherOf, publisherCountry, majorNews, majorGeneralNews, newsRejection, countedPublishers, COUNTRY_MAX } from '../shared/edition-policy.mjs'
 import { FRONT_MIN, FRONT_BIG } from '../shared/editor.mjs'
+import { weight } from '../netlify/lib/desks.mjs'
 import { composePersonal, languageRule } from '../src/lib/personal.js'
 import { followGroups } from '../src/lib/follow-welcome.js'
 import { SOURCE_CATS, STARTER } from '../src/lib/topics.js'
@@ -206,6 +207,21 @@ test('landenregel: een wereldverhaal met Nederland, Amerika en Groot-Brittannië
   assert.equal(majorNews({}, groot), true)
   const binnenland = { interests: new Set(['binnenland']), family: { binnenland: 1 }, topicP: {}, favorites: new Set() }
   assert.notEqual(newsRejection(binnenland, coverageOf(wereld), wereld, 'vs'), 'internationaal-niet-groot-genoeg')
+})
+
+// Dubbelcheck B7 (15 november 2026): de rangorde rekent met dezelfde begrensde telling als de drempels. Meer Amerikaanse
+// uitgevers in de catalogus maken een wereldverhaal niet zwaarder dan zes Amerikaanse; het blijft wel groot nieuws.
+test('landenregel: de rangorde weegt met de begrensde telling (B7)', () => {
+  const zes = stukken(['nos', 'bbc', 'nyt', 'atlantic', 'newyorker', 'foreignpolicy', 'politico', 'npr'])
+  const alle = stukken(['nos', 'bbc', ...nieuwsVan('US')])
+  assert.ok(nieuwsVan('US').length > FRONT_MIN, 'meer Amerikaanse uitgevers dan zes (anders toetst dit niets)')
+  const nu = Date.parse('2026-11-15T08:00:00Z')
+  const w = (items) => weight({ sourceCount: coverageOf(items).publisherCount, latestAt: '2026-11-15T07:00:00Z' }, nu)
+  assert.equal(w(alle), w(zes))
+  assert.equal(majorNews({}, alle), true)
+  const server = readFileSync(new URL('../netlify/lib/stories.mjs', import.meta.url), 'utf8')
+  assert.ok(server.includes('weight({ sourceCount: st.publisherCount ?? st.sourceCount'), 'het gewicht van een verhaal neemt publisherCount (begrensd)')
+  assert.ok(server.includes('const eff = st.publisherCount ??'), 'ook in de persoonlijke Editie')
 })
 
 test('landenregel: Nederlands en Vlaams nieuws telt onbegrensd, precies als voorheen', () => {
