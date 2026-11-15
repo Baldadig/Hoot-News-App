@@ -34,7 +34,10 @@ const S = (id, name, cat, lang, about, url, more = {}) => ({ id, name, cat, lang
 // gebruikt dezelfde url. De terugval van het merkbeeld: `logo`, Bluesky, dit eigen logo, favicon (nachttest 14 november:
 // unavatar.io gaf 429, en dan toonde web en app een letter of een favicon).
 export const OWN_LOGO_BASE = 'https://gethoot.app/img/bronnen/'
-const own = (id) => OWN_LOGO_BASE + id + '.webp'
+// Een vernieuwd logo krijgt een versie in de url: de bestanden staan zeven dagen in de cache van browser en app,
+// met een nieuwe url ziet iedereen het nieuwe beeld meteen (15 november: de rode O voor de NOS-familie).
+export const OWN_LOGO_VERSIE = { nos: 2, 'nos-economie': 2, 'nos-sport': 2, 'nos-cultuur': 2 }
+const own = (id) => OWN_LOGO_BASE + id + '.webp' + (OWN_LOGO_VERSIE[id] ? '?v=' + OWN_LOGO_VERSIE[id] : '')
 export const SOURCES = [
   // Nederland
   S('nos', 'NOS', 'nl', 'nl', 'Het publieke nieuws: snel, breed en gratis.', ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'], { pick: true, base: true, logo: own('nos'), x: 'nos', color: '#B5121B' }),

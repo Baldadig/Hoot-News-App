@@ -3,6 +3,7 @@
 // Gebruik: node landing/bronlogos.mjs            haalt https://gethoot.app/api/feed op
 //          node landing/bronlogos.mjs feed.json  werkt met een bewaarde feed
 //          node landing/bronlogos.mjs --nieuw    alleen de bronnen van de catalogus die nog geen logo-bestand hebben
+//          node landing/bronlogos.mjs --alleen=nos,nos-sport   alleen deze bronnen (de rest blijft staan)
 // Een bron die (nog) niet in de feed staat (net toegevoegd), krijgt het beeld zoals de server het kiest (rss.mjs):
 // `logo`, dan het Bluesky-profielbeeld (`bsky`), dan X (`x`, via unavatar.io).
 // Draai dit als er een bron bij komt of een uitgever zijn logo wijzigt; build.mjs zet de bestanden in dist/img/bronnen.
@@ -14,9 +15,10 @@ import { SOURCES } from '../netlify/lib/sources.mjs'
 const HIER = path.dirname(decodeURIComponent(new URL(import.meta.url).pathname))
 const UIT = path.join(HIER, 'bronnen')
 const NIEUW = process.argv.includes('--nieuw')
+const ALLEEN = new Set((process.argv.find((a) => a.startsWith('--alleen=')) || '').slice(9).split(',').filter(Boolean))
 const bestand = process.argv.slice(2).find((a) => !a.startsWith('--'))
-const feed = NIEUW ? { sources: [] } : bestand ? JSON.parse(fs.readFileSync(bestand, 'utf8')) : await (await fetch('https://gethoot.app/api/feed', { headers: { accept: 'application/json' } })).json()
-const bekend = new Set(SOURCES.map((s) => s.id))
+const feed = NIEUW || ALLEEN.size ? { sources: [] } : bestand ? JSON.parse(fs.readFileSync(bestand, 'utf8')) : await (await fetch('https://gethoot.app/api/feed', { headers: { accept: 'application/json' } })).json()
+const bekend = new Set(SOURCES.filter((s) => !ALLEEN.size || ALLEEN.has(s.id)).map((s) => s.id))
 const lijst = (feed.sources || []).filter((s) => bekend.has(s.id) && /^https:\/\//.test(s.avatar || ''))
 const inFeed = new Set(lijst.map((s) => s.id))
 const heeftBestand = (id) => fs.existsSync(path.join(UIT, id + '.webp'))
@@ -29,6 +31,7 @@ async function bskyBeeld(handle) {
   }
 }
 for (const s of SOURCES) {
+  if (!bekend.has(s.id)) continue
   if (inFeed.has(s.id) || (NIEUW && heeftBestand(s.id))) continue
   const avatar = s.logo || (s.bsky && (await bskyBeeld(s.bsky))) || (s.x ? `https://unavatar.io/x/${s.x}?fallback=false` : null)
   if (avatar) lijst.push({ id: s.id, avatar })
@@ -47,6 +50,10 @@ const BETER = {
   guardian: 'https://assets.guim.co.uk/static/frontend/icons/homescreen/apple-touch-icon-512.png',
   rd: 'https://www.rd.nl/RDnl-Apple-iPhone-Retina-180x180.png', // het Bluesky-beeld heeft een grijze lijn langs de linkerrand
 }
+// 15 november 2026: het oude NOS-beeld was het woordmerk "NOS nieuws", op 20 px onleesbaar. Nu voor de hele NOS-familie
+// de rode O van nos.nl zelf (app-icoon uit hun webmanifest, 512 px, met witruimte voor een ronde uitsnede).
+const NOS_O = 'https://static.nos.nl/img/favicon/android-chrome-512x512-maskable.png'
+for (const id of ['nos', 'nos-economie', 'nos-sport', 'nos-cultuur']) BETER[id] = NOS_O
 // 13 november 2026: bij 'rd', 'rtvutrecht', 'mediacourant', 'humo' en 'bruzz' raakt het woordmerk de rand.
 // 14 november 2026: ook bij 'euronews' en 'thefp' (bronnen-internationaal, nagekeken op een vel met ronde uitsneden).
 const LUCHT = new Set(['tubantia', 'bd', 'ed', 'bndestem', 'pzc', 'nieuwsblad', 'rd', 'rtvutrecht', 'mediacourant', 'humo', 'bruzz', 'euronews', 'thefp'])
