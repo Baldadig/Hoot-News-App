@@ -49,7 +49,7 @@ export const BASE_SOURCES = [
   // Digital Design
   // It's Nice That en PRINT in plaats van Creative Review en Design Week (15 november): die weigeren de server (Cloudflare-
   // check); de oude regels staan in het archief (ARCHIVED_SOURCES). It's Nice That: de feed die de site zelf aangeeft.
-  V('itsnicethat', "It's Nice That", 'vakblad', ['design', 'merk'], 'https://feeds.feedburner.com/itsnicethat/SlXC', { filter: true }),
+  V('itsnicethat', "It's Nice That", 'vakblad', ['design', 'merk'], 'https://feeds.feedburner.com/itsnicethat/SlXC', { filter: true, sponsoredSlug: true }),
   V('printmag', 'PRINT', 'vakblad', ['design'], 'https://www.printmag.com/feed/', { filter: true }),
   V('fastco-design', 'Fast Company Design', 'vakblad', ['design'], 'https://www.fastcompany.com/co-design/rss', { filter: true }),
   V('awwwards', 'Awwwards', 'vakblad', ['design'], 'https://www.awwwards.com/blog/feed/'),
@@ -350,12 +350,13 @@ export function podcastLabel(title = '') {
   // Met een dubbele punt alleen een eigen naam: "The Low Culture Podcast: …" (niet "Video Podcast: …").
   return SHOW_NAME.test(t.split(/\s*:\s*/)[0].trim()) && t.includes(':')
 }
-// Gesponsord volgens het adres zelf (It's Nice That zet het alleen in de link, niet in de kop).
-const SPONSORED_URL = /[/-](sponsored(-content)?|partner-content|advertorial)([/-]|$)/i
+// `sponsoredSlug` (een bron die "sponsored content" alleen in de link zet, zoals It's Nice That): dat woordpaar in de slug
+// is reclame. Alleen voor zo'n bron, want bij andere bronnen staat "state-sponsored" of "sponsored-content" in gewone koppen.
+const SPONSORED_SLUG = /-sponsored-content(?=[-/]|$)/i
 // `textOnly` (een bron die ook audio en video plaatst, zoals Paul Krugman): alleen de geschreven stukken.
 const AV = /^(audio|video)\//i
 export const isReading = (it, src = null) =>
-  !!it.title && !SPONSORED_URL.test(it.url || '') && !NOT_READING.test(it.title) && !isListicle(it.title) && !ROUNDUP.test(it.title) && !COLLECTION.test(it.title) && !isBuying(it.title) && !ANNOUNCE.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
+  !!it.title && !(src?.sponsoredSlug && SPONSORED_SLUG.test(it.url || '')) && !NOT_READING.test(it.title) && !isListicle(it.title) && !ROUNDUP.test(it.title) && !COLLECTION.test(it.title) && !isBuying(it.title) && !ANNOUNCE.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
 const AMS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short' })

@@ -29,7 +29,29 @@ test('bronnen die de server weigeren staan in het archief, de vervangers doen me
   assert.deepEqual(VAK_SOURCES.find((s) => s.id === 'vak:itsnicethat').fields, ['design', 'merk'])
 })
 
-test('gesponsord volgens het adres telt niet als leesvoer', () => {
-  assert.equal(isReading({ title: 'Vucko’s motion identity for Etsy', url: 'https://www.itsnicethat.com/articles/vucko-etsy-motion-graphic-design-sponsored-content-121126' }), false)
-  assert.equal(isReading({ title: 'Vucko’s motion identity for Etsy', url: 'https://www.itsnicethat.com/articles/vucko-etsy-motion-graphic-design-121126' }), true)
+// Keuring 15 november: alleen een bron die "sponsored content" uitsluitend in de link zet (It's Nice That) krijgt die
+// toets, en alleen op dat woordpaar in de slug. Gewone slugs met "state-sponsored", "nike-sponsored" of "advertorial"
+// blijven leesvoer, bij elke bron.
+const iint = VAK_SOURCES.find((s) => s.id === 'vak:itsnicethat')
+test('gesponsord in de slug van It\'s Nice That telt niet als leesvoer', () => {
+  assert.equal(iint.sponsoredSlug, true)
+  assert.equal(isReading({ title: 'Vucko’s motion identity for Etsy', url: 'https://www.itsnicethat.com/articles/vucko-etsy-motion-graphic-design-sponsored-content-121126' }, iint), false)
+  assert.equal(isReading({ title: 'Vucko’s motion identity for Etsy', url: 'https://www.itsnicethat.com/articles/vucko-etsy-motion-graphic-design-121126' }, iint), true)
+})
+
+test('state-sponsored en andere gewone slugs blijven leesvoer', () => {
+  const verge = VAK_SOURCES.find((s) => s.id === 'vak:theverge') || null
+  const gewoon = [
+    ['Hackers targeted design tools', 'https://www.wired.com/story/state-sponsored-hackers-target-designers/'],
+    ['X', 'https://www.theverge.com/2026/11/1/nike-sponsored-athletes-speak-out'],
+    ['X', 'https://www.theverge.com/2026/11/1/state-sponsored-hackers-target-design-firms'],
+    ['X', 'https://www.theverge.com/2026/11/1/advertorial-rules-tightened-by-regulator'],
+    ['X', 'https://www.example.test/2026/11/1/nation-state-sponsored-attack'],
+  ]
+  for (const [title, u] of gewoon) {
+    assert.equal(isReading({ title, url: u }), true, u)
+    assert.equal(isReading({ title, url: u }, verge), true, u)
+  }
+  // Ook bij It's Nice That: "state-sponsored" is geen "sponsored content".
+  assert.equal(isReading({ title: 'Posters against censorship', url: 'https://www.itsnicethat.com/articles/state-sponsored-censorship-posters-121126' }, iint), true)
 })

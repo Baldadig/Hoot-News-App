@@ -31,11 +31,21 @@ Zorg blijft dun (Nederlands: Trouw, NU.nl, RIVM, ICT&health; Zorgvisie weigert o
 aanvulling voor Alex om te beslissen: ZonMw (`https://www.zonmw.nl/nl/news/feed`) en Trimbos (`https://www.trimbos.nl/feed/`),
 beide officieel en open. Niet toegevoegd: geen vakblad, en niet gevraagd.
 
-## Gesponsorde stukken
+## Gesponsorde stukken (bijgesteld na de keuring)
 
-Keuze: een stuk waarvan het adres `sponsored`, `sponsored-content`, `partner-content` of `advertorial` als padstuk heeft,
-telt niet als leesvoer (`isReading`, vak.mjs). Waarom: It's Nice That zet "sponsored content" alleen in de link; de
-Selectie neemt al geen gesponsorde stukken (kop). Terug: `SPONSORED_URL` uit `isReading` halen.
+Eerste versie: een algemeen adresfilter op `sponsored`, `partner-content` en `advertorial` voor alle Selectie-bronnen.
+De keuring vond vals alarm op gewone slugs (`state-sponsored-hackers`, `nike-sponsored-athletes`,
+`advertorial-rules-tightened`), en om een algemeen filter was niet gevraagd. Weggehaald.
+
+Keuze nu: alleen een bron met `sponsoredSlug: true` krijgt een adrestoets, en alleen op het woordpaar
+`-sponsored-content` in de slug. Alleen It's Nice That heeft die vlag. Waarom: It's Nice That is in dit pakket
+nieuw gekomen en zet "sponsored content" uitsluitend in de link; de Selectie belooft al geen gesponsorde stukken.
+Zo blijft die belofte voor de nieuwe bron staan zonder iets te raken bij de andere bronnen. Toetsen in
+`tests/selectie-bronnen-feeds.test.mjs` (ook een `state-sponsored`-slug die leesvoer blijft).
+Terug: de vlag `sponsoredSlug` bij It's Nice That (vak.mjs) weghalen; dan telt geen adres meer mee.
+
+Gezien, niet aangepast (buiten dit pakket): de bestaande koptoets `NOT_READING` in vak.mjs pakt het woord
+"sponsored" in een kop, dus ook "state-sponsored" in een kop. Dat was er al voor dit pakket.
 
 ## Logo's
 
