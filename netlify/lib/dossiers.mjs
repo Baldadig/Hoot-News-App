@@ -30,11 +30,17 @@ const H = 36e5
 const SOURCE = new Map(SOURCES.map((s) => [s.id, s]))
 const timeOf = (i) => Date.parse(i?.publishedAt) || 0
 // De taal van de politiek (geen namen, geen dossiers).
-const HAAGS = /(?<![\p{L}\p{N}])(kabinet\w*|kamer|kamerle\w*|kamervragen|kamerdebat\w*|coalitie\w*|oppositie\w*|minister\w*|premier|staatssecretaris\w*|fractie\w*|partij\w*|motie\w*|debat\w*|wetsvoorstel\w*|begroting\w*|formatie\w*|formateur|informateur|verkiezing\w*|politie?k\w*|binnenhof)(?![\p{L}\p{N}])/iu
+export const HAAGS = /(?<![\p{L}\p{N}])(kabinet\w*|kamer|kamerle\w*|kamervragen|kamerdebat\w*|coalitie\w*|oppositie\w*|minister\w*|premier|staatssecretaris\w*|fractie\w*|partij\w*|motie\w*|debat\w*|wetsvoorstel\w*|begroting\w*|formatie\w*|formateur|informateur|verkiezing\w*|politie?k\w*|binnenhof)(?![\p{L}\p{N}])/iu
 // Woorden die met een hoofdletter staan maar geen naam van een dossier zijn: de instellingen van de politiek zelf.
-const NOT_A_DOSSIER = new Set(['kamer', 'tweede', 'eerste', 'den', 'haag', 'haagse', 'kabinet', 'nederland', 'nederlandse', 'nederlanders', 'minister', 'premier', 'staatssecretaris', 'coalitie', 'oppositie', 'kamerleden', 'senaat', 'rijk', 'overheid', 'binnenhof', 'europa', 'europese', 'brussel'])
-const norm = (w) => w.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
+export const NOT_A_DOSSIER = new Set(['kamer', 'tweede', 'eerste', 'den', 'haag', 'haagse', 'kabinet', 'nederland', 'nederlandse', 'nederlanders', 'minister', 'premier', 'staatssecretaris', 'coalitie', 'oppositie', 'kamerleden', 'senaat', 'rijk', 'overheid', 'binnenhof', 'europa', 'europese', 'brussel'])
+// De naamherkenning is gedeeld (volgen 1.5, blok 1): een Haags dossier en een volgzaak (netlify/lib/volgzaak-match.mjs)
+// halen namen op precies dezelfde manier uit een kop. Alleen de drempels verschillen. tests/volgzaak-naamherkenning.test.mjs
+// bewaakt dat dossierNames en haagsDossier dezelfde uitvoer geven als vóór de verbouwing.
+export const normNaam = (w) => w.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const norm = normNaam
 const tokens = (t) => String(t || '').match(/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*/gu) || []
+// De woorden van een kop, ook de delen van een woord met koppeltekens ("GTA-6" is "GTA" en "6"), nog niet genormaliseerd.
+export const kopWoorden = (titel) => tokens(titel).flatMap((x) => x.split('-'))
 const isAcronym = (w) => /^(?=.*\p{Lu})[\p{Lu}\p{N}]{2,5}$/u.test(w) && /\p{Lu}/u.test(w[0])
 
 // Is dit een Haags stuk?
@@ -47,11 +53,44 @@ export function haagsPiece(it) {
   return desksOf(it).has('binnenland')
 }
 
-// De namen in Haagse koppen: woordenschat uit de koppen zelf (een woord met een hoofdletter midden in een zin, niet na
-// een dubbele punt of een aanhalingsteken; of een afkorting), daarna per kop de namen uit die woordenschat, met of zonder
-// hoofdletter, ook vooraan in een samenstelling ("Belastingplandebat", "belastingplannen"). Een woord met een klein getal
-// erachter is ook een naam ("box 3"): zo heten regelingen en artikelen.
+// Een naam is ook een woord met een klein getal erachter ("box 3"): zo heten regelingen en artikelen. Met of zonder
+// hoofdletter, en een lange naam ook vooraan in een samenstelling ("Belastingplandebat", "belastingplannen").
 const NUMBERED = /(?<![\p{L}\p{N}])(\p{L}{3,}) (\d{1,2})(?![\p{N}])/gu
+// De woordenschat (genormaliseerd) en de lange namen daaruit (vanaf 8 tekens, die tellen ook vooraan in een samenstelling).
+const metLang = (woordenschat) => [...woordenschat].filter((w) => w.length >= 8)
+// De namen uit `woordenschat` (een Set van genormaliseerde woorden) in één kop: met of zonder hoofdletter, een lange naam
+// ook vooraan in een samenstelling, en een woord met een klein getal erachter ("box 3", "gta 6"), behalve de woorden in
+// `niet`. `lang`: de lange namen, als de aanroeper ze al heeft (dossierNames, voor veel koppen tegelijk).
+export function namenInKop(titel, woordenschat, { lang = metLang(woordenschat), niet = NOT_A_DOSSIER } = {}) {
+  const out = new Set()
+  for (const w of kopWoorden(titel).map(norm)) {
+    if (woordenschat.has(w)) out.add(w)
+    else for (const n of lang) if (w.startsWith(n)) out.add(n)
+  }
+  for (const m of String(titel || '').matchAll(NUMBERED)) if (!niet.has(norm(m[1]))) out.add(`${norm(m[1])} ${m[2]}`)
+  return out
+}
+// Staat deze naam (één of meer woorden, zoals "Tata Steel" of "Grand Theft Auto") als opeenvolgende woorden in de kop?
+// Alleen voor volgzaken; haagsDossier gebruikt het niet.
+export function kopBevat(titel, naam) {
+  const n = kopWoorden(naam).map(norm)
+  if (!n.length) return false
+  const w = kopWoorden(titel).map(norm)
+  outer: for (let i = 0; i + n.length <= w.length; i++) {
+    for (let j = 0; j < n.length; j++) if (w[i + j] !== n[j]) continue outer
+    return true
+  }
+  return false
+}
+// Per naam het aantal uitgevers (publisherOf: de NOS-familie is één uitgever). `namenPerStuk`: Map(stuk-id → Set(naam)).
+export function uitgeversPerNaam(stukken, namenPerStuk) {
+  const per = new Map()
+  for (const it of stukken) for (const n of namenPerStuk.get(it.id) || []) (per.get(n) || per.set(n, new Set()).get(n)).add(publisherOf(it.source))
+  return new Map([...per].map(([n, s]) => [n, s.size]))
+}
+
+// De namen in Haagse koppen: woordenschat uit de koppen zelf (een woord met een hoofdletter midden in een zin, niet na
+// een dubbele punt of een aanhalingsteken; of een afkorting), daarna per kop de namen uit die woordenschat (namenInKop).
 export function dossierNames(pieces = []) {
   const vocab = new Set()
   for (const it of pieces) {
@@ -67,16 +106,8 @@ export function dossierNames(pieces = []) {
     }
   }
   for (const w of NOT_A_DOSSIER) vocab.delete(w)
-  const long = [...vocab].filter((w) => w.length >= 8)
-  return new Map(pieces.map((it) => {
-    const out = new Set()
-    for (const w of tokens(it.title).flatMap((x) => x.split('-')).map(norm)) {
-      if (vocab.has(w)) out.add(w)
-      else for (const n of long) if (w.startsWith(n)) out.add(n)
-    }
-    for (const m of String(it.title || '').matchAll(NUMBERED)) if (!NOT_A_DOSSIER.has(norm(m[1]))) out.add(`${norm(m[1])} ${m[2]}`)
-    return [it.id, out]
-  }))
+  const lang = metLang(vocab)
+  return new Map(pieces.map((it) => [it.id, namenInKop(it.title, vocab, { lang })]))
 }
 
 // `entries`: de plekken (na selectie en aanvulling); `newsPool`: de stukken die de Editie mag gebruiken; `stories`: de

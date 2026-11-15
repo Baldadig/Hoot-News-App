@@ -43,7 +43,7 @@ test('andere voorvoegsels blijven staan en worden niet eens opgevraagd', async (
   const gevraagd = []
   const list = async (p) => { gevraagd.push(p); return n.list(p) }
   await opruimen({ now: NOW, list, remove: n.remove, log: n.log })
-  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'pe-member:', 'brief-quota-', 'tel:', 'filter-ai:'])
+  assert.deepEqual(gevraagd, ['pe:', 'pe-quota:', 'pe-member:', 'brief-quota-', 'tel:', 'filter-ai:', 'volgzaak-voorraad:', 'volgzaak-stand:', 'volgzaak-dag-usd:', 'volgzaak-quota-', 'volgzaak-tik-'])
   for (const k of andere) assert.ok(n.s.has(k), k)
   assert.equal(n.s.size, andere.length)
 })
