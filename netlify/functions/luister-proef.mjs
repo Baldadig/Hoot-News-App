@@ -9,7 +9,11 @@ import { kvGet } from '../lib/kv.mjs'
 import { PROEF_KEY } from '../lib/luister.mjs'
 
 const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim()
-const oordeelTekst = (o) => (o ? `${o.zaak}, één onderwerp ${o.eenOnderwerp}, zeker ${o.zeker}` : 'geen')
+// Het oordeel zoals luister.mjs het bewaart (kortOordeel): soort, vooruitblikOpVoorbij, opgenomenVoorDitNieuws,
+// eenOnderwerp, zeker. (Tot 15 november stond hier nog het veld `zaak` van een oude vorm van het oordeel: dan "undefined".)
+// Een ontbrekend veld heet "onbekend", nooit "undefined".
+const veld = (x) => (x === undefined || x === null || x === '' ? 'onbekend' : esc(x))
+export const oordeelTekst = (o) => (o ? `soort ${veld(o.soort)}, vooruitblik op voorbij ${veld(o.vooruitblikOpVoorbij)}, opgenomen vóór dit nieuws ${veld(o.opgenomenVoorDitNieuws)}, één onderwerp ${veld(o.eenOnderwerp)}, zeker ${veld(o.zeker)}` : 'geen')
 export function asText(doc) {
   const out = ['# Luister verder · proef', '']
   for (const d of doc.dagdelen || []) {

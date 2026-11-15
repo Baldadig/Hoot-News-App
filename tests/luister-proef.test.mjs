@@ -35,3 +35,20 @@ test('het endpoint: alleen GET, op /api/luister-proef, nooit in de cache', async
   const post = await handler(new Request('https://gethoot.app/api/luister-proef', { method: 'POST' }))
   assert.equal(post.status, 405)
 })
+
+// Onderzoek live proef 2026-11-15-ochtend: de kolom Oordeel toonde "undefined, één onderwerp ja, zeker ja". De tekst las
+// nog het veld `zaak` van een oude vorm van het oordeel; het oordeel heet nu soort, vooruitblikOpVoorbij,
+// opgenomenVoorDitNieuws, eenOnderwerp en zeker.
+test('de kolom Oordeel: soort en alle velden, nooit "undefined"', async () => {
+  const { oordeelTekst } = await import('../netlify/functions/luister-proef.mjs')
+  const o = { soort: 'verdieping', vooruitblikOpVoorbij: 'nee', opgenomenVoorDitNieuws: 'nee', eenOnderwerp: 'ja', zeker: 'ja' }
+  assert.equal(oordeelTekst(o), 'soort verdieping, vooruitblik op voorbij nee, opgenomen vóór dit nieuws nee, één onderwerp ja, zeker ja')
+  assert.equal(oordeelTekst(null), 'geen')
+  assert.doesNotMatch(oordeelTekst({ zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }), /undefined/)
+  assert.match(oordeelTekst({ eenOnderwerp: 'ja' }), /soort onbekend/)
+  const doc = { dagdelen: [{ dagdeel: '2026-11-15-ochtend', at: '2026-11-15T07:00:53.473Z', afleveringen: 1, koppelingen: [{ kop: 'K', show: 'S', aflevering: 'A', soort: 'verdiepend', oordeel: o, reden: 'r' }], afgevallen: [{ kop: 'K', show: 'S', aflevering: 'B', oordeel: { ...o, soort: 'anders' }, reden: 'r' }] }] }
+  const md = asText(doc)
+  assert.doesNotMatch(md, /undefined/)
+  assert.match(md, /\| soort verdieping, vooruitblik op voorbij nee/)
+  assert.match(md, /\| soort anders, /)
+})

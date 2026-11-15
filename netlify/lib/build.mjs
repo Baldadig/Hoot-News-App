@@ -35,7 +35,7 @@ import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview, withoutPromo, PROMO_OWN } from './text.mjs'
-import { loadEpisodes, appleLookup, luisterRonde, editiePlekken, LUISTER_MS, KOPPEL_MS } from './luister.mjs'
+import { loadEpisodes, appleLookup, luisterRonde, editiePlekken, LUISTER_MS, KOPPEL_MS, OORDEEL_TOT_MS } from './luister.mjs'
 import { isBlog, introShown } from '../../shared/aanhef.mjs'
 export { withoutPromo } from './text.mjs'
 import { kvGet, kvSet, kvUpdate, remember, storageMode } from './kv.mjs'
@@ -158,7 +158,7 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
     algemeen: editiePlekken(edition.public.entries, stories),
     pool: new Set(editionOut.filter(kept).map((i) => i.storyId || poolById.get(i.id)?.storyId).filter(Boolean)),
   }
-  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), get: kvGet, client: anthropic, editie, deadline: roundStart + KOPPEL_MS })
+  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), get: kvGet, client: anthropic, editie, deadline: roundStart + KOPPEL_MS, oordeelTot: roundStart + OORDEEL_TOT_MS })
   await imagesP
   if (beforeImages !== JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))) {
     await kvSet(editionCacheKey(edition.public.id), edition.snapshot).catch(() => {})

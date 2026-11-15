@@ -327,3 +327,36 @@ test('herstel keuring 3: een bewaard oordeel geldt alleen voor de kop waarop het
   assert.ok(client.calls.some((q) => leesVraag(q.messages[0].content).some((v) => /Galavoorstelling/.test(v.titel))), 'opnieuw gevraagd met de nieuwe kop')
   assert.ok(!r2.rows.koppelingen.some((k) => k.verhaal === oranje.id && /Galavoorstelling/.test(k.aflevering)), 'het oude ja telt niet voor de nieuwe kop')
 })
+
+// Onderzoek live proef 2026-11-15-ochtend ("11 gevraagd in 11 aanroepen ... 8 niet op tijd", 8001 ms, over de tijd): het
+// oordeel zit in de ronde van 15 seconden en had een vaste grens van 8 seconden per aanroep, hoe laat het ook al was. Nu
+// samen niet voorbij `tot` (OORDEEL_TOT_MS na de start van de ronde), en met te weinig tijd over niets vragen: geen
+// kosten, geen poging, de volgende ronde opnieuw.
+test('de tijd van het oordeel: niet voorbij het einde van de ronde, en met te weinig tijd over niets vragen', async () => {
+  const { OORDEEL_MS, OORDEEL_TOT_MS, OORDEEL_MIN_MS, KOPPEL_MS } = await import('../netlify/lib/luister.mjs')
+  assert.ok(OORDEEL_TOT_MS > KOPPEL_MS && OORDEEL_TOT_MS <= 13000, 'ruim onder de 15 s van de planner')
+  assert.ok(OORDEEL_MIN_MS < OORDEEL_MS)
+  // Te weinig tijd over: niets gevraagd, niets betaald, niets als poging geteld.
+  const kort = memKv()
+  const client = nepClient(() => JA)
+  const r = await koppelMetOordeel({ ...OPTS, client, get: kort.get, update: kort.update, tot: Date.now() + 1000 })
+  assert.equal(client.calls.length, 0, 'niets gevraagd')
+  assert.equal(r.ai.geenTijd, true)
+  assert.equal(r.ai.aanroepen, 0)
+  assert.equal(r.byStory.size, 0)
+  assert.ok(r.rows.afgevallen.some((a) => /geen oordeel op tijd/.test(a.reden)))
+  assert.equal(kort.kv.get(OORDEEL_KEY), undefined, 'geen poging en geen kosten bewaard')
+  // Genoeg tijd over: elke aanroep krijgt hooguit wat er tot het einde van de ronde over is.
+  const ruim = memKv()
+  const hangt = nepClient(() => JA, { hangt: true })
+  const t0 = Date.now()
+  // (Met een lage drempel: de woordregels zelf kosten op een drukke machine meer dan een seconde.)
+  const h = await koppelMetOordeel({ ...OPTS, client: hangt, get: ruim.get, update: ruim.update, tot: Date.now() + 3000, minMs: 200 })
+  assert.equal(h.ai.geenTijd, undefined)
+  assert.ok(h.ai.timeoutMs <= 3000 && h.ai.timeoutMs < OORDEEL_MS, `${h.ai.timeoutMs} ms per aanroep`)
+  assert.ok(Date.now() - t0 < OORDEEL_MS, 'niet de volle OORDEEL_MS gewacht')
+  assert.ok(h.ai.timeouts >= 1)
+  // De ronde geeft het einde mee.
+  const build = readFileSync(new URL('../netlify/lib/build.mjs', import.meta.url), 'utf8')
+  assert.match(build, /oordeelTot: roundStart \+ OORDEEL_TOT_MS/)
+})
