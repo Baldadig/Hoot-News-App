@@ -45,8 +45,11 @@ const logo = (x) => {
   const id = x.sourceId || ID_VAN.get(x.source)
   return id ? `<img src="/img/bronnen/${esc(id)}.webp" alt="" width="24" height="24" loading="lazy">` : `<i>${ini(x.source)}</i>`
 }
-const bron = (x, wanneer, metAantal = true) =>
-  `<div class="k-bron">${logo(x)}<span>${esc(x.source)}${wanneer ? `<small>${esc(wanneer)}</small>` : ''}</span>${metAantal && x.sourceCount >= 2 ? `<b class="k-n">${x.sourceCount} bronnen</b>` : ''}${BM}</div>`
+// luister: het koptelefoontje van Luister verder, altijd direct naast bewaren (zoals op de Editie-kaart in de app).
+// Alleen in de held (besluit Alex 15 november): geen tekst over podcasts, wel het teken.
+const LU = '<svg class="sc-lu" viewBox="0 0 24 24"><use href="#i-luister"/></svg>'
+const bron = (x, wanneer, metAantal = true, luister = false) =>
+  `<div class="k-bron">${logo(x)}<span>${esc(x.source)}${wanneer ? `<small>${esc(wanneer)}</small>` : ''}</span>${metAantal && x.sourceCount >= 2 ? `<b class="k-n">${x.sourceCount} bronnen</b>` : ''}${luister ? LU : ''}${BM}</div>`
 const kick = (nr, desk) => (label(desk) ? `<div class="k-kick">${nr ? `<span class="k-nr">${nr}</span>` : ''}${label(desk)}</div>` : nr ? `<div class="k-kick k-kick--los"><span class="k-nr">${nr}</span></div>` : '')
 
 // Het bronnenblok ("Eén verhaal, veel bronnen"): de breedste verhalen van de bewaarde Editie, of anders plek 01.
@@ -107,7 +110,7 @@ export function fragmenten(b) {
     BW_VOLGENDE: VOLGENDE[b.slot] || 'morgenochtend',
     BW_HELD_LABEL: esc(`De ${slot} van ${lang}, met het hoofdverhaal: ${v1.title}. Lees verder in Hoot`),
     // De held: het hoofdverhaal zonder rubriek, alleen het nummer (besluit Alex).
-    BW_HELD: `<div class="k-kick k-kick--los"><span class="k-nr">01</span></div><div class="k-why">${esc(reden(ns[0]))}</div><div class="k-kop k-kop--lead">${esc(v1.title)}</div>${bron(v1, kort)}`,
+    BW_HELD: `<div class="k-kick k-kick--los"><span class="k-nr">01</span></div><div class="k-why">${esc(reden(ns[0]))}</div><div class="k-kop k-kop--lead">${esc(v1.title)}</div>${bron(v1, kort, true, true)}`,
     ...verhaalVelden(b),
     BW_RD_N: ns.join(' '),
     BW_RD_BUBBEL: b.voorpagina.bubble ? 'ja' : 'nee',

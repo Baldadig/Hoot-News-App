@@ -1,4 +1,4 @@
-// "Goed om te weten.": de zeven vragen van de landing (review 13 november, deel 5). Eén bron voor de uitklaplijst
+// "Goed om te weten.": de vragen van de landing (review 13 november, deel 5). Eén bron voor de uitklaplijst
 // in de pagina én het FAQPage-blok (JSON-LD) in de head, zodat ze nooit uit elkaar lopen. build.mjs vult {{VRAGEN}}
 // en {{JSONLD}}. Geen aantal bronnen op de landing (besluit Alex 13 november): "Al jouw bronnen, jij kiest."
 //
@@ -18,6 +18,7 @@ export function vragen({ appUrl }) {
     ['Kan ik ook betaalde artikelen lezen?', 'Voor betaalde artikelen gebruik je je eigen abonnement bij de uitgever. Hoot geeft geen extra toegang tot artikelen achter een betaalmuur.'],
     ['Hoe kiest Hoot?', 'Hoot kijkt waar jouw bronnen over schrijven: hoe meer bronnen een verhaal brengen, hoe hoger het staat, en wat je vaak leest telt mee. Een Editie heeft tien verhalen, vaak met één van buiten je bubbel. Waar het iets toevoegt, zie je waarom een verhaal erin staat.' +
       (AI_STAP ? ' Een taalmodel houdt aanbiedingen en aankondigingen eruit.' : '')],
+    ['Kan ik ook luisteren?', 'Ja, in de app. Bij sommige verhalen staat een podcast die er dieper op ingaat, van bijvoorbeeld de NOS, NRC, de Volkskrant of The Guardian. Je herkent zo’n verhaal aan het koptelefoontje naast bewaren. Hoot koppelt alleen een aflevering die echt over hetzelfde verhaal gaat. Bij twijfel staat er niets. Eén tik en je luistert verder in je eigen app, Apple Podcasts of Spotify. In Instellingen kies je je app, of zet je het uit.'],
     ['Wat is Vergelijken?', 'Hoot brengt artikelen over dezelfde gebeurtenis bij elkaar. Met Vergelijken zie je hoe elke bron erover schrijft en kies je welk bericht je leest.'],
     ['Is er een app?', appUrl
       ? `Ja, voor iPhone en iPad, in de <a href="${esc(appUrl)}" data-tel="as:vraag">App Store</a> in Nederland en België. Op Android en op je computer lees je Hoot in je browser.`
