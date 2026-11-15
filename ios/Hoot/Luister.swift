@@ -25,16 +25,20 @@ struct StoryLuister: Codable, Hashable {
     var link: String
     var apple: String?
     var spotify: String?
+    /// Het id van de aflevering in Apple Podcasts (trackId) en bij Spotify (server, luister-ids.mjs; 15 november). Oude
+    /// servers sturen ze niet: dan opent `apple`/`spotify` zoals het is.
+    var appleEpisode: String?
+    var spotifyEpisode: String?
     var cover: String?
     var alleenVolgers: Bool?
     var andere: [StoryLuister]?
 
-    private enum CodingKeys: String, CodingKey { case show, showId, bron, uitgever, aflevering, verschenen, tijd, duur, link, apple, spotify, cover, alleenVolgers, andere }
+    private enum CodingKeys: String, CodingKey { case show, showId, bron, uitgever, aflevering, verschenen, tijd, duur, link, apple, spotify, appleEpisode, spotifyEpisode, cover, alleenVolgers, andere }
 
-    init(show: String, showId: String? = nil, bron: String? = nil, uitgever: String? = nil, aflevering: String, verschenen: String? = nil, tijd: String? = nil, duur: Double? = nil, link: String, apple: String? = nil, spotify: String? = nil, cover: String? = nil, alleenVolgers: Bool? = nil, andere: [StoryLuister]? = nil) {
+    init(show: String, showId: String? = nil, bron: String? = nil, uitgever: String? = nil, aflevering: String, verschenen: String? = nil, tijd: String? = nil, duur: Double? = nil, link: String, apple: String? = nil, spotify: String? = nil, appleEpisode: String? = nil, spotifyEpisode: String? = nil, cover: String? = nil, alleenVolgers: Bool? = nil, andere: [StoryLuister]? = nil) {
         self.show = show; self.showId = showId; self.bron = bron; self.uitgever = uitgever; self.aflevering = aflevering
         self.verschenen = verschenen; self.tijd = tijd; self.duur = duur; self.link = link; self.apple = apple
-        self.spotify = spotify; self.cover = cover; self.alleenVolgers = alleenVolgers; self.andere = andere
+        self.spotify = spotify; self.appleEpisode = appleEpisode; self.spotifyEpisode = spotifyEpisode; self.cover = cover; self.alleenVolgers = alleenVolgers; self.andere = andere
     }
 
     // Leest nooit fout: een kapotte andere valt weg, een onbekend veld wordt overgeslagen.
@@ -55,6 +59,8 @@ struct StoryLuister: Codable, Hashable {
         duur = try? c.decodeIfPresent(Double.self, forKey: .duur)
         apple = try? c.decodeIfPresent(String.self, forKey: .apple)
         spotify = try? c.decodeIfPresent(String.self, forKey: .spotify)
+        appleEpisode = (try? c.decodeIfPresent(String.self, forKey: .appleEpisode)).flatMap { $0 }.flatMap { $0.allSatisfy(\.isNumber) && !$0.isEmpty ? $0 : nil }
+        spotifyEpisode = (try? c.decodeIfPresent(String.self, forKey: .spotifyEpisode)).flatMap { $0 }.flatMap { $0.count == 22 && $0.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber) } ? $0 : nil }
         cover = try? c.decodeIfPresent(String.self, forKey: .cover)
         alleenVolgers = try? c.decodeIfPresent(Bool.self, forKey: .alleenVolgers)
         andere = ((try? c.decodeIfPresent([Los].self, forKey: .andere)) ?? nil)?.compactMap(\.waarde)
@@ -123,12 +129,34 @@ enum Luister {
         return "Luister verder, \(delen)." + (appNaam(app).map { " Opent in \($0)." } ?? "")
     }
 
-    /// Welke link een keuze opent: Apple Podcasts de aflevering (of de show), Spotify de show, anders de pagina van de
-    /// aflevering bij de uitgever.
+    /// Welke link een keuze opent: in Apple Podcasts en Spotify de aflevering (met het id van de server; zonder id wat de
+    /// server meegeeft, de show), anders de pagina van de aflevering bij de uitgever.
     static func link(_ a: StoryLuister, app: String?) -> URL? {
-        let s = app == "apple" ? a.apple ?? a.link : app == "spotify" ? a.spotify ?? a.link : a.link
+        let s: String
+        switch app {
+        case "apple":
+            if let id = a.appleEpisode, let apple = a.apple, var c = URLComponents(string: apple), !(c.queryItems ?? []).contains(where: { $0.name == "i" }) {
+                c.queryItems = (c.queryItems ?? []) + [URLQueryItem(name: "i", value: id)]
+                s = c.string ?? apple
+            } else { s = a.apple ?? a.link }
+        case "spotify": s = a.spotifyEpisode.map { "https://open.spotify.com/episode/\($0)" } ?? a.spotify ?? a.link
+        default: s = a.link
+        }
         return URL(string: s) ?? URL(string: a.link)
     }
+
+    /// Wat een tik met deze app opent: de link in de app (universele link) of, zonder app, de pagina van de uitgever. De
+    /// eerste tik na het actieblad en elke volgende tik gaan allebei hierlangs (LuisterTests).
+    static func bestemming(_ a: StoryLuister, app: String?) -> (url: URL, inApp: Bool)? {
+        guard let web = URL(string: a.link) else { return nil }
+        guard let app, let url = link(a, app: app), url != web else { return (web, false) }
+        return (url, true)
+    }
+
+    /// Na een keuze in het actieblad: eerst het blad laten sluiten, dan pas openen (melding Alex, 15 november, build 58:
+    /// "2e keer wel"). Openen vanuit de knop van het blad, terwijl het nog wegschuift, startte de podcastapp wel, maar
+    /// zonder de aflevering; de tweede tik (zonder blad) opende wel de aflevering.
+    static let naVraag: Duration = .milliseconds(450)
 
     enum Tik: Equatable {
         case niets
@@ -159,9 +187,9 @@ enum Luister {
 
     /// Openen: in de app als die de link aanneemt (universele link), anders de pagina van de uitgever.
     @MainActor static func open(_ a: StoryLuister, app: String?) {
-        guard let web = URL(string: a.link) else { return }
-        guard let app, let url = link(a, app: app), url != web else { UIApplication.shared.open(web); return }
-        UIApplication.shared.open(url, options: [.universalLinksOnly: true]) { ok in
+        guard let doel = bestemming(a, app: app), let web = URL(string: a.link) else { return }
+        guard doel.inApp else { UIApplication.shared.open(web); return }
+        UIApplication.shared.open(doel.url, options: [.universalLinksOnly: true]) { ok in
             if !ok { UIApplication.shared.open(web) }
         }
     }
@@ -191,9 +219,14 @@ struct LuisterActie {
             Luister.open(a, app: app)
         }
     }
+    /// De keuze in het actieblad: onthouden, en openen zodra het blad weg is (Luister.naVraag). Los van de view die het
+    /// blad droeg: die mag intussen opnieuw getekend worden (de lezer laadt bij een nieuwe keuze zijn pagina opnieuw).
     func kies(_ app: String, voor a: StoryLuister) {
         if store.podcastApp != "vragen" { store.podcastApp = app }
-        Luister.open(a, app: app)
+        Task { @MainActor in
+            try? await Task.sleep(for: Luister.naVraag)
+            Luister.open(a, app: app)
+        }
     }
 }
 
@@ -238,7 +271,15 @@ struct LuisterKnop: View {
         .accessibilityLabel(Luister.label(a, app: store.podcastApp))
         .accessibilityAddTraits(.isLink)
         .luisterVraag($vraag, store: store)
+        .preference(key: LuisterKnopAantal.self, value: 1)
     }
+}
+
+/// Hoeveel koptelefoontjes er echt in beeld staan (alleen de gekozen variant van een ViewThatFits telt). Voor de
+/// toets dat een aflevering altijd het icoon geeft (LuisterTests).
+struct LuisterKnopAantal: PreferenceKey {
+    static let defaultValue = 0
+    static func reduce(value: inout Int, nextValue: () -> Int) { value += nextValue() }
 }
 
 /// Vergelijken › Luister: hooguit drie afleveringen, de beste eerst. Cover 44 (Radius.sm), de titel in de kopletter,

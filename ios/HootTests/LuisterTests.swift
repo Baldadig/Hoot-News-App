@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import Hoot
 
 // Luister verder (build 56): gelijk aan shared/luister-weergave.mjs en tests/luister-zichtbaar.test.mjs op het web.
@@ -56,6 +57,43 @@ import XCTest
         XCTAssertEqual(Luister.keuzes.map(\.naam), ["Apple Podcasts", "Spotify", "Altijd vragen", "Niet tonen"])
     }
 
+    // Melding Alex 15 november (build 58): "Oh 2e keer wel". De eerste tik (met de vraag ervoor) opende de app zonder de
+    // aflevering. Nu opent de keuze in het blad precies wat de tweede tik opent, en pas als het blad weg is.
+    func testEersteTikNaDeVraagOpentHetzelfdeAlsDeTweede() {
+        let a = Self.story.luister!
+        for app in ["apple", "spotify"] {
+            // Eerste tik: de vraag. De keuze in het blad opent bestemming(a, app).
+            XCTAssertEqual(Luister.bijTik("", apps: ["apple", "spotify"]), .vraag(["apple", "spotify"]))
+            let eerste = Luister.bestemming(a, app: app)
+            // Tweede tik: de keuze is onthouden en opent direct.
+            guard case let .open(tweedeApp, _) = Luister.bijTik(app, apps: ["apple", "spotify"]) else { return XCTFail("tweede tik opent") }
+            let tweede = Luister.bestemming(a, app: tweedeApp)
+            XCTAssertEqual(eerste?.url, tweede?.url, app)
+            XCTAssertEqual(eerste?.inApp, true, "in de app, niet de pagina van de uitgever")
+        }
+        XCTAssertEqual(Luister.bestemming(a, app: "apple")?.url.absoluteString, a.apple, "Apple: de aflevering (?i=)")
+        XCTAssertEqual(Luister.bestemming(a, app: nil)?.url.absoluteString, a.link)
+        XCTAssertEqual(Luister.bestemming(a, app: nil)?.inApp, false)
+        XCTAssertGreaterThanOrEqual(Luister.naVraag, .milliseconds(300), "eerst het blad laten sluiten")
+    }
+
+    // De ids per aflevering van de server (luister-ids.mjs). Oude servers sturen ze niet: dan de link zoals hij is.
+    func testAfleveringIdsVanDeServer() throws {
+        let json = #"{"show":"De Dag","aflevering":"Hoe premier Jetten","link":"https://www.nporadio1.nl/podcasts/de-dag","apple":"https://podcasts.apple.com/nl/podcast/id1339219119","spotify":"https://open.spotify.com/show/2Oeh3L5u0y9R54jEz8Mgty","appleEpisode":"1000801742880","spotifyEpisode":"2TfC4jQTneU8xeRoEB6V5o"}"#
+        let a = try JSONDecoder().decode(StoryLuister.self, from: Data(json.utf8))
+        XCTAssertEqual(Luister.link(a, app: "apple")?.absoluteString, "https://podcasts.apple.com/nl/podcast/id1339219119?i=1000801742880")
+        XCTAssertEqual(Luister.link(a, app: "spotify")?.absoluteString, "https://open.spotify.com/episode/2TfC4jQTneU8xeRoEB6V5o")
+        // Heeft de link al een ?i=, dan blijft hij zoals hij is.
+        var b = a
+        b.apple = "https://podcasts.apple.com/nl/podcast/x/id1339219119?i=1000801742880"
+        XCTAssertEqual(Luister.link(b, app: "apple")?.absoluteString, b.apple)
+        // Een vreemd id wordt genegeerd.
+        let raar = try JSONDecoder().decode(StoryLuister.self, from: Data(json.replacingOccurrences(of: "2TfC4jQTneU8xeRoEB6V5o", with: "../x").replacingOccurrences(of: "1000801742880", with: "abc").utf8))
+        XCTAssertNil(raar.spotifyEpisode)
+        XCTAssertNil(raar.appleEpisode)
+        XCTAssertEqual(Luister.link(raar, app: "spotify")?.absoluteString, "https://open.spotify.com/show/2Oeh3L5u0y9R54jEz8Mgty")
+    }
+
     func testKeuzeOnthoudenEnNietTonen() {
         let suite = "luister-tests-\(UUID().uuidString)"
         let d = UserDefaults(suiteName: suite)!
@@ -92,5 +130,40 @@ import XCTest
         let vragen = ReaderHTML.luisterRij(a, app: "vragen", now: Self.now)
         XCTAssertTrue(vragen.contains(">↗</span>"), "nog niet gekozen of Altijd vragen: alleen de pijl")
         XCTAssertTrue(ReaderHTML.luisterRij(a, app: "apple", kleineApp: true, now: Self.now).contains(">↗</span>"), "grootste tekst: de naam valt weg")
+    }
+
+    // Keuring podlink (15 november): in de Stroom viel het koptelefoontje stil weg zodra "Abonnement" en "8 bronnen" samen
+    // op de regel stonden (een tweede variant zonder icoon). Een aflevering geeft altijd het icoon, op elke breedte en
+    // tekstgrootte, in de gewone bronregel en op de kaart.
+    func testAfleveringGeeftAltijdHetIcoon() {
+        let store = HootStore(defaults: UserDefaults(suiteName: "luister-icoon-\(UUID().uuidString)")!)
+        var story = Self.story
+        story.sourceCount = 8
+        var item = Item(id: "a", source: "nos", title: "Crisisoverleg", url: "https://nos.nl/")
+        item.sourceName = "NRC Handelsblad"; item.publishedAt = ISO8601DateFormatter().string(from: Date().addingTimeInterval(-16 * 3600))
+        final class Teller { var n = 0 }
+        func heeftIcoon(kaart: Bool, width: CGFloat, size: DynamicTypeSize) -> Bool {
+            let teller = Teller()
+            let regel = SourceLine(item: item, story: story, kaart: kaart, paid: true).environment(store).environment(Reader())
+                .frame(width: width).environment(\.dynamicTypeSize, size)
+                .onPreferenceChange(LuisterKnopAantal.self) { teller.n = $0 }
+            let host = UIHostingController(rootView: NavigationStack { regel })
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 600))
+            window.rootViewController = host
+            window.makeKeyAndVisible()
+            host.view.layoutIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+            window.isHidden = true
+            return teller.n == 1
+        }
+        for kaart in [false, true] {
+            for width in [280, 320, 343, 358, 390] as [CGFloat] {
+                for size in [DynamicTypeSize.large, .xLarge, .xxLarge, .xxxLarge] {
+                    XCTAssertTrue(heeftIcoon(kaart: kaart, width: width, size: size), "kaart \(kaart), \(Int(width)) breed, \(size)")
+                }
+            }
+        }
+        store.podcastApp = "uit"
+        XCTAssertFalse(heeftIcoon(kaart: false, width: 390, size: .large), "Niet tonen: geen icoon (en de teller telt echt)")
     }
 }
