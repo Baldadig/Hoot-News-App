@@ -52,6 +52,7 @@
 // plek: een musicus in de kop is cultuur, en een Amerikaanse staat of stad of het VK is een buitenlandse plek (desks.mjs,
 // countriesIn); een stuk van een Vlaamse bron blijft Buitenland.
 // The Times of Israel uit de catalogus en uit FOREIGN_NEWS (Cloudflare weigert de server; Haaretz blijft voor Israël).
+// Wynia's Week uit de catalogus en de Selectie (besluit Alex 15 november 2026); een opinieblad, dus niet in de Editie.
 // 14 november 2026, dubbelcheck2: samengevoegd met main (wapo, luister-2); dubbelcheck is nooit live geweest. Na de tweede keuring:
 // "noch" is ook Nederlands en Von der Leyen is een naam (shared/lang.mjs); een musicus of acteur in een misdaadkop is een
 // beroep (desks.mjs) en een plaats in een bedrijfsnaam geen plek (countriesIn); een video is geen harde uitsluiting als kop (besluit B2);

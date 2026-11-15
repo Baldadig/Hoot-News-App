@@ -184,7 +184,6 @@ export const MORE_SOURCES = [
   // regel van Selectie · fase 3: geen Belgisch nieuws bij Politiek; Vlaamse opinie mag wel).
   V('joop', 'Joop', 'vakblad', ['politiek'], 'https://www.joop.nl/feed', { opinie: true, about: 'Opinie en commentaar van BNNVARA, progressief', filter: true, bsky: 'joop.nl' }),
   V('hpdetijd', 'HP/De Tijd', 'vakblad', ['politiek'], 'https://www.hpdetijd.nl/rss', { opinie: true, about: 'Opinieblad: eigenzinnig, liberaal en kritisch', filter: true, paid: true, bsky: 'hpdetijd.bsky.social' }),
-  V('wyniasweek', "Wynia's Week", 'vakblad', ['politiek'], 'https://www.wyniasweek.nl/feed/', { opinie: true, about: 'Opinie en analyse, rechts-liberaal', filter: true, x: 'wyniasweek' }),
   V('tpo', 'TPO', 'vakblad', ['politiek'], 'https://tpo.nl/feed/', { opinie: true, about: 'Opinie en commentaar, conservatief', filter: true, paid: true, logo: 'https://tpo.nl/wp-content/uploads/2025/10/cropped-TPO_Logobox_New-02-192x192.jpg' }),
   V('socialevraagstukken', 'Sociale Vraagstukken', 'expert', ['politiek'], 'https://www.socialevraagstukken.nl/feed/', { opinie: true, about: 'Wetenschappers over de samenleving, zonder partijkleur', filter: true, logo: 'https://socialevraagstukken.b-cdn.net/wp-content/uploads/cropped-favicon-192x192.png' }),
   V('nederlandrechtsstaat', 'Nederland Rechtsstaat', 'expert', ['recht', 'politiek'], 'https://www.nederlandrechtsstaat.nl/feed/', { opinie: true, about: 'Juristen over de rechtsstaat, wetgeving en rechtspraak', logo: 'https://www.nederlandrechtsstaat.nl/wp-content/uploads/2021/11/cropped-favicon-192x192.png' }),
@@ -332,6 +331,8 @@ export const MORE_SOURCES = [
 // meer gebruikt: de Selectie is leesvoer, geen nieuws van de week. Bewust bewaard, niet weggegooid: niet in VAK_SOURCES, dus niet opgehaald en niet getoond. Terug
 // in gebruik? Zet de regel weer in MORE_SOURCES. NOS en NU.nl Economie staan er nog, alleen niet meer bij Economie.
 export const ARCHIVED_SOURCES = [
+  // Wynia's Week: uit de bronnen (besluit Alex 15 november 2026), ook uit de hoofdcatalogus. Rechts in Politiek blijft TPO.
+  V('wyniasweek', "Wynia's Week", 'vakblad', ['politiek'], 'https://www.wyniasweek.nl/feed/', { opinie: true, about: 'Opinie en analyse, rechts-liberaal', filter: true, x: 'wyniasweek' }),
   // Weigeren de Hoot-server (Cloudflare-check of HTTP 403), werken alleen vanaf een gewone verbinding (15 november).
   // Niets omzeild; vervangen of zonder vervanger uitgezet (BESLUITEN-15NOV.md). Werkt de feed weer: regel terugzetten.
   V('creativereview', 'Creative Review', 'vakblad', ['design', 'merk'], 'https://www.creativereview.co.uk/feed/', { filter: true }),

@@ -17,7 +17,7 @@ export const DESK_LABEL = { binnenland: 'Binnenland', buitenland: 'Buitenland', 
 // hem gelijk aan netlify/lib/sources.mjs.
 // 13 november 2026: de nieuwe Nederlandse en Vlaamse bronnen (onderzoek, opinie, regionale omroepen, lokaal).
 export const NL_HOME = new Set(['nos', 'nu', 'nrc', 'volkskrant', 'trouw', 'parool', 'ad', 'telegraaf', 'rtl', 'nd', 'ftm', 'haarlemsdagblad', 'nhd', 'leidschdagblad', 'dvhn', 'lc', 'limburger', 'tubantia', 'stentor', 'gelderlander', 'bd', 'ed', 'bndestem', 'pzc', 'fd',
-  'zembla', 'argos', 'rd', 'caribischnetwerk', 'joop', 'groene', 'vn', 'sargasso', 'hpdetijd', 'wyniasweek', 'tpo', 'geenstijl', 'socialevraagstukken',
+  'zembla', 'argos', 'rd', 'caribischnetwerk', 'joop', 'groene', 'vn', 'sargasso', 'hpdetijd', 'tpo', 'geenstijl', 'socialevraagstukken',
   'nhnieuws', 'omroepwest', 'rijnmond', 'rtvutrecht', 'omroepgelderland', 'rtvoost', 'rtvnoord', 'rtvdrenthe', 'omropfryslan', 'omroepbrabant', 'l1', 'omroepzeeland', 'duic', 'versbeton'])
 export const VL_HOME = new Set(['vrt', 'standaard', 'demorgen', 'tijd', 'hln', 'nieuwsblad', 'gva', 'hbvl', 'sporza', 'apache', 'bruzz', 'humo'])
 
