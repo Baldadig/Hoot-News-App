@@ -6,8 +6,9 @@
 // eigen set: 11 De kop en 12 Vouw (krant), 13 Baan en 14 Eclips (zonnestelsel), 15 Walsen en 16 Zetsel
 // (drukpers), 17 De rij en 18 Koepels (de tel tot tien). Ze dragen geen betekenis: geen dagdeel, geen
 // rubriek, geen tekst. Intern heten ze beeld 1 tot 18. Elk beeld heeft een kleine tekening voor het
-// kleine vak rechts. Sinds 14 november is beeld 14 (Eclips) uit de reeks (PLACEHOLDER_UIT): de tekening
-// staat er nog, maar geen stuk krijgt hem meer. Er worden er dus zeventien gekozen.
+// kleine vak rechts. Uit de reeks (PLACEHOLDER_UIT): beeld 14 (Eclips) sinds 14 november en beeld 15
+// (Walsen) sinds 15 november. Hun tekeningen staan er nog, zodat de nummers en bestanden van de andere
+// zestien blijven wat ze waren, maar geen stuk krijgt ze meer. Er worden er dus zestien gekozen.
 //
 // Eén bron voor web en app: scripts/placeholders.mjs maakt hieruit de SVG's (src/assets/placeholder/),
 // de CSS (src/placeholder.css) en de tabel voor SwiftUI (ios/Hoot/Views/PlaceholderBeelden.swift).
@@ -15,12 +16,14 @@
 
 export const PLACEHOLDER_COUNT = 18
 
-// Uit de reeks (14 november, Alex): beeld 14 (Eclips) wordt nergens meer gekozen. De tekening blijft in
-// PLACEHOLDERS staan, zodat de nummers en bestanden van de andere zeventien precies blijven wat ze waren.
-// Indexen (0 tot 17), dus beeld 14 is 13.
-export const PLACEHOLDER_UIT = [13]
+// Uit de reeks: beeld 14 (Eclips, 14 november, Alex: "Deze image mag er wel uit.") en beeld 15 (Walsen,
+// 15 november, Alex: "Walsen mag eruit. In zijn geheel."). Geen stuk krijgt ze nog, ook niet via de
+// buurregel. De tekeningen blijven in PLACEHOLDERS staan: weghalen schuift De rij, Zetsel en Koepels een
+// nummer op (beeld-16.svg wordt beeld-15.svg, en de keuze van elk stuk erachter verandert). Zo blijven de
+// nummers en bestanden van de andere zestien precies wat ze waren. Indexen (0 tot 17): beeld 14 is 13.
+export const PLACEHOLDER_UIT = [13, 14]
 const UIT = new Set(PLACEHOLDER_UIT)
-// De beelden die wel gekozen worden (zeventien), op volgorde.
+// De beelden die wel gekozen worden (zestien), op volgorde.
 export const PLACEHOLDER_KEUZE = Array.from({ length: PLACEHOLDER_COUNT }, (_, k) => k).filter((k) => !UIT.has(k))
 
 // FNV-1a (32 bit) over de UTF-8-bytes van de id. Dezelfde som in Beeldloos.swift.
@@ -34,9 +37,10 @@ export function fnv1a(s) {
 }
 
 // Het beeld van een artikel op zich: 0 tot 17 (beeld 1 tot 18), nooit een beeld uit PLACEHOLDER_UIT.
-// De hash strooit ze door elkaar: hash mod 18. Valt dat op een beeld dat uit de reeks is, dan kiest de
-// rest van de hash (hash / 18, mod 17) een van de zeventien andere. Zo houdt elk ander stuk precies zijn
-// beeld, en krijgt elk van de zeventien precies een zeventiende (1/18 + 1/18 · 1/17). Gelijk in Swift.
+// De hash strooit ze door elkaar: hash mod 18. Valt dat op een beeld dat uit de reeks is (Eclips of
+// Walsen), dan kiest de rest van de hash (hash / 18, mod 16) een van de zestien andere. Zo houdt elk stuk
+// met een van die zestien precies zijn beeld, en krijgt elk van de zestien precies een zestiende
+// (1/18 + 2/18 · 1/16). Gelijk in Swift.
 export function placeholderBase(id) {
   const h = fnv1a(id)
   const k = h % PLACEHOLDER_COUNT
@@ -46,14 +50,16 @@ export function placeholderBase(id) {
 // Wordt beeld k (0 tot 17) nog gekozen?
 export const placeholderInReeks = (k) => !UIT.has(k)
 
-// De set van een beeld (0 tot 17): zon, iris, lijn, raster, stapel, of een van de acht nieuwe (elk een eigen set).
+// De set van een beeld (0 tot 17): zon, iris, lijn, raster, stapel, of een van de acht van ronde 2 (elk een
+// eigen set; Eclips en Walsen komen niet meer voor).
 export const placeholderSet = (k) => PLACEHOLDERS[k].family
 
 // Doorschuiven: drie verder (mod 18) valt altijd in een andere set. De sets liggen op volgorde
 // (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9 · dan elf tot achttien elk een eigen set 10–17):
 // zon → iris (3–5), iris → lijn of raster (6–8), lijn → stapel (9), raster → De kop of Vouw (10–11),
 // en vanaf de stapel altijd een eenling of de zon (0–2). Alle stappen van 3 tot 15 zijn geldig; drie geeft
-// bij achttien nog steeds de gelijkste verdeling (gemeten op 5000 en 20 000 ids). De tests lopen alle
+// bij achttien nog steeds de gelijkste verdeling (gemeten op 5000 en 20 000 ids). Landt een stap op een
+// beeld dat uit de reeks is, dan schuift het nog eens drie door (zie placeholderPlan). De tests lopen alle
 // achttien beelden na.
 export const PLACEHOLDER_SHIFT = 3
 
@@ -61,8 +67,9 @@ export const PLACEHOLDER_SHIFT = 3
 // Twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit dezelfde set: zit het
 // beeld in dezelfde set als dat van de rij erboven, dan schuift het drie door, naar een andere set.
 // Alleen de directe buur telt, dus een nieuw stuk bovenaan verschuift hooguit de rij eronder. Geeft een
-// Map id → 0 tot 17 voor de beeldloze rijen. Komt het doorschuiven op een beeld dat uit de reeks is (alleen
-// vanuit De kop, 11 → 14), dan schuift het nog eens drie door (naar De rij, 17).
+// Map id → 0 tot 17 voor de beeldloze rijen. Komt het doorschuiven op een beeld dat uit de reeks is, dan
+// schuift het nog eens drie door: vanuit De kop (11) voorbij Eclips (14) naar De rij (17), vanuit Vouw (12)
+// voorbij Walsen (15) naar Koepels (18). Die zitten elk in een eigen set, dus de buur blijft verschillen.
 export function placeholderPlan(rows) {
   const out = new Map()
   let prev = null
@@ -142,7 +149,7 @@ export const PALETTES = {
     donker: { bg: '#1E1B17', sun: '#EC7A70', moon: '#4A443A', ring: '#2A2620' },
     nacht: { bg: '#12100E', sun: '#DF8276', moon: '#2F2B25', ring: '#181612' },
   },
-  // Walsen: precies het Iris-palet. Rollen in `disc`, het vel in `line`, één vel rood.
+  // Walsen (uit de reeks sinds 15 november, de tekening blijft): precies het Iris-palet. Rollen in `disc`, het vel in `line`, één vel rood.
   walsen: {
     licht: { bg: '#ECE5D7', sun: '#9A3324', line: '#B0A48F', disc: '#E0D6C3' },
     donker: { bg: '#1E1B17', sun: '#EC7A70', line: '#4A443A', disc: '#2A2620' },
@@ -374,7 +381,7 @@ export const PLACEHOLDERS = [
     groot: baan(358, 179, 92, 190, 38, [[88, 12], [148, 12], [212, 12]], [[0, -62, 10], [1, -50, 15], [2, -26, 21]]),
     klein: baan(96, 64, 24, 66, 13, [[30, 5], [52, 5]], [[0, -64, 4.5], [1, -34, 7]]),
   },
-  // 14: Eclips. De maan schuift voor de zon, een rode sikkel blijft; een baan met een planeet als kraal en
+  // 14: Eclips (uit de reeks sinds 14 november; staat er alleen nog zodat de nummers niet verschuiven). De maan schuift voor de zon, een rode sikkel blijft; een baan met een planeet als kraal en
   // een kwartcirkel als tegenwicht. Klein: de eclips dichterbij, zonder planeet en kwartcirkel.
   {
     family: 'eclips',
@@ -391,7 +398,7 @@ export const PLACEHOLDERS = [
       { t: 'circle', cx: 52, cy: 27, r: 11, fill: 'moon' },
     ] },
   },
-  // 15: Walsen. Rollen r 52 (klein 20), de knijp in het midden; het eerste losse vel rood.
+  // 15: Walsen (uit de reeks sinds 15 november; staat er alleen nog zodat de nummers niet verschuiven). Rollen r 52 (klein 20), de knijp in het midden; het eerste losse vel rood.
   {
     family: 'walsen',
     groot: { w: 358, h: 179, shapes: [...vel(150, 242, 85, 10, 34, 6, 358), ...rol(150, 33, 52), ...rol(150, 147, 52)] },
