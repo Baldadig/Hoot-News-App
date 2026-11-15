@@ -4,8 +4,8 @@
 //   1. goede koppelingen: een artikellink van dezelfde uitgever (The Intelligence bij The Economist), en hetzelfde op tekst
 //      (VI ZSM bij Oranje-Griekenland, 7-0);
 //   2. verdiepend: The Daily over het vertrek van Jensen Huang, twee dagen oud, bij het grote Nvidia-verhaal;
-//   3. valse kandidaten vallen af: één gedeelde naam (Netflix, Mississippi, Oranje, Jetten), een overzicht, een weekshow
-//      of een show met meer onderwerpen zonder artikellink, een artikellink zonder gedeelde naam in de titel;
+//   3. valse kandidaten vallen af: één gedeelde naam (Netflix, Mississippi, Oranje, Jetten), een overzicht, een show met
+//      meer onderwerpen zonder artikellink (een weekshow sinds 15 november: tests/luister-weekshow.test.mjs), een artikellink zonder gedeelde naam in de titel;
 //   4. één aflevering bij twee verhalen: geen van beide; versheid; taal volgt de bronkeuze;
 //   5. ophalen: alleen het begin van de feed, hooguit eens per half uur, drie dagen bewaren, nooit de audio;
 //   6. zichtbaar sinds stap 3: zie tests/luister-zichtbaar.test.mjs.
@@ -93,9 +93,12 @@ test('vals: één gedeelde naam is nooit genoeg (Netflix, Mississippi, Oranje, J
   assert.ok(!byStory.has(story(/Trump, Xi and Putin/).id))
 })
 
-test('vals: zonder artikellink koppelen een weekshow en een show met meer onderwerpen nooit; een overzicht doet nooit mee', () => {
+test('vals: zonder artikellink koppelt een show met meer onderwerpen nooit; een overzicht doet nooit mee', () => {
   const { rows } = run()
-  assert.ok(rows.afgevallen.some((r) => /Haags Halfuurtje/.test(r.show) && r.reden === 'weekshow zonder artikellink'))
+  // Een weekshow zonder artikellink valt sinds het besluit van 15 november niet meer vanzelf af: ze volgt het strenge pad
+  // van `verdieping` (tests/luister-weekshow.test.mjs). Op de woordregels alleen koppelt het Haags Halfuurtje hier niet.
+  assert.ok(rows.afgevallen.some((r) => /Haags Halfuurtje/.test(r.show)))
+  assert.ok(!rows.koppelingen.some((r) => /Haags Halfuurtje/.test(r.show)))
   assert.ok(rows.afgevallen.some((r) => /Vergecast/.test(r.show) && /meer onderwerpen per aflevering/.test(r.reden)))
   assert.ok(rows.afgevallen.some((r) => /FD Dagkoers/.test(r.show) && /meer onderwerpen per aflevering/.test(r.reden)))
   // Een aflevering van een overzichtsshow wordt niet eens beoordeeld.
