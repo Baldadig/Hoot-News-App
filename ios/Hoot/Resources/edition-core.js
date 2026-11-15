@@ -2744,7 +2744,8 @@ var HootCore = (() => {
     return TAIL_AUDIO.has(woord) ? "podcast" : "video";
   }
   var SHOWCOVERS = [
-    { show: "NRC Vandaag", bronnen: ["nrc"], patroon: /\/\/(?:[^/]+\/)*static\.nrc\.nl\/taxonomy\/[^/]*\bnrc ?vandaag[^/]*$/i }
+    { show: "NRC Vandaag", bronnen: ["nrc"], patroon: /\/\/(?:[^/]+\/)*static\.nrc\.nl\/taxonomy\/[^/]*\bnrc ?vandaag[^/]*$/i },
+    { show: "NRC Wereldzaken", bronnen: ["nrc"], patroon: /\/\/(?:[^/]+\/)*static\.nrc\.nl\/taxonomy\/(?:[^/]*[^a-z0-9/])?wereldzaken(?:[^a-z0-9/][^/]*)?$/i }
   ];
   var ontcijfer = (url) => {
     let s = String(url || "");

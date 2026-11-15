@@ -77,11 +77,17 @@ export function labelAchteraan(title) {
 // Vandaag als gewoon nieuwsstuk onder /nieuws/ in de feed, vaak zonder label in de kop ("Seks en spionage: de druk op
 // Nvidia neemt toe"). Het enige teken is de afbeelding: de cover van de show uit de taxonomie van de uitgever. Een
 // kleine, benoemde lijst (uitgever + patroon op de afbeelding, na het ontcijferen van dubbel gecodeerde spaties), zodat
-// later een andere show erbij kan. Nu alleen NRC Vandaag: columns, commentaren, puzzels en andere podcasts van NRC hebben
-// een eigen taxonomie-afbeelding en vallen er niet onder. Gemeten op 15 november: 11 stukken in tests/fixtures en 1 in de
-// live feed van NRC, allemaal afleveringen van NRC Vandaag. Het veld is `image` (rss.mjs).
+// later een andere show erbij kan. Columns, commentaren, puzzels en nieuwsbrieven van NRC hebben een eigen
+// taxonomie-afbeelding en vallen er niet onder. Het veld is `image` (rss.mjs).
+// NRC Vandaag, gemeten op 15 november: 11 stukken in tests/fixtures en 1 in de live feed, allemaal afleveringen.
+// NRC Wereldzaken (15 november, besluit Alex: "mag er zeker bij"): 2 stukken in tests/fixtures en 1 in de live feed,
+// alle drie met precies de titel van een aflevering in de podcastfeed (rss.art19.com/wereldzaken). De bestandsnaam
+// "Artikel- en itemafbeelding_1280x768px" is NRC's sjabloon voor de cover van een podcastreeks (ook Cocaïnekoorts en
+// Uitgelicht), geen teken van geschreven stukken. Het woord Wereldzaken moet los staan in de bestandsnaam (een `_` telt
+// als scheiding, dus geen \b); zo valt ook de show art ("Wereldzaken_Show art_RGB_01.jpg") eronder.
 export const SHOWCOVERS = [
   { show: 'NRC Vandaag', bronnen: ['nrc'], patroon: /\/\/(?:[^/]+\/)*static\.nrc\.nl\/taxonomy\/[^/]*\bnrc ?vandaag[^/]*$/i },
+  { show: 'NRC Wereldzaken', bronnen: ['nrc'], patroon: /\/\/(?:[^/]+\/)*static\.nrc\.nl\/taxonomy\/(?:[^/]*[^a-z0-9/])?wereldzaken(?:[^a-z0-9/][^/]*)?$/i },
 ]
 const ontcijfer = (url) => {
   let s = String(url || '')
