@@ -1,5 +1,6 @@
 // GET /api/luister-proef — Luister verder, de stille proef (stap 2): per dagdeel welke verhalen welke aflevering kregen,
-// met soort (hetzelfde of verdiepend) en reden, en welke kandidaten afvielen, met reden. Alleen lezen; de ronde schrijft het
+// met soort (hetzelfde of verdiepend), het oordeel van De Redacteur en de reden, en welke kandidaten afvielen, met reden
+// (bij een oordeel de reden van het model). Alleen lezen; de ronde schrijft het
 // (netlify/lib/luister.mjs, luisterRonde). Geen persoonsgegevens: alleen verhalen, shows en afleveringen, en geen
 // beschrijvingen van afleveringen.
 //   ?dagdeel=2026-11-14-middag   alleen dat dagdeel
@@ -8,18 +9,21 @@ import { kvGet } from '../lib/kv.mjs'
 import { PROEF_KEY } from '../lib/luister.mjs'
 
 const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\s+/g, ' ').trim()
+const oordeelTekst = (o) => (o ? `${o.zaak}, één onderwerp ${o.eenOnderwerp}, zeker ${o.zeker}` : 'geen')
 export function asText(doc) {
   const out = ['# Luister verder · proef', '']
   for (const d of doc.dagdelen || []) {
-    out.push(`## ${d.dagdeel}`, '', `Laatste ronde ${d.at.slice(0, 10)}, ${d.afleveringen} afleveringen, ${d.koppelingen.length} koppelingen.${d.overTijd ? ' Over de tijd van de ronde: niet gekoppeld.' : ''}`, '')
+    const o = d.oordeel
+    const oordeel = o ? (o.uit ? ` Oordeel: uit (${o.uit}).` : ` Oordeel (${o.model}): ${o.kandidaten || 0} kandidaten, ${o.uitOpslag || 0} uit de opslag, ${o.gevraagd || 0} gevraagd in ${o.aanroepen || 0} aanroepen, ${o.invoerTokens || 0} en ${o.uitvoerTokens || 0} tokens${o.timeouts ? `, ${o.timeouts} niet op tijd` : ''}${o.fouten ? `, ${o.fouten} fouten` : ''}.`) : ''
+    out.push(`## ${d.dagdeel}`, '', `Laatste ronde ${d.at.slice(0, 10)}, ${d.afleveringen} afleveringen, ${d.koppelingen.length} koppelingen.${d.overTijd ? ' Over de tijd van de ronde.' : ''}${oordeel}`, '')
     if (d.koppelingen.length) {
-      out.push('| Verhaal | Aflevering | Soort | Reden |', '|---|---|---|---|')
-      for (const k of d.koppelingen) out.push(`| ${esc(k.kop)} | ${esc(k.show)}: ${esc(k.aflevering)} | ${k.soort} | ${esc(k.reden)} |`)
+      out.push('| Verhaal | Aflevering | Soort | Oordeel | Editie | Reden |', '|---|---|---|---|---|---|')
+      for (const k of d.koppelingen) out.push(`| ${esc(k.kop)} | ${esc(k.show)}: ${esc(k.aflevering)} | ${k.soort} | ${oordeelTekst(k.oordeel)} | ${esc(k.editie || '')} | ${esc(k.reden)} |`)
       out.push('')
     }
     if (d.afgevallen.length) {
-      out.push('Afgevallen:', '', '| Verhaal | Aflevering | Reden |', '|---|---|---|')
-      for (const a of d.afgevallen) out.push(`| ${esc(a.kop)} | ${esc(a.show)}: ${esc(a.aflevering)} | ${esc(a.reden)} |`)
+      out.push('Afgevallen:', '', '| Verhaal | Aflevering | Oordeel | Reden |', '|---|---|---|---|')
+      for (const a of d.afgevallen) out.push(`| ${esc(a.kop)} | ${esc(a.show)}: ${esc(a.aflevering)} | ${oordeelTekst(a.oordeel)} | ${esc(a.reden)} |`)
       out.push('')
     }
   }

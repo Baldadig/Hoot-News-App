@@ -1,0 +1,4023 @@
+{
+ "bron": "gethoot.app/api/feed?deel=kern (14 november 2026, avond, 2026-11-14T22:40:21.379Z) en de officiële podcastfeeds van netlify/lib/luister.mjs, dezelfde avond. Alleen de verhalen met een kandidaat of een Editieplek, hun stukken, de kandidaat-afleveringen en de onderdelen van de algemene Editie.",
+ "now": "2026-11-14T22:40:21.379Z",
+ "edition": {
+  "entries": [
+   {
+    "kind": "story",
+    "id": "s5ll0q9",
+    "formerId": "s3vohlb"
+   },
+   {
+    "kind": "story",
+    "id": "sglq02l"
+   },
+   {
+    "kind": "item",
+    "id": "1r0cvub",
+    "formerId": "s1pbderv"
+   },
+   {
+    "kind": "item",
+    "id": "q9vqxs",
+    "formerId": "s1rzubrn"
+   },
+   {
+    "kind": "item",
+    "id": "1300rki",
+    "formerId": "sts2z5a"
+   },
+   {
+    "kind": "story",
+    "id": "s6nnnxg",
+    "formerId": "satiyl6"
+   },
+   {
+    "kind": "story",
+    "id": "sn51qk8"
+   },
+   {
+    "kind": "story",
+    "id": "s1rqf8r0"
+   },
+   {
+    "kind": "item",
+    "id": "h48n0c",
+    "formerId": "s1h11r5e"
+   },
+   {
+    "kind": "story",
+    "id": "s1leesza"
+   },
+   {
+    "kind": "item",
+    "id": "xax3oj"
+   }
+  ]
+ },
+ "stories": [
+  {
+   "id": "sq11b7y",
+   "formerIds": [],
+   "leadId": "1bjchap",
+   "itemIds": [
+    "wjfh6s",
+    "100jmms",
+    "1bjchap"
+   ],
+   "sourceCount": 2,
+   "publisherCount": 2,
+   "publisherCountries": [
+    "GB",
+    "US"
+   ],
+   "ownCount": 1,
+   "desk": null,
+   "sourceNames": [
+    "TechCrunch",
+    "The Economist"
+   ],
+   "latestAt": "2026-11-13T12:28:23.000Z",
+   "firstAt": "2026-11-12T14:28:59.000Z",
+   "keys": [
+    "africa",
+    "huang",
+    "jack",
+    "jensen",
+    "kolkata",
+    "kress"
+   ],
+   "keyAt": {
+    "huang": [
+     1794493739000,
+     2
+    ],
+    "jensen": [
+     1794493739000,
+     2
+    ]
+   },
+   "pubAt": {
+    "economist": 1794493739000,
+    "techcrunch": 1794572903000
+   },
+   "light": false,
+   "luister": {
+    "soort": "hetzelfde",
+    "grond": "link",
+    "reden": "de uitgever linkt naar een stuk in het verhaal; zelfde gebeurtenis (jensen, huang)",
+    "show": "The Intelligence",
+    "showId": "the-intelligence",
+    "bron": "economist",
+    "uitgever": "The Economist",
+    "dezelfdeUitgever": true,
+    "aflevering": "Invidious position: finding Jensen Huang’s successor",
+    "verschenen": "2026-11-13",
+    "duur": 1338,
+    "taal": "en",
+    "alleenVolgers": true,
+    "link": "https://shows.acast.com/theintelligencepodcast/episodes/invidious-position-finding-jensen-huangs-successor",
+    "tijd": "2026-11-13T11:09:22.000Z",
+    "cover": "https://assets.pippa.io/shows/62e286a934d4d93d6587424a/1793974075343-0b2e0741-cc5a-4836-a356-e1015948b9ef.jpeg",
+    "apple": "https://podcasts.apple.com/nl/podcast/invidious-position-finding-jensen-huangs-successor/id1449631195?i=1000801714271",
+    "spotify": "https://open.spotify.com/search/The%20Intelligence"
+   }
+  },
+  {
+   "id": "s1rqf8r0",
+   "formerIds": [],
+   "leadId": "1p96223",
+   "itemIds": [
+    "1p96223",
+    "1tvqu2r",
+    "1ebqhqc",
+    "344dk5"
+   ],
+   "sourceCount": 4,
+   "publisherCount": 4,
+   "publisherCountries": [
+    "HK",
+    "NL",
+    "UA",
+    "US"
+   ],
+   "ownCount": 0,
+   "desk": "oekraine",
+   "sourceNames": [
+    "NU.nl",
+    "The Kyiv Independent",
+    "South China Morning Post",
+    "The Washington Post"
+   ],
+   "latestAt": "2026-11-14T16:58:24.000Z",
+   "firstAt": "2026-11-13T16:20:00.000Z",
+   "keys": [
+    "attack",
+    "military",
+    "ministry",
+    "spacex",
+    "starlink",
+    "starshield"
+   ],
+   "keyAt": {
+    "military": [
+     1794634318000,
+     2
+    ],
+    "spacex": [
+     1794586800000,
+     4
+    ],
+    "starlink": [
+     1794586800000,
+     3
+    ],
+    "starshield": [
+     1794634318000,
+     3
+    ]
+   },
+   "pubAt": {
+    "kyivindependent": 1794659432000,
+    "nu": 1794675504000,
+    "scmp": 1794634318000,
+    "wapo": 1794586800000
+   },
+   "light": false
+  },
+  {
+   "id": "sts2z5a",
+   "formerIds": [],
+   "leadId": "ai97pl",
+   "itemIds": [
+    "1evt6xk",
+    "ai97pl",
+    "vhj9o4",
+    "1r0cvyz",
+    "1ehrtps",
+    "1vlz832",
+    "192rjmu",
+    "unz8yq",
+    "g2ve8o",
+    "14hja71",
+    "d7xmvi",
+    "1r0cvva",
+    "1a23t1z",
+    "1nd98b6",
+    "akxjwq",
+    "16464x5",
+    "18eyikb"
+   ],
+   "sourceCount": 6,
+   "publisherCount": 6,
+   "publisherCountries": [
+    "NL"
+   ],
+   "ownCount": 3,
+   "desk": "binnenland",
+   "sourceNames": [
+    "Reformatorisch Dagblad",
+    "NRC",
+    "NOS",
+    "Nederlands Dagblad",
+    "Trouw",
+    "de Volkskrant"
+   ],
+   "latestAt": "2026-11-14T20:40:53.000Z",
+   "firstAt": "2026-11-13T20:12:00.000Z",
+   "keys": [
+    "bart",
+    "bontenbal",
+    "brekelmans",
+    "brink",
+    "cda",
+    "dassen",
+    "dilan",
+    "eelco",
+    "election",
+    "haag",
+    "heinen",
+    "henri",
+    "hilversum",
+    "jetten",
+    "laurens",
+    "maar",
+    "paternotte",
+    "ruben",
+    "volt",
+    "vvd",
+    "wijdemeren",
+    "yesilgoz",
+    "zwaluwenberg"
+   ],
+   "keyAt": {
+    "bontenbal": [
+     1794652102000,
+     3
+    ],
+    "brekelmans": [
+     1794668823000,
+     2
+    ],
+    "brink": [
+     1794652102000,
+     2
+    ],
+    "cda": [
+     1794600720000,
+     5
+    ],
+    "dassen": [
+     1794661860000,
+     3
+    ],
+    "dilan": [
+     1794655317000,
+     3
+    ],
+    "election": [
+     1794669148000,
+     2
+    ],
+    "haag": [
+     1794661860000,
+     2
+    ],
+    "henri": [
+     1794666024000,
+     2
+    ],
+    "hilversum": [
+     1794652102000,
+     4
+    ],
+    "jetten": [
+     1794603611000,
+     5
+    ],
+    "laurens": [
+     1794662889000,
+     2
+    ],
+    "maar": [
+     1794666024000,
+     2
+    ],
+    "paternotte": [
+     1794668823000,
+     2
+    ],
+    "ruben": [
+     1794668823000,
+     2
+    ],
+    "volt": [
+     1794661860000,
+     3
+    ],
+    "vvd": [
+     1794600720000,
+     6
+    ],
+    "wijdemeren": [
+     1794669148000,
+     2
+    ],
+    "yesilgoz": [
+     1794652102000,
+     5
+    ],
+    "zwaluwenberg": [
+     1794655317000,
+     3
+    ]
+   },
+   "pubAt": {
+    "nd": 1794668823000,
+    "nos": 1794669148000,
+    "nrc": 1794672166000,
+    "rd": 1794688853000,
+    "trouw": 1794663409000,
+    "volkskrant": 1794600720000
+   },
+   "light": false
+  },
+  {
+   "id": "sn51qk8",
+   "formerIds": [],
+   "leadId": "tnmk4z",
+   "itemIds": [
+    "tnmk4z",
+    "wj4nol",
+    "o30k5k",
+    "eju36n",
+    "12k3ce0"
+   ],
+   "sourceCount": 4,
+   "publisherCount": 4,
+   "publisherCountries": [
+    "FR",
+    "GB"
+   ],
+   "ownCount": 0,
+   "desk": "vs",
+   "sourceNames": [
+    "BBC",
+    "France 24",
+    "The Independent",
+    "Euronews"
+   ],
+   "latestAt": "2026-11-14T20:23:06.000Z",
+   "firstAt": "2026-11-13T21:04:32.000Z",
+   "keys": [
+    "brown",
+    "caitlin",
+    "cruise",
+    "heritage",
+    "louisiana",
+    "mississippi",
+    "orleans",
+    "port",
+    "river",
+    "story"
+   ],
+   "keyAt": {
+    "mississippi": [
+     1794603872000,
+     4
+    ],
+    "orleans": [
+     1794603872000,
+     4
+    ]
+   },
+   "pubAt": {
+    "bbc": 1794687786000,
+    "euronews": 1794603872000,
+    "france-medias-monde": 1794662142000,
+    "independent": 1794616241000
+   },
+   "light": false
+  },
+  {
+   "id": "s5ll0q9",
+   "formerIds": [],
+   "leadId": "1p9ccgh",
+   "itemIds": [
+    "1w6ekxt",
+    "1va96bu",
+    "wz57iz",
+    "kcmne7",
+    "24erh4",
+    "1anr5w2",
+    "1p9ccgh",
+    "1okkp2e",
+    "1r0cvto",
+    "xflo3y"
+   ],
+   "sourceCount": 10,
+   "publisherCount": 10,
+   "publisherCountries": [
+    "BE",
+    "DE",
+    "FR",
+    "GB",
+    "NL",
+    "QA"
+   ],
+   "ownCount": 2,
+   "desk": "buitenland",
+   "sourceNames": [
+    "Deutsche Welle",
+    "BBC",
+    "De Morgen",
+    "VRT NWS",
+    "Al Jazeera",
+    "Le Monde in English",
+    "NRC",
+    "Politico Europe",
+    "NOS",
+    "NU.nl"
+   ],
+   "latestAt": "2026-11-14T18:41:00.000Z",
+   "firstAt": "2026-11-14T12:48:25.000Z",
+   "keys": [
+    "android",
+    "facebook",
+    "instagram",
+    "italiaa",
+    "italiaanse",
+    "italian",
+    "italie",
+    "italy",
+    "meta",
+    "opnieuw",
+    "platforms",
+    "whatsapp"
+   ],
+   "keyAt": {
+    "android": [
+     1794660505000,
+     4
+    ],
+    "facebook": [
+     1794660505000,
+     7
+    ],
+    "instagram": [
+     1794660505000,
+     5
+    ],
+    "italiaanse": [
+     1794660505000,
+     5
+    ],
+    "italie": [
+     1794660505000,
+     5
+    ],
+    "italy": [
+     1794665007000,
+     5
+    ],
+    "meta": [
+     1794660505000,
+     10
+    ],
+    "whatsapp": [
+     1794660505000,
+     4
+    ]
+   },
+   "pubAt": {
+    "aljazeera": 1794672975000,
+    "bbc": 1794680886000,
+    "demorgen": 1794677249000,
+    "dw": 1794681660000,
+    "lemonde": 1794670234000,
+    "nos": 1794664236000,
+    "nrc": 1794665749000,
+    "nu": 1794660505000,
+    "politico-eu": 1794665007000,
+    "vrt": 1794674970000
+   },
+   "light": false
+  },
+  {
+   "id": "s1leesza",
+   "formerIds": [],
+   "leadId": "1r0cvyw",
+   "itemIds": [
+    "1r0cvyw",
+    "tbylar",
+    "1avr2l9"
+   ],
+   "sourceCount": 2,
+   "publisherCount": 2,
+   "publisherCountries": [
+    "NL"
+   ],
+   "ownCount": 1,
+   "desk": "binnenland",
+   "sourceNames": [
+    "NOS",
+    "Nederlands Dagblad"
+   ],
+   "latestAt": "2026-11-14T15:42:48.000Z",
+   "firstAt": "2026-11-14T11:27:00.000Z",
+   "keys": [
+    "haag",
+    "klaasje",
+    "leeuwen",
+    "leven",
+    "livestream",
+    "malieveld",
+    "mars",
+    "schreeuw"
+   ],
+   "keyAt": {
+    "haag": [
+     1794655620000,
+     2
+    ],
+    "malieveld": [
+     1794668934000,
+     2
+    ],
+    "mars": [
+     1794655620000,
+     2
+    ]
+   },
+   "pubAt": {
+    "nd": 1794668934000,
+    "nos": 1794670968000
+   },
+   "light": false
+  },
+  {
+   "id": "sglq02l",
+   "formerIds": [],
+   "leadId": "dabg3x",
+   "itemIds": [
+    "1flofzp",
+    "df9b4q",
+    "dabg3x",
+    "1r5d0g8",
+    "dt6ixy",
+    "g5es6v",
+    "1r0cvv4"
+   ],
+   "sourceCount": 7,
+   "publisherCount": 7,
+   "publisherCountries": [
+    "NL"
+   ],
+   "ownCount": 2,
+   "desk": null,
+   "sourceNames": [
+    "AD",
+    "Nederlands Dagblad",
+    "NRC",
+    "Trouw",
+    "Het Parool",
+    "NU.nl",
+    "NOS"
+   ],
+   "latestAt": "2026-11-14T15:17:00.000Z",
+   "firstAt": "2026-11-14T11:25:54.000Z",
+   "keys": [
+    "brabantse",
+    "bram",
+    "child",
+    "gijs",
+    "goedheiligman",
+    "grave",
+    "intocht",
+    "maar",
+    "naber",
+    "nationale",
+    "ozosnel",
+    "sint",
+    "sinterklaas",
+    "sinterklaasjournaal",
+    "sinterklaasmysterie",
+    "stefan",
+    "vlugt",
+    "walle"
+   ],
+   "keyAt": {
+    "brabantse": [
+     1794655554000,
+     2
+    ],
+    "gijs": [
+     1794655554000,
+     7
+    ],
+    "grave": [
+     1794655554000,
+     4
+    ],
+    "naber": [
+     1794655554000,
+     7
+    ],
+    "sint": [
+     1794657552000,
+     2
+    ],
+    "sinterklaas": [
+     1794655658000,
+     3
+    ],
+    "sinterklaasjournaal": [
+     1794657552000,
+     3
+    ],
+    "stefan": [
+     1794655554000,
+     5
+    ],
+    "walle": [
+     1794655554000,
+     5
+    ]
+   },
+   "pubAt": {
+    "ad": 1794669420000,
+    "nd": 1794659612000,
+    "nos": 1794655554000,
+    "nrc": 1794657552000,
+    "nu": 1794655658000,
+    "parool": 1794656220000,
+    "trouw": 1794657540000
+   },
+   "light": false
+  },
+  {
+   "id": "s1oshj3i",
+   "formerIds": [],
+   "leadId": "16fw8ap",
+   "itemIds": [
+    "16fw8ap",
+    "1j04e3b"
+   ],
+   "sourceCount": 2,
+   "publisherCount": 2,
+   "publisherCountries": [
+    "IL",
+    "US"
+   ],
+   "ownCount": 0,
+   "desk": "middenoosten",
+   "sourceNames": [
+    "Haaretz",
+    "TechCrunch"
+   ],
+   "latestAt": "2026-11-14T09:20:28.000Z",
+   "firstAt": "2026-11-13T12:52:19.000Z",
+   "keys": [
+    "ceo",
+    "given",
+    "nvidia"
+   ],
+   "keyAt": {
+    "nvidia": [
+     1794574339000,
+     2
+    ]
+   },
+   "pubAt": {
+    "haaretz": 1794648028000,
+    "techcrunch": 1794574339000
+   },
+   "light": false
+  },
+  {
+   "id": "s1ne82n1",
+   "formerIds": [],
+   "leadId": "1n4tuw7",
+   "itemIds": [
+    "1n4tuw7",
+    "1e8naac"
+   ],
+   "sourceCount": 2,
+   "publisherCount": 2,
+   "publisherCountries": [
+    "FR",
+    "US"
+   ],
+   "ownCount": 0,
+   "desk": "vs",
+   "sourceNames": [
+    "The Washington Post Politiek",
+    "RFI English"
+   ],
+   "latestAt": "2026-11-13T19:00:00.000Z",
+   "firstAt": "2026-11-12T16:34:21.000Z",
+   "keys": [
+    "cindy",
+    "civil",
+    "colom",
+    "hyde",
+    "maga",
+    "mississippi",
+    "reconstruction",
+    "scott",
+    "smith"
+   ],
+   "keyAt": {
+    "colom": [
+     1794501261000,
+     2
+    ],
+    "mississippi": [
+     1794501261000,
+     2
+    ],
+    "scott": [
+     1794501261000,
+     2
+    ]
+   },
+   "pubAt": {
+    "france-medias-monde": 1794501261000,
+    "wapo": 1794596400000
+   },
+   "light": false,
+   "luister": {
+    "soort": "verdiepend",
+    "grond": "tekst",
+    "reden": "twee centrale namen (colom scott, mississippi) en dezelfde kwestie, eerder verschenen",
+    "show": "Today in Focus",
+    "showId": "today-in-focus",
+    "bron": "guardian",
+    "uitgever": "The Guardian",
+    "dezelfdeUitgever": false,
+    "aflevering": "Mississippi makes history with Democrat Senate win",
+    "verschenen": "2026-11-12",
+    "duur": 757,
+    "taal": "en",
+    "alleenVolgers": true,
+    "link": "https://www.theguardian.com/news/series/todayinfocus",
+    "tijd": "2026-11-12T17:42:03.000Z",
+    "cover": "https://uploads.guim.co.uk/2022/02/10/TiF_FINAL_3000x3000.jpg",
+    "apple": "https://podcasts.apple.com/nl/podcast/mississippi-makes-history-with-democrat-senate-win/id1440133626?i=1000801559720",
+    "spotify": "https://open.spotify.com/search/Today%20in%20Focus"
+   }
+  },
+  {
+   "id": "s1p3uplr",
+   "formerIds": [],
+   "leadId": "37p0y0",
+   "itemIds": [
+    "1vneo6v",
+    "37p0y0",
+    "lds9zd"
+   ],
+   "sourceCount": 2,
+   "publisherCount": 2,
+   "publisherCountries": [
+    "NL"
+   ],
+   "ownCount": 1,
+   "desk": "buitenland",
+   "sourceNames": [
+    "NOS Economie",
+    "NRC"
+   ],
+   "latestAt": "2026-11-13T16:43:05.000Z",
+   "firstAt": "2026-11-13T15:56:45.000Z",
+   "keys": [
+    "bank",
+    "centrale",
+    "dublin",
+    "duitsers",
+    "ecb",
+    "hernandez",
+    "jetten",
+    "klaas",
+    "knot",
+    "pablo",
+    "spanjaard"
+   ],
+   "keyAt": {
+    "ecb": [
+     1794585405000,
+     2
+    ],
+    "klaas": [
+     1794585405000,
+     2
+    ],
+    "knot": [
+     1794585405000,
+     2
+    ]
+   },
+   "pubAt": {
+    "nos": 1794588185000,
+    "nrc": 1794585405000
+   },
+   "light": false
+  },
+  {
+   "id": "sjdwk3x",
+   "formerIds": [],
+   "leadId": "1sr2o8j",
+   "itemIds": [
+    "1sr2o8j",
+    "oy2te9",
+    "llcm9e",
+    "kj5xj1",
+    "2oht60",
+    "1so21g3",
+    "1tj0ew8",
+    "qb1hm0",
+    "1qddjed",
+    "19any65",
+    "1q8nhwa",
+    "8rlux9",
+    "1xuvolw",
+    "1uucjbu",
+    "6xhi42",
+    "1r0cvqx",
+    "alr6kp",
+    "113rv9w",
+    "3m1kux",
+    "1nup4gr",
+    "1js671i",
+    "i7qkz1",
+    "141yr7o",
+    "1gau30m",
+    "124mgzn",
+    "1549yed",
+    "13l8nz1",
+    "10vpfv9",
+    "1hjeulb",
+    "hqm1d7",
+    "da5hlx",
+    "438fyc",
+    "171a96x",
+    "6w0bu4",
+    "1qwdzd9",
+    "1vnepqq",
+    "k4hylo",
+    "1vnenha",
+    "1vne4qk",
+    "1x4g3xg",
+    "1jc8c80",
+    "odyzti"
+   ],
+   "sourceCount": 21,
+   "publisherCount": 18,
+   "publisherCountries": [
+    "AU",
+    "FR",
+    "GB",
+    "NL",
+    "QA",
+    "US"
+   ],
+   "ownCount": 5,
+   "desk": null,
+   "sourceNames": [
+    "NYT",
+    "TechCrunch",
+    "The Independent",
+    "ABC News (Australië)",
+    "France 24",
+    "Al Jazeera",
+    "The Economist",
+    "Financial Times",
+    "Tweakers",
+    "Bloomberg",
+    "NOS",
+    "BBC",
+    "The Guardian",
+    "Foreign Policy",
+    "Wired",
+    "Het Financieele Dagblad",
+    "de Volkskrant",
+    "The Washington Post Politiek",
+    "Scientific American",
+    "NOS Economie",
+    "The New Yorker"
+   ],
+   "latestAt": "2026-11-14T22:10:40.000Z",
+   "firstAt": "2026-11-10T19:49:27.000Z",
+   "keys": [
+    "administration",
+    "alice",
+    "asia",
+    "asian",
+    "bloomberg",
+    "boom",
+    "bottom",
+    "buck",
+    "ceo",
+    "cfo",
+    "child",
+    "chitnis",
+    "cnn",
+    "colette",
+    "commerce",
+    "congressional",
+    "curi",
+    "davi",
+    "financial",
+    "good",
+    "haas",
+    "howard",
+    "huang",
+    "huangs",
+    "jensen",
+    "journal",
+    "kress",
+    "line",
+    "lutnick",
+    "maar",
+    "maria",
+    "megaspeed",
+    "mister",
+    "nebius",
+    "nvidia",
+    "podcast",
+    "post",
+    "rene",
+    "resign",
+    "silicon",
+    "singapore",
+    "some",
+    "street",
+    "tech",
+    "test",
+    "treasury",
+    "trumps",
+    "valley",
+    "wall",
+    "weekend",
+    "will",
+    "without",
+    "world",
+    "year"
+   ],
+   "keyAt": {
+    "alice": [
+     1794465811000,
+     2
+    ],
+    "ceo": [
+     1794340167000,
+     8
+    ],
+    "haas": [
+     1794648394000,
+     2
+    ],
+    "howard": [
+     1794519780000,
+     3
+    ],
+    "huang": [
+     1794340167000,
+     20
+    ],
+    "jensen": [
+     1794340167000,
+     20
+    ],
+    "lutnick": [
+     1794519780000,
+     3
+    ],
+    "nvidia": [
+     1794340167000,
+     18
+    ],
+    "rene": [
+     1794648394000,
+     2
+    ],
+    "resign": [
+     1794458255000,
+     8
+    ],
+    "silicon": [
+     1794682862000,
+     2
+    ],
+    "singapore": [
+     1794610831000,
+     2
+    ],
+    "street": [
+     1794458255000,
+     2
+    ],
+    "valley": [
+     1794682862000,
+     2
+    ],
+    "wall": [
+     1794458255000,
+     2
+    ]
+   },
+   "pubAt": {
+    "abc-au": 1794682862000,
+    "aljazeera": 1794666276000,
+    "bbc": 1794610831000,
+    "bloomberg": 1794646819000,
+    "economist": 1794657351000,
+    "fd": 1794582240000,
+    "foreignpolicy": 1794599423000,
+    "france-medias-monde": 1794676886000,
+    "ft": 1794654009000,
+    "guardian": 1794599488000,
+    "independent": 1794688541000,
+    "newyorker": 1794340167000,
+    "nos": 1794636617000,
+    "nyt": 1794694240000,
+    "sciam": 1794495600000,
+    "techcrunch": 1794692482000,
+    "tweakers": 1794648394000,
+    "volkskrant": 1794578640000,
+    "wapo": 1794564000000,
+    "wired": 1794585600000
+   },
+   "light": false
+  },
+  {
+   "id": "s6nnnxg",
+   "formerIds": [],
+   "leadId": "1yhue9s",
+   "itemIds": [
+    "1yhue9s",
+    "hcdhuv",
+    "1bc5ufb",
+    "6d1je5",
+    "1wq3wj2",
+    "ndxp3n",
+    "1arlls0",
+    "1w9mtcm",
+    "n28ti9"
+   ],
+   "sourceCount": 8,
+   "publisherCount": 8,
+   "publisherCountries": [
+    "BE",
+    "FR",
+    "NL",
+    "QA",
+    "US"
+   ],
+   "ownCount": 0,
+   "desk": "vs",
+   "sourceNames": [
+    "De Standaard",
+    "NU.nl",
+    "Al Jazeera",
+    "TechCrunch",
+    "NPR",
+    "France 24",
+    "Le Monde in English",
+    "Euronews"
+   ],
+   "latestAt": "2026-11-14T21:08:46.000Z",
+   "firstAt": "2026-11-14T06:56:20.000Z",
+   "keys": [
+    "bedford",
+    "bloomberg",
+    "bryan",
+    "duffy",
+    "faa",
+    "jeff",
+    "mason",
+    "sean",
+    "transport",
+    "transportation",
+    "weekend"
+   ],
+   "keyAt": {
+    "bedford": [
+     1794678304000,
+     2
+    ],
+    "bryan": [
+     1794678304000,
+     2
+    ],
+    "duffy": [
+     1794639380000,
+     7
+    ],
+    "faa": [
+     1794675184000,
+     4
+    ],
+    "sean": [
+     1794639380000,
+     7
+    ],
+    "transport": [
+     1794639380000,
+     3
+    ],
+    "transportation": [
+     1794669949000,
+     3
+    ]
+   },
+   "pubAt": {
+    "aljazeera": 1794679373000,
+    "euronews": 1794639380000,
+    "france-medias-monde": 1794674152000,
+    "lemonde": 1794669949000,
+    "npr": 1794675184000,
+    "nu": 1794686106000,
+    "standaard": 1794690526000,
+    "techcrunch": 1794678304000
+   },
+   "light": false
+  },
+  {
+   "id": "s1vbi8pg",
+   "formerIds": [],
+   "leadId": "9ahe06",
+   "itemIds": [
+    "9ahe06",
+    "n17tjy",
+    "3l06wv"
+   ],
+   "sourceCount": 3,
+   "publisherCount": 3,
+   "publisherCountries": [
+    "NL"
+   ],
+   "ownCount": 1,
+   "desk": null,
+   "sourceNames": [
+    "De Telegraaf",
+    "NOS Sport",
+    "NRC"
+   ],
+   "latestAt": "2026-11-14T17:44:40.000Z",
+   "firstAt": "2026-11-14T00:42:52.000Z",
+   "keys": [
+    "child",
+    "frenkie",
+    "griekenland",
+    "jong",
+    "juventus",
+    "kees",
+    "league",
+    "maar",
+    "nederlands",
+    "oranje",
+    "smit",
+    "veerman"
+   ],
+   "keyAt": {
+    "frenkie": [
+     1794616972000,
+     2
+    ],
+    "griekenland": [
+     1794616972000,
+     2
+    ],
+    "jong": [
+     1794616972000,
+     3
+    ],
+    "oranje": [
+     1794616972000,
+     3
+    ]
+   },
+   "pubAt": {
+    "nos": 1794670290000,
+    "nrc": 1794616972000,
+    "telegraaf": 1794678280000
+   },
+   "sport": true,
+   "light": false
+  },
+  {
+   "id": "s1rzubrn",
+   "formerIds": [],
+   "leadId": "q9vqxs",
+   "itemIds": [
+    "1ee3098",
+    "q9vqxs",
+    "uub8a5",
+    "1nvw5og",
+    "qw8nvq",
+    "yvrzjn",
+    "1zddm0"
+   ],
+   "sourceCount": 6,
+   "publisherCount": 6,
+   "publisherCountries": [
+    "BE",
+    "DE",
+    "FR",
+    "GB",
+    "NL",
+    "US"
+   ],
+   "ownCount": 0,
+   "desk": null,
+   "sourceNames": [
+    "BBC",
+    "France 24",
+    "De Standaard",
+    "Nederlands Dagblad",
+    "Deutsche Welle",
+    "Scientific American"
+   ],
+   "latestAt": "2026-11-14T14:36:01.000Z",
+   "firstAt": "2026-11-13T18:45:00.000Z",
+   "keys": [
+    "bloomberg",
+    "christina",
+    "david",
+    "gulf",
+    "gura",
+    "hamilton",
+    "missile",
+    "network",
+    "ross",
+    "ruffini",
+    "spacex",
+    "starlink",
+    "starship",
+    "weekend"
+   ],
+   "keyAt": {
+    "missile": [
+     1794595500000,
+     6
+    ],
+    "spacex": [
+     1794595500000,
+     6
+    ],
+    "starship": [
+     1794595500000,
+     6
+    ]
+   },
+   "pubAt": {
+    "bbc": 1794665921000,
+    "dw": 1794623040000,
+    "france-medias-monde": 1794651669000,
+    "nd": 1794641192000,
+    "sciam": 1794595500000,
+    "standaard": 1794644272000
+   },
+   "light": false
+  }
+ ],
+ "items": [
+  {
+   "id": "1sr2o8j",
+   "kind": "article",
+   "source": "nyt",
+   "sourceName": "NYT",
+   "domain": "nytimes.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T22:30:21.536Z",
+   "title": "Jensen Huang Carried a Secret for More Than a Year. It Led to His Downfall.",
+   "summary": "Nvidia’s leader said his relationship with a female customer was just about business.",
+   "topics": [],
+   "url": "https://www.nytimes.com/2026/11/14/technology/jensen-huang-nvidia-board.html",
+   "publishedAt": "2026-11-14T22:10:40.000Z"
+  },
+  {
+   "id": "oy2te9",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Anthony Ha",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T21:50:23.582Z",
+   "title": "Elon Musk, other tech execs sign petition calling on Nvidia to reinstate Jensen Huang",
+   "summary": "The petition had attracted more than 115,000 signatures as of Saturday afternoon.",
+   "topics": [
+    "tech"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://techcrunch.com/2026/11/14/elon-musk-other-tech-execs-sign-petition-calling-on-nvidia-to-reinstate-jensen-huang/",
+   "publishedAt": "2026-11-14T21:41:22.000Z"
+  },
+  {
+   "id": "1yhue9s",
+   "kind": "article",
+   "source": "standaard",
+   "sourceName": "De Standaard",
+   "domain": "standaard.be",
+   "author": "Maria Saldi,Max De Moor",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T21:30:22.742Z",
+   "title": "Oorzaak voor grootschalgie panne in Amerikaanse luchtvaart wordt gezocht bij vervanging van koperkabels",
+   "summary": "Vrijdag lag het vliegverkeer in de VS meer dan vier uur lang stil.",
+   "topics": [],
+   "url": "https://www.standaard.be/buitenland/oorzaak-voor-grootschalgie-panne-in-amerikaanse-luchtvaart-wordt-gezocht-bij-vervanging-van-koperkabels/164549414.html",
+   "publishedAt": "2026-11-14T21:08:46.000Z"
+  },
+  {
+   "id": "llcm9e",
+   "kind": "article",
+   "source": "nyt",
+   "sourceName": "NYT",
+   "domain": "nytimes.com",
+   "author": "Kalley Huang",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T20:00:54.924Z",
+   "title": "Tech Leaders Rally Behind Jensen Huang",
+   "summary": "In social media posts and letters to Nvidia’s board, Mr. Huang’s billionaire peers described him as a singular leader who could not be replaced at Nvidia.",
+   "topics": [
+    "gezondheid"
+   ],
+   "url": "https://www.nytimes.com/2026/11/14/technology/silicon-valley-nvidia-jensen-huang.html",
+   "publishedAt": "2026-11-14T20:57:38.000Z"
+  },
+  {
+   "id": "1evt6xk",
+   "kind": "article",
+   "source": "rd",
+   "sourceName": "Reformatorisch Dagblad",
+   "domain": "rd.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-13T22:30:53.723Z",
+   "title": "Top coalitie praat zondag verder over politieke crisis",
+   "summary": "Zaterdag praat de coalitie in crisissfeer verder. Na urenlang overleg op vrijdag zijn de gesprekken volgens premier Jetten „nog niet af\".",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.rd.nl/a/d66-niet-bereid-misverstand-weg-te-nemen-over-eis-abortus-ja-21-sgp-en-bbb",
+   "publishedAt": "2026-11-14T20:40:53.000Z"
+  },
+  {
+   "id": "kj5xj1",
+   "kind": "article",
+   "source": "independent",
+   "sourceName": "The Independent",
+   "domain": "independent.co.uk",
+   "author": "Jasmine Fernández",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T20:50:20.730Z",
+   "title": "Insiders predict Jensen Huang ‘will have a second act’ as resurfaced images show him embracing alleged Chinese spy",
+   "summary": "Silicon Valley leaders predict that despite the scandal, it’s not over for the 63-year-old Nvidia co-founder",
+   "topics": [
+    "azie"
+   ],
+   "mainTopics": [
+    "azie"
+   ],
+   "url": "https://www.independent.co.uk/news/world/americas/jensen-huang-spy-photos-nvidia-comeback-b3085040.html",
+   "publishedAt": "2026-11-14T20:35:41.000Z"
+  },
+  {
+   "id": "tnmk4z",
+   "kind": "article",
+   "source": "bbc",
+   "sourceName": "BBC",
+   "domain": "bbc.co.uk",
+   "storyId": "sn51qk8",
+   "firstSeenAt": "2026-11-14T00:20:08.316Z",
+   "title": "‘Miracle on Mississippi’ – All passengers rescued after New Orleans cruise ship collision",
+   "summary": "The collision leaves 32 people in hospital with non-critical injuries, but no-one unaccounted for.",
+   "topics": [],
+   "url": "https://www.bbc.co.uk/news/articles/cw20xmy0m5yyo?at_medium=RSS&at_campaign=rss",
+   "publishedAt": "2026-11-14T20:23:06.000Z"
+  },
+  {
+   "id": "hcdhuv",
+   "kind": "article",
+   "source": "nu",
+   "sourceName": "NU.nl",
+   "domain": "nu.nl",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T20:00:54.924Z",
+   "title": "Niet AI of cyberaanval, maar afgelegen router oorzaak luchtverkeerstoring VS",
+   "summary": "De grootschalige storing van het Amerikaanse luchtverkeer werd volgens de Amerikaanse minister van Transport Sean Duffy niet veroorzaakt door een cyberaanval of door AI.",
+   "topics": [
+    "ai",
+    "privacy",
+    "nederland"
+   ],
+   "mainTopics": [
+    "ai",
+    "privacy"
+   ],
+   "url": "https://www.nu.nl/buitenland/6416605/niet-ai-of-cyberaanval-maar-afgelegen-router-oorzaak-luchtverkeerstoring-vs.html",
+   "publishedAt": "2026-11-14T19:55:06.000Z"
+  },
+  {
+   "id": "wj4nol",
+   "kind": "article",
+   "source": "bbc",
+   "sourceName": "BBC",
+   "domain": "bbc.co.uk",
+   "storyId": "sn51qk8",
+   "firstSeenAt": "2026-11-13T23:33:14.327Z",
+   "title": "Watch: Cruise ship overturns after collision with tanker in New Orleans",
+   "summary": "Around 130 people were rescued from a cruise ship after it was struck by a tanker while docked in New Orleans, Louisiana on Friday.",
+   "topics": [],
+   "url": "https://www.bbc.co.uk/news/videos/ck4gn4y77m40o?at_medium=RSS&at_campaign=rss",
+   "publishedAt": "2026-11-14T19:14:33.000Z"
+  },
+  {
+   "id": "2oht60",
+   "kind": "article",
+   "source": "abc-au",
+   "sourceName": "ABC News (Australië)",
+   "domain": "abc.net.au",
+   "author": "Brad Ryan",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T19:10:54.830Z",
+   "title": "Sex, spies and Silicon Valley: Nvidia scandal highlights risks for big tech",
+   "summary": "Chinese economic espionage is in the spotlight after the downfall of Nvidia chief Jensen Huang, and former intelligence officials say the US is not doing enough to combat it.",
+   "topics": [
+    "tech",
+    "azie"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.abc.net.au/news/2026-11-15/sex-spies-silicon-valley-nvidia-saga-highlights-risks-for-tech/107386438",
+   "publishedAt": "2026-11-14T19:01:02.000Z"
+  },
+  {
+   "id": "1w6ekxt",
+   "kind": "article",
+   "source": "dw",
+   "sourceName": "Deutsche Welle",
+   "domain": "dw.com",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T18:50:51.528Z",
+   "title": "Italy slaps Meta with €805mn fine over access to Android photos",
+   "summary": "Italian regulators say Meta accessed photos and multimedia content from Italian users via the Facebook application for Android devices.",
+   "topics": [
+    "tech",
+    "gadgets"
+   ],
+   "mainTopics": [
+    "tech",
+    "gadgets"
+   ],
+   "url": "https://www.dw.com/en/italy-slaps-meta-with-%E2%82%AC805mn-fine-over-access-to-android-photos/a-79949032?maca=en-rss-en-all-1573-rdf",
+   "publishedAt": "2026-11-14T18:41:00.000Z"
+  },
+  {
+   "id": "1va96bu",
+   "kind": "article",
+   "source": "bbc",
+   "sourceName": "BBC",
+   "domain": "bbc.co.uk",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T16:40:16.783Z",
+   "title": "Italy fines Meta €805m over accessing users’ photos",
+   "summary": "The social media giant is accused of not informing 20 million users it had access to their photos.",
+   "topics": [
+    "tech"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.bbc.co.uk/news/articles/cwn83gxemk35o?at_medium=RSS&at_campaign=rss",
+   "publishedAt": "2026-11-14T18:28:06.000Z"
+  },
+  {
+   "id": "1bc5ufb",
+   "kind": "article",
+   "source": "aljazeera",
+   "sourceName": "Al Jazeera",
+   "domain": "aljazeera.com",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T18:20:21.475Z",
+   "title": "US blames system upgrade for longest nationwide FAA ground stop since 9/11",
+   "summary": "Sean Duffy, the country’s transportation secretary, said his agency is ‘going to hold people accountable’.",
+   "topics": [],
+   "url": "https://www.aljazeera.com/news/2026/11/14/us-blames-system-upgrade-for-longest-nationwide-faa-ground-stop-since-9?traffic_source=rss",
+   "publishedAt": "2026-11-14T18:02:53.000Z"
+  },
+  {
+   "id": "6d1je5",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Anthony Ha",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T17:50:21.848Z",
+   "title": "Transportation secretary blames ‘routine’ equipment upgrade for grounding flights nationwide",
+   "summary": "FAA administrator Bryan Bedford also said there’s ‘zero evidence of anything AI-related.’",
+   "topics": [
+    "ai"
+   ],
+   "url": "https://techcrunch.com/2026/11/14/transportation-secretary-blames-routine-equipment-upgrade-for-grounding-flights-nationwide/",
+   "publishedAt": "2026-11-14T17:45:04.000Z"
+  },
+  {
+   "id": "9ahe06",
+   "kind": "article",
+   "source": "telegraaf",
+   "sourceName": "De Telegraaf",
+   "domain": "telegraaf.nl",
+   "author": "Mike Verweij & Jeroen Kapteijns",
+   "storyId": "s1vbi8pg",
+   "firstSeenAt": "2026-11-14T17:50:21.848Z",
+   "title": "Frenkie de Jong legt na 7-0 zege op Griekenland lat hoog: ’Over twee jaar willen we het EK winnen’",
+   "summary": "Frenkie de Jong sprak na de 7-0 zege op Griekenland over de grote ambities die hij heeft met Oranje de komende periode.",
+   "topics": [
+    "voetbal"
+   ],
+   "url": "https://www.telegraaf.nl/sport/voetbal/frenkie-de-jong-legt-na-7-0-zege-op-griekenland-lat-hoog-over-twee-jaar-willen-we-het-ek-winnen/164561602.html",
+   "publishedAt": "2026-11-14T17:44:40.000Z"
+  },
+  {
+   "id": "wz57iz",
+   "kind": "article",
+   "source": "demorgen",
+   "sourceName": "De Morgen",
+   "domain": "demorgen.be",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T17:30:22.332Z",
+   "title": "Italië legt Facebook-moeder Meta boete van 805 miljoen euro op",
+   "summary": "De Italiaanse autoriteit voor privacy- en databescherming heeft een boete opgelegd van 805 miljoen euro aan Meta Platforms, het moederbedrijf van Facebook, WhatsApp en Instagram.",
+   "introAlt": "Meta, het moederbedrijf van Facebook, WhatsApp en Instagram, heeft een nieuwe megaboete aan de broek hangen.",
+   "introAltFrom": "NU.nl",
+   "topics": [
+    "tech",
+    "privacy"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.demorgen.be/snelnieuws/italie-legt-facebook-moeder-meta-boete-van-805-miljoen-euro-op~b3c4e822/",
+   "publishedAt": "2026-11-14T17:27:29.000Z"
+  },
+  {
+   "id": "1so21g3",
+   "kind": "article",
+   "source": "france24",
+   "sourceName": "France 24",
+   "domain": "france24.com",
+   "author": "FRANCE24",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T17:40:23.083Z",
+   "title": "Washington divided over how to deal with fallout from the Nvidia case",
+   "summary": "After the fall, the fallout. US government agencies are squabbling after AI leader Jensen Huang stepped down from chips giant Nvidia in disgrace.",
+   "topics": [
+    "tech",
+    "ai"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.france24.com/en/washington-divided-over-how-to-deal-with-fallout-from-the-nvidia-case",
+   "publishedAt": "2026-11-14T17:21:26.000Z"
+  },
+  {
+   "id": "akxjwq",
+   "kind": "article",
+   "source": "joop",
+   "sourceName": "Joop",
+   "domain": "bnnvara.nl",
+   "opinion": true,
+   "tabs": [
+    "opinie"
+   ],
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T17:20:20.128Z",
+   "title": "Laurens Dassen (Volt) waarschuwt D66 en CDA: laat je niet chanteren door VVD",
+   "summary": "Zombiekabinet moet het hele weekend de bizarre eisen van Dilan Yesilgöz aanhoren",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://bnnvara.nl/joop/artikelen/laurens-dassen-volt-waarschuwt-d66-en-cda-laat-je-niet-chanteren-door-vvd",
+   "publishedAt": "2026-11-14T17:13:00.000Z"
+  },
+  {
+   "id": "1p96223",
+   "kind": "article",
+   "source": "nu",
+   "sourceName": "NU.nl",
+   "domain": "nu.nl",
+   "storyId": "s1rqf8r0",
+   "firstSeenAt": "2026-11-14T17:00:22.275Z",
+   "title": "Zelensky voert kritiek op SpaceX op en noemt beperking Starshield ‘politiek’",
+   "summary": "De beperkte snelheid van Starshield, de militaire variant van het satellietinternetnetwerk Starlink, heeft geen technische, maar een politieke oorzaak.",
+   "topics": [
+    "tech",
+    "ruimte"
+   ],
+   "mainTopics": [
+    "tech",
+    "ruimte"
+   ],
+   "url": "https://www.nu.nl/spanningen-oekraine/6416594/zelensky-voert-kritiek-op-spacex-op-en-noemt-beperking-starshield-politiek.html",
+   "publishedAt": "2026-11-14T16:58:24.000Z"
+  },
+  {
+   "id": "1wq3wj2",
+   "kind": "article",
+   "source": "npr",
+   "sourceName": "NPR",
+   "domain": "npr.org",
+   "author": "Ava Berger",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T17:00:22.275Z",
+   "title": "FAA blames Friday’s ground stop on ‘equipment issue’ during telecoms network upgrade",
+   "summary": "Transportation Secretary Sean Duffy said initial investigations pointed to an issue with contractor L3Harris updating old tech at a remote location.",
+   "topics": [],
+   "url": "https://www.npr.org/2026/11/14/nx-s1-6040952/faa-ground-stop-airplane-travel",
+   "publishedAt": "2026-11-14T16:53:04.000Z"
+  },
+  {
+   "id": "kcmne7",
+   "kind": "article",
+   "source": "vrt",
+   "sourceName": "VRT NWS",
+   "domain": "vrtnws.be",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T16:50:21.806Z",
+   "title": "Facebook kreeg toegang tot beelden die gebruikers nooit deelden: 805 miljoen euro boete",
+   "summary": "Italië legt Meta, het Amerikaanse moederbedrijf van Facebook en Instagram, een boete op van 805 miljoen euro. Dat heeft de Italiaanse privacywaakhond beslist.",
+   "topics": [
+    "tech"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://vrtnws.be/p.43pOObenk",
+   "publishedAt": "2026-11-14T16:49:30.000Z"
+  },
+  {
+   "id": "ndxp3n",
+   "kind": "article",
+   "source": "france24",
+   "sourceName": "France 24",
+   "domain": "france24.com",
+   "author": "FRANCE24",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T16:40:16.783Z",
+   "title": "US: What exactly caused the longest nationwide ground stop in 25 years?",
+   "summary": "After a nearly five-hour ground stoppage, flights in the US have resumed.",
+   "topics": [],
+   "url": "https://www.france24.com/en/us-what-exactly-caused-the-longest-nationwide-ground-stop-in-25-years",
+   "publishedAt": "2026-11-14T16:35:52.000Z"
+  },
+  {
+   "id": "1tj0ew8",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Kate Park",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T16:40:16.783Z",
+   "title": "Asian governments react to Nvidia CEO Jensen Huang’s exit",
+   "summary": "Some governments moved to confirm chip supply commitments, while others are monitoring the impact on local projects or addressing ongoing investigations.",
+   "topics": [
+    "bedrijven",
+    "tech"
+   ],
+   "mainTopics": [
+    "bedrijven",
+    "tech"
+   ],
+   "url": "https://techcrunch.com/2026/11/14/asian-governments-react-to-nvidia-ceo-jensen-huangs-exit/",
+   "publishedAt": "2026-11-14T16:34:15.000Z"
+  },
+  {
+   "id": "24erh4",
+   "kind": "article",
+   "source": "aljazeera",
+   "sourceName": "Al Jazeera",
+   "domain": "aljazeera.com",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T16:50:21.806Z",
+   "title": "Italy fines Meta $880m over photo privacy",
+   "summary": "Regulator said Meta’s ‘lack of cooperation’ and the large number of people affected contributed to size of the fine.",
+   "topics": [
+    "tech",
+    "privacy"
+   ],
+   "mainTopics": [
+    "tech",
+    "privacy"
+   ],
+   "url": "https://www.aljazeera.com/news/2026/11/14/italy-fines-meta-880m-over-photo-privacy?traffic_source=rss",
+   "publishedAt": "2026-11-14T16:16:15.000Z"
+  },
+  {
+   "id": "ai97pl",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T16:10:55.470Z",
+   "title": "‘Heel erg veel ellende’, zegt de lokale VVD’er die veel reacties van kiezers krijgt op de coalitiecrisis",
+   "summary": "Woensdag zijn er in Hilversum en Wijdemeren verkiezingen voor een nieuwe gemeenteraad. Maar op de markt gaat het deze zaterdag vooral over de landelijke politiek.",
+   "topics": [
+    "nederland",
+    "verkiezingen"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/14/bij-de-verkiezingen-in-hilversum-gaat-het-veel-over-het-wankele-kabinet-en-de-rol-van-de-vvd-a4941206",
+   "publishedAt": "2026-11-14T16:02:46.000Z"
+  },
+  {
+   "id": "vhj9o4",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T16:10:55.470Z",
+   "title": "Ook fractievoorzitters Jan Paternotte (D66), Ruben Brekelmans (VVD) en Henri Bontenbal (CDA) zijn aangeschoven bij crisisoverleg in Hilversum",
+   "summary": "Ook de fractievoorzitters Jan Paternotte (D66), Ruben Brekelmans (VVD) en Henri Bontenbal (CDA) zijn aangeschoven bij het crisisoverleg tussen D66, VVD en CDA op…",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/14/ook-fractievoorzitters-jan-paternotte-d66-ruben-brekelmans-vvd-en-henri-bontenbal-cda-zijn-aangeschoven-bij-crisisoverleg-in-hilversum-a4941401",
+   "publishedAt": "2026-11-14T15:49:02.000Z"
+  },
+  {
+   "id": "1r0cvyw",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "domain": "nos.nl",
+   "storyId": "s1leesza",
+   "firstSeenAt": "2026-11-14T15:50:21.178Z",
+   "title": "Duizenden lopen mee met mars tegen abortus in Den Haag, ook tegendemonstratie",
+   "summary": "In Den Haag vond vandaag de jaarlijkse Mars voor het Leven plaats. Duizenden deelnemers liepen mee in een stille mars tegen abortus.",
+   "readMin": 1,
+   "topics": [
+    "ruimte"
+   ],
+   "mainTopics": [
+    "ruimte"
+   ],
+   "url": "https://nos.nl/l/2639493",
+   "publishedAt": "2026-11-14T15:42:48.000Z"
+  },
+  {
+   "id": "n17tjy",
+   "kind": "article",
+   "source": "nos-sport",
+   "sourceName": "NOS Sport",
+   "domain": "nos.nl",
+   "storyId": "s1vbi8pg",
+   "firstSeenAt": "2026-11-14T15:40:20.027Z",
+   "title": "AZ-middenvelder Smit opnieuw enkele weken aan de kant, mist ook Jong Oranje",
+   "summary": "Middenvelder Kees Smit staat voorlopig aan de kant met een liesblessure.",
+   "topics": [
+    "voetbal"
+   ],
+   "mainTopics": [
+    "voetbal"
+   ],
+   "url": "https://nos.nl/l/2639492",
+   "publishedAt": "2026-11-14T15:31:30.000Z"
+  },
+  {
+   "id": "1anr5w2",
+   "kind": "article",
+   "source": "lemonde",
+   "sourceName": "Le Monde in English",
+   "domain": "lemonde.fr",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T15:40:20.027Z",
+   "title": "Italy fines Meta $880mn over photo privacy",
+   "summary": "Italy’s data protection authority accused Facebook’s parent company of accessing users’ photos ‘without obtaining specific consent and without properly informing them.’",
+   "topics": [
+    "tech",
+    "privacy"
+   ],
+   "mainTopics": [
+    "tech",
+    "privacy"
+   ],
+   "url": "https://www.lemonde.fr/en/international/article/2026/11/14/italy-fines-meta-880mn-over-photo-privacy_6780820_4.html",
+   "publishedAt": "2026-11-14T15:30:34.000Z"
+  },
+  {
+   "id": "1arlls0",
+   "kind": "article",
+   "source": "lemonde",
+   "sourceName": "Le Monde in English",
+   "domain": "lemonde.fr",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T15:40:20.027Z",
+   "title": "Expect more flight cancellations, US transport chief says",
+   "summary": "Transportation Secretary Sean Duffy said it remains ‘safe to fly’ after an hours-long ground stop, but warned of more flight cancellations as airlines grapple with…",
+   "topics": [],
+   "url": "https://www.lemonde.fr/en/international/article/2026/11/14/expect-more-flight-cancelations-us-transport-chief-says_6780788_4.html",
+   "publishedAt": "2026-11-14T15:25:49.000Z"
+  },
+  {
+   "id": "1flofzp",
+   "kind": "article",
+   "source": "ad",
+   "sourceName": "AD",
+   "domain": "ad.nl",
+   "author": "Vera Warmenhoven",
+   "storyId": "sglq02l",
+   "firstSeenAt": "2026-11-14T15:20:54.827Z",
+   "title": "Hints naar Gijs Naber als adviseur zaten al verstopt in Het Sinterklaasjournaal: van motorrijder tot websitefout",
+   "summary": "Dagenlang keken miljoenen mensen naar Het Sinterklaasjournaal. De spanning was groot: wie zou dit jaar de nieuwe adviseur van de Sint worden?",
+   "topics": [],
+   "url": "https://www.ad.nl/binnenland/hints-naar-gijs-naber-als-adviseur-zaten-al-verstopt-in-het-sinterklaasjournaal-van-motorrijder-tot-websitefout~af72b80b/",
+   "publishedAt": "2026-11-14T15:17:00.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1r0cvyz",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "domain": "nos.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T15:20:54.827Z",
+   "title": "Kabinet wankelt terwijl Hilversum kiest: ‘Misschien wel de midterms voor Den Haag’",
+   "summary": "Terwijl D66, VVD en CDA op landgoed De Zwaluwenberg praten over de toekomst van hun minderheidskabinet, voeren politieke partijen een paar kilometer verderop druk campagne.",
+   "readMin": 3,
+   "topics": [
+    "nederland",
+    "vs-politiek",
+    "verkiezingen"
+   ],
+   "mainTopics": [
+    "nederland",
+    "vs-politiek"
+   ],
+   "url": "https://nos.nl/l/2639490",
+   "publishedAt": "2026-11-14T15:12:28.000Z"
+  },
+  {
+   "id": "tbylar",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "domain": "nd.nl",
+   "storyId": "s1leesza",
+   "firstSeenAt": "2026-11-14T14:50:54.857Z",
+   "title": "Duizenden mensen bij jaarlijkse mars tegen abortuspraktijk",
+   "summary": "In Den Haag hebben duizenden mensen zaterdagmiddag meegelopen met de jaarlijkse Mars voor het leven.",
+   "topics": [
+    "ruimte"
+   ],
+   "mainTopics": [
+    "ruimte"
+   ],
+   "url": "https://www.nd.nl/varia/varia/1338804/duizenden-mensen-bij-jaarlijkse-mars-tegen-abortuspraktijk",
+   "publishedAt": "2026-11-14T15:08:54.000Z"
+  },
+  {
+   "id": "1ehrtps",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "domain": "nd.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T14:50:54.857Z",
+   "title": "Ook fractieleiders aangekomen in Hilversum voor coalitieoverleg",
+   "summary": "Ook de fractieleiders Jan Paternotte (D66), Ruben Brekelmans (VVD) en Henri Bontenbal (CDA) zijn zaterdagmiddag aangekomen op het landgoed De Zwaluwenberg in Hilversum.",
+   "topics": [
+    "nederland"
+   ],
+   "url": "https://www.nd.nl/varia/varia/1338803/ook-fractieleiders-aangekomen-in-hilversum-voor-coalitieoverleg",
+   "publishedAt": "2026-11-14T15:07:03.000Z"
+  },
+  {
+   "id": "1ee3098",
+   "kind": "article",
+   "source": "bloomberg",
+   "sourceName": "Bloomberg",
+   "domain": "bloomberg.com",
+   "storyId": "s1madvjj",
+   "firstSeenAt": "2026-11-14T14:40:54.639Z",
+   "title": "SpaceX Pushes Starship Reusability to New Test",
+   "summary": "Space Network co-founder Ross Hamilton tells Bloomberg This Weekend why SpaceX’s attempt to catch Starship after its return from orbit could mark a major step toward making the rocket system fully reusable.",
+   "introAlt": "Elon Musk’s SpaceX successfully launched its Starship, the world’s largest spaceship, into orbit where it should release 15 satellites for its Starlink network.",
+   "introAltFrom": "France 24",
+   "topics": [
+    "tech",
+    "ruimte",
+    "f1"
+   ],
+   "mainTopics": [
+    "tech",
+    "ruimte"
+   ],
+   "url": "https://www.bloomberg.com/news/videos/2026-11-14/spacex-pushes-starship-reusability-to-new-test-video",
+   "imageFrom": "France 24",
+   "publishedAt": "2026-11-14T14:36:01.000Z"
+  },
+  {
+   "id": "qb1hm0",
+   "kind": "article",
+   "source": "bloomberg",
+   "sourceName": "Bloomberg",
+   "domain": "bloomberg.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T14:40:54.639Z",
+   "title": "Bessent, Lutnick Clash Over Nvidia China Curbs",
+   "summary": "Axios AI policy reporter Maria Curi tells Bloomberg This Weekend about tensions inside the Trump administration over efforts to restrict the flow of advanced Nvidia chips to China and scrutiny of Commerce Secretary Howard Lutnick’s handling of Megaspeed.",
+   "topics": [
+    "azie",
+    "tech",
+    "ai",
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "azie",
+    "tech"
+   ],
+   "url": "https://www.bloomberg.com/news/videos/2026-11-14/bessent-lutnick-clash-over-nvidia-china-curbs-video",
+   "publishedAt": "2026-11-14T14:30:24.000Z"
+  },
+  {
+   "id": "1qddjed",
+   "kind": "article",
+   "source": "aljazeera",
+   "sourceName": "Al Jazeera",
+   "domain": "aljazeera.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T14:50:54.857Z",
+   "title": "When tech founders leave, what happens to their companies?",
+   "summary": "Nvidia could lose 30 percent of its value following cofounder Jensen Huang’s decision to step down, analysts warns.",
+   "topics": [],
+   "url": "https://www.aljazeera.com/economy/2026/11/14/when-tech-founders-leave-what-happens-to-their-companies?traffic_source=rss",
+   "publishedAt": "2026-11-14T14:24:36.000Z"
+  },
+  {
+   "id": "1vlz832",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "domain": "nd.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T13:40:21.784Z",
+   "title": "Dassen aan Jetten en Bontenbal: laat je niet chanteren door VVD",
+   "summary": "Volt-leider Laurens Dassen roept premier Rob Jetten en CDA-leider Henri Bontenbal op zich niet te laten chanteren door de VVD.",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.nd.nl/varia/varia/1338801/dassen-aan-jetten-en-bontenbal-laat-je-niet-chanteren-door-vvd",
+   "publishedAt": "2026-11-14T14:20:24.000Z"
+  },
+  {
+   "id": "1p9ccgh",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T14:30:55.717Z",
+   "title": "Opnieuw miljoenenboete voor Meta vanwege schending van privacy, nu vanuit Italië",
+   "summary": "De Italiaanse privacywaakhond heeft Meta, het moederbedrijf van onder andere Facebook, WhatsApp en Instagram, een boete van 805 miljoen euro opgelegd.",
+   "topics": [
+    "tech",
+    "privacy"
+   ],
+   "mainTopics": [
+    "tech",
+    "privacy"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/14/opnieuw-miljoenenboete-voor-meta-vanwege-schending-van-privacy-nu-vanuit-italie-a4941398",
+   "publishedAt": "2026-11-14T14:15:49.000Z"
+  },
+  {
+   "id": "1w9mtcm",
+   "kind": "article",
+   "source": "bloomberg",
+   "sourceName": "Bloomberg",
+   "domain": "bloomberg.com",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T14:20:21.383Z",
+   "title": "Trump Heads to China for Talks With Xi and Putin",
+   "summary": "Bloomberg White House correspondent Jeff Mason tells Bloomberg This Weekend how the Trump administration responded to a nationwide FAA ground stop and Transportation Secretary Sean Duffy’s push for $50 billion to modernize the US air traffic control system.",
+   "topics": [
+    "oekraine",
+    "azie",
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "oekraine",
+    "azie",
+    "vs-politiek"
+   ],
+   "url": "https://www.bloomberg.com/news/videos/2026-11-14/trump-heads-to-china-for-talks-with-xi-and-putin-video",
+   "publishedAt": "2026-11-14T14:11:19.000Z"
+  },
+  {
+   "id": "1okkp2e",
+   "kind": "article",
+   "source": "politico-eu",
+   "sourceName": "Politico Europe",
+   "domain": "politico.eu",
+   "author": "Dominic Giannini",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T14:10:19.224Z",
+   "title": "Italy hits Meta with €805m fine over privacy law violation",
+   "summary": "It is the largest fine ever issued by Italy’s data protection regulator.",
+   "readMin": 1,
+   "topics": [
+    "tech",
+    "privacy"
+   ],
+   "mainTopics": [
+    "tech",
+    "privacy"
+   ],
+   "url": "https://www.politico.eu/article/italy-hits-meta-with-e805m-fine-over-privacy-law-violation/",
+   "publishedAt": "2026-11-14T14:03:27.000Z"
+  },
+  {
+   "id": "1r0cvto",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "domain": "nos.nl",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T14:00:24.989Z",
+   "title": "Moederbedrijf van WhatsApp en Instagram krijgt boete van 805 miljoen in Italië",
+   "summary": "De Italiaanse autoriteit voor privacy- en databescherming heeft een boete van 805 miljoen euro opgelegd aan Meta, het moederbedrijf van Facebook, WhatsApp en Instagram.",
+   "readMin": 1,
+   "topics": [
+    "tech",
+    "privacy"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://nos.nl/l/2639479",
+   "publishedAt": "2026-11-14T13:50:36.000Z"
+  },
+  {
+   "id": "192rjmu",
+   "kind": "article",
+   "source": "trouw",
+   "sourceName": "Trouw",
+   "domain": "trouw.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T13:40:21.784Z",
+   "title": "Waar wil VVD-leider Dilan Yesilgöz opnieuw over onderhandelen?",
+   "summary": "In Hilversum gaat het crisisoverleg over de toekomst van het kabinet-Jetten dit weekend verder. De VVD wil opnieuw onderhandelen. Waarover?",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.trouw.nl/politiek/waar-wil-vvd-leider-dilan-yesilgoz-opnieuw-over-onderhandelen~b0df1053/",
+   "publishedAt": "2026-11-14T13:36:49.000Z"
+  },
+  {
+   "id": "unz8yq",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T14:00:24.989Z",
+   "title": "Volt-partijleider Dassen roept D66 en CDA op zich niet door de VVD te laten ‘chanteren’",
+   "summary": "Partijleider Laurens Dassen van Volt deed zaterdag op het partijcongres een oproep aan regeringspartijen D66 en CDA: „Laat je niet meer door de VVD chanteren.”",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/14/volt-partijleider-dassen-roept-d66-en-cda-op-zich-niet-door-de-vvd-te-laten-chanteren-a4941393",
+   "publishedAt": "2026-11-14T13:28:09.000Z"
+  },
+  {
+   "id": "o30k5k",
+   "kind": "article",
+   "source": "france24",
+   "sourceName": "France 24",
+   "domain": "france24.com",
+   "author": "FRANCE24",
+   "storyId": "sn51qk8",
+   "firstSeenAt": "2026-11-14T13:40:21.784Z",
+   "title": "USA: All passengers survive after tanker hits docked river cruise ship in New Orleans",
+   "summary": "A portion of the Mississippi River remains closed after a collision between an oil tanker and a riverboat forced a chaotic river rescue in Louisiana.",
+   "introAlt": "According to the Port of New Orleans, all 197 passengers and crew members have been accounted for.",
+   "introAltFrom": "Euronews",
+   "topics": [],
+   "url": "https://www.france24.com/en/usa-all-passengers-survive-after-tanker-hits-docked-river-cruise-ship-in-new-orleans",
+   "publishedAt": "2026-11-14T13:15:42.000Z"
+  },
+  {
+   "id": "g2ve8o",
+   "kind": "article",
+   "source": "trouw",
+   "sourceName": "Trouw",
+   "domain": "trouw.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T13:20:22.920Z",
+   "title": "Dassen (Volt) haalt hard uit naar VVD: ‘Politieke chantage’",
+   "summary": "Op het congres van de kleine partij, die samen optrekt met Pro, maakt Dassen de balans op van een chaotische week in Den Haag.",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.trouw.nl/politiek/dassen-volt-haalt-hard-uit-naar-vvd-politieke-chantage~b016a07a/",
+   "publishedAt": "2026-11-14T13:11:00.000Z"
+  },
+  {
+   "id": "xflo3y",
+   "kind": "article",
+   "source": "nu",
+   "sourceName": "NU.nl",
+   "domain": "nu.nl",
+   "storyId": "s5ll0q9",
+   "firstSeenAt": "2026-11-14T13:50:24.118Z",
+   "title": "Meta kon ongevraagd bij foto’s en video’s: Italië geeft boete van 800 miljoen euro",
+   "summary": "Meta, het moederbedrijf van Facebook, WhatsApp en Instagram, heeft een nieuwe megaboete aan de broek hangen.",
+   "topics": [
+    "tech"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.nu.nl/tech/6416580/meta-kon-ongevraagd-bij-fotos-en-videos-italie-geeft-boete-van-800-miljoen-euro.html",
+   "publishedAt": "2026-11-14T12:48:25.000Z"
+  },
+  {
+   "id": "df9b4q",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "domain": "nd.nl",
+   "storyId": "sglq02l",
+   "firstSeenAt": "2026-11-14T12:10:20.690Z",
+   "title": "Gijs Naber neemt mijter over van Stefan de Walle",
+   "summary": "Gijs Naber is de nieuwe hoofdrolspeler in het Sinterklaasjournaal. Dat werd zaterdag duidelijk tijdens de landelijke intocht in het Brabantse Grave.",
+   "topics": [],
+   "url": "https://www.nd.nl/varia/varia/1338799/gijs-naber-neemt-mijter-over-van-stefan-de-walle",
+   "publishedAt": "2026-11-14T12:33:32.000Z"
+  },
+  {
+   "id": "1tvqu2r",
+   "kind": "article",
+   "source": "kyivindependent",
+   "sourceName": "The Kyiv Independent",
+   "domain": "kyivindependent.com",
+   "author": "Linda Hourani",
+   "storyId": "s1rqf8r0",
+   "firstSeenAt": "2026-11-14T12:40:52.666Z",
+   "title": "Zelensky says Starshield restrictions give Russia more room to attack, accuses SpaceX of treating occupied territories as ‘not ours’",
+   "summary": "‘If you impose restrictions there, you are already partially recognizing the temporarily occupied territories as not ours,’ Zelensky told journalists, referring to the…",
+   "topics": [
+    "oekraine",
+    "tech",
+    "ruimte"
+   ],
+   "mainTopics": [
+    "oekraine",
+    "tech",
+    "ruimte"
+   ],
+   "url": "https://kyivindependent.com/zelensky-says-starshield-restrictions-give-russia-more-room-to-attack-accuses-spacex-of-treating-occupied-territories-as-not-ours/",
+   "publishedAt": "2026-11-14T12:30:32.000Z"
+  },
+  {
+   "id": "14hja71",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "domain": "nd.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T11:30:19.548Z",
+   "title": "Jetten, Yeşilgöz en Van den Brink gearriveerd op De Zwaluwenberg",
+   "summary": "Premier Rob Jetten en de vicepremiers Dilan Yeşilgöz (VVD) en Bart van den Brink (CDA) zijn zaterdagochtend iets na 11.00 uur gearriveerd op landgoed De Zwaluwenberg bij Hilversum.",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.nd.nl/varia/varia/1338798/jetten-yesilgoz-en-van-den-brink-gearriveerd-op-de-zwaluwenberg",
+   "publishedAt": "2026-11-14T12:07:17.000Z"
+  },
+  {
+   "id": "dabg3x",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "sglq02l",
+   "firstSeenAt": "2026-11-14T12:10:20.690Z",
+   "title": "Gijs Naber is de nieuwe incarnatie van de Sint in het Sinterklaasjournaal",
+   "summary": "De opvolger van Stefan de Walle is acteur Gijs Naber, zo bleek zaterdagmiddag uit het verslag van de intocht door Het Sinterklaasjournaal.",
+   "topics": [],
+   "url": "https://www.nrc.nl/nieuws/2026/11/14/gijs-naber-is-de-nieuwe-incarnatie-van-de-sint-in-het-sinterklaasjournaal-a4941356",
+   "publishedAt": "2026-11-14T11:59:12.000Z"
+  },
+  {
+   "id": "1r5d0g8",
+   "kind": "article",
+   "source": "trouw",
+   "sourceName": "Trouw",
+   "domain": "trouw.nl",
+   "storyId": "sglq02l",
+   "firstSeenAt": "2026-11-14T12:10:20.690Z",
+   "title": "Eindelijk antwoord op de vraag wie de nieuwe Sinterklaas is: acteur Gijs Naber",
+   "summary": "Na weken van speculatie is nu bekend wie de nieuwe Sinterklaas is. Gijs Naber maakte tijdens de Nationale Intocht zijn debuut als goedheiligman.",
+   "topics": [
+    "film"
+   ],
+   "mainTopics": [
+    "film"
+   ],
+   "url": "https://www.trouw.nl/cultuur-media/eindelijk-antwoord-op-de-vraag-wie-de-nieuwe-sinterklaas-is-acteur-gijs-naber~bd93e4c0/",
+   "publishedAt": "2026-11-14T11:59:00.000Z"
+  },
+  {
+   "id": "19any65",
+   "kind": "article",
+   "source": "economist",
+   "sourceName": "The Economist",
+   "domain": "economist.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T12:50:51.419Z",
+   "title": "The Bottom Line newsletter: Nvidia will never be the same",
+   "summary": "Shailesh Chitnis, our chip-industry expert, reflects on the fall of Jensen Huang",
+   "topics": [
+    "tech"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.economist.com/business/2026/11/14/the-bottom-line-newsletter-nvidia-will-never-be-the-same",
+   "publishedAt": "2026-11-14T11:55:51.000Z"
+  },
+  {
+   "id": "dt6ixy",
+   "kind": "article",
+   "source": "parool",
+   "sourceName": "Het Parool",
+   "domain": "parool.nl",
+   "storyId": "sglq02l",
+   "firstSeenAt": "2026-11-14T12:10:20.690Z",
+   "title": "Het speculeren is voorbij: acteur Gijs Naber neemt de mijter over van Stefan de Walle",
+   "summary": "Na weken van speculatie liet de nieuwe adviseur van de Goedheiligman zich zaterdag eindelijk zien tijdens de intocht van Sinterklaas in Grave.",
+   "introAlt": "Gijs Naber is de nieuwe hoofdrolspeler in het Sinterklaasjournaal. Dat werd zaterdag duidelijk tijdens de landelijke intocht in het Brabantse Grave.",
+   "introAltFrom": "Nederlands Dagblad",
+   "topics": [
+    "film"
+   ],
+   "mainTopics": [
+    "film"
+   ],
+   "url": "https://www.parool.nl/nederland/het-speculeren-is-voorbij-acteur-gijs-naber-neemt-de-mijter-over-van-stefan-de-walle~b5fe8c1a/",
+   "publishedAt": "2026-11-14T11:37:00.000Z"
+  },
+  {
+   "id": "g5es6v",
+   "kind": "article",
+   "source": "nu",
+   "sourceName": "NU.nl",
+   "domain": "nu.nl",
+   "storyId": "sglq02l",
+   "firstSeenAt": "2026-11-14T11:30:19.548Z",
+   "title": "Gijs Naber is nieuwe Sinterklaas en volgt na vijftien jaar Stefan de Walle op",
+   "summary": "Acteur Gijs Naber volgt Stefan de Walle op als Sinterklaas, zo is zaterdag vlak voor de intocht in Grave bekendgemaakt.",
+   "topics": [],
+   "url": "https://www.nu.nl/media/6416442/gijs-naber-is-nieuwe-sinterklaas-en-volgt-na-vijftien-jaar-stefan-de-walle-op.html",
+   "publishedAt": "2026-11-14T11:27:38.000Z"
+  },
+  {
+   "id": "1avr2l9",
+   "kind": "article",
+   "source": "nd",
+   "sourceName": "Nederlands Dagblad",
+   "domain": "nd.nl",
+   "storyId": "s1leesza",
+   "firstSeenAt": "2026-11-14T11:10:16.962Z",
+   "title": "Mars voor het leven trekt door Den Haag. ‘We zullen meer de straat op moeten gaan’",
+   "summary": "Bijna 40.000 abortussen in één jaar, ophef over late abortussen en groen licht voor embryokweek.",
+   "topics": [
+    "ruimte"
+   ],
+   "mainTopics": [
+    "ruimte"
+   ],
+   "url": "https://www.nd.nl/nieuws/nederland/1338754/mars-voor-het-leven-trekt-door-den-haag-we-zullen-meer-de-str",
+   "publishedAt": "2026-11-14T11:27:00.000Z"
+  },
+  {
+   "id": "1r0cvv4",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "domain": "nos.nl",
+   "storyId": "sglq02l",
+   "firstSeenAt": "2026-11-14T11:30:19.548Z",
+   "title": "Sinterklaasmysterie na weken onthuld, Gijs Naber volgt Stefan de Walle op",
+   "summary": "Het Sinterklaasmysterie is eindelijk onthuld. Gijs Naber mocht de rode mijter opzetten en vandaag in het Brabantse Grave op Ozosnel zitten.",
+   "readMin": 3,
+   "topics": [],
+   "url": "https://nos.nl/l/2639457",
+   "publishedAt": "2026-11-14T11:25:54.000Z"
+  },
+  {
+   "id": "d7xmvi",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T11:30:19.548Z",
+   "title": "Crisisoverleg op landgoed begonnen: komen de partijen nader tot elkaar?",
+   "summary": "Het crisisoverleg tussen D66, VVD en CDA op landgoed De Zwaluwenberg in Hilversum is begonnen.",
+   "topics": [
+    "nederland"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/14/crisisoverleg-zwaluwenberg-begonnen-kunnen-d66-cda-en-de-vvd-nader-tot-elkaar-komen-a4941394",
+   "publishedAt": "2026-11-14T11:21:57.000Z"
+  },
+  {
+   "id": "1q8nhwa",
+   "kind": "article",
+   "source": "ft",
+   "sourceName": "Financial Times",
+   "domain": "ft.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T11:30:19.548Z",
+   "title": "Nvidia exposed to possible lawsuits after Jensen Huang’s downfall",
+   "summary": "Chip group lacks full insurance coverage for damages stemming from the conduct of executives",
+   "topics": [
+    "tech"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.ft.com/content/4aba8386-35cc-463b-a79c-a0c85c362c89?syn-25a6b1a6=1",
+   "publishedAt": "2026-11-14T11:00:09.000Z"
+  },
+  {
+   "id": "1r0cvva",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "domain": "nos.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T10:30:52.662Z",
+   "title": "Crisisoverleg D66, VVD en CDA in Hilversum morgen verder",
+   "summary": "Het crisisoverleg over de toekomst van het minderheidskabinet van D66, VVD en CDA is na het avondeten afgebroken en wordt morgenochtend voortgezet.",
+   "readMin": 1,
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://nos.nl/l/2639451",
+   "publishedAt": "2026-11-14T10:28:22.000Z"
+  },
+  {
+   "id": "uub8a5",
+   "kind": "article",
+   "source": "france24",
+   "sourceName": "France 24",
+   "domain": "france24.com",
+   "author": "FRANCE24",
+   "storyId": "s1madvjj",
+   "firstSeenAt": "2026-11-14T10:40:52.750Z",
+   "title": "SpaceX’s Starship encounters problems during 15th test flight",
+   "summary": "Elon Musk’s SpaceX successfully launched its Starship, the world’s largest spaceship, into orbit where it should release 15 satellites for its Starlink network.",
+   "topics": [
+    "tech",
+    "ruimte"
+   ],
+   "mainTopics": [
+    "tech",
+    "ruimte"
+   ],
+   "url": "https://www.france24.com/en/spacex-s-starship-encounters-problems-during-15th-test-flight",
+   "publishedAt": "2026-11-14T10:21:09.000Z"
+  },
+  {
+   "id": "8rlux9",
+   "kind": "article",
+   "source": "france24",
+   "sourceName": "France 24",
+   "domain": "france24.com",
+   "author": "FRANCE24",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T10:40:52.750Z",
+   "title": "Can Nvidia survive without tech titan Jensen Huang?",
+   "summary": "The Financial Times says computing giant Nvidia has approached Rene Haas, CEO of British chip designer Arm, in its search for a potential successor to Jensen Huang.",
+   "topics": [
+    "tech",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.france24.com/en/can-nvidia-survive-without-tech-titan-jensen-huang",
+   "publishedAt": "2026-11-14T10:20:11.000Z"
+  },
+  {
+   "id": "1xuvolw",
+   "kind": "article",
+   "source": "tweakers",
+   "sourceName": "Tweakers",
+   "domain": "tweakers.net",
+   "author": "Tijs Hofmans",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T09:40:20.524Z",
+   "title": "FT: Nvidia zou Rene Haas van Arm hebben benaderd om Jensen Huang op te volgen",
+   "summary": "Nvidia zou Rene Haas hebben gevraagd ceo te worden. Hij is sinds 2022 de baas van Arm. Haas heeft daar nog niet op geantwoord.",
+   "topics": [
+    "tech",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://tweakers.net/nieuws/254538/ft-nvidia-zou-rene-haas-van-arm-hebben-benaderd-om-jensen-huang-op-te-volgen.html",
+   "publishedAt": "2026-11-14T09:26:34.000Z"
+  },
+  {
+   "id": "16fw8ap",
+   "kind": "article",
+   "source": "haaretz",
+   "sourceName": "Haaretz",
+   "domain": "haaretz.com",
+   "author": "Meirav Arlosoroff",
+   "storyId": "s1oshj3i",
+   "firstSeenAt": "2026-11-14T10:20:55.304Z",
+   "title": "How Nvidia’s turmoil could become a problem for Israel’s economy",
+   "summary": "The chipmaker has generated billions in tax revenue and its outgoing CEO’s affinity for Israel helped drive the expansion of its Israeli operations.",
+   "introAlt": "Given Nvidia’s stronghold on AI and its importance in Israel, many in the country’s startup ecosystem are worried about the impact of his departure.",
+   "introAltFrom": "TechCrunch",
+   "topics": [
+    "middenoosten",
+    "tech",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "middenoosten",
+    "tech"
+   ],
+   "url": "https://www.haaretz.com/israel-news/business/economy-finance/2026-11-14/ty-article/.premium/how-nvidias-turmoil-could-become-a-problem-for-israels-economy/000001a1-d915-d1ce-a9a3-f917fc0f0000",
+   "publishedAt": "2026-11-14T09:20:28.000Z"
+  },
+  {
+   "id": "1uucjbu",
+   "kind": "article",
+   "source": "bloomberg",
+   "sourceName": "Bloomberg",
+   "domain": "bloomberg.com",
+   "author": "Joe Weisenthal and Tracy Alloway",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T09:10:25.481Z",
+   "title": "How Wall Street Is Bracing For the Post-Jensen Huang Nvidia Era",
+   "summary": "The ultimate key man risk.",
+   "topics": [
+    "economie",
+    "tech"
+   ],
+   "mainTopics": [
+    "economie",
+    "tech"
+   ],
+   "url": "https://www.bloomberg.com/news/articles/2026-11-14/how-wall-street-is-bracing-for-the-post-jensen-huang-nvidia-era",
+   "publishedAt": "2026-11-14T09:00:19.000Z"
+  },
+  {
+   "id": "6xhi42",
+   "kind": "article",
+   "source": "bloomberg",
+   "sourceName": "Bloomberg",
+   "domain": "bloomberg.com",
+   "author": "Joe Weisenthal and Tracy Alloway",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T09:00:22.200Z",
+   "title": "Odd Lots: Wall Street and the Post-Huang Nvidia Era (Podcast)",
+   "summary": "Nvidia’s post-Jensen Huang era has just begun and there are so many open questions about the company’s future. Who will the board choose to be Nvidia’s next CEO?",
+   "topics": [
+    "economie",
+    "tech",
+    "bedrijven",
+    "gezondheid"
+   ],
+   "mainTopics": [
+    "economie",
+    "tech"
+   ],
+   "url": "https://www.bloomberg.com/news/audio/2026-11-14/odd-lots-wall-street-and-the-post-huang-nvidia-era-podcast",
+   "publishedAt": "2026-11-14T09:00:00.000Z"
+  },
+  {
+   "id": "1nvw5og",
+   "kind": "article",
+   "source": "standaard",
+   "sourceName": "De Standaard",
+   "domain": "standaard.be",
+   "author": "belga",
+   "storyId": "s1madvjj",
+   "firstSeenAt": "2026-11-14T08:40:20.588Z",
+   "title": "Test mislukt: booster van SpaceX-raket belandt in zee",
+   "summary": "Ruimtevaartbedrijf SpaceX wilde tijdens een testvlucht alle onderdelen van zijn Starship-raket recupereren. Dat is niet gelukt.",
+   "topics": [
+    "geopolitiek",
+    "tech",
+    "ruimte"
+   ],
+   "mainTopics": [
+    "geopolitiek",
+    "tech",
+    "ruimte"
+   ],
+   "url": "https://www.standaard.be/buitenland/test-mislukt-booster-van-spacex-raket-belandt-in-zee/164548787.html",
+   "publishedAt": "2026-11-14T08:17:52.000Z"
+  },
+  {
+   "id": "16464x5",
+   "kind": "article",
+   "source": "geenstijl",
+   "sourceName": "GeenStijl",
+   "domain": "geenstijl.nl",
+   "author": "Dorbeck",
+   "opinion": true,
+   "tabs": [
+    "opinie"
+   ],
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-14T08:00:55.109Z",
+   "title": "VVD, D66 en CDA gaan puinruimen op De Zwaluwenberg",
+   "summary": "FOTO: De Zwaluwenberg in betere tijden Het is de dag na de dag die kwam na de dag die volgde op de avond die weer kwam na de week vol ellende die een logisch gevolg is van bijna een jaar kabinet-Jetten.",
+   "readMin": 1,
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.geenstijl.nl/5193086/vvd-d66-en-cda-gaan-puinruimen-op-de-zwaluwenberg/",
+   "publishedAt": "2026-11-14T08:00:00.000Z"
+  },
+  {
+   "id": "n28ti9",
+   "kind": "article",
+   "source": "euronews",
+   "sourceName": "Euronews",
+   "domain": "euronews.com",
+   "storyId": "s6nnnxg",
+   "firstSeenAt": "2026-11-14T10:20:55.304Z",
+   "title": "Passengers continue to face delays and cancellations after US lifts nationwide ground stop",
+   "summary": "US Transport Secretary Sean Duffy said operations were ‘slowly returning to normal’ on Saturday but that further delays and cancellations were likely.",
+   "topics": [],
+   "url": "https://www.euronews.com/2026/11/14/passengers-continue-to-face-delays-and-cancellations-after-us-lifts-nationwide-ground-stop",
+   "publishedAt": "2026-11-14T06:56:20.000Z"
+  },
+  {
+   "id": "1r0cvqx",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "domain": "nos.nl",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T06:20:20.416Z",
+   "title": "Affaire Nvidia-topman legt risico’s van banden tussen techwereld en Amerikaanse politiek bloot",
+   "summary": "Nu topman Jensen Huang van chipbedrijf Nvidia is opgestapt, vraagt de Amerikaanse politiek zich hardop af of de nauwe banden tussen de regering en de topman voor blinde vlekken hebben gezorgd.",
+   "readMin": 3,
+   "topics": [
+    "bedrijven",
+    "tech"
+   ],
+   "mainTopics": [
+    "bedrijven",
+    "tech"
+   ],
+   "url": "https://nos.nl/l/2639429",
+   "publishedAt": "2026-11-14T06:10:17.000Z"
+  },
+  {
+   "id": "1ebqhqc",
+   "kind": "article",
+   "source": "scmp",
+   "sourceName": "South China Morning Post",
+   "domain": "scmp.com",
+   "author": "Reuters",
+   "storyId": "s1rqf8r0",
+   "firstSeenAt": "2026-11-14T05:40:50.581Z",
+   "title": "Musk ordered to preserve records on Ukraine’s Starlink access by Democratic US senators",
+   "summary": "Democratic US senators have told Elon Musk to preserve all records related to his company SpaceX’s restrictions on Ukraine’s use of its Starlink and Starshield satellite services.",
+   "topics": [
+    "tech",
+    "ruimte"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.scmp.com/news/world/united-states-canada/article/3374425/musk-ordered-preserve-records-ukraines-starlink-access-democratic-us-senators",
+   "publishedAt": "2026-11-14T05:31:58.000Z"
+  },
+  {
+   "id": "3l06wv",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "s1vbi8pg",
+   "firstSeenAt": "2026-11-14T01:20:55.399Z",
+   "title": "Met Veerman én De Jong op het middenveld is Oranje dreigender en stabieler: 7-0",
+   "summary": "Bij de terugkeer van Frenkie de Jong speelde het Nederlands elftal met twee controleurs, iets wat goed uitpakte: Nederland versloeg Griekenland met 7-0.",
+   "topics": [
+    "voetbal"
+   ],
+   "mainTopics": [
+    "voetbal"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/14/repo-oranje-griekenland-a4941376",
+   "publishedAt": "2026-11-14T00:42:52.000Z"
+  },
+  {
+   "id": "eju36n",
+   "kind": "article",
+   "source": "independent",
+   "sourceName": "The Independent",
+   "domain": "independent.co.uk",
+   "author": "Erin Keller,Jasmine Fernández and Alex Woodward",
+   "storyId": "sn51qk8",
+   "firstSeenAt": "2026-11-13T20:40:21.034Z",
+   "title": "‘Miracle on the Mississippi’: All passengers accounted for after New Orleans riverboat crash, officials say",
+   "summary": "No deaths were reported after a massive tanker collided with paddlewheel cruise liner American Heritage steps away from a tourist-heavy downtown",
+   "introAlt": "According to the Port of New Orleans, all 197 passengers and crew members have been accounted for.",
+   "introAltFrom": "Euronews",
+   "topics": [],
+   "url": "https://www.independent.co.uk/news/world/americas/new-orleans-river-boat-crash-129-passengers-b3084807.html",
+   "publishedAt": "2026-11-14T00:30:41.000Z"
+  },
+  {
+   "id": "alr6kp",
+   "kind": "article",
+   "source": "bbc",
+   "sourceName": "BBC",
+   "domain": "bbc.co.uk",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T23:12:08.988Z",
+   "title": "How the Jensen Huang scandal created a headache for business-friendly Singapore",
+   "summary": "The scandal has cast a spotlight on Singapore’s success as a chip hub – and a location for alleged illicit trade.",
+   "topics": [],
+   "url": "https://www.bbc.co.uk/news/articles/ck1exevgql4qo?at_medium=RSS&at_campaign=rss",
+   "publishedAt": "2026-11-13T23:00:31.000Z"
+  },
+  {
+   "id": "113rv9w",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Marina Temkin, Dominic-Madori Davis",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T22:50:50.750Z",
+   "title": "Jensen Huang’s departure blasts big hole in AI startup funding, VCs and founders say",
+   "summary": "Nvidia poured tens of billions into AI startups under Huang. Without him at the helm, founders and VCs are bracing for smaller checks and lower valuations.",
+   "topics": [
+    "ai"
+   ],
+   "mainTopics": [
+    "ai"
+   ],
+   "url": "https://techcrunch.com/2026/11/13/jensen-huangs-departure-blasts-big-hole-in-ai-startup-funding-vcs-and-founders-say/",
+   "publishedAt": "2026-11-13T22:43:00.000Z"
+  },
+  {
+   "id": "1jc8c80",
+   "kind": "article",
+   "source": "nationalreview",
+   "sourceName": "National Review",
+   "domain": "nationalreview.com",
+   "author": "Andrew C. McCarthy",
+   "opinion": true,
+   "tabs": [
+    "opinie"
+   ],
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T10:20:55.304Z",
+   "title": "Did Payments by Huang’s Nvidia Influence Trump’s Policy on Chip Exports to China?",
+   "summary": "While correlation doesn’t necessarily mean causation, there is an undeniable correlation between Nvidia’s payments and Trump’s loosening of export restrictions.",
+   "topics": [
+    "azie",
+    "tech",
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "azie",
+    "tech",
+    "vs-politiek"
+   ],
+   "url": "https://www.nationalreview.com/article/did-payments-by-huang-s-nvidia-influence-trump-s-policy-on-chip-exports-to-china",
+   "publishedAt": "2026-11-13T21:22:58.000Z"
+  },
+  {
+   "id": "3m1kux",
+   "kind": "article",
+   "source": "economist",
+   "sourceName": "The Economist",
+   "domain": "economist.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T21:30:53.959Z",
+   "title": "The Jensen Huang scandal reaches Donald Trump’s cabinet",
+   "summary": "Howard Lutnick, the commerce secretary, is in the firing line",
+   "topics": [
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "vs-politiek"
+   ],
+   "url": "https://www.economist.com/united-states/2026/11/13/the-jensen-huang-scandal-reaches-donald-trumps-cabinet",
+   "publishedAt": "2026-11-13T21:12:16.000Z"
+  },
+  {
+   "id": "12k3ce0",
+   "kind": "article",
+   "source": "euronews",
+   "sourceName": "Euronews",
+   "domain": "euronews.com",
+   "storyId": "sn51qk8",
+   "firstSeenAt": "2026-11-14T10:20:55.304Z",
+   "title": "‘Miracle on the Mississippi’: All passengers rescued after tanker collides with cruise ship in New Orleans",
+   "summary": "According to the Port of New Orleans, all 197 passengers and crew members have been accounted for.",
+   "topics": [],
+   "url": "https://www.euronews.com/2026/11/13/tanker-collides-with-new-orleans-river-cruise-carrying-129-passengers-rescue-operation-und",
+   "publishedAt": "2026-11-13T21:04:32.000Z"
+  },
+  {
+   "id": "1a23t1z",
+   "kind": "article",
+   "source": "trouw",
+   "sourceName": "Trouw",
+   "domain": "trouw.nl",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-13T21:10:52.629Z",
+   "title": "Hoe Eelco Heinen zijn imago als onverzettelijke schatkistbewaarder aan diggelen gooide",
+   "summary": "Eelco Heinen was in februari de meest invloedrijke VVD’er van het kabinet-Jetten. Hij had in zijn eentje de financiële paragraaf van het coalitieakkoord geschreven.",
+   "topics": [
+    "nederland"
+   ],
+   "url": "https://www.trouw.nl/politiek/hoe-eelco-heinen-zijn-imago-als-onverzettelijke-schatkistbewaarder-aan-diggelen-gooide~bd20ceb9/",
+   "publishedAt": "2026-11-13T21:00:11.000Z"
+  },
+  {
+   "id": "1nd98b6",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "domain": "volkskrant.nl",
+   "section": "Politiek",
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-13T20:40:21.034Z",
+   "title": "VVD eist een ruk naar rechts als prijs voor kabinetsdeelname",
+   "summary": "De VVD eist dat de coalitie haar beleid flink naar rechts bijstuurt, onder meer door JA21 of een andere rechtse partij erbij te halen.",
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://www.volkskrant.nl/politiek/vvd-eist-een-ruk-naar-rechts-als-prijs-voor-kabinetsdeelname~b1593f6f/",
+   "publishedAt": "2026-11-13T20:12:00.000Z"
+  },
+  {
+   "id": "1nup4gr",
+   "kind": "article",
+   "source": "guardian",
+   "sourceName": "The Guardian",
+   "domain": "theguardian.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T06:40:17.986Z",
+   "title": "Nvidia scandal: US treasury chief blames Lutnick’s commerce department over alleged lack of action",
+   "summary": "US commerce secretary faces sack as questions emerge over senior Trump officials’ knowledge of alleged Chinese spy’s ties to Jensen Huang US politics – live updates The…",
+   "topics": [
+    "tech",
+    "azie",
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.theguardian.com/technology/2026/nov/13/nvidia-scandal-sparks-us-national-security-concerns-china",
+   "publishedAt": "2026-11-13T19:51:28.000Z"
+  },
+  {
+   "id": "1js671i",
+   "kind": "article",
+   "source": "foreignpolicy",
+   "sourceName": "Foreign Policy",
+   "domain": "foreignpolicy.com",
+   "author": "James Palmer",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T20:30:23.000Z",
+   "title": "What Jensen Huang’s Fall Means for U.S.-China Relations",
+   "summary": "The Nvidia scandal could upend a fragile consensus in Washington.",
+   "topics": [
+    "azie"
+   ],
+   "mainTopics": [
+    "azie"
+   ],
+   "url": "https://foreignpolicy.com/2026/11/13/jensen-huang-nvidia-resignation-china-spy-scandal-trump/",
+   "publishedAt": "2026-11-13T19:50:23.000Z"
+  },
+  {
+   "id": "odyzti",
+   "kind": "article",
+   "source": "nationalreview",
+   "sourceName": "National Review",
+   "domain": "nationalreview.com",
+   "author": "John R. Puri",
+   "opinion": true,
+   "tabs": [
+    "opinie"
+   ],
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T10:20:55.304Z",
+   "title": "Trump’s People May Have to Answer for Jensen Huang",
+   "summary": "Why, exactly, are we allowing Nvidia to sell advanced AI chips to China?",
+   "topics": [
+    "vs-politiek",
+    "azie",
+    "ai"
+   ],
+   "mainTopics": [
+    "vs-politiek"
+   ],
+   "url": "https://www.nationalreview.com/article/trump-s-people-may-have-to-answer-for-jensen-huang",
+   "publishedAt": "2026-11-13T19:39:25.000Z"
+  },
+  {
+   "id": "1n4tuw7",
+   "kind": "article",
+   "source": "wapo-politics",
+   "sourceName": "The Washington Post Politiek",
+   "domain": "washingtonpost.com",
+   "author": "Dan Merica",
+   "storyId": "s1ne82n1",
+   "firstSeenAt": "2026-11-14T12:40:52.666Z",
+   "title": "Trump gives Scott Colom ‘a lot of credit’ for campaigning at a MAGA rally",
+   "summary": "Scott Colom made reaching out to Trump supporters central to his U.S. Senate campaign in Mississippi.",
+   "topics": [
+    "vs-politiek",
+    "verkiezingen"
+   ],
+   "mainTopics": [
+    "vs-politiek"
+   ],
+   "url": "https://www.washingtonpost.com/politics/2026/11/13/trump-gives-scott-colom-lot-credit-campaigning-maga-rally/",
+   "publishedAt": "2026-11-13T19:00:00.000Z"
+  },
+  {
+   "id": "1zddm0",
+   "kind": "article",
+   "source": "sciam",
+   "sourceName": "Scientific American",
+   "domain": "scientificamerican.com",
+   "storyId": "s1madvjj",
+   "firstSeenAt": "2026-11-13T19:30:23.191Z",
+   "title": "Can SpaceX catch its Starship?",
+   "summary": "The 15th spaceflight of SpaceX’s giant launch vehicle aimed for something unprecedented: snatching both rocket stages from midair after a journey to orbit.",
+   "topics": [
+    "tech",
+    "ruimte"
+   ],
+   "mainTopics": [
+    "tech",
+    "ruimte"
+   ],
+   "url": "https://www.scientificamerican.com/article/can-spacex-catch-its-starship/",
+   "publishedAt": "2026-11-13T18:45:00.000Z"
+  },
+  {
+   "id": "i7qkz1",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Tim Fernholz",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T18:50:21.230Z",
+   "title": "Export-banned Nvidia chips are behind China’s most powerful AI models — uh-oh, Jensen!",
+   "summary": "New research shows the most advanced AI models from China were trained on banned Nvidia chips.",
+   "topics": [
+    "azie",
+    "ai",
+    "tech"
+   ],
+   "mainTopics": [
+    "azie",
+    "ai",
+    "tech"
+   ],
+   "url": "https://techcrunch.com/2026/11/13/export-banned-nvidia-chips-are-behind-chinas-most-powerful-ai-models-uh-oh-jensen/",
+   "publishedAt": "2026-11-13T18:40:30.000Z"
+  },
+  {
+   "id": "141yr7o",
+   "kind": "article",
+   "source": "foreignpolicy",
+   "sourceName": "Foreign Policy",
+   "domain": "foreignpolicy.com",
+   "author": "Syd Kuntz",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T18:30:20.250Z",
+   "title": "What in the World?",
+   "summary": "Test yourself on the week of Nov. 7: COP31 kicks off in Turkey, Pope Leo visits South America, and Jensen Huang resigns.",
+   "topics": [
+    "klimaat"
+   ],
+   "url": "https://foreignpolicy.com/2026/11/13/foreign-policy-news-quiz-nvidia-huang-resignation-pope-leo-cop31/",
+   "publishedAt": "2026-11-13T18:04:50.000Z"
+  },
+  {
+   "id": "18eyikb",
+   "kind": "article",
+   "source": "tpo",
+   "sourceName": "TPO",
+   "domain": "tpo.nl",
+   "author": "Young Media",
+   "opinion": true,
+   "tabs": [
+    "opinie"
+   ],
+   "storyId": "sts2z5a",
+   "firstSeenAt": "2026-11-13T22:30:53.723Z",
+   "title": "Crisisoverleg Jetten sleept voort, ministerraad ligt stil",
+   "summary": "Het crisisoverleg tussen premier Rob Jetten (D66) en zijn vicepremiers Dilan Yeşilgöz (VVD) en Van den Brink (CDA)… Crisisoverleg Jetten sleept voort, ministerraad ligt…",
+   "readMin": 2,
+   "topics": [
+    "nederland"
+   ],
+   "mainTopics": [
+    "nederland"
+   ],
+   "url": "https://tpo.nl/2026/11/13/crisisoverleg-jetten-vvd-ministerraad-uitgesteld/",
+   "publishedAt": "2026-11-13T17:26:30.000Z"
+  },
+  {
+   "id": "lds9zd",
+   "kind": "article",
+   "source": "tpo",
+   "sourceName": "TPO",
+   "domain": "tpo.nl",
+   "author": "Young Media",
+   "opinion": true,
+   "tabs": [
+    "opinie"
+   ],
+   "storyId": "s1p3uplr",
+   "firstSeenAt": "2026-11-13T22:30:53.723Z",
+   "title": "Klaas Knot verliest terrein in race om ECB-voorzitterschap",
+   "summary": "De kansen van Klaas Knot om Christine Lagarde op te volgen als president van de Europese Centrale Bank… Klaas Knot verliest terrein in race om ECB-voorzitterschap",
+   "readMin": 2,
+   "topics": [
+    "economie"
+   ],
+   "mainTopics": [
+    "economie"
+   ],
+   "url": "https://tpo.nl/2026/11/13/knot-verliest-terrein-ecb-voorzitterschap/",
+   "publishedAt": "2026-11-13T17:23:36.000Z"
+  },
+  {
+   "id": "1vneo6v",
+   "kind": "article",
+   "source": "nos-economie",
+   "sourceName": "NOS Economie",
+   "domain": "nos.nl",
+   "storyId": "s1p3uplr",
+   "firstSeenAt": "2026-11-13T16:50:24.052Z",
+   "title": "Kansen van Klaas Knot slinken, volgende week duidelijk wie ECB-president wordt",
+   "summary": "De kansen van Klaas Knot om de nieuwe voorzitter van de Europese Centrale Bank te worden, slinken. Dat bevestigen bronnen in Brussel en Dublin aan de NOS.",
+   "readMin": 2,
+   "topics": [
+    "economie",
+    "europa"
+   ],
+   "mainTopics": [
+    "economie"
+   ],
+   "url": "https://nos.nl/l/2639342",
+   "publishedAt": "2026-11-13T16:43:05.000Z"
+  },
+  {
+   "id": "344dk5",
+   "kind": "article",
+   "source": "wapo",
+   "sourceName": "The Washington Post",
+   "domain": "washingtonpost.com",
+   "author": "Francesca Ebel",
+   "storyId": "s1rqf8r0",
+   "firstSeenAt": "2026-11-14T12:40:52.666Z",
+   "title": "Zelensky says Starlink limits continued in the middle of his talks with U.S., Russia",
+   "summary": "Ukraine’s Defense Ministry said it had reached out to SpaceX and the U.S. Defense Department to seek an explanation and resolve the situation.",
+   "topics": [
+    "oekraine",
+    "geopolitiek",
+    "ruimte"
+   ],
+   "mainTopics": [
+    "oekraine"
+   ],
+   "url": "https://www.washingtonpost.com/world/2026/11/13/zelensky-says-starlink-limits-continued-ukraine/",
+   "publishedAt": "2026-11-13T16:20:00.000Z"
+  },
+  {
+   "id": "1gau30m",
+   "kind": "article",
+   "source": "wired",
+   "sourceName": "Wired",
+   "domain": "wired.com",
+   "author": "Lauren Goode",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T16:10:54.122Z",
+   "title": "Jensen Huang and the End of the Founder Fairy Tale",
+   "summary": "The former tech CEO is obsessed with the power of storytelling. But he hasn’t spun his way out of his sex scandals.",
+   "topics": [
+    "bedrijven"
+   ],
+   "url": "https://www.wired.com/story/jensen-huang-and-the-end-of-the-founder-fairy-tale/",
+   "publishedAt": "2026-11-13T16:00:00.000Z"
+  },
+  {
+   "id": "124mgzn",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Amanda Silberling",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T16:00:55.416Z",
+   "title": "The unfolding Jensen Huang scandal: a timeline",
+   "summary": "Jensen Huang has resigned from Nvidia following an affair, which could have ramifications for national security as the U.S. and China race to develop the most advanced AI infrastructure.",
+   "topics": [
+    "azie",
+    "ai"
+   ],
+   "url": "https://techcrunch.com/2026/11/13/nvidia-ceo-jensen-huangs-affair-with-alleged-chinese-spy-a-timeline/",
+   "publishedAt": "2026-11-13T15:58:00.000Z"
+  },
+  {
+   "id": "37p0y0",
+   "kind": "article",
+   "source": "nrc",
+   "sourceName": "NRC",
+   "domain": "nrc.nl",
+   "storyId": "s1p3uplr",
+   "firstSeenAt": "2026-11-13T16:10:54.122Z",
+   "title": "In afwezigheid van Jetten lijken Frankrijk en Duitsland eruit: niet Klaas Knot maar Spanjaard maakt meeste kans op presidentschap ECB",
+   "summary": "Frankrijk en Duitsland lijken het eens te worden over hun steun aan de Spanjaard Pablo Hernández de Cos voor de positie van president van de ECB.",
+   "topics": [
+    "nederland",
+    "economie"
+   ],
+   "mainTopics": [
+    "nederland",
+    "economie"
+   ],
+   "url": "https://www.nrc.nl/nieuws/2026/11/13/in-afwezigheid-van-jetten-lijken-frankrijk-en-duitsland-eruit-niet-klaas-knot-maar-spanjaard-maakt-meeste-kans-op-presidentschap-ecb-a4941308",
+   "publishedAt": "2026-11-13T15:56:45.000Z"
+  },
+  {
+   "id": "1549yed",
+   "kind": "article",
+   "source": "fd",
+   "sourceName": "Het Financieele Dagblad",
+   "domain": "fd.nl",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T15:10:53.056Z",
+   "title": "Wie volgt Jensen Huang op als ceo van AI-bedrijf Nvidia? Vijf kandidaten",
+   "summary": "Chipmaker Nvidia is op zoek naar een nieuwe leider. Vicepresident Ian Buck van het bedrijf lijkt de beste kaarten in handen te hebben.",
+   "topics": [
+    "bedrijven",
+    "ai",
+    "tech"
+   ],
+   "mainTopics": [
+    "bedrijven",
+    "ai",
+    "tech"
+   ],
+   "url": "https://fd.nl/bedrijfsleven/1619388/wie-volgt-jensen-huang-op-als-ceo-van-ai-bedrijf-nvidia-vijf-kandidaten",
+   "publishedAt": "2026-11-13T15:04:00.000Z"
+  },
+  {
+   "id": "13l8nz1",
+   "kind": "article",
+   "source": "fd",
+   "sourceName": "Het Financieele Dagblad",
+   "domain": "fd.nl",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T15:01:00.615Z",
+   "title": "De weeskinderen van Jensen Huang",
+   "summary": "Zonder hulp van Nvidia blijft neocloud Nebius wel overeind. Maar de grote groei wordt wel een stuk onzekerder.",
+   "topics": [],
+   "url": "https://fd.nl/financiele-markten/1619398/de-weeskinderen-van-jensen-huang",
+   "publishedAt": "2026-11-13T15:00:00.000Z"
+  },
+  {
+   "id": "10vpfv9",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "domain": "volkskrant.nl",
+   "section": "Buitenland",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T16:50:24.052Z",
+   "title": "Nu Jensen Huang is opgestapt, richt de blik zich ook op de rol van Trump en diens handelsminister",
+   "summary": "Met het aftreden van Jensen Huang is de nasleep van het Nvidia-schandaal pas net begonnen.",
+   "topics": [
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "vs-politiek"
+   ],
+   "url": "https://www.volkskrant.nl/buitenland/nu-jensen-huang-is-opgestapt-richt-de-blik-zich-ook-op-de-rol-van-trump-en-diens-handelsminister-in-de-nvidia-affaire~bc7d45ee/",
+   "publishedAt": "2026-11-13T14:04:00.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1hjeulb",
+   "kind": "article",
+   "source": "tweakers",
+   "sourceName": "Tweakers",
+   "domain": "tweakers.net",
+   "author": "Daan van Monsjou",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T15:30:22.484Z",
+   "title": "Achtergrond – Jensen Huang weg bij Nvidia: hoe kwam het zover en wie kan hem opvolgen?",
+   "summary": "Jensen Huang stapt op als Nvidia-ceo, nadat meerdere schandalen aan het licht kwamen. Hoe moet het verder met het grootste chipbedrijf ter wereld?",
+   "topics": [
+    "tech",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://tweakers.net/reviews/15604/jensen-huang-weg-bij-nvidia-hoe-kwam-het-zover-en-wie-kan-hem-opvolgen.html",
+   "publishedAt": "2026-11-13T14:00:00.000Z"
+  },
+  {
+   "id": "1j04e3b",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Anna Heim",
+   "storyId": "s1oshj3i",
+   "firstSeenAt": "2026-11-13T13:00:25.185Z",
+   "title": "Israel’s VCs see opportunity for challengers in Nvidia’s turmoil",
+   "summary": "Given Nvidia’s stronghold on AI and its importance in Israel, many in the country’s startup ecosystem are worried about the impact of his departure.",
+   "topics": [
+    "middenoosten",
+    "tech",
+    "ai"
+   ],
+   "mainTopics": [
+    "middenoosten",
+    "tech"
+   ],
+   "url": "https://techcrunch.com/2026/11/13/israels-vcs-see-opportunity-for-challengers-in-nvidias-turmoil/",
+   "publishedAt": "2026-11-13T12:52:19.000Z"
+  },
+  {
+   "id": "wjfh6s",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Ivan Mehta",
+   "storyId": "sq11b7y",
+   "firstSeenAt": "2026-11-13T12:30:24.287Z",
+   "title": "Jensen Huang didn’t show confidence in his successor, report says",
+   "summary": "Huang described Kress as a ‘deer in the headlights’ during a meeting in summer.",
+   "topics": [],
+   "url": "https://techcrunch.com/2026/11/13/jensen-huang-didnt-show-confidence-in-his-successor-report-says/",
+   "publishedAt": "2026-11-13T12:28:23.000Z"
+  },
+  {
+   "id": "hqm1d7",
+   "kind": "article",
+   "source": "tweakers",
+   "sourceName": "Tweakers",
+   "domain": "tweakers.net",
+   "author": "Imre Himmelbauer",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-13T12:00:22.758Z",
+   "title": "CNN: geen doorslaggevend bewijs dat Alice Huang Chinese spion is",
+   "summary": "Er is nog geen doorslaggevend bewijs gevonden dat Alice Huang een spion was voor de Chinese overheid. Dat melden bronnen van Amerikaanse veiligheidsdiensten aan CNN.",
+   "topics": [
+    "azie"
+   ],
+   "mainTopics": [
+    "azie"
+   ],
+   "url": "https://tweakers.net/nieuws/254498/cnn-geen-doorslaggevend-bewijs-dat-alice-huang-chinese-spion-is.html",
+   "publishedAt": "2026-11-13T11:54:53.000Z"
+  },
+  {
+   "id": "100jmms",
+   "kind": "article",
+   "source": "economist",
+   "sourceName": "The Economist",
+   "domain": "economist.com",
+   "storyId": "sq11b7y",
+   "firstSeenAt": "2026-11-13T11:30:54.772Z",
+   "title": "Invidious position: finding Jensen Huang’s successor",
+   "summary": "Also on the daily podcast: Russian propaganda takes root across Africa and remembering “Dr Jack” of Kolkata",
+   "topics": [
+    "oekraine",
+    "afrika"
+   ],
+   "url": "https://www.economist.com/podcasts/2026/11/13/invidious-position-finding-jensen-huangs-successor",
+   "publishedAt": "2026-11-13T11:26:21.000Z"
+  },
+  {
+   "id": "da5hlx",
+   "kind": "article",
+   "source": "wapo-politics",
+   "sourceName": "The Washington Post Politiek",
+   "domain": "washingtonpost.com",
+   "author": "Miriam Waldvogel, Cat Zakrzewski, Jarrell Dillard, Mariana Alfaro",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-14T12:40:52.666Z",
+   "title": "How disgraced Nvidia CEO Jensen Huang became a close Trump ally",
+   "summary": "President Donald Trump and Jensen Huang didn’t meet until January 2025. Here’s how they became fast friends.",
+   "topics": [
+    "bedrijven",
+    "tech",
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "bedrijven",
+    "tech",
+    "vs-politiek"
+   ],
+   "url": "https://www.washingtonpost.com/technology/interactive/2026/11/13/timeline-president-trump-jensen-huang-close-relationship/",
+   "publishedAt": "2026-11-13T10:00:00.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "438fyc",
+   "kind": "article",
+   "source": "techcrunch",
+   "sourceName": "TechCrunch",
+   "domain": "techcrunch.com",
+   "author": "Julie Bort",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-12T22:50:22.899Z",
+   "title": "Democrats launch Nvidia investigation, write scathing letter on Huang’s ‘scheme’ with Trump",
+   "summary": "This Congressional investigation into Nvidia’s China sales and its dealings with Trump is the second one, so far, since news of the alleged spy affair broke.",
+   "topics": [
+    "tech",
+    "vs-politiek",
+    "azie"
+   ],
+   "mainTopics": [
+    "tech",
+    "vs-politiek"
+   ],
+   "url": "https://techcrunch.com/2026/11/12/democrats-launch-nvidia-investigation-write-scathing-letter-on-huangs-scheme-with-trump/",
+   "publishedAt": "2026-11-12T22:42:51.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "171a96x",
+   "kind": "article",
+   "source": "independent",
+   "sourceName": "The Independent",
+   "domain": "independent.co.uk",
+   "author": "Jarrett Renshaw,Jonathan Landay and David Shepardson",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-12T21:30:22.239Z",
+   "title": "Trump team mulling Howard Lutnick’s future as commerce secretary after Nvidia scandal, report says",
+   "summary": "Criticism of Lutnick’s actions predates Nvidia CEO Jensen Huang’s Thursday resignation",
+   "topics": [
+    "tech",
+    "vs-politiek",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "tech",
+    "vs-politiek"
+   ],
+   "url": "https://www.independent.co.uk/news/world/americas/us-politics/trump-commerce-secretary-howard-lutnick-nvidia-b3084187.html",
+   "publishedAt": "2026-11-12T21:43:00.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "6w0bu4",
+   "kind": "article",
+   "source": "foreignpolicy",
+   "sourceName": "Foreign Policy",
+   "domain": "foreignpolicy.com",
+   "author": "Alexandra Sharp",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-12T21:30:22.239Z",
+   "title": "Huang Out at Nvidia",
+   "summary": "The U.S. chipmaker’s CEO has resigned over an affair with an alleged Chinese spy.",
+   "topics": [
+    "tech",
+    "azie",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://foreignpolicy.com/2026/11/12/nvidia-jensen-huang-resigns-ai-china-spy-megaspeed-extramarital-affairs/",
+   "publishedAt": "2026-11-12T20:50:22.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1e8naac",
+   "kind": "article",
+   "source": "rfi",
+   "sourceName": "RFI English",
+   "domain": "rfi.fr",
+   "author": "RFI",
+   "storyId": "s1ne82n1",
+   "firstSeenAt": "2026-11-14T10:20:55.304Z",
+   "title": "Mississippi elects Democrat Scott Colom as first black senator since 19th century",
+   "summary": "Democrat Scott Colom defeated Republican Cindy Hyde-Smith on Wednesday in Mississippi’s closely contested United States Senate race, after a prolonged ballot counting…",
+   "topics": [
+    "vs-politiek"
+   ],
+   "url": "https://www.rfi.fr/en/international/20261112-mississippi-elects-democrat-scott-colom-as-first-black-senator-since-19th-century",
+   "publishedAt": "2026-11-12T16:34:21.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1qwdzd9",
+   "kind": "article",
+   "source": "sciam",
+   "sourceName": "Scientific American",
+   "domain": "scientificamerican.com",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-12T16:40:18.593Z",
+   "title": "Jensen Huang leaving Nvidia risks a ‘brain drain’ from the AI chipmaker",
+   "summary": "Nvidia’s chips power the AI frontier—thanks, many say, to co-founder and now ex-CEO Jensen Huang",
+   "topics": [
+    "ai",
+    "tech",
+    "brein",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "ai",
+    "tech",
+    "brein"
+   ],
+   "url": "https://www.scientificamerican.com/article/jensen-huang-leaving-nvidia-risks-a-brain-drain-from-the-ai-chipmaker/",
+   "publishedAt": "2026-11-12T15:00:00.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1bjchap",
+   "kind": "article",
+   "source": "economist",
+   "sourceName": "The Economist",
+   "domain": "economist.com",
+   "storyId": "sq11b7y",
+   "firstSeenAt": "2026-11-12T15:10:22.102Z",
+   "title": "Jensen Huang is out. His successor has the toughest job in tech",
+   "summary": "A company built around one man must now learn to run without him",
+   "topics": [],
+   "url": "https://www.economist.com/business/2026/11/12/jensen-huang-is-out-his-successor-has-the-toughest-job-in-tech",
+   "publishedAt": "2026-11-12T14:28:59.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1vnepqq",
+   "kind": "article",
+   "source": "nos-economie",
+   "sourceName": "NOS Economie",
+   "domain": "nos.nl",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-12T14:00:25.793Z",
+   "title": "Topman Huang van chipbedrijf Nvidia vertrekt per direct vanwege affaires",
+   "summary": "Het doek is gevallen voor Jensen Huang als topman van chipbedrijf Nvidia. De CFO, de huidige financiële topvrouw Colette Kress, neemt de functie tijdelijk over.",
+   "readMin": 3,
+   "topics": [
+    "bedrijven",
+    "tech"
+   ],
+   "mainTopics": [
+    "bedrijven",
+    "tech"
+   ],
+   "url": "https://nos.nl/l/2639176",
+   "publishedAt": "2026-11-12T13:55:47.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "k4hylo",
+   "kind": "article",
+   "source": "guardian",
+   "sourceName": "The Guardian",
+   "domain": "theguardian.com",
+   "author": "Hettie O'Brien",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-12T06:50:19.226Z",
+   "title": "Thursday briefing: What we do (and don’t) know about Alice Huang and the Nvidia affair",
+   "summary": "In today’s newsletter: US intelligence reportedly believes the former tech executive was recruited by Beijing, raising questions about the security of the AI industry and Trump’s close ties to Nvidia chief Jensen Huang Good morning.",
+   "readMin": 1,
+   "topics": [
+    "tech",
+    "azie",
+    "ai",
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://www.theguardian.com/world/2026/nov/12/thursday-briefing-what-we-do-and-dont-know-about-alice-huang-and-the-nvidia-affair",
+   "publishedAt": "2026-11-12T06:43:31.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1vnenha",
+   "kind": "article",
+   "source": "nos-economie",
+   "sourceName": "NOS Economie",
+   "domain": "nos.nl",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-12T04:40:49.648Z",
+   "title": "‘Nvidia neemt snel besluit over ontslag topman Huang na nieuws over tweede affaire’",
+   "summary": "De raad van bestuur van chipbedrijf Nvidia beslist op zeer korte termijn of de in opspraak geraakte topman Jensen Huang ontslagen wordt of niet.",
+   "readMin": 1,
+   "topics": [
+    "werk",
+    "bedrijven",
+    "tech"
+   ],
+   "mainTopics": [
+    "werk",
+    "bedrijven",
+    "tech"
+   ],
+   "url": "https://nos.nl/l/2639095",
+   "publishedAt": "2026-11-12T04:37:35.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1vne4qk",
+   "kind": "article",
+   "source": "nos-economie",
+   "sourceName": "NOS Economie",
+   "domain": "nos.nl",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-10T21:10:16.376Z",
+   "title": "Druk neemt toe na spionageschandaal, kan de chipgigant zonder ‘Mister Nvidia’?",
+   "summary": "Jensen Huang, topman van het Amerikaanse chipbedrijf Nvidia, staat voor een van de grootste uitdagingen in zijn meer dan drie decennia lange loopbaan als baas van het bedrijf.",
+   "readMin": 3,
+   "topics": [
+    "tech",
+    "bedrijven"
+   ],
+   "mainTopics": [
+    "tech"
+   ],
+   "url": "https://nos.nl/l/2638935",
+   "publishedAt": "2026-11-10T21:06:58.000Z",
+   "editionOnly": true
+  },
+  {
+   "id": "1x4g3xg",
+   "kind": "article",
+   "source": "newyorker",
+   "sourceName": "The New Yorker",
+   "domain": "newyorker.com",
+   "author": "John Cassidy",
+   "storyId": "sjdwk3x",
+   "firstSeenAt": "2026-11-10T20:30:22.458Z",
+   "title": "Is Jensen Huang’s Affair a Crisis for the A.I. Boom?",
+   "summary": "It’s not yet clear what the Nvidia C.E.O.—or the Trump Administration—knew about the alleged Chinese spy he was involved with.",
+   "topics": [
+    "ai",
+    "azie",
+    "vs-politiek"
+   ],
+   "mainTopics": [
+    "ai"
+   ],
+   "url": "https://www.newyorker.com/news/the-lede/is-jensen-huangs-affair-a-crisis-for-the-ai-boom",
+   "publishedAt": "2026-11-10T19:49:27.000Z",
+   "editionOnly": true
+  }
+ ],
+ "episodes": [
+  {
+   "id": "e7pcgqj",
+   "show": "nrc-vandaag",
+   "titel": "Waar gaat deze politieke crisis nou echt over?",
+   "samenvatting": "Politiek Den Haag verkeert nog steeds in crisis. De aanleiding is bekend: D66 en CDA sloten met oppositiepartijen Pro en Volt een deal over een amendement op het Belastingplan, zonder de VVD. Pro-leider Jesse Klaver sprak ronkend over een miljonairsbelasting, terwijl de VVD waarschuwde dat door dit plan de economische groei en het vestigingsklimaat in gevaar zouden komen.",
+   "tekst": "Politiek Den Haag verkeert nog steeds in crisis. De aanleiding is bekend: D66 en CDA sloten met oppositiepartijen Pro en Volt een deal over een amendement op het Belastingplan, zonder de VVD. Pro-leider Jesse Klaver sprak ronkend over een miljonairsbelasting, terwijl de VVD waarschuwde dat door dit plan de economische groei en het vestigingsklimaat in gevaar zouden komen. Economieredacteur Egbert Kalse legt uit dat de gevolgen in de praktijk veel kleiner zijn dan beide kanten doen voorkomen. Waarom leidde dit dan toch tot een diepe politieke crisis? Ook te zien op YouTube . Gast: Egbert Kalse Presentatie: Bram Endedijk Redactie en montage: Ignace Schoot, Cato Visser en Lisan Vugts Productie: Rhea Stroink Muziek: Rufus van Baardwijk Heb je vragen, suggesties of ideeën over onze journalistiek?",
+   "t": 1794583800000,
+   "guid": "gid://art19-episode-locator/V0/sbdzpbkxfc7F8RVERWP6RhRlEav8mqSVNhqZOvckDZo",
+   "duur": 638,
+   "links": [
+    "youtube.com/watch",
+    "art19.com/privacy"
+   ],
+   "pagina": "https://art19.com/shows/vandaag",
+   "vast": [
+    "Ignace Schoot",
+    "Bram Endedijk Redactie",
+    "Ilse Eshuis Productie",
+    "Cato Visser",
+    "Rhea Stroink Heb",
+    "Rhea Stroink Muziek",
+    "Rufus van Baardwijk Heb"
+   ]
+  },
+  {
+   "id": "e1l9vq96",
+   "show": "nrc-vandaag",
+   "titel": "Den Haag debatteert in crisissfeer",
+   "samenvatting": "Woensdagavond zette de VVD openlijk vraagtekens bij de toekomst van het minderheidskabinet. En dus zijn vandaag alle ogen gericht op politiek Den Haag. De vraag is: wat gebeurt er in het debat over het Belastingplan? Welke toon slaan coalitiepartijen CDA en D66 aan? En wat doet de VVD? Politiek redacteur Liam van de Ven praat ons bij. In Het Nieuws is de nieuwe middageditie van NRC Vandaag .",
+   "tekst": "Woensdagavond zette de VVD openlijk vraagtekens bij de toekomst van het minderheidskabinet. En dus zijn vandaag alle ogen gericht op politiek Den Haag. De vraag is: wat gebeurt er in het debat over het Belastingplan? Welke toon slaan coalitiepartijen CDA en D66 aan? En wat doet de VVD? Politiek redacteur Liam van de Ven praat ons bij. Ook te zien op YouTube . Gast: Liam van de Ven Presentatie: Bram Endedijk Redactie en montage: Ignace Schoot, Cato Visser en Lisan Vugts Productie: Rhea Stroink Muziek: Rufus van Baardwijk Heb je vragen, suggesties of ideeën over onze journalistiek?",
+   "t": 1794497400000,
+   "guid": "gid://art19-episode-locator/V0/BxvxAkq3M_Hx2hJlVioU8t-QKFj-OlcTTSyNNpZiucI",
+   "duur": 662,
+   "links": [
+    "youtube.com/watch",
+    "art19.com/privacy"
+   ],
+   "pagina": "https://art19.com/shows/vandaag",
+   "vast": [
+    "Ignace Schoot",
+    "Bram Endedijk Redactie",
+    "Ilse Eshuis Productie",
+    "Cato Visser",
+    "Rhea Stroink Heb",
+    "Rhea Stroink Muziek",
+    "Rufus van Baardwijk Heb"
+   ]
+  },
+  {
+   "id": "e1sxu8w6",
+   "show": "nrc-vandaag",
+   "titel": "De VVD twijfelt openlijk aan de toekomst van het kabinet",
+   "samenvatting": "D66 en CDA sloten woensdag een deal met de linkse oppositie over het Belastingplan. Op eigen houtje, zónder coalitiepartner VVD. De VVD reageert woedend en trekt het voortbestaan van de coalitie in twijfel. Vandaag volgt een cruciaal debat. Betekent dit het einde van het minderheidskabinet?",
+   "tekst": "D66 en CDA sloten woensdag een deal met de linkse oppositie over het Belastingplan. Op eigen houtje, zónder coalitiepartner VVD. De VVD reageert woedend en trekt het voortbestaan van de coalitie in twijfel. Vandaag volgt een cruciaal debat. Betekent dit het einde van het minderheidskabinet? Gast: Pim van den Dool Presentatie: Iddo Havinga Redactie: Ilse Eshuis, Tessa Colen & Fitria Jelyta Montage: Bauke Wubs Eindredactie: Tessa Colen Coördinatie: Ilse Eshuis Productie: Rhea Stroink Heb je vragen, suggesties of ideeën over onze journalistiek?",
+   "t": 1794456000000,
+   "guid": "gid://art19-episode-locator/V0/pWAzjQ6KnaCjiTg4EpqMw8EAqG6Np8uDNaqcNUd2660",
+   "duur": 1128,
+   "links": [
+    "art19.com/privacy"
+   ],
+   "pagina": "https://art19.com/shows/vandaag",
+   "vast": [
+    "Ignace Schoot",
+    "Bram Endedijk Redactie",
+    "Ilse Eshuis Productie",
+    "Cato Visser",
+    "Rhea Stroink Heb",
+    "Rhea Stroink Muziek",
+    "Rufus van Baardwijk Heb"
+   ]
+  },
+  {
+   "id": "eeb1w69",
+   "show": "the-intelligence",
+   "titel": "Invidious position: finding Jensen Huang’s successor",
+   "samenvatting": "Nvidia’s micromanaging supremo is out and a caretaker boss is in. We ask how the AI-chip giant might survive the transition . We look at the careful effort Russia is making across Africa to portray itself as a benevolent partner in an uncertain world. And a tribute to Jack Preger , who dedicated his life to medical care for Kolkata’s poorest people.",
+   "tekst": "Nvidia’s micromanaging supremo is out and a caretaker boss is in. We ask how the AI-chip giant might survive the transition . We look at the careful effort Russia is making across Africa to portray itself as a benevolent partner in an uncertain world. And a tribute to Jack Preger , who dedicated his life to medical care for Kolkata’s poorest people. Guests and host: Shailesh Chitnis, global business writer John McDermott, chief Africa correspondent Ann Wroe, obituaries editor Jason Palmer, co-host of “The Intelligence” Topics covered: Jensen Huang, Nvidia, AI Russia, propaganda, Africa Jack Preger, India, public health Listen to what matters most, from global politics and business to science and technology— subscribe to The Economist . Hosted on Acast.",
+   "t": 1794568162000,
+   "guid": "6af6e7991f9433e997b64a63",
+   "duur": 1338,
+   "links": [
+    "economist.com/business/2026/11/12/jensen-huang-is-out-his-successor-has-the-toughest-job-in-tech",
+    "economist.com/middle-east-and-africa/2026/10/19/russia-is-escalating-its-information-war-in-africa",
+    "economist.com/obituary/2026/11/12/jack-preger-wanted-to-serve-no-one-but-the-poor",
+    "subscribenow.economist.com/podcasts-plus",
+    "acast.com/privacy"
+   ],
+   "pagina": "https://shows.acast.com/theintelligencepodcast/episodes/invidious-position-finding-jensen-huangs-successor",
+   "vast": [
+    "The Economist",
+    "Ọrẹ Ogunbiyi"
+   ]
+  },
+  {
+   "id": "e1ebae55",
+   "show": "today-in-focus",
+   "titel": "Why the Nvidia scandal is far from over",
+   "samenvatting": "Jensen Huang’s resignation from the AI chipmaker Nvidia has sent shockwaves through the global economy. Huang resigned after reported affairs with an Nvidia executive and a woman alleged to be a Chinese spy. The fallout is not over yet, with criticism mounting over the apparent lack of action from the US commerce secretary, Howard Lutnick.",
+   "tekst": "Jensen Huang’s resignation from the AI chipmaker Nvidia has sent shockwaves through the global economy. Huang resigned after reported affairs with an Nvidia executive and a woman alleged to be a Chinese spy. The fallout is not over yet, with criticism mounting over the apparent lack of action from the US commerce secretary, Howard Lutnick. Lucy Hough speaks to the Guardian’s global technology reporter, Aisha Down – watch on YouTube .",
+   "t": 1794596498000,
+   "guid": "6af71a618f084818e80d7231",
+   "duur": 711,
+   "links": [
+    "youtube.com/@todayinfocuspodcast"
+   ],
+   "pagina": "https://www.theguardian.com/news/series/todayinfocus"
+  },
+  {
+   "id": "e5nwbof",
+   "show": "today-in-focus",
+   "titel": "Mississippi makes history with Democrat Senate win",
+   "samenvatting": "Mississippi has elected the Democrat Scott Colom in a historic race in the traditionally deep-red state, making him its first Black senator since shortly after the US civil war. The closely contested race was called more than a week after the US midterms, with Colom running against the Republican incumbent, Cindy Hyde-Smith.",
+   "tekst": "Mississippi has elected the Democrat Scott Colom in a historic race in the traditionally deep-red state, making him its first Black senator since shortly after the US civil war. The closely contested race was called more than a week after the US midterms, with Colom running against the Republican incumbent, Cindy Hyde-Smith. How did Colom’s grassroots campaign win despite limited early backing from national Democrats? Lucy Hough speaks to politics and democracy reporter George Chidi – watch on YouTube .",
+   "t": 1794505323000,
+   "guid": "6af5da8c8f080e830a3ef900",
+   "duur": 757,
+   "links": [
+    "youtube.com/@todayinfocuspodcast"
+   ],
+   "pagina": "https://www.theguardian.com/news/series/todayinfocus"
+  },
+  {
+   "id": "etwhqqx",
+   "show": "today-in-focus",
+   "titel": "The (alleged) spy who loved me: the Nvidia scandal",
+   "samenvatting": "Global technology editor Dan Milmo on the scandal rocking the world of AI: US intelligence believes the lover of Nvidia’s chief executive, Jensen Huang, is a Chinese spy. Help support our independent journalism at theguardian.com/infocus",
+   "tekst": "Global technology editor Dan Milmo on the scandal rocking the world of AI: US intelligence believes the lover of Nvidia’s chief executive, Jensen Huang, is a Chinese spy.",
+   "t": 1794452407000,
+   "guid": "6af4a8e18f08af68f126c9df",
+   "duur": 1740,
+   "links": [],
+   "pagina": "https://www.theguardian.com/news/series/todayinfocus"
+  },
+  {
+   "id": "exs1qyc",
+   "show": "the-daily",
+   "titel": "What Jensen Huang’s Resignation Will Mean for A.I.",
+   "samenvatting": "This episode was recorded before the news of Mr. Huang’s resignation was made public. Jensen Huang resigned as the chief executive of Nvidia on Thursday after The New York Times reported that he had extramarital relationships with a woman identified by U.S. officials as a Chinese spy and an executive at the company. In a memo this week, Mr. Huang admitted to being “unfaithful” to his wife.",
+   "tekst": "This episode was recorded before the news of Mr. Huang’s resignation was made public. Jensen Huang resigned as the chief executive of Nvidia on Thursday after The New York Times reported that he had extramarital relationships with a woman identified by U.S. officials as a Chinese spy and an executive at the company. In a memo this week, Mr. Huang admitted to being “unfaithful” to his wife. Tripp Mickle, a tech reporter for The Times, discusses how everything unraveled for Mr. Huang and what his exit could mean for his and Nvidia’s future. Guest: Tripp Mickle , a tech reporter for The New York Times. Background reading: Jensen Huang resigned from Nvidia after news of his affairs was made public. Nvidia shares plunged , shaking up tech stocks as Mr. Huang stepped down from his role. Photo: Manuel Orbegozo for The New York Times For more information on today’s episode, visit nytimes.com/thedaily .",
+   "t": 1794480726000,
+   "guid": "acb73150-dba0-437a-ac37-55ed1e31aacd",
+   "duur": 1480,
+   "links": [
+    "nytimes.com/by/tripp-mickle",
+    "nytimes.com/live/2026/11/12/business/nvidia-jensen-huang-resigns",
+    "nytimes.com/2026/11/12/business/nvidia-stock-price-jensen-huang-ceo-affair.html",
+    "nytimes.com/thedaily"
+   ],
+   "pagina": "https://www.nytimes.com/the-daily",
+   "vast": [
+    "The New York Times",
+    "Today’s Episode"
+   ]
+  },
+  {
+   "id": "e6t5d1x",
+   "show": "vk-elke-dag",
+   "titel": "De kamer van Klok: De VVD heeft verloren van zichzelf",
+   "samenvatting": "Het is crisis op het Binnenhof. De VVD bleef ontluisterd achter nadat het Belastingplan van D66 en CDA met een minieme meerderheid door de Tweede Kamer kwam. Ook in De kamer van Klok wordt de kwestie &lsquo;afgepeld'. Wat klopt er eigenlijk van het frame van de &lsquo;miljonairstaks'? Waarom lukte het Bontenbal en Paternotte w&eacute;l om een meerderheid te vinden, en Heinen niet?",
+   "tekst": "Het is crisis op het Binnenhof. De VVD bleef ontluisterd achter nadat het Belastingplan van D66 en CDA met een minieme meerderheid door de Tweede Kamer kwam. Ook in De kamer van Klok wordt de kwestie &lsquo;afgepeld'. Wat klopt er eigenlijk van het frame van de &lsquo;miljonairstaks'? Waarom lukte het Bontenbal en Paternotte w&eacute;l om een meerderheid te vinden, en Heinen niet? En overleeft Dilan Yesilg&ouml;z deze misser? Lees ook: Tweede Kamer straft machtspolitiek VVD rond belastingplan genadeloos af Presentatie: Gijs Groenteman Montage: Simone Eleveld Eindredactie: Lotte Grimbergen, Jasper Veenstra en Corinne van Duin See omnystudio.com/listener for privacy information.",
+   "t": 1794578615000,
+   "guid": "bb3bf7d0-6c46-4ed1-ae14-b50100e57e24",
+   "duur": 3819,
+   "links": [
+    "volkskrant.nl/politiek/tweede-kamer-straft-machtspolitiek-vvd-rond-belastingplan-genadeloos-af~b5ef5843",
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/de-volkskrant-elke-dag/de-kamer-van-klok-de-vvd-heeft-verloren-van-zichzelf",
+   "vast": [
+    "Lotte Grimbergen",
+    "Jasper Veenstra Montage",
+    "Rinkie Bartels See",
+    "Corinne van Duin",
+    "Pieter Klok Redactie"
+   ]
+  },
+  {
+   "id": "ei4w4ez",
+   "show": "fd-dagkoers",
+   "titel": "Huwelijkscrisis bij coalitie & Nvidia",
+   "samenvatting": "Tot diep in de nacht werd er hard tegen hard gedebatteerd in de Tweede Kamer. Over het belastingplan, maar nog meer over het voortbestaan van de coalitie. Politiek verslaggever Puck Sie vertelt je de laatste stand van zaken. Lees: D66 vraagt: VVD, blijf in kabinet De ceo van &lsquo;s werelds belangrijkste AI-chipmaker is donderdag opgestapt.",
+   "tekst": "Tot diep in de nacht werd er hard tegen hard gedebatteerd in de Tweede Kamer. Over het belastingplan, maar nog meer over het voortbestaan van de coalitie. Politiek verslaggever Puck Sie vertelt je de laatste stand van zaken. Lees: D66 vraagt: VVD, blijf in kabinet De ceo van &lsquo;s werelds belangrijkste AI-chipmaker is donderdag opgestapt. De positie van de iconische oprichter was onhoudbaar geworden na een week van onthullingen over affaires met een mogelijke Chinese spion &eacute;n een ondergeschikte. Wat zijn de gevolgen van Huangs gedwongen vertrek voor Nvidia zelf, voor concurrenten en voor de wereldwijde AI-hausse? Je hoort het van techredacteur Bert van Dijk. Lees: Nvidia verliest visionair Jensen Huang: wat betekent zijn val voor de AI-markt? Hoewel de onrust binnen chipbedrijf Nvidia de gemoederen flink bezighoudt op de markt, beginnen beleggers al warm te lopen voor de tweede megabeursgang in korte tijd: die van AI-bedrijf Anthropic. Brokers openen de inschrijvingen voor het aandeel en adverteren groots in aanloop naar de beursgang volgende week. FD-beursredacteur Albert Wagenaar vertelt je hoe groot de hype is. Lees: Brokers openen jacht op particuliere belegger voor Anthropic-beursgang Redactie: Sophia Wouda & Floyd Bonder Presentatie: Floyd Bonder See omnystudio.com/listener for privacy information.",
+   "t": 1794542400000,
+   "guid": "906cedb5-f8b8-4351-8fd1-b500017918a9",
+   "duur": 926,
+   "links": [
+    "fd.nl/politiek/1618980/live-tweede-kamer-debatteert-in-crisissfeer-over-belastingplan",
+    "fd.nl/bedrijfsleven/1619210/nvidia-verliest-visionair-jensen-huang-wat-betekent-zijn-val-voor-de-ai-markt",
+    "fd.nl/financiele-markten/1619285/brokers-openen-jacht-op-particuliere-belegger-voor-anthropic-beursgang",
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/fd-dagkoers/huwelijkscrisis-bij-coalitie-nvidia",
+   "vast": [
+    "Floyd Bonder See",
+    "Jort Siemes",
+    "Nelleke van der Heiden See"
+   ]
+  },
+  {
+   "id": "e12i7l54",
+   "show": "fd-dagkoers",
+   "titel": "Belastingplan splijt kabinet-Jetten",
+   "samenvatting": "Oppositiepartijen Pro en Volt hebben een akkoord bereikt met coalitiepartijen D66 en CDA: de linkse oppositie steunt het belastingplan in ruil voor hogere lasten op vermogen, waaronder een &lsquo;miljonairsbelasting'. Maar coalitiepartner VVD zegt &lsquo;overvallen' te zijn en noemt de deal in strijd met het coalitieakkoord.",
+   "tekst": "Oppositiepartijen Pro en Volt hebben een akkoord bereikt met coalitiepartijen D66 en CDA: de linkse oppositie steunt het belastingplan in ruil voor hogere lasten op vermogen, waaronder een &lsquo;miljonairsbelasting'. Maar coalitiepartner VVD zegt &lsquo;overvallen' te zijn en noemt de deal in strijd met het coalitieakkoord. VVD-leider Dilan Yesilg&ouml;z eist een &lsquo;fundamentele reset' van de coalitie als D66 en CDA donderdag voor de voorstellen stemmen, al stapt ze er nog niet uit. Kan het minderheidskabinet dit overleven? Politiek redacteur Martine Wolzak bespreekt de spanning in Den Haag. Lees: Spanning in coalitie na deal links met D66 en CDA over belastingplan Nederland blijft qua productiviteitsgroei sterk achter bij vergelijkbare landen, stelt de Oeso. Om het tij te keren moet onder meer het ontslagrecht op de schop. Onze ontslagbescherming is namelijk een van de strengste van de Oeso, waardoor werkgevers terughoudend zijn met aannemen en minder investeren in de scholing van tijdelijk personeel. Macro-economieredacteur Marijn Jongsma bespreekt deze resultaten met ons. Lees: Oeso: ontslagbescherming remt productiviteitsgroei Nederland Een nieuwe EU-wet moet een einde maken aan de frustratie over onbehulpzame geautomatiseerde klantenservices. Ook verbiedt de wet nepkortingen, drip pricing met verborgen kosten en misleidende influencerreclames. Brussel belooft &euro;13,7 miljard aan besparingen voor consumenten, maar de techsector vreest een duur doolhof aan toezicht. Correspondent Europese Unie Daan Ballegeer legt deze nieuwe wet uit. Lees: Nieuwe EU-wet verplicht menselijk contact bij klantenservice en verbiedt nepkortingen Redactie en montage: Jort Siemes & Sophia Wouda Presentatie: Sophia Wouda See omnystudio.com/listener for privacy information.",
+   "t": 1794456000000,
+   "guid": "0cbd50f9-9df0-4e36-a9fa-b50000035eb5",
+   "duur": 944,
+   "links": [
+    "fd.nl/politiek/1618894/pro-sluit-deal-met-deel-van-coalitie-lasten-op-vermogen-omhoog",
+    "fd.nl/economie/1618809/oeso-ontslagbescherming-remt-productiviteitsgroei-nederland",
+    "fd.nl/economie/1618893/nieuwe-eu-wet-verplicht-menselijk-contact-bij-klantenservice-en-verbiedt-nepkortingen",
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/fd-dagkoers/belastingplan-splijt-kabinet-jetten",
+   "vast": [
+    "Floyd Bonder See",
+    "Jort Siemes",
+    "Nelleke van der Heiden See"
+   ]
+  },
+  {
+   "id": "e1lj5bkv",
+   "show": "vergecast",
+   "titel": "What's really at stake in the Jensen Huang saga",
+   "samenvatting": "Jensen Huang is no longer the CEO of Nvidia, but his problems — and the company's — are far from over. David and Nilay talk through what all this attention might do to Megaspeed, to Nvidia, and to the US / China AI race. Then they discuss a bunch of streaming news, as Hollywood tries desperately to compete with TikTok and Instagram.",
+   "tekst": "Jensen Huang is no longer the CEO of Nvidia, but his problems — and the company's — are far from over. David and Nilay talk through what all this attention might do to Megaspeed, to Nvidia, and to the US / China AI race. Then they discuss a bunch of streaming news, as Hollywood tries desperately to compete with TikTok and Instagram. Finally, it's time for Brendan Carr is a Dummy, some meat smoking news, and the latest in how we measure things online. Follow all of The Verge's Jensen Huang coverage here: Nvidia CEO Jensen Huang has resigned. What happens next? Other reading: Streaming is still trying to be TikTok Paramount Skydance says it will offer HBO Max and Paramount Plus as a bundle starting in “early 2027.” Disney’s top priorities for its streaming service reportedly include vertical video and free always-on channels. Tubi is going to let you make “mixtapes” to recommend shows and films. Meta’s Muse AI can create custom ‘spaces’ for the version of the app you need right now Meta’s Muse can now deal with a forwarded email. Good riddance, Cybertruck! Billboard charts will include YouTube’s streaming data again starting next year. Reddit wants to guide your next purchase Subscribe to The Verge for unlimited access to theverge.com , subscriber-exclusive newsletters, and our ad-free podcast feed . We love hearing from you! 00:27 Recording Disclaimer 01:06 Vergecast Kickoff 02:19 Jensen Huang Scandal Timeline 09:23 Corruption And National Security 12:00 Megaspeed Chip Smuggling 20:31 Nvidia CEO Succession 28:35 Who Becomes the Face of AI Now? 35:06 Altman Comparison And Fallout 40:53 Streaming Wars Roundup 41:36 Vertical Video Feed Craze 42:12 Clips Versus Subscriptions 42:45 Tires TikTok Jump Scare 46:08 Disney Verts Feed Problem 49:02 YouTube Shorts Discovery 52:36 Micro Dramas Quibi Redux 55:58 Free Tier Hook Strategy 58:28 Hollywood Monetization Collapse 01:01:13 Discovery Tools Arms Race 01:03:30 Ellison Speedrun Theory 01:05:48 Hype Desk Zelda Remake 01:09:17 Ocarina Mods And Hacks 01:12:14 DC Films Leadership Shakeup 01:17:41 Brendan Carr is a Dummy and Spinoff? 01:20:43 Cruz Free Speech Pledge 01:22:18 Markey Presses New Carr Lackey 01:24:24 Lujan Demands Dissent 01:26:28 FCC Lackeys Forecast 01:28:44 Billboard Adds YouTube 01:30:59 Measurement Changes Reality 01:33:22 YouTube Upends Music 01:39:07 Muse Smokes Meats 01:42:03 Vibe Coding Vs Hardware 01:48:03 Reddit Reviews Backlash 01:52:51 The End of the Cybertruck 01:56:59 Wrap Up And Version History Season 6 Trailer Learn more about your ad choices.",
+   "t": 1794564000000,
+   "guid": "ccbe179e-c3c7-11f0-8340-eb7ea82c1b79",
+   "duur": 7246,
+   "links": [
+    "theverge.com/ai-artificial-intelligence/1030422/nvidia-jensen-huang-ai-china-alice-huang",
+    "theverge.com/streaming/1030864/streaming-skydance-paramount-disney-hulu-earnings-tiktok-short-form-video",
+    "theverge.com/entertainment/1030345/paramount-skydance-says-it-will-offer-hbo-max-and-paramount-plus-as-a-bundle-starting-in-early-2027",
+    "theverge.com/entertainment/1030246/disneys-top-priorities-for-its-streaming-service-reportedly-include-vertical-video-and-free-always-on-channels",
+    "theverge.com/streaming/1025877/tubi-is-going-to-let-you-make-mixtapes-to-recommend-shows-and-films",
+    "theverge.com/tech/1028871/meta-muse-ai-spaces",
+    "theverge.com/tech/1031029/metas-muse-can-now-deal-with-a-forwarded-email",
+    "theverge.com/transportation/1029460/elon-musk-cybertruck-death-election-backlash",
+    "theverge.com/entertainment/1030272/billboard-charts-will-include-youtubes-streaming-data-again-starting-next-year",
+    "theverge.com/tech/1030211/reddit-reviews-product-recommendations-electronics-beauty-shopping",
+    "theverge.com/subscribe",
+    "theverge.com/bulletin/795051/verge-podcast-ad-free-set-up-how-to"
+   ],
+   "pagina": "https://www.theverge.com/the-vergecast",
+   "vast": [
+    "The Verge"
+   ]
+  },
+  {
+   "id": "e1sgyyuz",
+   "show": "vergecast",
+   "titel": "Jensen Huang resigns, and our HomeView review",
+   "samenvatting": "Jensen Huang is out at Nvidia, so today's episode starts with an emergency podcast within a podcast, as David and Nilay try to make sense of the state of Nvidia and AI. Then, Jen Tuohy comes on the show to tell us all about her time with the Apple HomeView, Apple's new smart home controller and family computer. It's very good at one of those things, and not so much on the other.",
+   "tekst": "Jensen Huang is out at Nvidia, so today's episode starts with an emergency podcast within a podcast, as David and Nilay try to make sense of the state of Nvidia and AI. Then, Jen Tuohy comes on the show to tell us all about her time with the Apple HomeView, Apple's new smart home controller and family computer. It's very good at one of those things, and not so much on the other. Further reading: Nvidia CEO Jensen Huang resigns amid spy, affair scandals Read Nvidia’s internal emails about the ‘extraordinarily difficult period’ ahead Nvidia CEO Jensen Huang has resigned. What happens next? Apple’s HomeView is my new favorite smart display — but not my daughter’s Subscribe to The Verge for unlimited access to theverge.com , subscriber-exclusive newsletters, and our ad-free podcast feed . We love hearing from you!",
+   "t": 1794506520000,
+   "guid": "4baedd96-6e7b-11f1-94bf-77635a83394e",
+   "duur": 3592,
+   "links": [
+    "theverge.com/ai-artificial-intelligence/1031689/jensen-huang-nvidia-ceo-resigns",
+    "theverge.com/ai-artificial-intelligence/1032028/read-nvidias-internal-emails-jensen-huang",
+    "theverge.com/ai-artificial-intelligence/1030422/nvidia-jensen-huang-ai-china-alice-huang",
+    "theverge.com/tech/1031726/apple-homeview-review-smart-display-homekit",
+    "theverge.com/subscribe",
+    "theverge.com/bulletin/795051/verge-podcast-ad-free-set-up-how-to",
+    "podcastchoices.com/adchoices"
+   ],
+   "pagina": "https://www.theverge.com/the-vergecast",
+   "vast": [
+    "The Verge"
+   ]
+  },
+  {
+   "id": "eajnrdo",
+   "show": "bnr-studio-den-haag",
+   "titel": "Hoog spel",
+   "samenvatting": "Is het al crisis? was vorige week de titel van deze podcast. Inmiddels kunnen we die vraag beantwoorden: jazeker! Er wordt hoog spel gespeeld in Den Haag. Waarbij grote inschattingsfouten gemaakt zijn. VVD en de combinatie CDA en D66 hebben elkaar over en weer meerdere keren verkeerd ingeschat. Het gevolg: een gevallen kabinet dat toch nog even door moet. Want wie breekt betaalt, dus breekt nog even niemand.",
+   "tekst": "Is het al crisis? was vorige week de titel van deze podcast. Inmiddels kunnen we die vraag beantwoorden: jazeker! Er wordt hoog spel gespeeld in Den Haag. Waarbij grote inschattingsfouten gemaakt zijn. VVD en de combinatie CDA en D66 hebben elkaar over en weer meerdere keren verkeerd ingeschat. Het gevolg: een gevallen kabinet dat toch nog even door moet. Want wie breekt betaalt, dus breekt nog even niemand. De vraag lijkt eigenlijk alleen nog wanneer een partij erkent dat de val al heeft plaatsgevonden.",
+   "t": 1794568652000,
+   "guid": "6f84362f-87f3-4b42-b326-b50100b3ccc0",
+   "duur": 3473,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/studiodenhaag/hoog-spel",
+   "vast": [
+    "Sophia van Lil"
+   ]
+  },
+  {
+   "id": "e1nr8ln2",
+   "show": "bnr-studio-den-haag",
+   "titel": "Jetten wil door met het kabinet én de VVD",
+   "samenvatting": "In de Tweede Kamer is het de beurt aan premier Jetten om uitleg te geven over de ontstane coalitiecrisis. De coalitie moet volgens hem een stevige doorstart maken. Gesprekken over de toekomst van de coalitie kunnen ook leiden tot het aanpassen van de afspraken die D66, VVD en CDA eerder hebben gemaakt. We bespreken het met politiek verslaggever, Sophia van Lil. See omnystudio.com/listener for privacy information.",
+   "tekst": "In de Tweede Kamer is het de beurt aan premier Jetten om uitleg te geven over de ontstane coalitiecrisis. De coalitie moet volgens hem een stevige doorstart maken. Gesprekken over de toekomst van de coalitie kunnen ook leiden tot het aanpassen van de afspraken die D66, VVD en CDA eerder hebben gemaakt. We bespreken het met politiek verslaggever, Sophia van Lil.",
+   "t": 1794504210000,
+   "guid": "31054030-31ef-4e75-b3e0-b5000112414f",
+   "duur": 742,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/studiodenhaag/jetten-wil-door-met-het-kabinet-n-de-vvd",
+   "vast": [
+    "Sophia van Lil"
+   ]
+  },
+  {
+   "id": "ev38mvv",
+   "show": "vi-zsm",
+   "titel": "Galavoorstelling Oranje: 'De lef én lol is weer terug'",
+   "samenvatting": "In deze ZSM bespreken verslaggever Simon Zwartkruis en Kalum van Oudheusden de wedstrijd Nederland - Griekenland na vanuit de Johan Cruijff ArenA. Oranje liet geen spaan heel van de bezoekers, dat bij rust al met 5-0 voorstond. Ook na rust bleef de voet op het gaspedaal en loepen de mannen van Xavi Hernandez uit naar een 7-0-overwinning. Simon en Kalum over waarom het deze wedstrijd allemaal verliep volgens plan.",
+   "tekst": "In deze ZSM bespreken verslaggever Simon Zwartkruis en Kalum van Oudheusden de wedstrijd Nederland - Griekenland na vanuit de Johan Cruijff ArenA. Oranje liet geen spaan heel van de bezoekers, dat bij rust al met 5-0 voorstond. Ook na rust bleef de voet op het gaspedaal en loepen de mannen van Xavi Hernandez uit naar een 7-0-overwinning. Simon en Kalum over waarom het deze wedstrijd allemaal verliep volgens plan.",
+   "t": 1794611917000,
+   "guid": "14f8a399-6183-4074-a1f8-b501017f866f",
+   "duur": 907,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/galavoorstelling-oranje-de-lef-n-lol-is-weer-terug",
+   "vast": [
+    "VI ZSM"
+   ]
+  },
+  {
+   "id": "ef7rjq7",
+   "show": "vi-zsm",
+   "titel": "'Oranje en Jong Oranje moeten allebei de klus klaren'",
+   "samenvatting": "In de ZSM van vrijdag 13 november blikken Lentin Goodijk en Bart Frouws vooruit op Nederland &ndash; Griekenland. Frenkie de Jong draagt de aanvoerdersband vanavond en wat kunnen we verwachten van Donyell Malen. Ook belangrijk is de wedstrijd van Jong Oranje tegen Jong Denemarken, in de play-offs voor het EK van deze zomer.",
+   "tekst": "In de ZSM van vrijdag 13 november blikken Lentin Goodijk en Bart Frouws vooruit op Nederland &ndash; Griekenland. Frenkie de Jong draagt de aanvoerdersband vanavond en wat kunnen we verwachten van Donyell Malen. Ook belangrijk is de wedstrijd van Jong Oranje tegen Jong Denemarken, in de play-offs voor het EK van deze zomer. Lentin volgt Jong Oranje en bespreekt de keuzes van Michael Reiziger en de kansen tegen de Denen. Belgi&euml; won gisteravond in de Nations League van Turkije, mede dankzij een goal van Kevin De Bruyne. De middenvelder staat in de belangstelling van PSV. Het zou een aardige stunt zijn als hij naar de Eredivisie komt.",
+   "t": 1794546000000,
+   "guid": "aa40834d-49cc-47b0-878c-b50001727aac",
+   "duur": 1053,
+   "links": [
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/vizsm/oranje-en-jong-oranje-moeten-allebei-de-klus-klaren",
+   "vast": [
+    "VI ZSM"
+   ]
+  },
+  {
+   "id": "e1urlbgn",
+   "show": "bnr-beurs",
+   "titel": "Jensen Huang: nieuwe Nvidia-ceo 'hert dat in de koplampen kijkt'",
+   "samenvatting": "Een nieuwe dag, een nieuw hoofdstuk in de Nvidia-soap. Dit keer een Amerikaanse minister die mogelijk exportregels heeft overtreden &eacute;n een pijnlijke onthulling over de samenwerking tussen de CEO en CFO van Nvidia. Colette Kress, nu interim-ceo die Nvidia overeind moet houden, is in haar vorige rol als CFO gekleineerd door Jensen Huang. Dat meldt The Wall Street Journal. Hij was niet te spreken over haar.",
+   "tekst": "Een nieuwe dag, een nieuw hoofdstuk in de Nvidia-soap. Dit keer een Amerikaanse minister die mogelijk exportregels heeft overtreden &eacute;n een pijnlijke onthulling over de samenwerking tussen de CEO en CFO van Nvidia. Colette Kress, nu interim-ceo die Nvidia overeind moet houden, is in haar vorige rol als CFO gekleineerd door Jensen Huang. Dat meldt The Wall Street Journal. Hij was niet te spreken over haar. Vond haar een boekhouder, vond dat ze geen beslissingen durfde te nemen en 'een hert dat in de koplampen kijkt'. En nog even over die minister: dat is Howard Lutnick. Die lijkt de exportregels van zijn eigen regering te hebben overtreden. Hij wist dat er chips gingen naar China, maar greep meerdere keren niet in. Waardoor de vrees is dat China daardoor is geholpen. Wat moet je hier als Nvidia-aandeelhouder mee? Dat een grootaandeelhouder de tijdelijk leider niet serieus neemt? En wat als de Amerikaanse regering onder vuur komt te liggen? We zoeken het deze aflevering voor je uit. Een bomvolle aflevering, want we hebben het ook over de beursgang van Anthropic. Dat wordt de grootste aller tijden: de IPO is zes keer overtekend. Verder hoor je meer over: De kwartaalcijfers van Nvidia (die dinsdag komen) De fusie tussen Tesla en SpaceX. De deal moet in december al rond zijn De verbouwing van Box 3 gaat door! Een nieuwe verpakking moet Kraft Heinz redden Wereldwijde storing bij Microsoft Te gast: Bob Homan van ING Investment Office BNR Beurs is een journalistiek onafhankelijke productie, mede mogelijk gemaakt door Saxo Over de makers: Jelle Maasbach is presentator van BNR Beurs en freelance financieel journalist.",
+   "t": 1794583609000,
+   "guid": "26a0df48-f3eb-42de-acab-b50100ca2601",
+   "duur": 1528,
+   "links": [
+    "nl.linkedin.com/in/bobhoman",
+    "nl.linkedin.com/in/jelle-maasbach-b7143146",
+    "linkedin.com/in/maxim-van-mil",
+    "nl.linkedin.com/in/joriksimonides",
+    "linkedin.com/in/milou-brand-b21838a2",
+    "nl.linkedin.com/in/jochem-visser-a17b5b349",
+    "linkedin.com/in/donner-bakker-ab03491b6",
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/beurs/jensen-huang-nieuwe-nvidia-ceo-hert-dat-in-de-koplampen-kijkt",
+   "vast": [
+    "BNR Beurs",
+    "Beursnerd XL",
+    "Financieele Dagblad",
+    "Jelle Maasbach",
+    "Ons ASML",
+    "Saxo Over"
+   ]
+  },
+  {
+   "id": "ee4ehq9",
+   "show": "bnr-beurs",
+   "titel": "Jensen Huang gewipt als ceo. Moet jij 't aandeel Nvidia nu ook dumpen?",
+   "samenvatting": "Een tweede affaire kost Jensen Huang zijn kop. Voordat de directie van Nvidia hem kon ontslaan, besloot hij de chipreus te verlaten. CFO Colette Kress wordt nu tijdelijk de baas. Jensen Huang gaf begin deze week toe dat ie was vreemdgegaan. Met een vrouw die mogelijk een Chinese spion is. Nu blijkt dat 'ie n&oacute;g een keer de fout in is gegaan. Met een eigen medewerkster.",
+   "tekst": "Een tweede affaire kost Jensen Huang zijn kop. Voordat de directie van Nvidia hem kon ontslaan, besloot hij de chipreus te verlaten. CFO Colette Kress wordt nu tijdelijk de baas. Jensen Huang gaf begin deze week toe dat ie was vreemdgegaan. Met een vrouw die mogelijk een Chinese spion is. Nu blijkt dat 'ie n&oacute;g een keer de fout in is gegaan. Met een eigen medewerkster. Iets dat in strijd is met de eigen bedrijfsregels. Volgens Amerikaanse media wilde het bestuur hem daarom wippen, maar dat wacht &lsquo;ie dus niet af. Deze aflevering kijken we naar de toekomst van het aandeel. Moet je daar (op dit moment) nu wezen? En wat zijn de concurrenten die profiteren? Hebben we het ook over Box 3. Daar wordt (als het goed is) over gestemd. We bespreken het met Thijs Buitenhuis van Norbury Capital .",
+   "t": 1794507880000,
+   "guid": "21599a6d-6550-40be-9dec-b50000a91085",
+   "duur": 1306,
+   "links": [
+    "norburycapital.com/about",
+    "nl.linkedin.com/in/jelle-maasbach-b7143146",
+    "linkedin.com/in/maxim-van-mil",
+    "nl.linkedin.com/in/joriksimonides",
+    "linkedin.com/in/milou-brand-b21838a2",
+    "nl.linkedin.com/in/jochem-visser-a17b5b349",
+    "linkedin.com/in/donner-bakker-ab03491b6",
+    "omnystudio.com/listener"
+   ],
+   "pagina": "https://omny.fm/shows/beurs/jensen-huang-gewipt-als-ceo-moet-jij-t-aandeel-nvidia-nu-ook-dumpen",
+   "vast": [
+    "BNR Beurs",
+    "Beursnerd XL",
+    "Financieele Dagblad",
+    "Jelle Maasbach",
+    "Ons ASML",
+    "Saxo Over"
+   ]
+  },
+  {
+   "id": "e1tq5t7b",
+   "show": "nos-voetbalpodcast",
+   "titel": "#584 - 'Heel Nederland blij met een man uit Spanje'",
+   "samenvatting": "Disclaimer: zoals Thierry met enig cynisme al had voorspeld, kwam net na het opnemen van deze podcast het bericht dat Frenkie de Jong afvalt bij Oranje. Het is en blijft de day after de zevenklapper tegen Griekenland. Het Nederlands elftal is terug in Zeist, net als Arman Avsaroglu, Jeroen Stekelenburg en Thierry Boon.",
+   "tekst": "Disclaimer: zoals Thierry met enig cynisme al had voorspeld, kwam net na het opnemen van deze podcast het bericht dat Frenkie de Jong afvalt bij Oranje. Het is en blijft de day after de zevenklapper tegen Griekenland. Het Nederlands elftal is terug in Zeist, net als Arman Avsaroglu, Jeroen Stekelenburg en Thierry Boon.",
+   "t": 1794663720000,
+   "guid": "WO_NOS_20373623",
+   "duur": 1477,
+   "links": [],
+   "pagina": "https://www.nporadio1.nl/podcasts/nos-voetbalpodcast",
+   "vast": [
+    "Thierry Boon",
+    "Jeroen Stekelenburg"
+   ]
+  },
+  {
+   "id": "e1tq5tby",
+   "show": "nos-voetbalpodcast",
+   "titel": "#583 - Avondje Hollandse school: 'Grote galavoorstelling van Oranje'",
+   "samenvatting": "Het Nederlands elftal zet een monsterscore neer tegen Griekenland in de Nations League: 7-0. Jeroen Grueter, Jeroen Stekelenburg, Ibrahim Afellay en Thierry Boon praten over de wedstrijd.",
+   "tekst": "Het Nederlands elftal zet een monsterscore neer tegen Griekenland in de Nations League: 7-0. Jeroen Grueter, Jeroen Stekelenburg, Ibrahim Afellay en Thierry Boon praten over de wedstrijd.",
+   "t": 1794612600000,
+   "guid": "WO_NOS_20373619",
+   "duur": 1459,
+   "links": [],
+   "pagina": "https://www.nporadio1.nl/podcasts/nos-voetbalpodcast",
+   "vast": [
+    "Thierry Boon",
+    "Jeroen Stekelenburg"
+   ]
+  },
+  {
+   "id": "e1tq5p79",
+   "show": "nos-voetbalpodcast",
+   "titel": "#582 - ‘Frenkie is de motor en dus uitstekende aanvoerder voor Oranje’",
+   "samenvatting": "Het Nederlands elftal speelt morgen tegen Griekenland in de Nations League. Met Frenkie de Jong als aanvoerder, dat vertelde bondscoach Xavi op de persconferentie. Jeroen Elshoff, Jeroen Stekelenburg en Thierry Boon blikken vooruit.",
+   "tekst": "Het Nederlands elftal speelt morgen tegen Griekenland in de Nations League. Met Frenkie de Jong als aanvoerder, dat vertelde bondscoach Xavi op de persconferentie. Jeroen Elshoff, Jeroen Stekelenburg en Thierry Boon blikken vooruit.",
+   "t": 1794491400000,
+   "guid": "WO_NOS_20373342",
+   "duur": 1580,
+   "links": [],
+   "pagina": "https://www.nporadio1.nl/podcasts/nos-voetbalpodcast",
+   "vast": [
+    "Thierry Boon",
+    "Jeroen Stekelenburg"
+   ]
+  },
+  {
+   "id": "e1j97hpl",
+   "show": "nos-de-dag",
+   "titel": "Hoe premier Jetten zijn kabinetscrisis (mis)managet",
+   "samenvatting": "Premier Jetten probeert een 'doorstart' te maken met zijn minderheidskabinet. Welke rol speelt hij zelf in het ontstaan van deze kabinetscrisis? Na een lang debat in crisissfeer volgde gisteravond een zinderende stemming over het Belastingplan, dat met de kleinst mogelijke marge werd aangenomen.",
+   "tekst": "Premier Jetten probeert een 'doorstart' te maken met zijn minderheidskabinet. Welke rol speelt hij zelf in het ontstaan van deze kabinetscrisis? Na een lang debat in crisissfeer volgde gisteravond een zinderende stemming over het Belastingplan, dat met de kleinst mogelijke marge werd aangenomen. Dat lukte met de steun van linkse partijen en zonder steun van coalitiepartij VVD, die zich verraden en in de hoek gezet voelt door de linkse samenwerking. Gevolg: chaos en mogelijk een onwerkbare situatie. In de podcast zet politiek verslaggever Lars Geerts uiteen hoe de premier deze crisis managet, en deels zelf heeft veroorzaakt. Reageren?",
+   "t": 1794578160000,
+   "guid": "WO_NOS_20373439",
+   "duur": 1775,
+   "links": [],
+   "pagina": "https://www.nporadio1.nl/podcasts/de-dag",
+   "vast": [
+    "Marco Geijtenbeek Redactie",
+    "Rosanne Sies"
+   ]
+  },
+  {
+   "id": "e1j97k3n",
+   "show": "nos-de-dag",
+   "titel": "De VVD in (kabinets)crisis",
+   "samenvatting": "Woensdagavond net voor achten stapt VVD-leider Dilan Yesilgöz uit het ministerie van Defensie. Ze vertelt voor een groep journalisten met draaiende camera's dat ze is overvallen door het akkoord dat coalitiegenoten D66 en CDA eerder die dag sloten met oppositiepartijen Pro en Volt. Yesilgöz vindt dat er een fundamentele reset nodig is als de rest van de coalitie hiermee akkoord gaat.",
+   "tekst": "Woensdagavond net voor achten stapt VVD-leider Dilan Yesilgöz uit het ministerie van Defensie. Ze vertelt voor een groep journalisten met draaiende camera's dat ze is overvallen door het akkoord dat coalitiegenoten D66 en CDA eerder die dag sloten met oppositiepartijen Pro en Volt. Yesilgöz vindt dat er een fundamentele reset nodig is als de rest van de coalitie hiermee akkoord gaat. De VVD worstelt al langer met hun rol in de coalitie, schetst politiek duider Nynke de Zoeten. D66 en CDA gingen er al wel vanuit dat er deals met links nodig zouden zijn in deze minderheidsconstructie, maar VVD ging niet. Maar ook de rol van de VVD leidt tot kritiek. De soloacties van minister van Financiën Eelco Heinen en starre houding in onderhandelingen zet kwaad bloed bij D66 en CDA. Maar de spanning loopt nu op over verschuivingen van belastingen van 1 miljard op een totaal van 480 miljard euro. Dat is volgens Nynke de Zoeten een hele bewuste keuze en strategie van de VVD. Waar leidt dat toe? Voor de partij? En voor de houdbaarheid van dit kabinet?",
+   "t": 1794490620000,
+   "guid": "WO_NOS_20373343",
+   "duur": 1748,
+   "links": [],
+   "pagina": "https://www.nporadio1.nl/podcasts/de-dag",
+   "vast": [
+    "Marco Geijtenbeek Redactie",
+    "Rosanne Sies"
+   ]
+  }
+ ]
+}

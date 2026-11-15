@@ -14,7 +14,8 @@ import assert from 'node:assert/strict'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { SHOWS, SHOW, FETCHED, koppel, episodeOf, readHead, loadEpisodes, luisterRonde, urlKey, cleanTitle, withProef, proefEntry, EVERY, KEEP, PROEF_KEY, STORE_KEY } from '../netlify/lib/luister.mjs'
+import { zoalsWoordregels } from './helpers/nep-oordeel.mjs'
+import { SHOWS, SHOW, FETCHED, koppel, episodeOf, readHead, loadEpisodes, luisterRonde, urlKey, cleanTitle, withProef, proefEntry, EVERY, KEEP, PROEF_KEY, STORE_KEY, zonderBron } from '../netlify/lib/luister.mjs'
 import { SOURCES, MAIN_IDS } from '../netlify/lib/sources.mjs'
 
 const FIX = JSON.parse(readFileSync(new URL('./fixtures/luister-2026-11-14.json', import.meta.url), 'utf8'))
@@ -25,10 +26,12 @@ const story = (re) => FIX.stories.find((st) => re.test(leadTitle(st)))
 const ep = (re) => FIX.episodes.find((e) => re.test(e.titel))
 const run = (opts = {}) => koppel({ stories: FIX.stories, byId, episodes: FIX.episodes, now: NOW, mainIds: MAIN_IDS, ...opts })
 
-test('de showlijst: officiële shows van bronnen die al in Hoot staan, elk met een soort; overzichten worden niet opgehaald', () => {
+test('de showlijst: officiële shows van bronnen die al in Hoot staan (en BNR, besluit 14 november), elk met een soort; overzichten worden niet opgehaald', () => {
   const ids = new Set(SOURCES.map((s) => s.id))
   for (const s of SHOWS) {
-    assert.ok(ids.has(s.bron), `${s.naam}: bron ${s.bron} staat in de catalogus`)
+    // De enige uitzondering: de podcasts van BNR, met de bron `bnr` die alleen voor podcasts bestaat (zonderBron).
+    if (s.bron === 'bnr') assert.equal(zonderBron(s), true, s.naam)
+    else assert.ok(ids.has(s.bron), `${s.naam}: bron ${s.bron} staat in de catalogus`)
     assert.ok(['verdieping', 'meer', 'week', 'overzicht'].includes(s.soort), s.naam)
     assert.ok(['nl', 'en'].includes(s.taal), s.naam)
     assert.match(s.apple, /^\d+$/, s.naam)
@@ -65,17 +68,14 @@ test('goed: hetzelfde op tekst, twee centrale namen en dezelfde gebeurtenis (VI 
   assert.ok(!('alleenVolgers' in l))
 })
 
-test('verdiepend: The Daily over het vertrek van Huang (twee dagen oud) bij het grote Nvidia-verhaal; ouder dan 36 uur is nooit "hetzelfde"', () => {
-  const { byStory } = run()
+test('na de opname: The Daily ("recorded before the news of Mr. Huang\'s resignation") koppelt niet aan het Nvidia-verhaal', () => {
+  // Herstel keuring 14 november: tot dan knipte de zinssplitser na "Mr." en koppelde The Daily hier als verdieping. De
+  // aflevering zegt zelf dat het nieuws van het vertrek pas na de opname kwam.
+  const { byStory, rows } = run()
   const l = byStory.get(story(/decline of the visionary/).id)
-  assert.equal(l?.showId, 'the-daily')
-  assert.equal(l.soort, 'verdiepend')
-  assert.match(l.aflevering, /Jensen Huang’s Resignation/)
-  // Today in Focus over hetzelfde schandaal staat erbij als andere geldige koppeling (Engels, alleen voor wie The Guardian volgt).
-  assert.ok((l.andere || []).some((a) => a.showId === 'today-in-focus' && a.alleenVolgers))
-  // Meer dan drie dagen later koppelt dezelfde aflevering niet meer.
-  const later = run({ now: NOW + 2 * 864e5 }).byStory.get(story(/decline of the visionary/).id)
-  assert.ok(!later || later.showId !== 'the-daily' || later.aflevering !== l.aflevering)
+  assert.notEqual(l?.showId, 'the-daily')
+  assert.ok(!(l?.andere || []).some((a) => a.showId === 'the-daily'))
+  assert.ok(rows.afgevallen.some((a) => a.verhaal === story(/decline of the visionary/).id && /Jensen Huang’s Resignation/.test(a.aflevering) && /na de opname/.test(a.reden)))
 })
 
 test('vals: één gedeelde naam is nooit genoeg (Netflix, Mississippi, Oranje, Jetten), ook niet met die naam in de titel', () => {
@@ -114,7 +114,17 @@ test('vals: een artikellink zonder gedeelde naam in de titel ("lees ook") koppel
   assert.ok(e.links.includes(urlKey(extra.url)))
   const items = new Map([...byId, [extra.id, extra]])
   const stories = [{ ...st, itemIds: [...st.itemIds, extra.id] }]
-  const r = koppel({ stories, byId: items, episodes: [e], now: Date.parse('2026-11-12T12:00:00.000Z'), mainIds: MAIN_IDS })
+  // De beschrijving zegt ook "Ondertussen worden er in twee staten nog steeds stemmen geteld: Alaska en Mississippi": van
+  // vóór de uitslag. Sinds keuring 3 van branch shows sluit een tijdwoord alleen niet meer uit (een verdieping mag tot
+  // drie dagen oud zijn); ze valt af op de regel voor de artikellink.
+  const r0 = koppel({ stories, byId: items, episodes: [e], now: Date.parse('2026-11-12T12:00:00.000Z'), mainIds: MAIN_IDS })
+  assert.equal(r0.byStory.size, 0)
+  assert.match(r0.rows.afgevallen.find((x) => x.aflevering === e.titel)?.reden || '', /geen gedeelde naam in de titel/)
+  // Zonder die zin: de regel voor de artikellink zelf.
+  const zonder = (t) => String(t || '').replace(/\s*Ondertussen[^.]*\./, '')
+  const e2 = { ...e, tekst: zonder(e.tekst), samenvatting: zonder(e.samenvatting) }
+  assert.ok(!/Ondertussen/.test(e2.tekst + e2.samenvatting))
+  const r = koppel({ stories, byId: items, episodes: [e2], now: Date.parse('2026-11-12T12:00:00.000Z'), mainIds: MAIN_IDS })
   assert.equal(r.byStory.size, 0)
   assert.match(r.rows.afgevallen.find((x) => x.aflevering === e.titel)?.reden || '', /artikellink, maar geen gedeelde naam in de titel/)
 })
@@ -153,8 +163,9 @@ test('taal volgt de bronkeuze: een Engelse show van een bron die de algemene lez
   assert.equal(l.alleenVolgers, true)
   assert.ok(!MAIN_IDS.has('guardian'))
   assert.equal(rows.koppelingen.find((k) => k.verhaal === story(/Scott Colom/).id).algemeen, false)
-  // De Daily (NYT, een basisbron) is wel voor de algemene lezer.
-  assert.equal(rows.koppelingen.find((k) => k.show === 'The Daily').algemeen, true)
+  // The Intelligence (The Economist, een basisbron) is wel voor de algemene lezer.
+  assert.ok(MAIN_IDS.has('economist'))
+  assert.equal(rows.koppelingen.find((k) => k.show === 'The Intelligence').algemeen, true)
 })
 
 test('voorrang: dezelfde uitgever als de kop gaat voor', () => {
@@ -228,7 +239,9 @@ test('ophalen: hooguit eens per half uur per feed, drie dagen bewaren, uit de op
 test('in de ronde: het veld luister op het verhaal en de proef per dagdeel, zonder persoonsgegevens of beschrijvingen', async () => {
   const stories = FIX.stories.map((st) => ({ ...st }))
   const kv = new Map()
-  const n = await luisterRonde({ stories, byId, now: NOW, episodesP: Promise.resolve({ episodes: FIX.episodes, status: { 'vi-zsm': 'opgehaald' } }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)) })
+  // Met een nep-oordeel dat ja zegt waar de woordregels koppelen (geen echte AI in de toetsen; zie luister-oordeel.test.mjs).
+  const client = zoalsWoordregels({ stories: FIX.stories, byId, episodes: FIX.episodes, now: NOW, mainIds: MAIN_IDS })
+  const n = await luisterRonde({ stories, byId, now: NOW, episodesP: Promise.resolve({ episodes: FIX.episodes, status: { 'vi-zsm': 'opgehaald' } }), slot: '2026-11-14-middag', mainIds: MAIN_IDS, update: (k, fn) => kv.set(k, fn(kv.get(k) ?? null)), get: (k) => kv.get(k), client })
   assert.ok(n >= 3)
   assert.equal(stories.filter((st) => st.luister).length, n)
   const doc = kv.get(PROEF_KEY)
