@@ -5,7 +5,9 @@ import { Fragment, createContext, useCallback, useContext, useId, useLayoutEffec
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { usePhone } from '../hooks/usePhone.js'
 import { timeAgo, readTime } from '../lib/time.js'
-import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, HeadphonesIcon, ICON_SM } from './icons.jsx'
+import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, HeadphonesIcon, CheckIcon, ICON_SM } from './icons.jsx'
+import { TEKST as VOLG_TEKST } from '../lib/volgzaak.js'
+import { volgtVan } from '../../shared/volgzaak-weergave.mjs'
 import { portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
@@ -119,14 +121,35 @@ export function ShareButton({ item, label = 'bericht', inMenu = false }) {
 
 // De rubriek boven de kop. In de Editie staat de telling vooraan (`n`: "01 · BUITENLAND", zie
 // numberRows in src/lib/edition.js); de punt ertussen is die van .kicker.
-function Kicker({ item, extra, followed, n = null }) {
+function Kicker({ item, extra, followed, volgt = null, n = null }) {
   const bits = []
   if (n) bits.push(<EditionNumber key="n" n={n} />)
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (opinieInStroom(item)) bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
-  if (followed) bits.push(<span key="f" className="label--meta front__followed">{followed}</span>) // stil: een staat, geen rubriek
+  if (volgt) bits.push(<VolgLabel key="v" volgt={volgt} />) // Volgen 1.5: het label gaat voor het oude "Je volgt"
+  else if (followed) bits.push(<span key="f" className="label--meta front__followed">{followed}</span>) // stil: een staat, geen rubriek
   return bits.length ? <p className="label label--kicker kicker">{bits}</p> : null
+}
+
+// Volgen 1.5: het label "Je volgt" met een klein vinkje in de rubriekregel, overal hetzelfde (Stroom, Editie). Tikbaar: het
+// opent de pagina; de rest van de kaart opent het verhaal. In de rubriekkleur, zonder onderstreping of knopvorm. Het
+// raakvlak is onzichtbaar 44 px hoog en groeit naar boven (de witruimte boven de kaart) en een stukje opzij, nooit over de
+// kop (src/styles/volg.css). Het staat binnen de link van de kaart, dus een eigen knop-rol die de klik niet doorgeeft.
+// `volgt`: { slug, label } (shared/volgzaak-weergave.mjs).
+export function VolgLabel({ volgt }) {
+  const { openVolg } = useHoot()
+  const open = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    openVolg?.(volgt.slug)
+  }
+  return (
+    <span className="volglabel" role="button" tabIndex={0} aria-label={VOLG_TEKST.label(volgt.label)} onClick={open} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && open(e)}>
+      <CheckIcon size={11} />
+      {VOLG_TEKST.jeVolgt}
+    </span>
+  )
 }
 
 // Bronregel: logo, naam en tijd op één vaste plek, onder de kop en de samenvatting. Tikken
@@ -252,7 +275,10 @@ const wideOrMouse = () => typeof matchMedia === 'function' && matchMedia('(min-w
 // `withShare` (kaart A+): delen zit altijd in dit menu, niet als eigen knop in de bronregel.
 // Zonder: alleen op een touch-telefoon (web-staten), waar de deelknop ernaast wegvalt.
 export function TasteButton({ entryKey, item, story, withShare = false }) {
-  const { voteOn, itemsById, reportMistake, share, notify, luisterVoor, luisterTik } = useHoot()
+  const { voteOn, itemsById, reportMistake, share, notify, luisterVoor, luisterTik, volgAan, volgzaken, volgZaak, ontvolgZaak, openVolg } = useHoot()
+  // Volgen 1.5 (achter de vlag): het veld `volgzaak` staat al bij het verhaal, dus het menu klopt meteen.
+  const zaak = volgAan && story?.volgzaak?.slug ? story.volgzaak : null
+  const gevolgd = zaak ? volgtVan(story, volgzaken) : null
   const luister = luisterVoor?.(story)?.[0] || null
   const [open, setOpen] = useState(false)
   const [view, setView] = useState('main')
@@ -304,6 +330,7 @@ export function TasteButton({ entryKey, item, story, withShare = false }) {
               {canShare ? <>{row('Deel', () => { close(); share(item) })}{luister ? null : <div role="separator" className="popmenu__sep" />}</> : null}
               {luister ? <>{row(<span className="popmenu__twee">Luister verder<span className="popmenu__onder">{wieVan(luister)}</span></span>, () => { close(); luisterTik(luister) }, <HeadphonesIcon size={ICON_SM} />)}<div role="separator" className="popmenu__sep" /></> : null}
               {voteOn ? <>{row('Meer hiervan', () => pick(1))}{row('Minder hiervan', () => pick(-1))}</> : null}
+              {gevolgd ? <>{row(VOLG_TEKST.naar(gevolgd.label), () => { close(false); openVolg(gevolgd.slug) })}{row(VOLG_TEKST.stop, () => { close(); ontvolgZaak(gevolgd.slug) })}</> : zaak ? row(VOLG_TEKST.volgNaam(zaak.label), () => { close(); volgZaak({ slug: zaak.slug, label: zaak.label }) }) : null}
               {reportMistake ? <>{voteOn ? <div role="separator" className="popmenu__sep" /> : null}{row('Klopt dit niet?', () => setView('report'), <CaretIcon size={ICON_SM} />)}</> : null}
             </>
           )}
@@ -341,7 +368,7 @@ const heroFits = (item) => (url) => fitsHero(url) && sharpHere(item)
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
-export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null, outside = false }) {
+export function LeadStory({ item, story, note, n = null, why = null, followed = null, volgt = null, priority = false, taste = null, outside = false }) {
   const { markRead, read } = useHoot()
   const tier = headlineTier(item.title)
   const titleRole = tier === 'compact' ? 'head-lg' : tier === 'medium' ? 'head-5' : 'head-6'
@@ -358,14 +385,14 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
         <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media media--lead${staand ? ' media--portrait' : ''}${gemeten(item, 'lead')}`} style={uitsnede(item, 'lead')}>
           {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
         </Beeld>
-        <Kicker item={item} extra={note} followed={followed} n={n} />
+        <Kicker item={item} extra={note} followed={followed} volgt={volgt} n={n} />
         <Why why={why} />
         <h2 className={`${titleRole} lead__title`}>{item.title}</h2>
         <Summary item={item} className="lead__sum" fit={{ max: 240, rek: 240 }} />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
       <TermHelp text={`${item.title} ${item.summary || ''}`} />
-      <Meta item={item} story={story} taste={taste} outside={outside} />
+      <Meta item={item} story={story} taste={taste} outside={outside && !volgt} />
     </article>
   )
 }
@@ -378,14 +405,15 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
 // `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
 // de krant-vorm van de Editie en het vergelijkpaneel (`plain`) INTRO_LINES (3), zoals de app.
-export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines, outside = false }) {
+export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines, outside: buiten = false, volgt = null }) {
+  const outside = buiten && !volgt // "Je volgt" gaat voor "Buiten je bronnen" (rubriekRegel)
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
   const lineCount = lines ?? (plain ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
   const phone = usePhone()
   const cls = `entry compact${isReadItem(read, item) ? ' is-read' : ''}`
   // Telefoon, Stroom in de tijdlijn: kaart A+ zonder nummer en waarom (zelfde kaart als in de Editie).
-  if (phone && layout === 'tijdlijn' && !plain) return <KaartItem item={item} story={story} note={note} showSave={showSave} taste={taste} outside={outside} lines={lines} />
+  if (phone && layout === 'tijdlijn' && !plain) return <KaartItem item={item} story={story} note={note} showSave={showSave} taste={taste} outside={outside} volgt={volgt} lines={lines} />
   // Een beeld dat te klein is voor de volle kolom (onscherp, zie sharpHere) staat klein rechts: de
   // krant-vorm hieronder, in plaats van opgerekt over de hele breedte.
   const small = !!item.image && (!fitsLarge(item.image) || !sharpHere(item))
@@ -394,7 +422,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
       <article className={`${cls} compact--tl`} data-id={item.id}>
         {/* Zelfde volgorde als op de voorpagina: rubriek (met het waarom), kop, samenvatting, beeld, dan de bron. */}
         <a className="compact__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
-          <Kicker item={item} extra={note} n={n} />
+          <Kicker item={item} extra={note} volgt={volgt} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
@@ -410,7 +438,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
     <article className={`${cls}${layout === 'tijdlijn' && !plain ? ' compact--klein' : ''}`} data-id={item.id}>
       <a className="compact__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
-          <Kicker item={item} extra={note} n={n} />
+          <Kicker item={item} extra={note} volgt={volgt} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', (prefs?.images ?? 'aan') === 'aan')} />
@@ -474,7 +502,8 @@ export function KaartMeta({ item, story, showSave = true, taste = null, outside 
   )
 }
 
-export function KaartItem({ item, story, note, n = null, why = null, followed = null, showSave = true, taste = null, outside = false, lead = false, priority = false, lines }) {
+export function KaartItem({ item, story, note, n = null, why = null, followed = null, volgt = null, showSave = true, taste = null, outside: buiten = false, lead = false, priority = false, lines }) {
+  const outside = buiten && !volgt // "Je volgt" gaat voor "Buiten je bronnen" (rubriekRegel)
   const { markRead, read, prefs } = useHoot()
   const introMax = useIntroMax()
   // Editie (met nummer): KAART_LINES (4); de Stroom: de instelling.
@@ -506,7 +535,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
         {lead ? beeld : null}
         <div className={`kaart__in${klein ? ' kaart__in--klein' : ''}`}>
           <div className="kaart__head">
-            <Kicker item={item} extra={note} followed={followed} n={n} />
+            <Kicker item={item} extra={note} followed={followed} volgt={volgt} n={n} />
             <Why why={why} />
           </div>
           {lead ? <h2 className={`kaart__title kaart__title--lead${vouw?.k26 ? ' kaart__title--26' : ''}`}>{item.title}</h2> : <h3 className="kaart__title">{item.title}</h3>}
@@ -586,6 +615,6 @@ export function SocialItem({ item }) {
 }
 
 // Kiest de juiste vorm voor een los bericht.
-export function Entry({ item, story }) {
-  return item.kind === 'post' ? <SocialItem item={item} /> : <CompactItem item={item} story={story} />
+export function Entry({ item, story, volgt = null }) {
+  return item.kind === 'post' ? <SocialItem item={item} /> : <CompactItem item={item} story={story} volgt={volgt} />
 }

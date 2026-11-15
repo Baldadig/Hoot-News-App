@@ -168,3 +168,7 @@ export function readingSummaryJSON(affinityJSON) {
 
 // Het voorstel bovenaan de bronnenstap van het welkom (1.1.1): dezelfde regels op web en app (shared/voorstel.mjs).
 export { voorstelJSON } from '../../shared/voorstel.mjs'
+
+// Volgen 1.5 (volgzaak): label, voorrang in de Stroom, de rubriekregel en de pagina per lezer. Web en app rekenen met
+// dezelfde regels (shared/volgzaak-weergave.mjs, tests/fixtures/volgzaak-golden.json); de JSON-varianten zijn voor Swift.
+export { volgzaakView, volgzaakVoorrang, metVoorrang, volgtVan, rubriekRegel, actieveVolgzaken, weekNaam, VOLGZAKEN_MAX, VOORRANG_MS, JE_VOLGT, BUITEN_JE_BRONNEN, volgzaakViewJSON, volgzaakVoorrangJSON, rubriekRegelJSON, volgtVanJSON } from '../../shared/volgzaak-weergave.mjs'

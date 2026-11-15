@@ -39,7 +39,9 @@ import { pendingShown } from './lib/membership.js'
 import { applyWelcome } from './lib/welcome.js'
 import { startIds } from './lib/follow-welcome.js'
 import { usePersonalEdition } from './hooks/usePersonalEdition.js'
-import { toggleFollow } from './lib/follow.js'
+import { toggleFollow, volg, ontvolg, herstel, bekeken, wissel, verplaats, zetFollowStoriesOm } from './lib/follow-volgzaken.js'
+import { volgzakenAan, vraagVolgzaak, TEKST as VOLG_TEKST } from './lib/volgzaak.js'
+import { BeheerBlad } from './components/Volg.jsx'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 import { shareItem, shareNotice } from './lib/share.js'
@@ -51,6 +53,7 @@ import { bubbleFromEdition } from './lib/stroom-bubbel.js'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
+const Volg = lazy(() => import('./views/Volg.jsx'))
 const Settings = lazy(() => import('./views/Settings.jsx'))
 const Device = lazy(() => import('./views/Device.jsx'))
 const Privacy = lazy(() => import('./views/Privacy.jsx'))
@@ -129,6 +132,8 @@ export default function App() {
   const endSplash = useCallback(() => setSplash(false), [])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated, stuck: feedStuck } = useFeed(prefs)
   const online = useOnline()
+  // Volgen 1.5: alles achter de vlag (src/lib/volgzaak.js). Uit: geen route, geen kop, geen label, geen voorrang.
+  const volgAan = volgzakenAan(data?.meta)
   const { theme, setTheme, themeDark, setThemeDark } = useTheme(prefs.palette, prefs, setPref)
   const hasPanel = useWide('(min-width: 1200px)')
   const [refreshKey, setRefreshKey] = useState(0)
@@ -438,12 +443,12 @@ export default function App() {
   }, [applyPending])
 
   // ---- Welk scherm ----
-  const path = MAIN.includes(route.path) || PAGES.includes(route.path) ? route.path : 'editie'
+  const path = MAIN.includes(route.path) || PAGES.includes(route.path) || (volgAan && route.path === 'volg') ? route.path : 'editie'
   // Eerst de Editie, daarna kiezen: het welkom staat alleen nog op de route welkom (opnieuw kiezen via
   // "Maak Hoot van jou", Bronnen of Instellingen). Over en Privacy zijn ook de support- en
   // privacypagina van de app in de App Store: altijd direct leesbaar.
   const showWelcome = path === 'welkom'
-  const page = PAGES.includes(path) && path !== 'welkom' ? path : null
+  const page = (PAGES.includes(path) && path !== 'welkom') || path === 'volg' ? path : null
   // Een eerste bezoeker leest meteen: zodra de bronnen er zijn, één keer wat "Liever meteen lezen"
   // deed (de gratis startset, lege interesses; `browsing`, dus later "Maak Hoot van jou"). Zonder
   // bronnen (offline, feed nog niet binnen) schrijven we niets weg en proberen we het opnieuw zodra
@@ -575,7 +580,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', toestel: 'Op dit toestel', privacy: 'Privacy', over: 'Over', digest: 'Selectie' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', toestel: 'Op dit toestel', privacy: 'Privacy', over: 'Over', digest: 'Selectie', volg: VOLG_TEKST.volgend }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -641,8 +646,78 @@ export default function App() {
   const togglePanel = useCallback(() => setPrefs((p) => ({ ...p, panel: p.panel === 'open' ? 'dicht' : 'open' })), [setPrefs])
   const panel = useMemo(() => ({ available: hasPanel, open: panelOpen || (hasPanel && !!story), toggle: story ? closePanel : togglePanel }), [hasPanel, panelOpen, story, closePanel, togglePanel])
 
-  // Verhaal volgen (de kop bewaren we bij het volgen; zie src/lib/follow.js).
+  // Verhaal volgen (de kop bewaren we bij het volgen; zie src/lib/follow-volgzaken.js).
   const followStory = useCallback((story, title) => setPrefs((p) => ({ ...p, followStories: toggleFollow(p.followStories, story, title) })), [setPrefs])
+
+  // Volgen 1.5 (codenaam volgzaak, src/lib/volgzaak.js): alleen met de vlag (meta.volgzaken of lokaal). Wat je volgt staat in
+  // je prefs (`volgzaken`, gaat mee met je account); de server krijgt alleen een anonieme +1 of -1 in een POST-body.
+  // Volgen kan alleen met een account: zonder vraagt Volg om in te loggen.
+  const tokenVan = useCallback(async () => {
+    if (!rawAccount.user || !rawAccount.client) return null
+    const { data: s } = await rawAccount.client.auth.getSession().catch(() => ({ data: null }))
+    return s?.session?.access_token || null
+  }, [rawAccount.user, rawAccount.client])
+  const tel1 = useCallback(async (actie, slug) => vraagVolgzaak(actie, { slug }, { token: await tokenVan() }), [tokenVan])
+  const [beheer, setBeheer] = useState(false)
+  const openBeheer = useCallback(() => setBeheer(true), [])
+  const [volgUndo, setVolgUndo] = useState(null) // { weg, index }
+  useEffect(() => {
+    if (!volgUndo) return
+    const t = setTimeout(() => setVolgUndo(null), 8000)
+    return () => clearTimeout(t)
+  }, [volgUndo])
+  // Uitkomst: 'ok', 'login' (geen account: het inlogblad gaat open) of 'vol' (je volgt er al drie: het beheerblad gaat open).
+  const volgZaak = useCallback((zaak) => {
+    if (!rawAccount.user) {
+      setJoinOpen('volg')
+      return 'login'
+    }
+    const r = volg(prefs.volgzaken, zaak)
+    if (r.vol) {
+      setNotice(VOLG_TEKST.alDrie)
+      setBeheer(true)
+      return 'vol'
+    }
+    if (!r.ok) return 'mis'
+    if (r.list !== prefs.volgzaken) {
+      setPref('volgzaken', r.list)
+      setVolgUndo(null)
+      setNotice(VOLG_TEKST.jeVolgtNaam(zaak.label))
+      tel1('volgen', zaak.slug)
+    }
+    return 'ok'
+  }, [rawAccount.user, prefs.volgzaken, setPref, tel1])
+  // Stop met volgen: geen vraag, wel "Je volgt X niet meer." met Ongedaan maken. Het label verdwijnt meteen; het stuk blijft
+  // in de Stroom staan tot je opnieuw opent (de voorrang ligt vast per weergave).
+  const ontvolgZaak = useCallback((slug) => {
+    const r = ontvolg(prefs.volgzaken, slug)
+    if (!r.weg) return
+    setPref('volgzaken', r.list)
+    setNotice('')
+    setVolgUndo({ weg: r.weg, index: r.index })
+    tel1('ontvolgen', slug)
+  }, [prefs.volgzaken, setPref, tel1])
+  const undoVolg = useCallback(() => {
+    if (!volgUndo) return
+    setPrefs((p) => ({ ...p, volgzaken: herstel(normalizePrefs(p).volgzaken, volgUndo.weg, volgUndo.index) }))
+    if (volgUndo.weg.status !== 'gestopt') tel1('volgen', volgUndo.weg.slug)
+    setVolgUndo(null)
+    setAnnounce(VOLG_TEKST.jeVolgtNaam(volgUndo.weg.label))
+  }, [volgUndo, setPrefs, tel1])
+  const openVolg = useCallback((slug) => route.go('volg', { naam: slug }), [route.go])
+  const volgBekeken = useCallback((slug) => setPrefs((p) => ({ ...p, volgzaken: bekeken(normalizePrefs(p).volgzaken, slug) })), [setPrefs])
+  const volgWissel = useCallback((van, naar) => setPrefs((p) => ({ ...p, volgzaken: wissel(normalizePrefs(p).volgzaken, van, naar) })), [setPrefs])
+  const volgVerplaats = useCallback((van, naar) => setPrefs((p) => ({ ...p, volgzaken: verplaats(normalizePrefs(p).volgzaken, van, naar) })), [setPrefs])
+  // De omzetting van followStories (eenmalig, met de vlag en een account, na het ophalen van je account zodat een tweede
+  // toestel niet opnieuw omzet): gevolgde verhalen met het veld `volgzaak` worden gevolgde volgzaken.
+  const omzetten = volgAan && !!rawAccount.user && syncPulled && status === 'ready' && !prefs.volgzakenOmgezet
+  useEffect(() => {
+    if (!omzetten) return
+    const r = zetFollowStoriesOm(prefs, storiesById)
+    if (!r) return
+    setPrefs((p) => ({ ...p, volgzaken: r.volgzaken, volgzakenOmgezet: true }))
+    for (const slug of r.nieuw) tel1('volgen', slug)
+  }, [omzetten]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Meer of minder hiervan (src/lib/affinity.js): de keuze gaat mee met je account (prefs.taste);
   // een verhaal met "minder" klapt in deze Editie meteen in (alleen op dit toestel).
@@ -692,6 +767,15 @@ export default function App() {
       undoLess,
       followStory,
       followStories: prefs.followStories,
+      volgAan,
+      volgzaken: volgAan ? prefs.volgzaken : [],
+      volgZaak,
+      ontvolgZaak,
+      openVolg,
+      openBeheer,
+      volgBekeken,
+      volgWissel,
+      tokenVan,
       panel,
       layout,
       setLayout,
@@ -722,7 +806,7 @@ export default function App() {
       podcastKeuze,
       setPodcastKeuze,
     }),
-    [luisterAan, luisterVoor, luisterTik, podcastKeuze, setPodcastKeuze, less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [luisterAan, luisterVoor, luisterTik, podcastKeuze, setPodcastKeuze, less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories, volgAan, prefs.volgzaken, volgZaak, ontvolgZaak, openVolg, openBeheer, volgBekeken, volgWissel, tokenVan],
   )
 
   const hideMain = overlay || showWelcome
@@ -837,6 +921,7 @@ export default function App() {
           </Suspense>
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
+            {page === 'volg' && volgAan ? <Volg key={route.params.naam || ''} slug={route.params.naam || ''} {...backTo} /> : null}
             {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} digest={vak.digest} {...(route.params.blad ? bladBack : backTo)} /> : null}
             {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
@@ -854,11 +939,19 @@ export default function App() {
           </Suspense>
         </aside>
         <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
+        {volgAan ? <BeheerBlad open={beheer} onClose={() => setBeheer(false)} volgzaken={prefs.volgzaken} onStop={ontvolgZaak} onMove={volgVerplaats} onVolg={(z) => volgZaak(z)} /> : null}
         <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
         <div className="toasts" aria-live="polite" inert={overlay ? '' : undefined}>
           {notice ? (
             <div className="toast" key={notice}>
               <span>{notice}</span>
+            </div>
+          ) : volgUndo ? (
+            <div className="toast">
+              <span>{VOLG_TEKST.nietMeer(volgUndo.weg.label)}</span>
+              <button type="button" className="linkbtn" onClick={undoVolg}>
+                {VOLG_TEKST.ongedaan}
+              </button>
             </div>
           ) : undo ? (
             <div className="toast">

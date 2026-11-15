@@ -321,6 +321,12 @@ const JOIN = {
     title: 'Log in met Google.',
     text: null,
   },
+  // Volgen 1.5: volgen kan alleen met een account (Volg zonder account opent dit blad).
+  volg: {
+    kicker: 'Met een account',
+    title: 'Volgen kan met een account.',
+    text: 'Hoot houdt dan bij wat je volgt, ook op je andere toestellen.',
+  },
   sync: {
     kicker: 'Hoot op al je toestellen',
     title: 'Log in om te bewaren wat je instelde',

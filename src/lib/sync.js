@@ -3,7 +3,7 @@
 // Instellingen die met je account meegaan, ook hoe je de Stroom leest (`layout`: Tijdlijn of Krant,
 // de app schrijft hem in hetzelfde veld). Wat bij het toestel hoort (tekstgrootte, kleur, het paneel,
 // de installatietip) blijft per toestel. Thema en avondvariant volgen juist het profiel.
-export const SYNCED_PREFS = ['theme', 'themeDark', 'muted', 'pinned', 'enabled', 'interests', 'topics', 'rubrieken', 'onderwerpen', 'preview', 'regels', 'images', 'layout', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'vak', 'vakEngels', 'favorites', 'social', 'taste']
+export const SYNCED_PREFS = ['theme', 'themeDark', 'muted', 'pinned', 'enabled', 'interests', 'topics', 'rubrieken', 'onderwerpen', 'preview', 'regels', 'images', 'layout', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'volgzaken', 'volgzakenOmgezet', 'vak', 'vakEngels', 'favorites', 'social', 'taste']
 
 // De versie van de indeling (`rubrieken`, src/lib/topics.js) hoort bij interesses en onderwerpen: komen die van
 // je account, dan ook de versie, of het ontbreken ervan (dan zijn ze van de oude indeling, van een oudere app).

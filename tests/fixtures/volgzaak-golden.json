@@ -1,0 +1,2264 @@
+[
+ {
+  "name": "voorrang-alles",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 7,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "alles"
+  },
+  "output": {
+   "labels": {
+    "a3": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    },
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": [
+    "a3",
+    "a5"
+   ]
+  }
+ },
+ {
+  "name": "voorrang-gezien",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 7,
+   "gezien": {
+    "a5": 1795152600000
+   },
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "alles"
+  },
+  "output": {
+   "labels": {
+    "a3": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    },
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": [
+    "a3"
+   ]
+  }
+ },
+ {
+  "name": "voorrang-gelezen-in-editie",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 7,
+   "gezien": {},
+   "gelezen": [
+    "a3"
+   ],
+   "now": 1795167000000,
+   "weergave": "alles"
+  },
+  "output": {
+   "labels": {
+    "a3": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    },
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": [
+    "a5"
+   ]
+  }
+ },
+ {
+  "name": "voorrang-onder-de-grens",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 3,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "alles"
+  },
+  "output": {
+   "labels": {
+    "a3": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    },
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": [
+    "a3"
+   ]
+  }
+ },
+ {
+  "name": "voorrang-geen-grens",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": null,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "alles"
+  },
+  "output": {
+   "labels": {
+    "a3": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    },
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": [
+    "a3",
+    "a5"
+   ]
+  }
+ },
+ {
+  "name": "voorrang-rubriek",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 4,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "rubriek"
+  },
+  "output": {
+   "labels": {
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": [
+    "a5"
+   ]
+  }
+ },
+ {
+  "name": "voorrang-bubbel",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 7,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "bubbel"
+  },
+  "output": {
+   "labels": {},
+   "voorrang": []
+  }
+ },
+ {
+  "name": "voorrang-tab",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 7,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "tab"
+  },
+  "output": {
+   "labels": {
+    "a3": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    },
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": []
+  }
+ },
+ {
+  "name": "voorrang-ouder-dan-een-etmaal",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ],
+   "grens": 2,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "alles"
+  },
+  "output": {
+   "labels": {
+    "a8": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    }
+   },
+   "voorrang": []
+  }
+ },
+ {
+  "name": "voorrang-hooguit-drie",
+  "fn": "volgzaakVoorrangJSON",
+  "input": {
+   "lijst": [
+    {
+     "id": "a1",
+     "storyId": null,
+     "publishedAt": "2026-11-20T09:00:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a2",
+     "storyId": "sTata",
+     "publishedAt": "2026-11-20T08:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a3",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T07:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a4",
+     "storyId": "sStarship",
+     "publishedAt": "2026-11-20T06:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a5",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T05:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a6",
+     "storyId": "sGta",
+     "publishedAt": "2026-11-20T03:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "p1",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-20T09:18:00.000Z",
+     "kind": "post"
+    },
+    {
+     "id": "a7",
+     "storyId": "sGtaOud",
+     "publishedAt": "2026-11-19T13:30:00.000Z",
+     "kind": "article"
+    },
+    {
+     "id": "a8",
+     "storyId": "sForm",
+     "publishedAt": "2026-11-19T07:30:00.000Z",
+     "kind": "article"
+    }
+   ],
+   "verhalen": {
+    "sGta": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sGtaOud": {
+     "volgzaak": {
+      "slug": "gta-6",
+      "label": "GTA 6"
+     }
+    },
+    "sForm": {
+     "volgzaak": {
+      "slug": "kabinetsformatie",
+      "label": "Kabinetsformatie"
+     }
+    },
+    "sTata": {
+     "volgzaak": {
+      "slug": "tata-steel",
+      "label": "Tata Steel"
+     }
+    },
+    "sStarship": {
+     "volgzaak": {
+      "slug": "starship",
+      "label": "Starship"
+     }
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel"
+    },
+    {
+     "slug": "starship",
+     "label": "Starship"
+    }
+   ],
+   "grens": 7,
+   "gezien": {},
+   "gelezen": [],
+   "now": 1795167000000,
+   "weergave": "alles"
+  },
+  "output": {
+   "labels": {
+    "a2": {
+     "slug": "tata-steel",
+     "label": "Tata Steel"
+    },
+    "a3": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    },
+    "a5": {
+     "slug": "gta-6",
+     "label": "GTA 6"
+    }
+   },
+   "voorrang": [
+    "a2",
+    "a3",
+    "a5"
+   ]
+  }
+ },
+ {
+  "name": "pagina-eigen-en-buiten",
+  "fn": "volgzaakViewJSON",
+  "input": {
+   "stand": {
+    "verhalen": [
+     {
+      "verhaal": "v1",
+      "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+      "bron": "nu",
+      "url": "https://nu.nl/1",
+      "bronnen": 4,
+      "at": "2026-11-20T06:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v2",
+      "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+      "bron": "tweakers",
+      "url": "https://tweakers.net/2",
+      "bronnen": 2,
+      "at": "2026-11-20T04:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v3",
+      "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+      "bron": "nrc",
+      "url": "https://nrc.nl/3",
+      "bronnen": 6,
+      "at": "2026-11-18T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v4",
+      "kop": "GTA 6 release date confirmed",
+      "bron": "verge",
+      "url": "https://verge.com/4",
+      "bronnen": 3,
+      "at": "2026-11-17T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v5",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nos",
+      "url": "https://nos.nl/5",
+      "bronnen": 3,
+      "at": "2026-11-11T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v6",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nu",
+      "url": "https://nu.nl/6",
+      "bronnen": 2,
+      "at": "2026-11-10T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v7",
+      "kop": "Eerste beelden van GTA 6 uitgelekt",
+      "bron": "fd",
+      "url": "https://fd.nl/7",
+      "bronnen": 2,
+      "at": "2026-11-08T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v1",
+      "kop": "Dubbel verhaal",
+      "bron": "nos",
+      "url": "https://nos.nl/1b",
+      "bronnen": 4,
+      "at": "2026-11-20T01:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     }
+    ]
+   },
+   "bronnen": [
+    {
+     "id": "nos",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nu",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "tweakers",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nrc",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "fd",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "guardian",
+     "lang": "en",
+     "paid": false
+    },
+    {
+     "id": "verge",
+     "lang": "en",
+     "paid": false
+    }
+   ],
+   "eigen": [
+    "nos",
+    "nu",
+    "nrc"
+   ],
+   "gezien": "2026-11-19T09:30:00.000Z",
+   "gelezen": [],
+   "now": 1795167000000
+  },
+  "output": {
+   "nieuw": [
+    {
+     "verhaal": "v1",
+     "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+     "bron": "nu",
+     "url": "https://nu.nl/1",
+     "bronnen": 4,
+     "at": "2026-11-20T06:30:00.000Z",
+     "buiten": false
+    },
+    {
+     "verhaal": "v2",
+     "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+     "bron": "tweakers",
+     "url": "https://tweakers.net/2",
+     "bronnen": 2,
+     "at": "2026-11-20T04:30:00.000Z",
+     "buiten": true
+    }
+   ],
+   "eerder": [
+    {
+     "week": "Deze week",
+     "verhalen": [
+      {
+       "verhaal": "v3",
+       "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+       "bron": "nrc",
+       "url": "https://nrc.nl/3",
+       "bronnen": 6,
+       "at": "2026-11-18T09:30:00.000Z",
+       "buiten": false
+      }
+     ]
+    },
+    {
+     "week": "Vorige week",
+     "verhalen": [
+      {
+       "verhaal": "v5",
+       "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+       "bron": "nos",
+       "url": "https://nos.nl/5",
+       "bronnen": 3,
+       "at": "2026-11-11T09:30:00.000Z",
+       "buiten": false
+      }
+     ]
+    }
+   ],
+   "aantal": 4
+  }
+ },
+ {
+  "name": "pagina-alles-nieuw",
+  "fn": "volgzaakViewJSON",
+  "input": {
+   "stand": {
+    "verhalen": [
+     {
+      "verhaal": "v1",
+      "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+      "bron": "nu",
+      "url": "https://nu.nl/1",
+      "bronnen": 4,
+      "at": "2026-11-20T06:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v2",
+      "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+      "bron": "tweakers",
+      "url": "https://tweakers.net/2",
+      "bronnen": 2,
+      "at": "2026-11-20T04:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v3",
+      "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+      "bron": "nrc",
+      "url": "https://nrc.nl/3",
+      "bronnen": 6,
+      "at": "2026-11-18T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v4",
+      "kop": "GTA 6 release date confirmed",
+      "bron": "verge",
+      "url": "https://verge.com/4",
+      "bronnen": 3,
+      "at": "2026-11-17T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v5",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nos",
+      "url": "https://nos.nl/5",
+      "bronnen": 3,
+      "at": "2026-11-11T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v6",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nu",
+      "url": "https://nu.nl/6",
+      "bronnen": 2,
+      "at": "2026-11-10T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v7",
+      "kop": "Eerste beelden van GTA 6 uitgelekt",
+      "bron": "fd",
+      "url": "https://fd.nl/7",
+      "bronnen": 2,
+      "at": "2026-11-08T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v1",
+      "kop": "Dubbel verhaal",
+      "bron": "nos",
+      "url": "https://nos.nl/1b",
+      "bronnen": 4,
+      "at": "2026-11-20T01:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     }
+    ]
+   },
+   "bronnen": [
+    {
+     "id": "nos",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nu",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "tweakers",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nrc",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "fd",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "guardian",
+     "lang": "en",
+     "paid": false
+    },
+    {
+     "id": "verge",
+     "lang": "en",
+     "paid": false
+    }
+   ],
+   "eigen": [
+    "nos",
+    "nu",
+    "nrc"
+   ],
+   "gezien": null,
+   "gelezen": [],
+   "now": 1795167000000
+  },
+  "output": {
+   "nieuw": [
+    {
+     "verhaal": "v1",
+     "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+     "bron": "nu",
+     "url": "https://nu.nl/1",
+     "bronnen": 4,
+     "at": "2026-11-20T06:30:00.000Z",
+     "buiten": false
+    },
+    {
+     "verhaal": "v3",
+     "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+     "bron": "nrc",
+     "url": "https://nrc.nl/3",
+     "bronnen": 6,
+     "at": "2026-11-18T09:30:00.000Z",
+     "buiten": false
+    },
+    {
+     "verhaal": "v5",
+     "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+     "bron": "nos",
+     "url": "https://nos.nl/5",
+     "bronnen": 3,
+     "at": "2026-11-11T09:30:00.000Z",
+     "buiten": false
+    },
+    {
+     "verhaal": "v2",
+     "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+     "bron": "tweakers",
+     "url": "https://tweakers.net/2",
+     "bronnen": 2,
+     "at": "2026-11-20T04:30:00.000Z",
+     "buiten": true
+    }
+   ],
+   "eerder": [],
+   "aantal": 4
+  }
+ },
+ {
+  "name": "pagina-gelezen",
+  "fn": "volgzaakViewJSON",
+  "input": {
+   "stand": {
+    "verhalen": [
+     {
+      "verhaal": "v1",
+      "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+      "bron": "nu",
+      "url": "https://nu.nl/1",
+      "bronnen": 4,
+      "at": "2026-11-20T06:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v2",
+      "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+      "bron": "tweakers",
+      "url": "https://tweakers.net/2",
+      "bronnen": 2,
+      "at": "2026-11-20T04:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v3",
+      "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+      "bron": "nrc",
+      "url": "https://nrc.nl/3",
+      "bronnen": 6,
+      "at": "2026-11-18T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v4",
+      "kop": "GTA 6 release date confirmed",
+      "bron": "verge",
+      "url": "https://verge.com/4",
+      "bronnen": 3,
+      "at": "2026-11-17T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v5",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nos",
+      "url": "https://nos.nl/5",
+      "bronnen": 3,
+      "at": "2026-11-11T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v6",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nu",
+      "url": "https://nu.nl/6",
+      "bronnen": 2,
+      "at": "2026-11-10T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v7",
+      "kop": "Eerste beelden van GTA 6 uitgelekt",
+      "bron": "fd",
+      "url": "https://fd.nl/7",
+      "bronnen": 2,
+      "at": "2026-11-08T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v1",
+      "kop": "Dubbel verhaal",
+      "bron": "nos",
+      "url": "https://nos.nl/1b",
+      "bronnen": 4,
+      "at": "2026-11-20T01:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     }
+    ]
+   },
+   "bronnen": [
+    {
+     "id": "nos",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nu",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "tweakers",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nrc",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "fd",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "guardian",
+     "lang": "en",
+     "paid": false
+    },
+    {
+     "id": "verge",
+     "lang": "en",
+     "paid": false
+    }
+   ],
+   "eigen": [
+    "nos",
+    "nu",
+    "nrc"
+   ],
+   "gezien": "2026-11-19T09:30:00.000Z",
+   "gelezen": [
+    "v1"
+   ],
+   "now": 1795167000000
+  },
+  "output": {
+   "nieuw": [
+    {
+     "verhaal": "v2",
+     "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+     "bron": "tweakers",
+     "url": "https://tweakers.net/2",
+     "bronnen": 2,
+     "at": "2026-11-20T04:30:00.000Z",
+     "buiten": true
+    }
+   ],
+   "eerder": [
+    {
+     "week": "Deze week",
+     "verhalen": [
+      {
+       "verhaal": "v1",
+       "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+       "bron": "nu",
+       "url": "https://nu.nl/1",
+       "bronnen": 4,
+       "at": "2026-11-20T06:30:00.000Z",
+       "buiten": false
+      },
+      {
+       "verhaal": "v3",
+       "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+       "bron": "nrc",
+       "url": "https://nrc.nl/3",
+       "bronnen": 6,
+       "at": "2026-11-18T09:30:00.000Z",
+       "buiten": false
+      }
+     ]
+    },
+    {
+     "week": "Vorige week",
+     "verhalen": [
+      {
+       "verhaal": "v5",
+       "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+       "bron": "nos",
+       "url": "https://nos.nl/5",
+       "bronnen": 3,
+       "at": "2026-11-11T09:30:00.000Z",
+       "buiten": false
+      }
+     ]
+    }
+   ],
+   "aantal": 4
+  }
+ },
+ {
+  "name": "pagina-met-engels",
+  "fn": "volgzaakViewJSON",
+  "input": {
+   "stand": {
+    "verhalen": [
+     {
+      "verhaal": "v1",
+      "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+      "bron": "nu",
+      "url": "https://nu.nl/1",
+      "bronnen": 4,
+      "at": "2026-11-20T06:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v2",
+      "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+      "bron": "tweakers",
+      "url": "https://tweakers.net/2",
+      "bronnen": 2,
+      "at": "2026-11-20T04:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v3",
+      "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+      "bron": "nrc",
+      "url": "https://nrc.nl/3",
+      "bronnen": 6,
+      "at": "2026-11-18T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v4",
+      "kop": "GTA 6 release date confirmed",
+      "bron": "verge",
+      "url": "https://verge.com/4",
+      "bronnen": 3,
+      "at": "2026-11-17T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v5",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nos",
+      "url": "https://nos.nl/5",
+      "bronnen": 3,
+      "at": "2026-11-11T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v6",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nu",
+      "url": "https://nu.nl/6",
+      "bronnen": 2,
+      "at": "2026-11-10T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v7",
+      "kop": "Eerste beelden van GTA 6 uitgelekt",
+      "bron": "fd",
+      "url": "https://fd.nl/7",
+      "bronnen": 2,
+      "at": "2026-11-08T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v1",
+      "kop": "Dubbel verhaal",
+      "bron": "nos",
+      "url": "https://nos.nl/1b",
+      "bronnen": 4,
+      "at": "2026-11-20T01:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     }
+    ]
+   },
+   "bronnen": [
+    {
+     "id": "nos",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nu",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "tweakers",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nrc",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "fd",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "guardian",
+     "lang": "en",
+     "paid": false
+    },
+    {
+     "id": "verge",
+     "lang": "en",
+     "paid": false
+    }
+   ],
+   "eigen": [
+    "nos",
+    "guardian"
+   ],
+   "gezien": "2026-11-19T09:30:00.000Z",
+   "gelezen": [],
+   "now": 1795167000000
+  },
+  "output": {
+   "nieuw": [
+    {
+     "verhaal": "v1",
+     "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+     "bron": "nu",
+     "url": "https://nu.nl/1",
+     "bronnen": 4,
+     "at": "2026-11-20T06:30:00.000Z",
+     "buiten": true
+    },
+    {
+     "verhaal": "v2",
+     "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+     "bron": "tweakers",
+     "url": "https://tweakers.net/2",
+     "bronnen": 2,
+     "at": "2026-11-20T04:30:00.000Z",
+     "buiten": true
+    }
+   ],
+   "eerder": [
+    {
+     "week": "Deze week",
+     "verhalen": [
+      {
+       "verhaal": "v4",
+       "kop": "GTA 6 release date confirmed",
+       "bron": "verge",
+       "url": "https://verge.com/4",
+       "bronnen": 3,
+       "at": "2026-11-17T09:30:00.000Z",
+       "buiten": true
+      }
+     ]
+    },
+    {
+     "week": "Vorige week",
+     "verhalen": [
+      {
+       "verhaal": "v5",
+       "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+       "bron": "nos",
+       "url": "https://nos.nl/5",
+       "bronnen": 3,
+       "at": "2026-11-11T09:30:00.000Z",
+       "buiten": false
+      }
+     ]
+    }
+   ],
+   "aantal": 4
+  }
+ },
+ {
+  "name": "pagina-zonder-bronnen",
+  "fn": "volgzaakViewJSON",
+  "input": {
+   "stand": {
+    "verhalen": [
+     {
+      "verhaal": "v1",
+      "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+      "bron": "nu",
+      "url": "https://nu.nl/1",
+      "bronnen": 4,
+      "at": "2026-11-20T06:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v2",
+      "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+      "bron": "tweakers",
+      "url": "https://tweakers.net/2",
+      "bronnen": 2,
+      "at": "2026-11-20T04:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v3",
+      "kop": "Rockstar: GTA 6 ligt op 19 november in de winkel",
+      "bron": "nrc",
+      "url": "https://nrc.nl/3",
+      "bronnen": 6,
+      "at": "2026-11-18T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v4",
+      "kop": "GTA 6 release date confirmed",
+      "bron": "verge",
+      "url": "https://verge.com/4",
+      "bronnen": 3,
+      "at": "2026-11-17T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v5",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nos",
+      "url": "https://nos.nl/5",
+      "bronnen": 3,
+      "at": "2026-11-11T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v6",
+      "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+      "bron": "nu",
+      "url": "https://nu.nl/6",
+      "bronnen": 2,
+      "at": "2026-11-10T09:30:00.000Z",
+      "betaald": false,
+      "rubriek": "economie"
+     },
+     {
+      "verhaal": "v7",
+      "kop": "Eerste beelden van GTA 6 uitgelekt",
+      "bron": "fd",
+      "url": "https://fd.nl/7",
+      "bronnen": 2,
+      "at": "2026-11-08T09:30:00.000Z",
+      "betaald": true,
+      "rubriek": "games"
+     },
+     {
+      "verhaal": "v1",
+      "kop": "Dubbel verhaal",
+      "bron": "nos",
+      "url": "https://nos.nl/1b",
+      "bronnen": 4,
+      "at": "2026-11-20T01:30:00.000Z",
+      "betaald": false,
+      "rubriek": "games"
+     }
+    ]
+   },
+   "bronnen": [
+    {
+     "id": "nos",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nu",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "tweakers",
+     "lang": "nl",
+     "paid": false
+    },
+    {
+     "id": "nrc",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "fd",
+     "lang": "nl",
+     "paid": true
+    },
+    {
+     "id": "guardian",
+     "lang": "en",
+     "paid": false
+    },
+    {
+     "id": "verge",
+     "lang": "en",
+     "paid": false
+    }
+   ],
+   "eigen": [],
+   "gezien": "2026-11-16T09:30:00.000Z",
+   "gelezen": [],
+   "now": 1795167000000
+  },
+  "output": {
+   "nieuw": [
+    {
+     "verhaal": "v1",
+     "kop": "Nieuwe trailer van GTA 6 toont Vice City bij nacht",
+     "bron": "nu",
+     "url": "https://nu.nl/1",
+     "bronnen": 4,
+     "at": "2026-11-20T06:30:00.000Z",
+     "buiten": true
+    },
+    {
+     "verhaal": "v2",
+     "kop": "Gamewinkels verwachten drukte bij verkoop van GTA 6",
+     "bron": "tweakers",
+     "url": "https://tweakers.net/2",
+     "bronnen": 2,
+     "at": "2026-11-20T04:30:00.000Z",
+     "buiten": true
+    }
+   ],
+   "eerder": [
+    {
+     "week": "Vorige week",
+     "verhalen": [
+      {
+       "verhaal": "v5",
+       "kop": "Take-Two rekent op recordkwartaal door GTA 6",
+       "bron": "nos",
+       "url": "https://nos.nl/5",
+       "bronnen": 3,
+       "at": "2026-11-11T09:30:00.000Z",
+       "buiten": true
+      }
+     ]
+    }
+   ],
+   "aantal": 3
+  }
+ },
+ {
+  "name": "regel-volgt-voor-buiten",
+  "fn": "rubriekRegelJSON",
+  "input": {
+   "rubriek": "Politiek",
+   "volgt": {
+    "slug": "kabinetsformatie",
+    "label": "Kabinetsformatie"
+   },
+   "buiten": true
+  },
+  "output": {
+   "delen": [
+    "Politiek",
+    "Je volgt"
+   ],
+   "volgt": true,
+   "buiten": false
+  }
+ },
+ {
+  "name": "regel-alleen-buiten",
+  "fn": "rubriekRegelJSON",
+  "input": {
+   "rubriek": "Wereld",
+   "volgt": null,
+   "buiten": true
+  },
+  "output": {
+   "delen": [
+    "Wereld",
+    "Buiten je bronnen"
+   ],
+   "volgt": false,
+   "buiten": true
+  }
+ },
+ {
+  "name": "regel-alleen-volgt",
+  "fn": "rubriekRegelJSON",
+  "input": {
+   "rubriek": "Games",
+   "volgt": {
+    "slug": "gta-6",
+    "label": "GTA 6"
+   },
+   "buiten": false
+  },
+  "output": {
+   "delen": [
+    "Games",
+    "Je volgt"
+   ],
+   "volgt": true,
+   "buiten": false
+  }
+ },
+ {
+  "name": "label-editie",
+  "fn": "volgtVanJSON",
+  "input": {
+   "story": {
+    "volgzaak": {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie"
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": {
+   "slug": "kabinetsformatie",
+   "label": "Kabinetsformatie"
+  }
+ },
+ {
+  "name": "label-editie-gestopt",
+  "fn": "volgtVanJSON",
+  "input": {
+   "story": {
+    "volgzaak": {
+     "slug": "tata-steel",
+     "label": "Tata Steel"
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": null
+ }
+]

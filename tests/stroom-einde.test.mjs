@@ -141,7 +141,9 @@ test('Stream.jsx: geen automatisch bijladen voorbij de grens; einde met knop; ge
   assert.match(s, /const cap = Math\.min\(list\.length, bIdx \+ older\)/)
   assert.match(s, /list\.slice\(0, Math\.min\(limit, cap\)\)/)
   assert.match(s, /\[shown\.length < cap\]\)/)
-  assert.match(s, /weergaveGrens\(posKey, list\)/, 'een grens per weergave')
+  // De grens op de lijst in de tijd (`lijst`); de getoonde lijst (`list`) heeft daarna de voorrang van Volgen 1.5 bovenaan.
+  assert.match(s, /weergaveGrens\(posKey, lijst\)/, 'een grens per weergave')
+  assert.match(s, /const list = useMemo\(\(\) => metVoorrang\(lijst, voorrang\)/)
   assert.match(s, /volgGezien\(/, 'gezien komt van scrollen')
   assert.doesNotMatch(s, /bezoekGrens|gezien\(newest\)/, 'laden markeert niets meer')
   assert.match(readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8'), /import '\.\/styles\/stroom-einde\.css'/)

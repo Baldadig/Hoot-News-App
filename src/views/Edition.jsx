@@ -10,7 +10,7 @@ import { usePhone } from '../hooks/usePhone.js'
 import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
 import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
 import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
-import { LeadStory, CompactItem, KaartItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength, bronnenLabel } from '../components/Items.jsx'
+import { LeadStory, CompactItem, KaartItem, Meta, VolgLabel, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength, bronnenLabel } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ArrowUpIcon, ICON_SM } from '../components/icons.jsx'
@@ -27,7 +27,8 @@ import { resolveEditionEntry, heroFirst, numberRows, countOf, EDITION_SIZE, upNe
 import { SLOTS } from '../../shared/slots.mjs'
 import { opinieInStroom } from '../../shared/opinie.mjs'
 import { fitsHero } from '../lib/img.js'
-import { followedNow } from '../lib/follow.js'
+import { followedNow } from '../lib/follow-volgzaken.js'
+import { volgtVan } from '../../shared/volgzaak-weergave.mjs'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why, whyLine } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
@@ -60,7 +61,8 @@ const introColumn = (link) => {
   const text = link.querySelector('.fitem__text')
   return text && getComputedStyle(text).display !== 'contents' ? text.getBoundingClientRect().width : link.getBoundingClientRect().width
 }
-function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null, whySpace = false }) {
+function FrontItem({ item, story, note, n = null, why = null, followed, volgt = null, taste, outside: buiten = false, boven = null, whySpace = false }) {
+  const outside = buiten && !volgt // Volgen 1.5: "Je volgt" gaat voor "Buiten je bronnen" (rubriekRegel)
   const { markRead, read, prefs } = useHoot()
   const opinie = opinieInStroom(item) // het veld van de server (shared/opinie.mjs), zoals de Stroom
   const title = item.title
@@ -88,12 +90,12 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
           <Img url={item.image} kind="lead" />
         </a>
       ) : null}
-      {n || note || opinie || followed ? (
+      {n || note || opinie || followed || volgt ? (
         <p className="label label--kicker kicker">
           {n ? <EditionNumber n={n} /> : null}
           {note ? <span>{note}</span> : null}
           {opinie ? <span className="kicker__type">Opinie</span> : null}
-          {followed ? <span className="label--meta front__followed">{followed}</span> : null}
+          {volgt ? <VolgLabel volgt={volgt} /> : followed ? <span className="label--meta front__followed">{followed}</span> : null}
         </p>
       ) : null}
       <Why why={why} />
@@ -136,8 +138,11 @@ function LessNote({ entryKey, item, story, n }) {
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater, coming = null, nextReady = null, onSwap = null, storyOpen = false, appKaart = false, onAppOpen, onAppLater, onEndSeen }) {
-  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById, setPref } = useHoot()
-  const following = followedNow(followStories, storiesById, newInStory)
+  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById, setPref, volgAan, volgzaken } = useHoot()
+  // Volgen 1.5 (achter de vlag): het oude "Volg dit verhaal" gaat op in volgen. Geen blok "Je volgt" bovenaan meer en geen
+  // extra verhalen: alleen het label "Je volgt" op een plek die er al staat (volgtVan, shared/volgzaak-weergave.mjs).
+  const following = volgAan ? [] : followedNow(followStories, storiesById, newInStory)
+  const volgtOp = (r) => (volgAan && r?.story ? volgtVan(r.story, volgzaken) : null)
   const ref = useRef(null)
   const phone = usePhone() // telefoon: de Stroom-vorm met kaart A+ (src/styles/kaart.css); breder houdt de krant-vormen
 
@@ -290,7 +295,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       <h2 className="label label--section front__more">Buiten je bubbel</h2>
       <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
       <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: phone ? 'tijdlijn' : 'krant' }))}>
-      {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} lines={KAART_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain />}</Slot>)}
+      {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} volgt={volgtOp(r)} taste={r.key} lines={KAART_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} volgt={volgtOp(r)} taste={r.key} plain />}</Slot>)}
       </PlaceholderList>
     </section>
   ) : null
@@ -439,7 +444,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                       </h2>
                     ) : null,
                     <Slot key={r.key} less={less} row={r}>
-                      <KaartItem lead={i === 0} priority={i === 0 && active} n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} lines={KAART_LINES} />
+                      <KaartItem lead={i === 0} priority={i === 0 && active} n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} volgt={volgtOp(r)} taste={r.key} lines={KAART_LINES} />
                     </Slot>,
                   ])}
                 </div>
@@ -448,13 +453,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : 'krant' }))}>
             <div className="front" ref={frontRef}>
               <Slot less={less} row={rows[0]}>
-                <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
+                <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} volgt={volgtOp(rows[0])} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
                   {rows.slice(1, SIDE).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} volgt={volgtOp(r)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -469,7 +474,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                     </h2>
                   ) : null,
                   <Slot key={r.key} less={less} row={r}>
-                    <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} whySpace={!!whyLine(paired[i % 2 ? i - 1 : i + 1]?.why)} />
+                    <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} volgt={volgtOp(r)} taste={r.key} whySpace={!!whyLine(paired[i % 2 ? i - 1 : i + 1]?.why)} />
                   </Slot>,
                 ])}
                 {/* Buiten je bubbel als eigen katern in het raster: in de lege cel naast de laatste plek, of

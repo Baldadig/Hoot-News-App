@@ -211,6 +211,9 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
       // Luister verder op het web (stap 3): standaard uit tot Alex de koppelingen goedkeurt. Aan met de Netlify-variabele
       // HOOT_LUISTER_WEB=aan (vanaf de volgende ronde). De app leest dit niet: daar staat het altijd aan.
       ...(luisterWebAan() ? { luisterWeb: true } : {}),
+      // Volgen 1.5: alleen met HOOT_VOLGZAKEN=aan (vanaf de volgende ronde). Web en app tonen het volgen pas dan; met de vlag
+      // uit staat er niets in meta en is de feed byte voor byte gelijk.
+      ...(volgzakenStand() === 'aan' ? { volgzaken: true } : {}),
     },
   }
 }
