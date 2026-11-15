@@ -1,6 +1,7 @@
 {
  "uit": [
-  14
+  14,
+  15
  ],
  "base": [
   {
@@ -36,12 +37,12 @@
   {
    "id": "art-0",
    "fnv1a": 1410925135,
-   "beeld": 8
+   "beeld": 10
   },
   {
    "id": "art-1",
    "fnv1a": 1394147516,
-   "beeld": 15
+   "beeld": 18
   },
   {
    "id": "art-2",
@@ -236,17 +237,32 @@
   {
    "id": "eclips-10",
    "fnv1a": 1739746399,
-   "beeld": 13
+   "beeld": 2
   },
   {
    "id": "eclips-30",
    "fnv1a": 2075004589,
-   "beeld": 13
+   "beeld": 1
   },
   {
    "id": "eclips-49",
    "fnv1a": 4070996797,
-   "beeld": 2
+   "beeld": 9
+  },
+  {
+   "id": "walsen-39",
+   "fnv1a": 2279034014,
+   "beeld": 9
+  },
+  {
+   "id": "walsen-59",
+   "fnv1a": 2347130228,
+   "beeld": 12
+  },
+  {
+   "id": "walsen-66",
+   "fnv1a": 283041806,
+   "beeld": 1
   }
  ],
  "lijsten": [
@@ -412,8 +428,8 @@
     }
    ],
    "beelden": {
-    "art-0": 8,
-    "art-1": 15,
+    "art-0": 10,
+    "art-1": 18,
     "art-2": 12,
     "art-4": 18,
     "art-5": 1,
@@ -1686,8 +1702,8 @@
     "lang-49": 10,
     "lang-50": 12,
     "lang-51": 13,
-    "lang-52": 12,
-    "lang-53": 15,
+    "lang-52": 10,
+    "lang-53": 18,
     "lang-54": 16,
     "lang-55": 17,
     "lang-56": 18,
@@ -1708,8 +1724,8 @@
     "lang-71": 11,
     "lang-72": 8,
     "lang-73": 12,
-    "lang-74": 8,
-    "lang-75": 15,
+    "lang-74": 18,
+    "lang-75": 6,
     "lang-76": 12,
     "lang-77": 13,
     "lang-78": 18,
@@ -1718,8 +1734,8 @@
     "lang-81": 18,
     "lang-82": 17,
     "lang-83": 16,
-    "lang-84": 15,
-    "lang-85": 9,
+    "lang-84": 8,
+    "lang-85": 2,
     "lang-86": 13,
     "lang-87": 12,
     "lang-88": 11,
@@ -1734,8 +1750,8 @@
     "lang-97": 5,
     "lang-98": 16,
     "lang-99": 17,
-    "lang-100": 2,
-    "lang-101": 15,
+    "lang-100": 12,
+    "lang-101": 2,
     "lang-102": 12,
     "lang-103": 13,
     "lang-104": 10,
@@ -1752,10 +1768,10 @@
     "lang-115": 10,
     "lang-116": 13,
     "lang-117": 12,
-    "lang-118": 15,
-    "lang-119": 18,
-    "lang-120": 2,
-    "lang-121": 15,
+    "lang-118": 3,
+    "lang-119": 13,
+    "lang-120": 11,
+    "lang-121": 1,
     "lang-122": 16,
     "lang-123": 17,
     "lang-124": 10,
@@ -1812,10 +1828,10 @@
     "lang-175": 11,
     "lang-176": 7,
     "lang-177": 6,
-    "lang-178": 15,
-    "lang-179": 2,
+    "lang-178": 12,
+    "lang-179": 6,
     "lang-180": 8,
-    "lang-181": 15,
+    "lang-181": 16,
     "lang-182": 12,
     "lang-183": 13,
     "lang-184": 10,
@@ -1838,8 +1854,8 @@
     "lang-201": 18,
     "lang-202": 3,
     "lang-203": 5,
-    "lang-204": 15,
-    "lang-205": 13,
+    "lang-204": 17,
+    "lang-205": 9,
     "lang-206": 17,
     "lang-207": 16,
     "lang-208": 9,
@@ -1852,10 +1868,10 @@
     "lang-215": 11,
     "lang-216": 8,
     "lang-217": 12,
-    "lang-218": 16,
-    "lang-219": 15,
-    "lang-220": 18,
-    "lang-221": 4,
+    "lang-218": 10,
+    "lang-219": 18,
+    "lang-220": 8,
+    "lang-221": 2,
     "lang-222": 13,
     "lang-223": 12,
     "lang-224": 1,
@@ -1870,8 +1886,8 @@
     "lang-233": 11,
     "lang-234": 12,
     "lang-235": 13,
-    "lang-236": 2,
-    "lang-237": 15,
+    "lang-236": 4,
+    "lang-237": 10,
     "lang-238": 18,
     "lang-239": 1,
     "lang-240": 17,
@@ -1892,8 +1908,8 @@
     "lang-255": 1,
     "lang-256": 16,
     "lang-257": 17,
-    "lang-258": 6,
-    "lang-259": 15,
+    "lang-258": 18,
+    "lang-259": 6,
     "lang-260": 13,
     "lang-261": 12,
     "lang-262": 11,
@@ -1913,10 +1929,10 @@
     "lang-276": 7,
     "lang-277": 5,
     "lang-278": 7,
-    "lang-279": 15,
-    "lang-280": 18,
-    "lang-281": 10,
-    "lang-282": 17,
+    "lang-279": 13,
+    "lang-280": 5,
+    "lang-281": 17,
+    "lang-282": 2,
     "lang-283": 16,
     "lang-284": 11,
     "lang-285": 10,
@@ -1954,7 +1970,7 @@
    }
   },
   {
-   "naam": "stukken die vroeger Eclips kregen: nu een van de zeventien andere",
+   "naam": "stukken die vroeger Eclips kregen: nu een van de zestien andere",
    "rows": [
     {
      "id": "eclips-10",
@@ -1970,9 +1986,48 @@
     }
    ],
    "beelden": {
-    "eclips-10": 13,
-    "eclips-30": 16,
-    "eclips-49": 2
+    "eclips-10": 2,
+    "eclips-30": 4,
+    "eclips-49": 9
+   }
+  },
+  {
+   "naam": "twee keer Vouw na elkaar: de tweede schuift voorbij Walsen (uit de reeks) naar Koepels",
+   "rows": [
+    {
+     "id": "vouw-17",
+     "bare": true
+    },
+    {
+     "id": "vouw-40",
+     "bare": true
+    }
+   ],
+   "beelden": {
+    "vouw-17": 12,
+    "vouw-40": 18
+   }
+  },
+  {
+   "naam": "stukken die vroeger Walsen kregen: nu een van de zestien andere",
+   "rows": [
+    {
+     "id": "walsen-39",
+     "bare": true
+    },
+    {
+     "id": "walsen-59",
+     "bare": true
+    },
+    {
+     "id": "walsen-66",
+     "bare": true
+    }
+   ],
+   "beelden": {
+    "walsen-39": 9,
+    "walsen-59": 12,
+    "walsen-66": 1
    }
   }
  ]

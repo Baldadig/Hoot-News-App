@@ -1,5 +1,5 @@
 // Vervangbeeld (14 november): de Stroom met beeldloze stukken van The Washington Post in headless Chrome op
-// 390 breed (Licht, Donker, Nacht; tijdlijn en krant). Faalt als ergens nog beeld 14 (Eclips) staat.
+// 390 breed (Licht, Donker, Nacht; tijdlijn en krant). Faalt als ergens nog beeld 14 (Eclips) of 15 (Walsen) staat.
 // Gebruik: node tests/visual/vervangbeeld-wapo-check.mjs [--stills <map>] [--naam <voorvoegsel>]
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
@@ -34,7 +34,7 @@ try {
       let ph = null
       for (let i = 0; i < 80 && ph == null; i++) { await sleep(150); const r = await send('Runtime.evaluate', { expression: 'document.documentElement.dataset.ready ? document.documentElement.dataset.ph : null', returnByValue: true }); ph = r.result.value }
       const beelden = (ph || '').split(',').filter(Boolean).map(Number)
-      const ok = beelden.length === 5 && !beelden.includes(14)
+      const ok = beelden.length === 5 && !beelden.includes(14) && !beelden.includes(15)
       if (!ok) fout++
       uitslag.push({ layout, theme, beelden, ok })
       if (stills) {

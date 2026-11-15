@@ -96,7 +96,7 @@ struct PlaceholderBeeld: View {
 enum Placeholder {
     static let count = 18
     // Doorschuiven: drie verder valt altijd in een andere set (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9
-    // · De kop, Vouw, Baan, Eclips, Walsen, Zetsel, De rij en Koepels elk een eigen set, 10–17).
+    // · De kop, Vouw, Baan, Eclips, Walsen (die twee uit de reeks), Zetsel, De rij en Koepels elk een eigen set, 10–17).
     static let shift = 3
     // De set van beeld k: zon, iris, lijn, raster, stapel of een van de acht eenlingen.
     static func set(_ k: Int) -> String { PlaceholderBeelden.beelden[k].familie }
@@ -106,8 +106,9 @@ enum Placeholder {
         for b in s.utf8 { h ^= UInt32(b); h = h &* 0x01000193 }
         return h
     }
-    // Het beeld op zich: hash mod 18, maar nooit een beeld dat uit de reeks is (beeld 14, Eclips, sinds 14 november):
-    // dan kiest (hash / 18) mod 17 een van de zeventien andere. Elk ander stuk houdt zijn beeld.
+    // Het beeld op zich: hash mod 18, maar nooit een beeld dat uit de reeks is (beeld 14, Eclips, sinds 14 november;
+    // beeld 15, Walsen, sinds 15 november): dan kiest (hash / 18) mod 16 een van de zestien andere. Elk stuk met een
+    // van die zestien houdt zijn beeld.
     static func base(_ id: String) -> Int { PlaceholderBeelden.index(hash: fnv1a(id)) }
     // Een lijst van boven naar onder: zit het beeld in dezelfde set als dat van de beeldloze rij erboven,
     // dan schuift het drie door, naar een andere set. Een rij met beeld breekt de reeks.
@@ -118,7 +119,7 @@ enum Placeholder {
             guard r.bare else { prev = nil; continue }
             var k = base(r.id)
             if let prev, set(k) == set(prev) {
-                // Doorschuiven; komt dat op een beeld uit de reeks (alleen De kop → Eclips), dan nog eens drie.
+                // Doorschuiven; komt dat op een beeld uit de reeks (De kop → Eclips, Vouw → Walsen), dan nog eens drie.
                 repeat { k = (k + shift) % count } while PlaceholderBeelden.uit.contains(k) || set(k) == set(prev)
             }
             out[r.id] = k

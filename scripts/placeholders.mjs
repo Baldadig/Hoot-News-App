@@ -61,7 +61,7 @@ function swift() {
   s += `    static let uit: Set<Int> = [${PLACEHOLDER_UIT.join(', ')}]\n`
   s += '    // De beelden die wel gekozen worden, op volgorde.\n'
   s += '    static let keuze: [Int] = beelden.indices.filter { !uit.contains($0) }\n'
-  s += '    // Het beeld bij een hash: hash mod 18, en valt dat op een beeld uit de reeks, dan (hash / 18) mod 17 uit de rest.\n'
+  s += '    // Het beeld bij een hash: hash mod 18, en valt dat op een beeld uit de reeks, dan (hash / 18) mod het aantal dat overblijft (zestien) uit de rest.\n'
   s += '    static func index(hash h: UInt32) -> Int {\n'
   s += '        let k = Int(h % UInt32(beelden.count))\n'
   s += '        return uit.contains(k) ? keuze[Int((h / UInt32(beelden.count)) % UInt32(keuze.count))] : k\n'

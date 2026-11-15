@@ -17,46 +17,77 @@ test('placeholder: fnv1a(id) mod 18, op web en in de app dezelfde som', () => {
     assert.equal(fnv1a(id), h, id)
     assert.equal(placeholderBase(id) + 1, beeld, id)
   }
-  // Alle zeventien die gekozen worden komen voor, beeld 14 (Eclips, uit de reeks) nooit.
+  // Alle zestien die gekozen worden komen voor, beeld 14 (Eclips) en 15 (Walsen), uit de reeks, nooit.
   assert.equal(new Set(fixture.base.map((b) => b.beeld)).size, PLACEHOLDER_KEUZE.length)
-  assert.ok(fixture.base.every((b) => b.beeld !== 14))
+  assert.ok(fixture.base.every((b) => b.beeld !== 14 && b.beeld !== 15))
 })
 
-// 14 november (Alex): "Deze image mag er wel uit." Alleen beeld 14 (Eclips: de rode zon met de maan
-// erover, de ring met een kraal, de kwartcirkel in de hoek); de rest blijft precies zoals het was.
-test('placeholder: beeld 14 (Eclips) wordt nooit meer gekozen, op web en in de app (fixture.uit)', () => {
-  assert.deepEqual(PLACEHOLDER_UIT, [13])
+// Uit de reeks: beeld 14 (Eclips; 14 november, Alex: "Deze image mag er wel uit.") en beeld 15 (Walsen:
+// twee rollen en een vel dat in losse vellen uiteenvalt; 15 november, Alex: "Walsen mag eruit. In zijn
+// geheel."). De rest blijft precies zoals het was.
+test('placeholder: beeld 14 (Eclips) en 15 (Walsen) worden nooit meer gekozen, op web en in de app (fixture.uit)', () => {
+  assert.deepEqual(PLACEHOLDER_UIT, [13, 14])
   assert.equal(PLACEHOLDERS[13].family, 'eclips')
-  assert.deepEqual(fixture.uit, [14])
-  assert.equal(PLACEHOLDER_KEUZE.length, 17)
-  assert.ok(!PLACEHOLDER_KEUZE.includes(13))
+  assert.equal(PLACEHOLDERS[14].family, 'walsen')
+  assert.deepEqual(fixture.uit, [14, 15])
+  assert.equal(PLACEHOLDER_KEUZE.length, 16)
+  assert.ok(!PLACEHOLDER_KEUZE.includes(13) && !PLACEHOLDER_KEUZE.includes(14))
   const ids = Array.from({ length: 40000 }, (_, i) => `https://www.washingtonpost.com/world/2026/11/14/stuk-${i}/`)
-  for (const id of ids) assert.notEqual(placeholderBase(id), 13, id)
+  for (const id of ids) assert.ok(!PLACEHOLDER_UIT.includes(placeholderBase(id)), id)
   for (let t = 0; t < 300; t++) {
     const rows = Array.from({ length: 40 }, (_, i) => ({ id: `wapo-${t}-${i}`, bare: (t + i * 3) % 6 !== 0 }))
-    for (const k of placeholderPlan(rows).values()) assert.notEqual(k, 13)
+    for (const k of placeholderPlan(rows).values()) assert.ok(!PLACEHOLDER_UIT.includes(k), `lijst ${t}: beeld ${k + 1}`)
   }
   // De kop twee keer na elkaar: drie verder is Eclips, dus nog eens drie, naar De rij.
   const kop = Array.from({ length: 2000 }, (_, i) => `kop-${i}`).filter((id) => placeholderBase(id) === 10).slice(0, 2)
   assert.deepEqual([...placeholderPlan(kop.map((id) => ({ id, bare: true }))).values()], [10, 16])
+  // Vouw twee keer na elkaar: drie verder is Walsen, dus nog eens drie, naar Koepels.
+  const vouw = Array.from({ length: 2000 }, (_, i) => `vouw-${i}`).filter((id) => placeholderBase(id) === 11).slice(0, 2)
+  assert.deepEqual([...placeholderPlan(vouw.map((id) => ({ id, bare: true }))).values()], [11, 17])
+  // Elk paar buren uit de zestien: de tweede wordt nooit een beeld uit de reeks, nooit hetzelfde beeld en
+  // nooit dezelfde set als de eerste.
+  const perBeeld = new Map(PLACEHOLDER_KEUZE.map((k) => [k, []]))
+  for (let i = 0; [...perBeeld.values()].some((l) => l.length < 2); i++) {
+    const id = `paar-${i}`, l = perBeeld.get(placeholderBase(id))
+    if (l.length < 2) l.push(id)
+  }
+  for (const a of PLACEHOLDER_KEUZE) {
+    for (const b of PLACEHOLDER_KEUZE) {
+      const rows = [{ id: perBeeld.get(a)[0], bare: true }, { id: perBeeld.get(b)[1], bare: true }]
+      const k = placeholderPlan(rows).get(rows[1].id)
+      assert.ok(!PLACEHOLDER_UIT.includes(k), `${a + 1} dan ${b + 1}: beeld ${k + 1}`)
+      assert.notEqual(k, a, `${a + 1} dan ${b + 1}`)
+      assert.notEqual(placeholderSet(k), placeholderSet(a), `${a + 1} dan ${b + 1}`)
+    }
+  }
 })
 
-test('placeholder: de rest blijft gelijk: elk stuk dat geen Eclips had, houdt zijn beeld; de verdeling over de zeventien is eerlijk', () => {
+test('placeholder: de rest blijft gelijk: elk stuk dat geen Eclips of Walsen had, houdt zijn beeld; de verdeling over de zestien is eerlijk', () => {
   const N = 51000
   const telling = Array(PLACEHOLDER_COUNT).fill(0)
   let verhuisd = 0
   for (let i = 0; i < N; i++) {
     const id = `nos:https://nos.nl/artikel/${i * 31 + 7}`
     const oud = fnv1a(id) % PLACEHOLDER_COUNT, nu = placeholderBase(id)
-    if (oud !== 13) assert.equal(nu, oud, id)
+    if (!PLACEHOLDER_UIT.includes(oud)) assert.equal(nu, oud, id)
     else verhuisd++
     telling[nu]++
   }
   assert.ok(verhuisd > 0)
   assert.equal(telling[13], 0)
-  // Elk van de zeventien rond een zeventiende (5,9 procent): tussen 5,3 en 6,5 procent.
-  for (const k of PLACEHOLDER_KEUZE) assert.ok(telling[k] > 0.053 * N && telling[k] < 0.065 * N, `beeld ${k + 1}: ${telling[k]}`)
-  // De tekeningen zelf blijven staan, ook die van Eclips (de nummers en bestanden van de rest verschuiven niet).
+  assert.equal(telling[14], 0)
+  // Elk van de zestien rond een zestiende (6,25 procent): tussen 5,6 en 6,9 procent.
+  for (const k of PLACEHOLDER_KEUZE) assert.ok(telling[k] > 0.056 * N && telling[k] < 0.069 * N, `beeld ${k + 1}: ${telling[k]}`)
+  // Precies: over alle restwaarden van de hash krijgt elk van de zestien even veel (18 · 16 = 288 gevallen,
+  // elk beeld 18). Een hash met hash mod 288 = r geeft altijd hetzelfde beeld.
+  const exact = Array(PLACEHOLDER_COUNT).fill(0)
+  for (let r = 0; r < 18 * 16; r++) {
+    const k = r % 18
+    exact[PLACEHOLDER_UIT.includes(k) ? PLACEHOLDER_KEUZE[Math.floor(r / 18) % 16] : k]++
+  }
+  for (const k of PLACEHOLDER_KEUZE) assert.equal(exact[k], 18, `beeld ${k + 1}`)
+  // De tekeningen zelf blijven staan, ook die van Eclips en Walsen (de nummers en bestanden van de rest
+  // verschuiven niet).
   assert.equal(PLACEHOLDERS.length, 18)
 })
 
@@ -86,17 +117,17 @@ test('placeholder: twee beeldloze rijen direct na elkaar nooit hetzelfde beeld e
   }
 })
 
-test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle zeventien door elkaar', () => {
+test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle zestien door elkaar', () => {
   const rows = Array.from({ length: 5000 }, (_, i) => ({ id: `https://www.nrc.nl/nieuws/2026/11/05/stuk-${i}-a${(i * 7919) % 1000}`, bare: true }))
   const plan = placeholderPlan(rows)
   buren(rows, plan, 'lange reeks')
   const telling = Array(PLACEHOLDER_COUNT).fill(0)
   for (const k of plan.values()) telling[k]++
-  // Elk beeld dat gekozen wordt komt geregeld voor (gemiddeld 5,9 procent): geen onder de 2,5 of boven de
-  // 7,5 procent. Beeld 14 (uit de reeks) nooit.
+  // Elk beeld dat gekozen wordt komt geregeld voor (gemiddeld 6,25 procent): geen onder de 2,5 of boven de
+  // 8,5 procent. Beeld 14 en 15 (uit de reeks) nooit.
   for (const [k, n] of telling.entries()) {
     if (PLACEHOLDER_UIT.includes(k)) assert.equal(n, 0, `beeld ${k + 1}`)
-    else assert.ok(n > 0.025 * rows.length && n < 0.075 * rows.length, `beeld ${k + 1}: ${n}`)
+    else assert.ok(n > 0.025 * rows.length && n < 0.085 * rows.length, `beeld ${k + 1}: ${n}`)
   }
   // En het is geen vast patroon: de reeks herhaalt zich niet met een korte periode.
   const seq = rows.map((r) => plan.get(r.id))

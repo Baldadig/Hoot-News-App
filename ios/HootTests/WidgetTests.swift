@@ -404,9 +404,9 @@ import WidgetKit
     }
 
     func testPlaceholderGelijkAanDeApp() {
-        for id in ["1r0cz5j", "a", "xyz-123", "voorbeeld-0", "art-0", "eclips-10", "eclips-30", "eclips-49"] { XCTAssertEqual(WidgetBeeldloos.index(id), Placeholder.base(id)) }
-        // Ook de widget kiest nooit Eclips (beeld 14, uit de reeks sinds 14 november).
-        for i in 0 ..< 5000 { XCTAssertNotEqual(WidgetBeeldloos.index("widget-\(i)"), 13) }
+        for id in ["1r0cz5j", "a", "xyz-123", "voorbeeld-0", "art-0", "art-1", "eclips-10", "eclips-30", "eclips-49", "walsen-39", "walsen-59", "walsen-66"] { XCTAssertEqual(WidgetBeeldloos.index(id), Placeholder.base(id)) }
+        // Ook de widget kiest nooit Eclips of Walsen (beeld 14 en 15, uit de reeks sinds 14 en 15 november).
+        for i in 0 ..< 5000 { XCTAssertFalse(PlaceholderBeelden.uit.contains(WidgetBeeldloos.index("widget-\(i)"))) }
     }
 
     // MARK: Zetten binnen de marges (besluit Alex 12 november 2026: nooit inkorten, slim vullen)

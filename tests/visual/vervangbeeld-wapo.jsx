@@ -1,6 +1,6 @@
 // Vervangbeeld (14 november): de Stroom met stukken van The Washington Post zonder eigen beeld. Deze ids
 // kregen tot 14 november beeld 14 (Eclips), dat Alex uit de reeks haalde; nu krijgen ze een van de andere
-// zeventien. Echte componenten (Entry, PlaceholderList). Parameters: ?theme=light|dark|night  &layout=krant
+// zestien (sinds 15 november is ook beeld 15, Walsen, uit de reeks). Echte componenten (Entry, PlaceholderList). Parameters: ?theme=light|dark|night  &layout=krant
 // Gebruikt door tests/visual/vervangbeeld-wapo-check.mjs.
 import React from 'react'
 import '../../src/fonts/fonts.css'
