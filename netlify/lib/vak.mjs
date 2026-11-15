@@ -625,6 +625,9 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const entry = {
         ...lead,
         title: cleanTitle(lead.title),
+        // Het merkbeeld van de bron zoals het nu is, ook voor een stuk dat al in de voorraad stond (mergePool houdt het oude
+        // stuk, met het oude beeld): zo wisselt een nieuw logo (de rode O van de NOS, 15 november) meteen.
+        ...(src.logo && !curator ? { avatar: src.logo, avatarContain: false } : {}),
         // Een Sidebar-link wijst naar een stuk elders: toon die site als bron.
         sourceName: curator ? prettyHost(lead.url) : lead.sourceName,
         via: curator ? src.name : null,

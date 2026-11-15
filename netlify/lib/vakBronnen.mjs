@@ -2,11 +2,15 @@
 // is bij het toevoegen opgehaald en geteld (minstens twee stukken in 30 dagen). Met FITS per
 // onderwerp: alleen nodig voor bronnen die breder schrijven (`filter`) of bij meer onderwerpen horen.
 // Wekelijks nagelopen: zie healthOf in vak.mjs.
+import { ownLogo } from './sources.mjs'
 // De taal van een vakbron, voor typeset() (T6, D3: één typografische hand, ook in de Selectie).
 // Afgeleid uit het domein van de feed: .nl, .be en .nu zijn Nederlands, de rest Engels. Een
 // Nederlandse bron op .com telt dan als Engels; dat geeft niets, typeset zet nl en en met dezelfde
 // regels. Wie een andere taal heeft geeft `lang` zelf mee (dan blijft de kop letterlijk).
 export const feedLang = (url) => (/\.(nl|be|nu)$/i.test(new URL(url).hostname) ? 'nl' : 'en')
+// De NOS-bronnen van de Selectie tonen dezelfde rode O als de NOS in het nieuws (besluit Alex 15 november: "Mag je
+// bij alle NOS bronnen stoppen"). Zonder `logo` werd het de favicon van nos.nl, dus een ander beeld dan in de Stroom.
+const NOS_LOGO = ownLogo('nos')
 const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', lang: feedLang(url), ...more })
 
 export const MORE_SOURCES = [
@@ -60,7 +64,7 @@ export const MORE_SOURCES = [
   V('emerce-security', 'Emerce', 'vakblad', ['security'], 'https://www.emerce.nl/channel/security/feed'),
   V('tweakers', 'Tweakers', 'vakblad', ['security', 'ai', 'gadgets'], 'https://tweakers.net/feeds/nieuws.xml', { filter: true }),
   V('agconnect', 'AG Connect', 'vakblad', ['security', 'data', 'ai', 'dev'], 'https://www.agconnect.nl/feeds/articles.rss', { filter: true }),
-  V('nos-tech', 'NOS Tech', 'vakblad', ['security'], 'https://feeds.nos.nl/nosnieuwstech', { filter: true }),
+  V('nos-tech', 'NOS Tech', 'vakblad', ['security'], 'https://feeds.nos.nl/nosnieuwstech', { filter: true, logo: NOS_LOGO }),
   V('krebs', 'Brian Krebs', 'expert', ['security'], 'https://krebsonsecurity.com/feed/', { about: 'Onderzoeksjournalist, ontrafelt cybercrime en grote hacks' }),
   V('schneier', 'Bruce Schneier', 'expert', ['security'], 'https://www.schneier.com/feed/atom/', { about: 'Beveiligingsexpert, over security, privacy en beleid' }),
   V('techzine', 'Techzine', 'vakblad', ['ai', 'dev'], 'https://www.techzine.nl/feed/', { filter: true }),
@@ -110,7 +114,7 @@ export const MORE_SOURCES = [
   // geld-wetenschap
   V('esb', 'ESB', 'vakblad', ['economie'], 'https://esb.nu/feed/'),
   V('mejudice', 'Me Judice', 'expert', ['economie'], 'https://www.mejudice.nl/artikelen?rss=generate', { about: 'Economen met naam schrijven over onderzoek en beleid' }),
-  V('nos-economie', 'NOS Economie', 'vakblad', ['vastgoed', 'geld'], 'https://feeds.nos.nl/nosnieuwseconomie'),
+  V('nos-economie', 'NOS Economie', 'vakblad', ['vastgoed', 'geld'], 'https://feeds.nos.nl/nosnieuwseconomie', { logo: NOS_LOGO }),
   V('nu-economie', 'NU.nl Economie', 'vakblad', ['vastgoed', 'geld'], 'https://www.nu.nl/rss/Economie'),
   V('ftm', 'Follow the Money', 'vakblad', ['economie', 'politiek'], 'https://www.ftm.nl/feed', { filter: true }),
   V('economist-fe', 'The Economist', 'vakblad', ['economie'], 'https://www.economist.com/finance-and-economics/rss.xml'),
@@ -209,7 +213,7 @@ export const MORE_SOURCES = [
   V('villamedia', 'Villamedia', 'vakblad', ['media'], 'https://www.villamedia.nl/feeds/nieuws'),
   V('broadcastmagazine', 'Broadcast Magazine', 'vakblad', ['media'], 'https://www.broadcastmagazine.nl/feed/'),
   V('nu-media', 'NU.nl Media', 'vakblad', ['media'], 'https://www.nu.nl/rss/Media', { filter: true }),
-  V('nos-media', 'NOS Cultuur & Media', 'vakblad', ['media'], 'https://feeds.nos.nl/nosnieuwscultuurenmedia', { filter: true }),
+  V('nos-media', 'NOS Cultuur & Media', 'vakblad', ['media'], 'https://feeds.nos.nl/nosnieuwscultuurenmedia', { filter: true, logo: NOS_LOGO }),
   V('niemanlab', 'Nieman Lab', 'vakblad', ['media'], 'https://www.niemanlab.org/feed/'),
   V('pressgazette', 'Press Gazette', 'vakblad', ['media'], 'https://pressgazette.co.uk/feed/'),
   V('cjr', 'Columbia Journalism Review', 'vakblad', ['media'], 'https://www.cjr.org/feed'),
@@ -343,11 +347,11 @@ export const ARCHIVED_SOURCES = [
   V('vk-economie', 'de Volkskrant Economie', 'vakblad', ['economie'], 'https://www.volkskrant.nl/economie/rss.xml'),
   V('fd', 'Het Financieele Dagblad', 'vakblad', ['economie'], 'https://fd.nl/?rss', { filter: true }),
   V('tijd', 'De Tijd', 'vakblad', ['economie'], 'https://www.tijd.be/rss/nieuws.xml', { filter: true }),
-  V('nos-politiek', 'NOS Politiek', 'vakblad', ['politiek'], 'https://feeds.nos.nl/nosnieuwspolitiek'),
+  V('nos-politiek', 'NOS Politiek', 'vakblad', ['politiek'], 'https://feeds.nos.nl/nosnieuwspolitiek', { logo: NOS_LOGO }),
   V('vk-politiek', 'de Volkskrant Politiek', 'vakblad', ['politiek'], 'https://www.volkskrant.nl/politiek/rss.xml'),
   V('trouw-politiek', 'Trouw Politiek', 'vakblad', ['politiek'], 'https://www.trouw.nl/politiek/rss.xml'),
   V('knack-politiek', 'Knack Politiek', 'vakblad', ['politiek'], 'https://www.knack.be/nieuws/belgie/politiek/feed/', { filter: true }),
-  V('nos-sport', 'NOS Sport', 'vakblad', ['sport'], 'https://feeds.nos.nl/nossportalgemeen'),
+  V('nos-sport', 'NOS Sport', 'vakblad', ['sport'], 'https://feeds.nos.nl/nossportalgemeen', { logo: NOS_LOGO }),
   V('vk-sport', 'de Volkskrant Sport', 'vakblad', ['sport'], 'https://www.volkskrant.nl/sport/rss.xml'),
   V('trouw-sport', 'Trouw Sport', 'vakblad', ['sport'], 'https://www.trouw.nl/sport/rss.xml'),
   V('demorgen-sport', 'De Morgen Sport', 'vakblad', ['sport'], 'https://www.demorgen.be/sport/rss.xml'),

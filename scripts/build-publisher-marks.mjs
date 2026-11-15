@@ -2,7 +2,8 @@
 // node scripts/build-publisher-marks.mjs /pad/naar/feed.json
 import { readFile, writeFile } from 'node:fs/promises'
 import sharp from 'sharp'
-import { SOURCES } from '../netlify/lib/sources.mjs'
+import { SOURCES, ownLogo } from '../netlify/lib/sources.mjs'
+import { MORE_SOURCES } from '../netlify/lib/vakBronnen.mjs'
 import { layout } from '../shared/deelkaart.mjs'
 
 const feed = JSON.parse(await readFile(process.argv[2], 'utf8'))
@@ -42,6 +43,11 @@ for (let i = 0; i < list.length; i += 6) await Promise.all(list.slice(i, i + 6).
     marks[s.id] = await fetched.get(s.avatar)
   } catch (e) { failed.push({ source: s.id, reason: e.message }) }
 }))
+// Een Selectie-bron met het eigen logo van een catalogusbron (de NOS-bronnen: de rode O) krijgt hetzelfde merk.
+for (const v of MORE_SOURCES) {
+  const twin = v.logo && SOURCES.find(s => ownLogo(s.id) === v.logo)
+  if (twin && marks[twin.id]) marks[v.id] = marks[twin.id]
+}
 const body = JSON.stringify(Object.fromEntries(Object.entries(marks).sort()), null, 2) + '\n'
 await writeFile(new URL('../shared/deelkaart/publisher-marks.json', import.meta.url), body)
 await writeFile(new URL('../ios/Hoot/Resources/Deelkaart/publisher-marks.json', import.meta.url), body)
