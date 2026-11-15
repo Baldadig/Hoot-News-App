@@ -1335,6 +1335,14 @@ export const kostenVan = (invoer = 0, uitvoer = 0) => Math.round(((invoer * OORD
 // tweede onderwerp (ook een korte vermelding, een opsomming, een "ook nog") eenOnderwerp "nee" is; de oordelen van v6 tellen
 // niet.
 export const OORDEEL_KEY = 'luister-oordeel-v7'
+// De vorige opslag (melding 15 november: na de deploy van v7 stond de opslag leeg, de ronde koppelde niets en zette alles
+// in de wachtrij; pas de ronde na de eigen functie, ruim tien minuten later, koppelde weer). Een nieuwe versie van de vraag
+// begint dus niet met een lege opslag: een oordeel uit de vorige versie geldt nog zolang de nieuwe er geen heeft, voor de
+// paren waarvoor de vraag niet veranderd is (`geldt`). v7 veranderde alleen de vraag bij een weekshow, dus de oordelen van
+// v6 over een dagelijkse show gelden nog; een weekshow wacht op een oordeel van v7. Wie OORDEEL_KEY ophoogt, zet hier de
+// vorige sleutel en zegt welke oordelen nog gelden (een toets bewaakt dat de sleutels bij elkaar horen). De kosten van
+// vandaag uit de vorige opslag tellen mee voor het dagplafond.
+export const OORDEEL_VORIGE = { key: 'luister-oordeel-v6', geldt: (show) => show?.soort !== 'week' }
 // Het dagplafond (herstel keuring 4): de ronde draait elke tien minuten en mag MAX_AANROEPEN vragen doen, en met de kop in
 // de sleutel wordt een verhaal dat van kop wisselt opnieuw gevraagd. Zonder plafond kon dat oplopen tot ongeveer 21 dollar
 // per dag. Nu: hooguit OORDEEL_DAG_USD per dag (Nederlandse dag). Per ronde niet meer vragen dan er in het budget past
@@ -1653,12 +1661,21 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
     for (const c of kandidaten) fout.add(paarKey(c))
     return { oordelen: new Map(), fout, op, stats: { ...stats, opslag: 'niet te lezen' } }
   }
-  const { oordelen: opgeslagen, pogingen, fouten: opgeslagenFout, dagKosten } = leesOpslag(doc, now)
+  const { oordelen: opgeslagen, pogingen, fouten: opgeslagenFout, dagKosten: dagKostenNu } = leesOpslag(doc, now)
+  // De vorige opslag (OORDEEL_VORIGE), alleen gelezen als er paren zonder oordeel zijn; niet te lezen telt als leeg.
+  const zonder = kandidaten.filter((c) => !opgeslagen.has(paarKey(c)))
+  const vorigeDoc = get && zonder.length ? await binnen(Promise.resolve().then(() => get(OORDEEL_VORIGE.key)), kvMs).catch(() => null) : null
+  const vorige = leesOpslag(vorigeDoc, now)
+  const dagKosten = Math.round((dagKostenNu + vorige.dagKosten) * 1e4) / 1e4
   stats.dagKostenUsd = dagKosten
   const oordelen = new Map()
   for (const c of kandidaten) {
     const k = paarKey(c)
     if (opgeslagen.has(k)) oordelen.set(k, opgeslagen.get(k))
+    else if (vorige.oordelen.has(k) && OORDEEL_VORIGE.geldt(c.show || SHOW.get(c.e.show))) {
+      oordelen.set(k, vorige.oordelen.get(k))
+      stats.uitVorige = (stats.uitVorige || 0) + 1
+    }
     else {
       if (opgeslagenFout.has(k)) fout.add(k)
       if ((pogingen.get(k) || 0) >= maxPogingen) op.add(k)
@@ -1729,14 +1746,16 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
 export async function oordeelRonde({ client, get, update, now = Date.now(), start = now, budget = OORDEEL_BUDGET_MS, vraagMs = OORDEEL_VRAAG_MS, minMs = OORDEEL_MIN_MS, kvMs = OORDEEL_KV_MS, maxPogingen = MAX_POGINGEN, stemmen = STEMMEN, maxAanroepen = MAX_AANROEPEN, dagUsd = OORDEEL_DAG_USD, aanroepUsd = AANROEP_USD, keep = WACHTRIJ_KEEP } = {}) {
   const stats = { model: OORDEEL_MODEL, inWachtrij: 0, gevraagd: 0, vragen: 0, aanroepen: 0, stemmen, beoordeeld: 0, ja: 0, oneens: 0, invoerTokens: 0, uitvoerTokens: 0, kostenUsd: 0, timeouts: 0, fouten: 0, dagPlafondUsd: dagUsd }
   if (!client || !get || !update) return { stats: { ...stats, uit: 'geen sleutel' } }
-  let rij, doc
+  let rij, doc, vorigeDoc
   try {
-    ;[rij, doc] = await Promise.all([binnen(get(WACHTRIJ_KEY), kvMs), binnen(get(OORDEEL_KEY), kvMs)])
+    ;[rij, doc, vorigeDoc] = await Promise.all([binnen(get(WACHTRIJ_KEY), kvMs), binnen(get(OORDEEL_KEY), kvMs), binnen(Promise.resolve().then(() => get(OORDEEL_VORIGE.key)), kvMs).catch(() => null)])
   } catch {
     return { stats: { ...stats, opslag: 'niet te lezen' } }
   }
   const vers = rij && Number.isFinite(Number(rij.at)) && now - Number(rij.at) <= keep
-  const { oordelen, pogingen, dagKosten } = leesOpslag(doc, now)
+  const { oordelen, pogingen, dagKosten: dagKostenNu } = leesOpslag(doc, now)
+  // De kosten van vandaag uit de vorige opslag tellen mee (OORDEEL_VORIGE): een nieuwe versie zet het plafond niet op nul.
+  const dagKosten = Math.round((dagKostenNu + dagKostenVan(vorigeDoc, now)) * 1e4) / 1e4
   stats.dagKostenUsd = dagKosten
   const open = (vers && Array.isArray(rij.vragen) ? rij.vragen : []).filter(geldigeVraag).filter((v) => v.keys.some((k) => !oordelen.has(k) && (pogingen.get(k) || 0) < maxPogingen))
   stats.inWachtrij = open.length
@@ -1887,7 +1906,7 @@ export async function luisterRonde({ stories, byId, now, episodesP, slot, mainId
     const overTijd = Date.now() > deadline
     for (const st of stories) if (byStory.has(st.id)) st.luister = byStory.get(st.id)
     // Alleen aantallen in het log.
-    if (ai) console.log(`[luister-oordeel] kandidaten ${ai.kandidaten || 0}, uit opslag ${ai.uitOpslag || 0}, gevraagd ${ai.gevraagd || 0} in ${ai.aanroepen || 0} aanroepen, ja ${ai.ja || 0}${ai.oneens ? `, oneens ${ai.oneens}` : ''}, tokens ${ai.invoerTokens || 0}/${ai.uitvoerTokens || 0} ($${kostenVan(ai.invoerTokens, ai.uitvoerTokens)})${ai.timeouts ? `, time-outs ${ai.timeouts}` : ''}${ai.fouten ? `, fouten ${ai.fouten}` : ''}${ai.uit ? `, ${ai.uit}` : ''}${ai.ms ? `, ${ai.ms} ms` : ""}${ai.geenTijd ? ', geen tijd meer in de ronde' : ''}${ai.wachtrij != null ? `, in de wachtrij ${ai.wachtrij}` : ''}${ai.dagKostenUsd != null ? `, vandaag $${ai.dagKostenUsd} van $${ai.dagPlafondUsd}${ai.plafond ? ' (plafond)' : ''}` : ''}, koppelingen ${byStory.size}`)
+    if (ai) console.log(`[luister-oordeel] kandidaten ${ai.kandidaten || 0}, uit opslag ${ai.uitOpslag || 0}${ai.uitVorige ? ` (waarvan ${ai.uitVorige} uit de vorige versie)` : ''}, gevraagd ${ai.gevraagd || 0} in ${ai.aanroepen || 0} aanroepen, ja ${ai.ja || 0}${ai.oneens ? `, oneens ${ai.oneens}` : ''}, tokens ${ai.invoerTokens || 0}/${ai.uitvoerTokens || 0} ($${kostenVan(ai.invoerTokens, ai.uitvoerTokens)})${ai.timeouts ? `, time-outs ${ai.timeouts}` : ''}${ai.fouten ? `, fouten ${ai.fouten}` : ''}${ai.uit ? `, ${ai.uit}` : ''}${ai.ms ? `, ${ai.ms} ms` : ""}${ai.geenTijd ? ', geen tijd meer in de ronde' : ''}${ai.wachtrij != null ? `, in de wachtrij ${ai.wachtrij}` : ''}${ai.dagKostenUsd != null ? `, vandaag $${ai.dagKostenUsd} van $${ai.dagPlafondUsd}${ai.plafond ? ' (plafond)' : ''}` : ''}, koppelingen ${byStory.size}`)
     if (update && slot) {
       let t
       const write = Promise.resolve().then(() => update(PROEF_KEY, (cur) => withProef(cur, proefEntry({ slot, now, rows, status, episodes, overTijd, ai })))).catch(() => {})
