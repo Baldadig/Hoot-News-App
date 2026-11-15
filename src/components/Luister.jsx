@@ -17,7 +17,7 @@ export function LuisterSectie({ story }) {
       <ul className="luister__lijst">
         {lijst.map((a) => (
           <li key={a.showId || a.show}>
-            <button type="button" className="luister__rij" onClick={() => luisterTik(a)} aria-label={`${labelVan(a, podcastKeuze)} ${a.aflevering}`}>
+            <button type="button" className="luister__rij" onClick={() => luisterTik(a)} aria-label={labelVan(a, podcastKeuze)}>
               <LuisterCover a={a} />
               <span className="luister__tekst">
                 <span className="luister__titel">{a.aflevering}</span>

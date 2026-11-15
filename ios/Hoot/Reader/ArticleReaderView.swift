@@ -295,6 +295,7 @@ enum ReaderHTML {
         .luister__leeg { display: grid; place-items: center; color: var(--ink-3); }
         .luister__tekst { display: flex; flex-direction: column; min-width: 0; flex: 1; }
         .luister__titel { font-weight: 600; font-size: .88em; line-height: 1.33; } /* 15/20 */
+        .luister__aflevering { font-size: .82em; line-height: 1.3; color: var(--ink); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; } /* 14/18, hooguit twee regels */
         .luister__regel { font-size: .76em; line-height: 1.23; color: var(--ink-3); } /* 13/16 */
         .luister__app { flex: none; margin-left: auto; font-size: .76em; color: var(--ink-3); white-space: nowrap; }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
@@ -323,7 +324,8 @@ enum ReaderHTML {
     }
 
     // Luister verder (build 56): één tikvlak onder de bronregel, tussen twee haarlijnen. Links de cover van de show
-    // (48 pt, radius 8), dan "Luister verder" en "{show} · {dag} · {duur}", rechts "{app} ↗" (nog niet gekozen of
+    // (48 pt, radius 8), dan "Luister verder", de titel van de aflevering (hooguit twee regels, melding Alex 15 november,
+    // build 59) en "{show} · {dag} · {duur}", rechts "{app} ↗" (nog niet gekozen of
     // Altijd vragen: alleen de pijl; bij de grootste tekstmaten valt de naam weg). VoiceOver leest één link. De tik gaat
     // naar hoot://luister (ArticleWebView vangt hem op), nooit naar een andere site.
     static let luisterURL = "hoot://luister"
@@ -331,7 +333,7 @@ enum ReaderHTML {
         let cover = a.coverURL.map { "<img class=\"luister__cover\" src=\"\(escape($0.absoluteString))\" alt=\"\" aria-hidden=\"true\">" }
             ?? "<span class=\"luister__cover luister__leeg\" aria-hidden=\"true\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M201.89 54.66A104.08 104.08 0 0 0 24 128v56a24 24 0 0 0 24 24h16a24 24 0 0 0 24-24v-40a24 24 0 0 0-24-24H40.36A88 88 0 0 1 128 40h.67a87.71 87.71 0 0 1 87 80H192a24 24 0 0 0-24 24v40a24 24 0 0 0 24 24h16a24 24 0 0 0 24-24v-56a103.4 103.4 0 0 0-30.11-73.34\"/></svg></span>"
         let naam = kleineApp ? nil : Luister.appNaam(app)
-        return "<a class=\"luister\" href=\"\(luisterURL)\" aria-label=\"\(escape(Luister.label(a, app: app, now: now)))\">\(cover)<span class=\"luister__tekst\" aria-hidden=\"true\"><span class=\"luister__titel\">\(Luister.rijTitel)</span><span class=\"luister__regel\">\(escape(Luister.regel(a, now: now)))</span></span><span class=\"luister__app\" aria-hidden=\"true\">\(naam.map { escape($0) + "\u{00A0}" } ?? "")↗</span></a>"
+        return "<a class=\"luister\" href=\"\(luisterURL)\" aria-label=\"\(escape(Luister.label(a, app: app, now: now)))\">\(cover)<span class=\"luister__tekst\" aria-hidden=\"true\"><span class=\"luister__titel\">\(Luister.rijTitel)</span>\(Luister.aflevering(a).map { "<span class=\"luister__aflevering\">\(escape($0))</span>" } ?? "")<span class=\"luister__regel\">\(escape(Luister.regel(a, now: now)))</span></span><span class=\"luister__app\" aria-hidden=\"true\">\(naam.map { escape($0) + "\u{00A0}" } ?? "")↗</span></a>"
     }
 
     static func escape(_ s: String) -> String {

@@ -881,7 +881,11 @@ struct ArticleMenuContent: View {
         }
         // Tussen Deel en Meer hiervan, alleen als er een aflevering bij dit verhaal is.
         if let luister, let a = store.luister(of: item) {
-            Button(Luister.rijTitel, systemImage: "headphones") { luister(a) }
+            // Met welke podcast als tweede regel (iOS toont die onder de titel; melding Alex 15 november, build 59).
+            Button { luister(a) } label: {
+                Label { Text(Luister.rijTitel); Text(Luister.wie(a)) } icon: { Image(systemName: "headphones") }
+            }
+            .accessibilityLabel(Luister.label(a, app: store.podcastApp))
         }
         if !item.isPost {
             Section {

@@ -6,8 +6,9 @@ import UIKit
 // echte match, hetzelfde of verdiepend, liefst van dezelfde bron) en zet het veld `luister` op het verhaal. Dit bestand
 // is gelijk aan shared/luister-weergave.mjs op het web (toetsen: HootTests/LuisterTests, tests/luister-zichtbaar).
 //
-// - In de lezer: een rij onder de bronregel (ReaderHTML.luisterRij), met de cover van de show.
-// - Op de Editie-kaart: een stil koptelefoontje naast bewaren (LuisterKnop), en "Luister verder" in het ⋯-menu.
+// - In de lezer: een rij onder de bronregel (ReaderHTML.luisterRij), met de cover van de show en de titel van de aflevering.
+// - Op de Editie-kaart: een stil koptelefoontje naast bewaren (LuisterKnop), en "Luister verder" in het ⋯-menu, met
+//   "{show} · {aflevering}" als tweede regel (Luister.wie).
 // - In Vergelijken: een sectie "Luister" met hooguit drie afleveringen (LuisterSectie).
 // - De eerste tik vraagt "Waar luister je podcasts?" (alleen apps die op het toestel staan); Hoot onthoudt het
 //   (`hoot.podcastApp`, alleen op dit toestel). Instellingen › Artikelen › Podcasts. Geen teller.
@@ -123,11 +124,28 @@ enum Luister {
     private static func duurVoluit(_ sec: Double?) -> String? { sec.flatMap { $0 > 0 ? "\(max(1, Int(($0 / 60).rounded()))) minuten" : nil } }
     /// "{show} · {dag} · {duur}"
     static func regel(_ a: StoryLuister, now: Date = .now) -> String { [a.show, dag(a, now: now), duur(a.duur)].compactMap { $0 }.joined(separator: " · ") }
-    /// VoiceOver: "Luister verder, De Dag, gisteren, 29 minuten. Opent in Spotify."
-    static func label(_ a: StoryLuister, app: String?, now: Date = .now) -> String {
-        let delen = [a.show, dag(a, now: now), duurVoluit(a.duur)].compactMap { $0 }.joined(separator: ", ")
-        return "Luister verder, \(delen)." + (appNaam(app).map { " Opent in \($0)." } ?? "")
+    /// De titel van de aflevering zonder de naam van de show ervoor ("De Dag: X" wordt "X"); nil als er niets overblijft.
+    static func aflevering(_ a: StoryLuister) -> String? {
+        var t = a.aflevering.trimmingCharacters(in: .whitespacesAndNewlines)
+        let show = a.show.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !show.isEmpty, t.lowercased().hasPrefix(show.lowercased()) {
+            let rest = t.dropFirst(show.count)
+            if let eerste = rest.first, ":-–|·".contains(eerste) || eerste == " " {
+                t = rest.trimmingCharacters(in: CharacterSet(charactersIn: " :-–|·"))
+            } else if rest.isEmpty { t = "" }
+        }
+        return t.isEmpty ? nil : t
     }
+    /// Welke podcast (melding Alex 15 november, build 59: "nergens de titel van de podcast"): "{show} · {aflevering}".
+    /// De tweede regel in het menu en in de vraag.
+    static func wie(_ a: StoryLuister) -> String { [a.show, aflevering(a)].compactMap { $0 }.joined(separator: " · ") }
+    /// VoiceOver: "Luister verder: De Dag, De VVD in crisis, gisteren, 29 minuten. Opent in Spotify."
+    static func label(_ a: StoryLuister, app: String?, now: Date = .now) -> String {
+        let delen = [a.show, aflevering(a), dag(a, now: now), duurVoluit(a.duur)].compactMap { $0 }.joined(separator: ", ")
+        return "Luister verder: \(delen)." + (appNaam(app).map { " Opent in \($0)." } ?? "")
+    }
+    /// De tekst onder "Waar luister je podcasts?": welke aflevering, en dat Hoot het onthoudt.
+    static func vraagBericht(_ a: StoryLuister) -> String { "\(wie(a))\n\(vraagTekst)" }
 
     /// Welke link een keuze opent: in Apple Podcasts en Spotify de aflevering (met het id van de server; zonder id wat de
     /// server meegeeft, de show), anders de pagina van de aflevering bij de uitgever.
@@ -247,8 +265,8 @@ private struct LuisterVraag: ViewModifier {
                 Button(app.naam) { LuisterActie(store: store).kies(app.id, voor: a) }
             }
             Button("Annuleer", role: .cancel) {}
-        } message: { _ in
-            Text(Luister.vraagTekst)
+        } message: { a in
+            Text(Luister.vraagBericht(a))
         }
     }
 }
@@ -310,7 +328,7 @@ struct LuisterSectie: View {
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(Luister.label(a, app: store.podcastApp)) \(a.aflevering)")
+            .accessibilityLabel(Luister.label(a, app: store.podcastApp))
             .accessibilityAddTraits(.isLink)
         }
         .luisterVraag($vraag, store: store)
