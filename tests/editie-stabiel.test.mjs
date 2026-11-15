@@ -269,7 +269,7 @@ test('een afwijkend toestel vraagt eerst, daarna het web dat bij je account past
   assert.equal(pg.writes().length, 1)
   // Vastgelegd met het merk van je account, en samengesteld met de keuze uit je account: het web herkent haar.
   const acct = accountBasesOf(start, prefsFor())
-  assert.equal(pg.table[0].edition.prefsMark, prefsMarkOf(acct))
+  assert.equal(pg.table[0].edition.prefsMark, prefsMarkOf(prefsFor()))
   assert.ok(acct.includes(pg.table[0].edition.basis))
   assert.equal(seen[1].edition.basis, basesOf(profileOf(start, web()))[0], 'het web krijgt haar met zijn eigen afdruk')
 })
@@ -300,4 +300,32 @@ test('een rij die een toestel zelf vastlegde (het vangnet van iOS, zonder merk):
   }
   assert.equal(d.composes, 0)
   assert.equal(pg.writes().length, 0)
+})
+
+// Punt 1 (keuring): het merk hangt alleen aan je keuze in `prefs`, niet aan de bronnenlijst of de code. Haalt een deploy
+// plus feedronde een gevolgde basisbron uit de lijst (14 november: Times of Israel, Reason, dode adressen), dan filteren
+// server en web die bron allebei weg, maar je keuze is dezelfde: de Editie blijft staan.
+test('een gevolgde basisbron verdwijnt binnen het dagdeel uit de bronnenlijst: de Editie blijft staan', async () => {
+  const pg = fakePostgrest([{ user_id: UID, edition: null, prefs: prefsFor() }])
+  let cur = start
+  const d = deps(pg, { start: async () => cur })
+  const a = await ask(d, web())
+  const gone = news.find((s) => !s.optional && base.followed.includes(s.id)).id
+  cur = { ...start, sources: start.sources.filter((s) => s.id !== gone) }
+  const seen = [await ask(d, web()), await ask(d, app())]
+  assert.equal(a.source, 'claimed')
+  assert.deepEqual(seen.map((r) => r.source), ['account', 'account'])
+  for (const r of seen) assert.equal(content(r.edition), content(a.edition))
+  assert.equal(d.composes, 1)
+  assert.equal(pg.writes().length, 1)
+})
+
+test('het merk volgt alleen de keuzevelden in je account, ongeacht volgorde of andere instellingen', () => {
+  const p = prefsFor()
+  assert.equal(prefsMarkOf(null), null)
+  assert.equal(prefsMarkOf({}), null)
+  assert.equal(prefsMarkOf({ ...p, theme: 'dark', taste: { topics: { klimaat: 2 } } }), prefsMarkOf(p))
+  assert.equal(prefsMarkOf({ ...p, topics: [...p.topics].reverse(), muted: [...p.muted].reverse() }), prefsMarkOf(p))
+  assert.notEqual(prefsMarkOf({ ...p, interests: p.interests.slice(1) }), prefsMarkOf(p))
+  assert.notEqual(prefsMarkOf({ ...p, muted: [...p.muted, base.followed[0]] }), prefsMarkOf(p))
 })

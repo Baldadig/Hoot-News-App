@@ -325,8 +325,16 @@ export function accountBasesOf(start, prefs) {
 }
 // Het merk van de keuze in je account (`prefsMark`): de server zet het op elke Editie die hij als lid samenstelt, ook
 // als de vrager zelf afwijkt. Zo weet hij later of je keuze in je account sindsdien echt veranderde, los van welk
-// toestel de rij schreef en met welke afdruk. null zonder instellingen.
-export const prefsMarkOf = (acctBases) => (acctBases ? sha(JSON.stringify([...acctBases].sort())) : null)
+// toestel de rij schreef en met welke afdruk. Alleen uit de keuzevelden zoals ze in `prefs` staan (gesorteerd), zonder
+// bronnenlijst en zonder omzetting die van de code afhangt (normalizePrefs, currentTopics, RUBRIEKEN): haalt een deploy
+// of feedronde een gevolgde bron uit de lijst, of verandert de indeling van onderwerpen, dan blijft het merk gelijk en je
+// Editie staan (Editie stabiel, 15 november 2026, punt 1). null zonder instellingen.
+const MARK_FIELDS = ['muted', 'enabled', 'interests', 'topics', 'favorites', 'rubrieken', 'onderwerpen']
+export function prefsMarkOf(prefs) {
+  if (!prefs || typeof prefs !== 'object' || Array.isArray(prefs) || !Object.keys(prefs).length) return null
+  const field = (v) => (Array.isArray(v) ? [...new Set(v.filter((x) => typeof x === 'string'))].sort() : v ?? null)
+  return sha(JSON.stringify(MARK_FIELDS.map((k) => [k, field(prefs[k])])))
+}
 
 // Een kopie van je Editie van dit dagdeel op de server (`pe-member:<sha256 user-id>:<dagdeel-id>`), voor als je account
 // even niet te lezen of te schrijven is, of als er (nog) geen rij in user_state staat: dan krijg je toch dezelfde
@@ -471,7 +479,7 @@ export async function editionV2(req, body, deps = {}) {
     // nog niet is weggeschreven, iOS zonder `onderwerpen`) nooit een nieuwe Editie, ook niet als het als eerste vraagt.
     const acctProfile = accountProfileOf(start, acct.prefs, p)
     const acctBases = acctProfile ? basesOf(acctProfile) : null
-    const acctMark = prefsMarkOf(acctBases)
+    const acctMark = acctBases ? prefsMarkOf(acct.prefs) : null
     const askIsAccount = !!acctBases && bases.some((b) => acctBases.includes(b))
     const sameChoice = (e) => fits(e) || (askIsAccount && fitsAny(e, id, acctBases))
     const choiceChanged = (e) => askIsAccount && !!acctMark && typeof e?.prefsMark === 'string' && e.prefsMark !== acctMark
