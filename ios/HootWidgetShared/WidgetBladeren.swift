@@ -203,9 +203,10 @@ struct WBladerEinde: View {
     let editie: WidgetEditie
     let breedte: CGFloat
     let maat: WidgetLetter.Maat // item in Klein en Middel, lead in Groot
+    @Environment(\.widgetMoment) private var moment
     var body: some View {
         let m = WidgetZet.trap(maat).first { WidgetZet.regels(editie.eindzin, $0, breedte: breedte) == 1 } ?? WidgetLetter.widgetKop.op(WidgetZet.ondergrens)
-        let volgende = WidgetZet.voet(WidgetDagdeel.volgendeZin(na: editie.dagdeel), breedte: breedte)
+        let volgende = WidgetZet.voet(WidgetDagdeel.volgendeZin(na: editie.dagdeel, datum: editie.datum, op: moment), breedte: breedte)
         VStack(alignment: .leading, spacing: 0) {
             Text(editie.eindzin).widgetKop(m, regels: 1).foregroundStyle(WidgetKleur.ink)
             Text(volgende).font(WidgetLetter.meta).foregroundStyle(WidgetKleur.ink3)
@@ -215,6 +216,7 @@ struct WBladerEinde: View {
         }
         .accessibilityElement(children: .combine)
     }
+    // Gemeten met "Morgen de Ochtendeditie": na middernacht staat er "Straks de Ochtendeditie", even lang.
     static func hoogte(_ editie: WidgetEditie, breedte: CGFloat, maat: WidgetLetter.Maat) -> CGFloat {
         let m = WidgetZet.trap(maat).first { WidgetZet.regels(editie.eindzin, $0, breedte: breedte) == 1 } ?? WidgetLetter.widgetKop.op(WidgetZet.ondergrens)
         let volgende = WidgetZet.voet(WidgetDagdeel.volgendeZin(na: editie.dagdeel), breedte: breedte)

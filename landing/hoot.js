@@ -393,7 +393,7 @@
     $$('.js-datum[data-vast]').forEach(function (s) { if (vd - dagnr(s.getAttribute('data-iso')) > 1) s.textContent = ''; });
     /* De Editie die nu geldt, met dezelfde regel als slotIdNow in shared/tel.mjs: vóór de Ochtendeditie geldt de
        Avondeditie van gisteren nog. OCHTEND en de grenzen zijn SLOT_START uit shared/slot-times.mjs (getoetst). */
-    var OCHTEND = 390, MIDDAG = 720, AVOND = 1020;
+    var OCHTEND = 360, MIDDAG = 720, AVOND = 1020;
     function nuSlotId() {
       try {
         var p = {}; new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });

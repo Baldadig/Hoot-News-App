@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import voorpagina, { extract, withPool, isDutch, isHeavy, rubriek, OPEN_IMAGE_SOURCES, config } from '../netlify/functions/voorpagina.mjs'
+import { serveVoorpagina, extract, withPool, isDutch, isHeavy, rubriek, OPEN_IMAGE_SOURCES, config } from '../netlify/functions/voorpagina.mjs'
 import { voorpaginaPool, VOORPAGINA_HOURS, VOORPAGINA_MAX } from '../netlify/lib/voorpagina-pool.mjs'
 import { writeDoc, KEYS } from '../netlify/lib/kv.mjs'
 
@@ -39,7 +39,9 @@ const feed = () => ({
     ],
   },
 })
-const get = (headers = {}, method = 'GET') => voorpagina(new Request('http://x/api/voorpagina', { method, headers }))
+// Midden op de middag (14:00 in Amsterdam): ver van een dagdeelwissel, dus de gewone cache (netlify/lib/dagdeel-kern.mjs).
+const MIDDAG = new Date('2026-11-16T13:00:00Z')
+const get = (headers = {}, method = 'GET', now = MIDDAG) => serveVoorpagina(new Request('http://x/api/voorpagina', { method, headers }), now)
 
 test('onrust wordt ook herkend aan tags, rubriek en incidenttaal zonder het woord rellen', () => {
   assert.ok(isHeavy({ title: 'De rust keert terug', topics: ['misdaad'] }))

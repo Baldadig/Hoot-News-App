@@ -44,13 +44,26 @@ struct EditionHeader: View {
 // volgende er is en het dagdeel zelf. Geen kloktijden, alleen deze woorden.
 // Spiegel van shared/slots.mjs, getoetst in SlotsTests: verander je hier een woord, dan daar ook.
 enum Slots {
-    struct Slot: Decodable { let naam, volgende, dagdeel: String }
+    struct Slot: Decodable {
+        let naam, volgende, dagdeel: String
+        // Na middernacht, alleen bij de avond: "De Ochtendeditie komt zo." in plaats van "morgenochtend".
+        let naMiddernacht: String?
+    }
     static let all: [String: Slot] = {
         guard let url = Bundle.main.url(forResource: "slots", withExtension: "json"),
               let data = try? Data(contentsOf: url), let table = try? JSONDecoder().decode([String: Slot].self, from: data) else { preconditionFailure("Dagdelen ontbreken in de bundel") }
         return table
     }()
     static func naam(_ slot: String) -> String { all[slot]?.naam ?? "Editie" }
+
+    // Wanneer de volgende er is, achter "Dit was de Avondeditie van …." (gelijk aan upNext in src/lib/edition.js). Na
+    // middernacht (de kalenderdag in Amsterdam is na `datum`, de datum van de Editie) de zin `naMiddernacht` als het
+    // dagdeel die heeft; anders "De volgende staat … klaar.". Geen kloktijden.
+    static func upNext(_ slot: String?, datum: String?, nu: Date = .now) -> String {
+        guard let slot, let s = all[slot] else { return "" }
+        if let zin = s.naMiddernacht, let datum, WidgetDagdeel.kalenderdag(nu) > datum { return " \(zin)" }
+        return " De volgende staat \(s.volgende) klaar."
+    }
 }
 
 // De eindzin van de Editie: "Je weet genoeg." of "Je bent bij." Per Editie vast (datum + dagdeel),
@@ -225,11 +238,7 @@ struct EditionView: View {
     }
 
     // Wanneer de volgende er is, in dagdelen uit Slots: geen kloktijden.
-    private var upNext: String {
-        guard let volgende = shown?.slot.flatMap({ Slots.all[$0]?.volgende }) else { return "" }
-        // Vaste spatie in "je klaar.": de zin eindigt nooit met één woord alleen op de laatste regel.
-        return " De volgende staat \(volgende) klaar."
-    }
+    private var upNext: String { Slots.upNext(shown?.slot, datum: shown?.date) }
 
     @State private var path = NavigationPath()
     @State private var screen: CGSize = .zero // het scherm: staand of liggend

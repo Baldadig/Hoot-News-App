@@ -92,16 +92,17 @@ import WidgetKit
 
     func testDagdeelOpEenMoment() {
         // 11 november: wintertijd, Amsterdam = UTC+1.
-        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T05:29:00Z")).id, "2026-11-10-avond") // 06:29: nog de Avondeditie van gisteren
-        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T05:20:00Z")).id, "2026-11-10-avond") // 06:20
-        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T05:30:00Z")).id, "2026-11-11-ochtend") // 06:30
+        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T04:59:00Z")).id, "2026-11-10-avond") // 05:59: nog de Avondeditie van gisteren
+        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T04:50:00Z")).id, "2026-11-10-avond") // 05:50
+        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T05:00:00Z")).id, "2026-11-11-ochtend") // 06:00
+        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T05:20:00Z")).id, "2026-11-11-ochtend") // 06:20
         XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T10:59:00Z")).id, "2026-11-11-ochtend") // 11:59
         XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T11:00:00Z")).id, "2026-11-11-middag") // 12:00
         XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T16:00:00Z")).id, "2026-11-11-avond") // 17:00
         XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-11-11T22:59:00Z")).id, "2026-11-11-avond") // 23:59
-        // Zomertijd (UTC+2): 06:30 is 04:30 UTC.
-        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-07-01T04:30:00Z")).id, "2026-07-01-ochtend")
-        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-07-01T04:29:00Z")).id, "2026-06-30-avond")
+        // Zomertijd (UTC+2): 06:00 is 04:00 UTC.
+        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-07-01T04:00:00Z")).id, "2026-07-01-ochtend")
+        XCTAssertEqual(WidgetDagdeel.op(Self.moment("2026-07-01T03:59:00Z")).id, "2026-06-30-avond")
     }
 
     func testTijdlijnEenMomentPerDagdeel() {
@@ -110,13 +111,14 @@ import WidgetKit
         XCTAssertEqual(momenten.first, nu)
         XCTAssertEqual(Array(momenten.dropFirst()), [
             Self.moment("2026-11-11T16:03:00Z"), // 17:03 Avondeditie
-            Self.moment("2026-11-12T05:33:00Z"), // 06:33 Ochtendeditie
+            Self.moment("2026-11-11T23:00:00Z"), // middernacht: "Straks de Ochtendeditie"
+            Self.moment("2026-11-12T05:03:00Z"), // 06:03 Ochtendeditie
             Self.moment("2026-11-12T11:03:00Z"), // 12:03 Middageditie
         ])
         XCTAssertEqual(WidgetTijdlijn.volgende(nu: nu), Self.moment("2026-11-11T16:03:00Z"))
         // Over de wissel naar zomertijd (29 maart 2026): nog steeds op de Amsterdamse minuut.
         let maart = WidgetDagdeel.momenten(na: Self.moment("2026-03-28T20:00:00Z"))
-        XCTAssertEqual(maart.first, Self.moment("2026-03-29T04:33:00Z")) // 06:33 zomertijd
+        XCTAssertEqual(maart.first, Self.moment("2026-03-29T04:03:00Z")) // 06:03 zomertijd
         XCTAssertEqual(maart.count, 3)
     }
 
@@ -143,8 +145,8 @@ import WidgetKit
         XCTAssertEqual(WidgetTijdlijn.volgende(nu: start, wachtOpNieuwe: true), start.addingTimeInterval(20 * 60))
         XCTAssertEqual(WidgetTijdlijn.volgende(nu: start.addingTimeInterval(90 * 60), wachtOpNieuwe: true), start.addingTimeInterval(110 * 60))
         // Na twee uur: pas weer bij het volgende dagdeel (budget van WidgetKit).
-        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start.addingTimeInterval(130 * 60), wachtOpNieuwe: true), Self.moment("2026-11-12T05:33:00Z"))
-        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start, wachtOpNieuwe: false), Self.moment("2026-11-12T05:33:00Z"))
+        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start.addingTimeInterval(130 * 60), wachtOpNieuwe: true), Self.moment("2026-11-12T05:03:00Z"))
+        XCTAssertEqual(WidgetTijdlijn.volgende(nu: start, wachtOpNieuwe: false), Self.moment("2026-11-12T05:03:00Z"))
         // Nooit later dan het volgende dagdeel.
         let laat = Self.moment("2026-11-11T10:55:00Z") // 11:55: binnen twee uur na de ochtend? nee, maar het dagdeel wisselt om 12:03
         XCTAssertLessThanOrEqual(WidgetTijdlijn.volgende(nu: laat, wachtOpNieuwe: true), Self.moment("2026-11-11T11:03:00Z"))
@@ -223,7 +225,7 @@ import WidgetKit
     }
 
     func testGeenKloktijdenEnHuisregelsInDeTeksten() throws {
-        var teksten = ["Ligt klaar", "Tik voor de Avondeditie"] + WidgetDagdeel.volgorde.map(WidgetDagdeel.volgendeZin(na:))
+        var teksten = ["Ligt klaar", "Tik voor de Avondeditie"] + WidgetDagdeel.volgorde.map { WidgetDagdeel.volgendeZin(na: $0) } + ["Straks de Ochtendeditie"]
         teksten += [WidgetStand.onderweg(gelezen: 4, van: 10).label, WidgetStand.klaar(eindzin: "Je bent bij.").label]
         for t in teksten {
             XCTAssertNil(t.range(of: #"\d{1,2}[:.]\d{2}|\buur\b"#, options: .regularExpression), t)
@@ -232,6 +234,12 @@ import WidgetKit
         }
         XCTAssertEqual(WidgetDagdeel.volgendeZin(na: "middag"), "Straks de Avondeditie")
         XCTAssertEqual(WidgetDagdeel.volgendeZin(na: "avond"), "Morgen de Ochtendeditie")
+        // Na middernacht (17 november, 00:01 in Amsterdam) bij de Avondeditie van de 16e: de ochtend komt straks.
+        XCTAssertEqual(WidgetDagdeel.volgendeZin(na: "avond", datum: "2026-11-16", op: Self.moment("2026-11-16T22:59:00Z")), "Morgen de Ochtendeditie") // 23:59
+        XCTAssertEqual(WidgetDagdeel.volgendeZin(na: "avond", datum: "2026-11-16", op: Self.moment("2026-11-16T23:01:00Z")), "Straks de Ochtendeditie") // 00:01
+        XCTAssertEqual(WidgetDagdeel.volgendeZin(na: "avond", datum: "2026-06-30", op: Self.moment("2026-06-30T22:01:00Z")), "Straks de Ochtendeditie") // zomer, 00:01
+        XCTAssertEqual(WidgetDagdeel.volgendeZin(na: "middag", datum: "2026-11-16", op: Self.moment("2026-11-17T01:00:00Z")), "Straks de Avondeditie")
+        XCTAssertEqual(WidgetDagdeel.middernachten(na: Self.moment("2026-11-16T12:00:00Z")), [Self.moment("2026-11-16T23:00:00Z")])
         // Editie met hoofdletter in elke naam.
         for d in WidgetDagdeel.volgorde { XCTAssertTrue(WidgetDagdeel.naam(d).hasSuffix("editie")); XCTAssertTrue(WidgetDagdeel.naam(d).first!.isUppercase) }
     }

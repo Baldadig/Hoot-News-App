@@ -7,16 +7,26 @@ import { MAIN_IDS, MUSIC_IDS } from './sources.mjs'
 import { hash } from '../../shared/util.mjs'
 import { withoutCopies } from '../../shared/dedupe.mjs'
 import { voorpaginaPool } from './voorpagina-pool.mjs'
+import { volgendKey } from './dagdeel-kern.mjs'
 
-let running = null // binnen één functie-instantie nooit twee keer tegelijk
+const running = new Map() // binnen één functie-instantie nooit twee keer tegelijk (per soort ronde)
 
 // `build`, `read` en `write`: alleen voor toetsen.
-export function refresh({ build = buildFeed, read = readDoc, write = writeDoc } = {}) {
-  running ||= (async () => {
+// `slot` (vooraf, besluit Alex 16 november 2026): de ronde vlak vóór de ochtend (shared/slot-times.mjs, ochtendVooraf).
+// Dan legt ze de Editie van dat komende dagdeel vast en schrijft ze de kern, start en alles-in-één onder de sleutel
+// `volgend` (netlify/lib/dagdeel-kern.mjs): niemand ziet ze tot het dagdeel begint. De delen per bron, de verhalen en de
+// voorpaginapool gaan gewoon naar hun eigen sleutel (ze dragen geen Editie). Elk kerndocument draagt het id van zijn
+// Editie (`slot`): zo weten /api/feed en de CDN-cache bij de wissel welk dagdeel ze in handen hebben.
+export function refresh({ build = buildFeed, read = readDoc, write = writeDoc, slot = null } = {}) {
+  const soort = slot?.id || 'nu'
+  if (running.has(soort)) return running.get(soort)
+  const run = (async () => {
     try {
       const now = Date.now()
       const builtAt = new Date(now).toISOString()
-      const { parts, items, archive, late, ...rest } = await build({ now })
+      const { parts, items, archive, late, ...rest } = await build(slot ? { now, slot } : { now })
+      const kern = (key) => (slot ? volgendKey(key) : key)
+      const id = rest.edition?.id || null
       // Wat een trage bron intussen bracht (build.mjs fetchSources) loopt naast het wegschrijven, nooit ervoor: zo
       // blijft de ronde binnen de 15 s van de planner, ook als die bron niet antwoordt.
       const lateRun = Promise.resolve().then(() => late?.()).catch(() => 0)
@@ -45,12 +55,12 @@ export function refresh({ build = buildFeed, read = readDoc, write = writeDoc } 
       const legacy = JSON.stringify({ ...rest, items: withoutCopies(items.filter((i) => base.has(i.source) || i.kind === 'post')) })
       // KEYS.start draagt geen berichten: de voorpagina krijgt een eigen kleine pool.
       const voorpagina = JSON.stringify(voorpaginaPool(items, rest.sources, now))
-      const coreDoc = { body: core, builtAt, etag: hash(core) }
+      const coreDoc = { body: core, builtAt, etag: hash(core), slot: id }
       await Promise.all([
-        write(KEYS.core, coreDoc),
-        write(KEYS.start, { body: start, builtAt, etag: hash(start) }),
+        write(kern(KEYS.core), coreDoc),
+        write(kern(KEYS.start), { body: start, builtAt, etag: hash(start), slot: id }),
         write(KEYS.related, { body: relatedBody, builtAt, etag: relatedTag }),
-        write(KEYS.legacy, { body: legacy, builtAt, etag: hash(legacy) }),
+        write(kern(KEYS.legacy), { body: legacy, builtAt, etag: hash(legacy), slot: id }),
         write(KEYS.voorpagina, { body: voorpagina, builtAt, etag: hash(voorpagina) }),
       ])
       // Het archief (frisse ogen · 2): legde deze ronde de Editie van een dagdeel vast (of zijn bubbelplek), dan ook de
@@ -59,8 +69,9 @@ export function refresh({ build = buildFeed, read = readDoc, write = writeDoc } 
       await lateRun
       return coreDoc
     } finally {
-      running = null
+      running.delete(soort)
     }
   })()
-  return running
+  running.set(soort, run)
+  return run
 }

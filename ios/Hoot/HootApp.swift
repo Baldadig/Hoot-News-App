@@ -348,8 +348,11 @@ struct RootView: View {
         .onChange(of: phase) { _, now in
             // Terug in de app na een tijdje weg: verversen.
             // Ook na een mislukte koude start (nog niets geladen): dan meteen opnieuw proberen.
+            // En meteen als de klok in een later dagdeel is dan de Editie in de app (besluit Alex 16 november 2026: om
+            // 06:00 ligt de Ochtendeditie klaar; wie om 06:01 terugkomt, krijgt haar, niet pas na een kwartier).
             guard now == .active else { return }
-            if store.updatedAt.map({ Date.now.timeIntervalSince($0) > 15 * 60 }) ?? true || store.status == .failed { Task { await store.load() } }
+            if store.updatedAt.map({ Date.now.timeIntervalSince($0) > 15 * 60 }) ?? true || store.status == .failed
+                || DagdeelWissel.nieuwDagdeel(editie: store.edition?.id) { Task { await store.load() } }
         }
         // Getikt op een seintje: de lezer dicht, naar de Editie, en de nieuwe ophalen.
         .onChange(of: alerts.openEdition, initial: true) { _, open in

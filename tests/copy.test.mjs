@@ -92,7 +92,7 @@ test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instell
     assert.doesNotMatch(s, /staat klaar om|maandag om/, `${f}: kloktijd in een zin`)
     assert.doesNotMatch(s, /(bijgewerkt|gecontroleerd|opgehaald|versie van) om\b/i, `${f}: kloktijd in een status`)
   }
-  assert.match(read('views/Edition.jsx'), /\{upNext\(edition\.slot\)\}/)
+  assert.match(read('views/Edition.jsx'), /\{upNext\(edition\.slot, edition\.date\)\}/)
   // De dagdelen staan in één tabel (shared/slots.mjs, D1); iOS spiegelt hem.
   assert.equal(JSON.parse(readFileSync(new URL('../shared/slots.json', import.meta.url), 'utf8')).avond.volgende, 'morgenochtend')
   const vak = read('views/Vak.jsx')

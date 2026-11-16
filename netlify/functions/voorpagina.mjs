@@ -6,6 +6,7 @@
 // lib/voorpagina-pool.mjs; KEYS.start zelf heeft geen berichten). We stellen hier nooit zelf een
 // Editie samen; is er niets, dan 503 met { edition: null }.
 import { readDoc, KEYS } from '../lib/kv.mjs'
+import { kernVanNu, cacheTot, volgendKey } from '../lib/dagdeel-kern.mjs'
 import { isDutch } from '../lib/voorpagina-pool.mjs'
 import { DESK_LABEL, desksOf, primaryDesk } from '../lib/desks.mjs'
 import { INTERESTS } from '../../src/lib/topics.js'
@@ -19,6 +20,15 @@ export const BREED_MAX = 3
 export const BREED_MIN = 3
 const ORIGINS = new Set(['https://gethoot.app', 'https://www.gethoot.app'])
 const CACHE = 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600'
+// Rond een dagdeelwissel (netlify/lib/dagdeel-kern.mjs): nooit een cache over de start van het volgende dagdeel heen,
+// en heel kort als de kern achterloopt op de klok. Ver van een wissel precies CACHE.
+export function voorpaginaCache(doc, now = new Date()) {
+  const left = cacheTot(doc, now)
+  const browser = Math.min(300, left)
+  const cdn = Math.min(900, left)
+  const stale = Math.min(3600, left - cdn)
+  return `public, max-age=${browser}, s-maxage=${cdn}${stale > 0 ? `, stale-while-revalidate=${stale}` : ''}`
+}
 
 // Bronnen waarvan we het beeld op de landingspagina mogen tonen: open licentie of eigen toestemming.
 // Persfoto's van uitgevers (ANP enz.) zijn auteursrechtelijk beschermd, dus de lijst begint leeg
@@ -257,13 +267,18 @@ const base = (origin) => ({
   ...(ORIGINS.has(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
 })
 
-export default async (req) => {
+export default (req) => serveVoorpagina(req)
+
+// `now`: alleen voor de tests (de klok rond een wissel).
+export async function serveVoorpagina(req, now = new Date()) {
   const origin = req.headers.get('origin') || ''
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...base(origin), 'Access-Control-Allow-Methods': 'GET, HEAD', 'Cache-Control': CACHE } })
   if (req.method !== 'GET' && req.method !== 'HEAD') return new Response(JSON.stringify({ error: 'Alleen GET.' }), { status: 405, headers: { ...base(origin), Allow: 'GET, HEAD, OPTIONS', 'Cache-Control': 'no-store' } })
   let edition = null
+  let doc = null
   try {
-    const [doc, pool] = await Promise.all([readDoc(KEYS.start), readDoc(KEYS.voorpagina).catch(() => null)])
+    const [first, pool] = await Promise.all([readDoc(KEYS.start), readDoc(KEYS.voorpagina).catch(() => null)])
+    doc = await kernVanNu(first, () => readDoc(volgendKey(KEYS.start)), now)
     let extra = null
     try { extra = pool ? JSON.parse(pool.body) : null } catch { extra = null } // kapotte pool: alleen de Editie
     edition = doc ? extract(withPool(JSON.parse(doc.body), extra)) : null
@@ -271,7 +286,7 @@ export default async (req) => {
     edition = null
   }
   if (!edition) return new Response(req.method === 'HEAD' ? null : JSON.stringify({ edition: null }), { status: 503, headers: { ...base(origin), 'Cache-Control': 'no-store' } })
-  return new Response(req.method === 'HEAD' ? null : JSON.stringify({ edition }), { headers: { ...base(origin), 'Cache-Control': CACHE } })
+  return new Response(req.method === 'HEAD' ? null : JSON.stringify({ edition }), { headers: { ...base(origin), 'Cache-Control': voorpaginaCache(doc, now) } })
 }
 
 export const config = { path: '/api/voorpagina' }

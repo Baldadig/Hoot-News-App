@@ -315,7 +315,8 @@ test('viaEvent: alleen bekende labels, de rest wordt via:anders', () => {
   assert.equal(viaEvent(undefined), null)
 })
 test('slotIdNow: het dagdeel op de klok in Amsterdam; vóór de ochtend nog de avond van gisteren', () => {
-  assert.equal(slotIdNow(new Date('2026-11-11T05:00:00Z')), '2026-11-10-avond') // 06:00
+  assert.equal(slotIdNow(new Date('2026-11-11T04:59:00Z')), '2026-11-10-avond') // 05:59
+  assert.equal(slotIdNow(new Date('2026-11-11T05:00:00Z')), '2026-11-11-ochtend') // 06:00
   assert.equal(slotIdNow(new Date('2026-11-11T06:00:00Z')), '2026-11-11-ochtend') // 07:00
   assert.equal(slotIdNow(new Date('2026-11-11T12:00:00Z')), '2026-11-11-middag') // 13:00
   assert.equal(slotIdNow(new Date('2026-11-11T17:00:00Z')), '2026-11-11-avond') // 18:00

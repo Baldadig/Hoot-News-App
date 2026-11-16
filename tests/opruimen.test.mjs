@@ -31,7 +31,7 @@ test('oude pe-, pe-quota- en brief-quota-sleutels gaan weg; lopend en vorig blij
 })
 
 test('het vorige dagdeel over de dagwisseling heen blijft (avond van gisteren om 7 uur vanochtend)', async () => {
-  const now = Date.parse('2026-11-11T05:00:00Z') // ochtend (06:00 Amsterdam, voor 06:30: nog avond van gisteren)
+  const now = Date.parse('2026-11-11T04:59:00Z') // vlak voor de ochtend (05:59 Amsterdam): nog de avond van gisteren
   const n = nepStore([`pe:${rev}:2026-11-10-avond:${H('a')}`, `pe:${rev}:2026-11-10-middag:${H('a')}`, `pe:${rev}:2026-11-09-avond:${H('a')}`])
   await opruimen({ now, list: n.list, remove: n.remove, log: n.log })
   assert.deepEqual([...n.s].sort(), [`pe:${rev}:2026-11-10-avond:${H('a')}`, `pe:${rev}:2026-11-10-middag:${H('a')}`].sort())
