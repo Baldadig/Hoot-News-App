@@ -117,3 +117,14 @@ test('Er speelde al in Zoeken: per lezer uit de rekenkern, niet het gedeelde ant
   assert.match(volg, /erSpeeldeAl\(\{ eerder: antwoord\.eerder, bronnen, eigen, now: Date\.now\(\) \}\)/)
   assert.doesNotMatch(volg, /antwoord\.eerder\.map/, 'nooit het ongefilterde antwoord tonen')
 })
+
+test('nazorg 16 november: het label draagt een rubriek in de Stroom, en niets onder Buiten je bubbel (Editie en Stroom gelijk)', () => {
+  const stroom = read('src/views/Stream.jsx')
+  const items = read('src/components/Items.jsx')
+  const editie = read('src/views/Edition.jsx')
+  assert.match(stroom, /rubriekVoorLabel\(item, \{ lijn: filters\.rubriek/, 'de lijn geeft de rubriek aan het label')
+  assert.match(items, /else if \(volgt\?\.rubriek && !extra\)/, 'de Kicker toont die rubriek alleen als er geen eigen rubriek is')
+  assert.match(editie, /r\.desk !== 'bubbel' \? volgtVan/, 'geen label onder Buiten je bubbel in de Editie')
+  const rij = editie.split('\n').find((l) => l.includes('editionBubble.map(r=>'))
+  assert.ok(rij && !/volgtOp\(r\)/.test(rij), 'de bubbel-rijen krijgen het label niet')
+})

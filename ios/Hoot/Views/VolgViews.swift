@@ -23,11 +23,13 @@ struct VolgLabelAnker: PreferenceKey {
 // (volgLabelKnop). Zo staat er nooit een knop in de knop van de kaart, en krijgt VoiceOver een aparte knop.
 struct VolgLabelBeeld: View {
     @Environment(\.dynamicTypeSize) private var typeSize
+    // Het vinkje groeit mee met de tekst (Dynamic Type): 9 pt bij de standaardmaat, relatief aan .caption.
+    @ScaledMetric(relativeTo: .caption) private var vinkje: CGFloat = 9
     let volgt: StoryVolgzaak
     var body: some View {
         let tekst = typeSize.isAccessibilitySize ? VolgTekst.jeVolgt : VolgTekst.jeVolgt.uppercased()
         HStack(alignment: .firstTextBaseline, spacing: 3) {
-            Image(systemName: "checkmark").font(.system(size: 9, weight: .heavy)).imageScale(.small)
+            Image(systemName: "checkmark").font(.system(size: vinkje, weight: .heavy)).imageScale(.small)
             Text(tekst)
                 .font(typeSize.isAccessibilitySize ? .ui(.caption, .semibold) : .ui(.caption, .heavy))
                 .tracking(typeSize.isAccessibilitySize ? 0 : 0.6)

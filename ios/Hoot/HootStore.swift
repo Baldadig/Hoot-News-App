@@ -1120,23 +1120,70 @@ final class HootStore {
         // dezelfde ronde (de delen kwamen binnen) niet nog eens 20 s, maar rekent meteen het vangnet. Een
         // volgende ronde (terug in de app, verversen) vraagt opnieuw.
         let round = "\(task)#\(serverRound)"
-        let mayAsk = Self.asksServer(force: force, uid: account?.uid, pulled: account?.pulled == true, failed: serverFailed, round: round)
+        let mayAsk = Self.asksServer(force: force, failed: serverFailed, round: round)
+        askedAhead = nil
         if mayAsk, let raw = await askServer(global: global, owner: owner) {
             // Veranderde er intussen iets (bron gedempt, uitgelogd)? Dan komt er zo een nieuwe ronde.
             guard followed.map(\.id) == followedIds, ownerNow == owner else { return }
             keepServer(raw, task: task)
+            resetRetry()
             return
         }
         if mayAsk { serverFailed = round }
-        // (3) Geen antwoord (offline, een fout, 429): het vangnet, voorlopig.
+        guard followed.map(\.id) == followedIds, ownerNow == owner else { return }
+        if owner != "anon", !force {
+            // Een lid krijgt nooit een eigen samengestelde Editie (editiefix W1, 16 november 2026, gelijk aan het web):
+            // de Editie van dit dagdeel uit je account, anders blijft de vorige staan met "komt eraan", en we vragen opnieuw.
+            personalProvisional = nil
+            let kept = await memberFallback(global: global, owner: owner, task: task)
+            if mayAsk, !kept { scheduleRetry(task: task) }
+            return
+        }
+        // (3) Geen antwoord (offline, een fout, 429), zonder account: het vangnet, voorlopig.
         await provisional(global: global, owner: owner, basis: basis, force: force)
+        if mayAsk { scheduleRetry(task: task) }
     }
 
-    // Mag deze ronde de server vragen? Niet bij `-HootEngine`, als lid pas na de eerste pull, en niet nog eens in een
-    // ronde waarin de vraag al zonder antwoord bleef (`failed`, zie loadPersonal).
-    static func asksServer(force: Bool, uid: String?, pulled: Bool, failed: String, round: String) -> Bool {
-        !force && (uid == nil || pulled) && failed != round
+    // Mag deze ronde de server vragen? Niet bij `-HootEngine`, en niet nog eens in een ronde waarin de vraag al zonder
+    // antwoord bleef (`failed`, zie loadPersonal). Een lid hoeft niet op de eerste pull te wachten (editiefix, gelijk aan
+    // mayAskServer op het web): de server leest je account zelf. Zolang je account laadt vraagt loadPersonal niets.
+    static func asksServer(force: Bool, failed: String, round: String) -> Bool {
+        !force && failed != round
     }
+
+    // ---- Opnieuw vragen (editiefix W1/O4, gelijk aan retryDelay in src/lib/editionSync.js) ----
+    // Geen Editie van de server: opnieuw vragen met een oplopende pauze, niet pas bij de volgende start. Bij geen
+    // verbinding of te traag (0), een 200 die niet bruikbaar was (een ander dagdeel), 429 en elke 5xx; de pauze is hooguit
+    // `Retry-After` langer. Niet bij 400, 401, 403 of 413: opnieuw vragen helpt dan niet.
+    static let retryDelays: [TimeInterval] = [3, 10, 30, 60]
+    static let retryMax = 30
+    static func retryDelay(status: Int, attempt: Int, retryAfter: TimeInterval? = nil) -> TimeInterval? {
+        guard attempt >= 0, attempt < retryMax else { return nil }
+        guard status == 0 || status == 200 || status == 429 || (500...599).contains(status) else { return nil }
+        var wait = retryDelays[min(attempt, retryDelays.count - 1)]
+        if status == 429 { wait = max(wait, 60) }
+        return max(wait, retryAfter ?? 0)
+    }
+    @ObservationIgnored private var retryKey = "" // de taak waarvoor we opnieuw vragen
+    @ObservationIgnored private var retryAttempt = 0
+    @ObservationIgnored private var retryTimer: Task<Void, Never>?
+    @ObservationIgnored private var lastAsk: (status: Int, retryAfter: TimeInterval?) = (0, nil) // hoe de laatste vraag afliep
+    @ObservationIgnored private var askedAhead: [String: Any]? // een 200 met een Editie van een later dagdeel dan de kern
+    private func resetRetry() { retryTimer?.cancel(); retryTimer = nil; retryKey = ""; retryAttempt = 0 }
+    private func scheduleRetry(task: String) {
+        let attempt = retryKey == task ? retryAttempt : 0
+        guard let wait = Self.retryDelay(status: lastAsk.status, attempt: attempt, retryAfter: lastAsk.retryAfter) else { return }
+        retryKey = task
+        retryAttempt = attempt + 1
+        retryTimer?.cancel()
+        retryTimer = Task {
+            try? await Task.sleep(for: .seconds(wait))
+            guard !Task.isCancelled else { return }
+            self.serverRound += 1 // een nieuwe ronde: de vraag mag weer
+            await self.loadPersonal()
+        }
+    }
+
     @ObservationIgnored private var serverRound = 0 // telt de laadrondes (fetchAll)
     @ObservationIgnored private var serverFailed = "" // taak#ronde waarin de server geen antwoord gaf
 
@@ -1151,6 +1198,7 @@ final class HootStore {
     // history-regels van je vorige Edities van de server (`earlier`). Je leesprofiel alleen als samenvatting
     // (`reading`, uit de rekenkern: precies wat het web stuurt); nooit het ruwe profiel.
     private func askServer(global: Edition, owner: String) async -> [String: Any]? {
+        lastAsk = (0, nil)
         let reading = await Self.readingSummary(of: affinity)
         var body = Self.serverBody(followed: followed.map(\.id), interests: interests, topics: topics, favorites: favorites,
                                    taste: taste, readIds: readIds, reading: reading)
@@ -1170,6 +1218,8 @@ final class HootStore {
         guard JSONSerialization.isValidJSONObject(body), let payload = try? JSONSerialization.data(withJSONObject: body) else { return nil }
         let r = await Self.requestServer(payload, token: token, renew: { await self.account?.editionToken(renew: true) })
         let accepted = Self.acceptServer(r.data, status: r.status, id: global.id, owner: owner)
+        lastAsk = (r.status, r.retryAfter)
+        if accepted == nil { askedAhead = Self.aheadServer(r.data, status: r.status, global: global, owner: owner) }
         // De widget mag bij een nieuw dagdeel zelf dezelfde vraag stellen (WidgetOphalen), maar alleen zonder
         // account: met account is je token nodig, en dat blijft in de app.
         if accepted != nil { WidgetSchrijver.bewaarVraag(token == nil ? payload : nil) }
@@ -1178,22 +1228,24 @@ final class HootStore {
 
     // De vraag aan de server met alles wat mislukken mag: 401 vernieuwt het token één keer; een time-out, 429 of 503
     // geeft één stille nieuwe poging (1.3.1), met de laadweergave gewoon aan.
-    static func requestServer(_ payload: Data, token: String?, renew: () async -> String?) async -> (status: Int, data: Data?) {
+    static func requestServer(_ payload: Data, token: String?, renew: () async -> String?) async -> (status: Int, data: Data?, retryAfter: TimeInterval?) {
         var token = token
         var r = await HootAPI.serverEdition(payload, token: token)
         if r.status == 401, token != nil, let fresh = await renew() {
             token = fresh
             r = await HootAPI.serverEdition(payload, token: fresh)
         }
-        if retriesServer(r.status), !DebugLaunch.offline {
-            try? await Task.sleep(for: retryPause)
+        // Vraagt de server een lange pauze (Retry-After), dan wachten we die niet af: het opnieuw vragen met pauzes (retryDelay) doet het.
+        if retriesServer(r.status), !DebugLaunch.offline, (r.retryAfter ?? 0) <= quickRetryMax {
+            try? await Task.sleep(for: max(retryPause, .seconds(r.retryAfter ?? 0)))
             r = await HootAPI.serverEdition(payload, token: token, timeout: retryTimeout)
         }
         return r
     }
+    static let quickRetryMax: TimeInterval = 10
 
-    // Wanneer de server nog één keer gevraagd wordt: geen antwoord binnen de tijd (0), te druk (429) of even weg (503).
-    static func retriesServer(_ status: Int) -> Bool { status == 0 || status == 429 || status == 503 }
+    // Wanneer de server nog één keer gevraagd wordt: geen antwoord binnen de tijd (0), te druk (429) of even weg (500, 502, 503, 504).
+    static func retriesServer(_ status: Int) -> Bool { [0, 429, 500, 502, 503, 504].contains(status) }
     nonisolated(unsafe) static var retryPause: Duration = .seconds(1.5) // tests zetten hem kort
     static let retryTimeout: TimeInterval = 12
 
@@ -1221,6 +1273,65 @@ final class HootStore {
               let e = o["edition"] as? [String: Any], e["id"] as? String == id, e["owner"] as? String == owner,
               e["entries"] is [Any] else { return nil }
         return e
+    }
+
+    // Een 200 met een Editie van deze lezer die van een later dagdeel is dan de kern van dit toestel (de kern loopt achter):
+    // bewaren, en tonen zodra de kern bij is (`ahead` op het web). Een 200 met een eerder dagdeel is nog geen antwoord.
+    static func aheadServer(_ data: Data?, status: Int, global: Edition, owner: String) -> [String: Any]? {
+        guard status == 200, let data, let o = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+              let e = o["edition"] as? [String: Any], e["owner"] as? String == owner, e["entries"] is [Any],
+              Self.later(e, than: global.builtAt) else { return nil }
+        return e
+    }
+    private static func later(_ e: [String: Any], than builtAt: String?) -> Bool {
+        guard let a = (e["builtAt"] as? String).flatMap(HootDate.parse), let b = builtAt.flatMap(HootDate.parse) else { return false }
+        return a > b
+    }
+    private static func earlier(_ e: [String: Any], than builtAt: String?) -> Bool {
+        guard let a = (e["builtAt"] as? String).flatMap(HootDate.parse), let b = builtAt.flatMap(HootDate.parse) else { return false }
+        return a < b
+    }
+
+    // Wat een lid ziet als de server geen Editie gaf (serverFirst op het web, de tak van een lid): (1) de Editie van dit dagdeel
+    // uit je account, bewaren als antwoord van de server; (2) anders niets samenstellen: `previous` (een Editie van een eerder
+    // dagdeel uit je account) blijft staan met "komt eraan", `ahead` (een van een later dagdeel) wordt bewaard voor als de kern bij is.
+    enum MemberKeuze {
+        case account([String: Any])
+        case wait(ahead: [String: Any]?, previous: [String: Any]?)
+    }
+    static func memberKeuze(theirs: [String: Any]?, ahead: [String: Any]?, global: Edition, owner: String) -> MemberKeuze {
+        let mine: [String: Any]? = {
+            guard var t = theirs, t["entries"] is [Any], t["owner"] == nil || t["owner"] as? String == owner else { return nil }
+            t["owner"] = owner
+            return t
+        }()
+        if let mine, mine["id"] as? String == global.id { return .account(mine) }
+        var ahead = ahead
+        if ahead == nil, let mine, later(mine, than: global.builtAt) { ahead = mine }
+        let previous = mine.flatMap { earlier($0, than: global.builtAt) ? $0 : nil }
+        return .wait(ahead: ahead, previous: previous)
+    }
+
+    // Past de Editie uit je account niet (de server gaf niets), dan: bewaren, of de vorige laten staan. Waar of onwaar: staat er nu
+    // een Editie van dit dagdeel (dan hoeft er niet opnieuw gevraagd).
+    private func memberFallback(global: Edition, owner: String, task: String) async -> Bool {
+        guard let account else { return false }
+        _ = try? await account.fetchEdition() // vers uit je account (PostgREST, werkt ook als de functie faalt); lukt het niet: wat de pull gaf
+        guard ownerNow == owner else { return false }
+        switch Self.memberKeuze(theirs: account.remoteEdition, ahead: askedAhead, global: global, owner: owner) {
+        case .account(let raw):
+            keepServer(raw, task: task)
+            resetRetry()
+            return true
+        case .wait(let ahead, let previous):
+            if let ahead, let id = ahead["id"] as? String {
+                keep(ahead)
+                personalServerTask = "\(id)|\(owner)|\(ahead["basis"] as? String ?? "")"
+            }
+            if heldNow == nil, currentEdition == nil, let previous, let prev = Self.decodeEdition(previous),
+               DagdeelWissel.mayHold(prev, kern: global, owner: owner) { held = prev }
+            return false
+        }
     }
 
     // Letterlijk bewaren wat de server gaf (edition.json), en het vangnet vervangen.

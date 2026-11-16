@@ -179,7 +179,7 @@ struct StreamView: View {
                                     if item.isPost { PostRow(item: item) }
                                     else {
                                         let volgt = labels[item.id]
-                                        ItemRow(item: item, label: volgt == nil ? nil : Self.rubriekLabel(item, cat: cats[item.source] ?? nil), story: store.story(of: item), volgt: volgt, form: compact ? .krant : nil, dicht: compact) // dicht op de Duo: dichte rijen
+                                        ItemRow(item: item, label: volgt == nil ? nil : Self.rubriekLabel(item, cat: cats[item.source] ?? nil, lijn: rub), story: store.story(of: item), volgt: volgt, form: compact ? .krant : nil, dicht: compact) // dicht op de Duo: dichte rijen
                                     }
                                 }
                                     .transition(.identity)
@@ -245,6 +245,13 @@ struct StreamView: View {
                 await EditionEngine.volg.warm()
                 volgKlaar += 1
             }
+            // Koude start: de grens lag al vast toen de rekenkern nog niet klaar was, dus zonder voorrang. Is hij er nu en zag je nog
+            // niets (nog niet gescrold), dan alsnog vastzetten, zodat de voorrang er is zonder dat je een volgend bezoek afwacht.
+            .onChange(of: volgKlaar) {
+                guard rub != "bubbel", store.volgtIets, EditionEngine.volg.isLoaded, let g = volger.vastgezet(weergave) else { return }
+                let idx = StroomEinde.index(items, grens: g)
+                if volgStroom.zetAlsnogVast(weergave, grensVast: true, gescrold: volger.gescrold, sleutel: VolgStroom.sleutel(weergave, items, idx), invoer: { store.voorrangInvoer(items, weergave: volgSoort, grens: idx) }) { volgKlaar += 1 } // opnieuw tekenen met de voorrang
+            }
             // Stilstaand kijken telt ook: wat al even helemaal in beeld staat.
             .task(id: weergave) {
                 while !Task.isCancelled {
@@ -290,12 +297,14 @@ struct StreamView: View {
         }
     }
 
-    // De rubriek boven een stuk met het label "Je volgt" (in de Stroom staat er verder geen rubriekregel): de rubriek van de
-    // uitgever, of anders die van de bron.
-    static func rubriekLabel(_ item: Item, cat: String?) -> String? {
-        if let s = item.section, !s.isEmpty { return s }
-        let labels = ["binnenland": "Binnenland", "buitenland": "Wereld", "wereld": "Wereld", "economie": "Economie", "tech": "Tech", "wetenschap": "Wetenschap", "cultuur": "Cultuur", "sport": "Sport", "politiek": "Politiek", "music": "Cultuur"]
-        return cat.flatMap { labels[$0] }
+    // De rubriek voor het label "Je volgt" (in de Stroom staat er verder geen rubriekregel), in deze volgorde: de rubriek van de
+    // uitgever; de hoofdrubriek waarin je nu kijkt (`lijn`); de eerste hoofdrubriek waar het stuk bij hoort (zijn onderwerpen
+    // of de rubriek van zijn bron); anders niets, en staat er alleen het label. Gelijk aan rubriekVoorLabel op het web
+    // (src/lib/volg-rubriek.js, dezelfde gevallen in tests/fixtures/volg-rubriek-cases.json).
+    static func rubriekLabel(_ item: Item, cat: String?, lijn: String = "") -> String? {
+        if let s = item.section?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty { return s }
+        if let r = Rubriek.byId[lijn] { return r.label }
+        return Rubriek.alle.first { Rubriek.past(item, $0.id, cat: cat) }?.label
     }
 
     // De weergave: rubriek en bronkeuze. Elke weergave heeft een eigen grens (positionKey op het web).
@@ -360,6 +369,14 @@ final class VolgStroom {
     func zetVast(_ weergave: String, sleutel: String, invoer: () -> Data) {
         guard vast[weergave] == nil else { return }
         vast[weergave] = voorrang(weergave, sleutel: sleutel, invoer: invoer)
+    }
+    // Koude start (de rekenkern was er nog niet toen de grens vastgezet werd): de voorrang alsnog vastzetten, maar alleen
+    // zolang de weergave nog niet vastligt en je nog niets zag (niet gescrold). Geeft terug of het gebeurde.
+    @discardableResult
+    func zetAlsnogVast(_ weergave: String, grensVast: Bool, gescrold: Bool, sleutel: String, invoer: () -> Data) -> Bool {
+        guard grensVast, !gescrold, vast[weergave] == nil else { return false }
+        vast[weergave] = voorrang(weergave, sleutel: sleutel, invoer: invoer)
+        return true
     }
     func vastgezet(_ weergave: String) -> [String]? { vast[weergave] }
     func labels(_ sleutel: String, invoer: () -> Data) -> [String: StoryVolgzaak] {

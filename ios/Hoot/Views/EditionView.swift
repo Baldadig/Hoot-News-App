@@ -310,7 +310,7 @@ struct EditionView: View {
                 .padding(.top, Space.s1)
                 .padding(.bottom, Space.s3)
             ForEach(outsideRows) { row in
-                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,volgt:store.volgtVan(row.story),form:wide || compact ? .krant : .tijdlijn,dicht:compact,lines:HootStore.kaartLines) }
+                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,volgt:nil,form:wide || compact ? .krant : .tijdlijn,dicht:compact,lines:HootStore.kaartLines) }
             }
         }
     }

@@ -10,6 +10,7 @@ final class ServerEditionStub: URLProtocol {
     nonisolated(unsafe) static var response = Data()
     nonisolated(unsafe) static var status = 200
     nonisolated(unsafe) static var queue: [Int] = []
+    nonisolated(unsafe) static var retryAfter: String?
     nonisolated(unsafe) static var requests: [URLRequest] = []
     nonisolated(unsafe) static var bodies: [[String: Any]] = []
     override class func canInit(with request: URLRequest) -> Bool { true }
@@ -26,7 +27,7 @@ final class ServerEditionStub: URLProtocol {
             data = out
         }
         Self.bodies.append(data.flatMap { (try? JSONSerialization.jsonObject(with: $0)) as? [String: Any] } ?? [:])
-        let res = HTTPURLResponse(url: request.url!, statusCode: Self.status, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!
+        let res = HTTPURLResponse(url: request.url!, statusCode: Self.status, httpVersion: nil, headerFields: ["Content-Type": "application/json"].merging(Self.retryAfter.map { ["Retry-After": $0] } ?? [:]) { a, _ in a })!
         client?.urlProtocol(self, didReceive: res, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: Self.status == 200 ? Self.response : Data("{}".utf8))
         client?.urlProtocolDidFinishLoading(self)
