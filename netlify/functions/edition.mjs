@@ -379,8 +379,15 @@ export function prefsMarkOf(prefs, sources = []) {
 export const memberCopyKey = (uid, id) => `pe-member:${sha(uid)}:${id}`
 const copied = new WeakMap() // kv -> Map(sleutel -> merk)
 const COPY_MEMO_MAX = 5000
+// Privacy: de kopie draagt `owner` (je account) en blijft twee dagdelen staan, dus er staat nooit een volgzaak in. Het
+// label `volgt` op de plekken blijft alleen in je eigen account (user_state.edition), net als prefs.volgzaken.
+export function zonderVolgt(e) {
+  if (!e || !Array.isArray(e.entries) || !e.entries.some((x) => x && typeof x === 'object' && 'volgt' in x)) return e
+  return { ...e, entries: e.entries.map((x) => { if (!x || typeof x !== 'object' || !('volgt' in x)) return x; const { volgt, ...rest } = x; return rest }) }
+}
 function keepCopy(kv, waitUntil, key, e) {
   if (!e || typeof e !== 'object') return
+  e = zonderVolgt(e)
   let memo = copied.get(kv)
   if (!memo) copied.set(kv, (memo = new Map()))
   const mark = JSON.stringify([e.basis, e.bases || null, e.builtAt, e.version, !!e.brief])

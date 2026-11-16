@@ -7,7 +7,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { handle, prefsMarkOf, accountBasesOf, composeFor, profileOf } from '../netlify/functions/edition.mjs'
+import { handle, zonderVolgt, prefsMarkOf, accountBasesOf, composeFor, profileOf } from '../netlify/functions/edition.mjs'
 import { metVolgtOpPlekken, volgtVanPlek, verhaalVanPlek } from '../shared/volgzaak-weergave.mjs'
 import { editionBasis } from '../src/lib/personal.js'
 import { currentChoice, RUBRIEKEN, ONDERWERPEN } from '../src/lib/topics.js'
@@ -177,4 +177,22 @@ test('web en app lezen het label uit de plek, niet meer uit het verhaal (d)', ()
   const swift = readFileSync(new URL('../ios/Hoot/Views/EditionView.swift', import.meta.url), 'utf8')
   assert.ok(!/store\.volgtVan\(/.test(swift), 'de Editie op iOS leest row.volgt')
   assert.match(readFileSync(new URL('../ios/Hoot/Models.swift', import.meta.url), 'utf8'), /var volgt: EditionVolgt\?/)
+})
+
+test('privacy: de kopie in de server-opslag (pe-member) bevat nooit een slug, ook al staat het label in je account', async () => {
+  const { start } = await kern({ vlag: true })
+  const pg = fakePostgrest([{ user_id: UID, edition: null, prefs: prefsFor([zaak('gta-6', 'GTA 6'), zaak('kabinetsformatie', 'Kabinetsformatie'), zaak('tata-steel', 'Tata Steel')]) }])
+  const d = deps(pg, start)
+  const r = await ask(d, web())
+  assert.ok(gelabeld(r.edition).length > 0, 'het label staat wel in je account')
+  await new Promise((res) => setTimeout(res, 20))
+  const kopieen = [...d.kv.m].filter(([k]) => k.startsWith('pe-member:'))
+  assert.ok(kopieen.length > 0, 'er is een kopie bewaard')
+  for (const [k, v] of kopieen) {
+    const tekst = JSON.stringify(v)
+    assert.ok(v.entries.every((x) => !('volgt' in x)), k)
+    for (const slug of ['gta-6', 'kabinetsformatie', 'tata-steel']) assert.ok(!tekst.includes(slug), `${k} bevat ${slug}`)
+  }
+  assert.equal(zonderVolgt(r.edition).entries.length, r.edition.entries.length)
+  assert.ok(!JSON.stringify(zonderVolgt(r.edition)).includes('"volgt"'))
 })
