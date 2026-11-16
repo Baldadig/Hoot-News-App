@@ -197,9 +197,10 @@ export async function readDoc(key) {
 // Zoals readDoc, maar voorwaardelijk (If-None-Match op de ETag van Blobs, `tag`): niet veranderd = { same: true },
 // zonder de bytes opnieuw te halen. Anders { body, tag, ...metadata } (`tag`: de ETag van Blobs), of null.
 // Zonder Blobs (lokaal) geen tag: dan altijd het hele document.
-export async function readDocIf(key, tag = null) {
+// `strong`: met sterke consistentie (de kern opnieuw als de klok een later dagdeel zegt, edition.mjs S2).
+export async function readDocIf(key, tag = null, { strong = false } = {}) {
   try {
-    const r = await store().getWithMetadata(key, { type: 'text', ...(tag ? { etag: tag } : {}) })
+    const r = await (strong ? strongStore() : store()).getWithMetadata(key, { type: 'text', ...(tag ? { etag: tag } : {}) })
     if (!r) return null
     if (r.data == null) return tag ? { same: true } : null
     return { body: r.data, ...r.metadata, tag: r.etag || null }

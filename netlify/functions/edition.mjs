@@ -61,6 +61,8 @@ import { currentChoice, RUBRIEKEN, withCrypto, ONDERWERPEN } from '../../src/lib
 import { normalizePrefs } from '../../src/lib/prefs.js'
 import { mutedSet } from '../../src/lib/sourcesel.js'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
+import { slotIdNow } from '../../shared/tel.mjs'
+import { logFault } from '../lib/edition-fout.mjs'
 
 const fail = (status, error, headers = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
 // v2: nooit in een gedeelde cache (een antwoord kan van je account zijn).
@@ -293,8 +295,21 @@ export async function verifyToken(token, fetchImpl = fetch) {
   return typeof user?.id === 'string' ? user.id : null
 }
 // Een client die als het lid zelf leest en schrijft: de regels in de database laten alleen je eigen rij toe.
-export const clientForToken = (token) =>
-  createClient(SUPABASE_URL, SUPABASE_KEY, { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } })
+// Zonder realtime (editiefix, 16 november 2026): supabase-js bouwt in createClient altijd een realtime-client, en die
+// gooit op Node zonder ingebouwde WebSocket (Node 20) meteen een fout. Zo gaf elke vraag als lid van 11 tot 16 november
+// een 502. De server gebruikt geen realtime: deze transport verbindt nooit, en zo maakt de Node-versie niet meer uit.
+// `fetchImpl` alleen voor de tests (tests/editie-node.test.mjs: de echte client met een nep-PostgREST).
+export class NoSocket {
+  constructor() {
+    throw new Error('Geen realtime op de server.')
+  }
+}
+export const clientForToken = (token, fetchImpl = null) =>
+  createClient(SUPABASE_URL, SUPABASE_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` }, ...(fetchImpl ? { fetch: fetchImpl } : {}) },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    realtime: { transport: NoSocket },
+  })
 
 // De Editie en je instellingen uit je account, in één keer (je eigen rij, met jouw token). `exists`: er is een rij in
 // user_state (zonder rij kan de server niets vastleggen, zie de kopie hieronder). Bij een fout gooien.
@@ -329,11 +344,23 @@ export function accountBasesOf(start, prefs) {
 // bronnenlijst en zonder omzetting die van de code afhangt (normalizePrefs, currentTopics, RUBRIEKEN): haalt een deploy
 // of feedronde een gevolgde bron uit de lijst, of verandert de indeling van onderwerpen, dan blijft het merk gelijk en je
 // Editie staan (Editie stabiel, 15 november 2026, punt 1). null zonder instellingen.
-const MARK_FIELDS = ['muted', 'enabled', 'interests', 'topics', 'favorites', 'rubrieken', 'onderwerpen']
-export function prefsMarkOf(prefs) {
+//
+// Versie 2 (editiefix S3, 16 november 2026): alleen wat de afdruk raakt. Van `muted` en `enabled` telt alleen welke
+// nieuwsbronnen daardoor uit staan (mutedSet, zonder 'sociaal'): een gedempte Bluesky-bron of een `enabled` zonder
+// gevolg veranderde het merk wel, en gaf zo binnen een dagdeel een tweede Editie. Een id dat niet (meer) in de
+// bronnenlijst staat telt zoals het in `muted` staat, zodat een bron die uit de lijst verdwijnt het merk niet
+// verandert (punt 1 hierboven). Een merk van versie 1 (zonder voorvoegsel) telt als onbekend: die rij blijft staan.
+const MARK_FIELDS = ['interests', 'topics', 'favorites', 'rubrieken', 'onderwerpen']
+export const MARK_V = 'm2:'
+export function prefsMarkOf(prefs, sources = []) {
   if (!prefs || typeof prefs !== 'object' || Array.isArray(prefs) || !Object.keys(prefs).length) return null
   const field = (v) => (Array.isArray(v) ? [...new Set(v.filter((x) => typeof x === 'string'))].sort() : v ?? null)
-  return sha(JSON.stringify(MARK_FIELDS.map((k) => [k, field(prefs[k])])))
+  const known = new Map((Array.isArray(sources) ? sources : []).map((s) => [s.id, s]))
+  const muted = field(prefs.muted) || []
+  const enabled = field(prefs.enabled) || []
+  const offKnown = [...mutedSet({ muted, enabled }, [...known.values()])].filter((id) => known.has(id) && known.get(id).kind !== 'sociaal')
+  const off = [...new Set([...offKnown, ...muted.filter((id) => !known.has(id))])].sort()
+  return MARK_V + sha(JSON.stringify([['off', off], ...MARK_FIELDS.map((k) => [k, field(prefs[k])])]))
 }
 
 // Een kopie van je Editie van dit dagdeel op de server (`pe-member:<sha256 user-id>:<dagdeel-id>`), voor als je account
@@ -379,7 +406,7 @@ export async function claimOver(client, uid, stamped, seen) {
 }
 
 // De kern en de delen uit het geheugen van deze instantie, of uit Blobs als ze nieuw zijn (netlify/lib/feed-geheugen.mjs).
-const memory = feedMemory({ readStart: (tag) => readDocIf(KEYS.start, tag), readPart: (id) => readDoc(KEYS.part(id)) })
+const memory = feedMemory({ readStart: (tag, strong = false) => readDocIf(KEYS.start, tag, { strong }), readPart: (id) => readDoc(KEYS.part(id)) })
 // Ook koud (na een deploy) eerst het startbestand uit Blobs; refresh() binnen de aanvraag alleen als dat er echt
 // niet is (een lege opslag). Nagekeken voor Editie stabiel: memory.loadStart geeft alleen null zonder body in Blobs.
 async function loadStart() {
@@ -389,6 +416,21 @@ async function loadStart() {
   return memory.loadStart()
 }
 const loadItems = (start, followed) => memory.loadItems(start, followed)
+// De kern opnieuw, met sterke consistentie (editiefix S2): zie freshStartFor hieronder.
+const loadStartStrong = () => memory.loadStart({ strong: true })
+
+// De plaats van een dagdeel-id in de tijd ('2026-11-16-middag' -> '2026-11-16-1'), of null: zo zijn twee id's te
+// vergelijken als tekst.
+const SLOT_ORDER = ['ochtend', 'middag', 'avond']
+export const slotRank = (id) => {
+  const m = /^(\d{4}-\d{2}-\d{2})-(ochtend|middag|avond)$/.exec(typeof id === 'string' ? id : '')
+  return m ? `${m[1]}-${SLOT_ORDER.indexOf(m[2])}` : null
+}
+export const laterSlot = (a, b) => {
+  const x = slotRank(a)
+  const y = slotRank(b)
+  return !!x && !!y && x > y
+}
 
 // Hoe lang elke stap duurde, als `Server-Timing`-kop (B7): alleen namen en milliseconden, nooit profiel, account of
 // afdruk. Zo zien we in de browser en in een meting precies waar de tijd van een vraag zit.
@@ -419,8 +461,23 @@ const ok = (edition, source, watch = null) => Response.json({ edition, source, r
 // cache zonder account en van de kopie als lid houdt het antwoord niet op (B2, `waitUntil`). Wat er gekozen wordt,
 // verandert niet: dezelfde stappen, dezelfde invoer.
 const KV = { get: kvGet, set: kvSet, take: kvTake }
+// Nooit een kale throw (editiefix, 16 november 2026): een onverwachte fout gaf een 502 van Netlify, en iOS 1.3.1 en 1.4
+// proberen een 502 niet opnieuw (alleen 0, 429 en 503). Nu een 503 met Retry-After: het toestel vraagt zo opnieuw.
+export const RETRY_S = 3
 export async function editionV2(req, body, deps = {}) {
-  const { start: startOf = loadStart, items: itemsOf = loadItems, verify = verifyToken, clientFor = clientForToken, kv = KV, waitUntil = null } = deps
+  try {
+    return await editionV2Route(req, body, deps)
+  } catch (e) {
+    logFault('onverwacht', e, deps.log)
+    return fail2(503, 'Je Editie is even niet bereikbaar.', { 'Retry-After': String(RETRY_S) })
+  }
+}
+async function editionV2Route(req, body, deps) {
+  // `fetch`: alleen voor de tests (de echte verifyToken en clientForToken met een nep-Supabase). `freshStart` en `now`:
+  // de kern opnieuw lezen en de klok (S2). Met een eigen `start` (de tests) leest de server de kern alleen opnieuw als
+  // de test ook `freshStart` meegeeft.
+  const { start: startOf = loadStart, items: itemsOf = loadItems, kv = KV, waitUntil = null, fetch: fetchImpl = null, now = Date.now } = deps
+  const { verify = (t) => verifyToken(t, fetchImpl || fetch), clientFor = (t) => clientForToken(t, fetchImpl), freshStart = deps.start ? null : loadStartStrong } = deps
   const watch = stopwatch()
   const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim()
   const starting = watch.time('kern', startOf)
@@ -435,12 +492,34 @@ export async function editionV2(req, body, deps = {}) {
       return fail2(503, 'Je account is nu niet bereikbaar.')
     }
     if (!uid) return fail2(401, 'Je sessie is verlopen.')
-    client = clientFor(token)
+    try {
+      client = clientFor(token)
+    } catch (e) {
+      // Zo crashte de server van 11 tot 16 november (supabase-js op Node 20): nu een 503, en het toestel vraagt opnieuw.
+      logFault('client', e, deps.log)
+      return fail2(503, 'Je account is nu niet bereikbaar.', { 'Retry-After': String(RETRY_S) })
+    }
     reading = watch.time('account', () => accountEdition(client, uid))
     reading.catch(() => {})
   }
-  const start = await starting
+  let start = await starting
   if (!start?.edition?.id) return fail2(503, 'De feed is er nog niet.')
+  // S2 (editiefix): als lid nooit de Editie van een eerder dagdeel terwijl er al een later dagdeel is. Zegt de klok dat er
+  // een later dagdeel begonnen is dan dat van onze kern, dan lezen we de kern opnieuw met sterke consistentie (Blobs loopt
+  // tot een minuut achter, en een iPhone met de kern van nu gooit een antwoord met een ander dagdeel weg, zonder opnieuw te
+  // vragen). Is er een nieuwere kern, dan rekenen we daarmee. Is die er nog niet (de eerste feedronde van het dagdeel
+  // loopt nog), dan is de Editie van nu nog die van het vorige dagdeel, voor elk toestel, en gaat die gewoon terug.
+  // Lukt het opnieuw lezen niet, dan een 503 met Retry-After: liever zo opnieuw vragen dan een oude Editie.
+  if (uid && freshStart && laterSlot(slotIdNow(new Date(now())), start.edition.id)) {
+    let fresh = null
+    try {
+      fresh = await watch.time('kern', freshStart)
+    } catch (e) {
+      logFault('kern', e, deps.log)
+      return fail2(503, 'De nieuwe Editie komt eraan.', { 'Retry-After': String(RETRY_S) })
+    }
+    if (fresh?.edition?.id && laterSlot(fresh.edition.id, start.edition.id)) start = fresh
+  }
   const global = start.edition
   const id = global.id
   const p = profileOf(start, body)
@@ -479,10 +558,11 @@ export async function editionV2(req, body, deps = {}) {
     // nog niet is weggeschreven, iOS zonder `onderwerpen`) nooit een nieuwe Editie, ook niet als het als eerste vraagt.
     const acctProfile = accountProfileOf(start, acct.prefs, p)
     const acctBases = acctProfile ? basesOf(acctProfile) : null
-    const acctMark = acctBases ? prefsMarkOf(acct.prefs) : null
+    const acctMark = acctBases ? prefsMarkOf(acct.prefs, start.sources) : null
     const askIsAccount = !!acctBases && bases.some((b) => acctBases.includes(b))
     const sameChoice = (e) => fits(e) || (askIsAccount && fitsAny(e, id, acctBases))
-    const choiceChanged = (e) => askIsAccount && !!acctMark && typeof e?.prefsMark === 'string' && e.prefsMark !== acctMark
+    // Alleen een merk van dezelfde versie telt (MARK_V): een rij met een merk van versie 1 blijft het dagdeel staan.
+    const choiceChanged = (e) => askIsAccount && !!acctMark && typeof e?.prefsMark === 'string' && e.prefsMark.startsWith(MARK_V) && e.prefsMark !== acctMark
     const answer = (e) => {
       keep(e)
       return ok(sameChoice(e) ? forAsker(e, bases) : e, 'account', watch)

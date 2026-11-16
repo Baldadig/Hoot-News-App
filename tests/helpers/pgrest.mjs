@@ -64,7 +64,9 @@ export function fakePostgrest(rows = []) {
     }
     return json({ message: `nep-PostgREST kent ${method} niet` }, 405)
   }
-  const client = createClient('http://nep.local', 'anon', { global: { fetch }, auth: { persistSession: false, autoRefreshToken: false } })
+  // Zonder realtime (een transport die nooit verbindt): zo werkt de nep ook in een proces zonder WebSocket (Node 20).
+  const client = createClient('http://nep.local', 'anon', { global: { fetch }, auth: { persistSession: false, autoRefreshToken: false }, realtime: { transport: class { constructor() { throw new Error('geen realtime') } } } })
   // `patches`: elke schrijfaanvraag; `writes`: alleen die een rij veranderden.
-  return { client, table, log, patches: () => log.filter((l) => l.method !== 'GET'), writes: () => log.filter((l) => l.method !== 'GET' && l.rows > 0) }
+  // `fetch`: dezelfde nep-PostgREST zonder client (tests/editie-node.test.mjs geeft hem aan de echte clientForToken).
+  return { client, fetch, table, log, patches: () => log.filter((l) => l.method !== 'GET'), writes: () => log.filter((l) => l.method !== 'GET' && l.rows > 0) }
 }

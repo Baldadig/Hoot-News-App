@@ -283,17 +283,25 @@ test('serverFirst: het vangnet schrijft nooit naar je account en wordt vervangen
   const pg = fakePostgrest([{ user_id: UID, edition: null }])
   const compose = ({ previous, now }) => composePersonal({ global: snap.edition, stories: snap.stories, items: snap.items, sources: snap.sources, ...setup, affinity: null, now, previous })
   const base = { global: snap.edition, owner: UID, basis, request: serverRequest(profile), compose, ready: true }
+  // Het vangnet is er alleen zonder account (editiefix W1): een lid krijgt nooit een eigen samengestelde Editie.
+  const anon = { ...base, owner: 'anon' }
   // Offline: voorlopig, gemerkt, niet te bewaren als Editie van de server.
-  const off = await serverFirst({ ...base, online: false, ask: async () => assert.fail('offline vraagt niet') })
+  const off = await serverFirst({ ...anon, online: false, ask: async () => assert.fail('offline vraagt niet') })
   assert.equal(off.source, 'provisional')
   assert.equal(off.edition.provisional, true)
   assert.equal(off.keep, false)
   // Een fout of 429: ook voorlopig.
-  for (const status of [0, 429, 500, 503]) assert.equal((await serverFirst({ ...base, ask: async () => ({ status, edition: null }) })).source, 'provisional')
+  for (const status of [0, 429, 500, 503]) assert.equal((await serverFirst({ ...anon, ask: async () => ({ status, edition: null }) })).source, 'provisional')
+  // Als lid in dezelfde gevallen: niets samenstellen, wachten (en opnieuw vragen, retryDelay).
+  for (const status of [0, 429, 500, 502, 503]) {
+    const r = await serverFirst({ ...base, ask: async () => ({ status, edition: null }), compose: () => assert.fail('een lid stelt niet zelf samen') })
+    assert.deepEqual([r.source, r.edition, r.keep], ['wait', null, false])
+  }
   // De berichten komen niet en de server antwoordt niet: de algemene Editie.
-  const g = await serverFirst({ ...base, ready: false, stuck: true, ask: async () => ({ status: 0 }) })
+  const g = await serverFirst({ ...anon, ready: false, stuck: true, ask: async () => ({ status: 0 }) })
   assert.equal(g.source, 'global')
-  assert.equal(await serverFirst({ ...base, ready: false, ask: async () => ({ status: 0 }) }), null, 'nog even wachten')
+  assert.equal((await serverFirst({ ...base, ready: false, stuck: true, ask: async () => ({ status: 0 }) })).source, 'global', 'ook als lid zonder vorige Editie')
+  assert.equal(await serverFirst({ ...anon, ready: false, ask: async () => ({ status: 0 }) }), null, 'nog even wachten')
   assert.equal(pg.log.length, 0, 'het vangnet raakt je account niet')
   // Weer online: de server antwoordt, en zijn Editie vervangt het vangnet.
   const d = deps({ pg })
@@ -305,8 +313,9 @@ test('serverFirst: het vangnet schrijft nooit naar je account en wordt vervangen
   // Daarna: wat hier ligt, zonder nieuwe vraag.
   const again = await serverFirst({ ...base, local: on.edition, localFromServer: true, ask: async () => assert.fail('niet opnieuw vragen') })
   assert.equal(again.source, 'local')
-  // Een lid vraagt pas na het ophalen van zijn account (`mayAsk`): anders het vangnet.
-  assert.equal((await serverFirst({ ...base, mayAsk: false, ask: async () => assert.fail('nog niet') })).source, 'provisional')
+  // Een lid vraagt pas na het ophalen van zijn account (`mayAsk`): anders wachten (zonder account: het vangnet).
+  assert.equal((await serverFirst({ ...base, mayAsk: false, ask: async () => assert.fail('nog niet') })).source, 'wait')
+  assert.equal((await serverFirst({ ...anon, mayAsk: false, ask: async () => assert.fail('nog niet') })).source, 'provisional')
 })
 
 test('serverFirst: een Editie van een later dagdeel (de kern hier loopt achter) wordt bewaard, niet getoond', async () => {

@@ -269,7 +269,7 @@ test('een afwijkend toestel vraagt eerst, daarna het web dat bij je account past
   assert.equal(pg.writes().length, 1)
   // Vastgelegd met het merk van je account, en samengesteld met de keuze uit je account: het web herkent haar.
   const acct = accountBasesOf(start, prefsFor())
-  assert.equal(pg.table[0].edition.prefsMark, prefsMarkOf(prefsFor()))
+  assert.equal(pg.table[0].edition.prefsMark, prefsMarkOf(prefsFor(), start.sources))
   assert.ok(acct.includes(pg.table[0].edition.basis))
   assert.equal(seen[1].edition.basis, basesOf(profileOf(start, web()))[0], 'het web krijgt haar met zijn eigen afdruk')
 })

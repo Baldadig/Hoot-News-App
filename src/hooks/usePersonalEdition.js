@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { personalRows, editionBasis } from '../lib/personal-basis.js'
-import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, servedLocal, askGate, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
+import { fitsEdition, writeBrief, provisionalReady, serverRequest, askServer, serverFirst, earlierForServer, servedLocal, askGate, readAccountEdition, retryDelay, mayAskServer, SERVER_KEY, PROVISIONAL_KEY } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
 import { readingSummary } from '../lib/affinity.js'
 import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
@@ -13,12 +13,16 @@ const KEY = 'hoot:my-edition'
 // 1. ligt hier al een Editie van de server voor dit dagdeel, deze lezer en deze bronnen en interesses: die;
 // 2. anders POST /api/edition (v2): de server stelt samen en legt als lid zelf vast in je account (de eerste
 //    schrijver wint). Wat hij teruggeeft, bewaren we letterlijk; dit toestel schrijft niets naar je account.
-//    Als lid pas na het ophalen van je account (`sync.pulled`): anders vraagt een vers toestel met de
+//    Als lid pas na het ophalen van je account (`sync.pulled`, of als dat mislukte): anders vraagt een vers toestel met de
 //    standaardinstellingen, en zet de server een Editie met de verkeerde afdruk in je account;
-// 3. geen antwoord (offline, een fout, 429) en de berichten zijn er: zelf samenstellen als vangnet, voorlopig.
-//    Die gaat nooit naar je account en nooit in je geschiedenis; zodra de server antwoordt (weer online,
-//    terug in de app, een volgende feedronde) vervangt zijn Editie het vangnet;
+// 3. als lid geen antwoord (offline, een fout, 429): nooit zelf samenstellen (editiefix W1, 16 november 2026), maar de
+//    Editie van dit dagdeel uit je account (PostgREST), of anders je vorige Editie uit je account met "De ...editie komt
+//    eraan" (holdFor). Zo tonen web en iPhone bij een serverfout nooit elk een eigen Editie;
+// 3. zonder account geen antwoord en de berichten zijn er: zelf samenstellen als vangnet, voorlopig. Die gaat nooit
+//    naar je account en nooit in je geschiedenis; zodra de server antwoordt vervangt zijn Editie het vangnet;
 // 4. komen ook de berichten niet (`stuck`): de algemene Editie.
+// Zonder Editie van de server vraagt het web opnieuw met een oplopende pauze (retryDelay), niet pas als het tabblad
+// verborgen of offline was. Zolang je account nog laadt, vraagt het niets en schrijft het niets (O8).
 // Je leesprofiel (`affinity`) blijft op dit toestel; alleen een samenvatting gaat mee naar de server
 // (readingSummary, besluit Alex 11 november 2026: "Leesprofiel meesturen"). Het vangnet rekent met dezelfde
 // samenvatting, zodat het gelijk is aan wat de server met hetzelfde profiel geeft. Als lid wint de eerste
@@ -30,6 +34,8 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
   const uid = syncedUid(account)
   const owner = uid || 'anon'
   const pulled = !!sync?.pulled
+  // Het account laadt nog (een sessie, het profiel komt): dan weten we nog niet of dit een lid is (O8).
+  const loading = account?.status === 'loading'
   const followed = useMemo(() => (data?.sources || []).filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id), [data?.sources, muted])
   // Het vangnet mag rekenen als de berichten bij de kern op dit toestel en je bronnen van nu horen (itemsCurrent).
   const ready = provisionalReady({ status, global, items: data?.items?.length || 0, itemsFor: data?.itemsFor, followed })
@@ -58,6 +64,12 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
   if (!gate.current) gate.current = askGate()
   const latest = useRef('')
   const [settled, setSettled] = useState(0)
+  // Opnieuw vragen zonder Editie van de server (retryDelay): de pogingen per taak, en de wekker.
+  const tries = useRef({ task: '', n: 0 })
+  const timer = useRef(null)
+  useEffect(() => () => clearTimeout(timer.current), [])
+  // Als lid: je vorige Editie uit je account, zolang die van dit dagdeel er nog niet is (holdFor hieronder).
+  const [accountPrev, setAccountPrev] = useState(null)
 
   const keep = (e, t = task) => {
     setEdition(e)
@@ -80,7 +92,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
   }, [])
 
   useEffect(() => {
-    if (!global || !followed.length) return
+    if (!global || !followed.length || loading) return
     const local = readJSON(KEY, null)
     const localFromServer = fromServer()
     // Na een dagdeelwissel is de Editie hier van het vorige dagdeel: ook die (en haar history) gaat als vorige Editie mee,
@@ -91,7 +103,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       return
     }
     const online = typeof navigator === 'undefined' || navigator.onLine !== false
-    const mayAsk = !uid || pulled
+    const mayAsk = mayAskServer({ uid, pulled, sync: sync?.status || null, loading })
     const askKey = `${task}|${mayAsk}|${nonce}`
     const run = `${askKey}|${ready}|${stuck}`
     latest.current = run
@@ -110,15 +122,16 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       reading,
       earlier: uid ? [] : earlierForServer(localFromServer || localServed ? local : null, { id: global.id, owner }),
     })
+    let answered = null // de status van de vraag (voor retryDelay)
     const ask = async (body) => {
       let token = null
       if (uid && account.client) {
         const { data: s } = await account.client.auth.getSession()
         token = s?.session?.access_token || null
-        if (!token) return { status: 0, edition: null }
+        if (!token) return (answered = { status: 0, edition: null })
       }
       const refresh = uid && account.client ? async () => (await account.client.auth.refreshSession())?.data?.session?.access_token || null : null
-      return askServer(body, { token, refresh })
+      return (answered = await askServer(body, { token, refresh }))
     }
     serverFirst({
       global,
@@ -133,14 +146,23 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       request,
       ready,
       stuck,
-      compose: async ({ previous, now }) => (await import('../lib/personal.js')).composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: reading, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
+      readAccount: uid && account.client ? () => readAccountEdition(account.client, uid) : null,
+      // Alleen zonder account: een lid krijgt nooit een eigen samengestelde Editie (W1).
+      compose: uid ? null : async ({ previous, now }) => (await import('../lib/personal.js')).composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity: reading, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() }),
     })
       .then((r) => {
         if (askNow) {
           gate.current.done(askKey)
           // Geen Editie van de server en intussen een andere stand (de berichten kwamen): nu het vangnet daarmee.
           if (!r?.keep && latest.current !== run) setSettled((n) => n + 1)
+          // Geen Editie (van de server of uit je account): zo opnieuw vragen, met een oplopende pauze (O4).
+          const n = tries.current.task === task ? tries.current.n : 0
+          const wait = r?.keep ? null : retryDelay(answered?.status ?? 0, n)
+          tries.current = { task, n: r?.keep ? 0 : n + 1 }
+          clearTimeout(timer.current)
+          if (wait != null) timer.current = setTimeout(() => setNonce((x) => x + 1), wait)
         }
+        if (r?.previous) setAccountPrev(r.previous)
         if (!r || pending.current !== run) return
         // Een Editie van een later dagdeel (de kern hier loopt achter): bewaren, tonen zodra de kern bij is.
         if (r.ahead) {
@@ -156,7 +178,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
       .catch(() => {
         if (askNow) gate.current.fail(askKey)
       }) // lukt het nu niet, dan de volgende keer (geen onafgehandelde fout)
-  }, [global?.id, owner, basis, pulled, ready, stuck, nonce, settled, followed.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [global?.id, owner, basis, pulled, sync?.status, loading, ready, stuck, nonce, settled, followed.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Leden: een eigen samenvatting, één keer per editie (de server bewaakt het maximum).
   const asked = useRef('')
@@ -187,7 +209,9 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
 
   // Uitloggen of een andere lezer: niet de editie van een ander tonen.
   const mine = (e) => e && e.owner === owner && e.id === global?.id
-  const shown = mine(edition) ? edition : mine(provisional) ? provisional : null
+  // Een zelf samengestelde Editie (`provisional: true`) alleen zonder account; een lid ziet er nooit een (ook niet een van
+  // voor editiefix uit de opslag). De algemene Editie (`stuck`) mag wel.
+  const shown = mine(edition) ? edition : mine(provisional) && (!uid || !provisional.provisional) ? provisional : null
   const briefNote = shown && !shown.brief && briefFull === `${shown.version}|${shown.basis}` ? BRIEF_FULL_TEXT : null
 
   // De dagdeelwissel (shared/dagdeel-wissel.mjs, Editie sneller C3): komt er een nieuw dagdeel en is jouw nieuwe Editie
@@ -202,14 +226,15 @@ export function usePersonalEdition({ data, status, prefs, muted, account, readId
   held.current = holdFor({
     held: held.current,
     shown,
-    last: lastShown.current,
+    // Na herladen als lid: je vorige Editie uit je account (W1), als hier niets in beeld was.
+    last: lastShown.current || (accountPrev?.owner === owner ? accountPrev : null),
     global,
     owner,
-    // Eén keer per dagdeel en lezer in de opslag kijken (niet bij elke weergave JSON lezen).
+    // Eén keer per dagdeel en lezer in de opslag kijken (niet bij elke weergave JSON lezen). Een lid: nooit het vangnet.
     stored: () => {
       if (looked.current === `${global.id}|${owner}`) return []
       looked.current = `${global.id}|${owner}`
-      return [readJSON(KEY, null), readJSON(PROVISIONAL_KEY, null)]
+      return uid ? [readJSON(KEY, null)] : [readJSON(KEY, null), readJSON(PROVISIONAL_KEY, null)]
     },
   })
   const showing = held.current || shown

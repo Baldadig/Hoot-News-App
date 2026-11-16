@@ -139,7 +139,8 @@ test('het vangnet (web en app) rekent met dezelfde samenvatting en geeft zo de E
   const items = snap.items.filter((i) => c.setup.followed.has(i.source))
   const compose = ({ previous, now }) => composePersonal({ global: snap.edition, stories: snap.stories, items, sources: snap.sources, ...c.setup, readIds: c.readIds, affinity: readingSummary(c.setup.affinity), now, previous })
   const basis = editionBasis(c.followed, c.setup.interests, c.setup.topics, c.setup.favorites)
-  const off = await serverFirst({ global: snap.edition, owner: UID, basis, request: c.request, compose, ready: true, online: false })
+  // Zonder account (sinds editiefix W1 rekent het web alleen nog zonder account een vangnet; de app nog wel als lid).
+  const off = await serverFirst({ global: snap.edition, owner: 'anon', basis, request: c.request, compose, ready: true, online: false })
   assert.equal(off.source, 'provisional')
   assert.deepEqual(off.edition.entries.map((e) => e.leadId || e.id), server.entries.map((e) => e.leadId || e.id))
   // De rekenkern van de app: `reading` (het ruwe profiel) wordt daar ook eerst samengevat.
