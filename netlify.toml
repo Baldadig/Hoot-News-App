@@ -4,7 +4,8 @@
   functions = "netlify/functions"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Node 22: supabase-js 2.118 vraagt een ingebouwde WebSocket (Node 20 heeft die niet; tests/node-versie.test.mjs).
+  NODE_VERSION = "22"
 
 [functions]
   node_bundler = "esbuild"

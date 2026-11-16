@@ -17,8 +17,9 @@ export function feedMemory({ readStart, readPart, keep = 200 }) {
   const loading = new Map() // id|tag -> belofte (twee gelijktijdige vragen lezen één keer)
 
   // De kern: `readStart(tag)` geeft { same: true } (niet veranderd), { body, tag } of null.
-  async function loadStart() {
-    const r = await readStart(start?.tag || null)
+  // `strong`: met sterke consistentie lezen (edition.mjs S2); zonder blijft het de gewone vraag.
+  async function loadStart({ strong = false } = {}) {
+    const r = strong ? await readStart(start?.tag || null, true) : await readStart(start?.tag || null)
     if (r?.same && start) return start.value
     if (!r?.body) return null
     const value = JSON.parse(r.body)

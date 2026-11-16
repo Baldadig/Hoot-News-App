@@ -182,7 +182,7 @@ export async function fallbackEdition({ client = null, uid = null, owner = 'anon
 // ---- De Redacteur op de server (besluit Alex, 9 november 2026; Hoot-design/redacteur-server/PLAN.md) ----
 // De server stelt jouw Editie samen en legt haar zelf vast in je account (POST /api/edition, v2). Dit toestel
 // rekent niet meer en claimt niets: het slaat het antwoord van de server letterlijk op (`hoot:my-edition`) en
-// toont het. Zelf samenstellen gebeurt alleen nog als vangnet (offline, een fout, 429): die Editie heet
+// toont het. Zelf samenstellen gebeurt alleen nog zonder account, als vangnet (offline, een fout, 429): die Editie heet
 // voorlopig (`provisional: true`), staat onder een eigen sleutel, gaat nooit naar je account en nooit in
 // `earlier`/`history`, en wordt vervangen zodra de server antwoordt.
 export const SERVER_KEY = 'hoot:my-edition-server' // de taak (dagdeel|lezer|afdruk) waarvoor `hoot:my-edition` van de server kwam
@@ -233,6 +233,14 @@ export async function askServer(body, { fetchImpl = fetch, token = null, refresh
 // De volgorde van het web en (1.2.1) de app:
 //   1. 'local'        hier ligt al een Editie van de server voor dit dagdeel, deze lezer en deze afdruk;
 //   2. 'server'       de server antwoordt (als lid pas na het ophalen van je account, `mayAsk`): letterlijk bewaren;
+//   als lid (editiefix W1, 16 november 2026: een lid krijgt nooit een eigen samengestelde Editie, anders tonen web en
+//   iPhone bij een serverfout elk hun eigen vangnet, en dus twee Edities):
+//   3. 'account'      de Editie van dit dagdeel uit je account (`readAccount`, PostgREST, werkt ook als de functie faalt):
+//                     bewaren, zoals een antwoord van de server;
+//   4. 'wait'         anders niets samenstellen. `previous`: de Editie van een eerder dagdeel uit je account, die blijft
+//                     staan met "De ...editie komt eraan" (usePersonalEdition, holdFor); het toestel vraagt opnieuw
+//                     (retryDelay). Komen de berichten niet (`stuck`) en is er geen vorige: de algemene Editie;
+//   zonder account:
 //   3. 'provisional'  geen antwoord (offline, fout, 429) en de berichten zijn er: zelf samenstellen, voorlopig;
 //   4. 'global'       ook dat niet, maar de berichten komen niet (`stuck`): de algemene Editie;
 //      null           nog even wachten (de berichten of je account komen nog).
@@ -243,7 +251,7 @@ export async function askServer(body, { fetchImpl = fetch, token = null, refresh
 // `localServed`: `local` kwam van de server voor zijn eigen dagdeel (servedLocal). Na een dagdeelwissel is `localFromServer`
 // (voor dít dagdeel) altijd false; de Editie van het vorige dagdeel hoort dan toch in `previous` van het vangnet, anders
 // stelt het vangnet samen zonder herhaalregel (nieuw feit, 13 november).
-export async function serverFirst({ global, owner, basis, local = null, localFromServer = false, localServed = localFromServer, online = true, mayAsk = true, ask, request, compose = null, ready = false, stuck = false }) {
+export async function serverFirst({ global, owner, basis, local = null, localFromServer = false, localServed = localFromServer, online = true, mayAsk = true, ask, request, compose = null, ready = false, stuck = false, readAccount = null }) {
   if (!global) return null
   const id = global.id
   const fits = (e) => fitsEdition(e, { id, basis }) && e.owner === owner
@@ -256,6 +264,15 @@ export async function serverFirst({ global, owner, basis, local = null, localFro
     if (e && e.owner === owner && Array.isArray(e.entries) && Date.parse(e.builtAt) > Date.parse(global.builtAt)) ahead = e
   }
   const out = (x) => (ahead ? { ...x, ahead } : x)
+  if (owner && owner !== 'anon') {
+    const theirs = online && readAccount ? await Promise.resolve().then(readAccount).catch(() => null) : null
+    const ours = (e) => !!e && typeof e === 'object' && Array.isArray(e.entries) && (e.owner == null || e.owner === owner)
+    if (ours(theirs) && theirs.id === id) return { edition: { ...theirs, owner }, source: 'account', keep: true }
+    if (!ahead && ours(theirs) && Date.parse(theirs.builtAt) > Date.parse(global.builtAt)) ahead = { ...theirs, owner }
+    const previous = ours(theirs) && Date.parse(theirs.builtAt) < Date.parse(global.builtAt) ? { ...theirs, owner } : null
+    if (stuck && !previous) return out({ edition: { ...global, brief: null, fallback: true, owner }, source: 'global', keep: false })
+    return ahead ? { edition: null, source: 'ahead', keep: false, ahead, previous } : { edition: null, source: 'wait', keep: false, previous }
+  }
   if (ready && compose) {
     const earlier = earlierEditions({ local: localFromServer || localServed ? local : null, account: null, id, owner })
     const mine = await compose({ previous: previousOf(earlier), now: Date.parse(global.builtAt) || Date.now() })
@@ -264,6 +281,27 @@ export async function serverFirst({ global, owner, basis, local = null, localFro
   if (stuck) return out({ edition: { ...global, brief: null, fallback: true, owner }, source: 'global', keep: false })
   return ahead ? { edition: null, source: 'ahead', keep: false, ahead } : null
 }
+
+// Opnieuw vragen na een vraag zonder Editie (editiefix W1/O4): het web gaf na een time-out of een 5xx op en bleef het hele
+// dagdeel op zijn vangnet, tot het tabblad verborgen of offline was geweest. Nu opnieuw met een oplopende pauze, zolang er
+// geen Editie van de server is: bij geen verbinding of te traag (0), 429 (niet eerder dan de server vraagt), een 5xx, of
+// een 200 die niet bruikbaar was (een ander dagdeel). Niet bij 400, 401, 403 of 413: opnieuw vragen helpt dan niet.
+// Uitkomst: milliseconden tot de volgende vraag, of null.
+export const RETRY_DELAYS_MS = [3000, 10000, 30000, 60000]
+export const RETRY_MAX = 30
+export function retryDelay(status, attempt) {
+  if (!(attempt >= 0) || attempt >= RETRY_MAX) return null
+  const retries = status === 0 || status === 200 || status === 429 || (status >= 500 && status <= 599)
+  if (!retries) return null
+  const wait = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)]
+  return status === 429 ? Math.max(wait, 60000) : wait
+}
+
+// Mag dit toestel de server vragen? Zonder account altijd. Als lid na het ophalen van je account, of als dat ophalen
+// mislukte (`sync` 'error'): de server leest je account zelf en stelt bij een afwijkende vraag samen met de keuze uit je
+// account, dus een lid hoeft daar niet op te wachten om zijn Editie te krijgen. Zolang het account nog laadt (`loading`,
+// O8) niet: dan zou het toestel als anon vragen en de kopie van je account hier overschrijven.
+export const mayAskServer = ({ uid = null, pulled = false, sync = null, loading = false }) => !loading && (!uid || pulled || sync === 'error')
 
 // Eén vraag aan de server per ronde (`key`: dagdeel, lezer, afdruk, of je mag vragen, en de `nonce` van weer online of
 // terug in de app; Editie sneller C2). Loopt de vraag nog (`busy`), dan wacht een nieuwe stand (de berichten kwamen
