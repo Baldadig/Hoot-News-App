@@ -22,13 +22,12 @@ final class EditieSnellerTests: XCTestCase {
     }
 
     func testEenVraagPerRondeDanHetVangnet() throws {
-        XCTAssertTrue(HootStore.asksServer(force: false, uid: nil, pulled: false, failed: "", round: "a|anon|b#1"))
-        XCTAssertFalse(HootStore.asksServer(force: false, uid: nil, pulled: false, failed: "a|anon|b#1", round: "a|anon|b#1"), "zelfde ronde zonder antwoord: niet nog eens")
-        XCTAssertTrue(HootStore.asksServer(force: false, uid: nil, pulled: false, failed: "a|anon|b#1", round: "a|anon|b#2"), "volgende ronde: wel")
-        XCTAssertTrue(HootStore.asksServer(force: false, uid: nil, pulled: false, failed: "a|anon|b#1", round: "a|anon|c#1"), "andere bronnen of interesses: wel")
-        XCTAssertFalse(HootStore.asksServer(force: false, uid: "u", pulled: false, failed: "", round: "a|u|b#1"), "lid: pas na de eerste pull")
-        XCTAssertTrue(HootStore.asksServer(force: false, uid: "u", pulled: true, failed: "", round: "a|u|b#1"))
-        XCTAssertFalse(HootStore.asksServer(force: true, uid: nil, pulled: false, failed: "", round: "a|anon|b#1"), "-HootEngine rekent zelf")
+        XCTAssertTrue(HootStore.asksServer(force: false, failed: "", round: "a|anon|b#1"))
+        XCTAssertFalse(HootStore.asksServer(force: false, failed: "a|anon|b#1", round: "a|anon|b#1"), "zelfde ronde zonder antwoord: niet nog eens")
+        XCTAssertTrue(HootStore.asksServer(force: false, failed: "a|anon|b#1", round: "a|anon|b#2"), "volgende ronde: wel")
+        XCTAssertTrue(HootStore.asksServer(force: false, failed: "a|anon|b#1", round: "a|anon|c#1"), "andere bronnen of interesses: wel")
+        XCTAssertTrue(HootStore.asksServer(force: false, failed: "", round: "a|u|b#1"), "lid: ook voor de eerste pull, de server leest je account zelf")
+        XCTAssertFalse(HootStore.asksServer(force: true, failed: "", round: "a|anon|b#1"), "-HootEngine rekent zelf")
         XCTAssertTrue(try src.contains("if mayAsk { serverFailed = round }"))
     }
 

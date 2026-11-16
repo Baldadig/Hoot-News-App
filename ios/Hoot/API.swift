@@ -106,8 +106,9 @@ enum HootAPI {
     // Wachttijd op de server: 20 s (1.3.1; was 8). Een lid-aanvraag doet tokencheck, rij, quotum en alle bron-delen
     // en kan bij een koude start over de 8 s gaan; het vangnet is dan een slechter antwoord dan wachten.
     nonisolated(unsafe) static var editionTimeout: TimeInterval = 20
-    static func serverEdition(_ payload: Data, token: String?, timeout: TimeInterval? = nil) async -> (status: Int, data: Data?) {
-        guard !DebugLaunch.offline else { return (0, nil) }
+    // `retryAfter`: de pauze die de server vraagt (kop Retry-After, in seconden), hooguit tien minuten.
+    static func serverEdition(_ payload: Data, token: String?, timeout: TimeInterval? = nil) async -> (status: Int, data: Data?, retryAfter: TimeInterval?) {
+        guard !DebugLaunch.offline else { return (0, nil, nil) }
         var request = URLRequest(url: base.appendingPathComponent("api/edition"))
         request.httpMethod = "POST"
         request.cachePolicy = .reloadIgnoringLocalCacheData
@@ -115,8 +116,10 @@ enum HootAPI {
         if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         request.httpBody = payload
         request.timeoutInterval = timeout ?? editionTimeout
-        guard let (data, response) = try? await editionTransport.data(for: request) else { return (0, nil) }
-        return ((response as? HTTPURLResponse)?.statusCode ?? 0, data)
+        guard let (data, response) = try? await editionTransport.data(for: request) else { return (0, nil, nil) }
+        let http = response as? HTTPURLResponse
+        let wait = http?.value(forHTTPHeaderField: "Retry-After").flatMap { Double($0.trimmingCharacters(in: .whitespaces)) }.map { min(max($0, 0), 600) }
+        return (http?.statusCode ?? 0, data, wait)
     }
 
     static func start() async throws -> (value: FeedStart, fromCache: Bool) { try await fetch("api/feed", ["deel": "start"]) }
