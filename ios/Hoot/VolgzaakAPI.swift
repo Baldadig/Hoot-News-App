@@ -54,8 +54,6 @@ enum VolgzaakAPI {
         var mijlpaal: String?
         var rubriek: String?
         var loopt: Bool?
-        var namen: [String]?
-        var uit: [String]?
         var zaak: StoryVolgzaak { StoryVolgzaak(slug: slug, label: label) }
     }
     // Een verhaal onder "Er speelde al" of op de pagina (momentopname per dagdeel).
