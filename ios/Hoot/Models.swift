@@ -346,6 +346,24 @@ struct EditionEntry: Codable, Hashable {
     var title: String?
     var keys: [String]? // de kenmerken van het hele verhaal toen (aanvulling H2), voor "ontwikkeld"
     var kortKop: String? // de korte kop van de server (shared/kort-kop.mjs), voor de widgets
+    // Volgen 1.5, "Altijd server": welke volgzaak bij deze plek hoort, vastgelegd door de server bij het samenstellen (alleen
+    // met de vlag, alleen in de Editie van een lid). Het label "Je volgt" leest hieruit (Volgzaken.volgtVanPlek).
+    var volgt: EditionVolgt?
+}
+
+// `volgt` op een plek van de Editie: { slug, naam }. Leest nooit fout: een onverwachte vorm is "geen label", en kost de plek
+// niets (de lijst van plekken laat een plek die niet decodeert anders weg). Oude apps (1.3.1 en 1.4) kennen het veld niet en
+// negeren het; de ruwe Editie blijft ongewijzigd bewaard (HootStore.keep).
+struct EditionVolgt: Codable, Hashable, Sendable {
+    var slug: String?
+    var naam: String?
+    private enum CodingKeys: String, CodingKey { case slug, naam }
+    init(slug: String? = nil, naam: String? = nil) { self.slug = slug; self.naam = naam }
+    init(from decoder: Decoder) throws {
+        let c = try? decoder.container(keyedBy: CodingKeys.self)
+        slug = (try? c?.decodeIfPresent(String.self, forKey: .slug)) ?? nil
+        naam = (try? c?.decodeIfPresent(String.self, forKey: .naam)) ?? nil
+    }
 }
 
 // De samenvatting van een vastgelegde Editie in `user_state.edition.history` (bouwspec-aanvulling H5):

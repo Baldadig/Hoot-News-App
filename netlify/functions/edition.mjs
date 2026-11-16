@@ -64,6 +64,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 import { slotIdNow } from '../../shared/tel.mjs'
 import { logFault } from '../lib/edition-fout.mjs'
 import { slotRank, laterSlot, volgendKey, volgendGeldt } from '../lib/dagdeel-kern.mjs'
+import { metVolgtOpPlekken } from '../../shared/volgzaak-weergave.mjs'
 
 const fail = (status, error, headers = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
 // v2: nooit in een gedeelde cache (een antwoord kan van je account zijn).
@@ -255,7 +256,13 @@ export function anonKey(globalId, p, earlier) {
 
 // Samenstellen voor dit profiel, op de start van het dagdeel (`now = builtAt`), met `earlier` (Edities of
 // history-regels) als wat er al stond. Gestempeld zoals het web vastlegt: owner, afdruk, history.
-export function composeFor(start, items, p, { owner, earlier = [], prefsMark = null }) {
+//
+// Volgen 1.5, "Altijd server" (16 november 2026): `volgzaken` is de volglijst uit je account (`prefs.volgzaken`) op het moment
+// van samenstellen. Met de vlag aan (`meta.volgzaken` in de kern) legt de server per plek vast welke volgzaak erbij hoort
+// (`volgt: { slug, naam }`, metVolgtOpPlekken), zodat web en iPhone het label "Je volgt" uit de Editie lezen en altijd hetzelfde
+// tonen. Het veld zit nergens in de afdruk (`basis`, `bases`, `prefsMark`): volgen of ontvolgen geeft nooit een nieuwe Editie in
+// het dagdeel. Zonder vlag, zonder account of zonder lijst: de Editie is byte voor byte gelijk aan die van daarvoor.
+export function composeFor(start, items, p, { owner, earlier = [], prefsMark = null, volgzaken = null }) {
   const global = start.edition
   const bases = basesOf(p)
   const edition = composePersonal({
@@ -275,8 +282,9 @@ export function composeFor(start, items, p, { owner, earlier = [], prefsMark = n
     weg: wegOf(start),
   })
   if (!edition) return null
+  const gelabeld = start?.meta?.volgzaken === true && volgzaken ? metVolgtOpPlekken(edition, { stories: start.stories || [], volgzaken }) : edition
   return {
-    ...withoutDebug(edition),
+    ...withoutDebug(gelabeld),
     owner,
     basis: bases[0],
     ...(bases.length > 1 ? { bases } : {}), // omgezette keuze: ook de afdruk zoals de Redacteur hem leest (basesOf)
@@ -371,8 +379,15 @@ export function prefsMarkOf(prefs, sources = []) {
 export const memberCopyKey = (uid, id) => `pe-member:${sha(uid)}:${id}`
 const copied = new WeakMap() // kv -> Map(sleutel -> merk)
 const COPY_MEMO_MAX = 5000
+// Privacy: de kopie draagt `owner` (je account) en blijft twee dagdelen staan, dus er staat nooit een volgzaak in. Het
+// label `volgt` op de plekken blijft alleen in je eigen account (user_state.edition), net als prefs.volgzaken.
+export function zonderVolgt(e) {
+  if (!e || !Array.isArray(e.entries) || !e.entries.some((x) => x && typeof x === 'object' && 'volgt' in x)) return e
+  return { ...e, entries: e.entries.map((x) => { if (!x || typeof x !== 'object' || !('volgt' in x)) return x; const { volgt, ...rest } = x; return rest }) }
+}
 function keepCopy(kv, waitUntil, key, e) {
   if (!e || typeof e !== 'object') return
+  e = zonderVolgt(e)
   let memo = copied.get(kv)
   if (!memo) copied.set(kv, (memo = new Map()))
   const mark = JSON.stringify([e.basis, e.bases || null, e.builtAt, e.version, !!e.brief])
@@ -620,7 +635,7 @@ async function editionV2Route(req, body, deps) {
       if ((await watch.time('quotum', () => kv.take(`pe-quota:${sha(uid)}:${id}`, MEMBER_PER_SLOT))) == null) return { edition: null, response: fail2(429, 'Even te veel tegelijk.', { 'Retry-After': String(TIMEOUT_HINT_S) }) }
       const earlier = earlierEditions({ local: null, account: row, id, owner: uid })
       const items = await parts
-      const mine = await watch.time('rekenen', () => composeFor(start, items, prof, { owner: uid, earlier, prefsMark: acctMark }))
+      const mine = await watch.time('rekenen', () => composeFor(start, items, prof, { owner: uid, earlier, prefsMark: acctMark, volgzaken: acct.prefs?.volgzaken ?? null }))
       if (!mine) return { edition: null, response: fail2(503, 'Er is nog geen editie.') }
       if (!acct.exists) {
         // Nog steeds geen rij: deze Editie geldt voor het hele dagdeel (de kopie), tot er een rij is.

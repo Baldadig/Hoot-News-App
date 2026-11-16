@@ -2530,5 +2530,230 @@
    ]
   },
   "output": null
+ },
+ {
+  "name": "plek-volgt",
+  "fn": "volgtVanPlekJSON",
+  "input": {
+   "plek": {
+    "kind": "story",
+    "id": "sForm",
+    "desk": "politiek",
+    "volgt": {
+     "slug": "kabinetsformatie",
+     "naam": "Kabinetsformatie"
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": {
+   "slug": "kabinetsformatie",
+   "label": "Kabinetsformatie"
+  }
+ },
+ {
+  "name": "plek-naam-uit-je-eigen-lijst",
+  "fn": "volgtVanPlekJSON",
+  "input": {
+   "plek": {
+    "kind": "story",
+    "id": "sGta",
+    "desk": "games",
+    "volgt": {
+     "slug": "gta-6",
+     "naam": "GTA VI"
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": {
+   "slug": "gta-6",
+   "label": "GTA 6"
+  }
+ },
+ {
+  "name": "plek-ontvolgd",
+  "fn": "volgtVanPlekJSON",
+  "input": {
+   "plek": {
+    "kind": "story",
+    "id": "sGta",
+    "desk": "games",
+    "volgt": {
+     "slug": "gta-6",
+     "naam": "GTA 6"
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": null
+ },
+ {
+  "name": "plek-gestopt",
+  "fn": "volgtVanPlekJSON",
+  "input": {
+   "plek": {
+    "kind": "story",
+    "id": "sTata",
+    "desk": "economie",
+    "volgt": {
+     "slug": "tata-steel",
+     "naam": "Tata Steel"
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": null
+ },
+ {
+  "name": "plek-nieuw-gevolgd-nog-niet-vastgelegd",
+  "fn": "volgtVanPlekJSON",
+  "input": {
+   "plek": {
+    "kind": "story",
+    "id": "sGta",
+    "desk": "games"
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": null
+ },
+ {
+  "name": "plek-niet-onder-buiten-je-bubbel",
+  "fn": "volgtVanPlekJSON",
+  "input": {
+   "plek": {
+    "kind": "story",
+    "id": "sGta",
+    "desk": "bubbel",
+    "volgt": {
+     "slug": "gta-6",
+     "naam": "GTA 6"
+    }
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": null
+ },
+ {
+  "name": "plek-vreemd-veld",
+  "fn": "volgtVanPlekJSON",
+  "input": {
+   "plek": {
+    "kind": "story",
+    "id": "sGta",
+    "desk": "games",
+    "volgt": "gta-6"
+   },
+   "volgzaken": [
+    {
+     "slug": "gta-6",
+     "label": "GTA 6",
+     "status": "actief"
+    },
+    {
+     "slug": "kabinetsformatie",
+     "label": "Kabinetsformatie",
+     "status": "actief"
+    },
+    {
+     "slug": "tata-steel",
+     "label": "Tata Steel",
+     "status": "gestopt"
+    }
+   ]
+  },
+  "output": null
  }
 ]

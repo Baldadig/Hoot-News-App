@@ -58,6 +58,8 @@ var HootCore = (() => {
     rubriekRegelJSON: () => rubriekRegelJSON,
     volgtVan: () => volgtVan,
     volgtVanJSON: () => volgtVanJSON,
+    volgtVanPlek: () => volgtVanPlek,
+    volgtVanPlekJSON: () => volgtVanPlekJSON,
     volgzaakView: () => volgzaakView,
     volgzaakViewJSON: () => volgzaakViewJSON,
     volgzaakVoorrang: () => volgzaakVoorrang,
@@ -6250,6 +6252,13 @@ var HootCore = (() => {
     const z = actieveVolgzaken(volgzaken).find((x) => x.slug === slug);
     return z ? { slug: z.slug, label: z.label } : null;
   }
+  function volgtVanPlek(entry, volgzaken) {
+    if (!entry || entry.desk === "bubbel") return null;
+    const slug = entry.volgt?.slug;
+    if (typeof slug !== "string" || !slug) return null;
+    const z = actieveVolgzaken(volgzaken).find((x) => x.slug === slug);
+    return z ? { slug: z.slug, label: z.label } : null;
+  }
   function rubriekRegel({ rubriek = null, volgt = null, buiten = false } = {}) {
     const delen = [];
     if (rubriek) delen.push(rubriek);
@@ -6373,6 +6382,7 @@ var HootCore = (() => {
   var rubriekRegelJSON = (j) => JSON.stringify(rubriekRegel(lees(j)));
   var erSpeeldeAlJSON = (j) => JSON.stringify(erSpeeldeAl(lees(j)));
   var volgtVanJSON = (storyJSON, volgzakenJSON) => JSON.stringify(volgtVan(lees(storyJSON), lees(volgzakenJSON)));
+  var volgtVanPlekJSON = (plekJSON, volgzakenJSON) => JSON.stringify(volgtVanPlek(lees(plekJSON), lees(volgzakenJSON)));
 
   // src/lib/editionCore.js
   var CORE_VERSION = 1;

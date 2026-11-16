@@ -12,6 +12,7 @@ struct EditionRowModel: Identifiable {
     var number: Int? = nil
     var why: String? = nil // het waarom van de plek (jouw Editie), of niets
     var outside = false // buiten de bronnen die je volgt: dat zegt de bronregel
+    var volgt: StoryVolgzaak? = nil // het label "Je volgt", vast op de server per plek (Volgzaken.volgtVanPlek), of niets
 }
 
 // Nummer pas na de beeldvolgorde; de bubbel staat buiten de telling.
@@ -145,7 +146,7 @@ extension HootStore {
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
             let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
-            return EditionRowModel(id: e.id, item: item, story: story, label: Self.rowLabel(kicker: l.kicker, item: item), desk: e.desk, why: l.why, outside: l.outside)
+            return EditionRowModel(id: e.id, item: item, story: story, label: Self.rowLabel(kicker: l.kicker, item: item), desk: e.desk, why: l.why, outside: l.outside, volgt: volgtOpPlek(e, story: story))
         }
         // De redactionele volgorde blijft de leesvolgorde, ook zonder groot beeld bij de opening.
         return rows
@@ -336,7 +337,7 @@ struct EditionView: View {
     @ViewBuilder private func front(_ rows: [EditionRowModel], kolommen k: KrantKolommen? = nil) -> some View {
         let sideWidth = k?.rechts ?? max(256, (contentWidth - Space.s5) / 2.9)
         HStack(alignment: .top, spacing: k?.goot ?? Space.s5) {
-            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: store.volgtVan(rows[0].story), imageHeight: leadImage) }
+            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: rows[0].volgt, imageHeight: leadImage) }
                 .environment(\.isSpacious, false)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { leadHeight = $0; fitLead() }
                 .frame(width: k?.links)
@@ -349,7 +350,7 @@ struct EditionView: View {
                         // Elk verhaal in de zijkolom heeft zijn kleine beeld (of het placeholderbeeld), net als in de paren
                         // en op het web (.front__side): een plek zonder beeld zag er vergeten uit (kaartkwaliteit).
                         // Als boek (Duo, `k`) staat de zijkolom op een eigen bladzijde en is hij niet smal.
-                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: store.volgtVan(row.story), form: .krant, narrow: k == nil) }
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: row.volgt, form: .krant, narrow: k == nil) }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
@@ -523,12 +524,12 @@ struct EditionView: View {
                         case .tabloid:
                             // De Duo open staand: 01 als opening over de volle breedte (beeld, kop, intro), daaronder de
                             // paren in twee kolommen, zoals de iPad. De goot staat op de vouw, of in het midden.
-                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: store.volgtVan(rows[0].story)) }
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: rows[0].volgt) }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             if rows.count > 1 {
                                 EditionPairsGrid(rows: Array(rows.dropFirst()), width: contentWidth, kolommen: kolommen) { row, whySpace in
-                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: store.volgtVan(row.story), form: .krant, pinSource: true, whySpace: whySpace) }
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: row.volgt, form: .krant, pinSource: true, whySpace: whySpace) }
                                 }
                                 .padding(.top, Space.s4)
                                 .loadLinesRise(lines)
@@ -541,7 +542,7 @@ struct EditionView: View {
                                 .tienBlock(tien, 2)
                             if rows.count > 3 {
                                 EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth, kolommen: kolommen) { row, whySpace in
-                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: store.volgtVan(row.story), form: .krant, pinSource: true, whySpace: whySpace) }
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: row.volgt, form: .krant, pinSource: true, whySpace: whySpace) }
                                 }
                                 .padding(.top, Space.s4)
                                 .loadLinesRise(lines)
@@ -553,20 +554,20 @@ struct EditionView: View {
                                 .tienBlock(tien, 2)
                             if rows.count > 3 {
                                 EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth, katern: outsideRows.isEmpty ? nil : AnyView(bubbleKatern(outsideRows, inGrid: true))) { row, whySpace in
-                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: store.volgtVan(row.story), form: .krant, pinSource: true, whySpace: whySpace) }
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: row.volgt, form: .krant, pinSource: true, whySpace: whySpace) }
                                 }
                                 .padding(.top, Space.s4)
                                 .loadLinesRise(lines)
                                 .tienBlock(tien, 3)
                             }
                         case .kolom:
-                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: store.volgtVan(rows[0].story), hang: true) }
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: rows[0].volgt, hang: true) }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                                 HangRow(number: store.less.contains(row.id) ? nil : row.number, read: store.isRead(row.item)) {
-                                    slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: store.volgtVan(row.story), form: .krant) }
+                                    slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: row.volgt, form: .krant) }
                                 }
                                 .loadLinesRise(lines)
                                 .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
@@ -574,20 +575,20 @@ struct EditionView: View {
                         case .lijst where compact:
                             // De compacte voorpagina (iPhone Duo dicht): 01 groot boven de vouw, dan dichte rijen met
                             // een klein beeld rechts. De sterke lijn onder 01 komt uit LeadCard.
-                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: store.volgtVan(rows[0].story)) }
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: rows[0].volgt) }
                                 .environment(\.vouw, vouwRuimte)
                                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).minY } action: { leadTop = $0 }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
                                 if row.id != rows[1].id { Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0)) }
-                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: store.volgtVan(row.story), form: .krant, dicht: true) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: row.volgt, form: .krant, dicht: true) }
                                     .padding(.top, row.id == rows[1].id ? Space.s1 : 0)
                                     .loadLinesRise(lines)
                                     .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                             }
                         case .lijst:
-                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: store.volgtVan(rows[0].story)) }
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, volgt: rows[0].volgt) }
                                 .environment(\.vouw, vouwRuimte) // 01 boven de vouw (Vouw.swift)
                                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).minY } action: { leadTop = $0 }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
@@ -595,7 +596,7 @@ struct EditionView: View {
                             ForEach(rows.dropFirst()) { row in
                                 // Kaart A+ (iPhone): na het hoofdverhaal komt de sterke lijn uit LeadCard; tussen de kaarten 16 boven en onder.
                                 if wide || row.id != rows[1].id { Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0)) }
-                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: store.volgtVan(row.story), form: wide ? .krant : .tijdlijn, lines: HootStore.kaartLines) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, volgt: row.volgt, form: wide ? .krant : .tijdlijn, lines: HootStore.kaartLines) }
                                     .padding(.top, !wide && row.id == rows[1].id ? Space.s2 : 0)
                                     .loadLinesRise(lines)
                                     .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
