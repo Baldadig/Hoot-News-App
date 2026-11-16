@@ -7,8 +7,8 @@ import SwiftUI
 // - volgBestemming: de pagina als bestemming in een NavigationStack; `openVolg` in de omgeving.
 // - VolgKopView: de kop van De Redacteur boven de zoektreffers (en in het blad uit het kaartmenu).
 // - JeVolgtRijen: Zoeken zonder zoekterm, het thuis van wat je volgt.
-// - VolgPaginaView: de pagina, met rechtsboven Volgend als Menu (Stuur bij, Deel, Stop met volgen).
-// - VolgBeheerBlad, StuurBijBlad, VolgBlad, VolgInlogBlad en de melding met Ongedaan maken (volgBladen).
+// - VolgPaginaView: de pagina, met rechtsboven Volgend als Menu (Deel, Stop met volgen).
+// - VolgBeheerBlad, VolgBlad, VolgInlogBlad en de melding met Ongedaan maken (volgBladen).
 // Alles verschijnt alleen als de server de functie aanzet (HootStore.volgzakenAan).
 
 // ---- Het label ----
@@ -203,7 +203,6 @@ struct VolgKopView: View {
     @Environment(\.openTab) private var openTab
     let antwoord: VolgzaakAPI.Duiding
     var onKies: (String) -> Void = { _ in }
-    var onStuurBij: (() -> Void)? = nil
     var opdracht = ""
     @State private var eerder: [EditionEngine.VolgVerhaal] = []
 
@@ -268,7 +267,7 @@ struct VolgKopView: View {
                     }
                 }
             }
-            VolgKnop(def: def, opdracht: opdracht, onStuurBij: onStuurBij)
+            VolgKnop(def: def, opdracht: opdracht)
             if weinig {
                 VStack(alignment: .leading, spacing: Space.s1) {
                     Kicker(text: VolgTekst.weinig)
@@ -334,10 +333,9 @@ struct VolgKnop: View {
     @Environment(HootStore.self) private var store
     let def: VolgzaakAPI.Def
     var opdracht = ""
-    var onStuurBij: (() -> Void)? = nil
     var body: some View {
         if store.volgt(def.slug) {
-            VolgendMenu(zaak: def.zaak, onStuurBij: onStuurBij) { label in
+            VolgendMenu(zaak: def.zaak) { label in
                 label.font(.ui(.subheadline, .semibold)).padding(.horizontal, Space.s3).frame(minHeight: 36)
                     .background(Theme.ink.opacity(0.08), in: Capsule())
             }
@@ -357,18 +355,16 @@ struct VolgKnop: View {
     }
 }
 
-// Volgend als Menu (scherm 03, 12): Stuur bij, Deel, en apart Stop met volgen. Eén tik ontvolgt nooit per ongeluk.
+// Volgend als Menu (scherm 03, 12): Deel, en apart Stop met volgen. Eén tik ontvolgt nooit per ongeluk.
 struct VolgendMenu<Vorm: View>: View {
     @Environment(HootStore.self) private var store
     let zaak: StoryVolgzaak
-    var onStuurBij: (() -> Void)? = nil
     var vorm: (AnyView) -> Vorm
-    init(zaak: StoryVolgzaak, onStuurBij: (() -> Void)? = nil, @ViewBuilder vorm: @escaping (AnyView) -> Vorm) {
-        self.zaak = zaak; self.onStuurBij = onStuurBij; self.vorm = vorm
+    init(zaak: StoryVolgzaak, @ViewBuilder vorm: @escaping (AnyView) -> Vorm) {
+        self.zaak = zaak; self.vorm = vorm
     }
     var body: some View {
         Menu {
-            if let onStuurBij { Button(VolgTekst.stuurBij, systemImage: "pencil") { onStuurBij() } }
             ShareLink(item: Volgzaken.deelLink(zaak.slug), subject: Text(zaak.label)) { Label(VolgTekst.deel, systemImage: "square.and.arrow.up") }
             Divider()
             Button(VolgTekst.stop, systemImage: "minus.circle") { store.ontvolg(zaak.slug) }
@@ -429,7 +425,6 @@ struct VolgPaginaView: View {
     @State private var fout: String?
     @State private var view = EditionEngine.VolgPagina()
     @State private var grens: String?? = .none // vast bij het openen
-    @State private var stuurBij = false
 
     init(route: VolgRoute) {
         _slug = State(initialValue: route.slug)
@@ -515,21 +510,14 @@ struct VolgPaginaView: View {
                 if fout != nil {
                     EmptyView()
                 } else if volgend && !stil {
-                    VolgendMenu(zaak: def.zaak, onStuurBij: { stuurBij = true }) { $0 }
+                    VolgendMenu(zaak: def.zaak) { $0 }
                 } else {
                     Button(stil ? VolgTekst.volgWeer : VolgTekst.volg) { store.volg(def.zaak) }
                         .disabled(def.label.isEmpty)
                 }
             }
         }
-        .sheet(isPresented: $stuurBij) {
-            StuurBijBlad(def: def) { naar in slug = naar.slug; label = naar.label; pagina = nil; grens = .none }
-                .debugAppearance()
-        }
         .task(id: slug) { await laad() }
-        #if DEBUG
-        .task { if DebugLaunch.screen("volg-stuurbij") { try? await Task.sleep(for: .seconds(1.5)); stuurBij = true } }
-        #endif
     }
 
     private func laad() async {
@@ -552,71 +540,6 @@ struct VolgPaginaView: View {
         } catch {
             view = EditionEngine.VolgPagina() // de rekenkern faalde: alleen het einde, geen halve pagina
         }
-    }
-}
-
-// ---- Stuur bij ----
-
-// Hoe Hoot het leest (Let op en Niet, als gewone tekst als de server ze meegeeft) en één veld "Zeg het scherper" (scherm 21).
-// Gedeeld: komt er een andere volgzaak uit, dan volg je voortaan die. Je gewone zoekterm wijst naar de gewone volgzaak.
-struct StuurBijBlad: View {
-    @Environment(HootStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
-    let def: VolgzaakAPI.Def
-    var onWissel: (StoryVolgzaak) -> Void = { _ in }
-    @State private var tekst = ""
-    @State private var bezig = false
-    @State private var fout: String?
-    @FocusState private var veld: Bool
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                if let regel = def.regel, !regel.isEmpty { Section { Text(regel).foregroundStyle(Theme.ink2) } }
-                if let namen = def.namen, !namen.isEmpty { Section(VolgTekst.letOp) { Text(namen.joined(separator: " · ")) } }
-                if let uit = def.uit, !uit.isEmpty { Section(VolgTekst.niet) { Text(uit.joined(separator: " · ")) } }
-                Section {
-                    TextField(VolgTekst.scherper, text: $tekst, axis: .vertical)
-                        .focused($veld)
-                        .submitLabel(.send)
-                        .onSubmit { Task { await stuur() } }
-                        .onChange(of: tekst) { _, t in if t.count > Volgzaken.opdrachtMax { tekst = String(t.prefix(Volgzaken.opdrachtMax)) } }
-                } header: { Text(VolgTekst.scherper) } footer: {
-                    if let fout { Text(fout).foregroundStyle(Theme.accent) }
-                }
-            }
-            .navigationTitle(VolgTekst.stuurBij)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Sluiten", systemImage: "xmark") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    if bezig { ProgressView() } else {
-                        Button(VolgTekst.stuurBij) { Task { await stuur() } }.disabled(tekst.trimmingCharacters(in: .whitespaces).isEmpty)
-                    }
-                }
-            }
-            .onAppear { veld = true }
-        }
-        .presentationDetents([.medium, .large])
-    }
-
-    private func stuur() async {
-        let scherper = tekst.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !scherper.isEmpty, !bezig else { return }
-        bezig = true
-        fout = nil
-        let a = await VolgzaakAPI.vraag("bijsturen", ["slug": def.slug, "scherper": scherper], token: await store.volgToken())
-        bezig = false
-        guard a.ok, let d = a.lees(VolgzaakAPI.Duiding.self) else { fout = a.fout; return }
-        if let naar = d.naar, let nieuw = d.volgzaak {
-            let zaak = StoryVolgzaak(slug: naar, label: nieuw.label)
-            store.volgWissel(van: def.slug, naar: zaak)
-            onWissel(zaak)
-        } else if d.soort == "geen" {
-            fout = d.tekst ?? VolgTekst.geen
-            return
-        }
-        dismiss()
     }
 }
 

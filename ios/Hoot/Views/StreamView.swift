@@ -661,7 +661,6 @@ struct SearchView: View {
     // kost iets en telt voor je quotum); zonder account blijft Zoeken zoals het was.
     struct Duid: Equatable { let voor: String; let antwoord: VolgzaakAPI.Duiding }
     @State private var kop: Duid?
-    @State private var stuurBij: VolgzaakAPI.Def?
     private func duid(_ opdracht: String) async {
         let tekst = opdracht.trimmingCharacters(in: .whitespacesAndNewlines)
         guard store.volgzakenAan, store.volgLid, tekst.count >= 2 else { return }
@@ -678,7 +677,7 @@ struct SearchView: View {
             List {
                 Section {
                     if let kopNu {
-                        VolgKopView(antwoord: kopNu, onKies: { o in query = o; kop = nil; Task { await duid(o) } }, onStuurBij: { stuurBij = kopNu.volgzaak }, opdracht: query)
+                        VolgKopView(antwoord: kopNu, onKies: { o in query = o; kop = nil; Task { await duid(o) } }, opdracht: query)
                             .padding(.vertical, Space.s2)
                             .listRowBackground(Theme.surface)
                     }
@@ -745,7 +744,6 @@ struct SearchView: View {
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek op woord of bron") // past ook op de SE; auteurs noemt de lege staat
             .onSubmit(of: .search) { Task { await duid(query) } }
-            .sheet(item: $stuurBij) { def in StuurBijBlad(def: def).debugAppearance() }
             #if DEBUG
             .task { if DebugLaunch.screen("volg-zoeken") { try? await Task.sleep(for: .seconds(12)); await duid(query) } }
             #endif

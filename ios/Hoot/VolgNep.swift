@@ -97,9 +97,6 @@ enum VolgNep {
             uit = ["overzicht": ["gta-6": ["laatstNieuw": Volgzaken.iso(.now), "status": "actief"], "kabinetsformatie": ["laatstNieuw": Volgzaken.iso(.now.addingTimeInterval(-2 * 86400)), "status": "actief"]]]
         case "volgen", "ontvolgen":
             uit = ["ok": true, "slug": body["slug"] as? String ?? ""]
-        case "bijsturen":
-            let slug = body["slug"] as? String ?? ""
-            uit = ["soort": "zelfde", "volgzaak": def(slug)]
         case "duiden":
             let q = (body["opdracht"] as? String ?? "").lowercased()
             if q.contains("tata") {

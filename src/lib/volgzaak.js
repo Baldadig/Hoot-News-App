@@ -35,7 +35,6 @@ export const TEKST = {
   ongedaan: 'Ongedaan maken',
   naar: (label) => `Naar ${label}`,
   stop: 'Stop met volgen',
-  stuurBij: 'Stuur bij',
   deel: 'Deel',
   wijzig: 'Wijzig',
   klaar: 'Klaar',
@@ -59,15 +58,12 @@ export const TEKST = {
   blijfVolgen: 'Blijf volgen',
   gestopt: 'Gestopt',
   inloggen: 'Volgen kan met een account.',
-  letOp: 'Let op',
-  niet: 'Niet',
-  scherper: 'Zeg het scherper',
   bronnen: (n) => (n > 1 ? `+${n - 1} ${n - 1 === 1 ? 'bron' : 'bronnen'}` : ''),
   label: (label) => `Je volgt ${label}, opent de pagina`,
   mislukt: 'Dat lukte nu niet.',
 }
 
-// POST /api/volgzaak. `token`: het token van je account (volgen, ontvolgen, duiden en bijsturen vragen een lid).
+// POST /api/volgzaak. `token`: het token van je account (volgen, ontvolgen en duiden vragen een lid).
 // Uitkomst: { status, data } (status 0: geen verbinding). Nooit een slug in het adres.
 export async function vraagVolgzaak(actie, body = {}, { token = null, fetchImpl = (...a) => fetch(...a), timeout = 20000 } = {}) {
   const ctl = typeof AbortController === 'function' ? new AbortController() : null

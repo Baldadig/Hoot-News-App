@@ -39,7 +39,7 @@ import { pendingShown } from './lib/membership.js'
 import { applyWelcome } from './lib/welcome.js'
 import { startIds } from './lib/follow-welcome.js'
 import { usePersonalEdition } from './hooks/usePersonalEdition.js'
-import { toggleFollow, volg, ontvolg, herstel, bekeken, wissel, verplaats, zetFollowStoriesOm } from './lib/follow-volgzaken.js'
+import { toggleFollow, volg, ontvolg, herstel, bekeken, verplaats, zetFollowStoriesOm } from './lib/follow-volgzaken.js'
 import { volgzakenAan, vraagVolgzaak, TEKST as VOLG_TEKST } from './lib/volgzaak.js'
 import { BeheerBlad } from './components/Volg.jsx'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
@@ -706,7 +706,6 @@ export default function App() {
   }, [volgUndo, setPrefs, tel1])
   const openVolg = useCallback((slug) => route.go('volg', { naam: slug }), [route.go])
   const volgBekeken = useCallback((slug) => setPrefs((p) => ({ ...p, volgzaken: bekeken(normalizePrefs(p).volgzaken, slug) })), [setPrefs])
-  const volgWissel = useCallback((van, naar) => setPrefs((p) => ({ ...p, volgzaken: wissel(normalizePrefs(p).volgzaken, van, naar) })), [setPrefs])
   const volgVerplaats = useCallback((van, naar) => setPrefs((p) => ({ ...p, volgzaken: verplaats(normalizePrefs(p).volgzaken, van, naar) })), [setPrefs])
   // De omzetting van followStories (eenmalig, met de vlag en een account, na het ophalen van je account zodat een tweede
   // toestel niet opnieuw omzet): gevolgde verhalen met het veld `volgzaak` worden gevolgde volgzaken.
@@ -774,7 +773,6 @@ export default function App() {
       openVolg,
       openBeheer,
       volgBekeken,
-      volgWissel,
       tokenVan,
       panel,
       layout,

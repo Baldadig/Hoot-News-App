@@ -2,7 +2,7 @@
 // de omzetting van followStories, en dat de vlag uit niets verandert.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { normalizeVolgzaken, volg, ontvolg, herstel, verplaats, bekeken, wissel, isNieuw, nieuwTekst, inVolgorde, zetFollowStoriesOm, actief, isVol, VOLGZAKEN_MAX, GESTOPT_DAGEN, FOLLOW_DAYS, toggleFollow } from '../src/lib/follow-volgzaken.js'
+import { normalizeVolgzaken, volg, ontvolg, herstel, verplaats, bekeken, isNieuw, nieuwTekst, inVolgorde, zetFollowStoriesOm, actief, isVol, VOLGZAKEN_MAX, GESTOPT_DAGEN, FOLLOW_DAYS, toggleFollow } from '../src/lib/follow-volgzaken.js'
 import * as oud from '../src/lib/follow.js'
 import { normalizePrefs, DEFAULT_PREFS } from '../src/lib/prefs.js'
 import { SYNCED_PREFS, pickSynced } from '../src/lib/sync.js'
@@ -57,13 +57,6 @@ test('Nieuw of Niets nieuws, nooit een getal: tegen de laatste keer dat je de pa
   assert.equal(opened[0].gezien, new Date(NOW).toISOString())
   const rows = inVolgorde([{ ...z('a1'), at: '2026-11-18T00:00:00Z' }, { ...z('b2'), at: '2026-11-18T00:00:00Z' }], { b2: { laatstNieuw: '2026-11-19T00:00:00Z' } })
   assert.deepEqual(rows.map((r) => [r.slug, r.nieuw]), [['b2', true], ['a1', false]])
-})
-
-test('bijsturen naar een andere volgzaak: je volgt voortaan die, op dezelfde plek', () => {
-  const list = [{ ...z('a1'), status: 'actief', at: 'x' }, { ...z('gta-6'), status: 'actief' }]
-  const uit = wissel(list, 'gta-6', z('gta-6-pc', 'GTA 6 op pc'), NOW)
-  assert.deepEqual(uit.map((x) => x.slug), ['a1', 'gta-6-pc'])
-  assert.equal(uit[1].label, 'GTA 6 op pc')
 })
 
 test('opschonen: geldige rijen, geen dubbelen, hooguit drie actief, gestopt alleen een week, velden op maat', () => {

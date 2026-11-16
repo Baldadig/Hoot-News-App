@@ -351,7 +351,7 @@ a.volgrij {
   font-weight: var(--fw-ui);
 }
 
-/* ---------- Het beheerblad en Stuur bij (scherm 11, 21) ---------- */
+/* ---------- Het beheerblad (scherm 11) ---------- */
 .beheer__kop {
   display: flex;
   align-items: center;
@@ -414,43 +414,6 @@ a.volgrij {
 }
 .beheer__leeg {
   color: var(--ink-3);
-  font-size: var(--t2);
-}
-.stuurbij__regel {
-  margin: 0 0 var(--s3);
-  color: var(--ink-2);
-  font-size: var(--t2);
-  line-height: var(--lh-2);
-}
-.stuurbij__groep {
-  margin-bottom: var(--s3);
-}
-.stuurbij__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s1);
-  margin: var(--s2) 0 0;
-}
-.stuurbij__chip {
-  padding: 2px var(--s2);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-pill);
-  color: var(--ink-2);
-  font-size: var(--t1);
-  line-height: var(--lh-1);
-}
-.stuurbij__form {
-  display: grid;
-  gap: var(--s2);
-  margin-top: var(--s3);
-}
-.stuurbij__form .btn {
-  justify-self: start;
-  margin-top: var(--s2);
-}
-.stuurbij__fout {
-  margin: 0;
-  color: var(--ink-2);
   font-size: var(--t2);
 }
 

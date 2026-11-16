@@ -57,12 +57,6 @@ import XCTest
         XCTAssertEqual(rows.map(\.nieuw), [true, false])
     }
 
-    func testBijsturenWisseltOpDezelfdePlek() {
-        let uit = Volgzaken.wissel([rij("a1"), rij("gta-6")], van: "gta-6", naar: z("gta-6-pc", "GTA 6 op pc"), now: now)
-        XCTAssertEqual(uit.map(\.slug), ["a1", "gta-6-pc"])
-        XCTAssertEqual(uit[1].label, "GTA 6 op pc")
-    }
-
     func testOpschonen() {
         let raw = [
             Volgzaak(slug: "a1", label: "A", at: "2026-11-01T00:00:00Z"),
@@ -243,7 +237,7 @@ import XCTest
         }
     }
 
-    func testPaginaGeopendEnBijsturenEnSlepen() {
+    func testPaginaGeopendEnSlepen() {
         let s = store()
         _ = lid(s)
         s.volgzakenServer = true
@@ -251,10 +245,8 @@ import XCTest
         s.volgBekeken("gta-6")
         XCTAssertNotNil(s.volgzaken[1].gezien)
         XCTAssertNil(s.volgzaken[0].gezien)
-        s.volgWissel(van: "gta-6", naar: z("gta-6-pc", "GTA 6 op pc"))
-        XCTAssertEqual(s.volgzaken.map(\.slug), ["a1", "gta-6-pc"])
         s.volgVerplaats(van: 1, naar: 0)
-        XCTAssertEqual(s.volgzaken.map(\.slug), ["gta-6-pc", "a1"])
+        XCTAssertEqual(s.volgzaken.map(\.slug), ["gta-6", "a1"])
     }
 
     // Wat je volgt gaat mee met je account, in de vorm van het web; een rij die niet klopt valt weg, niet de lijst.
