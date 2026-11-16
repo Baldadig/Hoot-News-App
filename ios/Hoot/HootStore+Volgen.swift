@@ -52,6 +52,15 @@ extension HootStore {
         guard let zaak = volgzaakVan(story) else { return nil }
         return Volgzaken.actieveVolgzaken(volgzaken).first { $0.slug == zaak.slug }
     }
+    // Het label "Je volgt" op een plek van de Editie: vast op de server (de plek draagt `volgt`, Altijd server, 16 november 2026),
+    // en alleen zolang de slug nog in je lijst staat. Alleen met de vlag. In de nep-opstelling van de ontwikkelaar
+    // (-HootVolgzaken nep) staat de server niet klaar om te stempelen: daar telt het veld van het verhaal als de stempel.
+    func volgtOpPlek(_ plek: EditionEntry, story: Story?) -> StoryVolgzaak? {
+        guard volgzakenAan else { return nil }
+        if let z = Volgzaken.volgtVanPlek(plek, volgzaken) { return z }
+        guard DebugLaunch.volgNep, plek.desk != "bubbel", let story, let zaak = DebugLaunch.volgzaak(story.id) else { return nil }
+        return Volgzaken.actieveVolgzaken(volgzaken).first { $0.slug == zaak.slug }
+    }
     func volgt(_ slug: String) -> Bool { Volgzaken.volgt(volgzakenZichtbaar, slug) }
 
     // Volgen: zonder account de vraag om in te loggen; bij drie het beheerblad met "Je volgt er al drie."; anders bovenaan

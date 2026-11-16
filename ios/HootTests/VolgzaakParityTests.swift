@@ -13,7 +13,7 @@ final class VolgzaakParityTests: XCTestCase {
         let fn: String
         let input: String // JSON zoals JavaScript hem schrijft
         let output: String
-        let story: String? // alleen volgtVanJSON: twee teksten in
+        let story: String? // alleen volgtVanJSON (het verhaal) en volgtVanPlekJSON (de plek): twee teksten in
         let volgzaken: String?
     }
 
@@ -31,14 +31,15 @@ final class VolgzaakParityTests: XCTestCase {
             let str = { (expr: String) in ctx.evaluateScript("JSON.stringify(G[\(i)].\(expr))").toString()! }
             let fn = ctx.evaluateScript("G[\(i)].fn").toString()!
             return Geval(name: ctx.evaluateScript("G[\(i)].name").toString(), fn: fn, input: str("input"), output: str("output"),
-                         story: fn == "volgtVanJSON" ? str("input.story") : nil, volgzaken: fn == "volgtVanJSON" ? str("input.volgzaken") : nil)
+                         story: fn == "volgtVanJSON" ? str("input.story") : fn == "volgtVanPlekJSON" ? str("input.plek") : nil,
+                         volgzaken: fn == "volgtVanJSON" || fn == "volgtVanPlekJSON" ? str("input.volgzaken") : nil)
         }
     }
 
     func testDeFixtureIsVolledig() throws {
         let g = try Self.gevallen()
         XCTAssertGreaterThanOrEqual(g.count, 20)
-        for fn in ["volgzaakVoorrangJSON", "volgzaakViewJSON", "erSpeeldeAlJSON", "rubriekRegelJSON", "volgtVanJSON"] {
+        for fn in ["volgzaakVoorrangJSON", "volgzaakViewJSON", "erSpeeldeAlJSON", "rubriekRegelJSON", "volgtVanJSON", "volgtVanPlekJSON"] {
             XCTAssertTrue(g.contains { $0.fn == fn }, fn)
         }
     }
@@ -46,7 +47,7 @@ final class VolgzaakParityTests: XCTestCase {
     // De rekenkern van de app geeft letterlijk dezelfde tekst als node.
     func testRekenkernGelijkAanHetWeb() throws {
         for g in try Self.gevallen() {
-            let args = g.fn == "volgtVanJSON" ? [g.story!, g.volgzaken!] : [g.input]
+            let args = g.fn == "volgtVanJSON" || g.fn == "volgtVanPlekJSON" ? [g.story!, g.volgzaken!] : [g.input]
             let uit = try EditionEngine.volg.volgNu(g.fn, args)
             XCTAssertEqual(uit, g.output, g.name)
         }
@@ -83,6 +84,13 @@ final class VolgzaakParityTests: XCTestCase {
                 var s = Story(id: "s", itemIds: [])
                 s.volgzaak = story.volgzaak
                 let uit = Volgzaken.volgtVan(s, lijst)
+                let verwacht = try JSONDecoder().decode(StoryVolgzaak?.self, from: Data(g.output.utf8))
+                XCTAssertEqual(uit, verwacht, g.name)
+            case "volgtVanPlekJSON":
+                // Een plek van de Editie zoals de app haar leest: de decoder is mild (een vreemd `volgt` is geen label).
+                let plek = try JSONDecoder().decode(EditionEntry.self, from: Data(g.story!.utf8))
+                let lijst = try JSONDecoder().decode([Volgzaak].self, from: Data(g.volgzaken!.utf8))
+                let uit = Volgzaken.volgtVanPlek(plek, lijst)
                 let verwacht = try JSONDecoder().decode(StoryVolgzaak?.self, from: Data(g.output.utf8))
                 XCTAssertEqual(uit, verwacht, g.name)
             case "rubriekRegelJSON":

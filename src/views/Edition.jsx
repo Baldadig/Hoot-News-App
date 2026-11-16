@@ -28,7 +28,7 @@ import { SLOTS } from '../../shared/slots.mjs'
 import { opinieInStroom } from '../../shared/opinie.mjs'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow-volgzaken.js'
-import { volgtVan } from '../../shared/volgzaak-weergave.mjs'
+import { volgtVanPlek } from '../../shared/volgzaak-weergave.mjs'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why, whyLine } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
@@ -140,9 +140,11 @@ const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n=
 export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater, coming = null, nextReady = null, onSwap = null, storyOpen = false, appKaart = false, onAppOpen, onAppLater, onEndSeen }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById, setPref, volgAan, volgzaken } = useHoot()
   // Volgen 1.5 (achter de vlag): het oude "Volg dit verhaal" gaat op in volgen. Geen blok "Je volgt" bovenaan meer en geen
-  // extra verhalen: alleen het label "Je volgt" op een plek die er al staat (volgtVan, shared/volgzaak-weergave.mjs).
+  // extra verhalen: alleen het label "Je volgt" op een plek die er al staat. Het label ligt vast op de server (Altijd server,
+  // 16 november 2026): de Editie draagt per plek `volgt { slug, naam }`; hier alleen lezen (volgtVanPlek, shared/volgzaak-weergave.mjs),
+  // en alleen tonen zolang de slug nog in je lijst staat: ontvolgen haalt het label meteen weg.
   const following = volgAan ? [] : followedNow(followStories, storiesById, newInStory)
-  const volgtOp = (r) => (volgAan && r?.story && r.desk !== 'bubbel' ? volgtVan(r.story, volgzaken) : null) // niet onder Buiten je bubbel: gelijk aan de Stroom
+  const volgtOp = (r) => (volgAan && r?.entry ? volgtVanPlek(r.entry, volgzaken) : null) // niet onder Buiten je bubbel: gelijk aan de Stroom (volgtVanPlek)
   const ref = useRef(null)
   const phone = usePhone() // telefoon: de Stroom-vorm met kaart A+ (src/styles/kaart.css); breder houdt de krant-vormen
 
@@ -164,7 +166,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       // Editie, 13 november 2026: "08 · NIEUWS" boven een column). De Redacteur zet opinie niet meer als kop van een plek;
       // dit vangt een Editie van een oudere server.
       const l = labelFor({ topics: r.item.topics, mainTopics: r.item.mainTopics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: r.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
-      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker || (opinieInStroom(r.item) ? null : 'Nieuws'), why: l.why, outside: l.outside }
+      return { key: e.id, index, desk: e.desk, entry: e, item: r.item, story: r.story, note: l.kicker || (opinieInStroom(r.item) ? null : 'Nieuws'), why: l.why, outside: l.outside }
     })
     .filter(Boolean)
   // De telling (numberRows): elke rij krijgt zijn nummer in de getoonde volgorde; N is het totaal.

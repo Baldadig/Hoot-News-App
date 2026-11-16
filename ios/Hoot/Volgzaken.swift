@@ -193,6 +193,12 @@ enum Volgzaken {
         guard let slug = story?.volgzaak?.slug else { return nil }
         return actieveVolgzaken(l).first { $0.slug == slug }
     }
+    // Het label in de Editie, vast op de server (volgtVanPlek in de rekenkern): { slug, label } als de plek een `volgt` draagt
+    // én die volgzaak nog in je lijst staat; niet onder Buiten je bubbel. Getoetst tegen tests/fixtures/volgzaak-golden.json.
+    static func volgtVanPlek(_ plek: EditionEntry?, _ l: [Volgzaak]) -> StoryVolgzaak? {
+        guard let plek, plek.desk != "bubbel", let slug = plek.volgt?.slug, !slug.isEmpty else { return nil }
+        return actieveVolgzaken(l).first { $0.slug == slug }
+    }
     // actieveVolgzaken in de rekenkern: status actief (of zonder status), geldige slug en naam, hooguit drie, in je volgorde.
     static func actieveVolgzaken(_ l: [Volgzaak]) -> [StoryVolgzaak] {
         var out: [StoryVolgzaak] = []

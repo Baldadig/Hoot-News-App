@@ -166,6 +166,44 @@ import XCTest
         XCTAssertEqual(s.volgtVan(story), StoryVolgzaak(slug: "gta-6", label: "GTA-6"), "met de vlag: het label, met je eigen naam")
     }
 
+    // Altijd server (16 november 2026): het label in de Editie ligt vast op de server, per plek (`volgt`).
+    private func plek(_ json: String) throws -> EditionEntry { try JSONDecoder().decode(EditionEntry.self, from: Data(json.utf8)) }
+
+    func testLabelInDeEditieKomtUitDePlekEnVolgtJeLijst() throws {
+        let s = store()
+        _ = lid(s)
+        s.volgzakenServer = true
+        s.volgzaken = [rij("gta-6")]
+        let p = try plek(#"{"kind":"story","id":"s","leadId":"i","desk":"games","volgt":{"slug":"gta-6","naam":"GTA 6"}}"#)
+        XCTAssertEqual(s.volgtOpPlek(p, story: nil), StoryVolgzaak(slug: "gta-6", label: "GTA-6"), "met je eigen naam")
+        // Nieuw volgen binnen het dagdeel: de plek draagt het nog niet, dus geen label (pas het volgende dagdeel).
+        s.volgzaken = [rij("gta-6"), rij("tata-steel")]
+        let zonder = try plek(#"{"kind":"story","id":"s2","leadId":"i2","desk":"economie"}"#)
+        XCTAssertNil(s.volgtOpPlek(zonder, story: nil))
+        // Ontvolgen haalt het label meteen weg; opnieuw volgen brengt het terug.
+        s.volgzaken = []
+        XCTAssertNil(s.volgtOpPlek(p, story: nil))
+        s.volgzaken = [rij("gta-6")]
+        XCTAssertNotNil(s.volgtOpPlek(p, story: nil))
+        // Niet onder Buiten je bubbel, en niets met de vlag uit.
+        XCTAssertNil(s.volgtOpPlek(try plek(#"{"kind":"story","id":"s","desk":"bubbel","volgt":{"slug":"gta-6","naam":"GTA 6"}}"#), story: nil))
+        s.volgzakenServer = false
+        XCTAssertNil(s.volgtOpPlek(p, story: nil))
+    }
+
+    // Oude en onverwachte vormen van `volgt` kosten de plek niets: ze zijn gewoon geen label.
+    func testVolgtOpEenPlekLeestNooitFout() throws {
+        for json in [#""gta-6""#, "null", "7", "{}", #"{"slug":3}"#, #"{"slug":"gta-6"}"#, "[]"] {
+            let p = try plek(#"{"kind":"story","id":"s","leadId":"i","desk":"games","volgt":"# + json + "}")
+            XCTAssertEqual(p.id, "s", json)
+        }
+        XCTAssertNil(try plek(#"{"kind":"story","id":"s","volgt":"gta-6"}"#).volgt?.slug)
+        XCTAssertNil(Volgzaken.volgtVanPlek(try plek(#"{"kind":"story","id":"s","volgt":[]}"#), [rij("gta-6")]))
+        // Een Editie met het veld decodeert zoals eerder: de lijst van plekken blijft heel.
+        let e = try JSONDecoder().decode(Edition.self, from: Data(#"{"id":"2026-11-16-ochtend","entries":[{"kind":"story","id":"a","volgt":{"slug":"gta-6","naam":"GTA 6"}},{"kind":"story","id":"b","volgt":5}]}"#.utf8))
+        XCTAssertEqual(e.entries.map(\.id), ["a", "b"])
+    }
+
     func testZonderAccountDeVraagOmInTeLoggen() {
         let s = store()
         s.volgzakenServer = true

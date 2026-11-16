@@ -9,7 +9,8 @@
 //   (bovenaan Alles en bovenaan de eigen rubriek van de lijn, hooguit drie, nieuwste eerst) voor wat nieuw is sinds je
 //   vorige bezoek, uit het laatste etmaal, nog niet gelezen. Niet onder Buiten je bubbel, nooit op een Bluesky-bericht.
 //   Uitgerekend met de grens van de weergave (lib/stroom-einde.js), dus vast tot je opnieuw opent.
-// - volgtVan: het label in de Editie (op elke plek waarvan het verhaal bij een gevolgde volgzaak hoort; geen extra verhalen).
+// - volgtVan: het label bij een verhaal (Vergelijken).
+// - volgtVanPlek, metVolgtOpPlekken: het label in de Editie, vast op de server per plek (zie hieronder); geen extra verhalen.
 // - rubriekRegel: de rubriekregel heeft hooguit twee delen; "Je volgt" gaat voor "Buiten je bronnen".
 // - erSpeeldeAl: "Er speelde al" in de kop van Zoeken, per lezer met de regels van volgzaakView (hooguit drie).
 // - volgzaakView: de pagina per lezer: eerst de taal van je bronkeuze, dan je eigen bronnen, gratis stukken van buiten met
@@ -51,6 +52,52 @@ export function actieveVolgzaken(volgzaken) {
 export function volgtVan(story, volgzaken) {
   const slug = story?.volgzaak?.slug
   if (!slug) return null
+  const z = actieveVolgzaken(volgzaken).find((x) => x.slug === slug)
+  return z ? { slug: z.slug, label: z.label } : null
+}
+
+// ---- Het label in de Editie: vast op de server, per plek (Volgen 1.5, "Altijd server", 16 november 2026) ----
+// De server legt bij het samenstellen van jouw Editie per plek vast welke volgzaak erbij hoort: `volgt: { slug, naam }`
+// op de plek (`entry`), op basis van de volglijst in je account op dat moment. Het veld hoort nergens in de afdruk
+// (editionBasis, prefsMark): volgen of ontvolgen geeft nooit een nieuwe Editie in het dagdeel. Web en app lezen alleen dit
+// veld (volgtVanPlek); wat jij daarna ontvolgt, haalt het label meteen weg, want het toont alleen zolang de slug nog in je
+// eigen lijst staat. Nieuw volgen binnen het dagdeel geeft het label pas in het volgende dagdeel.
+
+// Het verhaal bij een plek van de Editie, zoals de server het kent: het verhaal met de id van de plek als zijn hoofdbericht
+// erin zit (resolveEditionEntry in src/lib/edition.js), anders het verhaal waar het hoofdbericht nu in zit.
+export function verhaalVanPlek(entry, stories) {
+  if (!entry || typeof entry !== 'object') return null
+  const lijstVan = lijst(stories)
+  const leadId = entry.kind === 'story' ? entry.leadId : entry.id
+  const heeft = (st) => !!st && lijst(st.itemIds).includes(leadId)
+  const genoemd = entry.kind === 'story' ? lijstVan.find((st) => st && st.id === entry.id) : null
+  if (heeft(genoemd)) return genoemd
+  return lijstVan.find(heeft) || null
+}
+
+// Serverkant: de Editie met `volgt` op elke plek waarvan het verhaal (veld `volgzaak` van de feed) bij een volgzaak in je
+// lijst hoort. Niet onder Buiten je bubbel. Zonder lijst of zonder treffer: dezelfde Editie, onaangeroerd (zelfde object).
+export function metVolgtOpPlekken(edition, { stories = [], volgzaken = [] } = {}) {
+  const actief = actieveVolgzaken(volgzaken)
+  if (!edition || !actief.length || !Array.isArray(edition.entries)) return edition
+  let geraakt = false
+  const entries = edition.entries.map((e) => {
+    if (!e || e.desk === 'bubbel') return e
+    const slug = verhaalVanPlek(e, stories)?.volgzaak?.slug
+    const z = slug ? actief.find((x) => x.slug === slug) : null
+    if (!z) return e
+    geraakt = true
+    return { ...e, volgt: { slug: z.slug, naam: z.label } }
+  })
+  return geraakt ? { ...edition, entries } : edition
+}
+
+// Leeskant (web en app): het label op een plek: { slug, label } als de plek een `volgt` draagt én die volgzaak nog in je
+// lijst staat. De naam komt uit je eigen lijst (zoals jij het volgde). Niet onder Buiten je bubbel.
+export function volgtVanPlek(entry, volgzaken) {
+  if (!entry || entry.desk === 'bubbel') return null
+  const slug = entry.volgt?.slug
+  if (typeof slug !== 'string' || !slug) return null
   const z = actieveVolgzaken(volgzaken).find((x) => x.slug === slug)
   return z ? { slug: z.slug, label: z.label } : null
 }
@@ -231,3 +278,4 @@ export const volgzaakVoorrangJSON = (j) => JSON.stringify(volgzaakVoorrang(lees(
 export const rubriekRegelJSON = (j) => JSON.stringify(rubriekRegel(lees(j)))
 export const erSpeeldeAlJSON = (j) => JSON.stringify(erSpeeldeAl(lees(j)))
 export const volgtVanJSON = (storyJSON, volgzakenJSON) => JSON.stringify(volgtVan(lees(storyJSON), lees(volgzakenJSON)))
+export const volgtVanPlekJSON = (plekJSON, volgzakenJSON) => JSON.stringify(volgtVanPlek(lees(plekJSON), lees(volgzakenJSON)))
