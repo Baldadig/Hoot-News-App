@@ -1,0 +1,15 @@
+{
+  "about": "De rubriek voor het label Je volgt in de Stroom (src/lib/volg-rubriek.js en StreamView.rubriekLabel in de app). Volgorde: rubriek van de uitgever, de hoofdrubriek van de lijn, de eerste hoofdrubriek van het stuk (onderwerpen of bron), anders niets.",
+  "cases": [
+    { "name": "uitgever gaat voor", "input": { "item": { "section": "Opinie", "topics": ["voetbal"] }, "lijn": "politiek", "cat": null }, "expect": "Opinie" },
+    { "name": "lege rubriek van de uitgever telt niet", "input": { "item": { "section": "  ", "topics": ["voetbal"] }, "lijn": "", "cat": null }, "expect": "Sport" },
+    { "name": "de lijn geeft de rubriek", "input": { "item": { "topics": [] }, "lijn": "politiek", "cat": null }, "expect": "Politiek" },
+    { "name": "de lijn gaat voor de onderwerpen", "input": { "item": { "topics": ["voetbal"] }, "lijn": "tech", "cat": null }, "expect": "Tech" },
+    { "name": "onder Alles via de onderwerpen", "input": { "item": { "topics": ["ai"] }, "lijn": "", "cat": null }, "expect": "Tech" },
+    { "name": "een tab van de server is geen hoofdrubriek", "input": { "item": { "topics": ["film"] }, "lijn": "opinie", "cat": null }, "expect": "Cultuur" },
+    { "name": "via de rubriek van de bron", "input": { "item": { "topics": [] }, "lijn": "", "cat": "sport" }, "expect": "Sport" },
+    { "name": "showbizz telt niet voor Cultuur", "input": { "item": { "topics": ["showbizz"] }, "lijn": "", "cat": null }, "expect": null },
+    { "name": "niets te zeggen", "input": { "item": { "topics": [] }, "lijn": "", "cat": "nl" }, "expect": null },
+    { "name": "zonder onderwerpen en zonder bron", "input": { "item": {}, "lijn": "", "cat": null }, "expect": null }
+  ]
+}

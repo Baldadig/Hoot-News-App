@@ -20,6 +20,7 @@ import { withoutRepeats } from '../../shared/stroom.mjs'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
 import { weergaveGrens, grensIndex, vergeetGrenzen, markeerGezien, volgGezien, weergaveVoorrang, leesGezien } from '../lib/stroom-einde.js'
 import { volgzaakVoorrang, metVoorrang } from '../../shared/volgzaak-weergave.mjs'
+import { rubriekVoorLabel } from '../lib/volg-rubriek.js'
 import { INTERESTS } from '../lib/topics.js'
 
 const PAGE = 60 // zoveel berichten tegelijk tekenen; wat je al zag pas met "Ouder nieuws tonen"
@@ -310,7 +311,7 @@ export default function Stream({ active, stream, stroomTabs = TERUGVAL, params, 
                 {shown.map((item, index) => (
                   <div key={item.id} className={index < Math.min(freshShown, 6) ? 'stream-new' : undefined} style={index < 6 ? { '--rise-delay': `${index * 40}ms` } : undefined}>
                     {eerder && older > 0 && index === bIdx && bIdx > 0 ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
-                    <Entry item={item} story={item.storyId ? storiesById.get(item.storyId) : null} volgt={labels[item.id] || null} />
+                    <Entry item={item} story={item.storyId ? storiesById.get(item.storyId) : null} volgt={labels[item.id] ? { ...labels[item.id], rubriek: rubriekVoorLabel(item, { lijn: filters.rubriek, source: sourcesById.get(item.source) }) } : null} />
                   </div>
                 ))}
                 {shown.length < cap ? (

@@ -263,6 +263,41 @@ import XCTest
         XCTAssertEqual(VolgStroom.metVoorrang([a, b, c], ["b"]).map(\.id), ["b", "a", "c"])
         XCTAssertEqual(VolgStroom.metVoorrang([a, b, c], []).map(\.id), ["a", "b", "c"], "zonder voorrang precies de oude lijst")
     }
+
+    // ---- Nazorg Volgen-blok (16 november) ----
+
+    // Het label zonder rubriek in de Stroom: dezelfde gevallen als het web (tests/fixtures/volg-rubriek-cases.json).
+    func testRubriekVoorHetLabelGelijkAanHetWeb() throws {
+        let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appending(path: "tests/fixtures/volg-rubriek-cases.json")
+        let doc = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        let cases = try XCTUnwrap(doc["cases"] as? [[String: Any]])
+        XCTAssertGreaterThanOrEqual(cases.count, 10)
+        for c in cases {
+            let name = c["name"] as? String ?? "?"
+            let i = try XCTUnwrap(c["input"] as? [String: Any], name)
+            let it = i["item"] as? [String: Any] ?? [:]
+            var item = Item(id: "a", source: "nos", title: "A", url: "https://nos.nl/a")
+            item.section = it["section"] as? String
+            item.topics = it["topics"] as? [String]
+            XCTAssertEqual(StreamView.rubriekLabel(item, cat: i["cat"] as? String, lijn: i["lijn"] as? String ?? ""), c["expect"] as? String, name)
+        }
+    }
+
+    // Koude start: de voorrang wordt alsnog vastgezet zolang je nog niets zag, en nooit daarna of dubbel.
+    func testVoorrangAlsnogVastNaKoudeStart() {
+        let stroom = VolgStroom()
+        var n = 0
+        let invoer = { () -> Data in n += 1; return Data("{}".utf8) }
+        XCTAssertFalse(stroom.zetAlsnogVast("alles|", grensVast: false, gescrold: false, sleutel: "k", invoer: invoer), "zonder vaste grens niets vastzetten")
+        XCTAssertFalse(stroom.zetAlsnogVast("alles|", grensVast: true, gescrold: true, sleutel: "k", invoer: invoer), "na zelf scrollen springt er niets meer")
+        XCTAssertNil(stroom.vastgezet("alles|"))
+        XCTAssertTrue(stroom.zetAlsnogVast("alles|", grensVast: true, gescrold: false, sleutel: "k", invoer: invoer))
+        XCTAssertNotNil(stroom.vastgezet("alles|"))
+        XCTAssertFalse(stroom.zetAlsnogVast("alles|", grensVast: true, gescrold: false, sleutel: "k", invoer: invoer), "één keer per bezoek")
+        stroom.vergeet()
+        XCTAssertNil(stroom.vastgezet("alles|"), "een nieuw bezoek rekent opnieuw")
+    }
 }
 
 // Vangt de vragen aan /api/volgzaak op (geen netwerk) en antwoordt { ok: true }.

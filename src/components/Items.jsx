@@ -129,6 +129,7 @@ function Kicker({ item, extra, followed, volgt = null, n = null }) {
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (opinieInStroom(item)) bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
+  else if (volgt?.rubriek && !extra) bits.push(<span key="s">{volgt.rubriek}</span>) // Stroom: geen rubriekregel, dus de rubriek van de lijn of het stuk voor het label
   if (volgt) bits.push(<VolgLabel key="v" volgt={volgt} inLink />) // Volgen 1.5: het label gaat voor het oude "Je volgt"
   else if (followed) bits.push(<span key="f" className="label--meta front__followed">{followed}</span>) // stil: een staat, geen rubriek
   return bits.length ? <p className="label label--kicker kicker">{bits}</p> : null

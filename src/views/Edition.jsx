@@ -142,7 +142,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   // Volgen 1.5 (achter de vlag): het oude "Volg dit verhaal" gaat op in volgen. Geen blok "Je volgt" bovenaan meer en geen
   // extra verhalen: alleen het label "Je volgt" op een plek die er al staat (volgtVan, shared/volgzaak-weergave.mjs).
   const following = volgAan ? [] : followedNow(followStories, storiesById, newInStory)
-  const volgtOp = (r) => (volgAan && r?.story ? volgtVan(r.story, volgzaken) : null)
+  const volgtOp = (r) => (volgAan && r?.story && r.desk !== 'bubbel' ? volgtVan(r.story, volgzaken) : null) // niet onder Buiten je bubbel: gelijk aan de Stroom
   const ref = useRef(null)
   const phone = usePhone() // telefoon: de Stroom-vorm met kaart A+ (src/styles/kaart.css); breder houdt de krant-vormen
 
@@ -295,7 +295,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       <h2 className="label label--section front__more">Buiten je bubbel</h2>
       <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
       <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: phone ? 'tijdlijn' : 'krant' }))}>
-      {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} volgt={volgtOp(r)} taste={r.key} lines={KAART_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} volgt={volgtOp(r)} taste={r.key} plain />}</Slot>)}
+      {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} volgt={null} taste={r.key} lines={KAART_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} volgt={null} taste={r.key} plain />}</Slot>)}
       </PlaceholderList>
     </section>
   ) : null
