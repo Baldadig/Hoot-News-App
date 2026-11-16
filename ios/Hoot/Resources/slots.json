@@ -12,6 +12,7 @@
   "avond": {
     "naam": "Avondeditie",
     "volgende": "morgenochtend",
-    "dagdeel": "in de vroege avond"
+    "dagdeel": "in de vroege avond",
+    "naMiddernacht": "De Ochtendeditie komt zo."
   }
 }

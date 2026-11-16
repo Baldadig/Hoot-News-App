@@ -2,7 +2,7 @@
 // - punt 5: bij hetzelfde feit de gratis kop van NOS, NU.nl of RTL (freeHeads);
 // - punt 7: Haagse dossiers, automatisch op gedeelde namen (netlify/lib/dossiers.mjs), eerst in schaduw (alleen het archief);
 // - punt 8: de Ochtendeditie op een vast, later moment, en de ochtend licht aanvullen (shared/slot-times.mjs,
-//   morningTopUp, earlyMorningSlot);
+//   morningTopUp, ochtendVooraf);
 // - punt 9: een rustige laatste noot (quietEnd);
 // - punt 10: geen plek zonder rubriek, en de rubriek volgt het land van het onderwerp (netlify/lib/rubriek.mjs).
 import { test } from 'node:test'
@@ -11,8 +11,8 @@ import { freeHeads, quietEnd, quietNote, editionSlot, SOURCE_PLACES_MAX, buildSt
 import { haagsDossier, haagsPiece, dossierNames, DOSSIER_MIN } from '../netlify/lib/dossiers.mjs'
 import { placeDesks, deskFor } from '../netlify/lib/rubriek.mjs'
 import { morningTopUp, OCHTEND_AANVULLING } from '../netlify/lib/aanvulling.mjs'
-import { earlyMorningSlot, generalEdition } from '../netlify/lib/build.mjs'
-import { SLOT_START, OCHTEND_VROEG } from '../shared/slot-times.mjs'
+import { generalEdition } from '../netlify/lib/build.mjs'
+import { SLOT_START, ochtendVooraf } from '../shared/slot-times.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 
 const T = Date.parse('2026-11-11T07:00:00Z')
@@ -165,15 +165,17 @@ test('Haagse dossiers draaien in schaduw: de Jetten-proef (keuring ronde 3-1) ve
 })
 
 // ---------- punt 8 ----------
-test('de Ochtendeditie wordt een uur later vastgelegd; bij de uitrol blijft een vroege Ochtendeditie staan', () => {
-  assert.equal(SLOT_START.ochtend, 6 * 60 + 30)
-  assert.equal(OCHTEND_VROEG, 5 * 60 + 30)
-  assert.equal(editionSlot(new Date('2026-12-01T05:29:00Z')).id, '2026-11-30-avond') // 06:29
-  assert.equal(editionSlot(new Date('2026-12-01T05:30:00Z')).id, '2026-12-01-ochtend') // 06:30
-  assert.equal(earlyMorningSlot(Date.parse('2026-12-01T04:29:00Z')), null) // 05:29
-  assert.equal(earlyMorningSlot(Date.parse('2026-12-01T04:30:00Z')).id, '2026-12-01-ochtend') // 05:30
-  assert.equal(earlyMorningSlot(Date.parse('2026-12-01T05:30:00Z')), null) // 06:30: gewoon de ochtend
-  assert.equal(earlyMorningSlot(Date.parse('2026-07-01T03:45:00Z')).id, '2026-07-01-ochtend') // zomer, 05:45
+// Besluit Alex 16 november 2026: de Ochtendeditie om 06:00 (was 06:30). De uitrolregel van 11 november (earlyMorningSlot)
+// is weg; in plaats daarvan legt de ronde vlak vóór de ochtend haar al vast (ochtendVooraf), zonder haar te tonen.
+test('de Ochtendeditie om 06:00; de ronde vlak ervoor legt haar al vast', () => {
+  assert.equal(SLOT_START.ochtend, 6 * 60)
+  assert.equal(editionSlot(new Date('2026-12-01T04:59:00Z')).id, '2026-11-30-avond') // 05:59
+  assert.equal(editionSlot(new Date('2026-12-01T05:00:00Z')).id, '2026-12-01-ochtend') // 06:00
+  assert.equal(ochtendVooraf(new Date('2026-12-01T04:39:00Z')), null) // 05:39
+  assert.equal(ochtendVooraf(new Date('2026-12-01T04:40:00Z')).id, '2026-12-01-ochtend') // 05:40
+  assert.equal(ochtendVooraf(new Date('2026-12-01T04:59:59Z')).id, '2026-12-01-ochtend') // 05:59:59
+  assert.equal(ochtendVooraf(new Date('2026-12-01T05:00:00Z')), null) // 06:00: gewoon de ochtend
+  assert.equal(ochtendVooraf(new Date('2026-07-01T03:50:00Z')).id, '2026-07-01-ochtend') // zomer, 05:50
 })
 
 test('de ochtend licht aanvullen: hooguit twee gratis Nederlandse plekken erbij, wat er staat blijft staan', () => {

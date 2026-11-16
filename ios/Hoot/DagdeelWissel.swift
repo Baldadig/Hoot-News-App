@@ -20,6 +20,13 @@ enum DagdeelWissel {
         return gap > 0 && gap <= holdMax
     }
 
+    // Is er op de klok (Amsterdam) al een later dagdeel dan dat van de Editie `editie` ("2026-11-16-avond")? Dan haalt de
+    // app bij terugkomen meteen de nieuwe (HootApp). Zonder Editie: nee (dan beslist de gewone regel).
+    static func nieuwDagdeel(editie: String?, nu: Date = .now) -> Bool {
+        guard let editie else { return false }
+        return WidgetDagdeel.later(WidgetDagdeel.op(nu).id, dan: editie)
+    }
+
     // Wisselen zonder te vragen: alleen bovenaan en als je niet leest (geen verhaal of lezer open).
     static func swapsNow(atTop: Bool, reading: Bool) -> Bool { atTop && !reading }
 

@@ -23,6 +23,11 @@ extension WidgetToon {
     }
 }
 
+extension EnvironmentValues {
+    // Het moment van de getoonde regel in de tijdlijn (HootWidgetEntry.date): voor de eindzin na middernacht.
+    @Entry var widgetMoment: Date? = nil
+}
+
 struct HootWidgetEntry: TimelineEntry {
     let date: Date
     let editie: WidgetEditie?
@@ -84,6 +89,7 @@ struct HootWidgetInhoud: View {
         }
         .contentTransition(stil ? .identity : .opacity)
         .coordinateSpace(.named(WidgetZetMeting.ruimte))
+        .environment(\.widgetMoment, entry.date)
     }
 }
 
@@ -347,6 +353,7 @@ struct KleinVoortgang: View {
     let stand: WidgetStand
     let maat: CGSize
     let marge: CGFloat
+    @Environment(\.widgetMoment) private var moment
 
     var body: some View {
         let n = editie.verhalen.count
@@ -391,7 +398,7 @@ struct KleinVoortgang: View {
 
     private func voet(n: Int, g: Int) -> String {
         if case let .oud(volgende) = stand { return "Tik voor de \(volgende)" }
-        if g >= n { return WidgetDagdeel.volgendeZin(na: editie.dagdeel) }
+        if g >= n { return WidgetDagdeel.volgendeZin(na: editie.dagdeel, datum: editie.datum, op: moment) }
         if g == 0 { return editie.leesZin }
         return n - g == 1 ? "Nog één verhaal" : "Nog \(n - g) verhalen"
     }

@@ -12,7 +12,6 @@ import { scoreEdition, shownItems, editionItemIds, ARCHIVE_KEY, ARCHIVE_FEED_KEY
 import Anthropic from '@anthropic-ai/sdk'
 import { centralItems, byRecency, sigWords, sharedCount, buildStories, NL_TOP5_MIN, dutchPlace, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, curiosaDown, heldDown, newsBeforePeople, dutchHeads, dutchTop, sourceCap, freeHeads, quietEnd, EDITION_SIZE, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { profileOf } from '../../shared/editor.mjs'
-import { SLOT_START, OCHTEND_VROEG, amsterdamClock, hhmm } from '../../shared/slot-times.mjs'
 import { coverageOf, publisherOf, lightNews } from '../../shared/edition-policy.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { isOpinie } from '../../shared/opinie.mjs'
@@ -61,7 +60,9 @@ const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersp
 const inEdition = (it) => !excludedFromEdition(it) && EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source) && !OPINIE_IDS.has(it.source) && !keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
 
 // `anthropic`: alleen voor toetsen (een nepmodel); anders de client uit ANTHROPIC_API_KEY.
-export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
+// `slot` (vooraf, refresh.mjs): het komende dagdeel waarvan deze ronde de Editie al vastlegt; anders dat van de klok.
+export async function buildFeed({ now = Date.now(), anthropic: client, slot: slotGiven = null } = {}) {
+  const slotNow = slotGiven || editionSlot(new Date(now))
   const roundStart = Date.now()
   const apiKey = process.env.ANTHROPIC_API_KEY
   // Volgen 1.5 (achter HOOT_VOLGZAKEN=aan): het veld `volgzaak` op verhalen. Hier alleen één kant-en-klaar document uit KV
@@ -136,7 +137,7 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
   const editionOut = editionPool(out.filter(forEdition), articlePool)
   const ai = await aiExclusions({ pool: editionOut, stories, now, client: anthropic, kv: { get: kvGet, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }) } })
   const kept = (i) => !ai.weg.has(i.id)
-  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition).filter(kept), pool: editionOut.filter(kept), anthropic })
+  const edition = await composeEdition({ now, slot: slotNow, stories, articlePool: articlePool.filter(inEdition).filter(kept), pool: editionOut.filter(kept), anthropic })
   // Waar media verschillen (achter HOOT_VERSCHILLEN=aan): de feed wacht nooit op een model. Hier alleen lezen
   // wat al gekeurd in KV staat (kort leesbudget, naast het meten van de beelden); schrijven en keuren doet een
   // eigen geplande functie (functions/verschillen-refresh.mjs). Met de vlag uit raakt het niets aan.
@@ -166,7 +167,7 @@ export async function buildFeed({ now = Date.now(), anthropic: client } = {}) {
     algemeen: editiePlekken(edition.public.entries, stories),
     pool: new Set(editionOut.filter(kept).map((i) => i.storyId || poolById.get(i.id)?.storyId).filter(Boolean)),
   }
-  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: editionSlot(new Date(now)).id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), get: kvGet, client: anthropic, editie, deadline: roundStart + KOPPEL_MS, start: roundStart, wachtrij: true, ids: zoekIds })
+  await luisterRonde({ stories, byId: poolById, now, episodesP, slot: slotNow.id, mainIds: MAIN_IDS, update: (k, fn) => kvUpdate(k, fn, { tries: 3 }), get: kvGet, client: anthropic, editie, deadline: roundStart + KOPPEL_MS, start: roundStart, wachtrij: true, ids: zoekIds })
   await imagesP
   if (beforeImages !== JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))) {
     await kvSet(editionCacheKey(edition.public.id), edition.snapshot).catch(() => {})
@@ -1159,19 +1160,11 @@ async function archiveEdition(slot, stored, partial, { byId, stories, storyById 
 // Een nieuwe Redacteur-revisie geldt vanaf het volgende dagdeel (ronde 10 · A, netlify/lib/edition-history.mjs): staat de
 // Editie van dit dagdeel al onder een eerdere revisie vast, dan blijft die staan (onder de nieuwe sleutel bewaard, met
 // zijn eigen revisie in `version`); de vorige Editie komt uit het vorige dagdeel, welke revisie ook.
-// De uitrol van de latere ochtend (frisse ogen · ronde 3, punt 8): tussen de oude start (OCHTEND_VROEG) en de nieuwe
-// is het volgens editionSlot nog nacht. Ligt de Ochtendeditie van vandaag al vast (onder de vorige code, om 05:30), dan
-// blijft die staan: lezers gaan niet terug naar de Editie van gisteravond. Daarna (of zonder zo'n Editie) verandert niets.
-export function earlyMorningSlot(now = Date.now()) {
-  const { year, month, day, minutes } = amsterdamClock(new Date(now))
-  if (minutes < OCHTEND_VROEG || minutes >= SLOT_START.ochtend) return null
-  const date = `${year}-${month}-${day}`
-  return { id: `${date}-ochtend`, slot: 'ochtend', date, next: hhmm(SLOT_START.middag) }
-}
-async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
-  let slot = editionSlot(new Date(now))
-  const early = earlyMorningSlot(now)
-  if (early && (await findEdition(kvGet, early.id).catch(() => null))) slot = early
+// `slot`: het dagdeel van de klok, of (de ronde vlak vóór de ochtend, refresh.mjs) de komende ochtend: die wordt dan al
+// vastgelegd, en pas vanaf de start van de ochtend getoond (netlify/lib/dagdeel-kern.mjs). De vroegere uitrolregel
+// (earlyMorningSlot, tussen 05:30 en 06:30) is weg: met de ochtend om 06:00 zou hij de vooraf vastgelegde ochtend te
+// vroeg tonen.
+async function composeEdition({ now, slot = editionSlot(new Date(now)), stories, articlePool, pool, anthropic }) {
   const key = editionCacheKey(slot.id)
   const byId = new Map(pool.map((i) => [i.id, i]))
   let stored = await kvGet(key)

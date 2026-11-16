@@ -31,7 +31,23 @@ final class SlotsTests: XCTestCase {
             XCTAssertEqual(app.naam, w["naam"], "\(slot): naam")
             XCTAssertEqual(app.volgende, w["volgende"], "\(slot): volgende")
             XCTAssertEqual(app.dagdeel, w["dagdeel"], "\(slot): dagdeel")
+            XCTAssertEqual(app.naMiddernacht, w["naMiddernacht"], "\(slot): naMiddernacht")
         }
+    }
+
+    // De eindkaart: voor middernacht "morgenochtend", daarna "De Ochtendeditie komt zo." (besluit Alex 16 november 2026),
+    // zoals upNext op het web (tests/ochtend-zes.test.mjs). Geen kloktijden.
+    func testUpNextVoorEnNaMiddernacht() {
+        let iso = ISO8601DateFormatter()
+        func at(_ s: String) -> Date { iso.date(from: s)! }
+        XCTAssertEqual(Slots.upNext("avond", datum: "2026-11-30", nu: at("2026-11-30T22:59:00Z")), " De volgende staat morgenochtend klaar.") // 23:59
+        XCTAssertEqual(Slots.upNext("avond", datum: "2026-11-30", nu: at("2026-11-30T23:01:00Z")), " De Ochtendeditie komt zo.") // 00:01
+        XCTAssertEqual(Slots.upNext("avond", datum: "2026-11-30", nu: at("2026-12-01T04:59:59Z")), " De Ochtendeditie komt zo.") // 05:59
+        XCTAssertEqual(Slots.upNext("avond", datum: "2026-06-30", nu: at("2026-06-30T21:59:00Z")), " De volgende staat morgenochtend klaar.") // zomer, 23:59
+        XCTAssertEqual(Slots.upNext("avond", datum: "2026-06-30", nu: at("2026-06-30T22:01:00Z")), " De Ochtendeditie komt zo.") // zomer, 00:01
+        XCTAssertEqual(Slots.upNext("ochtend", datum: "2026-11-30", nu: at("2026-12-01T10:00:00Z")), " De volgende staat in de middag klaar.")
+        XCTAssertEqual(Slots.upNext("avond", datum: nil), " De volgende staat morgenochtend klaar.")
+        XCTAssertEqual(Slots.upNext(nil, datum: "2026-11-30"), "")
     }
 
     // De seintjes noemen de Editie zoals de app zelf (EditionAlerts leest uit Slots).

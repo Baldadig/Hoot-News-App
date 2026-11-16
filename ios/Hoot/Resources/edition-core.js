@@ -3770,8 +3770,7 @@ var HootCore = (() => {
   }
 
   // shared/slot-times.mjs
-  var SLOT_START = { ochtend: 6 * 60 + 30, middag: 12 * 60, avond: 17 * 60 };
-  var OCHTEND_VROEG = 5 * 60 + 30;
+  var SLOT_START = { ochtend: 6 * 60, middag: 12 * 60, avond: 17 * 60 };
 
   // netlify/lib/stories.mjs
   var timeOf = (a) => Date.parse(a.publishedAt) || 0;

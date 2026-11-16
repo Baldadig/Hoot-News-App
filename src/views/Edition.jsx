@@ -540,7 +540,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <EindeSun className="endcap__sun" />
               <h2 className="head-5 endcap__title" ref={endRef}>{eindzin(edition.date, edition.slot)}</h2>
               <p className="endcap__text">
-                Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
+                Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot, edition.date)}
               </p>
             </div>) : null}
             {/* De App Store-kaart onder de eindkaart; zolang "Maak Hoot van jou" zweeft, wacht hij: nooit twee kaarten tegelijk. */}

@@ -96,11 +96,12 @@ enum WidgetStand: Hashable, Sendable {
 }
 
 // De dagdelen: wanneer ze beginnen (Amsterdamse tijd, alleen om te rekenen: in teksten staan geen
-// kloktijden), hoe de Editie heet en de eindzin. Gelijk aan shared/slot-times.mjs, shared/slots.json,
+// kloktijden), hoe de Editie heet en de eindzin. Ochtend om 06:00 (besluit Alex 16 november 2026; was 06:30).
+// Gelijk aan shared/slot-times.mjs, shared/slots.json,
 // EditionAlerts.slots en shared/eindzin.mjs (getoetst in WidgetTests).
 enum WidgetDagdeel {
     static let volgorde = ["ochtend", "middag", "avond"]
-    static let start = ["ochtend": 6 * 60 + 30, "middag": 12 * 60, "avond": 17 * 60] // minuten na middernacht
+    static let start = ["ochtend": 6 * 60, "middag": 12 * 60, "avond": 17 * 60] // minuten na middernacht
     static let marge = 3 // minuten na de start: zoals het seintje (EditionAlerts.delay)
     static let namen = ["ochtend": "Ochtendeditie", "middag": "Middageditie", "avond": "Avondeditie"]
     static func naam(_ dagdeel: String) -> String { namen[dagdeel] ?? "Editie" }
@@ -160,13 +161,30 @@ enum WidgetDagdeel {
         return uit.sorted()
     }
 
-    // De volgende Editie, voor "Straks de Avondeditie" en "Morgen de Ochtendeditie" (geen kloktijden).
-    static func volgendeZin(na dagdeel: String) -> String {
+    // De volgende Editie, voor "Straks de Avondeditie" en "Morgen de Ochtendeditie" (geen kloktijden). Na middernacht
+    // (de kalenderdag in Amsterdam is na `datum`, de datum van de Avondeditie) is de ochtend er bijna: "Straks de
+    // Ochtendeditie", zoals de eindkaart in de app en op het web ("De Ochtendeditie komt zo.", shared/slots.json).
+    static func volgendeZin(na dagdeel: String, datum: String? = nil, op moment: Date? = nil) -> String {
         switch dagdeel {
-        case "ochtend": "Straks de \(naam("middag"))"
-        case "middag": "Straks de \(naam("avond"))"
-        default: "Morgen de \(naam("ochtend"))"
+        case "ochtend": return "Straks de \(naam("middag"))"
+        case "middag": return "Straks de \(naam("avond"))"
+        default:
+            if let datum, let moment, kalenderdag(moment) > datum { return "Straks de \(naam("ochtend"))" }
+            return "Morgen de \(naam("ochtend"))"
         }
+    }
+
+    // De kalenderdag in Amsterdam ("2026-11-17").
+    static func kalenderdag(_ moment: Date) -> String {
+        let d = amsterdam.dateComponents([.year, .month, .day], from: moment)
+        return String(format: "%04d-%02d-%02d", d.year ?? 0, d.month ?? 0, d.day ?? 0)
+    }
+
+    // Middernacht in Amsterdam na `na`, voor de komende `uren`: dan wisselt de eindzin van een Avondeditie.
+    static func middernachten(na: Date, uren: Double = 24) -> [Date] {
+        let cal = amsterdam
+        let eind = na.addingTimeInterval(uren * 3600)
+        return (1...2).compactMap { cal.date(byAdding: .day, value: $0, to: cal.startOfDay(for: na)) }.filter { $0 > na && $0 <= eind }
     }
 
     // De eindzin van de Editie (shared/eindzin.mjs, EditionEnd in de app): per datum en dagdeel vast.
@@ -253,7 +271,9 @@ enum WidgetBron {
 // seintje). Op zo'n moment vraagt WidgetKit om een nieuwe tijdlijn; dan haalt de widget de nieuwe Editie
 // (WidgetOphalen). Lukt dat niet, dan staan de momenten erna al klaar: de vorige Editie met "Tik voor de …".
 enum WidgetTijdlijn {
-    static func momenten(nu: Date) -> [Date] { [nu] + WidgetDagdeel.momenten(na: nu, uren: 24) }
+    // Ook om middernacht een moment (geen nieuwe vraag aan WidgetKit): dan zegt een uitgelezen Avondeditie "Straks de
+    // Ochtendeditie" in plaats van "Morgen de Ochtendeditie".
+    static func momenten(nu: Date) -> [Date] { [nu] + (WidgetDagdeel.momenten(na: nu, uren: 24) + WidgetDagdeel.middernachten(na: nu)).sorted() }
 
     // Wanneer WidgetKit weer moet vragen: bij het eerstvolgende dagdeel.
     static func volgende(nu: Date) -> Date {

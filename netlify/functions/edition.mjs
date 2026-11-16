@@ -63,6 +63,7 @@ import { mutedSet } from '../../src/lib/sourcesel.js'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 import { slotIdNow } from '../../shared/tel.mjs'
 import { logFault } from '../lib/edition-fout.mjs'
+import { slotRank, laterSlot, volgendKey, volgendGeldt } from '../lib/dagdeel-kern.mjs'
 
 const fail = (status, error, headers = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...headers } })
 // v2: nooit in een gedeelde cache (een antwoord kan van je account zijn).
@@ -418,19 +419,13 @@ async function loadStart() {
 const loadItems = (start, followed) => memory.loadItems(start, followed)
 // De kern opnieuw, met sterke consistentie (editiefix S2): zie freshStartFor hieronder.
 const loadStartStrong = () => memory.loadStart({ strong: true })
+// De vooraf vastgelegde kern (de Ochtendeditie, netlify/lib/dagdeel-kern.mjs), met een eigen geheugen; de delen per
+// bron zijn dezelfde als die van de gewone kern.
+const nextMemory = feedMemory({ readStart: (tag) => readDocIf(volgendKey(KEYS.start), tag), readPart: (id) => readDoc(KEYS.part(id)) })
+const loadNextStart = () => nextMemory.loadStart()
 
-// De plaats van een dagdeel-id in de tijd ('2026-11-16-middag' -> '2026-11-16-1'), of null: zo zijn twee id's te
-// vergelijken als tekst.
-const SLOT_ORDER = ['ochtend', 'middag', 'avond']
-export const slotRank = (id) => {
-  const m = /^(\d{4}-\d{2}-\d{2})-(ochtend|middag|avond)$/.exec(typeof id === 'string' ? id : '')
-  return m ? `${m[1]}-${SLOT_ORDER.indexOf(m[2])}` : null
-}
-export const laterSlot = (a, b) => {
-  const x = slotRank(a)
-  const y = slotRank(b)
-  return !!x && !!y && x > y
-}
+// De plaats van een dagdeel-id in de tijd en de vergelijking: netlify/lib/dagdeel-kern.mjs (hier ook te importeren).
+export { slotRank, laterSlot }
 
 // Hoe lang elke stap duurde, als `Server-Timing`-kop (B7): alleen namen en milliseconden, nooit profiel, account of
 // afdruk. Zo zien we in de browser en in een meting precies waar de tijd van een vraag zit.
@@ -477,7 +472,7 @@ async function editionV2Route(req, body, deps) {
   // de kern opnieuw lezen en de klok (S2). Met een eigen `start` (de tests) leest de server de kern alleen opnieuw als
   // de test ook `freshStart` meegeeft.
   const { start: startOf = loadStart, items: itemsOf = loadItems, kv = KV, waitUntil = null, fetch: fetchImpl = null, now = Date.now } = deps
-  const { verify = (t) => verifyToken(t, fetchImpl || fetch), clientFor = (t) => clientForToken(t, fetchImpl), freshStart = deps.start ? null : loadStartStrong } = deps
+  const { verify = (t) => verifyToken(t, fetchImpl || fetch), clientFor = (t) => clientForToken(t, fetchImpl), freshStart = deps.start ? null : loadStartStrong, nextStart = deps.start ? null : loadNextStart } = deps
   const watch = stopwatch()
   const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim()
   const starting = watch.time('kern', startOf)
@@ -504,6 +499,13 @@ async function editionV2Route(req, body, deps) {
   }
   let start = await starting
   if (!start?.edition?.id) return fail2(503, 'De feed is er nog niet.')
+  // De wissel (besluit Alex 16 november 2026): is de ochtend op de klok begonnen en staat de kern nog op de avond, dan
+  // rekenen we met de vooraf vastgelegde kern met de Ochtendeditie (netlify/lib/dagdeel-kern.mjs), voor elk toestel, met
+  // of zonder account. Zo is er vanaf de start geen avond meer, ook niet terwijl de ronde van de start nog loopt.
+  if (nextStart && laterSlot(slotIdNow(new Date(now())), start.edition.id)) {
+    const next = await watch.time('volgend', nextStart).catch(() => null)
+    if (volgendGeldt(start.edition.id, next?.edition?.id, new Date(now()))) start = next
+  }
   // S2 (editiefix): als lid nooit de Editie van een eerder dagdeel terwijl er al een later dagdeel is. Zegt de klok dat er
   // een later dagdeel begonnen is dan dat van onze kern, dan lezen we de kern opnieuw met sterke consistentie (Blobs loopt
   // tot een minuut achter, en een iPhone met de kern van nu gooit een antwoord met een ander dagdeel weg, zonder opnieuw te

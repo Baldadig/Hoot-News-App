@@ -30,4 +30,18 @@ final class DagdeelWisselTests: XCTestCase {
         XCTAssertEqual(DagdeelWissel.readyLine("ochtend"), "De Ochtendeditie staat klaar")
         XCTAssertEqual(DagdeelWissel.comingLine(nil), "De nieuwe Editie komt eraan")
     }
+
+    // Terug in de app: is de klok al in een later dagdeel dan de Editie in de app, dan meteen verversen (besluit Alex
+    // 16 november 2026). 05:59 is nog de avond, 06:00 de ochtend, zomer en winter.
+    func testNieuwDagdeelBijTerugkomen() {
+        let iso = ISO8601DateFormatter()
+        func at(_ s: String) -> Date { iso.date(from: s)! }
+        XCTAssertFalse(DagdeelWissel.nieuwDagdeel(editie: "2026-11-30-avond", nu: at("2026-12-01T04:59:00Z"))) // 05:59
+        XCTAssertTrue(DagdeelWissel.nieuwDagdeel(editie: "2026-11-30-avond", nu: at("2026-12-01T05:00:00Z"))) // 06:00
+        XCTAssertFalse(DagdeelWissel.nieuwDagdeel(editie: "2026-06-30-avond", nu: at("2026-07-01T03:59:00Z"))) // zomer, 05:59
+        XCTAssertTrue(DagdeelWissel.nieuwDagdeel(editie: "2026-06-30-avond", nu: at("2026-07-01T04:00:00Z"))) // zomer, 06:00
+        XCTAssertFalse(DagdeelWissel.nieuwDagdeel(editie: "2026-12-01-ochtend", nu: at("2026-12-01T10:59:00Z")))
+        XCTAssertTrue(DagdeelWissel.nieuwDagdeel(editie: "2026-12-01-ochtend", nu: at("2026-12-01T11:00:00Z"))) // 12:00
+        XCTAssertFalse(DagdeelWissel.nieuwDagdeel(editie: nil, nu: at("2026-12-01T11:00:00Z")))
+    }
 }

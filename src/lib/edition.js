@@ -1,5 +1,6 @@
 import { EDITION_TARGET } from '../../shared/edition-limits.mjs'
 import { SLOTS } from '../../shared/slots.mjs'
+import { amsterdamClock } from '../../shared/slot-times.mjs'
 
 // Editie-onderdelen weergeven — pure functies (tests/edition.test.mjs).
 //
@@ -44,9 +45,17 @@ export const EDITION_SIZE = EDITION_TARGET
 // `upNext`). De woorden staan in shared/slots.mjs; de server stuurt wel `next: '12:00'` mee, maar
 // dat gebruiken we niet voor de tekst.
 export const UP_NEXT = Object.fromEntries(Object.entries(SLOTS).map(([slot, s]) => [slot, s.volgende]))
-export function upNext(slot) {
-  const when = SLOTS[slot]?.volgende
-  return when ? ` De volgende staat ${when} klaar.` : ''
+// Na middernacht (de kalenderdag in Amsterdam is na `date`, de datum van de Editie) is het al ochtend: dan geen
+// "morgenochtend" maar de zin `naMiddernacht` van het dagdeel ("De Ochtendeditie komt zo."). Voor middernacht, of
+// zonder datum, de gewone zin. Gelijk aan EditionView.upNext in de app.
+export function upNext(slot, date = null, now = new Date()) {
+  const s = SLOTS[slot]
+  if (s?.naMiddernacht && date && amsterdamDay(now) > date) return ` ${s.naMiddernacht}`
+  return s?.volgende ? ` De volgende staat ${s.volgende} klaar.` : ''
+}
+const amsterdamDay = (now) => {
+  const c = amsterdamClock(now)
+  return `${c.year}-${c.month}-${c.day}`
 }
 
 // Welke onderdelen het overzicht niet noemt (op volgorde): die tonen we eronder, zodat er
