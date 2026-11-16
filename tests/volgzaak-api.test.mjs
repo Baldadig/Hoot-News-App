@@ -59,7 +59,7 @@ test('proef: alleen met de juiste telsleutel; zonder sleutel in Netlify nooit', 
 
 test('acties met kosten of tellers alleen voor leden; lezen kan zonder account', async () => {
   const io = memIo()
-  for (const actie of [{ actie: 'duiden', opdracht: 'gta 6' }, { actie: 'volgen', slug: 'gta-6' }, { actie: 'ontvolgen', slug: 'gta-6' }, { actie: 'bijsturen', slug: 'gta-6', scherper: 'pc' }]) {
+  for (const actie of [{ actie: 'duiden', opdracht: 'gta 6' }, { actie: 'volgen', slug: 'gta-6' }, { actie: 'ontvolgen', slug: 'gta-6' }]) {
     const r = await doe(io, actie, { token: 'fout' })
     assert.equal(r.status, 401, actie.actie)
     assert.equal((await r.json()).error, 'Alleen met een account.')
@@ -168,26 +168,17 @@ test('volgen en ontvolgen: een anonieme teller die nooit onder nul gaat, met een
   assert.deepEqual(o.overzicht, { 'gta-6': { laatstNieuw: null, status: 'actief' }, 'iets-anders': null })
 })
 
-test('volgen, ontvolgen en bijsturen samen hooguit twintig keer per lid per dag', async () => {
+test('volgen en ontvolgen samen hooguit twintig keer per lid per dag', async () => {
   const io = memIo({ 'volgzaak-def:gta-6': { slug: 'gta-6', label: 'GTA 6', status: 'actief' }, 'volgzaak-treffers:gta-6': { v: 1, s: {} } })
   for (let i = 0; i < 20; i++) assert.equal((await doe(io, { actie: i % 2 ? 'ontvolgen' : 'volgen', slug: 'gta-6' })).status, 200)
   assert.equal((await doe(io, { actie: 'volgen', slug: 'gta-6' })).status, 429)
 })
 
-test('bijsturen: dezelfde volgzaak verandert niets; een andere verschuift de volgers en de oude opdracht blijft naar de oude wijzen', async () => {
+test('de actie bijsturen bestaat niet meer: geweigerd als onbekend', async () => {
   const io = metVoorraad(memIo())
-  await doe(io, { actie: 'duiden', opdracht: 'gta 6' }, { anthropic: nepModel(() => GOED) })
-  await doe(io, { actie: 'volgen', slug: 'gta-6' })
-  const zelfde = await (await doe(io, { actie: 'bijsturen', slug: 'gta-6', scherper: 'zonder geruchten' }, { anthropic: nepModel(() => GOED) })).json()
-  assert.equal(zelfde.soort, 'zelfde')
-  const pc = { ...GOED, naam: 'GTA 6 op pc', regel: 'Alleen de pc-versie van GTA 6', namen_nl: ['GTA 6 pc'], namen_en: [] }
-  const ander = await (await doe(io, { actie: 'bijsturen', slug: 'gta-6', scherper: 'alleen de pc-versie' }, { anthropic: nepModel(() => pc) })).json()
-  assert.equal(ander.van, 'gta-6')
-  assert.equal(ander.naar, 'gta-6-op-pc')
-  assert.equal(io.kv.get('volgzaak-volgers:gta-6'), 0)
-  assert.equal(io.kv.get('volgzaak-volgers:gta-6-op-pc'), 1)
-  const opnieuw = await (await doe(io, { actie: 'duiden', opdracht: 'gta 6' }, { anthropic: gooiModel() })).json()
-  assert.equal(opnieuw.volgzaak.slug, 'gta-6')
+  const r = await doe(io, { actie: 'bijsturen', slug: 'gta-6', scherper: 'pc' }, { anthropic: nepModel(() => GOED) })
+  assert.equal(r.status, 400)
+  assert.equal((await r.json()).error, 'Geen geldige invoer.')
 })
 
 test('privacy: geen slug of opdracht in de log; een sleutel met een account-id bevat nooit een slug en omgekeerd', async () => {
@@ -196,7 +187,6 @@ test('privacy: geen slug of opdracht in de log; een sleutel met een account-id b
   const opdracht = 'De release van GTA 6, zonder geruchten'
   await doe(io, { actie: 'duiden', opdracht }, { anthropic: nepModel(() => GOED), log })
   await doe(io, { actie: 'volgen', slug: 'gta-6' }, { log })
-  await doe(io, { actie: 'bijsturen', slug: 'gta-6', scherper: 'zonder geruchten' }, { anthropic: nepModel(() => GOED), log })
   await doe(io, { actie: 'ontvolgen', slug: 'gta-6' }, { log })
   await doe(io, { actie: 'duiden', opdracht: 'kapot' }, { anthropic: nepModel(() => { throw new Error('gta-6 storing') }), log })
   const alles = log.regels.join('\n')

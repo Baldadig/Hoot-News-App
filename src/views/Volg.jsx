@@ -1,5 +1,5 @@
 // Volgen 1.5: de pagina van één volgzaak (route `volg`, #/volg?naam=<slug>), scherm 24. Een gewone pagina in de router,
-// met rechts de knop Volgend als menu (Stuur bij, Deel, Stop met volgen). De server krijgt de naam alleen in een POST-body
+// met rechts de knop Volgend als menu (Deel, Stop met volgen). De server krijgt de naam alleen in een POST-body
 // (/api/volgzaak pagina); alleen Deel zet hem in een link.
 //
 // Wat je ziet rekent de gedeelde rekenkern uit (volgzaakView, shared/volgzaak-weergave.mjs, ook in de app): eerst je taal
@@ -10,12 +10,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BackButton } from '../components/Shell.jsx'
 import { useHoot } from '../components/Items.jsx'
-import { VerhaalRij, VolgendKnop, StuurBijBlad } from '../components/Volg.jsx'
+import { VerhaalRij, VolgendKnop } from '../components/Volg.jsx'
 import { TEKST, vraagVolgzaak } from '../lib/volgzaak.js'
 import { volgzaakView } from '../../shared/volgzaak-weergave.mjs'
 
 export default function Volg({ slug, onBack, backLabel }) {
-  const { volgzaken, volgZaak, ontvolgZaak, volgBekeken, openVolg, sourcesById, muted, read, itemsById } = useHoot()
+  const { volgzaken, volgZaak, ontvolgZaak, volgBekeken, sourcesById, muted, read, itemsById } = useHoot()
   const zaak = (volgzaken || []).find((z) => z.slug === slug) || null
   const volgend = !!zaak && zaak.status !== 'gestopt'
   const [pagina, setPagina] = useState(null) // { volgzaak, status, stand } of { fout }
@@ -43,12 +43,11 @@ export default function Volg({ slug, onBack, backLabel }) {
   const eigen = useMemo(() => bronnen.filter((b) => b.followed && !muted.has(b.id)).map((b) => b.id), [bronnen, muted])
   const view = useMemo(() => (pagina?.stand ? volgzaakView({ stand: pagina.stand, bronnen, eigen, gezien: volgend ? grens.current : null, gelezen, now: Date.now() }) : { nieuw: [], eerder: [], aantal: 0 }), [pagina, bronnen, eigen, gelezen, volgend])
 
-  const [stuur, setStuur] = useState(false)
   const def = pagina?.volgzaak || (zaak ? { slug, label: zaak.label } : { slug, label: '' })
   const stil = pagina?.status === 'stil' || zaak?.status === 'gestopt'
   const volgWeer = () => volgZaak({ slug, label: def.label })
   const knop = pagina?.fout ? null : volgend && !stil ? (
-    <VolgendKnop zaak={def} onStuurBij={() => setStuur(true)} />
+    <VolgendKnop zaak={def} />
   ) : (
     <button type="button" className="btn btn--accent volgknop" onClick={volgWeer} disabled={!def.label}>
       {stil ? TEKST.volgWeer : TEKST.volg}
@@ -109,7 +108,6 @@ export default function Volg({ slug, onBack, backLabel }) {
           </>
         )}
       </div>
-      {stuur ? <StuurBijBlad zaak={def} open={stuur} onClose={() => setStuur(false)} onKlaar={(naar) => openVolg(naar)} /> : null}
     </section>
   )
 }

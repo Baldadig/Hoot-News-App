@@ -3,7 +3,7 @@
 //
 // Volgorde voor elke actie: alleen POST, body hooguit 4 kB; de vlag (uit: 404 zonder model of KV; proef: alleen met de
 // telsleutel); acties met kosten of tellers alleen voor leden.
-// Acties (alleen in de body): duiden { opdracht }, volgen { slug }, ontvolgen { slug }, bijsturen { slug, scherper } (leden),
+// Acties (alleen in de body): duiden { opdracht }, volgen { slug }, ontvolgen { slug } (leden),
 // pagina { slug } en overzicht { slugs } (iedereen).
 //
 // Duiden: normaliseren, de aliastabel (bestaat de opdracht al, dan direct en gratis), het quotum (5 per lid en 300 in
@@ -190,10 +190,8 @@ export function lijkendeVolgzaken(opdracht, index, max = 5) {
     .slice(0, max)
     .map(({ slug, e }) => ({ slug, naam: e.label, regel: e.regel || '', namen: (e.namen || []).slice(0, 6) }))
 }
-export function duidingPrompt(opdracht, { koppen = [], lijkend = [], oud = null, scherper = null } = {}) {
+export function duidingPrompt(opdracht, { koppen = [], lijkend = [] } = {}) {
   const deel = [`<opdracht>\n${String(opdracht).slice(0, OPDRACHT_MAX)}\n</opdracht>`]
-  if (oud) deel.push(`<huidige_duiding>\nNaam: ${oud.label}\nRegel: ${oud.regel}\nNamen: ${[...(oud.namen?.nl || []), ...(oud.namen?.en || [])].join(', ')}\nNiet: ${(oud.uit || []).join(', ')}\n</huidige_duiding>`)
-  if (scherper) deel.push(`<scherper>\n${String(scherper).slice(0, OPDRACHT_MAX)}\n</scherper>`)
   deel.push(`<bestaande_volgzaken>\n${lijkend.map((v) => `${v.slug}: ${v.naam}${v.regel ? ` (${v.regel})` : ''}${v.namen.length ? `; namen ${v.namen.join(', ')}` : ''}`).join('\n') || '(geen)'}\n</bestaande_volgzaken>`)
   deel.push(`<actuele_koppen>\n${koppen.map((k) => `- ${k.bron}: ${k.kop}`).join('\n') || '(geen)'}\n</actuele_koppen>`)
   return deel.join('\n\n')
@@ -272,7 +270,7 @@ export async function handle(req, { anthropic = null, member = null, now = Date.
     return fail(400, 'Geen geldige invoer.')
   }
   const actie = body?.actie
-  if (!['duiden', 'volgen', 'ontvolgen', 'bijsturen', 'pagina', 'overzicht'].includes(actie)) return fail(400, 'Geen geldige invoer.')
+  if (!['duiden', 'volgen', 'ontvolgen', 'pagina', 'overzicht'].includes(actie)) return fail(400, 'Geen geldige invoer.')
   io ||= await defaultIo()
   const get = (k) => binnen(io.get(k), kvMs)
 
@@ -325,31 +323,19 @@ export async function handle(req, { anthropic = null, member = null, now = Date.
     return json({ ok: true, slug: def.slug, label: def.label })
   }
 
-  if (actie === 'duiden' || actie === 'bijsturen') {
-    let oud = null
-    let scherper = null
-    let opdracht
-    if (actie === 'bijsturen') {
-      if (!geldigeSlug(body.slug) || typeof body.scherper !== 'string' || !normaliseer(body.scherper)) return fail(400, 'Geen geldige invoer.')
-      oud = await get(VK.def(body.slug)).catch(() => null)
-      if (!oud) return fail(404, 'Niet gevonden.')
-      scherper = String(body.scherper).slice(0, OPDRACHT_MAX)
-      opdracht = `${oud.label}: ${scherper}`
-      if ((await io.take(VK.tik(uid, dag), TIKKEN_PER_DAG)) == null) return fail(429, 'Vandaag kan dit niet vaker.')
-    } else {
-      if (typeof body.opdracht !== 'string') return fail(400, 'Geen geldige invoer.')
-      opdracht = String(body.opdracht).slice(0, OPDRACHT_MAX)
-    }
-    const norm = normaliseer(actie === 'bijsturen' ? scherper : opdracht)
+  if (actie === 'duiden') {
+    if (typeof body.opdracht !== 'string') return fail(400, 'Geen geldige invoer.')
+    const opdracht = String(body.opdracht).slice(0, OPDRACHT_MAX)
+    const norm = normaliseer(opdracht)
     if (norm.length < 2) return fail(400, 'Geen geldige invoer.')
-    const aliasKey = VK.alias(sha(actie === 'bijsturen' ? `${oud.slug}|${norm}` : norm))
+    const aliasKey = VK.alias(sha(norm))
     const index = (await get(VK.lijst).catch(() => null)) || {}
 
     // De aliastabel: direct en gratis.
     const alias = await get(aliasKey).catch(() => null)
     if (alias?.slug) {
       const def = await get(VK.def(alias.slug)).catch(() => null)
-      if (def && def.status !== 'af') return json(await antwoordVolgzaak(def, { io, now, kvMs, oud }))
+      if (def && def.status !== 'af') return json(await antwoordVolgzaak(def, { io, now, kvMs }))
     } else if (alias?.soort && now - (Number(alias.at) || 0) <= ALIAS_OPNIEUW) {
       return json(antwoordAnders(alias))
     }
@@ -368,7 +354,7 @@ export async function handle(req, { anthropic = null, member = null, now = Date.
       return fail(503, UIT_TEKST)
     }
     const recent = await leesVoorraad(io, now, 2, kvMs)
-    const prompt = duidingPrompt(opdracht, { koppen: contextKoppen(actie === 'bijsturen' ? `${oud.label} ${scherper}` : opdracht, recent.stukken), lijkend: lijkendeVolgzaken(actie === 'bijsturen' ? `${oud.label} ${scherper}` : opdracht, index), oud, scherper })
+    const prompt = duidingPrompt(opdracht, { koppen: contextKoppen(opdracht, recent.stukken), lijkend: lijkendeVolgzaken(opdracht, index) })
     let ruw = null
     try {
       ruw = await vraagDuiding(anthropic, prompt)
@@ -424,8 +410,8 @@ export async function handle(req, { anthropic = null, member = null, now = Date.
       }
     }
     await binnen(io.set(aliasKey, { slug: def.slug, at: now }), kvMs).catch(() => {})
-    log.log(`[volgzaak] ${actie}: volgzaak`)
-    return json(await antwoordVolgzaak(def, { io, now, kvMs, oud }))
+    log.log('[volgzaak] duiden: volgzaak')
+    return json(await antwoordVolgzaak(def, { io, now, kvMs }))
   }
   return fail(400, 'Geen geldige invoer.')
 }
@@ -437,20 +423,12 @@ async function verschuif(io, slug, d, kvMs) {
   await binnen(io.update(VK.lijst, (cur) => (cur?.[slug] ? { ...cur, [slug]: { ...cur[slug], volgers: Math.max(0, Number(n ?? (Number(cur[slug].volgers) || 0) + d) || 0) } } : undefined)), kvMs * 2).catch(() => {})
 }
 
-// Het antwoord met een volgzaak: de duiding, "Er speelde al" en de treffers per bron. Bij bijsturen naar een andere
-// volgzaak: { van, naar } en de server verschuift de volgers (-1 en +1).
-async function antwoordVolgzaak(def, { io, now, kvMs, oud = null }) {
+// Het antwoord met een volgzaak: de duiding, "Er speelde al" en de treffers per bron.
+async function antwoordVolgzaak(def, { io, now, kvMs }) {
   const voorraad = await leesVoorraad(io, now, 15, kvMs)
   const { eerder, bronnen } = eerderVan(def, voorraad)
   const loopt = eerder.some((e) => now - Date.parse(e.at) <= 7 * 864e5)
-  const uit = { soort: 'volgzaak', volgzaak: { ...publiek(def), loopt }, eerder, bronnen: Object.fromEntries(Object.entries(bronnen).filter(([b]) => SOURCE.has(b))) }
-  if (oud && oud.slug !== def.slug) {
-    await verschuif(io, oud.slug, -1, kvMs)
-    await verschuif(io, def.slug, 1, kvMs)
-    return { ...uit, van: oud.slug, naar: def.slug }
-  }
-  if (oud) return { ...uit, soort: 'zelfde' }
-  return uit
+  return { soort: 'volgzaak', volgzaak: { ...publiek(def), loopt }, eerder, bronnen: Object.fromEntries(Object.entries(bronnen).filter(([b]) => SOURCE.has(b))) }
 }
 function antwoordAnders(a) {
   if (a.soort === 'bedoel') return { soort: 'bedoel', keuzes: a.keuzes || [] }

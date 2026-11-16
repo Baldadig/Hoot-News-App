@@ -3,7 +3,7 @@ import Foundation
 // POST /api/volgzaak (netlify/lib/volgzaak.mjs), gelijk aan vraagVolgzaak op het web. De naam van wat je volgt (de slug)
 // en je opdracht gaan alleen in de body, nooit in een adres, header of log. Nooit uit een cache.
 //
-// Acties: duiden { opdracht } en bijsturen { slug, scherper } (lid, kost iets, telt voor je quotum), volgen en ontvolgen
+// Acties: duiden { opdracht } (lid, kost iets, telt voor je quotum), volgen en ontvolgen
 // { slug } (lid, een anonieme +1 of -1), pagina { slug } en overzicht { slugs } (iedereen, gratis).
 // Een server zonder deze functie (of met HOOT_VOLGZAKEN uit) antwoordt 404: de app toont dan niets nieuws.
 enum VolgzaakAPI {
@@ -54,8 +54,6 @@ enum VolgzaakAPI {
         var mijlpaal: String?
         var rubriek: String?
         var loopt: Bool?
-        var namen: [String]?
-        var uit: [String]?
         var zaak: StoryVolgzaak { StoryVolgzaak(slug: slug, label: label) }
     }
     // Een verhaal onder "Er speelde al" of op de pagina (momentopname per dagdeel).
@@ -75,8 +73,7 @@ enum VolgzaakAPI {
         var opdracht: String?
         var id: String { opdracht ?? naam }
     }
-    // Duiden en bijsturen: soort volgzaak (of zelfde), bedoel, rubriek of geen. Bij bijsturen naar een andere volgzaak
-    // ook { van, naar }.
+    // Duiden: soort volgzaak, bedoel, rubriek of geen.
     struct Duiding: Codable, Hashable, Sendable {
         var soort: String
         var volgzaak: Def?
@@ -86,8 +83,6 @@ enum VolgzaakAPI {
         var rubriek: String?
         var binnen: [Keuze]?
         var tekst: String?
-        var van: String?
-        var naar: String?
     }
     struct Samenvatting: Codable, Hashable, Sendable { var tekst: String?; var volgens: String? }
     struct Stand: Codable, Hashable, Sendable {

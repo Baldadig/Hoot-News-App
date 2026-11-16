@@ -2,9 +2,8 @@
 // 24 van Hoot-design/ontwerp/volgen-1.5): dezelfde plekken en dezelfde teksten (TEKST in src/lib/volgzaak.js).
 // - VolgKop: boven de treffers in Zoeken na Enter (naam, één regel, Volg, "Er speelde al"; Bedoel je; hele rubriek; geen).
 // - JeVolgtSectie: Zoeken zonder zoekterm, het thuis van wat je volgt (Nieuw of Niets nieuws, Wijzig).
-// - VolgendKnop: de knop Volgend als menu (Stuur bij, Deel, Stop met volgen).
+// - VolgendKnop: de knop Volgend als menu (Deel, Stop met volgen).
 // - BeheerBlad: "Je volgt" met Klaar; stoppen met een knop (op het web in plaats van vegen), slepen voor de volgorde.
-// - StuurBijBlad: "Zeg het scherper"; De Redacteur duidt opnieuw.
 // - VerhaalRij: een verhaal op de pagina en onder "Er speelde al".
 // Alles alleen als de vlag aan is (de aanroepers kijken naar volgAan).
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
@@ -28,11 +27,6 @@ const MinCirkel = ({ size = ICON_SM }) => (
   <svg viewBox="0 0 256 256" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round" aria-hidden="true">
     <circle cx="128" cy="128" r="96" />
     <path d="M88 128h80" />
-  </svg>
-)
-const Potlood = ({ size = ICON_SM }) => (
-  <svg viewBox="0 0 256 256" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round" aria-hidden="true">
-    <path d="M92.69 216H48a8 8 0 0 1-8-8v-44.69a8 8 0 0 1 2.34-5.65L165.66 34.34a8 8 0 0 1 11.31 0L221.66 79a8 8 0 0 1 0 11.31L98.34 213.66a8 8 0 0 1-5.65 2.34ZM136 64l56 56" />
   </svg>
 )
 const Greep = () => (
@@ -67,8 +61,8 @@ export function VerhaalRij({ v, compact = false, onOpen = null }) {
   return v.url ? <a className="volgrij" href={v.url} rel="noreferrer">{inhoud}</a> : <div className="volgrij">{inhoud}</div>
 }
 
-// De knop Volgend als menu, zoals in de app: Stuur bij, Deel, en apart Stop met volgen. Eén tik ontvolgt nooit per ongeluk.
-export function VolgendKnop({ zaak, onStuurBij }) {
+// De knop Volgend als menu, zoals in de app: Deel, en apart Stop met volgen. Eén tik ontvolgt nooit per ongeluk.
+export function VolgendKnop({ zaak }) {
   const { ontvolgZaak, share } = useHoot()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -86,12 +80,6 @@ export function VolgendKnop({ zaak, onStuurBij }) {
       </button>
       {open ? (
         <Popmenu anchor={ref} id={id} label={TEKST.volgend} onClose={close}>
-          {onStuurBij ? (
-            <button type="button" role="menuitem" className="popmenu__item" onClick={() => { close(false); onStuurBij() }}>
-              <span>{TEKST.stuurBij}</span>
-              <Potlood />
-            </button>
-          ) : null}
           {share ? (
             <button type="button" role="menuitem" className="popmenu__item" onClick={() => { close(); share({ title: zaak.label, url: deelLink(zaak.slug) }) }}>
               <span>{TEKST.deel}</span>
@@ -110,9 +98,9 @@ export function VolgendKnop({ zaak, onStuurBij }) {
 }
 
 // De knop onder de naam: Volg, Volgend (menu), of bij drie "Je volgt er al drie." met Beheer.
-export function VolgKnop({ zaak, onStuurBij }) {
+export function VolgKnop({ zaak }) {
   const { volgzaken, volgZaak, openBeheer } = useHoot()
-  if (volgtSlug(volgzaken, zaak.slug)) return <VolgendKnop zaak={zaak} onStuurBij={onStuurBij} />
+  if (volgtSlug(volgzaken, zaak.slug)) return <VolgendKnop zaak={zaak} />
   if (isVol(volgzaken))
     return (
       <div className="volgkop__vol">
@@ -130,7 +118,7 @@ export function VolgKnop({ zaak, onStuurBij }) {
 
 // De kop van De Redacteur boven de treffers. `antwoord`: wat /api/volgzaak duiden gaf. `onKies`: opnieuw duiden met een
 // keuze uit Bedoel je of binnen een rubriek.
-export function VolgKop({ antwoord, onKies, onStuurBij }) {
+export function VolgKop({ antwoord, onKies }) {
   const { openStory, storiesById, sourcesById, muted, setMuted } = useHoot()
   // "Er speelde al" per lezer (het antwoord is gedeeld per volgzaak): de regels van de pagina, uit de rekenkern.
   const eerder = useMemo(() => {
@@ -206,7 +194,7 @@ export function VolgKop({ antwoord, onKies, onStuurBij }) {
         </div>
       </div>
       <div className="volgkop__knop">
-        <VolgKnop zaak={z} onStuurBij={onStuurBij} />
+        <VolgKnop zaak={z} />
       </div>
       {weinig ? (
         <div className="volgkop__weinig">
@@ -328,61 +316,6 @@ export function BeheerBlad({ open, onClose, volgzaken = [], onStop, onMove, onVo
           </ul>
         </>
       ) : null}
-    </Dialog>
-  )
-}
-
-// Stuur bij: hoe Hoot het leest (Let op en Niet, als gewone tekst als de server ze meegeeft) en één veld "Zeg het scherper".
-// Gedeeld: komt er een andere volgzaak uit, dan volg je voortaan die. Je gewone zoekterm wijst naar de gewone volgzaak.
-export function StuurBijBlad({ zaak, open, onClose, onKlaar }) {
-  const { tokenVan, volgWissel } = useHoot()
-  const [tekst, setTekst] = useState('')
-  const [bezig, setBezig] = useState(false)
-  const [fout, setFout] = useState('')
-  useEffect(() => {
-    if (open) {
-      setTekst('')
-      setFout('')
-    }
-  }, [open])
-  const stuur = async (e) => {
-    e.preventDefault()
-    if (!tekst.trim() || bezig) return
-    setBezig(true)
-    setFout('')
-    const r = await vraagVolgzaak('bijsturen', { slug: zaak.slug, scherper: tekst.trim() }, { token: await tokenVan?.() })
-    setBezig(false)
-    if (r.status !== 200 || !r.data) return setFout(r.data?.error || TEKST.mislukt)
-    if (r.data.naar && r.data.volgzaak) {
-      volgWissel(zaak.slug, { slug: r.data.naar, label: r.data.volgzaak.label })
-      onKlaar?.(r.data.naar)
-    } else if (r.data.soort === 'geen') return setFout(r.data.tekst || TEKST.geen)
-    onClose()
-  }
-  const chips = (titel, lijst) =>
-    lijst?.length ? (
-      <div className="stuurbij__groep">
-        <h3 className="label label--section">{titel}</h3>
-        <p className="stuurbij__chips">{lijst.map((n) => <span key={n} className="stuurbij__chip">{n}</span>)}</p>
-      </div>
-    ) : null
-  return (
-    <Dialog open={open} onClose={onClose} className="sheet--volg" labelledBy="stuurbij-titel">
-      <div className="beheer__kop">
-        <h2 id="stuurbij-titel" className="head-lg beheer__titel">{TEKST.stuurBij}</h2>
-        <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
-          <CloseIcon />
-        </button>
-      </div>
-      {zaak.regel ? <p className="stuurbij__regel">{zaak.regel}</p> : null}
-      {chips(TEKST.letOp, zaak.namen)}
-      {chips(TEKST.niet, zaak.uit)}
-      <form className="stuurbij__form" onSubmit={stuur}>
-        <label className="label label--section" htmlFor="stuurbij-veld">{TEKST.scherper}</label>
-        <input id="stuurbij-veld" className="input" value={tekst} onChange={(e) => setTekst(e.target.value)} maxLength={200} autoComplete="off" enterKeyHint="send" />
-        {fout ? <p className="stuurbij__fout" role="status">{fout}</p> : null}
-        <button type="submit" className="btn" aria-busy={bezig} disabled={!tekst.trim()}>{TEKST.stuurBij}</button>
-      </form>
     </Dialog>
   )
 }

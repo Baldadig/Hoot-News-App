@@ -3,12 +3,12 @@ import { Empty, ViewHeader } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { CloseIcon, SearchArt } from '../components/icons.jsx'
 import { searchHits } from '../lib/zoek.js'
-import { VolgKop, JeVolgtSectie, StuurBijBlad } from '../components/Volg.jsx'
+import { VolgKop, JeVolgtSectie } from '../components/Volg.jsx'
 import { vraagVolgzaak } from '../lib/volgzaak.js'
 
 // Zoeken is een tab (telefoon) en staat in de zijbalk (breed): geen terugknop, wel een schermtitel (h1) zoals elk scherm.
 export default function Search() {
-  const { itemsById, saved, storiesById, muted, prefs, volgAan, account, tokenVan, openVolg } = useHoot()
+  const { itemsById, saved, storiesById, muted, prefs, volgAan, account, tokenVan } = useHoot()
   const [q, setQ] = useState('')
   const [scope, setScope] = useState('mijn') // mijn | alle
   const inputRef = useRef(null)
@@ -22,7 +22,6 @@ export default function Search() {
   // De gewone treffers staan er meteen, zoals altijd; de kop van De Redacteur komt erboven. Alleen met een account (duiden
   // kost iets en telt voor je quotum); zonder account blijft Zoeken zoals het was.
   const [kop, setKop] = useState(null) // { voor, antwoord }
-  const [stuur, setStuur] = useState(false)
   const lid = account?.status === 'in'
   const duid = async (opdracht) => {
     const tekst = opdracht.trim()
@@ -65,7 +64,7 @@ export default function Search() {
             In koppen, intro’s, bronnen en auteurs, ook in Bewaard.
           </Empty>
         ) : null}
-        {q.trim() && kopNu ? <VolgKop antwoord={kopNu} onKies={(o) => { setQ(o); setKop(null); duid(o) }} onStuurBij={() => setStuur(true)} /> : null}
+        {q.trim() && kopNu ? <VolgKop antwoord={kopNu} onKies={(o) => { setQ(o); setKop(null); duid(o) }} /> : null}
         {!q.trim() ? null : results.length === 0 ? (
           <Empty
             art={SearchArt}
@@ -94,7 +93,6 @@ export default function Search() {
           </>
         )}
       </div>
-      {stuur && kopNu?.volgzaak ? <StuurBijBlad zaak={kopNu.volgzaak} open={stuur} onClose={() => setStuur(false)} onKlaar={(naar) => openVolg(naar)} /> : null}
     </section>
   )
 }

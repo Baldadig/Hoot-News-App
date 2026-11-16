@@ -120,13 +120,6 @@ export function verplaats(list = [], van, naar) {
 // De pagina geopend: wat er tot nu was, is gezien (Zoeken zegt dan "Niets nieuws").
 export const bekeken = (list = [], slug, now = Date.now()) => (Array.isArray(list) ? list : []).map((z) => (z.slug === slug ? { ...z, gezien: iso(now) } : z))
 
-// Bijsturen naar een andere volgzaak (antwoord { van, naar } van de server): je volgt voortaan die, op dezelfde plek.
-export function wissel(list = [], van, naar, now = Date.now()) {
-  if (!geldig(naar)) return list
-  const l = (Array.isArray(list) ? list : []).filter((z) => z.slug !== naar.slug || z.slug === van)
-  return l.map((z) => (z.slug === van ? { ...z, slug: naar.slug, label: naar.label.trim().slice(0, 24), at: iso(now), gezien: null, status: 'actief', gestoptAt: null } : z))
-}
-
 // "Nieuw" of "Niets nieuws" in Zoeken: is er een nieuw verhaal sinds je de pagina het laatst opende (of sinds je volgt)?
 // Nooit een getal. `info` komt uit /api/volgzaak overzicht ({ laatstNieuw, status }).
 export function isNieuw(zaak, info) {

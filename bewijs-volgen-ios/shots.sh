@@ -21,7 +21,6 @@ for scherm in "$@"; do
       zoeken-geen) args=(-HootStartTab zoek -HootQuery "mijn buurman" -HootScreen volg-zoeken); wacht=19 ;;
       zoeken-weinig) args=(-HootStartTab zoek -HootQuery "starship" -HootScreen volg-zoeken); wacht=19 ;;
       pagina) args=(-HootStartTab stroom -HootScreen volg-pagina); wacht=20 ;;
-      stuurbij) args=(-HootStartTab stroom -HootScreen volg-stuurbij); wacht=23 ;;
       beheer) args=(-HootStartTab zoek -HootScreen volg-beheer) ;;
       blad) args=(-HootStartTab editie -HootScreen volg-blad) ;;
       inloggen) args=(-HootStartTab editie -HootScreen volg-inloggen -HootVolgLid NO) ;;

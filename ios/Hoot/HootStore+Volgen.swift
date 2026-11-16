@@ -38,7 +38,7 @@ extension HootStore {
     // Wat je volgt, voor de schermen: leeg met de vlag uit (dan ziet niemand iets).
     var volgzakenZichtbaar: [Volgzaak] { volgzakenAan ? volgzaken : [] }
     var volgtIets: Bool { !Volgzaken.actief(volgzakenZichtbaar).isEmpty }
-    // Volgen, duiden en bijsturen vragen een account.
+    // Volgen en duiden vragen een account.
     var volgLid: Bool { account?.status == .member || DebugLaunch.volgNepLid }
 
     // Het veld `volgzaak` van een verhaal (server), alleen met de vlag.
@@ -112,8 +112,6 @@ extension HootStore {
         guard volgt(slug) else { return }
         volgzaken = Volgzaken.bekeken(volgzaken, slug)
     }
-    // Bijsturen naar een andere volgzaak: je volgt voortaan die, op dezelfde plek (de server deed -1 en +1).
-    func volgWissel(van: String, naar: StoryVolgzaak) { volgzaken = Volgzaken.wissel(volgzaken, van: van, naar: naar) }
     func volgVerplaats(van: Int, naar: Int) { volgzaken = Volgzaken.verplaats(volgzaken, van: van, naar: naar) }
 
     // Het token voor /api/volgzaak (lid). Nooit gelogd.

@@ -162,15 +162,6 @@ enum Volgzaken {
         }
     }
 
-    // Bijsturen naar een andere volgzaak (antwoord { van, naar } van de server): je volgt voortaan die, op dezelfde plek.
-    static func wissel(_ l: [Volgzaak], van: String, naar: StoryVolgzaak, now: Date = .now) -> [Volgzaak] {
-        guard geldig(slug: naar.slug, label: naar.label) else { return l }
-        return l.filter { $0.slug != naar.slug || $0.slug == van }.map { z in
-            guard z.slug == van else { return z }
-            return Volgzaak(slug: naar.slug, label: knip(naar.label), opdracht: z.opdracht, at: iso(now), gezien: nil, status: "actief", gestoptAt: nil)
-        }
-    }
-
     // "Nieuw" of "Niets nieuws" in Zoeken, nooit een getal: is er een nieuw verhaal sinds je de pagina het laatst opende (of
     // sinds je volgt)? `laatstNieuw` komt uit /api/volgzaak overzicht.
     static func isNieuw(_ zaak: Volgzaak, laatstNieuw: String?) -> Bool {
@@ -260,7 +251,6 @@ enum VolgTekst {
     static let ongedaan = "Ongedaan maken"
     static func naar(_ label: String) -> String { "Naar \(label)" }
     static let stop = "Stop met volgen"
-    static let stuurBij = "Stuur bij"
     static let deel = "Deel"
     static let wijzig = "Wijzig"
     static let klaar = "Klaar"
@@ -284,15 +274,12 @@ enum VolgTekst {
     static let blijfVolgen = "Blijf volgen"
     static let gestopt = "Gestopt"
     static let inloggen = "Volgen kan met een account."
-    static let letOp = "Let op"
-    static let niet = "Niet"
-    static let scherper = "Zeg het scherper"
     static func bronnen(_ n: Int) -> String { n > 1 ? "+\(n - 1) \(n - 1 == 1 ? "bron" : "bronnen")" : "" }
     static func label(_ label: String) -> String { "Je volgt \(label), opent de pagina" }
     static let mislukt = "Dat lukte nu niet."
     static func nieuwTekst(_ nieuw: Bool) -> String { nieuw ? nieuw_ : nietsNieuws }
     private static let nieuw_ = "Nieuw"
     // Alle vaste teksten, voor de toets op het woord "onderwerp" en op em-dashes.
-    static let alles: [String] = [volg, volgend, jeVolgt, ongedaan, stop, stuurBij, deel, wijzig, klaar, beheer, alDrie, erSpeeldeAl, bedoelJe, geen, weinig, voegToe, nieuw, nietsNieuws, eerder, bij, nietsNieuwsBij, stil, volgWeer, blijfVolgen, gestopt, inloggen, letOp, niet, scherper, mislukt,
+    static let alles: [String] = [volg, volgend, jeVolgt, ongedaan, stop, deel, wijzig, klaar, beheer, alDrie, erSpeeldeAl, bedoelJe, geen, weinig, voegToe, nieuw, nietsNieuws, eerder, bij, nietsNieuwsBij, stil, volgWeer, blijfVolgen, gestopt, inloggen, mislukt,
                                    volgNaam("X"), jeVolgtNaam("X"), nietMeer("X"), naar("X"), heleRubriek("X"), naarRubriek("X"), tip("X"), label("X")]
 }

@@ -46,7 +46,7 @@ import SwiftUI
 //   -HootVolgzaken nep   (Volgen 1.5 met nepdata, zonder server: de vlag aan, je volgt GTA 6 en Kabinetsformatie, een paar
 //                        verhalen krijgen het veld volgzaak, en /api/volgzaak antwoordt uit VolgNep.swift)
 //   -HootVolgLid NO   (met nepdata: alsof je geen account hebt)   -HootVolgMelding vast   (de melding blijft staan)
-//   -HootScreen volg-pagina|volg-stuurbij|volg-beheer|volg-blad|volg-inloggen|volg-ongedaan|volg-gevolgd|volg-zoeken
+//   -HootScreen volg-pagina|volg-beheer|volg-blad|volg-inloggen|volg-ongedaan|volg-gevolgd|volg-zoeken
 //   -HootTrekProef <punten>   (de Editie ververst vanzelf alsof je trok en scrolt daarna zoveel punten omlaag,
 //                             om te zien wat de trekstrook doet als je tijdens het verversen verder leest; samen
 //                             met -HootRefreshDelay)
@@ -119,7 +119,7 @@ enum DebugLaunch {
     static var volgNepLid: Bool { volgNep && (defaults.object(forKey: "HootVolgLid") == nil || defaults.bool(forKey: "HootVolgLid")) }
     nonisolated(unsafe) static var volgNepVerhalen: [String: StoryVolgzaak] = [:]
     static func volgzaak(_ storyId: String) -> StoryVolgzaak? { volgNep ? volgNepVerhalen[storyId] : nil }
-    static var volgPaginaStart: VolgRoute? { screen("volg-pagina") || screen("volg-stuurbij") ? VolgRoute(slug: "kabinetsformatie", label: "Kabinetsformatie") : nil }
+    static var volgPaginaStart: VolgRoute? { screen("volg-pagina") ? VolgRoute(slug: "kabinetsformatie", label: "Kabinetsformatie") : nil }
     #else
     static let volgNep = false
     static let volgMeldingVast = false

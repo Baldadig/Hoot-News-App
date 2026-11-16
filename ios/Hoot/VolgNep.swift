@@ -10,12 +10,12 @@ enum VolgNep {
     private static weak var store: HootStore?
     private static var gekoppeld = false
 
-    struct Def { let slug, label, regel, rubriek: String; let namen, uit: [String] }
+    struct Def { let slug, label, regel, rubriek: String }
     static let defs: [String: Def] = [
-        "gta-6": Def(slug: "gta-6", label: "GTA 6", regel: "De nieuwe Grand Theft Auto van Rockstar", rubriek: "cultuur", namen: ["GTA 6", "GTA VI", "Grand Theft Auto VI"], uit: ["oudere GTA-delen"]),
-        "kabinetsformatie": Def(slug: "kabinetsformatie", label: "Kabinetsformatie", regel: "Op weg naar een nieuw kabinet", rubriek: "politiek", namen: ["formatie", "informateur", "coalitie"], uit: ["gemeentelijke coalities"]),
-        "tata-steel": Def(slug: "tata-steel", label: "Tata Steel", regel: "De rechtszaak van omwonenden tegen de staalfabriek", rubriek: "economie", namen: ["Tata Steel"], uit: []),
-        "starship": Def(slug: "starship", label: "Starship", regel: "De grote raket van SpaceX", rubriek: "wetenschap", namen: ["Starship", "SpaceX"], uit: []),
+        "gta-6": Def(slug: "gta-6", label: "GTA 6", regel: "De nieuwe Grand Theft Auto van Rockstar", rubriek: "cultuur"),
+        "kabinetsformatie": Def(slug: "kabinetsformatie", label: "Kabinetsformatie", regel: "Op weg naar een nieuw kabinet", rubriek: "politiek"),
+        "tata-steel": Def(slug: "tata-steel", label: "Tata Steel", regel: "De rechtszaak van omwonenden tegen de staalfabriek", rubriek: "economie"),
+        "starship": Def(slug: "starship", label: "Starship", regel: "De grote raket van SpaceX", rubriek: "wetenschap"),
     ]
 
     // Na het laden van de kern: de nepvolgzaken, de velden op de verhalen en de schermen van -HootScreen volg-….
@@ -64,8 +64,8 @@ enum VolgNep {
     }
 
     private static func def(_ slug: String) -> [String: Any] {
-        let d = defs[slug] ?? Def(slug: slug, label: slug.replacingOccurrences(of: "-", with: " ").capitalized, regel: "", rubriek: "binnenland", namen: [], uit: [])
-        return ["slug": d.slug, "label": d.label, "regel": d.regel, "soort": "zaak", "mijlpaal": NSNull(), "rubriek": d.rubriek, "namen": d.namen, "uit": d.uit]
+        let d = defs[slug] ?? Def(slug: slug, label: slug.replacingOccurrences(of: "-", with: " ").capitalized, regel: "", rubriek: "binnenland")
+        return ["slug": d.slug, "label": d.label, "regel": d.regel, "soort": "zaak", "mijlpaal": NSNull(), "rubriek": d.rubriek]
     }
 
     // De momentopname: eerst de verhalen met het veld, dan andere verhalen met meer bronnen; de latere krijgen tijden van
@@ -97,9 +97,6 @@ enum VolgNep {
             uit = ["overzicht": ["gta-6": ["laatstNieuw": Volgzaken.iso(.now), "status": "actief"], "kabinetsformatie": ["laatstNieuw": Volgzaken.iso(.now.addingTimeInterval(-2 * 86400)), "status": "actief"]]]
         case "volgen", "ontvolgen":
             uit = ["ok": true, "slug": body["slug"] as? String ?? ""]
-        case "bijsturen":
-            let slug = body["slug"] as? String ?? ""
-            uit = ["soort": "zelfde", "volgzaak": def(slug)]
         case "duiden":
             let q = (body["opdracht"] as? String ?? "").lowercased()
             if q.contains("tata") {
