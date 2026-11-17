@@ -804,7 +804,7 @@ export default function App() {
       podcastKeuze,
       setPodcastKeuze,
     }),
-    [luisterAan, luisterVoor, luisterTik, podcastKeuze, setPodcastKeuze, less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories, volgAan, prefs.volgzaken, volgZaak, ontvolgZaak, openVolg, openBeheer, volgBekeken, volgWissel, tokenVan],
+    [luisterAan, luisterVoor, luisterTik, podcastKeuze, setPodcastKeuze, less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories, volgAan, prefs.volgzaken, volgZaak, ontvolgZaak, openVolg, openBeheer, volgBekeken, tokenVan],
   )
 
   const hideMain = overlay || showWelcome
