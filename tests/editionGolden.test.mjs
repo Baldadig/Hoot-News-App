@@ -305,7 +305,9 @@ test('§8 Wat Hoot van je leerde: profileSummary uit de bundel geeft gekozen, ge
   assert.deepEqual(t.less, ['voetbal'])
   const l = profileSummaryOf({ ...base, affinity: { n: 40, topics: { ruimte: 30 }, sources: { nos: 40 } } })
   assert.ok(l.learned.includes('ruimte') || l.chosen.includes('ruimte'), 'veel over ruimte lezen telt mee')
-  assert.deepEqual(profileSummaryOf(null), { chosen: [], learned: [], less: [] })
+  assert.deepEqual(profileSummaryOf(null), { chosen: [], more: [], learned: [], less: [] })
+  // 'Meer hiervan' komt als eigen lijst uit de bundel, zodat de app hem per stuk kan terugdraaien.
+  assert.deepEqual(profileSummaryOf({ ...base, taste: { topics: { ruimte: 8 }, sources: {} } }).more, ['ruimte'])
   // Dezelfde uitkomst als tekst (zoals Swift hem vraagt).
   const sandbox = createContext({})
   runInContext(readCore(), sandbox)

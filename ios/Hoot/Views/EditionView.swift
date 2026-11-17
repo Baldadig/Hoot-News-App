@@ -970,6 +970,8 @@ struct MakeItYours: View {
 // het eerste verhaal van de Editie met meer dan één bron, zolang de tip niet gezien is.
 enum KantenTip {
     static let key = "hoot.kantenTip"
+    // "Stel Hoot opnieuw in" zet de tip terug (zoals tipsTerug op het web, src/lib/tips.js).
+    static func terug(_ defaults: UserDefaults = .standard) { defaults.removeObject(forKey: key) }
     static func pick(_ rows: [(item: Item, story: Story?)], done: Bool) -> (item: Item, story: Story, count: Int)? {
         guard !done else { return nil }
         for r in rows { if let s = r.story, let n = s.sourceCount, n > 1 { return (r.item, s, n) } }

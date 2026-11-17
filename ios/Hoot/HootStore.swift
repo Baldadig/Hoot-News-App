@@ -1466,8 +1466,8 @@ final class HootStore {
         affinity.topics.removeValue(forKey: topic)
         refreshPersonal()
     }
-    // "Minder" terugdraaien: het onderwerp weer op nul, niet gewist (zo blijft in je account te zien dat
-    // je het ooit zei, en het telt niet meer mee), zoals het web.
+    // "Meer hiervan" of "Minder" terugdraaien: het onderwerp weer op nul, niet gewist (zo blijft in je
+    // account te zien dat je het ooit zei, en het telt niet meer mee), zoals het web.
     func restoreLess(_ topic: String) {
         taste.topics[topic] = 0
         refreshPersonal()

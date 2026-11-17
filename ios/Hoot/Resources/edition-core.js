@@ -3157,14 +3157,17 @@ var HootCore = (() => {
   var LEARNED_SHOWN = 0.4;
   var CATALOGUE = Object.fromEntries(INTERESTS.flatMap((f) => f.topics).map((t, i) => [t, i]));
   var byCatalogue = (a, b) => (CATALOGUE[a] ?? 1e3) - (CATALOGUE[b] ?? 1e3) || byId(a, b);
-  function profileSummary(prof) {
+  function profileSummary(prof, taste = null) {
     const p = prof?.topicP || {};
     const origin = prof?.origin || {};
+    const tt = taste?.topics ? currentTopicMap(taste.topics, TASTE_SCALE) : {};
     const strongest = (a, b) => p[b] - p[a] || byCatalogue(a, b);
     const ids = Object.keys(p);
+    const isMore = (t) => (tt[t] || 0) > 0;
     return {
-      chosen: ids.filter((t) => p[t] > 0 && origin[t] !== "geleerd").sort(strongest),
-      learned: ids.filter((t) => p[t] >= LEARNED_SHOWN && origin[t] === "geleerd").sort(strongest),
+      chosen: ids.filter((t) => p[t] > 0 && origin[t] !== "geleerd" && !isMore(t)).sort(strongest),
+      more: ids.filter((t) => p[t] > 0 && isMore(t)).sort((a, b) => tt[b] - tt[a] || byCatalogue(a, b)),
+      learned: ids.filter((t) => p[t] >= LEARNED_SHOWN && origin[t] === "geleerd" && !isMore(t)).sort(strongest),
       less: ids.filter((t) => p[t] < 0).sort((a, b) => p[a] - p[b] || byCatalogue(a, b))
     };
   }
@@ -6466,7 +6469,7 @@ var HootCore = (() => {
     return JSON.stringify(flat);
   }
   function profileSummaryOf(input) {
-    if (!input || typeof input !== "object") return { chosen: [], learned: [], less: [] };
+    if (!input || typeof input !== "object") return { chosen: [], more: [], learned: [], less: [] };
     const followed = asSet(input.followed);
     const prof = profileOf({
       interests: input.interests || [],
@@ -6478,7 +6481,7 @@ var HootCore = (() => {
       sources: input.sources || [],
       supply: supplyOf((input.items || []).filter(forEdition), followed)
     });
-    return profileSummary(prof);
+    return profileSummary(prof, input.taste || null);
   }
   function profileSummaryJSON(jsonIn) {
     return JSON.stringify(profileSummaryOf(typeof jsonIn === "string" ? JSON.parse(jsonIn) : jsonIn));
