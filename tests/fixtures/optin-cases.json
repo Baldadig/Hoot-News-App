@@ -1,0 +1,12 @@
+{
+  "about": "Achterklap & showbizz (OPT_IN, besluit 13 november): wat je aantikt (`taps`, in tikvolgorde) bij je interesses wordt prefs.topics (`topics`). Gelezen door tests/optin.test.mjs (web) en ios/HootTests/OptInTests.swift (app): beide schrijven voor dezelfde tikken precies deze lijst. Showbizz voegt toe en vernauwt Cultuur nooit; de andere onderwerpen houden 'niets of alles = alles'.",
+  "cases": [
+    { "name": "alleen showbizz", "interests": ["cultuur"], "taps": ["showbizz"], "topics": ["muziek", "film", "boeken", "kunst", "media", "games", "showbizz"] },
+    { "name": "showbizz plus Film", "interests": ["cultuur"], "taps": ["showbizz", "film"], "topics": ["film", "showbizz"] },
+    { "name": "Film zonder showbizz", "interests": ["cultuur"], "taps": ["film"], "topics": ["film"] },
+    { "name": "alles aangetikt plus showbizz", "interests": ["cultuur"], "taps": ["muziek", "film", "boeken", "kunst", "media", "games", "showbizz"], "topics": ["muziek", "film", "boeken", "kunst", "media", "games", "showbizz"] },
+    { "name": "showbizz zonder Cultuur gekozen", "interests": ["politiek"], "taps": ["showbizz"], "topics": ["nederland", "europa", "vs-politiek", "verkiezingen"] },
+    { "name": "niets aangetikt", "interests": ["cultuur"], "taps": [], "topics": ["muziek", "film", "boeken", "kunst", "media", "games"] },
+    { "name": "showbizz met Cultuur en Sport", "interests": ["cultuur", "sport"], "taps": ["showbizz", "voetbal"], "topics": ["muziek", "film", "boeken", "kunst", "media", "games", "voetbal", "showbizz"] }
+  ]
+}

@@ -38,7 +38,7 @@ import XCTest
         XCTAssertEqual(OnderwerpVersie.migrate(interests: ["economie"], topics: ["werk", "geld"]), ["werk", "geld"])
         XCTAssertEqual(OnderwerpVersie.migrate(interests: ["tech"], topics: old), old)
         XCTAssertEqual(Rubriek.resolve(["cultuur"], picked: []), ["muziek", "film", "boeken", "kunst", "media", "games"])
-        XCTAssertEqual(Rubriek.resolve(["cultuur"], picked: ["showbizz"]), ["showbizz"])
+        XCTAssertEqual(Rubriek.resolve(["cultuur"], picked: ["showbizz"]), ["muziek", "film", "boeken", "kunst", "media", "games", "showbizz"], "showbizz vernauwt Cultuur nooit")
         XCTAssertEqual(Rubriek.picked(from: ["muziek", "film", "boeken", "kunst", "media", "games"], interests: ["cultuur"]), [])
         XCTAssertEqual(Rubriek.picked(from: ["showbizz"], interests: ["cultuur"]), ["showbizz"])
         XCTAssertEqual(Taste.label("crypto"), "Crypto")
@@ -55,7 +55,7 @@ import XCTest
         XCTAssertEqual(Rubriek.withOptIn(Rubriek.resolve(["sport"], picked: []), interests: ["sport"], on: ["showbizz"]), Rubriek.resolve(["sport"], picked: []))
         XCTAssertEqual(Rubriek.withOptIn(alles + ["showbizz"], interests: ["cultuur"], on: []), alles, "uitzetten haalt het weg")
         XCTAssertEqual(Rubriek.withOptIn(["muziek"], interests: ["cultuur"], on: ["showbizz", "showbizz", "voetbal"]), ["muziek", "showbizz"])
-        XCTAssertEqual(Rubriek.picked(from: alles + ["showbizz"], interests: ["cultuur"]).filter { !Rubriek.optIn.contains($0) }, alles, "opnieuw kiezen: Cultuur-alles plus showbizz")
+        XCTAssertEqual(Rubriek.picked(from: alles + ["showbizz"], interests: ["cultuur"]), ["showbizz"], "opnieuw kiezen: Cultuur-alles plus showbizz")
     }
 
     func testGedeeldeGevallenGelijkAanWeb() throws {
