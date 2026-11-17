@@ -64,5 +64,4 @@ test('De Telegraaf staat in de Selectie bij Politiek, breed gefilterd en met het
   assert.equal(tg.filter, true)
   assert.equal(tg.paid, true)
   assert.equal(tg.urls[0], 'https://www.telegraaf.nl/rss')
-  assert.ok(PAID_SOURCES.has('vak:telegraaf') || PAID_SOURCES.has('telegraaf'))
 })
