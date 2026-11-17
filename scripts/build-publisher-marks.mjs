@@ -1,16 +1,19 @@
 // Eenmalig/expliciet vernieuwen met een opgeslagen /api/feed-respons; nooit tijdens delen.
 // node scripts/build-publisher-marks.mjs /pad/naar/feed.json
+// node scripts/build-publisher-marks.mjs --lokaal   alleen de Selectie-bronnen met een eigen bestand in landing/bronnen (geen netwerk; de rest blijft staan)
 import { readFile, writeFile } from 'node:fs/promises'
 import sharp from 'sharp'
-import { SOURCES, ownLogo } from '../netlify/lib/sources.mjs'
+import { SOURCES, ownLogo, OWN_LOGO_BASE } from '../netlify/lib/sources.mjs'
 import { MORE_SOURCES } from '../netlify/lib/vakBronnen.mjs'
 import { layout } from '../shared/deelkaart.mjs'
 
-const feed = JSON.parse(await readFile(process.argv[2], 'utf8'))
+const LOKAAL = process.argv.includes('--lokaal')
+const marksUrl = new URL('../shared/deelkaart/publisher-marks.json', import.meta.url)
+const feed = LOKAAL ? { sources: [] } : JSON.parse(await readFile(process.argv[2], 'utf8'))
 const known = new Set(SOURCES.map(s => s.id))
 // Het logo als silhouet in merkrood: het staat op de papieren schijf van de deelkaart (layout.mark).
 const paper = layout.mark.ink.slice(1).match(/../g).map(h => parseInt(h, 16))
-const marks = {}, failed = [], fetched = new Map()
+const marks = LOKAAL ? JSON.parse(await readFile(marksUrl, 'utf8')) : {}, failed = [], fetched = new Map()
 async function mono(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) })
   if (!response.ok) throw Error(`HTTP ${response.status}`)
@@ -23,7 +26,10 @@ async function mono(url) {
       chunks.push(value)
     }
   } finally { await reader.cancel() }
-  const { data, info } = await sharp(Buffer.concat(chunks), { limitInputPixels: 16e6 }).resize(84, 84, { fit: 'contain', background: '#ffffff' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  return monoBuf(Buffer.concat(chunks))
+}
+async function monoBuf(buf) {
+  const { data, info } = await sharp(buf, { limitInputPixels: 16e6 }).resize(84, 84, { fit: 'contain', background: '#ffffff' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   // De achtergrondkleur uit de vier hoeken; op een transparant origineel blijft alpha leidend.
   const corners = [0, info.width - 1, (info.height - 1) * info.width, info.width * info.height - 1].map(n => n * 4)
   const bg = [0, 1, 2].map(c => corners.reduce((n, p) => n + data[p + c], 0) / 4)
@@ -43,6 +49,12 @@ for (let i = 0; i < list.length; i += 6) await Promise.all(list.slice(i, i + 6).
     marks[s.id] = await fetched.get(s.avatar)
   } catch (e) { failed.push({ source: s.id, reason: e.message }) }
 }))
+// Een Selectie-bron met een eigen bestand in landing/bronnen dat geen catalogusbron is (Nieuwsuur, 17 november): het merk komt uit dat bestand.
+const OWN = (v) => v.logo && v.logo.startsWith(OWN_LOGO_BASE) && v.logo.slice(OWN_LOGO_BASE.length).split('?')[0]
+for (const v of MORE_SOURCES) {
+  const file = OWN(v)
+  if (file && !SOURCES.some(s => file === s.id + '.webp')) marks[v.id] = await monoBuf(await readFile(new URL('../landing/bronnen/' + file, import.meta.url)))
+}
 // Een Selectie-bron met het eigen logo van een catalogusbron (de NOS-bronnen: de rode O) krijgt hetzelfde merk.
 for (const v of MORE_SOURCES) {
   const twin = v.logo && SOURCES.find(s => ownLogo(s.id) === v.logo)
