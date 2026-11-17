@@ -752,21 +752,25 @@ struct Rubriek: Identifiable {
         return topics.filter { !optIn.contains($0) } + extra
     }
 
-    // Wat je volgt (resolveTopics op de website): per gekozen interesse de onderwerpen die je
-    // aantikte, of alle (zonder optIn) als je er geen koos. Op de volgorde van de rubrieken.
+    // Wat je volgt (resolveTopics plus withOptIn op de website): per gekozen interesse de onderwerpen die je
+    // aantikte, of alle (zonder optIn) als je er geen koos. Op de volgorde van de rubrieken. Een optIn-onderwerp
+    // (showbizz) komt erbovenop en vernauwt de interesse nooit: alleen showbizz aantikken is heel Cultuur plus
+    // showbizz (besluit 13 november; gedeelde gevallen in tests/fixtures/optin-cases.json).
     static func resolve(_ interests: [String], picked: [String]) -> [String] {
-        alle.filter { interests.contains($0.id) }.flatMap { r in
-            let mine = r.topics.filter(picked.contains)
+        let base = alle.filter { interests.contains($0.id) }.flatMap { r in
+            let mine = r.base.filter(picked.contains)
             return mine.isEmpty ? r.base : mine
         }
+        return withOptIn(base, interests: interests, on: picked)
     }
 
     // Andersom: wat je aantikte, uit de bewaarde lijst. Staan alle onderwerpen van een interesse
-    // erin, dan koos je daar niets ("alles"), en dan staat er ook niets aangetikt.
+    // erin, dan koos je daar niets ("alles"), en dan staat er ook niets aangetikt. Een optIn-onderwerp
+    // dat je volgt blijft aangetikt.
     static func picked(from topics: [String], interests: [String]) -> [String] {
         alle.filter { interests.contains($0.id) }.flatMap { r in
-            let mine = r.topics.filter(topics.contains)
-            return mine == r.base ? [] : mine
+            let mine = r.base.filter(topics.contains)
+            return (mine == r.base ? [] : mine) + r.topics.filter { optIn.contains($0) && topics.contains($0) }
         }
     }
 }
