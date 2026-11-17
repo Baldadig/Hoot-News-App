@@ -2,7 +2,7 @@
 // is bij het toevoegen opgehaald en geteld (minstens twee stukken in 30 dagen). Met FITS per
 // onderwerp: alleen nodig voor bronnen die breder schrijven (`filter`) of bij meer onderwerpen horen.
 // Wekelijks nagelopen: zie healthOf in vak.mjs.
-import { ownLogo } from './sources.mjs'
+import { ownLogo, OWN_LOGO_BASE } from './sources.mjs'
 // De taal van een vakbron, voor typeset() (T6, D3: één typografische hand, ook in de Selectie).
 // Afgeleid uit het domein van de feed: .nl, .be en .nu zijn Nederlands, de rest Engels. Een
 // Nederlandse bron op .com telt dan als Engels; dat geeft niets, typeset zet nl en en met dezelfde
@@ -11,6 +11,9 @@ export const feedLang = (url) => (/\.(nl|be|nu)$/i.test(new URL(url).hostname) ?
 // De NOS-bronnen van de Selectie tonen dezelfde rode O als de NOS in het nieuws (besluit Alex 15 november: "Mag je
 // bij alle NOS bronnen stoppen"). Zonder `logo` werd het de favicon van nos.nl, dus een ander beeld dan in de Stroom.
 const NOS_LOGO = ownLogo('nos')
+// Nieuwsuur heeft een eigen logo: de blauwe N uit hun eigen app-icoon (nos.nl/static/nieuwsuur, 512 px), besluit Alex 17 november.
+// Zonder `logo` werd het de favicon van nos.nl (het NOS-merk). Het bestand staat in landing/bronnen (geen catalogusbron, dus geen ownLogo).
+const NIEUWSUUR_LOGO = OWN_LOGO_BASE + 'nieuwsuur.webp'
 const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', lang: feedLang(url), ...more })
 
 export const MORE_SOURCES = [
@@ -172,7 +175,7 @@ export const MORE_SOURCES = [
   V('politico-eu', 'Politico Europe', 'vakblad', ['politiek'], 'https://www.politico.eu/feed/', { filter: true }),
   // Leesvoer, geen nieuws van de week (Selectie · fase 3): achtergrond, analyse en interviews. Breed (filter): wat over
   // economie gaat telt daar, de rest bij politiek.
-  V('nieuwsuur', 'Nieuwsuur', 'vakblad', ['economie', 'politiek'], 'https://feeds.nos.nl/nieuwsuuralgemeen', { about: 'De achtergrond bij het nieuws van de dag (NOS en NTR)', filter: true }),
+  V('nieuwsuur', 'Nieuwsuur', 'vakblad', ['economie', 'politiek'], 'https://feeds.nos.nl/nieuwsuuralgemeen', { about: 'De achtergrond bij het nieuws van de dag (NOS en NTR)', filter: true, logo: NIEUWSUUR_LOGO }),
   V('groene', 'De Groene Amsterdammer', 'vakblad', ['economie', 'politiek'], 'https://www.groene.nl/rss.xml', { about: 'Weekblad met lange analyses, reportages en essays', filter: true }),
   V('vn', 'Vrij Nederland', 'vakblad', ['politiek'], 'https://www.vn.nl/feed/', { filter: true }),
   V('trouw-verdieping', 'Trouw Verdieping', 'vakblad', ['politiek'], 'https://www.trouw.nl/verdieping/rss.xml', { filter: true }),

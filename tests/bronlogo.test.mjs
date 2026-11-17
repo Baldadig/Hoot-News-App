@@ -72,3 +72,32 @@ test('bronlogo: de NOS-podcasts horen bij de NOS (de cover van de show blijft di
   assert.ok(nos.length >= 3)
   for (const s of nos) assert.equal(s.bron, 'nos', s.id)
 })
+
+// Besluit Alex 17 november: Nieuwsuur krijgt een eigen logo (de blauwe N uit hun eigen app-icoon), niet meer de favicon van
+// nos.nl (het NOS-merk). Eigen bestand in landing/bronnen, geen catalogusbron; stuk in de voorraad krijgt het logo van nu.
+test('bronlogo: Nieuwsuur toont de blauwe N, in de Selectie en op de deelkaart', async () => {
+  const { default: sharp } = await import('sharp')
+  const { VAK_SOURCES, composeVak } = await import('../netlify/lib/vak.mjs')
+  const { MORE_SOURCES } = await import('../netlify/lib/vakBronnen.mjs')
+  const src = [...VAK_SOURCES, ...MORE_SOURCES].find((s) => s.id === 'vak:nieuwsuur')
+  assert.equal(src.logo, OWN_LOGO_BASE + 'nieuwsuur.webp')
+  assert.notEqual(src.logo, ownLogo('nos'))
+  const file = fileURLToPath(new URL('../landing/bronnen/nieuwsuur.webp', import.meta.url))
+  const { data, info } = await sharp(file).raw().toBuffer({ resolveWithObject: true })
+  assert.equal(info.width, 192)
+  assert.equal(info.height, 192)
+  const px = (x, y) => { const i = (y * info.width + x) * info.channels; return [data[i], data[i + 1], data[i + 2]] }
+  const hoek = px(6, 6), n = px(Math.round(info.width * 0.33), Math.round(info.height * 0.3))
+  assert.ok(hoek[2] > 200 && hoek[0] < 80, 'hoek blauw ' + hoek)
+  assert.ok(n.every((c) => c > 200), 'de N is licht ' + n)
+  const now = Date.parse('2026-11-12T10:00:00Z')
+  const pool = [{ id: 'u1', source: src.id, sourceName: src.name, title: 'Waarom de rente en de inflatie blijven stijgen en wat dat voor de economie en huishoudens betekent', summary: 'Een eigen intro over de economie, de rente en de inflatie en wat het betekent voor huishoudens.', url: 'https://nos.nl/l/2', publishedAt: '2026-11-05T09:00:00Z', avatar: 'https://www.google.com/s2/favicons?domain=nos.nl&sz=128', avatarContain: true }]
+  const out = composeVak(pool, { now, sources: [src] })
+  const entry = out.fields.flatMap((f) => [...f.top, ...f.more]).find((e) => e.id === 'u1')
+  assert.ok(entry, 'stuk in de Selectie')
+  assert.equal(entry.avatar, src.logo)
+  assert.equal(entry.avatarContain, false)
+  const marks = JSON.parse(readFileSync(new URL('../shared/deelkaart/publisher-marks.json', import.meta.url), 'utf8'))
+  assert.match(marks['vak:nieuwsuur'], /^data:image\/png;base64,iVBOR/)
+  assert.notEqual(marks['vak:nieuwsuur'], marks.nos)
+})
