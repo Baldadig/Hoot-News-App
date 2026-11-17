@@ -22,6 +22,8 @@ const parser = new Parser({
       ['media:thumbnail', 'mediaThumbnail', { keepArray: true }],
       ['content:encoded', 'contentEncoded'],
       ['yt:videoId', 'ytVideoId'],
+      // Premium per stuk (De Telegraaf zet <premium>true</premium> op elk betaald stuk): zie premiumOf.
+      ['premium', 'premium'],
     ],
   },
 })
@@ -213,8 +215,15 @@ export const slowSource = (src) => feedTimeout(src) > FEED_TIMEOUT
 async function readFeed(url, timeout = FEED_TIMEOUT) {
   const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml; q=0.9, */*; q=0.8' }, signal: AbortSignal.timeout(timeout) })
   if (!res.ok) throw new Error(feedError(res.status, res.headers))
-  return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
+  return parseFeed(await res.text())
 }
+// De feedtekst lezen zoals readFeed dat doet (ook voor toetsen met een vaste feed).
+export const parseFeed = (xml) => parser.parseString(String(xml).replace(/^[\s\uFEFF]+/, ''))
+
+// Zegt de feed zelf dat dit stuk betaald is? Alleen een expliciet <premium>true</premium> (De Telegraaf, gemeten 17 november
+// 2026: 13 van 50). Geen veld of iets anders: niet bekend, dus niet premium. Het stuk draagt dan `premium: true`; wat ermee
+// gebeurt, beslist de bron (zie `alleenGratis` in vakBronnen.mjs). Niets omzeild: we lezen alleen wat de uitgever meegeeft.
+export const premiumOf = (it = {}) => String(it.premium ?? '').trim().toLowerCase() === 'true'
 
 // De reden van een mislukte feed, zo dat we hem kunnen bewaren en tonen (B13, nachttest 14 november). Een uitgever die
 // ons weigert (401, 403, 429, of een botcontrole van Cloudflare met de kop cf-mitigated) heet "geweigerd": dat lossen we
@@ -305,6 +314,7 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src), 
           readMin,
           lang,
           offLang,
+          ...(premiumOf(it) ? { premium: true } : {}),
           publishedAt: plausibleTime(it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null), fetchedAt),
         }
       })

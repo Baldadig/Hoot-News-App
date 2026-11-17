@@ -173,6 +173,16 @@ export const MORE_SOURCES = [
   V('gemeentenu', 'Gemeente.nu', 'vakblad', ['politiek'], 'https://www.gemeente.nu/feed/'),
   V('stukroodvlees', 'Stuk Rood Vlees', 'expert', ['politiek'], 'https://stukroodvlees.nl/feed/', { about: 'Politicologen over kiezers, partijen en democratie' }),
   V('politico-eu', 'Politico Europe', 'vakblad', ['politiek'], 'https://www.politico.eu/feed/', { filter: true }),
+  // De Telegraaf (besluit Alex 17 november 2026): de rechtse stem naast TPO. De uitgever heeft geen eigen politiekfeed (elke
+  // rubriekpad geeft 403 of 404), alleen de hoofdfeed. Twee regels (keuring 17 november):
+  // - `keep`: alleen de rubriek Politiek. De link van elk stuk begint met zijn rubriek (telegraaf.nl/politiek/…, en de
+  //   <category> zegt hetzelfde, gemeten op 50 van 50); het onderwerpfilter liet uit de hoofdfeed ook Gerard Joling, malafide
+  //   klusjesmannen en de Sinterklaas-intocht door. Video (/video/), opinie en podcast vallen zo ook weg.
+  // - `alleenGratis`: Hoot geeft in de Selectie de voorkeur aan gratis. De feed zet <premium>true</premium> op elk betaald stuk
+  //   (13 van 50); die laten we vallen (isReading in vak.mjs). Wat overblijft is gratis te lezen, dus de bron is niet `paid`
+  //   en draagt geen teken Abonnement, ook al is de uitgever in de hoofdcatalogus betaald (een gedocumenteerde uitzondering,
+  //   zie tests/selectie-betaald.test.mjs).
+  V('telegraaf', 'De Telegraaf', 'vakblad', ['politiek'], 'https://www.telegraaf.nl/rss', { about: 'Nieuws en achtergrond uit Den Haag, rechtser getint', keep: 'telegraaf.nl/politiek/', alleenGratis: true, bsky: 'telegraaf.nl' }),
   // Leesvoer, geen nieuws van de week (Selectie · fase 3): achtergrond, analyse en interviews. Breed (filter): wat over
   // economie gaat telt daar, de rest bij politiek.
   V('nieuwsuur', 'Nieuwsuur', 'vakblad', ['economie', 'politiek'], 'https://feeds.nos.nl/nieuwsuuralgemeen', { about: 'De achtergrond bij het nieuws van de dag (NOS en NTR)', filter: true, logo: NIEUWSUUR_LOGO }),

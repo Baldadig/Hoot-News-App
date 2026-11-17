@@ -357,8 +357,11 @@ export function podcastLabel(title = '') {
 const SPONSORED_SLUG = /-sponsored-content(?=[-/]|$)/i
 // `textOnly` (een bron die ook audio en video plaatst, zoals Paul Krugman): alleen de geschreven stukken.
 const AV = /^(audio|video)\//i
+// `alleenGratis` (een bron die per stuk zegt wat betaald is, zoals De Telegraaf): alleen de gratis stukken (premium uit de
+// feed, zie premiumOf in rss.mjs). Bij zo'n bron is `LIVE` in hoofdletters ergens in de kop ("Kabinet LIVE: …") ook een liveblog; andere bronnen houden zulke koppen.
+const LIVE_CAPS = /\bLIVE\b/
 export const isReading = (it, src = null) =>
-  !!it.title && !(src?.sponsoredSlug && SPONSORED_SLUG.test(it.url || '')) && !NOT_READING.test(it.title) && !isListicle(it.title) && !ROUNDUP.test(it.title) && !COLLECTION.test(it.title) && !isBuying(it.title) && !ANNOUNCE.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
+  !!it.title && !(src?.alleenGratis && it.premium) && !(src?.alleenGratis && LIVE_CAPS.test(it.title)) && !(src?.sponsoredSlug && SPONSORED_SLUG.test(it.url || '')) && !NOT_READING.test(it.title) && !isListicle(it.title) && !ROUNDUP.test(it.title) && !COLLECTION.test(it.title) && !isBuying(it.title) && !ANNOUNCE.test(it.title) && !hardMark(it) && !podcastLabel(it.title) && !(src?.textOnly && AV.test(it.mediaType || ''))
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
 const AMS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short' })

@@ -17,10 +17,14 @@ test('het kenmerk staat op elke betaalde vakbron, en alleen op bestaande bronnen
   for (const id of ['tweakers', 'guardian-books', 'lenny', 'noahpinion', 'filmkrant', 'nu-wetenschap']) assert.ok(!src(id).paid, id + ' is gratis')
 })
 
-test('elke vakbron van een uitgever die in de hoofdcatalogus betaald is, is ook betaald', () => {
+// Uitzondering: een bron met `alleenGratis` (De Telegraaf) laat elk stuk vallen dat de feed zelf premium noemt
+// (tests/selectie-telegraaf.test.mjs). Wat overblijft is gratis, dus die bron draagt geen teken Abonnement.
+test('elke vakbron van een uitgever die in de hoofdcatalogus betaald is, is ook betaald (behalve alleenGratis)', () => {
   const paidHosts = new Set(SOURCES.filter((s) => s.paid).map((s) => host([s.urls].flat()[0])))
-  const missed = VAK_SOURCES.filter((s) => paidHosts.has(host(s.urls[0])) && !s.paid).map((s) => s.id)
+  const missed = VAK_SOURCES.filter((s) => paidHosts.has(host(s.urls[0])) && !s.paid && !s.alleenGratis).map((s) => s.id)
   assert.deepEqual(missed, [])
+  assert.deepEqual(VAK_SOURCES.filter((s) => s.alleenGratis).map((s) => s.id), ['vak:telegraaf'], 'de uitzondering is bewust en klein')
+  assert.ok(VAK_SOURCES.filter((s) => s.alleenGratis).every((s) => !s.paid && !PAID_SOURCES.has(s.id)))
 })
 
 test('het stuk draagt het kenmerk mee, en in de top staat hooguit één betaald stuk', () => {
@@ -55,4 +59,14 @@ test('web en app tonen "Abonnement" in de bronregel van de kaart en onder "Ook d
   assert.match(models, /struct DigestItem[\s\S]*?var paid: Bool\?/)
   const comp = readFileSync(new URL('../ios/Hoot/Views/Components.swift', import.meta.url), 'utf8')
   assert.match(comp, /paid \?\? \(store\.source\(item\.source\)\?\.paid == true\)/)
+})
+
+test('De Telegraaf staat in de Selectie bij Politiek: alleen de rubriek Politiek, alleen gratis, zonder teken Abonnement', () => {
+  const tg = src('telegraaf')
+  assert.ok(tg, 'vak:telegraaf bestaat')
+  assert.deepEqual(tg.fields, ['politiek'])
+  assert.equal(tg.keep, 'telegraaf.nl/politiek/')
+  assert.equal(tg.alleenGratis, true)
+  assert.ok(!tg.paid)
+  assert.equal(tg.urls[0], 'https://www.telegraaf.nl/rss')
 })
