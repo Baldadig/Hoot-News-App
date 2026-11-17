@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "versie": "2823b6ffb713",
+ "versie": "036d570abee2",
  "count": 18,
  "uit": [
   7,
@@ -219,32 +219,32 @@
    "set": "raster",
    "licht": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-8-licht-800.webp?v=7afb5dfbb0da",
-     "2x": "https://gethoot.app/img/placeholder/beeld-8-licht-1600.webp?v=0314dc59af61"
+     "1x": "https://gethoot.app/img/placeholder/beeld-8-licht-800.webp?v=9f86bc10edc1",
+     "2x": "https://gethoot.app/img/placeholder/beeld-8-licht-1600.webp?v=8605390445cf"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-8-licht-klein-180.webp?v=fd57e4b4baf1",
-     "2x": "https://gethoot.app/img/placeholder/beeld-8-licht-klein-360.webp?v=a8abe8adad92"
+     "1x": "https://gethoot.app/img/placeholder/beeld-8-licht-klein-180.webp?v=ebcd5e36db18",
+     "2x": "https://gethoot.app/img/placeholder/beeld-8-licht-klein-360.webp?v=c9169d5ba3f3"
     }
    },
    "donker": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-8-donker-800.webp?v=a2eef6fdf32d",
-     "2x": "https://gethoot.app/img/placeholder/beeld-8-donker-1600.webp?v=cd41a62c7205"
+     "1x": "https://gethoot.app/img/placeholder/beeld-8-donker-800.webp?v=7d14236a838c",
+     "2x": "https://gethoot.app/img/placeholder/beeld-8-donker-1600.webp?v=353d5cc2117e"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-8-donker-klein-180.webp?v=21b0f49ad225",
-     "2x": "https://gethoot.app/img/placeholder/beeld-8-donker-klein-360.webp?v=0660a6795c0e"
+     "1x": "https://gethoot.app/img/placeholder/beeld-8-donker-klein-180.webp?v=9ae38790ae8d",
+     "2x": "https://gethoot.app/img/placeholder/beeld-8-donker-klein-360.webp?v=f5b0c80a4d04"
     }
    },
    "nacht": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-8-nacht-800.webp?v=a4bc2ea72e1b",
-     "2x": "https://gethoot.app/img/placeholder/beeld-8-nacht-1600.webp?v=edbd12d306f3"
+     "1x": "https://gethoot.app/img/placeholder/beeld-8-nacht-800.webp?v=56c82a5d52a8",
+     "2x": "https://gethoot.app/img/placeholder/beeld-8-nacht-1600.webp?v=b99874e5686b"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-8-nacht-klein-180.webp?v=49bd53978e10",
-     "2x": "https://gethoot.app/img/placeholder/beeld-8-nacht-klein-360.webp?v=3f70d0ebe806"
+     "1x": "https://gethoot.app/img/placeholder/beeld-8-nacht-klein-180.webp?v=fa56999089a7",
+     "2x": "https://gethoot.app/img/placeholder/beeld-8-nacht-klein-360.webp?v=59ba45c9a3d1"
     }
    }
   },
@@ -389,32 +389,32 @@
    "set": "baan",
    "licht": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-13-licht-800.webp?v=f6cdc6abcc12",
-     "2x": "https://gethoot.app/img/placeholder/beeld-13-licht-1600.webp?v=5116b4aab744"
+     "1x": "https://gethoot.app/img/placeholder/beeld-13-licht-800.webp?v=8f13e8ce007f",
+     "2x": "https://gethoot.app/img/placeholder/beeld-13-licht-1600.webp?v=ef6c759cf28b"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-13-licht-klein-180.webp?v=5651f4fb0295",
-     "2x": "https://gethoot.app/img/placeholder/beeld-13-licht-klein-360.webp?v=ef3b749761e2"
+     "1x": "https://gethoot.app/img/placeholder/beeld-13-licht-klein-180.webp?v=d424564ec3ec",
+     "2x": "https://gethoot.app/img/placeholder/beeld-13-licht-klein-360.webp?v=cedeeb28401a"
     }
    },
    "donker": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-13-donker-800.webp?v=21009deaa721",
-     "2x": "https://gethoot.app/img/placeholder/beeld-13-donker-1600.webp?v=7d8f870f5a6a"
+     "1x": "https://gethoot.app/img/placeholder/beeld-13-donker-800.webp?v=2adaffe7cbef",
+     "2x": "https://gethoot.app/img/placeholder/beeld-13-donker-1600.webp?v=bfddad7b7abb"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-13-donker-klein-180.webp?v=f7fdb2c260cd",
-     "2x": "https://gethoot.app/img/placeholder/beeld-13-donker-klein-360.webp?v=903307eeec4d"
+     "1x": "https://gethoot.app/img/placeholder/beeld-13-donker-klein-180.webp?v=feed457bb33c",
+     "2x": "https://gethoot.app/img/placeholder/beeld-13-donker-klein-360.webp?v=6883b8a566ad"
     }
    },
    "nacht": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-13-nacht-800.webp?v=e91af83571d7",
-     "2x": "https://gethoot.app/img/placeholder/beeld-13-nacht-1600.webp?v=9d7608a17a15"
+     "1x": "https://gethoot.app/img/placeholder/beeld-13-nacht-800.webp?v=f6571f1f7248",
+     "2x": "https://gethoot.app/img/placeholder/beeld-13-nacht-1600.webp?v=59a89f48cd6f"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-13-nacht-klein-180.webp?v=d7a4f5c74c2e",
-     "2x": "https://gethoot.app/img/placeholder/beeld-13-nacht-klein-360.webp?v=ab1872253e31"
+     "1x": "https://gethoot.app/img/placeholder/beeld-13-nacht-klein-180.webp?v=3eb024409b1c",
+     "2x": "https://gethoot.app/img/placeholder/beeld-13-nacht-klein-360.webp?v=77a335f55917"
     }
    }
   },
@@ -423,32 +423,32 @@
    "set": "koepels",
    "licht": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-18-licht-800.webp?v=ff82d46d1bf7",
-     "2x": "https://gethoot.app/img/placeholder/beeld-18-licht-1600.webp?v=8f32be499f2d"
+     "1x": "https://gethoot.app/img/placeholder/beeld-18-licht-800.webp?v=dd0043200375",
+     "2x": "https://gethoot.app/img/placeholder/beeld-18-licht-1600.webp?v=019701d071c0"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-18-licht-klein-180.webp?v=50cb22dafa15",
-     "2x": "https://gethoot.app/img/placeholder/beeld-18-licht-klein-360.webp?v=c649154a1d8e"
+     "1x": "https://gethoot.app/img/placeholder/beeld-18-licht-klein-180.webp?v=303be13c1ca1",
+     "2x": "https://gethoot.app/img/placeholder/beeld-18-licht-klein-360.webp?v=4a6c79e2e2ec"
     }
    },
    "donker": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-18-donker-800.webp?v=500254112898",
-     "2x": "https://gethoot.app/img/placeholder/beeld-18-donker-1600.webp?v=290535fbf2db"
+     "1x": "https://gethoot.app/img/placeholder/beeld-18-donker-800.webp?v=659506a5d4aa",
+     "2x": "https://gethoot.app/img/placeholder/beeld-18-donker-1600.webp?v=18dd1f244d13"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-18-donker-klein-180.webp?v=1fd9fc934f27",
-     "2x": "https://gethoot.app/img/placeholder/beeld-18-donker-klein-360.webp?v=3095bcdfe987"
+     "1x": "https://gethoot.app/img/placeholder/beeld-18-donker-klein-180.webp?v=40a2e6f45d6d",
+     "2x": "https://gethoot.app/img/placeholder/beeld-18-donker-klein-360.webp?v=f7830d9867a0"
     }
    },
    "nacht": {
     "groot": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-18-nacht-800.webp?v=43d20ad24c90",
-     "2x": "https://gethoot.app/img/placeholder/beeld-18-nacht-1600.webp?v=6825121b056f"
+     "1x": "https://gethoot.app/img/placeholder/beeld-18-nacht-800.webp?v=c4e37c0c607e",
+     "2x": "https://gethoot.app/img/placeholder/beeld-18-nacht-1600.webp?v=a689cbeca3f9"
     },
     "klein": {
-     "1x": "https://gethoot.app/img/placeholder/beeld-18-nacht-klein-180.webp?v=7d43010c7c61",
-     "2x": "https://gethoot.app/img/placeholder/beeld-18-nacht-klein-360.webp?v=c83e2935c872"
+     "1x": "https://gethoot.app/img/placeholder/beeld-18-nacht-klein-180.webp?v=9b5d0b02805d",
+     "2x": "https://gethoot.app/img/placeholder/beeld-18-nacht-klein-360.webp?v=86e7d15e4954"
     }
    }
   }
