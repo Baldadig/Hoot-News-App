@@ -55,7 +55,8 @@ test('de bron: rubriek Politiek, alleen gratis, niet betaald', () => {
 })
 
 test('LIVE in hoofdletters ergens in de kop is een liveblog', () => {
-  assert.ok(!isReading({ title: 'Kabinetscrisis LIVE: de laatste stand' }))
+  assert.ok(!isReading({ title: 'Kabinetscrisis LIVE: de laatste stand' }, { alleenGratis: true }))
+  assert.ok(isReading({ title: 'Xbox LIVE krijgt een nieuwe naam' }))
   assert.ok(!isReading({ title: 'LIVE | Bontenbal praat verder' }))
   assert.ok(isReading({ title: 'Waarom Live Nation de kaartverkoop beheerst' }))
 })
