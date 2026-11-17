@@ -42,7 +42,6 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   const reopen = !!onClose
   const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | interesses | bronnen
   const [interests, setInterests] = useState(() => prefs.interests || [])
-  const picked = useMemo(() => pickedFrom(prefs.topics || [], prefs.interests || [], INTERESTS), [prefs.topics, prefs.interests])
   const [edited, setEdited] = useState(null) // je eigen bronnenkeuze; zolang null geldt het begin
   const [vak, setVak] = useState(() => prefs.vak || [])
   const [query, setQuery] = useState('')
@@ -86,6 +85,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
 
   // Achterklap & showbizz (OPT_IN) tik je zelf aan, onder Cultuur (persona's 14 november, punt 9).
   const [optIn, setOptIn] = useState(() => (prefs.topics || []).filter((t) => OPT_IN.has(t)))
+  // De onderwerpen per interesse die je aantikte (zonder OPT_IN): bij opnieuw kiezen te kiezen onder elke gekozen
+  // interesse, gelijk aan Instellingen › Interesses in de app (InterestsList). Niets of alles aangetikt is alles.
+  const [picked, setPicked] = useState(() => pickedFrom((prefs.topics || []).filter((t) => !OPT_IN.has(t)), prefs.interests || [], INTERESTS))
   const topics = useMemo(() => withOptIn(resolveTopics(interests, picked.filter((t) => !OPT_IN.has(t))), interests, optIn), [interests, picked, optIn])
   const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
   // Het voorstel bovenaan de bronnenstap (shared/voorstel.mjs): uit je interesses en je eigen onderwerpen.
@@ -254,7 +256,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
               {view === 'bronnen' ? (
                 <Bronnen head={head} sources={pickable} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} filters={reopen && !prefs.browsing} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
-                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} optIn={optIn} onOptIn={(id) => setOptIn((l) => toggleIn(l, id))} digest={digest} selectie={reopen && !prefs.browsing} />
+                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} optIn={optIn} onOptIn={(id) => setOptIn((l) => toggleIn(l, id))} chosen={picked} onTopic={(id) => setPicked((l) => toggleIn(l, id))} digest={digest} selectie={reopen && !prefs.browsing} />
               )}
             </div>
           </div>
@@ -488,7 +490,9 @@ function SourceRow({ s, on, pick = false, why = null, onPick }) {
 // ---- 2. Wat interesseert je? Rubrieken en, bij opnieuw kiezen, uitklapbaar je Selectie ----
 // `selectie`: alleen wie al eens koos (opnieuw kiezen, niet na meteen lezen) ziet de uitklapper; in het eerste
 // welkom vraagt de lege Selectie het zelf (Vak.jsx). Gelijk aan WelcomeView.swift.
-function Interesses({ head, interests, onInterest, optIn = [], onOptIn, vak, onVak, open, setOpen, digest = null, selectie = false }) {
+// Ook alleen dan, onder elke gekozen interesse, de onderwerpen als pillen (`chosen`, `onTopic`), met Achterklap &
+// showbizz (OPT_IN) in dezelfde groep. Gelijk aan Instellingen › Interesses in de app (InterestsList, TopicChips).
+function Interesses({ head, interests, onInterest, optIn = [], onOptIn, chosen = [], onTopic, vak, onVak, open, setOpen, digest = null, selectie = false }) {
   // Alleen onderwerpen die in de weekbundel zitten (offersField, "Tot dan verbergen."), zoals het welkom in de app.
   // Zonder wat uit de keuze is (Sport, Geschiedenis; wie het al volgt ziet het nog), en hooguit acht (besluit 15 november).
   const domains = useMemo(() => pickDomains(vakByDomain(), digest, vak), [digest, vak])
@@ -507,18 +511,20 @@ function Interesses({ head, interests, onInterest, optIn = [], onOptIn, vak, onV
         ))}
       </div>
       {/* Wat je onder een interesse zelf aantikt (OPT_IN): alleen als je die interesse koos. Gelijk aan de app (WelcomeView). */}
+      {/* Bij opnieuw kiezen staan alle onderwerpen van die interesse in de groep (`selectie`). */}
       {/* In .ob__sel voor dezelfde afstand als de groepen van de Selectie (geen nieuwe CSS). */}
-      {INTERESTS.filter((i) => interests.includes(i.id) && i.topics.some((t) => OPT_IN.has(t))).map((i) => (
+      {INTERESTS.filter((i) => interests.includes(i.id) && (selectie || i.topics.some((t) => OPT_IN.has(t)))).map((i) => (
         <div key={i.id} className="ob__sel">
           <ChipGroup label={`Onder ${i.label}`} level={2} className="ob__domain ob__optin">
-            {i.topics.filter((t) => OPT_IN.has(t)).map((t) => (
-              <button key={t} type="button" className="pill" aria-pressed={optIn.includes(t)} onClick={() => onOptIn(t)}>
+            {i.topics.filter((t) => selectie || OPT_IN.has(t)).map((t) => (
+              <button key={t} type="button" className="pill" aria-pressed={OPT_IN.has(t) ? optIn.includes(t) : chosen.includes(t)} onClick={() => (OPT_IN.has(t) ? onOptIn(t) : onTopic(t))}>
                 {topicById(t)?.label || t}
               </button>
             ))}
           </ChipGroup>
         </div>
       ))}
+      {selectie && interests.length ? <p className="ob__selnote">Kies je niets, dan krijg je alles. Groot nieuws staat altijd bovenaan.</p> : null}
       {selectie ? (
       <button type="button" className="ob__disclose" aria-expanded={open} aria-controls="ob-sel" onClick={() => setOpen(!open)}>
         <span>
