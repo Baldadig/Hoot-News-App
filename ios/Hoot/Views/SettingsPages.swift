@@ -3,9 +3,9 @@ import SwiftUI
 // De bladen één tik onder het hoofdblad van Instellingen D (SettingsView). Labels letterlijk uit
 // D-richtlijnen.html; uitleg alleen als voetregel, en alleen waar het moet.
 
-// De kaart van Instellingen D: welk blad welke rijen heeft. Het hoofdblad en de bladen hieronder
-// gebruiken dezelfde labels; HootTests/InstellingenDTests controleert dat elke rij uit de inventaris
-// van build 47 (INVENTARIS.md) hier een plek heeft, op het hoofdblad of één tik dieper.
+// De kaart van Instellingen: welk blad welke rijen heeft (indeling van 17 november). Het hoofdblad en de
+// bladen hieronder gebruiken dezelfde labels; HootTests/InstellingenDTests controleert dat elke rij uit de
+// inventaris van build 47 (INVENTARIS.md) hier een plek heeft, op het hoofdblad of één tik dieper.
 enum SettingsMap {
     struct Page {
         let id: String
@@ -13,18 +13,20 @@ enum SettingsMap {
         let rows: [String]
     }
     static let main = Page(id: "", title: "Instellingen", rows: [
-        "Account", "Interesses", "Bronnen", "Editie", "Stroom", "Selectie",
-        "Weergave", "Als het donker is", "Tekstgrootte", "Beeld en intro", "Artikelen",
+        "Account",
+        "Interesses", "Editie", "Stroom", "Selectie", // Jouw Hoot
+        "Bronnen", "Abonnementen", "Podcasts", // Bronnen
+        "Weergave", "Als het donker is", "App-icoon", // Weergave
+        "Tekst en beeld", "Artikelen", // Lezen
         "Op dit toestel", "Over Hoot",
     ])
     static let pages: [Page] = [
         Page(id: "account", title: "Account", rows: ["Synchroniseren", "Nu synchroniseren", "Uitloggen", "Account verwijderen", "Inloggen met Apple", "Inloggen met Google"]),
         Page(id: "editie", title: "Editie", rows: ["Buiten je bubbel", "Seintje bij een nieuwe Editie", "Ochtendeditie", "Middageditie", "Avondeditie", "Seintjes staan uit", "Gekozen", "Vaak gelezen", "Vergeet dit", "Minder", "Ongedaan maken", "Nog niets geleerd"]),
         Page(id: "stroom", title: "Stroom", rows: ["Lees de Stroom als", "Bluesky in de Stroom", "Bluesky-accounts"]),
-        Page(id: "tekstgrootte", title: "Tekstgrootte", rows: ["Voorbeeld", "Tekstgrootte"]),
-        Page(id: "beeld", title: "Beeld en intro", rows: ["Voorbeeld", "Beeld", "Intro"]),
-        Page(id: "artikelen", title: "Artikelen", rows: ["Artikelen openen", "Abonnementen"]),
-        Page(id: "toestel", title: "Op dit toestel", rows: ["App-icoon", "Alles als ongelezen markeren", "Bewaarde artikelen verwijderen", "Stel Hoot opnieuw in"]),
+        Page(id: "beeld", title: "Tekst en beeld", rows: ["Voorbeeld", "Tekstgrootte", "Beeld", "Intro"]),
+        Page(id: "artikelen", title: "Artikelen", rows: ["Artikelen openen"]),
+        Page(id: "toestel", title: "Op dit toestel", rows: ["Alles als ongelezen markeren", "Bewaarde artikelen verwijderen", "Stel Hoot opnieuw in"]),
         Page(id: "over", title: "Over Hoot", rows: ["Hulp en contact", "Privacy", "gethoot.app", "Inlogdagboek"]),
     ]
     // Bestaande lijsten achter een rij: inhoud, geen extra laag.
@@ -36,6 +38,7 @@ enum SettingsMap {
         let page = String(screen.dropFirst("instellingen-".count))
         switch page {
         case "wissen": return ["toestel"]
+        case "tekstgrootte": return ["beeld"] // sinds 17 november één blad: Tekst en beeld
         case "geleerd": return ["editie"]
         case "inlogdagboek": return ["over", "inlogdagboek"]
         default: return pages.map(\.id).contains(page) || lists.contains(page) ? [page] : []
@@ -166,7 +169,7 @@ struct StroomSettingsView: View {
     }
 }
 
-// Een Stroom-bericht als voorbeeld: bron en tijd, kop, intro (en bij Beeld en intro het beeld). Hij
+// Een Stroom-bericht als voorbeeld: het beeld, bron en tijd, kop, intro. Hij
 // gebruikt dezelfde letters als de Stroom, dus hij groeit mee met de Tekstgrootte en met Dynamic Type.
 // De intro gaat door IntroText, met dezelfde regels als de kaart in de Stroom: hij stopt na een hele
 // zin, nooit met "…" (eindkeuring 48, B4).
@@ -176,15 +179,15 @@ struct StroomVoorbeeld: View {
     var beeld = false
     static let kop = "Zeegras keert terug in de Waddenzee"
     static let intro = "Bij Texel en Ameland zet Rijkswaterstaat dit voorjaar nieuwe velden uit. Zeegras houdt slib vast en geeft jonge vis een plek om te schuilen."
+    static let beeldIndex = 3 // beeld 4, Iris
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
             if beeld && store.images != "uit" {
-                RoundedRectangle(cornerRadius: Radius.md, style: .continuous)
-                    .fill(Theme.ink.opacity(0.08))
-                    .aspectRatio(3 / 2, contentMode: .fit)
-                    .overlay { Image(systemName: "photo").font(.title2).foregroundStyle(Theme.ink3) }
-                    .accessibilityHidden(true)
+                // Het echte placeholderbeeld (knipsel, beeld 4: Iris) in de weergave van nu, 2:1 zoals in de Stroom.
+                PlaceholderBeeld(index: Self.beeldIndex)
+                    .aspectRatio(2, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
             }
             Text("NOS · vanochtend").font(.ui(.footnote)).foregroundStyle(Theme.hint)
             Kop(Self.kop, .title3).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
@@ -196,20 +199,47 @@ struct StroomVoorbeeld: View {
     }
 }
 
-// Tekstgrootte: een voorbeeld dat meegroeit, en een schuif met vijf standen. De tweede stand is
-// "Zoals je toestel": Dynamic Type blijft de basis, Hoot telt er × 0,9 tot × 1,45 bij op.
-struct TekstgrootteView: View {
+// Tekst en beeld (17 november): Tekstgrootte, Beeld en Intro op één blad. Bovenaan een Stroom-bericht dat
+// meteen meeverandert, dan de schuif, dan de keuzes. De schuif heeft vijf standen; de tweede is "Zoals je
+// toestel": Dynamic Type blijft de basis, Hoot telt er × 0,9 tot × 1,45 bij op.
+struct TekstEnBeeldView: View {
     @Environment(HootStore.self) private var store
 
     var body: some View {
+        @Bindable var store = store
         Form {
-            Section { StroomVoorbeeld() } header: { FormHeader("Voorbeeld") }
+            Section { StroomVoorbeeld(beeld: true) } header: { FormHeader("Voorbeeld") }
                 .hootRows()
             Section { TekstgrootteSchuif() }
                 .hootRows()
+            Section {
+                Picker("Beeld", selection: $store.images.animation()) {
+                    Text("Bij elk verhaal").tag("aan")
+                    Text("Alleen bij het hoofdverhaal").tag("hoofd")
+                    Text("Geen beeld").tag("uit")
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            } header: {
+                FormHeader("Beeld")
+            }
+            .hootRows()
+            Section {
+                Picker("Intro", selection: $store.preview.animation()) {
+                    Text("1 regel").tag(1)
+                    Text("2 regels").tag(2)
+                    Text("3 regels").tag(3)
+                    Text("Hele intro").tag(0)
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            } header: {
+                FormHeader("Intro")
+            }
+            .hootRows()
         }
         .hootForm()
-        .navigationTitle("Tekstgrootte")
+        .navigationTitle("Tekst en beeld")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -249,39 +279,7 @@ struct TekstgrootteSchuif: View {
     }
 }
 
-// Beeld en intro: het voorbeeld met beeld, en de twee keuzes.
-struct BeeldIntroView: View {
-    @Environment(HootStore.self) private var store
-
-    var body: some View {
-        @Bindable var store = store
-        Form {
-            Section { StroomVoorbeeld(beeld: true) } header: { FormHeader("Voorbeeld") }
-                .hootRows()
-            Section {
-                Picker("Beeld", selection: $store.images) {
-                    Text("Aan").tag("aan")
-                    Text("Alleen hoofdverhaal").tag("hoofd")
-                    Text("Uit").tag("uit")
-                }
-                .frame(minHeight: Space.tap)
-                Picker("Intro", selection: $store.preview) {
-                    Text("1 regel").tag(1)
-                    Text("2 regels").tag(2)
-                    Text("3 regels").tag(3)
-                    Text("Hele intro").tag(0)
-                }
-                .frame(minHeight: Space.tap)
-            }
-            .hootRows()
-        }
-        .hootForm()
-        .navigationTitle("Beeld en intro")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-// Artikelen: waar een artikel opent, en (in de lezer) je abonnementen.
+// Artikelen: alleen waar een artikel opent. Abonnementen en Podcasts staan sinds 17 november onder Bronnen.
 struct ArtikelenView: View {
     @Environment(HootStore.self) private var store
 
@@ -289,24 +287,14 @@ struct ArtikelenView: View {
         @Bindable var store = store
         Form {
             Section {
-                Picker("Artikelen openen", selection: $store.openWith.animation()) {
+                Picker("Artikelen openen", selection: $store.openWith) {
                     Text("In de lezer").tag("lezer")
                     Text("In Safari").tag("safari")
                 }
-                .frame(minHeight: Space.tap)
-                if store.openWith == "lezer" {
-                    NavigationLink(value: "abonnementen") { SubscriptionsRow(title: "Abonnementen") }
-                }
-            }
-            .hootRows()
-            // Luister verder (build 56): welke podcastapp opent, of Altijd vragen, of Niet tonen. Alleen op dit toestel.
-            // Nog niets gekozen: leeg; de eerste tik op Luister verder vraagt het.
-            Section {
-                Picker("Podcasts", selection: $store.podcastApp) {
-                    if store.podcastApp.isEmpty { Text("").tag("") }
-                    ForEach(Luister.keuzes, id: \.id) { k in Text(k.naam).tag(k.id) }
-                }
-                .frame(minHeight: Space.tap)
+                .pickerStyle(.inline)
+                .labelsHidden()
+            } header: {
+                FormHeader("Artikelen openen")
             }
             .hootRows()
         }

@@ -92,26 +92,7 @@ struct HootWeergave: ViewModifier {
         content.modifier(NachtResolved(choice: choice, evening: evening)).preferredColorScheme(choice.scheme)
     }
 }
-struct WeergaveKeuze: View {
-    @AppStorage("hoot.weergave") private var value = "system"
-    @AppStorage("hoot.weergave.donker") private var evening = "dark"
-    var body: some View {
-        // Een menu met een vinkje (Instellingen D); "Als het donker is" alleen bij Zoals je toestel.
-        Picker(selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
-            ForEach(Weergave.allCases, id: \.rawValue) { option in
-                Text(option.label).tag(option.rawValue).accessibilityLabel(option == .night ? "Nacht, echt zwart" : option.label)
-            }
-        } label: { Text("Weergave") }
-        .frame(minHeight: Space.tap)
-        if Weergave(stored: value) == .system {
-            Picker(selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
-                Text("Donker").tag("dark")
-                Text("Nacht").tag("night").accessibilityLabel("Nacht, echt zwart")
-            } label: { Text("Als het donker is") }
-            .frame(minHeight: Space.tap)
-        }
-    }
-}
+// De keuze zelf (vier tegels, en "Als het donker is" bij Systeem): WeergaveKeuze in Views/SettingsTegels.swift.
 
 // AppStorage bewaart gewone strings, geen JSON-data zoals de overige HootStore-voorkeuren.
 struct ThemePreferences: Equatable {

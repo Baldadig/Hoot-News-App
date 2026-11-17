@@ -141,7 +141,7 @@ test('Op dit toestel: dezelfde drie acties, voetnoten en bevestigingen als de ap
 test('Over Hoot: Designsysteem en de debugzin zijn weg, Op dit toestel staat er (zoals in de app)', () => {
   const s = src('src/views/Settings.jsx')
   assert.doesNotMatch(s, /Designsysteem|De Editie kan nu nog wisselen/)
-  assert.match(s, /href="#\/toestel" label="Op dit toestel"/)
+  assert.match(s, /href="#\/toestel" icon="toestel" label="Op dit toestel"/)
   assert.match(src('src/App.jsx'), /PAGES = \[[^\]]*'toestel'/)
 })
 

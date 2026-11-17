@@ -60,19 +60,49 @@ import SwiftUI
             XCTAssertNotNil(plek, "#\(rij.nr) \(rij.oud) → \(rij.nu) staat nergens")
         }
         // Elk blad hangt aan een rij op het hoofdblad (één tik), en elk blad is te openen.
-        let ingang = ["account": "Account", "editie": "Editie", "stroom": "Stroom", "tekstgrootte": "Tekstgrootte", "beeld": "Beeld en intro", "artikelen": "Artikelen", "toestel": "Op dit toestel", "over": "Over Hoot"]
+        let ingang = ["account": "Account", "editie": "Editie", "stroom": "Stroom", "beeld": "Tekst en beeld", "artikelen": "Artikelen", "toestel": "Op dit toestel", "over": "Over Hoot"]
         for page in SettingsMap.pages {
             XCTAssertTrue(hoofd.contains(ingang[page.id] ?? "–"), "\(page.title) heeft geen rij op het hoofdblad")
             XCTAssertEqual(SettingsMap.debugPath("instellingen-\(page.id)"), [page.id])
         }
         XCTAssertEqual(SettingsMap.debugPath("instellingen-wissen"), ["toestel"])
         XCTAssertEqual(SettingsMap.debugPath("instellingen-geleerd"), ["editie"])
+        XCTAssertEqual(SettingsMap.debugPath("instellingen-tekstgrootte"), ["beeld"], "het oude blad Tekstgrootte opent Tekst en beeld")
         XCTAssertEqual(SettingsMap.debugPath("instellingen-niets"), [])
     }
 
-    func testHoofdbladHeeftDeGroepenEnLabelsVanD() {
-        XCTAssertEqual(SettingsMap.main.rows, ["Account", "Interesses", "Bronnen", "Editie", "Stroom", "Selectie", "Weergave", "Als het donker is", "Tekstgrootte", "Beeld en intro", "Artikelen", "Op dit toestel", "Over Hoot"])
-        XCTAssertEqual(Weergave.system.label, "Zoals je toestel")
+    // Indeling van 17 november: Jouw Hoot, Bronnen, Weergave, Lezen, en los Op dit toestel en Over Hoot.
+    func testHoofdbladHeeftDeIndelingVan17November() {
+        XCTAssertEqual(SettingsMap.main.rows, ["Account", "Interesses", "Editie", "Stroom", "Selectie", "Bronnen", "Abonnementen", "Podcasts", "Weergave", "Als het donker is", "App-icoon", "Tekst en beeld", "Artikelen", "Op dit toestel", "Over Hoot"])
+        XCTAssertEqual(SettingsMap.pages.first { $0.id == "beeld" }?.rows, ["Voorbeeld", "Tekstgrootte", "Beeld", "Intro"])
+        XCTAssertEqual(SettingsMap.pages.first { $0.id == "artikelen" }?.rows, ["Artikelen openen"])
+        XCTAssertFalse(SettingsMap.pages.contains { $0.id == "tekstgrootte" })
+        XCTAssertEqual(WeergaveKeuze.volgorde.map(\.tegel), ["Licht", "Donker", "Nacht", "Systeem"])
+        XCTAssertEqual(WeergaveKeuze.volgorde.map(\.symbool), ["sun.max", "moon", "moon.stars", "circle.lefthalf.filled"])
+        XCTAssertEqual(Weergave.system.label, "Zoals je toestel", "het menu elders houdt de lange naam")
+    }
+
+    // Elk tegeltje: een bestaand SF Symbol en de kleur uit het concept.
+    func testTegelsHebbenEenBestaandSymbool() {
+        for icoon in SettingsIcoon.allCases {
+            XCTAssertNotNil(UIImage(systemName: icoon.symbol), "\(icoon): \(icoon.symbol)")
+        }
+        for keuze in Weergave.allCases { XCTAssertNotNil(UIImage(systemName: keuze.symbool), keuze.symbool) }
+        XCTAssertEqual(SettingsIcoon.interesses.kleur, .rood)
+        XCTAssertEqual(SettingsIcoon.podcasts.kleur, .paars)
+        XCTAssertEqual(TegelKleur.rood.hex, 0x9a3324)
+    }
+
+    // Bestaande voorkeuren blijven: Systeem met Nacht als het donker is, gelezen uit dezelfde sleutels.
+    func testSysteemMetNachtBlijft() {
+        let suite = "hoot-weergave-" + UUID().uuidString, defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("system", forKey: "hoot.weergave")
+        defaults.set("night", forKey: "hoot.weergave.donker")
+        let p = ThemePreferences.read(defaults)
+        XCTAssertEqual(p, ThemePreferences(theme: "system", dark: "night"))
+        XCTAssertTrue(Weergave(stored: p.theme).nightActive(systemDark: true, evening: p.dark))
+        XCTAssertFalse(Weergave(stored: p.theme).nightActive(systemDark: false, evening: p.dark))
     }
 
     func testSeintjesRegelZonderKloktijden() {
@@ -166,8 +196,7 @@ import SwiftUI
             ("hoofdblad", AnyView(SettingsView())),
             ("editie", AnyView(NavigationStack { EditieSettingsView() })),
             ("stroom", AnyView(NavigationStack { StroomSettingsView() })),
-            ("tekstgrootte", AnyView(NavigationStack { TekstgrootteView() })),
-            ("beeld", AnyView(NavigationStack { BeeldIntroView() })),
+            ("beeld", AnyView(NavigationStack { TekstEnBeeldView() })),
             ("artikelen", AnyView(NavigationStack { ArtikelenView() })),
             ("toestel", AnyView(NavigationStack { DeviceDataView(onReset: {}) })),
             ("over", AnyView(NavigationStack { OverHootView() })),

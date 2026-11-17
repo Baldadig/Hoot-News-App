@@ -164,3 +164,226 @@
 .rows > * + .setrow--action {
   border-top: 1px solid var(--rule);
 }
+
+/* ---------- Instellingen, indeling van 17 november (concept: Hoot-design/ontwerp/instellingen-2026-11-17) ---------- */
+/* Het tegeltje voor een rij: 29 × 29, hoek 7, een wit symbool van 18 (gelijk aan IconTile in de app).
+   De kleuren uit src/lib/settings-tegels.js; in Nacht op 80 %, zodat een tegel op zwart niet oplicht. */
+:root {
+  --tegel: 29px;
+  --t-rood: #9a3324;
+  --t-amber: #b0802f;
+  --t-groen: #4f6b3a;
+  --t-teal: #2f6b68;
+  --t-blauw: #36577a;
+  --t-paars: #6a4a6c;
+  --t-inkt: #4b453b;
+  --t-zand: #8a7a5c;
+  --t-nacht: 80%;
+}
+.tegel {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--tegel);
+  height: var(--tegel);
+  border-radius: 7px;
+  background: var(--tc);
+  color: #fff;
+}
+:root[data-theme='night'] .tegel {
+  background: color-mix(in srgb, var(--tc) var(--t-nacht), #000);
+}
+.tegel svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tegel--rood { --tc: var(--t-rood); }
+.tegel--amber { --tc: var(--t-amber); }
+.tegel--groen { --tc: var(--t-groen); }
+.tegel--teal { --tc: var(--t-teal); }
+.tegel--blauw { --tc: var(--t-blauw); }
+.tegel--paars { --tc: var(--t-paars); }
+.tegel--inkt { --tc: var(--t-inkt); }
+.tegel--zand { --tc: var(--t-zand); }
+/* De haarlijn tussen twee rijen met een tegel begint bij het label, zoals in de Instellingen-app. */
+.dset__rows > * + :has(> .tegel) {
+  position: relative;
+  border-top: 0;
+}
+.dset__rows > * + :has(> .tegel)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: calc(var(--tegel) + var(--s3));
+  border-top: 1px solid var(--rule);
+}
+/* Op dit toestel en Over Hoot: een los blok, met de lucht van een sectiekop erboven. */
+.dset__los {
+  margin-top: var(--s6);
+}
+
+/* Weergave: vier tegels met een klein scherm (54 × 92, hoek 11), het woord en een keuzerondje. */
+.looks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--s2);
+  padding-block: var(--s4) var(--s3);
+}
+.look {
+  display: grid;
+  justify-items: center;
+  gap: var(--s2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--t1);
+  font-weight: 500;
+  line-height: var(--lh-1);
+  cursor: pointer;
+}
+.look:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--s1);
+  border-radius: var(--radius);
+}
+.mini {
+  position: relative;
+  width: 54px;
+  height: 92px;
+  overflow: hidden;
+  border-radius: 11px;
+  box-shadow: 0 0 0 1px var(--rule);
+  --m-bg: #f5f1e8;
+  --m-k: #1a1814;
+  --m-img: #d8cdb8;
+  background: var(--m-bg);
+}
+.mini--dark { --m-bg: #151310; --m-k: #f1ece2; --m-img: #3a342c; }
+.mini--night { --m-bg: #000; --m-k: #d8d0c2; --m-img: #24211d; }
+.mini--system { background: linear-gradient(90deg, #f5f1e8 50%, #151310 50%); }
+.mini--system .mini__k { background: linear-gradient(90deg, #1a1814 20px, #f1ece2 20px); } /* de helft ligt op 27, de rij begint op 7 */
+.mini--system .mini__img { background: linear-gradient(90deg, #d8cdb8 20px, #3a342c 20px); }
+.look[aria-checked='true'] .mini {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.mini__k {
+  position: absolute;
+  top: 12px;
+  left: 7px;
+  right: 7px;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--m-k);
+}
+.mini__k--kort { top: 21px; right: 18px; }
+.mini__img {
+  position: absolute;
+  top: 30px;
+  left: 7px;
+  right: 7px;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--m-img);
+}
+.mini__k--zacht { top: 60px; opacity: 0.5; }
+.mini__k--zacht.mini__k--kort { top: 69px; right: 20px; }
+.mini__badge {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.88);
+  color: #1a1814;
+}
+.mini__badge svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Het keuzerondje: leeg in ink-3, gekozen een vinkje op het accent (checkmark.circle.fill in de app). */
+.look__radio {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 50%;
+}
+.look[aria-checked='true'] .look__radio {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.look[aria-checked='true'] .look__radio::after {
+  content: '';
+  width: 9px;
+  height: 5px;
+  margin-top: -2px;
+  border-bottom: 2px solid var(--paper);
+  border-left: 2px solid var(--paper);
+  transform: rotate(-45deg);
+}
+/* Als het donker is: een segment met Donker en Nacht. */
+.dset__sub {
+  flex-wrap: wrap;
+}
+.dset__seg {
+  display: inline-flex;
+  margin-inline-start: auto;
+  padding: 2px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.dset__seg button {
+  min-height: 32px;
+  padding: 0 var(--s3);
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--t1);
+  font-weight: 500;
+  cursor: pointer;
+}
+.dset__seg button[aria-checked='true'] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.14);
+}
+.dset__seg button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 1px;
+}
+/* Tekst en beeld: het voorbeeldbeeld is het echte placeholderbeeld, 2:1 zoals in de Stroom. */
+.dset__img.ph {
+  aspect-ratio: 2 / 1;
+  background-color: var(--paper);
+}
+/* Een keuze als lijst: de gekozen rij heeft een vinkje rechts. */
+.dset__opt {
+  justify-content: space-between;
+}
+.dset__ck {
+  color: var(--accent);
+  font-weight: 700;
+  visibility: hidden;
+}
+.dset__opt[aria-checked='true'] .dset__ck {
+  visibility: visible;
+}

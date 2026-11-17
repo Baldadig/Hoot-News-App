@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ViewHeader } from '../components/Shell.jsx'
-import { MenuRow, THEME_OPTIONS } from '../components/Display.jsx'
+import { MenuRow } from '../components/Display.jsx'
 import { KEUZES } from '../../shared/luister-weergave.mjs'
 import { useHoot } from '../components/Items.jsx'
 import { Switch } from './Sources.jsx'
@@ -16,9 +16,15 @@ import { hootSummary } from '../lib/settings-summary.js'
 import { TEXT_SIZES, textSizeIndex, textSizeOf } from '../lib/tekstgrootte.js'
 import { pendingShown, PENDING_TEXT } from '../lib/membership.js'
 import { useOnline } from '../hooks/useOnline.js'
+import { SETTINGS_ICONEN, WEB_ICONEN, SYMBOLEN, WEERGAVE_TEGELS } from '../lib/settings-tegels.js'
 
-// Instellingen D, "volgens de richtlijnen" (Hoot-design/woensdag-2026-11-04/instellingen-concept/
-// D-richtlijnen.html), gelijk aan de app (SettingsView.swift, SettingsPages.swift):
+// Instellingen, indeling van 17 november (Hoot-design/ontwerp/instellingen-2026-11-17/concept.html), op de basis
+// van Instellingen D (Hoot-design/woensdag-2026-11-04/instellingen-concept/D-richtlijnen.html), gelijk aan de app
+// (SettingsView.swift, SettingsPages.swift):
+// - de accountkaart, Jouw Hoot (Interesses, Editie, Stroom, Selectie), Bronnen (Bronnen, Podcasts), Weergave (vier
+//   tegels, Als het donker is bij Systeem, Kleur) en Lezen (Tekst en beeld); los daaronder Op dit toestel en Over Hoot.
+//   App-icoon, Abonnementen en Artikelen bestaan alleen in de app;
+// - elke rij een gekleurd tegeltje met een wit symbool, zoals de app (src/lib/settings-tegels.js);
 // - wat je soms aanpast staat op het hoofdblad, in groepen met een korte kop;
 // - wat je één keer instelt zit één tik dieper (een blad: #/instellingen?blad=…), nergens dieper;
 // - Editie, Stroom en Selectie zijn drie gelijke rijen in Jouw Hoot;
@@ -30,9 +36,20 @@ export const BLADEN = {
   editie: 'Editie',
   stroom: 'Stroom',
   selectie: 'Selectie',
-  tekstgrootte: 'Tekstgrootte',
-  beeld: 'Beeld en intro',
+  beeld: 'Tekst en beeld',
   over: 'Over Hoot',
+}
+// Oude bladen die opgingen in een ander (bladwijzers blijven werken): Tekstgrootte zit in Tekst en beeld.
+export const BLAD_ALIAS = { tekstgrootte: 'beeld' }
+
+// Het tegeltje voor een rij: de kleur uit de huisstijl, het symbool wit (aria-hidden: het label zegt het).
+export function Tegel({ name }) {
+  const [kleur, symbool] = SETTINGS_ICONEN[name] || WEB_ICONEN[name]
+  return (
+    <span className={`tegel tegel--${kleur}`} aria-hidden="true">
+      <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: SYMBOLEN[symbool] }} />
+    </span>
+  )
 }
 
 function Row({ label, hint, children }) {
@@ -47,10 +64,11 @@ function Row({ label, hint, children }) {
   )
 }
 
-// Een rij naar een blad of scherm: het label links, de waarde rechts (past het niet, dan eronder), de caret.
-function LinkRow({ href, onClick, label, value }) {
+// Een rij naar een blad of scherm: het tegeltje, het label, de waarde rechts (past het niet, dan eronder), de caret.
+function LinkRow({ href, onClick, label, value, icon }) {
   const inner = (
     <>
+      {icon ? <Tegel name={icon} /> : null}
       <span className="setrow__label">{label}</span>
       {value != null && value !== '' ? <span className="setrow__value dset__val">{value}</span> : <span className="dset__val" />}
       <span className="caret" aria-hidden="true">
@@ -76,7 +94,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
   const followed = [...(sourcesById?.values() || [])].filter((s) => s.kind !== 'sociaal' && !muted?.has(s.id)).length
   const summary = hootSummary({ interests: (prefs.interests || []).length, sources: followed })
   const open = (b) => onOpen?.(b)
-  const page = BLADEN[blad] ? blad : null
+  const page = BLADEN[BLAD_ALIAS[blad] || blad] ? BLAD_ALIAS[blad] || blad : null
   const title = page ? BLADEN[page] : 'Instellingen'
 
   return (
@@ -87,27 +105,34 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
         {page === 'editie' ? <EditieBlad meta={meta} account={account} affinity={affinity} onForget={onForgetTopic} /> : null}
         {page === 'stroom' ? <StroomBlad /> : null}
         {page === 'selectie' ? <SelectieBlad digest={digest} /> : null}
-        {page === 'tekstgrootte' ? <TekstgrootteBlad /> : null}
-        {page === 'beeld' ? <BeeldBlad /> : null}
+        {page === 'beeld' ? <TekstEnBeeldBlad /> : null}
         {page === 'over' ? <OverBlad /> : null}
         {page ? null : (
           <>
             <AccountCard account={account} syncStatus={syncStatus} onOpen={() => open('account')} />
 
             <h2 className="sect sect--plain">Jouw Hoot</h2>
-            <div className="rows">
-              <LinkRow href="#/welkom" label="Interesses" value={(prefs.interests || []).length ? String(prefs.interests.length) : 'Alle'} />
-              <LinkRow href="#/bronnen" label="Bronnen" value={String(followed)} />
-              <LinkRow onClick={() => open('editie')} label="Editie" value={prefs.bubble ? 'Met buiten je bubbel' : ''} />
-              <LinkRow onClick={() => open('stroom')} label="Stroom" value={(prefs.layout === 'krant' ? 'Krant' : 'Tijdlijn') + (prefs.bluesky ? ' · Bluesky' : '')} />
-              <LinkRow onClick={() => open('selectie')} label="Selectie" value={plural(offeredFields(prefs.vak, digest).length, 'onderwerp', 'onderwerpen')} />
+            <div className="rows dset__rows">
+              <LinkRow href="#/welkom" icon="interesses" label="Interesses" value={(prefs.interests || []).length ? String(prefs.interests.length) : 'Alle'} />
+              <LinkRow onClick={() => open('editie')} icon="editie" label="Editie" value={prefs.bubble ? 'Met buiten je bubbel' : ''} />
+              <LinkRow onClick={() => open('stroom')} icon="stroom" label="Stroom" value={(prefs.layout === 'krant' ? 'Krant' : 'Tijdlijn') + (prefs.bluesky ? ' · Bluesky' : '')} />
+              <LinkRow onClick={() => open('selectie')} icon="selectie" label="Selectie" value={plural(offeredFields(prefs.vak, digest).length, 'onderwerp', 'onderwerpen')} />
             </div>
 
-            <h2 className="sect sect--plain">Lezen</h2>
-            <div className="rows">
-              <MenuRow label="Weergave" value={theme} onChange={setTheme} options={THEME_OPTIONS} />
-              {theme === 'system' ? <MenuRow label="Als het donker is" value={themeDark} onChange={setThemeDark} options={[{ value: 'dark', label: 'Donker' }, { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' }]} /> : null}
+            <h2 className="sect sect--plain">Bronnen</h2>
+            <div className="rows dset__rows">
+              <LinkRow href="#/bronnen" icon="bronnen" label="Bronnen" value={String(followed)} />
+              {/* Luister verder (alleen met de schakelaar, src/lib/luister.js): welke podcastapp, in deze browser. Nog niets
+                  gekozen: leeg, en de eerste tik op Luister verder vraagt het. */}
+              {luisterAan ? <MenuRow icon={<Tegel name="podcasts" />} label="Podcasts" value={podcastKeuze} onChange={setPodcastKeuze} options={[...(podcastKeuze ? [] : [{ value: '', label: '', aria: 'Nog niet gekozen' }]), ...KEUZES.map((k) => ({ value: k.id, label: k.naam }))]} /> : null}
+            </div>
+
+            <h2 className="sect sect--plain">Weergave</h2>
+            <div className="rows dset__rows">
+              <WeergaveTegels theme={theme} setTheme={setTheme} />
+              {theme === 'system' ? <DonkerKeuze value={themeDark} onChange={setThemeDark} /> : null}
               <MenuRow
+                icon={<Tegel name="kleur" />}
                 label="Kleur"
                 value={prefs.palette}
                 onChange={(v) => setPref('palette', v)}
@@ -117,16 +142,16 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
                   { value: 'inkt', label: 'Inkt' },
                 ]}
               />
-              <LinkRow onClick={() => open('tekstgrootte')} label="Tekstgrootte" value={textSizeOf(prefs.textSize).label} />
-              {/* Luister verder (alleen met de schakelaar, src/lib/luister.js): welke podcastapp, in deze browser. Nog niets
-                  gekozen: leeg, en de eerste tik op Luister verder vraagt het. */}
-              {luisterAan ? <MenuRow label="Podcasts" value={podcastKeuze} onChange={setPodcastKeuze} options={[...(podcastKeuze ? [] : [{ value: '', label: '', aria: 'Nog niet gekozen' }]), ...KEUZES.map((k) => ({ value: k.id, label: k.naam }))]} /> : null}
-              <LinkRow onClick={() => open('beeld')} label="Beeld en intro" />
             </div>
 
-            <div className="rows dset__group">
-              <LinkRow href="#/toestel" label="Op dit toestel" />
-              <LinkRow onClick={() => open('over')} label="Over Hoot" value={__APP_VERSION__} />
+            <h2 className="sect sect--plain">Lezen</h2>
+            <div className="rows dset__rows">
+              <LinkRow onClick={() => open('beeld')} icon="tekstEnBeeld" label="Tekst en beeld" value={textSizeOf(prefs.textSize).label} />
+            </div>
+
+            <div className="rows dset__rows dset__group dset__los">
+              <LinkRow href="#/toestel" icon="toestel" label="Op dit toestel" />
+              <LinkRow onClick={() => open('over')} icon="over" label="Over Hoot" value={__APP_VERSION__} />
             </div>
           </>
         )}
@@ -250,12 +275,93 @@ function SelectieBlad({ digest = null }) {
   )
 }
 
-// Een Stroom-bericht als voorbeeld: groeit mee met de Tekstgrootte (het is gewone tekst op de rem-schaal).
+// Weergave: vier tegels met een klein scherm en een icoon (Licht, Donker, Nacht, Systeem), zoals de app
+// (WeergaveKeuze in SettingsTegels.swift). Een radiogroep: pijltjes kiezen, Tab gaat verder.
+function WeergaveTegels({ theme, setTheme }) {
+  const kies = (i) => setTheme(WEERGAVE_TEGELS[(i + WEERGAVE_TEGELS.length) % WEERGAVE_TEGELS.length].value)
+  const onKey = (e, i) => {
+    const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]
+    if (!d) return
+    e.preventDefault()
+    kies(i + d)
+    e.currentTarget.parentElement?.children[(i + d + WEERGAVE_TEGELS.length) % WEERGAVE_TEGELS.length]?.focus()
+  }
+  return (
+    <div className="looks" role="radiogroup" aria-label="Weergave">
+      {WEERGAVE_TEGELS.map((t, i) => {
+        const on = theme === t.value
+        return (
+          <button key={t.value} type="button" className="look" role="radio" aria-checked={on} aria-label={t.aria || t.label} tabIndex={on ? 0 : -1} onClick={() => setTheme(t.value)} onKeyDown={(e) => onKey(e, i)}>
+            <span className={`mini mini--${t.value}`} aria-hidden="true">
+              <span className="mini__k" />
+              <span className="mini__k mini__k--kort" />
+              <span className="mini__img" />
+              <span className="mini__k mini__k--zacht" />
+              <span className="mini__k mini__k--zacht mini__k--kort" />
+              <span className="mini__badge">
+                <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: SYMBOLEN[t.symbol] }} />
+              </span>
+            </span>
+            <span className="look__label" aria-hidden="true">
+              {t.label}
+            </span>
+            <span className="look__radio" aria-hidden="true" />
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Als het donker is (alleen bij Systeem): Donker of Nacht, als segment zoals in de app.
+function DonkerKeuze({ value, onChange }) {
+  const opts = [
+    { value: 'dark', label: 'Donker' },
+    { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' },
+  ]
+  return (
+    <div className="setrow dset__sub">
+      <span className="setrow__label" id="als-donker">
+        Als het donker is
+      </span>
+      <span className="dset__seg" role="radiogroup" aria-labelledby="als-donker">
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={value === o.value} aria-label={o.aria || o.label} onClick={() => onChange(o.value)}>
+            {o.label}
+          </button>
+        ))}
+      </span>
+    </div>
+  )
+}
+
+// Een keuze als lijst met een vinkje (zoals een inline-keuze in de app), één rij per optie.
+function KeuzeLijst({ label, value, options, onChange }) {
+  return (
+    <>
+      <h2 className="sect sect--plain">{label}</h2>
+      <div className="rows" role="radiogroup" aria-label={label}>
+        {options.map((o) => (
+          <button key={String(o.value)} type="button" className="setrow setrow--action dset__opt" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}>
+            <span className="setrow__label">{o.label}</span>
+            <span className="dset__ck" aria-hidden="true">
+              ✓
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// Een Stroom-bericht als voorbeeld: groeit mee met de Tekstgrootte (het is gewone tekst op de rem-schaal), met
+// het echte placeholderbeeld (knipsel, beeld 4: Iris) in de weergave van nu, zoals in de app (StroomVoorbeeld).
 const VOORBEELD = {
   kop: 'Zeegras keert terug in de Waddenzee',
   intro: 'Bij Texel en Ameland zet Rijkswaterstaat dit voorjaar nieuwe velden uit. Zeegras houdt slib vast en geeft jonge vis een plek om te schuilen.',
+  beeld: 4,
 }
-function Voorbeeld({ beeld = false }) {
+function Voorbeeld() {
   const { prefs } = useHoot()
   const lines = prefs.preview === 'alles' ? null : prefs.preview
   return (
@@ -263,7 +369,7 @@ function Voorbeeld({ beeld = false }) {
       <h2 className="sect sect--plain">Voorbeeld</h2>
       <div className="rows dset__card">
         <div className="dset__pv" role="img" aria-label="Voorbeeld van een Stroom-bericht">
-          {beeld && prefs.images !== 'uit' ? <div className="dset__img" aria-hidden="true" /> : null}
+          {prefs.images !== 'uit' ? <div className={`dset__img ph ph--${VOORBEELD.beeld}`} data-ph={VOORBEELD.beeld} aria-hidden="true" /> : null}
           <p className="dset__meta">NOS · vanochtend</p>
           <p className="dset__kop" lang="nl">
             {VOORBEELD.kop}
@@ -277,8 +383,9 @@ function Voorbeeld({ beeld = false }) {
   )
 }
 
-// Tekstgrootte: het voorbeeld en een schuif met vijf standen, klein links en groot rechts.
-function TekstgrootteBlad() {
+// Tekst en beeld (17 november): Tekstgrootte, Beeld en Intro op één blad. Bovenaan het voorbeeld dat meteen
+// meeverandert, dan de schuif (vijf standen, klein links en groot rechts), dan de keuzes.
+function TekstEnBeeldBlad() {
   const { prefs, setPref } = useHoot()
   const i = textSizeIndex(prefs.textSize)
   return (
@@ -318,41 +425,30 @@ function TekstgrootteBlad() {
           </div>
         </div>
       </div>
-    </>
-  )
-}
-
-function BeeldBlad() {
-  const { prefs, setPref } = useHoot()
-  return (
-    <>
-      <Voorbeeld beeld />
-      <div className="rows dset__group">
-        <MenuRow
-          label="Beeld"
-          value={prefs.images}
-          onChange={(v) => setPref('images', v)}
-          options={[
-            { value: 'aan', label: 'Aan' },
-            { value: 'hoofd', label: 'Alleen hoofdverhaal' },
-            { value: 'uit', label: 'Uit' },
-          ]}
-        />
-        <MenuRow
-          label="Intro"
-          value={prefs.preview}
-          onChange={(v) => {
-            setPref('regels', v) // de keuze (build 46); `preview` voor oudere versies van de app
-            setPref('preview', v)
-          }}
-          options={[
-            { value: 1, label: '1 regel' },
-            { value: 2, label: '2 regels' },
-            { value: 3, label: '3 regels' },
-            { value: 'alles', label: 'Hele intro' },
-          ]}
-        />
-      </div>
+      <KeuzeLijst
+        label="Beeld"
+        value={prefs.images}
+        onChange={(v) => setPref('images', v)}
+        options={[
+          { value: 'aan', label: 'Bij elk verhaal' },
+          { value: 'hoofd', label: 'Alleen bij het hoofdverhaal' },
+          { value: 'uit', label: 'Geen beeld' },
+        ]}
+      />
+      <KeuzeLijst
+        label="Intro"
+        value={prefs.preview}
+        onChange={(v) => {
+          setPref('regels', v) // de keuze (build 46); `preview` voor oudere versies van de app
+          setPref('preview', v)
+        }}
+        options={[
+          { value: 1, label: '1 regel' },
+          { value: 2, label: '2 regels' },
+          { value: 3, label: '3 regels' },
+          { value: 'alles', label: 'Hele intro' },
+        ]}
+      />
     </>
   )
 }
