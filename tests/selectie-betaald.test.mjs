@@ -56,3 +56,13 @@ test('web en app tonen "Abonnement" in de bronregel van de kaart en onder "Ook d
   const comp = readFileSync(new URL('../ios/Hoot/Views/Components.swift', import.meta.url), 'utf8')
   assert.match(comp, /paid \?\? \(store\.source\(item\.source\)\?\.paid == true\)/)
 })
+
+test('De Telegraaf staat in de Selectie bij Politiek, breed gefilterd en met het teken Abonnement', () => {
+  const tg = src('telegraaf')
+  assert.ok(tg, 'vak:telegraaf bestaat')
+  assert.deepEqual(tg.fields, ['politiek'])
+  assert.equal(tg.filter, true)
+  assert.equal(tg.paid, true)
+  assert.equal(tg.urls[0], 'https://www.telegraaf.nl/rss')
+  assert.ok(PAID_SOURCES.has('vak:telegraaf') || PAID_SOURCES.has('telegraaf'))
+})

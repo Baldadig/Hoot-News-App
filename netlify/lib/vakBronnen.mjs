@@ -170,6 +170,11 @@ export const MORE_SOURCES = [
   V('gemeentenu', 'Gemeente.nu', 'vakblad', ['politiek'], 'https://www.gemeente.nu/feed/'),
   V('stukroodvlees', 'Stuk Rood Vlees', 'expert', ['politiek'], 'https://stukroodvlees.nl/feed/', { about: 'Politicologen over kiezers, partijen en democratie' }),
   V('politico-eu', 'Politico Europe', 'vakblad', ['politiek'], 'https://www.politico.eu/feed/', { filter: true }),
+  // De Telegraaf (besluit Alex 17 november 2026): de rechtse stem naast TPO. De uitgever heeft geen eigen politiekfeed (elke
+  // rubriekpad geeft 403 of 404), alleen de hoofdfeed; `filter` laat daaruit alleen wat over politiek gaat door. Een deel van de
+  // stukken is Premium (de feed zet <premium>true</premium> per stuk, maar de Selectie leest dat veld niet): de bron is `paid`,
+  // dus elk stuk draagt het teken Abonnement en de top heeft hooguit één betaald stuk per onderwerp.
+  V('telegraaf', 'De Telegraaf', 'vakblad', ['politiek'], 'https://www.telegraaf.nl/rss', { about: 'Nieuws en achtergrond uit Den Haag, rechtser getint', filter: true, paid: true, bsky: 'telegraaf.nl' }),
   // Leesvoer, geen nieuws van de week (Selectie · fase 3): achtergrond, analyse en interviews. Breed (filter): wat over
   // economie gaat telt daar, de rest bij politiek.
   V('nieuwsuur', 'Nieuwsuur', 'vakblad', ['economie', 'politiek'], 'https://feeds.nos.nl/nieuwsuuralgemeen', { about: 'De achtergrond bij het nieuws van de dag (NOS en NTR)', filter: true }),
