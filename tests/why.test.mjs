@@ -102,14 +102,26 @@ test('profileSummary: gekozen, geleerd (≥ 0,4) en minder, in vaste volgorde', 
   assert.ok(prof.topicP.klimaat >= LEARNED_SHOWN)
   assert.deepEqual(s.less, ['voetbal', 'f1']) // sterkste 'minder' eerst
   // Niets geleerd en niets gekozen: drie lege lijsten.
-  assert.deepEqual(profileSummary(profileOf({})), { chosen: [], learned: [], less: [] })
-  assert.deepEqual(profileSummary(null), { chosen: [], learned: [], less: [] })
+  assert.deepEqual(profileSummary(profileOf({})), { chosen: [], more: [], learned: [], less: [] })
+  assert.deepEqual(profileSummary(null), { chosen: [], more: [], learned: [], less: [] })
 })
 
-test("profileSummary: 'meer hiervan' telt als gekozen, 'minder' op nul valt weg", () => {
-  const s = profileSummary(profileOf({ taste: { topics: { muziek: 8, voetbal: 0 }, sources: {} } }))
-  assert.deepEqual(s.chosen, ['muziek'])
+test("profileSummary: 'meer hiervan' staat apart (niet bij gekozen), 'minder' op nul valt weg", () => {
+  const taste = { topics: { muziek: 8, voetbal: 0 }, sources: {} }
+  const s = profileSummary(profileOf({ taste }), taste)
+  assert.deepEqual(s.chosen, [])
+  assert.deepEqual(s.more, ['muziek'])
   assert.deepEqual(s.less, [])
+  // Ook als het onderwerp bij je interesses hoort: één lijst, 'meer hiervan' gaat voor.
+  const t = { topics: { ai: 6 }, sources: {} }
+  const m = profileSummary(profileOf({ interests: ['tech'], topics: ['ai', 'privacy'], taste: t }), t)
+  assert.deepEqual(m.chosen, ['privacy'])
+  assert.deepEqual(m.more, ['ai'])
+  // Ongedaan maken zet het onderwerp op nul: weer gewoon gekozen, niet meer bij 'meer hiervan'.
+  const u = { topics: { ai: 0 }, sources: {} }
+  const n = profileSummary(profileOf({ interests: ['tech'], topics: ['ai', 'privacy'], taste: u }), u)
+  assert.deepEqual(n.chosen, ['ai', 'privacy'])
+  assert.deepEqual(n.more, [])
 })
 
 test('waarom-regel: het aantal bronnen staat in de bronregel, niet nog eens hier (E6)', async () => {

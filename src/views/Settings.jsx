@@ -467,10 +467,11 @@ function OverBlad() {
   )
 }
 
-// Wat Hoot leerde (bouwspec §8): hetzelfde profiel als De Redacteur gebruikt voor jouw Editie, in drie
-// lijsten. Gekozen: je interesses en waar je 'meer hiervan' bij zei. Geleerd: wat je vaker opent of
-// bewaart dan je bronnen erover schrijven (blijft op dit toestel); elk onderwerp met 'Vergeet dit'.
-// Minder: waar je 'minder hiervan' bij zei, met de weg terug. Gewone taal, geen getallen. Wat je hier
+// Wat Hoot leerde (bouwspec §8): hetzelfde profiel als De Redacteur gebruikt voor jouw Editie, in vier
+// lijsten. Gekozen: je interesses (aan te passen via Interesses). Meer hiervan: waar je 'meer hiervan'
+// bij zei, elk met de weg terug. Geleerd: wat je vaker opent of bewaart dan je bronnen erover schrijven
+// (blijft op dit toestel); elk onderwerp met 'Vergeet dit'. Minder: waar je 'minder hiervan' bij zei,
+// met de weg terug. Gewone taal, geen getallen. Wat je hier
 // verandert telt pas bij de volgende Editie: die van dit dagdeel staat al en blijft staan.
 function Learned({ affinity, onForget }) {
   const { prefs, setPref, itemsById, sourcesById, muted } = useHoot()
@@ -478,14 +479,14 @@ function Learned({ affinity, onForget }) {
     const sources = [...sourcesById.values()]
     const followed = new Set(sources.filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id))
     const pool = [...itemsById.values()].filter((i) => i.kind === 'article' && followed.has(i.source))
-    return profileSummary(profileOf({ interests: prefs.interests, topics: prefs.topics, affinity, taste: prefs.taste, favorites: prefs.favorites, followed, sources, supply: supplyOf(pool) }))
+    return profileSummary(profileOf({ interests: prefs.interests, topics: prefs.topics, affinity, taste: prefs.taste, favorites: prefs.favorites, followed, sources, supply: supplyOf(pool) }), prefs.taste)
   }, [prefs.interests, prefs.topics, prefs.taste, prefs.favorites, affinity, itemsById, sourcesById, muted])
   const name = (id) => topicById(id)?.label || id
-  // 'Minder' terugdraaien: het onderwerp weer op nul, zoals de spec zegt.
+  // 'Meer hiervan' of 'Minder' terugdraaien: het onderwerp weer op nul, zoals de spec zegt.
   const restore = (t) => setPref('taste', { ...prefs.taste, topics: { ...(prefs.taste?.topics || {}), [t]: 0 } })
   const raw = (t) => prefs.taste?.topics?.[t] ?? 0
   const less = [...summary.less].sort((a, b) => raw(a) - raw(b))
-  const nothingLearned = !summary.learned.length && !summary.less.length
+  const nothingLearned = !summary.more.length && !summary.learned.length && !summary.less.length
   return (
     <>
       <h2 className="sect sect--plain">Wat Hoot leerde</h2>
@@ -493,6 +494,20 @@ function Learned({ affinity, onForget }) {
         {summary.chosen.length ? <Row label="Gekozen" hint={summary.chosen.map(name).join(', ')} /> : null}
         {nothingLearned ? <Row label="Nog niets geleerd" /> : null}
       </div>
+      {summary.more.length ? (
+        <>
+          <p className="learned__sub">Meer hiervan</p>
+          <div className="rows">
+            {summary.more.map((t) => (
+              <Row key={t} label={name(t)}>
+                <button type="button" className="btn btn--quiet" onClick={() => restore(t)}>
+                  Ongedaan maken
+                </button>
+              </Row>
+            ))}
+          </div>
+        </>
+      ) : null}
       {summary.learned.length ? (
         <>
           <p className="learned__sub">Vaak gelezen</p>

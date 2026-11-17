@@ -33,6 +33,7 @@ import { luisterWebAan, usePodcastKeuze, luisterLijst } from './lib/luister.js'
 import { bijTik, linkVoor, wieVan, APPS, VRAAG } from '../shared/luister-weergave.mjs'
 import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip, shouldShowAppCard } from './lib/install.js'
+import { tipsTerug } from './lib/tips.js'
 import { shouldAskToJoin, JOIN_AUTO } from './lib/join.js'
 import { pendingShown } from './lib/membership.js'
 import { applyWelcome } from './lib/welcome.js'
@@ -925,7 +926,7 @@ export default function App() {
             {page === 'zoek' ? <Search {...backTo} /> : null}
             {page === 'volg' && volgAan ? <Volg key={route.params.naam || ''} slug={route.params.naam || ''} {...backTo} /> : null}
             {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} digest={vak.digest} {...(route.params.blad ? bladBack : settingsBack)} /> : null}
-            {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
+            {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => { setPrefs(tipsTerug); route.go('welkom') }} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}

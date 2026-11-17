@@ -393,12 +393,25 @@ struct EditionHistory: Codable, Hashable {
     var keys: [String: [String]]?
 }
 
-// Wat Hoot van je leerde (bouwspec §8, profileSummary in shared/editor.mjs): gekozen (je interesses en
-// waar je meer van wilde), geleerd (uit je lezen, alleen op dit toestel) en minder.
+// Wat Hoot van je leerde (bouwspec §8, profileSummary in shared/editor.mjs): gekozen (je interesses),
+// meer hiervan (elk los terug te draaien), geleerd (uit je lezen, alleen op dit toestel) en minder.
 struct ProfileSummary: Codable, Hashable {
     var chosen: [String] = []
+    var more: [String] = []
     var learned: [String] = []
     var less: [String] = []
+
+    init(chosen: [String] = [], more: [String] = [], learned: [String] = [], less: [String] = []) {
+        self.chosen = chosen; self.more = more; self.learned = learned; self.less = less
+    }
+    // Een bundel zonder `more` (ouder) geeft een lege lijst.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        chosen = try c.decodeIfPresent([String].self, forKey: .chosen) ?? []
+        more = try c.decodeIfPresent([String].self, forKey: .more) ?? []
+        learned = try c.decodeIfPresent([String].self, forKey: .learned) ?? []
+        less = try c.decodeIfPresent([String].self, forKey: .less) ?? []
+    }
 }
 
 // Bekende kandidaatpools ook bewaren als de ruwe startcache ontbreekt.

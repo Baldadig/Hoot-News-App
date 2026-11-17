@@ -472,20 +472,24 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
 }
 
 // ---------- 5b. "Wat Hoot van je leerde" (Instellingen) ----------
-// Drie lijsten onderwerpen uit het profiel (bouwspec §8): gekozen (zelf, of 'meer hiervan'),
-// geleerd (uit je lezen, alleen als het duidelijk is: p ≥ LEARNED_SHOWN) en minder ('minder
-// hiervan'). Elke lijst in een vaste volgorde: sterkste eerst, bij gelijke stand de catalogus.
+// Vier lijsten onderwerpen uit het profiel (bouwspec §8): gekozen (je interesses), meer ('meer
+// hiervan', uit `taste`, elk los terug te draaien), geleerd (uit je lezen, alleen als het duidelijk
+// is: p ≥ LEARNED_SHOWN) en minder ('minder hiervan'). Elk onderwerp staat in één lijst; 'meer
+// hiervan' gaat voor. Elke lijst in een vaste volgorde: sterkste eerst, bij gelijke stand de catalogus.
 export const LEARNED_SHOWN = 0.4
 const CATALOGUE = Object.fromEntries(INTERESTS.flatMap((f) => f.topics).map((t, i) => [t, i]))
 const byCatalogue = (a, b) => (CATALOGUE[a] ?? 1e3) - (CATALOGUE[b] ?? 1e3) || byId(a, b)
-export function profileSummary(prof) {
+export function profileSummary(prof, taste = null) {
   const p = prof?.topicP || {}
   const origin = prof?.origin || {}
+  const tt = taste?.topics ? currentTopicMap(taste.topics, TASTE_SCALE) : {}
   const strongest = (a, b) => p[b] - p[a] || byCatalogue(a, b)
   const ids = Object.keys(p)
+  const isMore = (t) => (tt[t] || 0) > 0
   return {
-    chosen: ids.filter((t) => p[t] > 0 && origin[t] !== 'geleerd').sort(strongest),
-    learned: ids.filter((t) => p[t] >= LEARNED_SHOWN && origin[t] === 'geleerd').sort(strongest),
+    chosen: ids.filter((t) => p[t] > 0 && origin[t] !== 'geleerd' && !isMore(t)).sort(strongest),
+    more: ids.filter((t) => p[t] > 0 && isMore(t)).sort((a, b) => tt[b] - tt[a] || byCatalogue(a, b)),
+    learned: ids.filter((t) => p[t] >= LEARNED_SHOWN && origin[t] === 'geleerd' && !isMore(t)).sort(strongest),
     less: ids.filter((t) => p[t] < 0).sort((a, b) => p[a] - p[b] || byCatalogue(a, b)),
   }
 }

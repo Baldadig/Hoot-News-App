@@ -118,6 +118,7 @@ struct SettingsView: View {
     // Terug naar het welkom: opnieuw kiezen, of opnieuw inloggen. Wat je bewaarde en las blijft.
     private func reset() {
         LoginDiary.erase() // ook het inlogdagboek begint opnieuw
+        KantenTip.terug() // de eenmalige tip mag weer één keer komen
         dismiss()
         Task {
             try? await Task.sleep(for: .milliseconds(450)) // eerst dit blad dicht, dan het welkom
@@ -344,9 +345,9 @@ struct DeviceDataView: View {
 }
 
 // Wat Hoot van je leerde (bouwspec §8): hetzelfde profiel als De Redacteur gebruikt voor jouw Editie,
-// uit dezelfde bundel (profileSummary), in drie lijsten zoals op de website. Gekozen: je interesses en
-// waar je 'meer hiervan' bij zei. Geleerd: wat je vaker opent of bewaart dan je bronnen erover
-// schrijven (blijft op dit toestel), elk met Vergeet dit. Minder: waar je 'minder hiervan' bij zei,
+// uit dezelfde bundel (profileSummary), in vier lijsten zoals op de website. Gekozen: je interesses
+// (aan te passen via Interesses). Meer hiervan: waar je 'meer hiervan' bij zei, elk met Ongedaan maken.
+// Geleerd: wat je vaker opent of bewaart dan je bronnen erover schrijven (blijft op dit toestel), elk met Vergeet dit. Minder: waar je 'minder hiervan' bij zei,
 // met de weg terug. Gewone taal, geen getallen. Zonder iets geleerd zegt de lijst dat. Wat je hier
 // verandert telt pas bij de volgende Editie: die van dit dagdeel staat al en blijft staan.
 struct LearnedSection: View {
@@ -367,6 +368,12 @@ struct LearnedSection: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
             }
+            if !summary.more.isEmpty { Text("Meer hiervan").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.hint) }
+            ForEach(summary.more, id: \.self) { t in
+                LearnedRow(title: Taste.label(t), hint: nil, action: "Ongedaan maken") {
+                    withAnimation { store.restoreLess(t) }
+                }
+            }
             if !summary.learned.isEmpty { Text("Vaak gelezen").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.hint) }
             ForEach(summary.learned, id: \.self) { t in
                 LearnedRow(title: Taste.label(t), hint: nil, action: "Vergeet dit") {
@@ -379,7 +386,7 @@ struct LearnedSection: View {
                     withAnimation { store.restoreLess(t) }
                 }
             }
-            if summary.learned.isEmpty && summary.less.isEmpty {
+            if summary.more.isEmpty && summary.learned.isEmpty && summary.less.isEmpty {
                 LearnedRow(title: "Nog niets geleerd", hint: nil, action: nil) {}
             }
         } header: {

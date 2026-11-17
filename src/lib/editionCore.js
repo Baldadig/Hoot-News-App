@@ -136,10 +136,10 @@ export function previousJSON(listJSON) {
 }
 
 // Wat Hoot van je leerde (bouwspec §8, Instellingen): hetzelfde profiel als De Redacteur gebruikt,
-// in drie lijsten (gekozen, geleerd, minder). Invoer als JSON-vormen: interests, topics, affinity,
+// in vier lijsten (gekozen, meer hiervan, geleerd, minder). Invoer als JSON-vormen: interests, topics, affinity,
 // taste, favorites, followed (lijst), sources en items (alleen kind, source en topics zijn nodig).
 export function profileSummaryOf(input) {
-  if (!input || typeof input !== 'object') return { chosen: [], learned: [], less: [] }
+  if (!input || typeof input !== 'object') return { chosen: [], more: [], learned: [], less: [] }
   const followed = asSet(input.followed)
   const prof = profileOf({
     interests: input.interests || [],
@@ -151,7 +151,7 @@ export function profileSummaryOf(input) {
     sources: input.sources || [],
     supply: supplyOf((input.items || []).filter(forEdition), followed),
   })
-  return profileSummary(prof)
+  return profileSummary(prof, input.taste || null)
 }
 export function profileSummaryJSON(jsonIn) {
   return JSON.stringify(profileSummaryOf(typeof jsonIn === 'string' ? JSON.parse(jsonIn) : jsonIn))
