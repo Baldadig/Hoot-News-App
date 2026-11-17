@@ -14,21 +14,26 @@ test('Account: de melding bij mislukt afmelden bij Apple heet "Hoot uit je Apple
 import { hootSummary } from '../src/lib/settings-summary.js'
 
 // De indeling (één blad), het label Automatisch en de rij Interesses met namen zijn vervangen door
-// Instellingen D: zie tests/instellingen-d.test.mjs. Het app-icoon staat nu onder Op dit toestel.
-test('Instellingen D: het app-icoon blijft te kiezen (rood standaard), onder Op dit toestel', () => {
+// Instellingen D: zie tests/instellingen-d.test.mjs. Het app-icoon staat sinds 17 november onder Weergave.
+test('Instellingen: het app-icoon blijft te kiezen (rood standaard), onder Weergave', () => {
   const ios = read('ios/Hoot/Views/SettingsView.swift')
-  assert.match(ios, /NavigationLink\(value: "appicoon"\) \{ AppIconRow\(selected: icon\.selected\) \}/)
-  assert.match(ios, /let choice = selected \?\? \.red/)
+  assert.match(ios, /NavigationLink\(value: "appicoon"\) \{ SettingsRow\("App-icoon", value: \(icon\.selected \?\? \.red\)\.name, icon: \.appicoon\) \}/)
+  const weergave = ios.slice(ios.indexOf('WeergaveKeuze()'), ios.indexOf('FormHeader("Weergave")'))
+  assert.match(weergave, /"appicoon"/)
+  assert.doesNotMatch(ios.slice(ios.indexOf('struct DeviceDataView')), /appicoon/)
 })
 
 
-test('Instellingen A: menu\'s in plaats van rode segmenten; "Als het donker is" alleen bij Zoals je toestel', () => {
+test('Instellingen A: menu\'s in plaats van rode segmenten; "Als het donker is" alleen bij Systeem', () => {
   const display = read('src/components/Display.jsx')
   assert.doesNotMatch(display, /className="seg"|seg__btn/)
   assert.match(display, /<select className="setrow__select"/)
   assert.match(display, /theme === 'system' \? <MenuRow label="Als het donker is"/)
-  const nacht = read('ios/Hoot/Theme/NachtThema.swift')
-  assert.match(nacht, /if Weergave\(stored: value\) == \.system \{\s*Picker\(selection:[\s\S]*?"Als het donker is"/)
+  // Sinds 17 november: de tegels van Weergave (SettingsTegels.swift); "Als het donker is" alleen bij Systeem, als
+  // segment, en bij heel grote tekst een menu dat meegroeit.
+  const tegels = read('ios/Hoot/Views/SettingsTegels.swift')
+  assert.match(tegels, /if gekozen == \.system \{[\s\S]*?if typeSize\.isAccessibilitySize \{\s*[^\n]*\n\s*Picker\(selection: donker\)[^\n]*"Als het donker is"/)
+  assert.match(read('src/views/Settings.jsx'), /theme === 'system' \? <DonkerKeuze/)
   // Lees de Stroom als is op iOS altijd een menu (geen segment dat niet meegroeit).
   assert.doesNotMatch(read('ios/Hoot/Views/SettingsView.swift'), /pickerStyle\(\.segmented\)/)
 })

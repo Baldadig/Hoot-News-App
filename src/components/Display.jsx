@@ -8,10 +8,11 @@ import { TEXT_SIZES, textSizePref } from '../lib/tekstgrootte.js'
 // Instellingen A (concepten-2/6-instellingen.html, I4/I5): geen rode segmenten meer, maar een rij
 // met de keuze rechts en een menu, zoals op iOS. Het menu is de keuzelijst van het systeem (op iOS
 // en macOS met een vinkje): bereikbaar met toetsenbord en schermlezer, en het groeit mee met de tekst.
-export function MenuRow({ label, value, options, onChange }) {
+export function MenuRow({ label, value, options, onChange, icon = null }) {
   const current = options.find((o) => o.value === value) || options[0]
   return (
     <label className="setrow setrow--menu">
+      {icon}
       <span className="setrow__label">{label}</span>
       <span className="setrow__value" aria-hidden="true">
         {current.label}

@@ -19,14 +19,20 @@ const account = read('src/components/Account.jsx')
 const ios = read('ios/Hoot/Views/SettingsView.swift') + read('ios/Hoot/Views/SettingsPages.swift')
 const iosAccount = read('ios/Hoot/Views/AccountView.swift')
 
-test('hoofdblad: account bovenaan, Jouw Hoot met Editie/Stroom/Selectie als drie rijen, Lezen, Op dit toestel en Over Hoot', () => {
+test('hoofdblad (17 november): account, Jouw Hoot, Bronnen, Weergave, Lezen, dan Op dit toestel en Over Hoot', () => {
   const order = (src, re) => [...src.matchAll(re)].map((m) => m[1])
-  assert.deepEqual(order(ios, /FormHeader\("(Jouw Hoot|Lezen)"\)/g), ['Jouw Hoot', 'Lezen'])
-  for (const label of ['Interesses', 'Bronnen', 'Editie', 'Stroom', 'Selectie', 'Tekstgrootte', 'Beeld en intro', 'Op dit toestel', 'Over Hoot']) {
+  assert.deepEqual(order(ios, /FormHeader\("(Jouw Hoot|Bronnen|Weergave|Lezen)"\)/g), ['Jouw Hoot', 'Bronnen', 'Weergave', 'Lezen'])
+  assert.deepEqual(order(web, />(Jouw Hoot|Bronnen|Weergave|Lezen)<\/h2>/g), ['Jouw Hoot', 'Bronnen', 'Weergave', 'Lezen'])
+  for (const label of ['Interesses', 'Bronnen', 'Editie', 'Stroom', 'Selectie', 'Tekst en beeld', 'Op dit toestel', 'Over Hoot']) {
     assert.match(ios, new RegExp(`SettingsRow\\("${label}"`), 'iOS: ' + label)
     assert.match(web, new RegExp(`label="${label}"`), 'web: ' + label)
   }
-  assert.match(ios, /SettingsRow\("Artikelen"/, 'iOS: Artikelen (alleen in de app)')
+  // Jouw Hoot op volgorde: Interesses, Editie, Stroom, Selectie (web en iOS).
+  for (const src of [ios, web]) assert.deepEqual(order(src, /(?:SettingsRow\(|label=)"(Interesses|Editie|Stroom|Selectie)"/g).slice(0, 4), ['Interesses', 'Editie', 'Stroom', 'Selectie'])
+  for (const label of ['Artikelen', 'Podcasts', 'App-icoon']) assert.match(ios, new RegExp(`SettingsRow\\("${label}"`), 'iOS: ' + label + ' (in de app)')
+  assert.match(ios, /SubscriptionsRow\(title: "Abonnementen", icon: \.abonnementen\)/)
+  // Tekstgrootte en Beeld en intro zijn één blad; er is geen rij meer naar de oude bladen.
+  assert.doesNotMatch(ios + web, /"Beeld en intro"|label="Tekstgrootte"/)
   assert.ok(ios.indexOf('SettingsAccountCard()') < ios.indexOf('FormHeader("Jouw Hoot")'))
   assert.ok(web.indexOf('<AccountCard') < web.indexOf('>Jouw Hoot<'))
   // Geen uitleg op het hoofdblad (KISS): de oude voetregels zijn weg.
@@ -34,12 +40,19 @@ test('hoofdblad: account bovenaan, Jouw Hoot met Editie/Stroom/Selectie als drie
   assert.doesNotMatch(ios, /Automatisch volgt je toestel|De tekstgrootte volgt je toestel/)
 })
 
-test('Weergave heet "Zoals je toestel" (web en iOS), nergens "Automatisch" of "Systeem"', () => {
+// Concept 17 november: de tegel heet kort "Systeem" (VoiceOver: "Systeem, zoals je toestel"); het menu elders
+// (DisplayControls op het web) houdt "Zoals je toestel". Nergens "Automatisch".
+test('Weergave: tegel "Systeem", menu "Zoals je toestel", nergens "Automatisch"', () => {
   const display = read('src/components/Display.jsx')
   const nacht = read('ios/Hoot/Theme/NachtThema.swift')
+  const tegelsIos = read('ios/Hoot/Views/SettingsTegels.swift')
+  const tegelsWeb = read('src/lib/settings-tegels.js')
   assert.match(display, /value: 'system', label: 'Zoals je toestel'/)
   assert.match(nacht, /case \.system: "Zoals je toestel"/)
-  assert.doesNotMatch(display + nacht, /"Automatisch"|'Automatisch'|'Systeem'|"Systeem"/)
+  assert.match(tegelsIos, /case \.system: "Systeem"; case \.light: "Licht"; case \.dark: "Donker"; case \.night: "Nacht"/)
+  assert.match(tegelsIos, /case \.system: "Systeem, zoals je toestel"/)
+  assert.match(tegelsWeb, /label: 'Systeem', symbol: 'circle\.lefthalf\.filled', aria: 'Systeem, zoals je toestel'/)
+  assert.doesNotMatch(display + nacht + tegelsIos + tegelsWeb, /"Automatisch"|'Automatisch'/)
 })
 
 // INVENTARIS.md: elke rij heeft een plek. [label, waar het nu staat in de broncode]
@@ -60,16 +73,16 @@ const INVENTARIS_WEB = [
   ['Vergeet dit', web, /Vergeet dit/],
   ['Ongedaan maken', web, /Ongedaan maken/],
   ['Nog niets geleerd', web, /Nog niets geleerd/],
-  ['Weergave', web, /label="Weergave"/],
-  ['Als het donker is', web, /label="Als het donker is"/],
+  ['Weergave', web, /<WeergaveTegels theme=\{theme\} setTheme=\{setTheme\} \/>/],
+  ['Als het donker is', web, /Als het donker is/],
   ['Kleur', web, /label="Kleur"/],
-  ['Tekstgrootte', web, /label="Tekstgrootte"/],
+  ['Tekstgrootte', web, /id="tekstgrootte-label">\s*Tekstgrootte/],
   ['Beeld', web, /label="Beeld"/],
   ['Intro', web, /label="Intro"/],
   ['Lees de Stroom als', web, /label="Lees de Stroom als"/],
   ['Bluesky in de Stroom', web, /label="Bluesky in de Stroom"/],
   ['Bluesky-accounts', web, /label="Bluesky-accounts"/],
-  ['Op dit toestel', web, /href="#\/toestel" label="Op dit toestel"/],
+  ['Op dit toestel', web, /href="#\/toestel" icon="toestel" label="Op dit toestel"/],
   ['Alles als ongelezen markeren', device, /Alles als ongelezen markeren/],
   ['Bewaarde artikelen verwijderen', device, /Bewaarde artikelen verwijderen/],
   ['Stel Hoot opnieuw in', device, /Stel Hoot opnieuw in/],
@@ -80,7 +93,9 @@ const INVENTARIS_WEB = [
 test('web: elke rij uit de inventaris heeft een plek', () => {
   for (const [label, src, re] of INVENTARIS_WEB) assert.match(src, re, label)
   // Elk blad is te openen vanaf het hoofdblad (één tik), en nergens dieper.
-  for (const blad of ['editie', 'stroom', 'selectie', 'tekstgrootte', 'beeld', 'over']) assert.match(web, new RegExp(`open\\('${blad}'\\)`), blad)
+  for (const blad of ['editie', 'stroom', 'selectie', 'beeld', 'over']) assert.match(web, new RegExp(`open\\('${blad}'\\)`), blad)
+  // Het oude blad Tekstgrootte (bladwijzers) opent Tekst en beeld.
+  assert.match(web, /BLAD_ALIAS = \{ tekstgrootte: 'beeld' \}/)
   assert.match(web, /onOpen=\{\(\) => open\('account'\)\}/)
   assert.match(read('src/App.jsx'), /blad=\{route\.params\.blad \|\| null\} onOpen=\{\(b\) => route\.go\('instellingen', \{ blad: b \}\)\}/)
 })

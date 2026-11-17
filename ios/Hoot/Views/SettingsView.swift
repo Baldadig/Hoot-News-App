@@ -1,19 +1,23 @@
 import SwiftUI
 
-// Instellingen D, "volgens de richtlijnen" (Hoot-design/woensdag-2026-11-04/instellingen-concept/D-richtlijnen.html):
-// - wat je soms aanpast staat op het hoofdblad, in groepen met een korte kop zoals de Instellingen-app;
+// Instellingen, indeling van 17 november (Hoot-design/ontwerp/instellingen-2026-11-17/concept.html), op de
+// basis van Instellingen D (Hoot-design/woensdag-2026-11-04/instellingen-concept/D-richtlijnen.html):
+// - de accountkaart, dan Jouw Hoot (Interesses, Editie, Stroom, Selectie), Bronnen (Bronnen, Abonnementen,
+//   Podcasts), Weergave (vier tegels, Als het donker is bij Systeem, App-icoon) en Lezen (Tekst en beeld,
+//   Artikelen); los daaronder Op dit toestel en Over Hoot;
+// - elke rij een gekleurd tegeltje met een wit SF Symbol, zoals de Instellingen-app (SettingsTegels.swift);
 // - wat je één keer instelt zit één tik dieper (SettingsPages.swift), en nergens dieper dan dat;
-// - Editie, Stroom en Selectie zijn drie gelijke rijen in Jouw Hoot;
 // - een schakelaar voor aan en uit, een menu met de waarde voor een keus, een chevron alleen als er
 //   een blad achter zit; uitleg alleen als voetregel op een blad dieper;
 // - wissen en verwijderen onderaan hun blad, in rood, met een action sheet en Annuleer.
-// Het web heeft dezelfde bladen en labels (src/views/Settings.jsx).
+// Het web heeft dezelfde indeling en labels (src/views/Settings.jsx); App-icoon, Abonnementen en Artikelen alleen in de app.
 struct SettingsView: View {
     @Environment(HootStore.self) private var store
     @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
     @Environment(EditionAlerts.self) private var alerts
     @State private var path: [String] = SettingsMap.debugPath(DebugLaunch.screen)
+    @State private var icon = AppIconSelection()
 
     static var version: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -23,7 +27,9 @@ struct SettingsView: View {
     static var shortVersion: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "" }
 
     var body: some View {
+        @Bindable var store = store
         NavigationStack(path: $path) {
+            ScrollViewReader { proxy in
             Form {
                 Section {
                     SettingsAccountCard()
@@ -35,14 +41,13 @@ struct SettingsView: View {
 
                 Section {
                     NavigationLink(value: "interesses") {
-                        SettingsRow("Interesses", value: store.interests.isEmpty ? "Alle" : "\(store.interests.count)")
+                        SettingsRow("Interesses", value: store.interests.isEmpty ? "Alle" : "\(store.interests.count)", icon: .interesses)
                     }
-                    NavigationLink(value: "bronnen") { SettingsRow("Bronnen", value: "\(store.followed.count)") }
-                    NavigationLink(value: "editie") { SettingsRow("Editie", value: SettingsMap.seintjesRegel(on: store.notify && alerts.allowed && alerts.permission != .denied, slots: store.notifySlots)) }
-                    NavigationLink(value: "stroom") { SettingsRow("Stroom", value: (store.layout == "krant" ? "Krant" : "Tijdlijn") + (store.bluesky ? " · Bluesky" : "")) }
+                    NavigationLink(value: "editie") { SettingsRow("Editie", value: SettingsMap.seintjesRegel(on: store.notify && alerts.allowed && alerts.permission != .denied, slots: store.notifySlots), icon: .editie) }
+                    NavigationLink(value: "stroom") { SettingsRow("Stroom", value: (store.layout == "krant" ? "Krant" : "Tijdlijn") + (store.bluesky ? " · Bluesky" : ""), icon: .stroom) }
                     NavigationLink(value: "vakken") {
                         let n = store.digestFields.filter(store.offersField).count
-                        SettingsRow("Selectie", value: n == 1 ? "1 onderwerp" : "\(n) onderwerpen")
+                        SettingsRow("Selectie", value: n == 1 ? "1 onderwerp" : "\(n) onderwerpen", icon: .selectie)
                     }
                 } header: {
                     FormHeader("Jouw Hoot")
@@ -50,23 +55,52 @@ struct SettingsView: View {
                 .hootRows()
                 .task { await alerts.refresh() }
 
+                // Bronnen: wat je volgt, waar je bent ingelogd, en welke podcastapp opent (Luister verder).
+                Section {
+                    NavigationLink(value: "bronnen") { SettingsRow("Bronnen", value: "\(store.followed.count)", icon: .bronnen) }
+                    NavigationLink(value: "abonnementen") { SubscriptionsRow(title: "Abonnementen", icon: .abonnementen) }
+                    // Nog niets gekozen: leeg; de eerste tik op Luister verder vraagt het. Alleen op dit toestel.
+                    Picker(selection: $store.podcastApp) {
+                        if store.podcastApp.isEmpty { Text("").tag("") }
+                        ForEach(Luister.keuzes, id: \.id) { k in Text(k.naam).tag(k.id) }
+                    } label: { SettingsRow("Podcasts", icon: .podcasts) }
+                } header: {
+                    FormHeader("Bronnen")
+                }
+                .hootRows()
+
                 Section {
                     WeergaveKeuze()
-                    NavigationLink(value: "tekstgrootte") { SettingsRow("Tekstgrootte", value: TekstSchaal.shared.naam) }
-                    NavigationLink(value: "beeld") { SettingsRow("Beeld en intro") }
-                    NavigationLink(value: "artikelen") { SettingsRow("Artikelen", value: store.openWith == "safari" ? "In Safari" : "In de lezer") }
+                    NavigationLink(value: "appicoon") { SettingsRow("App-icoon", value: (icon.selected ?? .red).name, icon: .appicoon) }
+                } header: {
+                    FormHeader("Weergave")
+                }
+                .hootRows()
+
+                Section {
+                    NavigationLink(value: "beeld") { SettingsRow("Tekst en beeld", value: TekstSchaal.shared.naam, icon: .tekstEnBeeld) }
+                    NavigationLink(value: "artikelen") { SettingsRow("Artikelen", value: store.openWith == "safari" ? "In Safari" : "In de lezer", icon: .artikelen) }
                 } header: {
                     FormHeader("Lezen")
                 }
                 .hootRows()
 
                 Section {
-                    NavigationLink(value: "toestel") { SettingsRow("Op dit toestel") }
-                    NavigationLink(value: "over") { SettingsRow("Over Hoot", value: Self.shortVersion) }
+                    NavigationLink(value: "toestel") { SettingsRow("Op dit toestel", icon: .toestel) }
+                    NavigationLink(value: "over") { SettingsRow("Over Hoot", value: Self.shortVersion, icon: .over) }
+                        .id("onder")
                 }
                 .hootRows()
             }
+            // -HootScroll onder (schermen): het einde van het blad, als het blad en de waarden er staan.
+            .task {
+                guard DebugLaunch.anchor == .bottom, DebugLaunch.screen("instellingen") else { return }
+                try? await Task.sleep(for: .seconds(3))
+                withAnimation { proxy.scrollTo("onder", anchor: .bottom) }
+            }
+            }
             .hootForm()
+            .onAppear { icon.refresh() }
             .modifier(HootLetterMaat()) // leest de Tekstgrootte: het blad groeit mee terwijl je schuift
             .task { await store.loadDigest() } // voor het aantal onderwerpen dat de server levert
             .navigationTitle("Instellingen")
@@ -107,8 +141,8 @@ private struct SettingsDestination: View {
             case "editie": EditieSettingsView()
             case "stroom": StroomSettingsView()
             case "bluesky": BlueskyAccountsView(pushed: true) // opent het beheer, niet de postfeed
-            case "tekstgrootte": TekstgrootteView()
-            case "beeld": BeeldIntroView()
+            case "tekstgrootte", "beeld": TekstEnBeeldView() // Tekstgrootte en Beeld en intro zijn één blad
+
             case "artikelen": ArtikelenView()
             case "abonnementen": SubscriptionsView().navigationTitle("Abonnementen").navigationBarTitleDisplayMode(.inline)
             case "toestel": DeviceDataView(onReset: onReset)
@@ -186,37 +220,43 @@ struct SettingsAccountCard: View {
     }
 }
 
-// Een rij in Instellingen D: het label links, de waarde rechts in ink3. Past het niet naast elkaar
-// (grote tekst of een grote Tekstgrootte), dan schuift de waarde onder het label: nooit afgekapt.
+// Een rij in Instellingen: links het tegeltje (als de rij er een heeft), het label, de waarde rechts in ink3.
+// Past het niet naast elkaar (grote tekst of een grote Tekstgrootte), dan schuift de waarde onder het label:
+// nooit afgekapt. De scheidingslijn begint bij het label, zoals in de Instellingen-app.
 struct SettingsRow: View {
     let title: String
     var value: String? = nil
     var ink: Color = Theme.ink // rood (Theme.accent) alleen voor wissen en verwijderen
-    init(_ title: String, value: String? = nil, ink: Color = Theme.ink) { self.title = title; self.value = value; self.ink = ink }
+    var icon: SettingsIcoon? = nil
+    init(_ title: String, value: String? = nil, ink: Color = Theme.ink, icon: SettingsIcoon? = nil) { self.title = title; self.value = value; self.ink = ink; self.icon = icon }
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        Group {
-            if let value, !value.isEmpty {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: Space.s3) {
-                        Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink).fixedSize()
-                        Spacer(minLength: Space.s2)
-                        Text(afgebroken: value, typeSize: typeSize).foregroundStyle(Theme.ink3).fixedSize()
-                    }
-                    VStack(alignment: .leading, spacing: Space.s0) {
-                        Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink)
-                        Text(afgebroken: value, typeSize: typeSize).foregroundStyle(Theme.ink3)
-                    }
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            } else {
-                Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+        HStack(spacing: Space.s3) {
+            if let icon { IconTile(icoon: icon) }
+            tekst.alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
         }
         .frame(minHeight: Space.tap)
         .accessibilityElement(children: .combine)
+    }
+    @ViewBuilder private var tekst: some View {
+        if let value, !value.isEmpty {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Space.s3) {
+                    Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink).fixedSize()
+                    Spacer(minLength: Space.s2)
+                    Text(afgebroken: value, typeSize: typeSize).foregroundStyle(Theme.ink3).fixedSize()
+                }
+                VStack(alignment: .leading, spacing: Space.s0) {
+                    Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink)
+                    Text(afgebroken: value, typeSize: typeSize).foregroundStyle(Theme.ink3)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        } else {
+            Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 
@@ -243,39 +283,18 @@ struct SettingsValueRow: View {
     }
 }
 
-// De rij App-icoon toont het gekozen icoon zelf (I2): rood is de standaard.
-struct AppIconRow: View {
-    let selected: AppIconChoice?
-    var body: some View {
-        let choice = selected ?? .red
-        HStack(spacing: Space.s3) {
-            Image(choice.asset).resizable().scaledToFit()
-                .frame(width: 28, height: 28)
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Theme.ink.opacity(0.22), lineWidth: 1))
-                .accessibilityHidden(true)
-            SettingsRow("App-icoon", value: choice.name)
-        }
-    }
-}
-
-// Op dit toestel: wat alleen op deze iPhone geldt (Instellingen D). Het app-icoon, en wissen en
-// opnieuw instellen. Wissen alleen na een action sheet met Annuleer; de rode keuze staat in de sheet.
+// Op dit toestel: wat alleen op deze iPhone geldt: wissen en opnieuw instellen (het app-icoon staat sinds
+// 17 november onder Weergave). Wissen alleen na een action sheet met Annuleer; de rode keuze staat in de sheet.
 struct DeviceDataView: View {
     @Environment(HootStore.self) private var store
     @Environment(Account.self) private var account
     let onReset: () -> Void
-    @State private var icon = AppIconSelection()
     @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
     // Ingelogd (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
     private var savedSyncs: Bool { account.session != nil && account.status != .pending }
 
     var body: some View {
         Form {
-            Section {
-                NavigationLink(value: "appicoon") { AppIconRow(selected: icon.selected) }
-            }
-            .hootRows()
             Section {
                 Button { confirmClear = "gelezen" } label: { SettingsRow("Alles als ongelezen markeren", ink: Theme.accent) }
                 Button { confirmClear = "bewaard" } label: { SettingsRow("Bewaarde artikelen verwijderen", ink: Theme.accent) }
@@ -295,7 +314,6 @@ struct DeviceDataView: View {
         .hootForm()
         .navigationTitle("Op dit toestel")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { icon.refresh() }
         // Een action sheet: de rode keuze bovenaan, Annuleer los eronder, en precies wat er verandert.
         .confirmationDialog(title, isPresented: Binding(get: { confirmClear != nil }, set: { if !$0 { confirmClear = nil } }), titleVisibility: .visible) {
             switch confirmClear {
