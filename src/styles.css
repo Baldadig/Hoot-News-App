@@ -2614,12 +2614,8 @@ select.input {
 .sheet__in > .dialog__head {
   margin-bottom: var(--s4);
 }
-.sheet__label,
 .sect {
   margin: var(--s6) 0 var(--s3);
-}
-.sheet__label {
-  margin-top: var(--s4);
 }
 .sheet__note {
   margin-top: var(--s2);

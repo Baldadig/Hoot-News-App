@@ -28,7 +28,6 @@ test('Instellingen A: menu\'s in plaats van rode segmenten; "Als het donker is" 
   const display = read('src/components/Display.jsx')
   assert.doesNotMatch(display, /className="seg"|seg__btn/)
   assert.match(display, /<select className="setrow__select"/)
-  assert.match(display, /theme === 'system' \? <MenuRow label="Als het donker is"/)
   // Sinds 17 november: de tegels van Weergave (SettingsTegels.swift); "Als het donker is" alleen bij Systeem, als
   // segment, en bij heel grote tekst een menu dat meegroeit.
   const tegels = read('ios/Hoot/Views/SettingsTegels.swift')

@@ -28,7 +28,6 @@ import { webStream, addSocialProfile, removeSocialProfile, orphanBlueskyIds, ado
 import { resolveLegacy } from './lib/bluesky.js'
 import { useVak } from './hooks/useVak.js'
 import { mutedSet, toggleSource } from './lib/sourcesel.js'
-import { DisplaySheet } from './components/Display.jsx'
 import { JoinSheet, ConfirmDialog } from './components/Account.jsx'
 import { luisterWebAan, usePodcastKeuze, luisterLijst } from './lib/luister.js'
 import { bijTik, linkVoor, wieVan, APPS, VRAAG } from '../shared/luister-weergave.mjs'
@@ -126,8 +125,6 @@ export default function App() {
     document.documentElement.dataset.images = prefs.images
   }, [prefs.textSize, prefs.images])
   useEffect(() => startSysteemTekst(), [])
-  const [display, setDisplay] = useState(false)
-  const openDisplay = useCallback(() => setDisplay(true), [])
   const [splash, setSplash] = useState(splashShown)
   const endSplash = useCallback(() => setSplash(false), [])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated, stuck: feedStuck } = useFeed(prefs)
@@ -349,6 +346,9 @@ export default function App() {
   )
 
   const openSource = useCallback((id) => route.go('stroom', { bron: id }), [route.go])
+  // De accountknop rechtsboven opent meteen Instellingen, zoals in de app (besluit 17 november: geen tussenblad meer).
+  // Terug brengt je met route.back een stap terug in de geschiedenis: precies waar je was.
+  const openSettings = useCallback(() => route.go('instellingen'), [route.go])
   const storyParam = route.params.verhaal || null
   // Wie het verhaal opende krijgt bij sluiten de focus terug.
   const opener = useRef(null)
@@ -490,6 +490,10 @@ export default function App() {
   if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
   const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Selectie', bewaard: 'Bewaard', bronnen: 'Bronnen' }
   const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
+  // Instellingen opent ook vanuit Zoeken (de accountknop staat op elk scherm): terug zegt dan ook Zoeken.
+  const settingsFrom = useRef('editie')
+  if (path !== 'instellingen' && path !== 'toestel' && path !== 'welkom') settingsFrom.current = path
+  const settingsBack = { onBack: () => route.back(settingsFrom.current), backLabel: { ...FROM_LABEL, zoek: 'Zoeken' }[settingsFrom.current] || 'Terug' }
   // Het blad Selectie van Instellingen, geopend vanuit de lege Selectie ("Kies onderwerpen"): terug brengt je
   // naar de Selectie, niet naar het hoofdblad van Instellingen.
   const bladFromSelectie = useRef(false)
@@ -781,7 +785,7 @@ export default function App() {
       setPref,
       theme, themeDark, setThemeDark,
       setTheme,
-      openDisplay,
+      openSettings,
       account,
       selectionReady: selectionOwnerReady(account),
       saved,
@@ -804,7 +808,7 @@ export default function App() {
       podcastKeuze,
       setPodcastKeuze,
     }),
-    [luisterAan, luisterVoor, luisterTik, podcastKeuze, setPodcastKeuze, less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories, volgAan, prefs.volgzaken, volgZaak, ontvolgZaak, openVolg, openBeheer, volgBekeken, tokenVan],
+    [luisterAan, luisterVoor, luisterTik, podcastKeuze, setPodcastKeuze, less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openSettings, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories, volgAan, prefs.volgzaken, volgZaak, ontvolgZaak, openVolg, openBeheer, volgBekeken, tokenVan],
   )
 
   const hideMain = overlay || showWelcome
@@ -920,7 +924,7 @@ export default function App() {
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
             {page === 'volg' && volgAan ? <Volg key={route.params.naam || ''} slug={route.params.naam || ''} {...backTo} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} digest={vak.digest} {...(route.params.blad ? bladBack : backTo)} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} digest={vak.digest} {...(route.params.blad ? bladBack : settingsBack)} /> : null}
             {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}
@@ -936,7 +940,6 @@ export default function App() {
           )}
           </Suspense>
         </aside>
-        <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
         {volgAan ? <BeheerBlad open={beheer} onClose={() => setBeheer(false)} volgzaken={prefs.volgzaken} onStop={ontvolgZaak} onMove={volgVerplaats} onVolg={(z) => volgZaak(z)} /> : null}
         <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
         <div className="toasts" aria-live="polite" inert={overlay ? '' : undefined}>

@@ -12,7 +12,7 @@ const walk = (dir) => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).is
 const allSrc = () => walk(root).filter((f) => /\.(jsx?|mjs|css)$/.test(f)).map((f) => read(f.slice(root.length)))
 
 test('Stroom-instelling heet "Lees de Stroom als" (W1)', () => {
-  assert.match(read('components/Display.jsx'), /Lees de Stroom als/)
+  assert.match(read('views/Settings.jsx'), /label="Lees de Stroom als"/)
   assert.ok(allSrc().every((s) => !s.includes('Indeling van lijsten')))
 })
 
@@ -260,7 +260,7 @@ test('Bewaard belooft alleen wat het doet: het blijft hier staan', () => {
 test('woordenlijst: Vergelijken, Instellingen, Account, "Hoot kiest" en één ritme', () => {
   assert.match(read('views/Story.jsx'), />\s*Vergelijken\s*</)
   assert.match(read('App.jsx'), /aria-label="Vergelijken"/)
-  assert.match(read('components/Display.jsx'), /title="Instellingen"/)
+  assert.match(read('components/Shell.jsx'), /aria-label="Instellingen" title="Instellingen"/)
   assert.doesNotMatch(read('components/Shell.jsx'), /Account en weergave/)
   for (const f of ['components/Account.jsx', 'views/Settings.jsx', 'views/Welcome.jsx']) assert.doesNotMatch(read(f), />\s*Inloggen\s*<|: 'Inloggen'/, f)
   const welkom = read('views/Welcome.jsx')

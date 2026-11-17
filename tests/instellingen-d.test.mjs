@@ -40,14 +40,13 @@ test('hoofdblad (17 november): account, Jouw Hoot, Bronnen, Weergave, Lezen, dan
   assert.doesNotMatch(ios, /Automatisch volgt je toestel|De tekstgrootte volgt je toestel/)
 })
 
-// Concept 17 november: de tegel heet kort "Systeem" (VoiceOver: "Systeem, zoals je toestel"); het menu elders
-// (DisplayControls op het web) houdt "Zoals je toestel". Nergens "Automatisch".
+// Concept 17 november: de tegel heet kort "Systeem" (VoiceOver: "Systeem, zoals je toestel"); het menu in de app
+// houdt "Zoals je toestel". Nergens "Automatisch".
 test('Weergave: tegel "Systeem", menu "Zoals je toestel", nergens "Automatisch"', () => {
   const display = read('src/components/Display.jsx')
   const nacht = read('ios/Hoot/Theme/NachtThema.swift')
   const tegelsIos = read('ios/Hoot/Views/SettingsTegels.swift')
   const tegelsWeb = read('src/lib/settings-tegels.js')
-  assert.match(display, /value: 'system', label: 'Zoals je toestel'/)
   assert.match(nacht, /case \.system: "Zoals je toestel"/)
   assert.match(tegelsIos, /case \.system: "Systeem"; case \.light: "Licht"; case \.dark: "Donker"; case \.night: "Nacht"/)
   assert.match(tegelsIos, /case \.system: "Systeem, zoals je toestel"/)

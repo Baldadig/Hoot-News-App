@@ -126,7 +126,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
             <SourcesIcon />
           </a>
         ) : null}
-        {account ? <AccountButton account={hoot?.account} onClick={hoot?.openDisplay} /> : null}
+        {account ? <AccountButton account={hoot?.account} onClick={hoot?.openSettings} /> : null}
       </div>
       {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
       {children}
@@ -142,7 +142,7 @@ function AccountButton({ account, onClick }) {
   const photo = user?.user_metadata?.avatar_url
   const initial = (user?.user_metadata?.full_name || user?.email || '?').trim().charAt(0).toUpperCase()
   return (
-    <button type="button" className={`iconbtn acct${user ? ' is-in' : ''}`} onClick={onClick} aria-haspopup="dialog" aria-label="Instellingen" title="Instellingen">
+    <button type="button" className={`iconbtn acct${user ? ' is-in' : ''}`} onClick={onClick} aria-label="Instellingen" title="Instellingen">
       {user ? photo ? <img src={photo} alt="" width="32" height="32" referrerPolicy="no-referrer" /> : <span aria-hidden="true">{initial}</span> : <AccountLineIcon />}
     </button>
   )
