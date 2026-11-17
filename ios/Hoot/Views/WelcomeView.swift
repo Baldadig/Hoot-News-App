@@ -420,7 +420,7 @@ struct WelcomeView: View {
                     // Taal volgt bronkeuze (Week · 4): een nieuw profiel krijgt Nederlandse bronnen; Engelstalige alleen
                     // als je er bij opnieuw kiezen al een volgt (gelijk aan `english` in src/views/Welcome.jsx).
                     let english = again && store.followed.contains { $0.lang == "en" }
-                    let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked, english: english)
+                    let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked.filter { !Rubriek.optIn.contains($0) }, english: english) // zonder opt-in, zoals pickedFrom op het web
                     guard !Task.isCancelled else { return }
                     voorstel = next ?? nil
                     // De eerste keer staat het gratis deel van Voor jou alvast aan (review G2, keuze
