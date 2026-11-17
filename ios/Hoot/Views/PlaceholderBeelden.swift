@@ -40,7 +40,7 @@ enum PlaceholderBeelden {
     static let klein = (w: 360, h: 240)
     // Het manifest op de server (landing/placeholders.json) dat precies deze bundel beschrijft: met deze versie hoeft de
     // app niets op te halen (PlaceholderReeks, PlaceholderOphalen).
-    static let versie = "2823b6ffb713"
+    static let versie = "036d570abee2"
     // Per bestand in de bundel de versie (eerste twaalf tekens van de sha256), zoals ?v= in het manifest: is die gelijk,
     // dan is het gebundelde bestand hetzelfde beeld en hoeft het niet opgehaald.
     static let versies: [String: String] = [
@@ -80,12 +80,12 @@ enum PlaceholderBeelden {
         "ph-6-donker-klein": "5563a4f38ad4",
         "ph-6-nacht": "f851fd3f2de1",
         "ph-6-nacht-klein": "9366fa43d9bf",
-        "ph-8-licht": "0314dc59af61",
-        "ph-8-licht-klein": "a8abe8adad92",
-        "ph-8-donker": "cd41a62c7205",
-        "ph-8-donker-klein": "0660a6795c0e",
-        "ph-8-nacht": "edbd12d306f3",
-        "ph-8-nacht-klein": "3f70d0ebe806",
+        "ph-8-licht": "8605390445cf",
+        "ph-8-licht-klein": "c9169d5ba3f3",
+        "ph-8-donker": "353d5cc2117e",
+        "ph-8-donker-klein": "f5b0c80a4d04",
+        "ph-8-nacht": "b99874e5686b",
+        "ph-8-nacht-klein": "59ba45c9a3d1",
         "ph-9-licht": "f8db8b10658f",
         "ph-9-licht-klein": "f27fe07fe6fa",
         "ph-9-donker": "d66ab1eef805",
@@ -110,17 +110,17 @@ enum PlaceholderBeelden {
         "ph-12-donker-klein": "4f0b31285aba",
         "ph-12-nacht": "0466346e6be8",
         "ph-12-nacht-klein": "081ea12f9229",
-        "ph-13-licht": "5116b4aab744",
-        "ph-13-licht-klein": "ef3b749761e2",
-        "ph-13-donker": "7d8f870f5a6a",
-        "ph-13-donker-klein": "903307eeec4d",
-        "ph-13-nacht": "9d7608a17a15",
-        "ph-13-nacht-klein": "ab1872253e31",
-        "ph-18-licht": "8f32be499f2d",
-        "ph-18-licht-klein": "c649154a1d8e",
-        "ph-18-donker": "290535fbf2db",
-        "ph-18-donker-klein": "3095bcdfe987",
-        "ph-18-nacht": "6825121b056f",
-        "ph-18-nacht-klein": "c83e2935c872",
+        "ph-13-licht": "ef6c759cf28b",
+        "ph-13-licht-klein": "cedeeb28401a",
+        "ph-13-donker": "bfddad7b7abb",
+        "ph-13-donker-klein": "6883b8a566ad",
+        "ph-13-nacht": "59a89f48cd6f",
+        "ph-13-nacht-klein": "77a335f55917",
+        "ph-18-licht": "019701d071c0",
+        "ph-18-licht-klein": "4a6c79e2e2ec",
+        "ph-18-donker": "18dd1f244d13",
+        "ph-18-donker-klein": "f7830d9867a0",
+        "ph-18-nacht": "a689cbeca3f9",
+        "ph-18-nacht-klein": "86e7d15e4954",
     ]
 }
