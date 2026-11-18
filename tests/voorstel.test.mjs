@@ -156,7 +156,7 @@ test('Engels aan geeft het voorstel van voor Week · 4, ook via de rekenkern van
   const zonder = JSON.parse(voorstelJSON(JSON.stringify({ sources: SOURCES, interests: ['wereld'] })))
   assert.deepEqual(ids(zonder), ['nos', 'nu', 'rtl'])
   assert.match(read('src/views/Welcome.jsx'), /voorstel\(pickable, interests, picked, \{ english \}\)/)
-  assert.match(read('ios/Hoot/Views/WelcomeView.swift'), /voorstel\(sources: store\.newsSources, interests: interests, topics: picked, english: english\)/)
+  assert.match(read('ios/Hoot/Views/WelcomeView.swift'), /voorstel\(sources: store\.newsSources, interests: interests, topics: picked\.filter \{ !Rubriek\.optIn\.contains\(\$0\) \}, english: english\)/)
 })
 
 test('de eerste Editie van een nieuw profiel is Nederlands: wat in de bronnenstap alvast aan staat, is Nederlands', () => {
