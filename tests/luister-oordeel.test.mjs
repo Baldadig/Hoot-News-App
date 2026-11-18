@@ -29,7 +29,7 @@ test('het model: claude-sonnet-5-5, met dezelfde client als de rest van De Redac
   assert.match(src, /luisterRonde\(\{[^\n]*client: anthropic[^\n]*\}\)/, 'dezelfde client als de rest van de Redacteur')
 })
 
-test('alleen een duidelijk ja koppelt: zelfde of verdieping, één onderwerp ja en zeker ja', async () => {
+test('alleen een duidelijk ja koppelt: zelfde of verdieping, één onderwerp ja; zeker hoeft niet meer (breder, 18 november)', async () => {
   const geval = async (o) => {
     const { get, update } = memKv()
     const client = nepClient((v) => (ORANJE(v) ? o : NEE))
@@ -44,9 +44,11 @@ test('alleen een duidelijk ja koppelt: zelfde of verdieping, één onderwerp ja 
   const verdieping = await geval(VERDIEPING)
   assert.equal(verdieping.length, 1)
   assert.equal(verdieping[0].soort, 'verdiepend')
-  // Ook een vooruitblik op iets voorbijs, een aflevering die zegt dat ze vóór dit nieuws is opgenomen, of een oordeel zonder
+  // Breder (besluit Alex, 18 november): zeker nee koppelt ook, bij een show met een Hoot-bron (deze show: de NOS).
+  for (const o of [{ ...JA, zeker: 'nee' }, { ...VERDIEPING, zeker: 'nee' }]) assert.equal((await geval(o)).length, 1, JSON.stringify(o))
+  // Een vooruitblik op iets voorbijs, een aflevering die zegt dat ze vóór dit nieuws is opgenomen, of een oordeel zonder
   // die velden koppelt niet (herstel keuring 3 van branch shows).
-  for (const o of [{ ...JA, eenOnderwerp: 'nee' }, { ...JA, zeker: 'nee' }, { ...VERDIEPING, zeker: 'nee' }, NEE, { ...JA, vooruitblikOpVoorbij: 'ja' }, { ...VERDIEPING, opgenomenVoorDitNieuws: 'ja' }, { soort: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, null]) {
+  for (const o of [{ ...JA, eenOnderwerp: 'nee' }, NEE, { ...JA, vooruitblikOpVoorbij: 'ja' }, { ...VERDIEPING, opgenomenVoorDitNieuws: 'ja' }, { soort: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, null]) {
     assert.equal((await geval(o)).length, 0, JSON.stringify(o))
   }
   // Nee overal: geen enkele koppeling, ook geen artikellink van de eigen uitgever (het model heeft het laatste woord).
@@ -201,16 +203,21 @@ test('de harde uitsluitingen gaan voor: ook bij een ja van het model, en ze word
     assert.ok(!r.rows.koppelingen.some((k) => k.verhaal === c.x.st.id && k.aflevering === c.e.titel), `niet gekoppeld: ${c.e.titel}`)
     assert.ok(r.rows.afgevallen.some((a) => a.verhaal === c.x.st.id && a.aflevering === c.e.titel && a.reden === vangnet(c, NOW)))
   }
-  // Een aflevering die zegt dat het nieuws pas na de opname kwam, en een vooruitblik van vóór de kop: hard.
+  // Een aflevering die zegt dat het nieuws pas na de opname kwam: hard. Een vooruitblik van vóór de kop is sinds 18 november
+  // (breder) niet meer hard: De Redacteur beslist of de vraag van de vooruitblik inmiddels beantwoord is.
   const lead = byId.get(FIX.stories.find((st) => byId.get(st.leadId)?.title?.includes('Veerman')).leadId)
   const basis = FIX.episodes.find((e) => /Galavoorstelling/.test(e.titel))
   const na = { ...basis, id: 'e-na', titel: 'Oranje na de 7-0 tegen Griekenland', samenvatting: 'Net na het opnemen van deze aflevering kwam het bericht dat Veerman en De Jong op het middenveld Oranje dreigender maakten.', tekst: '' }
   const voor = { ...basis, id: 'e-voor', titel: 'Vooruitblik: Oranje tegen Griekenland', samenvatting: 'We blikken vooruit op Oranje tegen Griekenland, met Veerman en De Jong op het middenveld.', tekst: '', t: Date.parse(lead.publishedAt) - 6 * 36e5 }
   const eps = [...FIX.episodes, na, voor]
-  const r2 = await koppelMetOordeel({ ...OPTS, episodes: eps, client: nepClient(() => JA), get: memKv().get, update: memKv().update })
+  const client2 = nepClient((v) => (v.titel === voor.titel ? { ...JA, vooruitblikOpVoorbij: 'ja' } : JA))
+  const r2 = await koppelMetOordeel({ ...OPTS, episodes: eps, client: client2, get: memKv().get, update: memKv().update, maxAanroepen: Infinity, maxVragen: Infinity })
   for (const id of ['e-na', 'e-voor']) assert.ok(!r2.rows.koppelingen.some((k) => k.aflevering === eps.find((e) => e.id === id).titel), id)
   assert.ok(r2.rows.afgevallen.some((a) => a.aflevering === na.titel && /na de opname/.test(a.reden)))
-  assert.ok(r2.rows.afgevallen.some((a) => a.aflevering === voor.titel && /vooruitblik/.test(a.reden)))
+  const gevraagd2 = client2.calls.flatMap((c) => leesVraag(c.messages[0].content).map((v) => v.titel))
+  assert.ok(!gevraagd2.includes(na.titel), 'na de opname: niet gevraagd')
+  assert.ok(gevraagd2.includes(voor.titel), 'de vooruitblik gaat naar De Redacteur')
+  assert.ok(r2.rows.afgevallen.some((a) => a.aflevering === voor.titel && /vooruitblik op voorbij ja/.test(a.reden)))
 })
 
 test('het antwoord nalopen: alleen het goede nummer met de goede code; tegenstrijdige oordelen vervallen', () => {

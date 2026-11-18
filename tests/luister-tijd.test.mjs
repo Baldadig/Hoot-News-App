@@ -8,7 +8,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { paren, vangnet, koppelMetOordeel, describe, weekdagVooruit, oordeelPrompt, leesOordelen, codesVoor, leesOpslag, ja, tijdGrens, OORDEEL_SCHEMA, OORDEEL_SYSTEM, OORDEEL_KEY, DEEP_H, BEFORE_H, SHOW } from '../netlify/lib/luister.mjs'
+import { paren, vangnet, koppelMetOordeel, describe, weekdagVooruit, oordeelPrompt, leesOordelen, codesVoor, leesOpslag, ja, strengJa, tijdGrens, OORDEEL_SCHEMA, OORDEEL_SYSTEM, OORDEEL_KEY, DEEP_H, BEFORE_H, SHOW } from '../netlify/lib/luister.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { nepClient, JA, VERDIEPING } from './helpers/nep-oordeel.mjs'
 
@@ -44,18 +44,29 @@ const koppelingen = async (e, o) => {
   return (await koppelMetOordeel({ ...opts([e]), client: nepClient(() => o), get, update })).rows.koppelingen.filter((k) => k.verhaal === CRISIS)
 }
 
-test('de harde gevallen blijven hard: een vooruitblik op een voorbije dag en "sinds de opname" / "maakten we … inmiddels", ook als het model ja zegt', async () => {
+test('de harde gevallen blijven hard: "sinds de opname" / "maakten we … inmiddels", ook als het model ja zegt', async () => {
   assert.ok(VOORUIT.t < LEAD_AT && SINDS.t < LEAD_AT && INMIDDELS.t < LEAD_AT, 'alle drie ouder dan de kop')
-  for (const [e, reden] of [[VOORUIT, /vooruitblik op vrijdag/], [SINDS, /na de opname/], [INMIDDELS, /na de opname/]]) {
+  for (const [e, reden] of [[SINDS, /na de opname/], [INMIDDELS, /na de opname/]]) {
     const c = paar(e)
     assert.ok(c, `${e.titel}: een kandidaat bij het crisisverhaal (de kop past)`)
     assert.match(vangnet(c, NOW) || '', reden, e.titel)
   }
   const { get, update } = memKv()
   const client = nepClient(() => VERDIEPING)
-  const r = await koppelMetOordeel({ ...opts([VOORUIT, SINDS, INMIDDELS]), client, get, update })
+  const r = await koppelMetOordeel({ ...opts([SINDS, INMIDDELS]), client, get, update })
   assert.equal(r.rows.koppelingen.length, 0, 'geen koppeling, ook niet als andere')
   assert.equal(client.calls.length, 0, 'niet eens gevraagd')
+})
+
+test('breder (besluit Alex, 18 november): een vooruitblik op een voorbije dag is niet meer hard; De Redacteur beslist of de vraag beantwoord is', async () => {
+  const c = paar(VOORUIT)
+  assert.ok(c, 'een kandidaat bij het crisisverhaal')
+  assert.match(c.o.af || '', /vooruitblik op vrijdag/, 'de woordregel ziet de vooruitblik nog')
+  assert.equal(vangnet(c, NOW), null, 'maar sluit niet meer hard uit')
+  // "Komen de partijen nader tot elkaar?" terwijl het overleg nog bezig is: de vraag is open, dus een verdieping.
+  assert.equal((await koppelingen(VOORUIT, VERDIEPING)).length, 1)
+  // Is de vraag van de vooruitblik inmiddels beantwoord, dan niet.
+  assert.equal((await koppelingen(VOORUIT, { ...VERDIEPING, vooruitblikOpVoorbij: 'ja' })).length, 0)
 })
 
 test('besluit Alex: de crisisverdieping van gisteren koppelt bij het crisisoverleg van vandaag, ook met "inmiddels" en "ondertussen"', async () => {
@@ -106,10 +117,14 @@ test('in de ronde (herstel keuring 4): "zelfde" van ruim vóór het nieuws koppe
   assert.equal((await koppelingen(oud, { ...JA, opgenomenVoorDitNieuws: 'ja' })).length, 0)
 })
 
-test('ja vraagt alle velden: soort zelfde of verdieping, geen vooruitblik op voorbij, niet opgenomen vóór dit nieuws, één onderwerp, zeker', () => {
+test('ja vraagt alle velden: soort zelfde of verdieping, geen vooruitblik op voorbij, niet opgenomen vóór dit nieuws, één onderwerp (zeker alleen bij strengJa)', () => {
   assert.equal(ja(JA), true)
   assert.equal(ja(VERDIEPING), true)
-  for (const v of [{ ...JA, soort: 'anders' }, { ...JA, vooruitblikOpVoorbij: 'ja' }, { ...JA, opgenomenVoorDitNieuws: 'ja' }, { ...JA, eenOnderwerp: 'nee' }, { ...JA, zeker: 'nee' }, { soort: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, null]) assert.equal(ja(v), false, JSON.stringify(v))
+  // Breder (18 november): zeker nee is ook een ja; strengJa (BNR) vraagt zeker ja.
+  assert.equal(ja({ ...VERDIEPING, zeker: 'nee' }), true)
+  assert.equal(strengJa(VERDIEPING), true)
+  assert.equal(strengJa({ ...VERDIEPING, zeker: 'nee' }), false)
+  for (const v of [{ ...JA, soort: 'anders' }, { ...JA, vooruitblikOpVoorbij: 'ja' }, { ...JA, opgenomenVoorDitNieuws: 'ja' }, { ...JA, eenOnderwerp: 'nee' }, { soort: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, { voorHetNieuws: 'nee', zaak: 'zelfde', eenOnderwerp: 'ja', zeker: 'ja' }, null]) assert.equal(ja(v), false, JSON.stringify(v))
 })
 
 test('het schema en de vraag: soort, vooruitblikOpVoorbij en opgenomenVoorDitNieuws verplicht, de reden eerst, de tijd van aflevering, kop en eerste stuk', () => {
@@ -118,10 +133,11 @@ test('het schema en de vraag: soort, vooruitblikOpVoorbij en opgenomenVoorDitNie
   for (const k of ['vooruitblikOpVoorbij', 'opgenomenVoorDitNieuws', 'eenOnderwerp', 'zeker']) assert.deepEqual(p.properties[k], { type: 'string', enum: ['ja', 'nee'] })
   assert.ok(!('voorHetNieuws' in p.properties) && !('zaak' in p.properties))
   assert.deepEqual(p.required, ['nr', 'code', 'reden', 'soort', 'vooruitblikOpVoorbij', 'opgenomenVoorDitNieuws', 'eenOnderwerp', 'zeker'])
-  for (const s of ['tot drie dagen ouder zijn dan de kop', 'Waar gaat deze politieke crisis nou echt over?', 'recorded before the news of Mr. Huang', 'Sinds de opname', 'Vrijdag begint het overleg', '"inmiddels" of "ondertussen" zegt dat niet']) assert.ok(OORDEEL_SYSTEM.includes(s), s)
-  // Herstel keuring 4: vooruitblikOpVoorbij geldt voor elk moment dat bij de kop voorbij is, ook een ander moment van
-  // dezelfde zaak; "vandaag" en een weekdag gelden vanaf de dag van verschijnen; een vooruitblik op wat nog komt is "nee".
-  for (const s of ['reken vanaf de dag dat de aflevering verscheen', 'ook een ander moment van dezelfde zaak dat inmiddels geweest is', 'Vandaag het debat over het Belastingplan', 'alleen vooruitblikt op iets dat bij de kop nog moet komen', 'Komen de partijen er samen uit?']) assert.ok(OORDEEL_SYSTEM.includes(s), s)
+  for (const s of ['tot drie dagen ouder zijn dan de kop', 'Waar gaat deze politieke crisis nou echt over?', 'recorded before the news of Mr. Huang', 'Sinds de opname', '"inmiddels" of "ondertussen" zegt dat niet']) assert.ok(OORDEEL_SYSTEM.includes(s), s)
+  // Herstel keuring 4: "vandaag" en een weekdag gelden vanaf de dag van verschijnen. Breder (18 november; was: elk moment
+  // dat bij de kop voorbij is): vooruitblikOpVoorbij is alleen "ja" als de vraag van de vooruitblik beantwoord is; een
+  // vooruitblik op iets dat nog komt of net plaatsvond, over het onderwerp zelf, of met een open vraag, is "nee".
+  for (const s of ['reken vanaf de dag dat de aflevering verscheen', 'alleen als de vraag van de vooruitblik bij de kop al beantwoord is', '"Wie wint?" na de uitslag', 'iets dat er nog aankomt of net plaatsvond maar over het onderwerp zelf gaat', 'Komen de partijen er samen uit?']) assert.ok(OORDEEL_SYSTEM.includes(s), s)
   const c = paar(CRISIS_GISTEREN)
   const vraag = oordeelPrompt([c])
   // De dag in Nederland naast elke tijd (herstel keuring 4).
@@ -135,7 +151,7 @@ test('het schema en de vraag: soort, vooruitblikOpVoorbij en opgenomenVoorDitNie
 })
 
 test('de opslag: v6 bewaart soort en de twee tijdvelden; een oordeel uit een oudere vorm is nooit een ja', async () => {
-  assert.equal(OORDEEL_KEY, 'luister-oordeel-v7', 'v5: de vraag over vooruitblikOpVoorbij is anders (herstel keuring 4); v6: de vraag kent de weekshow (15 november); v7: bij een weekshow is één tweede onderwerp eenOnderwerp nee')
+  assert.equal(OORDEEL_KEY, 'luister-oordeel-v8', 'v5: de vraag over vooruitblikOpVoorbij is anders (herstel keuring 4); v6: de vraag kent de weekshow (15 november); v7: bij een weekshow is één tweede onderwerp eenOnderwerp nee; v8: breder (18 november)')
   const { kv, get, update } = memKv()
   await koppelMetOordeel({ ...opts([CRISIS_GISTEREN]), client: nepClient(() => VERDIEPING), get, update })
   const rij = Object.values(kv.get(OORDEEL_KEY).o)[0]
