@@ -62,27 +62,32 @@ test('na een deploy met een nieuwe opslag: de echte luisterRonde (wachtrij en id
     assert.equal(st.luister.spotifyEpisode, 'A'.repeat(22), 'de ids komen op de koppeling')
     assert.match(st.luister.spotify, /open\.spotify\.com\/episode\//)
   }
-  // Een weekshow wacht op een oordeel van de nieuwe versie (daar veranderde de vraag).
-  for (const st of met) for (const a of [st.luister, ...(st.luister.andere || [])]) assert.ok(OORDEEL_VORIGE.geldt(SHOW.get(a.showId)), a.show)
+  // v8 (breder, 18 november): van de vorige versie geldt alleen een duidelijk ja (zeker ja); al het andere wacht op een
+  // oordeel van de nieuwe versie. (Tot v7: een weekshow wachtte, de rest gold.)
+  for (const st of met) for (const a of [st.luister, ...(st.luister.andere || [])]) {
+    assert.ok(OORDEEL_VORIGE.geldt(SHOW.get(a.showId), JA), a.show)
+    assert.equal(OORDEEL_VORIGE.geldt(SHOW.get(a.showId), { ...JA, zeker: 'nee' }), false, a.show)
+    assert.equal(OORDEEL_VORIGE.geldt(SHOW.get(a.showId), { ...JA, soort: 'anders' }), false, a.show)
+  }
   const proef = kv.get(PROEF_KEY).dagdelen[0]
   assert.equal(proef.koppelingen.length, n)
   assert.ok(proef.oordeel.uitVorige > 0, 'de proef zegt hoeveel oordelen uit de vorige versie kwamen')
   assert.equal(proef.oordeel.dagKostenUsd, 1.25, 'de kosten van vandaag uit de vorige opslag tellen mee')
   // Alleen paren zonder geldend oordeel gaan naar de wachtrij.
   const wacht = kv.get(WACHTRIJ_KEY).vragen.flatMap((v) => v.keys)
-  const geldend = new Set(kandidaten().filter((c) => OORDEEL_VORIGE.geldt(c.show || SHOW.get(c.e.show))).map(paarKey))
+  const geldend = new Set(kandidaten().filter((c) => OORDEEL_VORIGE.geldt(c.show || SHOW.get(c.e.show), JA)).map(paarKey))
   assert.ok(wacht.every((k) => !geldend.has(k)), 'een paar met een geldend oud oordeel wordt niet opnieuw gevraagd')
   assert.equal(kv.get(OORDEEL_KEY), undefined, 'de nieuwe opslag blijft voor de nieuwe oordelen')
 })
 
 test('een oordeel van de nieuwe versie gaat voor; de vorige opslag niet te lezen kost niets', async () => {
-  const c = kandidaten().find((c) => OORDEEL_VORIGE.geldt(c.show || SHOW.get(c.e.show)))
+  const c = kandidaten().find((c) => OORDEEL_VORIGE.geldt(c.show || SHOW.get(c.e.show), JA))
   assert.ok(c)
   const { kv, get, update } = memKv()
   kv.set(OORDEEL_VORIGE.key, vorigeVol())
   kv.set(OORDEEL_KEY, schrijfOpslag(null, { nieuw: new Map([[paarKey(c), { ...JA, soort: 'anders' }]]), now: NOW }))
   const r = await koppelMetOordeel({ ...OPTS, client: nepClient(() => JA), get, update, wachtrij: true })
-  assert.ok(!r.rows.koppelingen.some((k) => k.verhaal === c.x.st.id && k.aflevering === c.e.titel), 'het nee van v7 telt, niet het ja van v6')
+  assert.ok(!r.rows.koppelingen.some((k) => k.verhaal === c.x.st.id && k.aflevering === c.e.titel), 'het nee van de nieuwe versie telt, niet het ja van de vorige')
   const stuk = (k) => (k === OORDEEL_VORIGE.key ? Promise.reject(new Error('stuk')) : kv.get(k))
   const r2 = await koppelMetOordeel({ ...OPTS, client: nepClient(() => JA), get: stuk, update, wachtrij: true })
   assert.ok(r2.ai.uitOpslag >= 1)

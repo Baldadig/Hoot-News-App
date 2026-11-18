@@ -120,6 +120,24 @@
 //     voorwaarde in het vangnet (kopDeelt), die voor een ja van het model gaat; de zinssplitser knipt niet na "Mr." en andere
 //     afkortingen; het vangnet kent ook "namen … op voor(dat)", "opgenomen, vóór", "before the news" en "morgen".
 //
+// Breder (besluit Alex, 18 november), leidend boven de strenge regels hierboven: "De podcast matching staat nog iets te
+// scherp en conservatief afgesteld. Het moet breder." (gemist: NRC Vandaag over GTA VI bij de GTA-verhalen van die dag).
+//   - De Redacteur oordeelt op het verhaal als geheel (dezelfde lopende zaak of hetzelfde onderwerp), niet alleen op de kop:
+//     een andere kant van dezelfde zaak is een verdieping. Alleen dezelfde persoon, club, land of hetzelfde bedrijf in een
+//     andere kwestie blijft "anders". "De norm is streng" staat niet meer in de vraag.
+//   - Een ja vraagt geen "zeker ja" meer (ja); alleen een show zonder Hoot-bron (BNR, strengJa) en een weekshow zonder
+//     artikellink (weekPoort) blijven strenger.
+//   - vooruitblikOpVoorbij is alleen "ja" als de vraag van de vooruitblik inmiddels beantwoord is ("Wie wint?" na de
+//     uitslag). Een vooruitblik op iets dat nog komt of net plaatsvond, over het onderwerp zelf, is een verdieping. De
+//     woordregels voor een vooruitblik (VOORUIT, weekdagVooruit) sluiten daarom niet meer hard uit; het model beslist.
+//   - Een show met meer onderwerpen (`meer`) komt zonder artikellink bij het oordeel als een centrale naam van het verhaal in
+//     de titel staat (`titelNaam`), en koppelt alleen bij eenOnderwerp ja.
+//   - Een naam en zijn afkorting zijn dezelfde naam ("Grand Theft Auto" en "GTA"; afkortingen). Een getal of romeins cijfer
+//     is in de kenmerken geen naam, dus "GTA VI" en "GTA 6" waren al gelijk.
+//   - Hard blijven: na de opname of opgenomen vóór dit nieuws, meer onderwerpen in de beschrijving zelf, een weekoverzicht,
+//     een mengverhaal (kopDeelt), ouder dan drie dagen, en de volgorde (dezelfde bron gaat voor, één aflevering per verhaal,
+//     een dagelijkse show vóór een weekshow). OORDEEL_KEY v8: alles wordt opnieuw gevraagd, behalve een duidelijk ja van v7.
+//
 // Wat Hoot van een aflevering bewaart: show, titel, de beschrijving zonder de vaste tekst van de show (de eerste zinnen
 // apart; alleen om te koppelen, nooit getoond of doorgegeven), de namen die in bijna elke aflevering staan (de makers),
 // tijd, guid, duur, de artikellinks uit de shownotes en de pagina van de aflevering bij de uitgever. Nooit de audio: de enclosure wordt niet gelezen, niet bewaard en nooit opgehaald.
@@ -715,14 +733,17 @@ export function judge(ep, show, story, items, sig, now) {
     if ([...centraal].some((k) => na.strong.has(k)) || kopNaam || kopWoord) return { af: 'de aflevering zegt dat dit nieuws pas na de opname kwam', names, kandidaat: true, hard: true }
   }
   // Een vooruitblik is geen verdieping van de afloop (keuring: "Kolkende Kuip moet Feyenoord aan drie punten helpen" bij de
-  // nasleep van de nederlaag): een aflevering die vooruitkijkt en verscheen vóór de kop van het verhaal, koppelt niet.
-  // `hard`: een harde uitsluiting (vangnet), die ook gaat voor het AI-oordeel.
-  if (ep.vooruit && ep.t < leadAt) return { af: 'een vooruitblik van vóór de kop van het verhaal', names, kandidaat, hard: true }
+  // nasleep van de nederlaag): een aflevering die vooruitkijkt en verscheen vóór de kop van het verhaal, koppelt niet op
+  // woorden. Breder (besluit Alex, 18 november): dit is geen harde uitsluiting meer. Een vooruitblik op iets dat er nog aankomt
+  // of net plaatsvond, die over het onderwerp zelf gaat (hype, betekenis, achtergrond), is een verdieping; alleen een
+  // vooruitblik waarvan de vraag inmiddels beantwoord is ("Wie wint?" na de uitslag), blijft weg. Dat beslist het model
+  // (vooruitblikOpVoorbij); hier blijft het een reden zonder `hard`.
+  if (ep.vooruit && ep.t < leadAt) return { af: 'een vooruitblik van vóór de kop van het verhaal', names, kandidaat }
   // Een aflevering van vóór de kop die vooruitblikt op een weekdag die bij de kop al geweest is (weekdagVooruit; herstel
-  // keuring 2 van branch shows). Voor alle shows, ook met een artikellink. Een tijdwoord alleen ("inmiddels") sluit niet
-  // meer uit (herstel keuring 3): de tijd beoordeelt het model (vooruitblikOpVoorbij, opgenomenVoorDitNieuws).
+  // keuring 2 van branch shows). Sinds 18 november ook zonder `hard` (zie hierboven): "Donderdag verschijnt de game" kan een
+  // verdieping zijn bij het nieuws van vrijdag; het model beslist of de vraag van de aflevering inmiddels beantwoord is.
   const dag = weekdagVooruit(ep, leadAt)
-  if (dag) return { af: `ouder dan de kop, en een vooruitblik op ${dag.toLowerCase()} (die dag was er bij de kop al)`, names, kandidaat, hard: true }
+  if (dag) return { af: `ouder dan de kop, en een vooruitblik op ${dag.toLowerCase()} (die dag was er bij de kop al)`, names, kandidaat }
 
   // 1. De uitgever linkt zelf naar een stuk in het verhaal. Toch een gedeelde naam in de titel van de aflevering
   //    (sterk of zwak, niet breed): een link "lees ook" naar een ander onderwerp (Trump na de midterms → de Senaatsrace in
@@ -739,6 +760,13 @@ export function judge(ep, show, story, items, sig, now) {
   // Een show met twee of drie onderwerpen per aflevering (`meer`) koppelt alleen via een artikellink. Een weekshow (`week`)
   // zonder artikellink volgt sinds het besluit van Alex (15 november) hetzelfde strenge pad als `verdieping`, met de harde
   // eisen hieronder erbij.
+  // Breder (besluit Alex, 18 november): een show met meer onderwerpen gaat als kandidaat naar het oordeel als een centrale naam
+  // van het verhaal in haar titel staat (`titelNaam`; FD Dagkoers met één aflevering over één onderwerp). De Redacteur beslist
+  // eenOnderwerp, en alleen eenOnderwerp ja koppelt (ja). Zonder naam in de titel: geen kandidaat (vangnet).
+  if (show.soort === 'meer') {
+    const titelNaam = [...kandGroups.values()].some(Boolean)
+    return { af: titelNaam ? 'meer onderwerpen per aflevering, zonder artikellink (het model beslist of deze aflevering over één onderwerp gaat)' : 'meer onderwerpen per aflevering, zonder artikellink', names, kandidaat: titelNaam, titelNaam }
+  }
   if (show.soort !== 'verdieping' && show.soort !== 'week') return { af: 'meer onderwerpen per aflevering, zonder artikellink', names, kandidaat }
   // Ook een show met één onderwerp per aflevering heeft soms een aflevering over meer dingen ("Ook een vooruitblik op…",
   // "Verder ook aandacht voor…", een inhoudsopgave met tijden): die koppelt dan alleen via een artikellink.
@@ -1030,6 +1058,27 @@ function sameIssue(es, items, sig) {
   return words.length >= 2 ? words.slice(0, 3).join(', ') : null
 }
 
+// Een naam en zijn afkorting (breder, besluit Alex 18 november): "Grand Theft Auto VI" in de ene tekst en "GTA 6" in de
+// andere zijn dezelfde naam. De kenmerken kennen alleen losse namen, zonder getal (een romeins of gewoon cijfer is geen
+// naam, dus "GTA VI" en "GTA 6" geven allebei de naam van de afkorting). Een reeks van drie of meer aaneengesloten eigen
+// namen ("Grand Theft Auto") krijgt zijn beginletters als extra naam, maar alleen als die afkorting in de ronde ook echt als
+// naam voorkomt (anders telt hij nergens). Generiek: alleen de vorm, geen namen in de code. Werkt op de kenmerken van deze
+// ronde (paren), niet op die van de verhalen zelf.
+export function afkortingen(sig) {
+  const namen = new Set()
+  for (const s of sig.values()) for (const k of s?.strong || []) namen.add(k)
+  const van = (runs = []) => runs.filter((run) => run.length >= 3).map((run) => run.map((k) => k[0]).join('')).filter((a) => a.length >= 3 && namen.has(a))
+  for (const s of sig.values()) {
+    if (!s?.strong) continue
+    const uitTekst = van(s.runs)
+    const uitTitel = van(s.titleRuns)
+    for (const a of [...uitTekst, ...uitTitel]) s.strong.add(a)
+    if (uitTekst.length && s.runs) s.runs = [...s.runs, ...uitTekst.map((a) => [a])]
+    if (uitTitel.length && s.titleRuns) s.titleRuns = [...s.titleRuns, ...uitTitel.map((a) => [a])]
+  }
+  return sig
+}
+
 // Alle verhalen tegen alle afleveringen. `stories`: de verhalen van de ronde; `byId`: de stukken.
 // `mainIds`: de bronnen die de algemene lezer volgt (taal volgt de bronkeuze). Geeft { byStory: Map(id → luister),
 // rows: de koppelingen en afvallers voor de proef }.
@@ -1080,6 +1129,7 @@ export function paren({ stories = [], byId = new Map(), episodes = [], now = Dat
   // De kop van elk verhaal apart (alleen de titel van het stuk van de kop): wat de lezer ziet.
   for (const lead of new Set(live.map((x) => x.items.find((i) => i.id === x.st.leadId) || x.items[0]))) extra.push({ id: lead.id + '#kop', title: lead.title, summary: '', publishedAt: lead.publishedAt })
   const sig = signatures(pool, extra, { extended: true })
+  afkortingen(sig)
   for (const e of eps) {
     // Het eerste onderwerp: de eerste zin met een naam, behalve een zin over nieuws van na de opname.
     const k = zinnen.get(e.id).findIndex((z, k) => named(sig.get(`${e.id}#zin${k}`)) && !NA_OPNAME.test(z))
@@ -1168,7 +1218,10 @@ export function vangnet(c, now) {
   // Een show met meer onderwerpen per aflevering alleen via een artikellink. Een weekshow zonder artikellink (besluit Alex,
   // 15 november) alleen als de aflevering over één onderwerp gaat: geen weekoverzicht en geen opsomming (weekMeer; de
   // andere harde eisen van de weekshow staan in judge, als `hard`).
-  if (!c.linked && c.show.soort !== 'verdieping' && c.show.soort !== 'week') return 'meer onderwerpen per aflevering, zonder artikellink'
+  // Breder (18 november): een show met meer onderwerpen (`meer`) zonder artikellink mag naar het oordeel als een centrale
+  // naam van het verhaal in de titel van de aflevering staat (judge: `titelNaam`); De Redacteur beslist eenOnderwerp.
+  if (!c.linked && c.show.soort === 'meer' && !c.o.titelNaam) return 'meer onderwerpen per aflevering, zonder artikellink en zonder naam van het verhaal in de titel'
+  if (!c.linked && c.show.soort !== 'verdieping' && c.show.soort !== 'week' && c.show.soort !== 'meer') return 'meer onderwerpen per aflevering, zonder artikellink'
   if (!c.linked && c.show.soort === 'week' && c.e.weekMeer !== false) return 'weekshow zonder artikellink: de aflevering bespreekt de week of meer onderwerpen'
   // BNR: het onderwerp volgt niet uit één gedeelde naam (voorwaarde 1); minstens twee centrale namen van het verhaal.
   if (zonderBron(c.show) && !c.o.soort && (c.o.names || []).length < 2) return 'show zonder Hoot-bron: deelt geen twee centrale namen met het verhaal'
@@ -1180,7 +1233,11 @@ export function vangnet(c, now) {
 // Een duidelijk ja (herstel keuring 3 van branch shows): soort zelfde of verdieping, geen vooruitblik op iets dat inmiddels
 // gebeurd is, niet opgenomen vóór precies dit nieuws, één onderwerp en zeker. Een oordeel zonder deze velden (uit een oudere
 // opslag of een onvolledig antwoord) is geen ja. De tijdgrens per soort staat in kiesOordeel (tijdGrens).
-export const ja = (v) => !!v && (v.soort === 'zelfde' || v.soort === 'verdieping') && v.vooruitblikOpVoorbij === 'nee' && v.opgenomenVoorDitNieuws === 'nee' && v.eenOnderwerp === 'ja' && v.zeker === 'ja'
+// Breder (besluit Alex, 18 november): "zeker" hoort niet meer bij een ja. Een verdieping met één onderwerp en zonder
+// tijdsuitsluiting koppelt ook als het model niet zeker is; strenger blijven alleen een show zonder Hoot-bron (BNR) en een
+// weekshow zonder artikellink (strengJa en weekPoort, in kiesOordeel).
+export const ja = (v) => !!v && (v.soort === 'zelfde' || v.soort === 'verdieping') && v.vooruitblikOpVoorbij === 'nee' && v.opgenomenVoorDitNieuws === 'nee' && v.eenOnderwerp === 'ja'
+export const strengJa = (v) => ja(v) && v.zeker === 'ja'
 // De poort van een weekshow zonder artikellink (koerswijziging 15 november): het model beslist of de aflevering over één
 // onderwerp gaat. Alleen soort zelfde of verdieping, eenOnderwerp precies "ja" en zeker precies "ja"; ontbreekt een veld
 // (een bewaard oordeel uit een oudere opslag, een onvolledig antwoord) of staat er iets anders, dan geen koppeling. Geldt in
@@ -1231,7 +1288,7 @@ function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(
       const age = (now - c.e.t) / H
       // Hetzelfde alleen vers (hooguit FRESH_H oud, en zonder link niet van vóór het eerste stuk); anders verdiepend.
       const vers = age <= FRESH_H && c.e.t >= c.firstAt - (c.linked ? BEFORE_H * H : 0)
-      const goed = ja(v) && (!weekZonderLink(c) || weekPoort(v))
+      const goed = (zonderBron(c.show) ? strengJa(v) : ja(v)) && (!weekZonderLink(c) || weekPoort(v))
       const grens = goed ? tijdGrens(c, v) : null
       if (goed && !grens) hit(c, { soort: v.soort === 'zelfde' && vers ? 'hetzelfde' : 'verdiepend', grond: c.linked ? 'link' : 'tekst', reden: v.reden || uitleg(v), oordeel: kortOordeel(v) })
       else rows.afgevallen.push({ ...row(c.e, c.x, grens ? `tijd: ${grens} (oordeel: ${uitleg(v)})` : `oordeel: ${uitleg(v)}`), oordeel: kortOordeel(v) })
@@ -1334,7 +1391,10 @@ export const kostenVan = (invoer = 0, uitvoer = 0) => Math.round(((invoer * OORD
 // v7 (koerswijziging 15 november): bij een weekshow is het model de poort voor één onderwerp, en de vraag zegt dat één
 // tweede onderwerp (ook een korte vermelding, een opsomming, een "ook nog") eenOnderwerp "nee" is; de oordelen van v6 tellen
 // niet.
-export const OORDEEL_KEY = 'luister-oordeel-v7'
+// v8 (breder, besluit Alex 18 november): de vraag oordeelt op het verhaal als geheel (een andere kant van dezelfde zaak is
+// een verdieping), vooruitblikOpVoorbij is alleen "ja" als de vraag van de vooruitblik inmiddels beantwoord is, en een show
+// met meer onderwerpen komt bij het oordeel. Van v7 gelden alleen de duidelijke ja's (zie OORDEEL_VORIGE).
+export const OORDEEL_KEY = 'luister-oordeel-v8'
 // De vorige opslag (melding 15 november: na de deploy van v7 stond de opslag leeg, de ronde koppelde niets en zette alles
 // in de wachtrij; pas de ronde na de eigen functie, ruim tien minuten later, koppelde weer). Een nieuwe versie van de vraag
 // begint dus niet met een lege opslag: een oordeel uit de vorige versie geldt nog zolang de nieuwe er geen heeft, voor de
@@ -1342,7 +1402,10 @@ export const OORDEEL_KEY = 'luister-oordeel-v7'
 // v6 over een dagelijkse show gelden nog; een weekshow wacht op een oordeel van v7. Wie OORDEEL_KEY ophoogt, zet hier de
 // vorige sleutel en zegt welke oordelen nog gelden (een toets bewaakt dat de sleutels bij elkaar horen). De kosten van
 // vandaag uit de vorige opslag tellen mee voor het dagplafond.
-export const OORDEEL_VORIGE = { key: 'luister-oordeel-v6', geldt: (show) => show?.soort !== 'week' }
+// v8: een oordeel van v7 dat onder de strenge vraag een duidelijk ja was (zeker ja), is onder de bredere vraag ook een ja en
+// geldt nog. Elk ander oordeel van v7 (anders, zeker nee, een vooruitblik op voorbij) wordt opnieuw gevraagd. `v`: het
+// bewaarde oordeel.
+export const OORDEEL_VORIGE = { key: 'luister-oordeel-v7', geldt: (show, v) => strengJa(v) }
 // Het dagplafond (herstel keuring 4): de ronde draait elke tien minuten en mag MAX_AANROEPEN vragen doen, en met de kop in
 // de sleutel wordt een verhaal dat van kop wisselt opnieuw gevraagd. Zonder plafond kon dat oplopen tot ongeveer 21 dollar
 // per dag. Nu: hooguit OORDEEL_DAG_USD per dag (Nederlandse dag). Per ronde niet meer vragen dan er in het budget past
@@ -1386,18 +1449,19 @@ const STUKKEN_MAX = 20
 
 export const OORDEEL_SYSTEM = `Je bent eindredacteur van Hoot, een Nederlandse nieuwsapp. Onder een nieuwsverhaal kan Hoot één podcastaflevering zetten om verder te luisteren. Een verhaal is een cluster van stukken van verschillende bronnen over één zaak. Jij beoordeelt per aflevering of ze bij het verhaal past. Je krijgt steeds één verhaal.
 
-De norm is streng. Een verkeerde koppeling is erger dan geen. Beoordeel elke aflevering los, alleen op wat er staat.
+Beoordeel op het verhaal als geheel (alle stukken), niet alleen op de kop. Gaat de aflevering over hetzelfde onderwerp of dezelfde lopende zaak als het verhaal, dan past ze, ook als ze een andere kant belicht dan de kop. Een koppeling met een echt andere kwestie is fout. Beoordeel elke aflevering los, alleen op wat er staat.
 
-- reden: schrijf eerst één korte zin in het Nederlands: waar gaat de aflevering over, en hoe verhoudt dat zich tot het verhaal en de kop?
+- reden: schrijf eerst één korte zin in het Nederlands: waar gaat de aflevering over, en hoe verhoudt dat zich tot het verhaal?
 - soort:
   - "zelfde": de aflevering gaat over precies het nieuws van het verhaal (dezelfde gebeurtenis, hetzelfde besluit, dezelfde wedstrijd) en kent dat nieuws al. Verscheen ze vóór het eerste stuk, dan alleen als ze het nieuws toch al kent (een nabespreking van de wedstrijd die het verhaal brengt, kort voor het eerste stuk); kent ze het nog niet, dan hooguit "verdieping".
-  - "verdieping": de aflevering gaat over dezelfde lopende zaak en geeft achtergrond of duiding. Ze mag tot drie dagen ouder zijn dan de kop en hoeft het nieuws van vandaag nog niet te kennen. Voorbeeld: een aflevering van gisteren over de kabinetscrisis ("Waar gaat deze politieke crisis nou echt over?", "Hoe de premier zijn crisis managet") is een verdieping bij een verhaal over het crisisoverleg van vandaag, ook al is ze opgenomen vóór dat overleg.
-  - "anders": in alle andere gevallen. Ook als alleen een persoon, partij, bedrijf, club, land of competitie overeenkomt maar het om een andere kwestie gaat, als de aflevering over een breder thema gaat, of als de kop over een andere kant van het verhaal gaat dan de aflevering (de lezer ziet de kop: een wedstrijd tegenover een blessure, een statistiek over een speler of een andere wedstrijd).
-- vooruitblikOpVoorbij: kijk naar elk moment waar de aflevering op vooruitblikt, en reken vanaf de dag dat de aflevering verscheen: "vandaag", "vanavond", "morgen", "deze week" en een weekdag gelden vanaf die dag, niet vanaf de kop.
-  - "ja" als de aflevering vooruitblikt op een moment dat bij de kop al voorbij is. Dat kan het nieuws van de kop zelf zijn ("Vrijdag begint het overleg" of "Wat mogen we verwachten van het overleg?" bij een verhaal over het begonnen overleg, "Is his job safe?" als hij inmiddels is opgestapt, "ahead of the vote"), maar ook een ander moment van dezelfde zaak dat inmiddels geweest is: een debat, stemming, wedstrijd, uitspraak of overleg ("Vandaag het debat over het Belastingplan" in een aflevering van twee dagen vóór de kop: dat debat is bij de kop al geweest, dus "ja").
-  - "nee" als de aflevering niet vooruitblikt (een duiding, reconstructie of achtergrond van de lopende zaak), of alleen vooruitblikt op iets dat bij de kop nog moet komen ("Komen de partijen er samen uit?" terwijl het overleg nog bezig is).
+  - "verdieping": de aflevering gaat over dezelfde lopende zaak of hetzelfde onderwerp als het verhaal (een nieuwe game, een kabinetscrisis, een overname) en geeft achtergrond, duiding of een andere kant ervan. Ze mag tot drie dagen ouder zijn dan de kop en hoeft het nieuws van vandaag nog niet te kennen. Voorbeelden: een aflevering van gisteren over de kabinetscrisis ("Waar gaat deze politieke crisis nou echt over?", "Hoe de premier zijn crisis managet") is een verdieping bij een verhaal over het crisisoverleg van vandaag, ook al is ze opgenomen vóór dat overleg. Een aflevering over de hype rond een nieuwe game en wat die betekent voor de industrie is een verdieping bij een verhaal over die game, ook als de kop over de reclame, de verkoop of een deal rond die game gaat.
+  - "anders": de aflevering gaat over een andere kwestie. Ook als alleen een persoon, partij, bedrijf, club, land of competitie overeenkomt maar het onderwerp een ander is (een club in een andere zaak, een bedrijf met ander nieuws, een land in een ander conflict).
+- vooruitblikOpVoorbij: kijk naar de vraag waar de aflevering op vooruitblikt, en reken vanaf de dag dat de aflevering verscheen: "vandaag", "vanavond", "morgen", "deze week" en een weekdag gelden vanaf die dag, niet vanaf de kop.
+  - "ja" alleen als de vraag van de vooruitblik bij de kop al beantwoord is, zodat de aflevering achterhaald is: "Komen ze eruit?" terwijl ze er al uit zijn, "Wie wint?" na de uitslag, "Is his job safe?" als hij inmiddels is opgestapt, "Hoe stemt de Kamer?" na de stemming.
+  - "nee" als de aflevering niet vooruitblikt (een duiding, reconstructie of achtergrond), of als ze vooruitblikt op iets dat er nog aankomt of net plaatsvond maar over het onderwerp zelf gaat: de hype, de betekenis of de achtergrond blijft gelden ("Donderdag verschijnt de game: waarom is iedereen er zo gek op?" bij een verhaal over die game op vrijdag), of de vraag is nog open ("Komen de partijen er samen uit?" terwijl het overleg nog bezig is).
 - opgenomenVoorDitNieuws: "ja" als de aflevering zelf zegt dat ze is opgenomen of gemaakt vóór precies het nieuws van de kop, of dat dit nieuws pas na de opname kwam ("This episode was recorded before the news of Mr. Huang's resignation was made public" bij een verhaal over dat vertrek; "Sinds de opname is het overleg begonnen" bij een verhaal over het begonnen overleg). Een gewoon tijdwoord als "inmiddels" of "ondertussen" zegt dat niet, en een opmerking over ander nieuws ook niet: dan "nee".
 - eenOnderwerp: "ja" alleen als de hele aflevering over dit ene onderwerp gaat. "nee" bij een overzicht van het nieuws, een terugblik op de week, een speelronde, of zodra de beschrijving een tweede onderwerp noemt, ook zonder woord als "verder" of "ook". Makers en gasten zijn geen onderwerp.
+- Een show met meer onderwerpen (achter de show staat "show met meer onderwerpen") behandelt meestal twee of drie onderwerpen per aflevering. Geef eenOnderwerp "ja" alleen als deze aflevering over dit ene onderwerp gaat; noemt de beschrijving ook iets anders, dan "nee".
 - Een weekshow (achter de show staat "weekshow") bespreekt vaak de hele week, met meer onderwerpen. Geef bij een weekshow alleen "zelfde" of "verdieping" en eenOnderwerp "ja" als de hele aflevering over de zaak van dit verhaal gaat. Bespreekt ze de week, ook als dit verhaal daarin het grootste onderwerp is, dan soort "anders" en eenOnderwerp "nee". Bij een weekshow is één tweede onderwerp al genoeg voor eenOnderwerp "nee": ook een korte vermelding, een opsomming, een lijstje of een "ook nog", in de titel of in de beschrijving, met of zonder signaalwoord. Bij twijfel "anders" en eenOnderwerp "nee".
 - zeker: "ja" alleen als je zeker bent van soort, tijd en onderwerp. Bij twijfel "nee".
 
@@ -1479,7 +1543,7 @@ export function oordeelPrompt(lijst, codes = codesVoor(lijst)) {
     if (x.items.length > stukken.length) regels.push(`(en nog ${x.items.length - stukken.length} stukken)`)
     regels.push('', `Afleveringen bij verhaal ${naam}:`)
     for (const { c, nr, code } of rij) {
-      regels.push(`${nr}. code: ${code}`, `   show: ${c.show.naam} (${c.show.uitgever})${c.show.soort === 'week' ? ', weekshow' : ''}`, `   verschenen: ${iso(c.e.t)}${tijdTov(c.e.t, c.firstAt, 'het eerste stuk')}${tijdTov(c.e.t, kopAt, 'de kop')}`, `   titel: ${knip(c.e.titel, 300)}`, `   beschrijving: ${knip(c.e.tekst || c.e.samenvatting, 3200) || '(geen)'}`)
+      regels.push(`${nr}. code: ${code}`, `   show: ${c.show.naam} (${c.show.uitgever})${c.show.soort === 'week' ? ', weekshow' : c.show.soort === 'meer' ? ', show met meer onderwerpen' : ''}`, `   verschenen: ${iso(c.e.t)}${tijdTov(c.e.t, c.firstAt, 'het eerste stuk')}${tijdTov(c.e.t, kopAt, 'de kop')}`, `   titel: ${knip(c.e.titel, 300)}`, `   beschrijving: ${knip(c.e.tekst || c.e.samenvatting, 3200) || '(geen)'}`)
       if (c.e.links?.length) regels.push(`   links in de shownotes: ${c.e.links.slice(0, 6).join(', ')}`)
     }
     delen.push(regels.join('\n'))
@@ -1672,7 +1736,7 @@ export async function oordelenVoor(kandidaten, { client, get, update, now = Date
   for (const c of kandidaten) {
     const k = paarKey(c)
     if (opgeslagen.has(k)) oordelen.set(k, opgeslagen.get(k))
-    else if (vorige.oordelen.has(k) && OORDEEL_VORIGE.geldt(c.show || SHOW.get(c.e.show))) {
+    else if (vorige.oordelen.has(k) && OORDEEL_VORIGE.geldt(c.show || SHOW.get(c.e.show), vorige.oordelen.get(k))) {
       oordelen.set(k, vorige.oordelen.get(k))
       stats.uitVorige = (stats.uitVorige || 0) + 1
     }

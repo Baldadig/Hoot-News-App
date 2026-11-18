@@ -20,7 +20,7 @@ function wereld({ volgersGta = 3, volgersTata = 1 } = {}) {
     'volgzaak-volgers:gta-6': volgersGta,
     'volgzaak-volgers:tata-steel': volgersTata,
     'volgzaak-lijst-v1': { 'gta-6': { label: 'GTA 6', status: 'actief', volgers: volgersGta }, 'tata-steel': { label: 'Tata Steel', status: 'actief', volgers: volgersTata } },
-    'luister-oordeel-v7': { v: 1, o: {} },
+    'luister-oordeel-v8': { v: 1, o: {} },
     'luister-wachtrij-v1': { v: 1, vragen: [] },
   })
   zetFeed(io, {

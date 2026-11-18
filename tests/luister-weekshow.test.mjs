@@ -349,7 +349,7 @@ test('het model is de poort: zonder eenOnderwerp ja (ontbreekt, of iets anders) 
 
 test('de vraag: bij een weekshow is één tweede onderwerp, ook een korte vermelding, eenOnderwerp nee', () => {
   assert.match(OORDEEL_SYSTEM, /Bij een weekshow is één tweede onderwerp al genoeg voor eenOnderwerp "nee": ook een korte vermelding, een opsomming, een lijstje of een "ook nog"/)
-  assert.equal(OORDEEL_KEY, 'luister-oordeel-v7')
+  assert.equal(OORDEEL_KEY, 'luister-oordeel-v8', 'v8: breder (18 november); de regel voor de weekshow blijft')
 })
 
 test('een andere naam in de titel of de beschrijving (Trump): het model is de poort, eenOnderwerp nee houdt tegen', async () => {
