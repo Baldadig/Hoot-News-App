@@ -163,7 +163,9 @@ test('één paar per vraag, elke vraag één keer, zonder denkstap en zonder tem
   assert.ok(tekst.includes(String(c.e.tekst || c.e.samenvatting).slice(-80)), 'de hele beschrijving')
 })
 
-test('Editie eerst: gaan twee verhalen over dezelfde zaak, dan krijgt het verhaal met een Editieplek de aflevering', async () => {
+// Sinds 19 november (besluit Alex: dezelfde aflevering mag bij meer verhalen staan) krijgt elk verhaal met een ja de
+// aflevering, met of zonder Editieplek. Tot dan won het verhaal met een Editieplek en kreeg bij dezelfde plek geen van beide haar.
+test('twee verhalen over dezelfde zaak: allebei de aflevering, met of zonder Editieplek; bij het vragen gaat de Editie voor', async () => {
   const oranje = FIX.stories.find((st) => byId.get(st.leadId)?.title?.includes('Veerman'))
   assert.ok(oranje)
   const kopie = { ...oranje, id: 'kopie-oranje' }
@@ -171,16 +173,17 @@ test('Editie eerst: gaan twee verhalen over dezelfde zaak, dan krijgt het verhaa
   const run = async (editie) => {
     const { get, update } = memKv()
     const r = await koppelMetOordeel({ ...OPTS, stories, client: nepClient((v) => (ORANJE(v) ? JA : NEE)), get, update, editie })
-    return { r, aan: [...r.byStory].filter(([, l]) => /Galavoorstelling/.test(l.aflevering)).map(([id]) => id) }
+    return { r, aan: [...r.byStory].filter(([, l]) => /Galavoorstelling/.test(l.aflevering)).map(([id]) => id).sort() }
   }
-  assert.deepEqual((await run(null)).aan, [], 'geen Editieplek: geen van beide')
-  assert.deepEqual((await run({ algemeen: new Set(['kopie-oranje']), pool: new Set() })).aan, ['kopie-oranje'])
-  assert.deepEqual((await run({ algemeen: new Set(), pool: new Set([oranje.id]) })).aan, [oranje.id])
+  const allebei = [oranje.id, 'kopie-oranje'].sort()
+  assert.deepEqual((await run(null)).aan, allebei, 'geen Editieplek: allebei')
+  assert.deepEqual((await run({ algemeen: new Set(['kopie-oranje']), pool: new Set() })).aan, allebei)
   const beide = await run({ algemeen: new Set(['kopie-oranje']), pool: new Set([oranje.id, 'kopie-oranje']) })
-  assert.deepEqual(beide.aan, ['kopie-oranje'], 'de algemene Editie gaat voor de pool')
-  assert.ok(beide.r.rows.afgevallen.some((a) => a.verhaal === oranje.id && /dat krijgt haar/.test(a.reden)))
+  assert.deepEqual(beide.aan, allebei)
+  assert.ok(!beide.r.rows.afgevallen.some((a) => /dat krijgt haar|geen van beide/.test(a.reden)), 'geen afvaller omdat een ander verhaal haar ook krijgt')
   assert.equal(beide.r.rows.koppelingen.find((k) => k.verhaal === 'kopie-oranje').editie, 'de algemene Editie')
-  assert.deepEqual((await run({ algemeen: new Set([oranje.id, 'kopie-oranje']), pool: new Set() })).aan, [], 'dezelfde plek: geen van beide')
+  assert.equal(beide.r.rows.koppelingen.find((k) => k.verhaal === oranje.id).editie, 'de Editiepool')
+  assert.deepEqual((await run({ algemeen: new Set([oranje.id, 'kopie-oranje']), pool: new Set() })).aan, allebei, 'dezelfde plek: allebei')
   // En bij het vragen gaan de verhalen met een Editieplek voor (een kleine begroting: alleen die).
   const { get, update } = memKv()
   const client = nepClient(() => NEE)

@@ -43,25 +43,26 @@ test('editiePlekken op de echte Editie van de avond: een verhaal-onderdeel telt,
   assert.ok(editiePlekken([{ kind: 'item', id: st.itemIds[1] }], FIX.stories).has(st.id))
 })
 
-test('Editie eerst op de echte avondkern: Today in Focus past bij meer Nvidia-verhalen en komt bij het verhaal met een Editieplek', async () => {
+// Sinds 19 november (besluit Alex): dezelfde aflevering mag bij meer verhalen staan. Today in Focus komt bij elk Nvidia-verhaal
+// met een ja, met of zonder Editieplek (tot dan: alleen bij het verhaal met een Editieplek, of het grootste daarvan).
+test('de echte avondkern: Today in Focus past bij meer Nvidia-verhalen en komt bij elk daarvan met een ja, ook zonder Editieplek', async () => {
   assert.ok(TIF)
   const p = paren(OPTS)
   const bij = p.paren.filter((c) => c.e.id === TIF.id && !vangnet(c, NOW)).map((c) => c.x.st.id)
   assert.ok(bij.length >= 2, `Today in Focus is een kandidaat bij meer Nvidia-verhalen (${bij.join(', ')})`)
   assert.ok(bij.every((id) => NVIDIA.includes(id)))
   const ja = (v) => (/far from over/.test(v.titel) ? VERDIEPING : NEE)
-  const aan = (r) => [...r.byStory].filter(([, l]) => /far from over/.test(l.aflevering)).map(([id]) => id)
-  // Zonder Editieplek: nergens zichtbaar, dus geen van beide (zoals in PROEF-4).
-  assert.deepEqual(aan(await draai(ja, { algemeen: ALGEMEEN, pool: new Set() })), [])
-  // In de Editiepool (de persoonlijke Edities): het grootste Nvidia-verhaal, het hoofdverhaal van de zaak.
-  const groot = [...bij].sort((a, b) => FIX.stories.find((s) => s.id === b).itemIds.length - FIX.stories.find((s) => s.id === a).itemIds.length)[0]
-  const pool = await draai(ja, { algemeen: ALGEMEEN, pool: new Set(NVIDIA) })
-  assert.deepEqual(aan(pool), [groot])
-  assert.equal(pool.rows.koppelingen.find((k) => k.verhaal === groot).editie, 'de Editiepool')
-  assert.ok(pool.rows.afgevallen.some((a) => /far from over/.test(a.aflevering) && /groter verhaal in de Editiepool; dat krijgt haar/.test(a.reden)))
-  // Een kleiner verhaal in de algemene Editie gaat voor de pool.
-  const klein = bij.find((id) => id !== groot)
-  assert.deepEqual(aan(await draai(ja, { algemeen: new Set([...ALGEMEEN, klein]), pool: new Set(NVIDIA) })), [klein])
+  const aan = (r) => [...r.byStory].filter(([, l]) => [l, ...(l.andere || [])].some((a) => /far from over/.test(a.aflevering))).map(([id]) => id).sort()
+  for (const editie of [{ algemeen: ALGEMEEN, pool: new Set() }, { algemeen: ALGEMEEN, pool: new Set(NVIDIA) }]) {
+    const r = await draai(ja, editie)
+    assert.deepEqual(aan(r), [...bij].sort())
+    assert.ok(!r.rows.afgevallen.some((a) => /far from over/.test(a.aflevering) && /krijgt haar|geen van beide/.test(a.reden)))
+  }
+  // Een nee bij een van de verhalen: alleen daar niet.
+  const een = bij[0]
+  const kop1 = kop(FIX.stories.find((s) => s.id === een))
+  const r = await draai((v) => (/far from over/.test(v.titel) && v.kop !== kop1 ? VERDIEPING : NEE), { algemeen: ALGEMEEN, pool: new Set(NVIDIA) })
+  assert.deepEqual(aan(r), bij.filter((id) => id !== een).sort())
 })
 
 test('de echte avondkern: de crisisverdieping van gisteren koppelt, The Daily ("recorded before the news") niet', async () => {

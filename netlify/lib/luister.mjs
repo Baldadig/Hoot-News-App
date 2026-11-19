@@ -137,6 +137,13 @@
 //   - Hard blijven: na de opname of opgenomen vóór dit nieuws, meer onderwerpen in de beschrijving zelf, een weekoverzicht,
 //     een mengverhaal (kopDeelt), ouder dan drie dagen, en de volgorde (dezelfde bron gaat voor, één aflevering per verhaal,
 //     een dagelijkse show vóór een weekshow). OORDEEL_KEY v8: alles wordt opnieuw gevraagd, behalve een duidelijk ja van v7.
+// Meer koppelingen (besluit Alex, 19 november):
+//   - Dezelfde aflevering mag bij meer verhalen staan (kiesOordeel): elk verhaal met een ja krijgt haar. Weg zijn "het verhaal
+//     met een Editieplek, dan het grootste", "dezelfde plek: geen van beide" en "een artikellink wijst één verhaal aan". De
+//     regels per verhaal (perVerhaal) blijven.
+//   - Een naam tussen aanhalingstekens in de kop (een bijnaam of citaat: "‘Edward Cullen’ wordt 007") telt in het vangnet
+//     (kopDeelt, kopCitaten) niet als waar de kop over gaat; het oordeel beslist. Een naam buiten het verhaal zonder
+//     aanhalingstekens blijft een mengverhaal. OORDEEL_KEY blijft v8: de vraag en de betekenis van een oordeel veranderen niet.
 //
 // Wat Hoot van een aflevering bewaart: show, titel, de beschrijving zonder de vaste tekst van de show (de eerste zinnen
 // apart; alleen om te koppelen, nooit getoond of doorgegeven), de namen die in bijna elke aflevering staan (de makers),
@@ -1007,8 +1014,12 @@ export function kopDeelt(ep, story, items, sig, gewoon = null) {
   const eerste = norm((String(lead.title).match(/\p{L}[\p{L}\d'’-]*/u) || [''])[0]).replace(/[^\p{L}\d]/gu, '')
   const gewoonEerste = !!eerste && gewoonWoord(eerste, kleinVanVerhaal(items))
   // Een centrale naam na "in" is geen plaats maar het verhaal ("Reijnders glundert na evenaring Van Basten in Oranje").
-  const kopNamen = [...new Set([...[...kt.strong].filter((k) => has(kt, k)), ...(kt.weak || [])])].filter((k) => !BROAD.has(k) && (!plaatsen.has(k) || centraal.has(k)) && !(gewoonEerste && k === eerste && !centraal.has(k)))
-  if (!kopNamen.length) return true // de kop noemt geen naam (of alleen een plaats): daar zegt de kop niets over een mengverhaal
+  // Een naam tussen aanhalingstekens (besluit Alex, 19 november) is een bijnaam of een citaat ("‘Edward Cullen’ wordt 007",
+  // "‘Soms ging het ver’"), niet waar de kop over gaat: die telt hier niet (kopCitaten).
+  const citaat = kopCitaten(lead.title)
+  const geciteerd = (k) => !centraal.has(k) && k.split(/\s+/).every((w) => citaat.has(w))
+  const kopNamen = [...new Set([...[...kt.strong].filter((k) => has(kt, k)), ...(kt.weak || [])])].filter((k) => !BROAD.has(k) && (!plaatsen.has(k) || centraal.has(k)) && !(gewoonEerste && k === eerste && !centraal.has(k)) && !geciteerd(k))
+  if (!kopNamen.length) return true // de kop noemt geen naam (of alleen een plaats of een citaat): daar zegt de kop niets over een mengverhaal
   if (kopNamen.some((k) => centraal.has(k))) return true // de kop gaat over het verhaal; de aflevering noemt het verhaal
   return kopNamen.some(noemt)
 }
@@ -1034,6 +1045,21 @@ export function kopPlaatsen(title) {
   const out = new Set()
   for (const m of String(title || '').matchAll(PLAATS)) {
     for (const w of m[2].split(/\s+/)) {
+      const k = norm(w).replace(/[^\p{L}\d]/gu, '')
+      if (k.length >= 2) out.add(k)
+    }
+  }
+  return out
+}
+// De woorden tussen aanhalingstekens in een kop (besluit Alex, 19 november): een bijnaam of een citaat ("‘Edward Cullen’
+// wordt 007", "'Kabinet langs de rand van de afgrond'", "“We can do it”"), genormaliseerd zoals de namen van de kenmerken.
+// Een aanhalingsteken opent alleen na een niet-letter en sluit alleen voor een niet-letter, dus een apostrof ("Wynia's",
+// "Pattinson’s") opent of sluit niets. Generiek: alleen de vorm van de kop.
+const CITAAT = /(?<![\p{L}\d])['‘’"“”„«‹]([^'‘’"“”„«»‹›]{1,120}?)['‘’"“”»›](?![\p{L}\d])/gu
+export function kopCitaten(title) {
+  const out = new Set()
+  for (const m of String(title || '').matchAll(CITAAT)) {
+    for (const w of m[1].split(/[^\p{L}\d'’-]+/u)) {
       const k = norm(w).replace(/[^\p{L}\d]/gu, '')
       if (k.length >= 2) out.add(k)
     }
@@ -1300,30 +1326,13 @@ function kiesOordeel(p, { byId = new Map(), mainIds = new Set(), now = Date.now(
     } else if (op?.has(key)) rows.afgevallen.push(row(c.e, c.x, `geen oordeel: De Redacteur kreeg het paar in ${MAX_POGINGEN} pogingen niet beoordeeld, het wordt niet meer gevraagd; geen koppeling`))
     else rows.afgevallen.push(row(c.e, c.x, plafond ? 'geen oordeel: het dagplafond van het oordeel is bereikt, deze ronde geen koppeling' : wachtrij ? 'nog geen oordeel: De Redacteur beoordeelt het paar in zijn eigen ronde, deze ronde geen koppeling' : 'geen oordeel op tijd: deze ronde geen koppeling'))
   }
+  // Dezelfde aflevering mag bij meer verhalen staan (besluit Alex, 19 november: vier GTA-verhalen tegelijk, en NRC Vandaag
+  // "Luidt GTA VI het einde van een gametijdperk in?" hoort bij elk verhaal waar het oordeel ja zegt). Elk verhaal met een ja
+  // krijgt haar als kandidaat; per verhaal kiest perVerhaal zoals altijd (dezelfde bron gaat voor, één aflevering per
+  // verhaal, de rest in `andere`). Tot 19 november kreeg een aflevering hooguit één verhaal (Editie eerst, dan het grootste
+  // verhaal; even groot of zonder Editieplek: geen van beide; een artikellink wees één verhaal aan).
   const per = new Map()
-  for (const e of p.eps) {
-    let hs = hits.get(e.id) || []
-    if (!hs.length) continue
-    if (hs.some((h) => h.o.grond === 'link')) hs = hs.filter((h) => h.o.grond === 'link')
-    if (hs.length > 1) {
-      // Twee verhalen over dezelfde zaak: het verhaal met een Editieplek krijgt de aflevering; dezelfde plek: geen van beide.
-      const best = Math.min(...hs.map((h) => plek(h.x.st.id)))
-      let top = hs.filter((h) => plek(h.x.st.id) === best)
-      // Dezelfde Editieplek (herstel keuring 3, Editie eerst): dan het grootste verhaal, het hoofdverhaal van de zaak (PROEF-4:
-      // Today in Focus kreeg ja bij twee Nvidia-verhalen en werd zo nergens zichtbaar). Even groot: geen van beide. Zonder
-      // Editieplek nooit: daar ziet de lezer de aflevering niet.
-      if (top.length > 1 && best < 2) {
-        const max = Math.max(...top.map((h) => h.x.items.length))
-        top = top.filter((h) => h.x.items.length === max)
-      }
-      const een = top.length === 1 && best < 2
-      for (const h of hs) if (!een || h !== top[0]) rows.afgevallen.push({ ...row(e, h.x, een ? `past ook bij een${plek(h.x.st.id) === best ? ' groter' : ''} verhaal in ${PLEK[best]}; dat krijgt haar` : `past bij ${hs.length} verhalen${best < 2 ? ` met dezelfde plek (${PLEK[best]})` : ' zonder Editieplek'}: geen van beide krijgt haar`), ...(h.o.oordeel ? { oordeel: h.o.oordeel } : {}) })
-      if (!een) continue
-      hs = top
-    }
-    const [{ x, o }] = hs
-    ;(per.get(x.st.id) || per.set(x.st.id, []).get(x.st.id)).push({ e, x, o })
-  }
+  for (const e of p.eps) for (const { x, o } of hits.get(e.id) || []) (per.get(x.st.id) || per.set(x.st.id, []).get(x.st.id)).push({ e, x, o })
   return perVerhaal(per, rows, { byId, mainIds, plek })
 }
 
