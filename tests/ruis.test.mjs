@@ -70,6 +70,8 @@ test('ruis: echte reclame en geen-berichten blijven uit de Stroom', async () => 
     { title: 'Sudoku', url: 'https://www.nrc.nl/puzzels/sudoku/2026/11/11/', waarom: 'rubriek' },
     { title: 'Software-update - Visual Studio Code 1.146.0', url: 'https://tweakers.net/downloads/79036/visual-studio-code-11460.html', cats: ['Software'], waarom: 'rubriek' },
     { title: '.Actie - Vijf tweakers testten een ssd: maak kans op een exemplaar!', url: 'https://tweakers.net/plan/4872/ssd-actie.html', cats: ['.actie'], waarom: 'categorie' },
+    { title: '.Adv - Black Friday met EcoFlow: wat een thuisbatterij doet op een korte winterdag', url: 'https://tweakers.net/plan/4908/black-friday-met-ecoflow.html', cats: ['.adv'], waarom: 'categorie' },
+    { title: '.Adv - Zo kies je een nieuwe router', url: 'https://tweakers.net/plan/4909/router.html', waarom: 'label' },
     { title: 'The Atlantic Announces New Staff Writers', url: 'https://www.theatlantic.com/press-releases/2026/11/hiring-news/684900/', waarom: 'rubriek' },
   ]
   for (const x of weg) assert.equal(noiseReason({ title: x.title, link: x.url }, x.cats || []), x.waarom, x.title)

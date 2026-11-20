@@ -83,8 +83,10 @@ const NOISE_CATEGORY = new Set([
   'sponsored', 'sponsored content', 'sponsored post', 'gesponsord', 'gesponsorde inhoud', 'advertorial', 'advertentie', 'partner content',
   'partnercontent', 'partnerbijdrage', 'paid content', 'paid post', 'branded content', 'promoted', 'promoted content',
   'newsletter sign-up', 'newsletter signup', 'newsletter sign up', 'press release', 'press releases', 'persbericht', '.actie', '.plan',
+  // Tweakers zet ".adv" op advertorials van Tweakers Partners (".Adv - Black Friday met EcoFlow …", Alex 20 nov)
+  '.adv',
 ])
-const AD_LABEL = /^[\s"'‘“([]*(advertentie|advertorial|gesponsord|sponsored(?: content)?|partner ?content|partnerbijdrage|paid (?:post|content)|branded content|promoted)\s*[:|\]–—]/i
+const AD_LABEL = /^[\s"'‘“([]*(advertentie|advertorial|gesponsord|sponsored(?: content)?|partner ?content|partnerbijdrage|paid (?:post|content)|branded content|promoted)\s*[:|\]–—]|^\s*\.adv\s*[-:|–—]/i
 // Per bron (Redacteur · wired-deals, 11 november 2026): een bron kan in sources.mjs een eigen aanbodrubriek opgeven
 // (`dealsCategory`, nu alleen Wired: "Gear / Deals"). Een algemene regel "… / Deals" kan bij een andere bron een
 // overnamerubriek zijn ("Business / Deals"), daarom geldt dit alleen voor de bron die het opgeeft. En ook dan alleen als de
